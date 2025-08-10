@@ -14,6 +14,13 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
+import {
+  DEMO_LAUNCH_ISO,
+  DEMO_LAUNCH_LABEL,
+  FOUNDER_CLOSE_ISO,
+  getCommercialPhase,
+  getFounderCommercialCopy,
+} from "@/lib/demo/presentation/commercial-state";
 
 const ROOT = process.cwd();
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf-8");
@@ -199,7 +206,11 @@ describe("/demo — transition vers /demo/pierre", () => {
 describe("/demo — état commercial dynamique", () => {
   const c = read(COMMERCIAL);
   it("phrase avant lancement", () => {
-    expect(c).toContain("Pierre ouvre ses accès le 12 août 2026.");
+    // La copie est interpolée depuis la source de vérité (commercial-state) : on vérifie la valeur
+    // compilée, pas le texte brut du fichier.
+    expect(getFounderCommercialCopy("before_launch").availability).toBe(
+      "Lancement officiel le 8 septembre 2026.",
+    );
   });
   it("phrase après lancement", () => {
     expect(c).toContain("Pierre est disponible pour votre entreprise.");
@@ -211,12 +222,43 @@ describe("/demo — état commercial dynamique", () => {
     expect(c).toContain("Activer Pierre à 449 € HT/mois");
   });
   it("dates et tarif fondateur verrouillés", () => {
-    expect(c).toContain("12 août 2026");
-    expect(c).toContain("31 août 2026");
+    expect(c).toContain("8 septembre 2026");
+    expect(c).toContain("30 septembre 2026");
+    expect(c).not.toContain("12 août 2026");
     expect(c).toContain("449 € HT");
     expect(c).toContain(
       "Le tarif fondateur de 449 € HT par mois est conservé sans limite de durée tant que l'abonnement reste actif.",
     );
+  });
+});
+
+// ── Date de lancement canonique (non-régression : 8 septembre 2026) ──────────
+// Protège le CONTRAT produit : la date de lancement officielle est le 8 septembre 2026,
+// centralisée dans commercial-state (source de vérité unique). Aucune surface commerciale
+// critique ne doit régresser vers l'ancienne date du 12 août 2026.
+
+describe("lancement — date canonique verrouillée (8 septembre 2026)", () => {
+  it("la date canonique ISO = 2026-09-08 (heure de Paris)", () => {
+    expect(DEMO_LAUNCH_ISO).toBe("2026-09-08T00:00:00+02:00");
+  });
+  it("le libellé public = « 8 septembre 2026 »", () => {
+    expect(DEMO_LAUNCH_LABEL).toBe("8 septembre 2026");
+    expect(DEMO_LAUNCH_LABEL).toMatch(/septembre 2026/);
+    expect(DEMO_LAUNCH_LABEL).not.toMatch(/ao[uû]t/);
+  });
+  it("la fenêtre fondateur ferme APRÈS le lancement officiel", () => {
+    expect(new Date(FOUNDER_CLOSE_ISO).getTime()).toBeGreaterThan(new Date(DEMO_LAUNCH_ISO).getTime());
+  });
+  it("phase : réservations/pré-lancement avant le 8 septembre, lancé le jour J", () => {
+    expect(getCommercialPhase(new Date("2026-09-01T12:00:00+02:00"))).toBe("before_launch");
+    expect(getCommercialPhase(new Date("2026-09-08T00:00:00+02:00"))).toBe("launched");
+    expect(getCommercialPhase(new Date("2026-09-20T12:00:00+02:00"))).toBe("launched");
+  });
+  it("la source de vérité /demo n'affiche plus le 12 août comme date de lancement", () => {
+    const source = read(COMMERCIAL);
+    expect(source).toContain("2026-09-08T00:00:00+02:00");
+    expect(source).not.toMatch(/12 ao[uû]t 2026/);
+    expect(source).not.toContain("2026-08-12");
   });
 });
 

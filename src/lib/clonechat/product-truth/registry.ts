@@ -100,8 +100,9 @@ export function findStaleTruths(nowISO: string): ProductTruth[] {
   });
 }
 
-/** Toute vérité active ne référence QUE la date de lancement en vigueur (12 août 2026), jamais le
- *  5 août initial (report). Garde anti-régression de fraîcheur des dates. */
+/** Toute vérité active ne référence QUE la date de lancement en vigueur (8 septembre 2026), jamais une
+ *  date de lancement supersédée (5 août 2026 initial, puis 12 août 2026). Garde anti-régression de
+ *  fraîcheur des dates. */
 export function findSupersededDateReferences(): ProductTruth[] {
-  return activeProductTruth().filter((t) => /\b5\s*(?:aout|août)\s*2026\b/i.test(t.value));
+  return activeProductTruth().filter((t) => /\b(?:5|12)\s*(?:aout|août)\s*2026\b/i.test(t.value));
 }

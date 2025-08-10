@@ -12,14 +12,14 @@ describe("CloneChat — vérité canonique CloneStore (corpus réel, pas codé e
   const units = corpus();
   const allText = units.map((u) => u.text).join("\n");
 
-  it("la date de pré-lancement active est le 12 août 2026", () => {
-    expect(allText).toMatch(/12 août 2026/);
+  it("la date de lancement active est le 8 septembre 2026", () => {
+    expect(allText).toMatch(/8 septembre 2026/);
   });
 
-  it("aucune unité n'affiche le 5 août 2026 comme date ACTIVE (seul le 12 août doit apparaître dans les prix/offres)", () => {
+  it("aucune unité n'affiche une date de lancement supersédée (5 août / 12 août 2026) comme date ACTIVE", () => {
     const pricingUnits = units.filter((u) => u.category === "pricing" || u.category === "demo");
     for (const u of pricingUnits) {
-      expect(u.text, `unité ${u.id} ne doit pas référencer le 5 août comme date active`).not.toMatch(/5 août 2026/);
+      expect(u.text, `unité ${u.id} ne doit pas référencer une date de lancement supersédée`).not.toMatch(/(?:5|12) août 2026/);
     }
   });
 

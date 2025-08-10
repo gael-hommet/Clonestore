@@ -107,10 +107,10 @@ describe("founder-access — token de vérification", () => {
 describe("founder-access — calendrier commercial (Europe/Paris)", () => {
   it("trois phases selon la date", () => {
     expect(getFounderPhase(new Date("2026-06-19T12:00:00+02:00"))).toBe("before_launch");
-    expect(getFounderPhase(new Date("2026-08-15T12:00:00+02:00"))).toBe("launched");
-    expect(getFounderPhase(new Date("2026-09-01T12:00:00+02:00"))).toBe("closed");
+    expect(getFounderPhase(new Date("2026-09-15T12:00:00+02:00"))).toBe("launched");
+    expect(getFounderPhase(new Date("2026-10-05T12:00:00+02:00"))).toBe("closed");
   });
-  it("CTA : réserver avant, activer après, fermé après le 31 août", () => {
+  it("CTA : réserver avant, activer après, fermé après le 30 septembre", () => {
     expect(getFounderCtaCopy("before_launch").primaryLabel).toContain("Réserver Pierre à 449 € HT/mois");
     expect(getFounderCtaCopy("launched").primaryLabel).toContain("Activer Pierre à 449 € HT/mois");
     expect(getFounderCtaCopy("closed").open).toBe(false);
@@ -130,7 +130,7 @@ describe("founder-access — séquence email", () => {
     expect(emailJobKey("r1", "launch_open")).toBe("r1:launch_open");
   });
   it("dueScheduledEmails ne renvoie que les dus", () => {
-    const afterClose = dueScheduledEmails(new Date("2026-09-02T00:00:00+02:00"));
+    const afterClose = dueScheduledEmails(new Date("2026-10-02T00:00:00+02:00"));
     expect(afterClose.length).toBe(FOUNDER_EMAIL_SCHEDULE.filter((e) => e.sendAtIso).length);
     const beforeLaunch = dueScheduledEmails(new Date("2026-07-01T00:00:00+02:00"));
     expect(beforeLaunch.length).toBe(0);

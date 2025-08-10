@@ -140,8 +140,8 @@ export const KNOWN_ISSUES: readonly KnownIssue[] = [
     workaround: "Voir la démo (/demo/pierre) en attendant l'ouverture de la fenêtre de réservation.",
     resolutionVerification: "La page de réservation (/reserver/pierre) est ouverte (fenêtre active).",
     escalation: "Escalader si la fenêtre devrait être ouverte mais reste fermée.",
-    provenance: "nav/route-registry (/reserver/pierre : before_launch / window / closed) ; product-truth (lancement 12 août 2026).",
-    validity: "Fenêtre de lancement à partir du 12 août 2026.",
+    provenance: "nav/route-registry (/reserver/pierre : before_launch / window / closed) ; product-truth (lancement officiel 8 septembre 2026).",
+    validity: "Lancement officiel le 8 septembre 2026 ; réservations ouvertes avant cette date.",
   },
   {
     id: "pierre_human_validation_required",

@@ -47,16 +47,16 @@ describe("BLOC 1 — Product Truth Engine : enveloppe & intégrité", () => {
   });
 
   it("0 vérité périmée (stale) à une date de référence après le lancement", () => {
-    // À une date bien après le lancement mais avant la fermeture fondateur : rien n'est encore périmé.
-    expect(findStaleTruths("2026-08-20T00:00:00+02:00")).toEqual([]);
+    // À une date après le lancement (8 septembre) mais avant la fermeture fondateur : rien n'est encore périmé.
+    expect(findStaleTruths("2026-09-15T00:00:00+02:00")).toEqual([]);
   });
 
-  it("la fermeture fondateur devient périmée APRÈS le 31 août 2026 (le moteur de staleness fonctionne)", () => {
-    const stale = findStaleTruths("2026-09-05T00:00:00+02:00");
+  it("la fermeture fondateur devient périmée APRÈS le 30 septembre 2026 (le moteur de staleness fonctionne)", () => {
+    const stale = findStaleTruths("2026-10-05T00:00:00+02:00");
     expect(stale.map((t) => t.id)).toContain("launch:founder_close");
   });
 
-  it("aucune vérité active ne référence la date supersédée du 5 août 2026", () => {
+  it("aucune vérité active ne référence une date de lancement supersédée (5 août / 12 août 2026)", () => {
     expect(findSupersededDateReferences()).toEqual([]);
   });
 
@@ -120,11 +120,11 @@ describe("BLOC 1 — couverture des vérités actives obligatoires", () => {
     expect(isProductionServable(humanOnly!)).toBe(true);
   });
 
-  it("la date de lancement active est bien le 12 août 2026", () => {
+  it("la date de lancement active est bien le 8 septembre 2026", () => {
     const launch = getTruthById("launch:demo_open");
     expect(launch).toBeTruthy();
-    expect(launch!.value).toMatch(/12 août 2026/);
-    expect(launch!.validFrom).toBe("2026-08-12T00:00:00+02:00");
+    expect(launch!.value).toMatch(/8 septembre 2026/);
+    expect(launch!.validFrom).toBe("2026-09-08T00:00:00+02:00");
   });
 
   it("la vision CloneStore et CloneChat est couverte et active", () => {
