@@ -246,8 +246,8 @@ export function PierreDemoExperience() {
             <span className="pd-accent">Regardez-le la mener jusqu&apos;au résultat.</span>
           </h1>
           <p className="pd-lede">
-            Plusieurs demandes arrivent. Pierre les comprend, les organise, prépare les documents —
-            et ne vous sollicite que pour la validation qui compte.
+            Il comprend, organise, prépare les documents — et ne vous sollicite
+            que pour la validation qui compte.
           </p>
           <div className="pd-hero__cta">
             <button type="button" className="pd-btn pd-btn-primary" onClick={startAndFocus} data-step-id="hero-start">
@@ -340,7 +340,7 @@ export function PierreDemoExperience() {
           n="06"
           eyebrow="Le cockpit"
           title="Le poste de pilotage, en direct."
-          caption="Entrées, mission et livrables restent connectés. Avancez au rythme que vous voulez."
+          caption="Entrées, mission et livrables connectés. Avancez à votre rythme."
         />
       <section className="pdc" aria-label="Cockpit de démonstration" data-conversion-demo-cockpit>
         <CockpitTopBar scenario={scenario} phase={phase} counters={counters} />

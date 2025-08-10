@@ -8,13 +8,13 @@
 
 import { MessageSquareText, Brain, ListTree, PlayCircle, PackageCheck, ArrowRight } from "lucide-react";
 import { COCKPIT_PHASES, type DemoScenario } from "@/lib/pierre/demo";
-import { BeatHeading } from "./parts";
+import { BeatHeading, Disclosure } from "./parts";
 
 const METHOD = [
-  { Icon: MessageSquareText, k: "Comprendre", d: "Il lit la demande, en extrait objectifs et échéances — sans rien inventer." },
-  { Icon: Brain, k: "Organiser", d: "Il la transforme en missions, tâches, priorités et validations." },
-  { Icon: ListTree, k: "Exécuter", d: "Il fait avancer plusieurs missions en parallèle et produit les documents." },
-  { Icon: PackageCheck, k: "Livrer", d: "Il prépare messages et livrables, sollicite la validation utile, poursuit le suivi." },
+  { Icon: MessageSquareText, k: "Comprendre", d: "Objectifs et échéances, sans rien inventer." },
+  { Icon: Brain, k: "Organiser", d: "En missions, tâches, priorités, validations." },
+  { Icon: ListTree, k: "Exécuter", d: "Plusieurs missions en parallèle, documents produits." },
+  { Icon: PackageCheck, k: "Livrer", d: "Messages, livrables, validation utile, suivi." },
 ] as const;
 
 export function MissionFrame({
@@ -32,7 +32,7 @@ export function MissionFrame({
         n="03"
         eyebrow="Une vraie mission"
         title="Du brief en langage naturel jusqu'au livrable."
-        caption="Voici la demande réelle de ce scénario. Regardez comment Pierre la mène, étape par étape."
+        caption="La demande réelle de ce scénario — et la méthode que Pierre applique."
       />
 
       <div className="pd-mission-frame">
@@ -67,18 +67,27 @@ export function MissionFrame({
         </div>
       </div>
 
-      {/* The staged storyline — mirrors the cockpit phases the prospect is about to drive */}
-      <div className="pd-story" role="list" aria-label="Déroulé de la mission">
-        {COCKPIT_PHASES.map((p, i) => (
-          <div key={p.id} className="pd-story__step" role="listitem">
-            <span className="pd-story__n" aria-hidden>{i + 1}</span>
-            <span className="pd-story__title">{p.title}</span>
-            <span className="pd-story__cap">{p.caption}</span>
-            {i < COCKPIT_PHASES.length - 1 ? (
-              <span className="pd-story__link" aria-hidden><ArrowRight className="h-3.5 w-3.5" aria-hidden /></span>
-            ) : null}
+      {/* The staged storyline — the 7 cockpit phases, kept out of the initial
+          scroll behind an accessible toggle so the frame stays light. */}
+      <div className="pd-story-wrap">
+        <Disclosure
+          label="Voir le déroulé, étape par étape"
+          labelOpen="Masquer le déroulé"
+          hint={`${COCKPIT_PHASES.length} étapes`}
+        >
+          <div className="pd-story" role="list" aria-label="Déroulé de la mission">
+            {COCKPIT_PHASES.map((p, i) => (
+              <div key={p.id} className="pd-story__step" role="listitem">
+                <span className="pd-story__n" aria-hidden>{i + 1}</span>
+                <span className="pd-story__title">{p.title}</span>
+                <span className="pd-story__cap">{p.caption}</span>
+                {i < COCKPIT_PHASES.length - 1 ? (
+                  <span className="pd-story__link" aria-hidden><ArrowRight className="h-3.5 w-3.5" aria-hidden /></span>
+                ) : null}
+              </div>
+            ))}
           </div>
-        ))}
+        </Disclosure>
       </div>
 
       <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>

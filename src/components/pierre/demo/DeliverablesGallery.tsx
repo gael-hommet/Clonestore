@@ -36,7 +36,7 @@ export function DeliverablesGallery({
         n="07"
         eyebrow="Les livrables"
         title="Voici ce que votre employé IA vient de produire."
-        caption="Des documents réels, ouvrables, tracés et prêts à relire — pas des captures d'écran."
+        caption="Des documents ouvrables et tracés — pas des captures d'écran."
       />
 
       <div className="pd-outputs">
@@ -72,7 +72,7 @@ export function DeliverablesGallery({
       </div>
 
       <p className="pdc-note" style={{ marginTop: 12, justifyContent: "center" }}>
-        Documents de démonstration — ouvrables, mais aucun fichier réel ni donnée privée. Chaque version est tracée par CloneTrace.
+        Documents de démonstration — aucun fichier réel ni donnée privée. Chaque version est tracée par CloneTrace.
       </p>
     </section>
   );

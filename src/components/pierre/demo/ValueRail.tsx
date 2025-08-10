@@ -26,7 +26,7 @@ export function ValueRail({
       eyebrow: "Vous confiez",
       value: "1",
       unit: "demande",
-      line: "Un brief RH en langage naturel, comme à un collègue.",
+      line: "Un brief en langage naturel.",
       accent: false,
     },
     {
@@ -35,7 +35,7 @@ export function ValueRail({
       eyebrow: "Pierre absorbe",
       value: String(counters.actions),
       unit: `tâches · ${counters.missions} missions`,
-      line: `${counters.documents} documents préparés, plusieurs missions menées en parallèle.`,
+      line: `${counters.documents} documents, en parallèle.`,
       accent: true,
     },
     {
@@ -44,7 +44,7 @@ export function ValueRail({
       eyebrow: "Temps rendu",
       value: String(takenOver),
       unit: "volets pris en charge",
-      line: "Organisation, rédaction, relances et suivi — hors de vos mains.",
+      line: "Organisation, rédaction, suivi.",
       accent: false,
     },
     {
@@ -53,7 +53,7 @@ export function ValueRail({
       eyebrow: "Contrôle conservé",
       value: String(counters.validations),
       unit: "validations isolées",
-      line: "Les décisions sensibles restent les vôtres — rien ne part sans vous.",
+      line: "Rien ne part sans vous.",
       accent: false,
     },
   ];
@@ -64,7 +64,7 @@ export function ValueRail({
         n="02"
         eyebrow="La valeur"
         title="Ce que Pierre absorbe — et ce que vous gardez."
-        caption="Une demande entre, une charge opérationnelle sort de votre équipe, la décision reste à vous."
+        caption="La charge opérationnelle sort de votre équipe ; la décision reste à vous."
       />
       <div className="pd-value">
         {steps.map((s, i) => (

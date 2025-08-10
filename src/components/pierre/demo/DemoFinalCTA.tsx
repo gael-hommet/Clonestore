@@ -21,16 +21,16 @@ const ASSURANCES = [
 
 export function DemoFinalCTA() {
   return (
-    <section className="pd-glass" style={{ padding: "clamp(20px,4vw,40px)", textAlign: "center" }} data-testid="demo-final-cta">
-      <div style={{ maxWidth: 640, margin: "0 auto", display: "grid", gap: 14 }}>
+    <section className="pd-glass" style={{ padding: "clamp(16px,3vw,32px)", textAlign: "center" }} data-testid="demo-final-cta">
+      <div style={{ maxWidth: 640, margin: "0 auto", display: "grid", gap: 11 }}>
         <p className="pd-eyebrow">Passer à Pierre</p>
-        <h2 className="pd-display" style={{ fontSize: "clamp(1.6rem,3.4vw,2.6rem)" }}>
+        <h2 className="pd-display" style={{ fontSize: "clamp(1.55rem,3.4vw,2.6rem)" }}>
           Pierre ne vous aide pas à faire les RH.
           <br />
           <span className="pd-accent">Il prend en charge le travail.</span>
         </h2>
         <p className="pd-lede" style={{ marginInline: "auto" }}>
-          Vous gardez les décisions sensibles. Pierre organise, produit, communique, relance et trace le reste.
+          Vous gardez les décisions. Pierre organise, produit, relance et trace le reste.
         </p>
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", paddingTop: 4 }}>
@@ -58,7 +58,7 @@ export function DemoFinalCTA() {
 
         <div className="pd-grid-4" style={{ marginTop: 6 }}>
           {ASSURANCES.map(({ Icon, label }) => (
-            <div key={label} className="pd-card" style={{ padding: "10px 8px", display: "flex", gap: 7, alignItems: "center", justifyContent: "center" }}>
+            <div key={label} className="pd-card" style={{ padding: "8px 7px", display: "flex", gap: 7, alignItems: "center", justifyContent: "center" }}>
               <Icon className="h-3.5 w-3.5" aria-hidden style={{ color: "var(--pd-cool)" }} />
               <span style={{ fontSize: "0.74rem", fontWeight: 600, color: "var(--pd-ink-2)" }}>{label}</span>
             </div>

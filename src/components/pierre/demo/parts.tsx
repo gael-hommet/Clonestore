@@ -4,7 +4,7 @@
 // Pure, dependency-light. Status mapping is centralized so every surface
 // renders the same label/tone/icon for a given work state.
 
-import type { ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import {
   CheckCircle2,
   Clock,
@@ -13,6 +13,7 @@ import {
   ShieldAlert,
   Ban,
   Lock,
+  ChevronDown,
 } from "lucide-react";
 import type { WorkStatus } from "@/lib/pierre/demo";
 
@@ -132,5 +133,51 @@ export function BeatHeading({
         {caption ? <p className="pd-lede">{caption}</p> : null}
       </div>
     </header>
+  );
+}
+
+/**
+ * Progressive-disclosure primitive — a real, keyboard-accessible toggle that
+ * keeps the initial scroll light without ever removing the proof. The content
+ * is rendered from React state (not motion-gated), so it stays available under
+ * prefers-reduced-motion; the optional glide only decorates its appearance.
+ */
+export function Disclosure({
+  label,
+  labelOpen,
+  hint,
+  children,
+  defaultOpen = false,
+}: {
+  label: string;
+  labelOpen?: string;
+  hint?: string;
+  children: ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const bodyId = useId();
+  return (
+    <div className="pd-disclosure">
+      <button
+        type="button"
+        className="pd-disclosure__btn"
+        aria-expanded={open}
+        aria-controls={bodyId}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <ChevronDown
+          className={`pd-disclosure__chev${open ? " pd-disclosure__chev--open" : ""} h-4 w-4`}
+          aria-hidden
+        />
+        <span className="pd-disclosure__label">{open ? labelOpen ?? label : label}</span>
+        {hint ? <span className="pd-disclosure__hint">{hint}</span> : null}
+      </button>
+      {open ? (
+        <div id={bodyId} className="pd-disclosure__body pd-animate-fade">
+          {children}
+        </div>
+      ) : null}
+    </div>
   );
 }

@@ -10,10 +10,10 @@ import { MessageSquare, Sparkles, ShieldCheck } from "lucide-react";
 import { BeatHeading } from "./parts";
 
 const CONTRASTS = [
-  { chatbot: "Répond, puis oublie la conversation.", pierre: "Garde la mission active des jours : il attend, relance et reprend." },
-  { chatbot: "Invente pour combler un trou.", pierre: "Signale ce qui manque et bloque la tâche — jamais d'invention." },
-  { chatbot: "Agit ou refuse sans cadre clair.", pierre: "Sait ce qu'il fait seul, ce qu'il soumet, ce qu'il ne fait pas." },
-  { chatbot: "Produit du texte à copier-coller.", pierre: "Produit des livrables tracés : documents, messages, validations." },
+  { chatbot: "Répond, puis oublie.", pierre: "Garde la mission active : attend, relance, reprend." },
+  { chatbot: "Invente pour combler un trou.", pierre: "Signale ce qui manque. Jamais d'invention." },
+  { chatbot: "Agit ou refuse sans cadre.", pierre: "Sait ce qu'il fait seul, soumet, ou refuse." },
+  { chatbot: "Produit du texte à copier-coller.", pierre: "Produit des livrables tracés et validés." },
 ] as const;
 
 export function ConclusionBlock() {
@@ -23,7 +23,7 @@ export function ConclusionBlock() {
         n="08"
         eyebrow="La différence"
         title="Ce n'est pas un chatbot. C'est un poste tenu."
-        caption="La même demande, deux mondes : l'un répond, l'autre prend le travail en charge."
+        caption="La même demande, deux mondes."
         align="center"
       />
 
@@ -48,7 +48,7 @@ export function ConclusionBlock() {
 
       <p className="pdc-note" style={{ marginTop: 14, justifyContent: "center", textAlign: "center" }}>
         <ShieldCheck className="h-3.5 w-3.5" aria-hidden style={{ color: "var(--pd-ok)", flex: "none" }} />
-        Pierre ne remplace pas la décision humaine : il prépare le travail et vous sollicite exactement quand un arbitrage reste nécessaire.
+        Pierre ne remplace pas la décision humaine : il prépare le travail et vous sollicite quand un arbitrage s&apos;impose.
       </p>
     </section>
   );

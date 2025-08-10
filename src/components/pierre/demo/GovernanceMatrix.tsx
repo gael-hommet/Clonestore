@@ -14,7 +14,7 @@
 
 import { Bot, ShieldCheck, UserCheck, Check, ArrowRight } from "lucide-react";
 import type { DemoScenario } from "@/lib/pierre/demo";
-import { BeatHeading, Chip } from "./parts";
+import { BeatHeading, Chip, Disclosure } from "./parts";
 import { GuardrailMoment } from "./GuardrailMoment";
 
 function validationClauses(scenario: DemoScenario): string[] {
@@ -69,7 +69,7 @@ export function GovernanceMatrix({ scenario }: { scenario: DemoScenario }) {
         n="05"
         eyebrow="La gouvernance"
         title="Ce qu'il fait seul. Ce qu'il vous soumet. Ce qu'il ne fait jamais."
-        caption="La frontière est explicite et tenue par CloneGuard — c'est ce qui sépare Pierre d'une IA générale."
+        caption="Une frontière explicite, tenue par CloneGuard — la différence avec une IA générale."
       />
 
       <div className="pd-gov">
@@ -92,15 +92,23 @@ export function GovernanceMatrix({ scenario }: { scenario: DemoScenario }) {
         ))}
       </div>
 
-      {/* The concrete human-validation moment: a sensitive request, a governed refusal. */}
+      {/* The concrete human-validation moment: a sensitive request, a governed
+          refusal — kept out of the initial scroll behind an accessible toggle
+          (the proof stays, just one tap away). */}
       <div className="pd-gov__concrete">
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-          <Chip variant="warn"><ArrowRight className="h-3.5 w-3.5" aria-hidden /> Cas concret</Chip>
-          <span style={{ fontSize: "0.78rem", color: "var(--pd-ink-3)" }}>
-            Une demande sensible arrive. Voici, mot pour mot, la réponse gouvernée de Pierre.
-          </span>
-        </div>
-        <GuardrailMoment scenario={scenario} />
+        <Disclosure
+          label="Voir le cas concret — une demande sensible"
+          labelOpen="Masquer le cas concret"
+          hint="garde-fou"
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", margin: "2px 0 8px" }}>
+            <Chip variant="warn"><ArrowRight className="h-3.5 w-3.5" aria-hidden /> Cas concret</Chip>
+            <span style={{ fontSize: "0.78rem", color: "var(--pd-ink-3)" }}>
+              Une demande sensible : voici, mot pour mot, sa réponse gouvernée.
+            </span>
+          </div>
+          <GuardrailMoment scenario={scenario} />
+        </Disclosure>
       </div>
     </section>
   );

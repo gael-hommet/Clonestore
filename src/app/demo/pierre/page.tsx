@@ -12,6 +12,7 @@ import Link from "next/link";
 import { ShieldCheck, ArrowRight, ArrowLeft } from "lucide-react";
 import { PierreDemoExperience } from "@/components/pierre/demo/PierreDemoExperience";
 import { PierreModes } from "@/components/pierre/PierreModes";
+import { Disclosure } from "@/components/pierre/demo/parts";
 import "./pierre-demo.css";
 
 const SAFETY = [
@@ -35,23 +36,31 @@ export default function PierreDemoPage() {
 
         <PierreDemoExperience />
 
-        {/* ── Modes d'autonomie — vous choisissez ce que Pierre fait seul ──── */}
-        <section className="mt-10" aria-label="Modes d'autonomie de Pierre">
-          <PierreModes headingLevel="h2" />
+        {/* ── Modes d'autonomie — progressive disclosure: one tap, never removed ── */}
+        <section className="mt-6" aria-label="Modes d'autonomie de Pierre">
+          <Disclosure
+            label="Voir les niveaux d'autonomie — vous choisissez ce que Pierre fait seul"
+            labelOpen="Masquer les niveaux d'autonomie"
+            hint="4 modes"
+          >
+            <div style={{ marginTop: 12 }}>
+              <PierreModes headingLevel="h2" />
+            </div>
+          </Disclosure>
         </section>
 
         {/* ── Footer: safety, price, legal ────────────────────────────────── */}
-        <footer className="mt-10 pd-card" style={{ padding: 18 }}>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">
+        <footer className="mt-6 pd-card" style={{ padding: 13 }}>
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
             {SAFETY.map((s) => (
-              <div key={s} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                <ShieldCheck className="h-3.5 w-3.5" aria-hidden style={{ color: "var(--pd-ok)", marginTop: 2, flex: "none" }} />
-                <span style={{ fontSize: "0.74rem", color: "var(--pd-ink-3)" }}>{s}</span>
+              <div key={s} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <ShieldCheck className="h-3.5 w-3.5" aria-hidden style={{ color: "var(--pd-ok)", flex: "none" }} />
+                <span style={{ fontSize: "0.72rem", color: "var(--pd-ink-3)" }}>{s}</span>
               </div>
             ))}
           </div>
 
-          <div style={{ marginTop: 14, borderTop: "1px solid var(--pd-line)", paddingTop: 14, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ marginTop: 10, borderTop: "1px solid var(--pd-line)", paddingTop: 10, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <Link href="/reserver/pierre" className="pd-btn pd-btn-primary" style={{ minHeight: 42 }} data-conversion-cta="purchase" data-cta-name="demo_footer_reserve">
               Réserver Pierre <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
@@ -63,7 +72,7 @@ export default function PierreDemoPage() {
             </Link>
           </div>
 
-          <p style={{ marginTop: 12, fontSize: "0.72rem", color: "var(--pd-ink-4)", lineHeight: 1.6 }}>
+          <p style={{ marginTop: 9, fontSize: "0.72rem", color: "var(--pd-ink-4)", lineHeight: 1.5 }}>
             Démonstration illustrative. Pierre est un poste RH opérationnel : il prépare missions, tâches, documents,
             messages et relances, garde chaque action tracée par CloneTrace et gouvernée par CloneGuard. Il n&apos;est pas
             avocat, n&apos;est pas un logiciel de paie certifié, ne

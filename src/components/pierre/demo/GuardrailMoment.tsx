@@ -18,7 +18,6 @@ export function GuardrailMoment({ scenario }: { scenario: DemoScenario }) {
       <StepHeading
         eyebrow="Garde-fous"
         title="Puissant, mais gouverné."
-        caption="Face à une demande sensible, Pierre reste professionnel : il cadre, il ne décide pas seul."
       />
       <div className="pd-split">
         <div className="pd-card" style={{ padding: 16 }}>
