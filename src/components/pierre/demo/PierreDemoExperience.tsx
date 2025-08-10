@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight, ArrowLeft, Play, Pause, RotateCcw, ChevronRight, LogOut, Layers,
-  Inbox, ListChecks, PackageCheck, Eye, ShieldCheck,
+  Inbox, ListChecks, PackageCheck, Eye, CalendarClock,
 } from "lucide-react";
 import {
   DEMO_SCENARIOS, getScenario, getDefaultScenario, DEMO_TECHNOLOGIES,
@@ -22,12 +22,11 @@ import {
   clampPhase, nextPhase, prevPhase, isLastPhase, cockpitCompletion, cockpitCounters, phaseIndexById,
   trackDemoEvent, type CockpitPhase, type CockpitPhaseId,
 } from "@/lib/pierre/demo";
-import { Chip, SafetyChip } from "./parts";
+import { Chip, SafetyChip, StatusMark, BeatHeading } from "./parts";
 import { CockpitTopBar } from "./cockpit/CockpitTopBar";
-import { IncomingRequests, ContextGaps, WeekContinuity, DeliverablesList, RoleSplit, LockedPanel } from "./cockpit/CockpitPanels";
+import { IncomingRequests, ContextGaps, WeekContinuity, DeliverablesList, LockedPanel } from "./cockpit/CockpitPanels";
 import { MissionUnderstanding } from "./MissionUnderstanding";
 import { MissionControl } from "./MissionControl";
-import { GuardrailMoment } from "./GuardrailMoment";
 import { DemoMessaging } from "./DemoMessaging";
 import { DemoApproval } from "./DemoApproval";
 import { CloneTraceTimeline } from "./CloneTraceTimeline";
@@ -37,6 +36,11 @@ import { DemoDocumentViewer } from "./DemoDocumentViewer";
 import { DemoDrawer } from "./DemoDrawer";
 import { ConversionMoment } from "./ConversionMoment";
 import { DemoFinalCTA } from "./DemoFinalCTA";
+import { ValueRail } from "./ValueRail";
+import { MissionFrame } from "./MissionFrame";
+import { GovernanceMatrix } from "./GovernanceMatrix";
+import { DeliverablesGallery } from "./DeliverablesGallery";
+import { ConclusionBlock } from "./ConclusionBlock";
 
 type ZoneId = "left" | "center" | "right";
 const TECH_DRAWER = "__tech__";
@@ -79,6 +83,7 @@ export function PierreDemoExperience() {
   const phase: CockpitPhase = COCKPIT_PHASES[phaseIndex];
   const counters = useMemo(() => cockpitCounters(scenario), [scenario]);
   const finalRef = useRef<HTMLDivElement>(null);
+  const cockpitRef = useRef<HTMLDivElement>(null);
   const bodyRefs = { left: useRef<HTMLDivElement>(null), center: useRef<HTMLDivElement>(null), right: useRef<HTMLDivElement>(null) };
   const openDoc = openDocId && openDocId !== TECH_DRAWER ? scenario.documents.find((d) => d.id === openDocId) ?? null : null;
   const activeTech = DEMO_TECHNOLOGIES.find((t) => t.id === PHASE_TECH[phase.id]);
@@ -166,6 +171,19 @@ export function PierreDemoExperience() {
   const goNext = useCallback(() => setPhaseIndex((i) => nextPhase(i)), []);
   const goPrev = useCallback(() => setPhaseIndex((i) => prevPhase(i)), []);
 
+  const scrollToCockpit = useCallback(() => {
+    requestAnimationFrame(() =>
+      cockpitRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" }),
+    );
+  }, [reducedMotion]);
+
+  // Start (if needed) and bring the interactive cockpit into view — used by the
+  // hero CTA and the mission-frame launch button, which now sit above it.
+  const startAndFocus = useCallback(() => {
+    if (!started) start();
+    scrollToCockpit();
+  }, [started, start, scrollToCockpit]);
+
   const restart = useCallback(() => {
     setPhaseIndex(0);
     setStarted(false);
@@ -213,60 +231,117 @@ export function PierreDemoExperience() {
 
   return (
     <div data-testid="pierre-demo-experience">
-      {/* ── Hero — value in < 10s ─────────────────────────────────────────── */}
-      <header className="pd-glass pd-animate-rise" style={{ padding: "clamp(20px,4vw,40px)", marginBottom: 16 }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-          <Chip variant="neutral"><Eye className="h-3.5 w-3.5" aria-hidden /> Cockpit interactif · environ 2 min</Chip>
-          <SafetyChip>Aucune communication réelle · aucune donnée modifiée</SafetyChip>
+      {/* ══ 01 · PROMISE — hero: message + live product proof, one viewport ══ */}
+      <header className="pd-glass pd-hero pd-animate-rise">
+        <div className="pd-hero__lead">
+          <div className="pd-hero__chips">
+            <Chip variant="neutral"><Eye className="h-3.5 w-3.5" aria-hidden /> Cockpit interactif · ~2 min</Chip>
+            <Chip variant="cool">{counters.missions} missions en parallèle</Chip>
+            <SafetyChip>Aucune action réelle · données fictives</SafetyChip>
+          </div>
+          <p className="pd-eyebrow">Un poste RH opérationnel, pas un chatbot</p>
+          <h1 className="pd-display">
+            Confiez une semaine RH à Pierre.
+            <br />
+            <span className="pd-accent">Regardez-le la mener jusqu&apos;au résultat.</span>
+          </h1>
+          <p className="pd-lede">
+            Plusieurs demandes arrivent. Pierre les comprend, les organise, prépare les documents —
+            et ne vous sollicite que pour la validation qui compte.
+          </p>
+          <div className="pd-hero__cta">
+            <button type="button" className="pd-btn pd-btn-primary" onClick={startAndFocus} data-step-id="hero-start">
+              {started ? "Reprendre la semaine" : "Confier la semaine à Pierre"} <ArrowRight className="h-4 w-4" aria-hidden />
+            </button>
+            <button type="button" className="pd-btn pd-btn-ghost" onClick={openTechnologies} data-step-id="hero-tech">
+              <Layers className="h-4 w-4" aria-hidden /> Voir les technologies
+            </button>
+          </div>
+          <div className="pd-hero__pick">
+            <span className="pd-eyebrow">Choisissez une situation</span>
+            <div className="pd-scenarios" data-testid="scenario-selector" role="group" aria-label="Choisir une situation">
+              {DEMO_SCENARIOS.map((s) => {
+                const active = s.id === scenarioId;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    className="pd-scenario"
+                    aria-current={active}
+                    onClick={() => changeScenario(s.id)}
+                    data-step-id={`scenario:${s.id}`}
+                    data-scenario-id={s.id}
+                  >
+                    <span className="pd-scenario__row">
+                      <span className="pd-scenario__name">{s.name}</span>
+                      {s.recommended ? <Chip variant="cool">Recommandé</Chip> : null}
+                      {active ? <ChevronRight className="h-4 w-4" aria-hidden style={{ marginLeft: "auto", color: "var(--pd-cool)" }} /> : null}
+                    </span>
+                    <span className="pd-scenario__sub">{s.sublabel}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
-        <p className="pd-eyebrow" style={{ marginBottom: 10 }}>Un poste RH opérationnel, pas un chatbot</p>
-        <h1 className="pd-display">
-          Confiez une semaine RH à Pierre.
-          <br />
-          <span className="pd-accent">Regardez-le la mener jusqu&apos;au résultat.</span>
-        </h1>
-        <p className="pd-lede" style={{ marginTop: 12 }}>
-          Plusieurs demandes arrivent. Pierre comprend, organise, prépare les documents, demande la seule
-          validation qui compte, relance et garde chaque mission active — sous votre contrôle.
-        </p>
 
-        {/* Scenario selector */}
-        <p className="pd-eyebrow" style={{ margin: "18px 0 10px" }}>Choisissez une situation</p>
-        <div className="pd-board" data-testid="scenario-selector">
-          {DEMO_SCENARIOS.map((s) => {
-            const active = s.id === scenarioId;
-            return (
-              <button
-                key={s.id}
-                type="button"
-                className="pd-mission"
-                aria-current={active}
-                onClick={() => changeScenario(s.id)}
-                data-step-id={`scenario:${s.id}`}
-                data-scenario-id={s.id}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontWeight: 700, color: "var(--pd-ink-1)" }}>{s.name}</span>
-                  {s.recommended ? <Chip variant="cool">Recommandé</Chip> : null}
-                  {active ? <ChevronRight className="h-4 w-4" aria-hidden style={{ marginLeft: "auto", color: "var(--pd-cool)" }} /> : null}
-                </div>
-                <p style={{ margin: "4px 0 0", fontSize: "0.78rem", color: "var(--pd-ink-3)" }}>{s.promise}</p>
-              </button>
-            );
-          })}
-        </div>
-
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
-          <button type="button" className="pd-btn pd-btn-primary" onClick={start} data-step-id="hero-start">
-            {started ? "Reprendre la semaine" : "Confier la semaine à Pierre"} <ArrowRight className="h-4 w-4" aria-hidden />
-          </button>
-          <button type="button" className="pd-btn pd-btn-ghost" onClick={openTechnologies} data-step-id="hero-tech">
-            <Layers className="h-4 w-4" aria-hidden /> Voir les technologies
-          </button>
-        </div>
+        {/* Live product proof — a compact, credible snapshot of Pierre's week */}
+        <aside className="pd-hero__proof" aria-label="Aperçu du poste de Pierre">
+          <div className="pd-hero__proofbar">
+            <span className="pdc-zone__ico" aria-hidden><CalendarClock className="h-4 w-4" aria-hidden /></span>
+            <span className="pd-hero__proofid">
+              <span className="pd-hero__proofclock">{scenario.clockLabel ?? "Cette semaine"}</span>
+              <span className="pd-hero__prooftitle">{scenario.name}</span>
+            </span>
+            <span className="pd-chip pd-chip--cool pd-hero__proofchip">En activité</span>
+          </div>
+          <div className="pd-hero__tiles">
+            {[
+              { v: counters.missions, l: "missions" },
+              { v: counters.documents, l: "documents" },
+              { v: counters.validations, l: "validations" },
+              { v: counters.waiting, l: "en attente" },
+            ].map((t) => (
+              <div key={t.l} className="pd-hero__tile">
+                <span className="pd-hero__tilev">{t.v}</span>
+                <span className="pd-hero__tilel">{t.l}</span>
+              </div>
+            ))}
+          </div>
+          <div className="pd-hero__missions">
+            {scenario.missions.slice(0, 3).map((m) => (
+              <div key={m.id} className="pd-hero__mrow">
+                <span className="pd-hero__mtitle">{m.title}</span>
+                <StatusMark status={m.status} />
+              </div>
+            ))}
+          </div>
+        </aside>
       </header>
 
-      {/* ── The cockpit ───────────────────────────────────────────────────── */}
+      {/* ══ 02 · VALUE ══════════════════════════════════════════════════════ */}
+      <section className="pd-section">
+        <ValueRail scenario={scenario} counters={counters} />
+      </section>
+
+      {/* ══ 03 + 04 · A REAL MISSION / HOW HE WORKS ═════════════════════════ */}
+      <section className="pd-section">
+        <MissionFrame scenario={scenario} started={started} onLaunch={startAndFocus} />
+      </section>
+
+      {/* ══ 05 · GOVERNANCE (standalone, elevated) ══════════════════════════ */}
+      <section className="pd-section">
+        <GovernanceMatrix scenario={scenario} />
+      </section>
+
+      {/* ══ 06 · THE COCKPIT — the interactive control view ═════════════════ */}
+      <div ref={cockpitRef} className="pd-section" id="pd-cockpit" style={{ scrollMarginTop: 16 }}>
+        <BeatHeading
+          n="06"
+          eyebrow="Le cockpit"
+          title="Le poste de pilotage, en direct."
+          caption="Entrées, mission et livrables restent connectés. Avancez au rythme que vous voulez."
+        />
       <section className="pdc" aria-label="Cockpit de démonstration" data-conversion-demo-cockpit>
         <CockpitTopBar scenario={scenario} phase={phase} counters={counters} />
 
@@ -382,7 +457,6 @@ export function PierreDemoExperience() {
                   <MissionControl scenario={scenario} activeMissionId={activeMissionId} onSelectMission={setActiveMissionId} />
                 </div>
               ) : <LockedPanel>Les missions et actions apparaissent à l&apos;organisation.</LockedPanel>}
-              {revealed(R.validation) ? <GuardrailMoment scenario={scenario} /> : null}
               {revealed(R.continuite) ? <div data-spot="continuite"><WeekContinuity scenario={scenario} /></div> : null}
             </div>
           </section>
@@ -421,7 +495,6 @@ export function PierreDemoExperience() {
               {revealed(R.bilan) ? (
                 <div data-spot="bilan">
                   <DemoResult scenario={scenario} />
-                  {scenario.roleSplit ? <RoleSplit data={scenario.roleSplit} /> : null}
                 </div>
               ) : null}
             </div>
@@ -450,22 +523,26 @@ export function PierreDemoExperience() {
         </div>
       </section>
 
-      {/* ── Mid-demo contextual CTA (after execution) ─────────────────────── */}
-      {started && phaseIndex >= R.execution && !midCtaDismissed && !reachedBilan ? (
-        <div style={{ marginTop: 16 }}>
-          <ConversionMoment onContinue={() => { setMidCtaDismissed(true); setPlaying(!reducedMotion); goNext(); }} />
-        </div>
-      ) : null}
+        {/* Mid-demo contextual CTA — appears once the cockpit reaches execution */}
+        {started && phaseIndex >= R.execution && !midCtaDismissed && !reachedBilan ? (
+          <div style={{ marginTop: 16 }}>
+            <ConversionMoment onContinue={() => { setMidCtaDismissed(true); setPlaying(!reducedMotion); goNext(); }} />
+          </div>
+        ) : null}
+      </div>
 
-      {/* ── Reassurance line ──────────────────────────────────────────────── */}
-      <p className="pdc-note" style={{ marginTop: 16, justifyContent: "center", textAlign: "center" }}>
-        <ShieldCheck className="h-3.5 w-3.5" aria-hidden style={{ color: "var(--pd-ok)", flex: "none" }} />
-        Pierre ne remplace pas la décision humaine&nbsp;: il prépare le travail et vous sollicite exactement quand un
-        arbitrage reste nécessaire.
-      </p>
+      {/* ══ 07 · DELIVERABLES — the finished outputs, as products ═══════════ */}
+      <section className="pd-section">
+        <DeliverablesGallery scenario={scenario} onOpen={openDocument} />
+      </section>
 
-      {/* ── Final CTA ─────────────────────────────────────────────────────── */}
-      <div ref={finalRef} id="pd-final" style={{ marginTop: 22, scrollMarginTop: 16 }}>
+      {/* ══ 08 · CONCLUSION — why he is not a chatbot ══════════════════════ */}
+      <section className="pd-section">
+        <ConclusionBlock />
+      </section>
+
+      {/* ══ 09 · CTA ═══════════════════════════════════════════════════════ */}
+      <div ref={finalRef} id="pd-final" className="pd-section" style={{ scrollMarginTop: 16 }}>
         <DemoFinalCTA />
       </div>
 

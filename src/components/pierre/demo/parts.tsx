@@ -104,3 +104,33 @@ export function StepHeading({ eyebrow, title, caption }: { eyebrow: string; titl
     </header>
   );
 }
+
+/**
+ * Numbered narration heading — the single component that makes the top→bottom
+ * story ("01 · Promesse", "02 · Valeur"…) instantly perceptible. `headingLevel`
+ * lets a beat sit under the page h1 as an h2 while staying visually consistent.
+ */
+export function BeatHeading({
+  n,
+  eyebrow,
+  title,
+  caption,
+  align = "start",
+}: {
+  n: string;
+  eyebrow: string;
+  title: string;
+  caption?: string;
+  align?: "start" | "center";
+}) {
+  return (
+    <header className={`pd-beat${align === "center" ? " pd-beat--center" : ""}`}>
+      <span className="pd-beat__n" aria-hidden>{n}</span>
+      <div className="pd-beat__text">
+        <p className="pd-eyebrow">{eyebrow}</p>
+        <h2 className="pd-h2">{title}</h2>
+        {caption ? <p className="pd-lede">{caption}</p> : null}
+      </div>
+    </header>
+  );
+}
