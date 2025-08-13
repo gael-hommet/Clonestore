@@ -1,56 +1,84 @@
 // GO-LIVE 05 — /demo/pierre — content + safety tests.
-// Updated for the PIERRE FINAL INTERACTIVE DEMO rebuild: the page is now a thin
-// client shell that renders <PierreDemoExperience/>, with scenarios living in
-// src/lib/pierre/demo/. All SAFETY / claims / links guardrails are preserved;
-// only scenario-identity assertions point at the new scenario library.
+// REWRITTEN for the ZERO-SCROLL PLAYER rebuild. The page is now a thin client shell
+// that renders <DemoPlayer/> (a single-viewport, 6-scene interactive film); the rich
+// content lives in src/components/pierre/demo/player/**. All PRODUCT / SAFETY / claims
+// / legal guardrails are PRESERVED — they are simply asserted against the player tree
+// (page + player components) instead of the old long-page body. Only the assertions
+// that protected the OLD stacked layout were changed to the new zero-scroll contract.
 // Safe: no AI, no Supabase, no Stripe, no real data — readFileSync only.
 
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "fs";
+import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
+import { DEMO_CTA_DESTINATIONS } from "@/lib/pierre/demo";
 
 const ROOT = process.cwd();
 const read = (p: string) => readFileSync(join(ROOT, p), "utf-8");
 const readDemoPage = () => read("src/app/demo/pierre/page.tsx");
 const readNewScenarios = () => read("src/lib/pierre/demo/demo-scenarios.ts");
-// Untouched legacy public-demo library (still part of pfinal01-demo).
 const readLegacyScenarios = () => read("src/lib/demo/public-demo/demo-scenario.ts");
+
+// The whole player tree (page + every player component/scene/overlay) — the new home
+// of the copy that used to sit inline in the page body.
+function playerTree(): string {
+  const dir = join(ROOT, "src/components/pierre/demo/player");
+  const files = (readdirSync(dir, { recursive: true }) as unknown as string[]).filter((f) => /\.tsx?$/.test(String(f)) && !String(f).includes("__tests__"));
+  return [readDemoPage(), ...files.map((f) => read(join("src/components/pierre/demo/player", String(f))))].join("\n\n");
+}
+const TREE = playerTree();
+const css = read("src/app/demo/pierre/pierre-demo.css");
 
 // ── Page existence and fundamentals ──────────────────────────────────────────
 describe("pierre-demo — page existence and structure", () => {
   it("/demo/pierre page exists and is substantial", () => {
     expect(readDemoPage().length).toBeGreaterThan(2000);
   });
-  it("page is a client shell rendering the interactive experience", () => {
+  it("page is a client shell rendering the interactive player", () => {
     const page = readDemoPage();
     expect(page).toMatch(/^"use client";/);
-    expect(page).toContain("PierreDemoExperience");
+    expect(page).toContain("DemoPlayer");
   });
   it("page mentions Pierre", () => {
     expect(readDemoPage()).toMatch(/pierre/i);
   });
-  it("page mentions 449 (price truth)", () => {
-    expect(readDemoPage()).toMatch(/449|PIERRE_PRICE_LABEL/);
+  it("the player tree mentions 449 (price truth, from commercial-state)", () => {
+    expect(TREE).toMatch(/449|FOUNDER_PRICE_MONTHLY/);
   });
-  it("page mentions démonstration illustrative", () => {
-    expect(readDemoPage()).toMatch(/illustrative|illustratif/i);
+  it("the player tree mentions démonstration illustrative", () => {
+    expect(TREE).toMatch(/illustrative|illustratif/i);
   });
-  it("page mentions données fictives", () => {
-    expect(readDemoPage()).toMatch(/fictives?|fictif/i);
+  it("the player tree mentions données fictives", () => {
+    expect(TREE).toMatch(/fictives?|fictif/i);
   });
-  it("page mentions validation humaine", () => {
-    expect(readDemoPage()).toMatch(/validation humaine/i);
+  it("the player tree mentions validation humaine", () => {
+    expect(TREE).toMatch(/validation humaine/i);
   });
 });
 
 // ── Demo content: core concepts ───────────────────────────────────────────────
 describe("pierre-demo — core content", () => {
-  it("page mentions mission, tâches, document, trace", () => {
-    const page = readDemoPage();
-    expect(page).toMatch(/mission/i);
-    expect(page).toMatch(/tâches?/i);
-    expect(page).toMatch(/document/i);
-    expect(page).toMatch(/trace/i);
+  it("the player tree mentions mission, tâches, document, trace", () => {
+    expect(TREE).toMatch(/mission/i);
+    expect(TREE).toMatch(/tâches?/i);
+    expect(TREE).toMatch(/document/i);
+    expect(TREE).toMatch(/trace/i);
+  });
+});
+
+// ── Zero-scroll paradigm (replaces the old "stacked/grid layout" assertions) ──
+describe("pierre-demo — zero-scroll player contract", () => {
+  it("the root player is exactly one viewport and never scrolls the page", () => {
+    expect(css).toMatch(/\.pdp-root\b[\s\S]*height:\s*100dvh/);
+    expect(css).toMatch(/\.pdp-root\b[\s\S]*overflow:\s*hidden/);
+    expect(css).toMatch(/\.pdp-root\b[\s\S]*flex-direction:\s*column/);
+  });
+  it("the scene area is a bounded flex child (flex:1; min-height:0; overflow:hidden)", () => {
+    expect(css).toMatch(/\.pdp-stage\b[\s\S]*min-height:\s*0/);
+    expect(css).toMatch(/\.pdp-stage\b[\s\S]*overflow:\s*hidden/);
+  });
+  it("scenes switch via React state, not by scrolling to anchors", () => {
+    expect(TREE).toContain("SceneViewport");
+    expect(TREE).not.toMatch(/scrollIntoView/);
   });
 });
 
@@ -97,42 +125,44 @@ describe("demo-scenario legacy library — backwards compatibility", () => {
 });
 
 // ── Navigation and links ──────────────────────────────────────────────────────
+// The player consumes the canonical DEMO_CTA_DESTINATIONS constants; asserting the
+// references + their resolved values proves the links are real (no dead links).
 describe("pierre-demo — navigation links", () => {
-  it("page links to /agents/pierre", () => {
-    expect(readDemoPage()).toContain("/agents/pierre");
+  it("references the discover destination (/agents/pierre)", () => {
+    expect(TREE).toContain("DEMO_CTA_DESTINATIONS.discover");
+    expect(DEMO_CTA_DESTINATIONS.discover).toBe("/agents/pierre");
   });
-  it("page links to /reserver/pierre (real reservation route)", () => {
-    expect(readDemoPage()).toContain("/reserver/pierre");
+  it("references the reservation route (/reserver/pierre)", () => {
+    expect(TREE).toContain("DEMO_CTA_DESTINATIONS.reserve");
+    expect(DEMO_CTA_DESTINATIONS.reserve).toBe("/reserver/pierre");
   });
-  it("page links to legal CGV or CGU", () => {
-    expect(readDemoPage()).toMatch(/\/legal\/cg[vu]/i);
+  it("references legal CGV/CGU + confidentialité", () => {
+    expect(TREE).toMatch(/DEMO_CTA_DESTINATIONS\.legal_/);
+    expect(DEMO_CTA_DESTINATIONS.legal_cgv).toMatch(/\/legal\/cg[vu]/i);
+    expect(DEMO_CTA_DESTINATIONS.legal_privacy).toBe("/legal/confidentialite");
   });
-  it("page links to confidentialite", () => {
-    expect(readDemoPage()).toContain("/legal/confidentialite");
-  });
-  it("page has a CTA", () => {
-    expect(readDemoPage()).toMatch(/ArrowRight|Réserver Pierre|Découvrir|agents\/pierre/i);
+  it("player has a reserve CTA", () => {
+    expect(TREE).toMatch(/Réserver Pierre/);
   });
 });
 
 // ── Safety rules — no forbidden API calls ─────────────────────────────────────
 describe("pierre-demo — no external API calls", () => {
   it("no OpenAI API call", () => {
-    expect(readDemoPage()).not.toMatch(/https:\/\/api\.openai\.com/i);
+    expect(TREE).not.toMatch(/https:\/\/api\.openai\.com/i);
   });
   it("no Anthropic API call", () => {
-    expect(readDemoPage()).not.toMatch(/api\.anthropic\.com/i);
+    expect(TREE).not.toMatch(/api\.anthropic\.com/i);
   });
   it("no Stripe live call", () => {
-    const page = readDemoPage();
-    expect(page).not.toMatch(/https:\/\/api\.stripe\.com/i);
-    expect(page).not.toMatch(/sk_live_/i);
+    expect(TREE).not.toMatch(/https:\/\/api\.stripe\.com/i);
+    expect(TREE).not.toMatch(/sk_live_/i);
   });
   it("no Supabase write call", () => {
-    expect(readDemoPage()).not.toMatch(/\.from\(.*\)\.insert|\.from\(.*\)\.upsert|\.from\(.*\)\.update/);
+    expect(TREE).not.toMatch(/\.from\(.*\)\.insert|\.from\(.*\)\.upsert|\.from\(.*\)\.update/);
   });
   it("no fetch to external APIs", () => {
-    const nonComment = readDemoPage().split("\n").filter((l) => !l.trim().startsWith("//")).join("\n");
+    const nonComment = TREE.split("\n").filter((l) => !l.trim().startsWith("//")).join("\n");
     expect(nonComment).not.toMatch(/fetch\s*\(\s*["']https:\/\/api\./);
   });
 });
@@ -140,46 +170,47 @@ describe("pierre-demo — no external API calls", () => {
 // ── Safety rules — no proof or launch flag modification ───────────────────────
 describe("pierre-demo — no proof or launch flag modification", () => {
   it("no public launch flag set to true", () => {
-    expect(readDemoPage()).not.toMatch(/B48_PUBLIC_LAUNCH_ENABLED\s*=\s*true/);
+    expect(TREE).not.toMatch(/B48_PUBLIC_LAUNCH_ENABLED\s*=\s*true/);
   });
   it("no proof auto-verified", () => {
-    const page = readDemoPage();
-    expect(page).not.toMatch(/markProofVerified/);
-    expect(page).not.toMatch(/status.*["']verified["']/);
+    expect(TREE).not.toMatch(/markProofVerified/);
+    expect(TREE).not.toMatch(/status.*["']verified["']/);
   });
 });
 
 // ── Safety rules — no forbidden copy ─────────────────────────────────────────
 describe("pierre-demo — no forbidden commercial claims", () => {
   it("no 'zéro erreur' claim", () => {
-    expect(readDemoPage()).not.toMatch(/zéro erreur/i);
+    expect(TREE).not.toMatch(/zéro erreur/i);
   });
   it("no 'conformité garantie' claim", () => {
-    expect(readDemoPage()).not.toMatch(/conformité garantie/i);
+    expect(TREE).not.toMatch(/conformité garantie/i);
   });
   it("no 'remplace avocat' claim", () => {
-    expect(readDemoPage()).not.toMatch(/remplace (?:un |votre )?avocat(?! ni)/i);
+    expect(TREE).not.toMatch(/remplace (?:un |votre )?avocat(?! ni)/i);
   });
   it("no 'DSN autonome' claim", () => {
-    expect(readDemoPage()).not.toMatch(/DSN autonome/i);
+    expect(TREE).not.toMatch(/DSN autonome/i);
   });
   it("no 'paie officielle' claim", () => {
-    expect(readDemoPage()).not.toMatch(/paie officielle|bulletins? de paie officiels?/i);
+    expect(TREE).not.toMatch(/paie officielle|bulletins? de paie officiels?/i);
   });
   it("no 'licenciement automatique' claim", () => {
-    expect(readDemoPage()).not.toMatch(/licenciement automatique/i);
+    expect(TREE).not.toMatch(/licenciement automatique/i);
   });
   it("no 'essai gratuit 7 jours open-bar' claim", () => {
-    expect(readDemoPage()).not.toMatch(/essai gratuit.*7 jours|7 jours.*gratuit|open.bar/i);
+    expect(TREE).not.toMatch(/essai gratuit.*7 jours|7 jours.*gratuit|open.bar/i);
   });
 });
 
-// ── Responsive design ─────────────────────────────────────────────────────────
+// ── Responsive / mobile-own-composition (replaces old grid-cols assertions) ───
 describe("pierre-demo — responsive design", () => {
-  it("page uses responsive classes sm: or md:", () => {
-    expect(readDemoPage()).toMatch(/\bsm:|md:/);
+  it("the player CSS sizes with dvh/clamp and defines a mobile composition", () => {
+    expect(css).toMatch(/100dvh/);
+    expect(css).toMatch(/clamp\(/);
+    expect(css).toMatch(/@media\s*\(max-width:\s*720px\)/);
   });
-  it("page uses grid for responsive layout", () => {
-    expect(readDemoPage()).toMatch(/grid-cols/);
+  it("does not rely on a horizontal-scrolling table layout", () => {
+    expect(TREE).not.toMatch(/<table/);
   });
 });

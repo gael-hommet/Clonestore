@@ -68,6 +68,12 @@ export default function SiteHeader() {
   if (currentPath === "/demo") {
     return null;
   }
+  // Lecteur immersif zéro-scroll de /demo/pierre : le player occupe exactement un
+  // viewport (100dvh) et porte sa propre barre (DemoChrome). Le header global sticky
+  // ajouterait de la hauteur en flux et casserait le contrat « la page ne défile jamais ».
+  if (currentPath === "/demo/pierre") {
+    return null;
+  }
 
   return (
     <header className="cs-header">

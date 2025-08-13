@@ -13,6 +13,10 @@ export default function SiteFooter() {
   const pathname = usePathname() || "/";
   // Cockpit admin : pas de pied de page marketing sous un tableau de bord d'administration.
   if (isCockpitSurfaceRoute(pathname) || isAdminCockpitRoute(pathname)) return null;
+  // Lecteur immersif zéro-scroll de /demo/pierre : le player fait exactement 100dvh ;
+  // un pied de page en flux sous lui rendrait la page défilante (contrat « zéro scroll »).
+  // Les liens légaux migrent dans la feuille « Infos & sécurité » du player.
+  if (pathname === "/demo/pierre") return null;
 
   return (
     <footer className="cs-footer">

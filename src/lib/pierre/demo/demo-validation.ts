@@ -19,9 +19,12 @@ export const DEMO_CTA_DESTINATIONS = {
   reserve: "/reserver/pierre",
   discover: "/agents/pierre",
   diagnostic: "/diagnostic-rh",
+  demo_home: "/demo",
   legal_cgv: "/legal/cgv",
   legal_cgu: "/legal/cgu",
   legal_privacy: "/legal/confidentialite",
+  legal_mentions: "/legal/mentions",
+  legal_dpa: "/legal/dpa",
 } as const;
 
 export const DEMO_CTA_ALLOWED_HREFS: ReadonlySet<string> = new Set(Object.values(DEMO_CTA_DESTINATIONS));
