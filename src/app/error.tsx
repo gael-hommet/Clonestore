@@ -1,0 +1,29 @@
+'use client';
+
+export default function ErrorPage({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  console.error(error);
+  return (
+    <div style={{ padding: 24 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700 }}>Oups — une erreur est survenue</h1>
+      <p style={{ opacity: 0.7, marginTop: 8 }}>On va relancer la page.</p>
+      <button
+        onClick={() => reset()}
+        style={{
+          marginTop: 16,
+          padding: '8px 12px',
+          border: '1px solid #e5e7eb',
+          borderRadius: 6,
+          cursor: 'pointer',
+        }}
+      >
+        Réessayer
+      </button>
+    </div>
+  );
+}
