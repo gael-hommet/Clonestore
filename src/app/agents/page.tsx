@@ -5,7 +5,7 @@ const agents = [
   { slug: "pierre", name: "Pierre", tag: "Assistant RH – mails & relances", soon: false },
   { slug: "clara",  name: "Clara",  tag: "Recruteuse IA – shortlist & agenda", soon: true },
   { slug: "alex",   name: "Alex",   tag: "Commercial IA – prospection & relances", soon: true },
-  { slug: "lea",    name: "Léa",    tag: "Assistante de direction – agenda & CR", soon: true },
+  { slug: "emma",    name: "Emma",    tag: "Assistante de direction – agenda & CR", soon: true },
   { slug: "noah",   name: "Noah",   tag: "Support IA – tickets & réponses clients", soon: true },
 ];
 
