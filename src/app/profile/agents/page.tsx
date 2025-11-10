@@ -15,10 +15,12 @@ export default function MyAgentsPage() {
     (async () => {
       try {
         const sb = getSupabase();
-        if (!sb) { setLoading(false); return; }           // env absent → pas de crash
-        const { data: { user }, error: ue } = await sb.auth.getUser();
-        if (ue) throw ue;
-        if (!user) { setLoading(false); return; }         // non connecté → on affiche un message
+        if (!sb) { setLoading(false); return; } // pas d'env → pas de crash
+
+        const { data: { user }, error: userErr } = await sb.auth.getUser();
+        if (userErr) throw userErr;
+        if (!user) { setLoading(false); return; }
+
         setEmail(user.email ?? null);
 
         const { data, error } = await sb
@@ -29,8 +31,9 @@ export default function MyAgentsPage() {
 
         if (error) throw error;
         setRows((data ?? []) as Row[]);
-      } catch (e: any) {
-        setErr(e?.message ?? "Erreur inconnue");
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
+        setErr(message);
       } finally {
         setLoading(false);
       }
@@ -41,7 +44,7 @@ export default function MyAgentsPage() {
     return (
       <section className="mx-auto max-w-3xl py-12 px-4">
         <h1 className="text-2xl font-semibold">Mes agents</h1>
-        <p className="text-muted-foreground mt-2">Chargement…</p>
+        <p className="text-sm text-muted-foreground mt-2">Chargement…</p>
       </section>
     );
   }
@@ -50,7 +53,7 @@ export default function MyAgentsPage() {
     return (
       <section className="mx-auto max-w-3xl py-12 px-4">
         <h1 className="text-2xl font-semibold">Mes agents</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-sm text-muted-foreground mt-2">
           Vous devez être connecté pour voir vos agents.
         </p>
         <a href="/login" className="inline-block mt-4 border rounded px-3 py-2">Se connecter</a>
@@ -80,6 +83,7 @@ export default function MyAgentsPage() {
     </section>
   );
 }
+
 
 
 
