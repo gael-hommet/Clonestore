@@ -1,66 +1,104 @@
-import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+"use client";
 
-export const runtime = "nodejs";
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
+import { Button } from "@/components/ui/button";
 
-export async function POST(req: NextRequest) {
-  try {
-    const origin = req.nextUrl.origin;
+type CheckoutResponse = { url?: string; error?: string };
 
-    // 🔎 Lire le body en JSON (sinon {}, pour éviter crash)
-    const body = await req.json().catch(() => ({}));
-
-    // ✅ ultra tolérant sur les noms
-    const user_id =
-      body?.user_id ??
-      body?.userId ??
-      body?.uid ??
-      body?.user ??
-      null;
-
-    const agent_slug =
-      body?.agent_slug ??
-      body?.agentSlug ??
-      body?.agent ??
-      body?.slug ??
-      null;
-
-    if (!user_id || !agent_slug) {
-      return NextResponse.json(
-        {
-          error: "Paramètres manquants (user_id et agent_slug).",
-          received: body, // 👈 ça te dit EXACTEMENT ce que l’API a reçu
-        },
-        { status: 400 }
-      );
-    }
-
-    const priceId = process.env.STRIPE_PRICE_ID;
-    if (!priceId) {
-      return NextResponse.json(
-        { error: "STRIPE_PRICE_ID manquant (vérifie .env.local)" },
-        { status: 500 }
-      );
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: process.env.STRIPE_SUCCESS_URL || `${origin}/paiement/success`,
-      cancel_url: process.env.STRIPE_CANCEL_URL || `${origin}/paiement/cancel`,
-      metadata: { user_id, agent_slug },
-      subscription_data: { metadata: { user_id, agent_slug } },
-    });
-
-    return NextResponse.json({ url: session.url });
-  } catch (e: any) {
-    console.error("[checkout] error:", e);
-    return NextResponse.json(
-      { error: e?.message || "Erreur Stripe (checkout session)" },
-      { status: 500 }
-    );
-  }
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 }
+
+export default function CheckoutPage() {
+  const sp = useSearchParams();
+  const router = useRouter();
+
+  const agent = sp.get("agent") ?? "pierre";
+
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+  const [canPay, setCanPay] = useState(false);
+
+  async function startCheckout() {
+    setErr(null);
+    setLoading(true);
+
+    try {
+      const supabase = getSupabase();
+      const { data, error } = await supabase.auth.getUser();
+      if (error) throw new Error(error.message);
+
+      const user = data?.user;
+      if (!user) {
+        setCanPay(false);
+        setErr("Tu dois te connecter avant de payer.");
+        return;
+      }
+
+      setCanPay(true);
+
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id, agent_slug: agent }),
+      });
+
+      const json = (await res.json()) as CheckoutResponse;
+
+      if (!res.ok || !json.url) {
+        setErr(json.error ?? "Checkout impossible.");
+        return;
+      }
+
+      window.location.href = json.url;
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Erreur inconnue.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    // auto-start checkout dès l’arrivée sur /checkout
+    startCheckout().catch(() => {
+      // erreurs déjà gérées dans startCheckout
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agent]);
+
+  return (
+    <main className="mx-auto max-w-xl px-4 py-12 space-y-6">
+      <h1 className="text-2xl font-semibold">Checkout</h1>
+
+      <p className="text-sm text-muted-foreground">
+        Préparation du paiement pour : <strong>{agent}</strong>
+      </p>
+
+      {loading ? (
+        <p className="text-sm text-muted-foreground">Redirection vers Stripe...</p>
+      ) : (
+        <>
+          {err && <p className="text-sm text-red-600">{err}</p>}
+
+          <div className="flex gap-3">
+            <Button onClick={startCheckout} disabled={!canPay}>
+              Réessayer
+            </Button>
+            <Button variant="outline" onClick={() => router.push("/login")}>
+              Se connecter
+            </Button>
+          </div>
+        </>
+      )}
+    </main>
+  );
+}
+
 
 
 
