@@ -1,23 +1,70 @@
-"use client";
-import { useSearchParams } from "next/navigation";
+import { NextRequest, NextResponse } from "next/server";
+import { stripe } from "@/lib/stripe";
 
-export default function CheckoutPage() {
-  const params = useSearchParams();
-  const agent = params.get("agent");
+export const runtime = "nodejs";
 
-  return (
-    <section className="mx-auto max-w-3xl py-12 px-4">
-      <h1 className="text-2xl font-semibold">Paiement</h1>
-      <p className="text-muted-foreground mt-2">
-        (Placeholder) Stripe sera branché ici en mode test, puis en production au lancement.
-      </p>
+export async function POST(req: NextRequest) {
+  try {
+    const origin = req.nextUrl.origin;
 
-      <div className="mt-6 rounded-2xl border p-5">
-        <h2 className="font-medium mb-2">Résumé</h2>
-        <p className="text-sm text-muted-foreground">
-          Agent sélectionné : <strong>{agent ?? "Aucun (à choisir sur /agents)"}</strong>
-        </p>
-      </div>
-    </section>
-  );
+    // 🔎 Lire le body en JSON (sinon {}, pour éviter crash)
+    const body = await req.json().catch(() => ({}));
+
+    // ✅ ultra tolérant sur les noms
+    const user_id =
+      body?.user_id ??
+      body?.userId ??
+      body?.uid ??
+      body?.user ??
+      null;
+
+    const agent_slug =
+      body?.agent_slug ??
+      body?.agentSlug ??
+      body?.agent ??
+      body?.slug ??
+      null;
+
+    if (!user_id || !agent_slug) {
+      return NextResponse.json(
+        {
+          error: "Paramètres manquants (user_id et agent_slug).",
+          received: body, // 👈 ça te dit EXACTEMENT ce que l’API a reçu
+        },
+        { status: 400 }
+      );
+    }
+
+    const priceId = process.env.STRIPE_PRICE_ID;
+    if (!priceId) {
+      return NextResponse.json(
+        { error: "STRIPE_PRICE_ID manquant (vérifie .env.local)" },
+        { status: 500 }
+      );
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: process.env.STRIPE_SUCCESS_URL || `${origin}/paiement/success`,
+      cancel_url: process.env.STRIPE_CANCEL_URL || `${origin}/paiement/cancel`,
+      metadata: { user_id, agent_slug },
+      subscription_data: { metadata: { user_id, agent_slug } },
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (e: any) {
+    console.error("[checkout] error:", e);
+    return NextResponse.json(
+      { error: e?.message || "Erreur Stripe (checkout session)" },
+      { status: 500 }
+    );
+  }
 }
+
+
+
+
+
+
+

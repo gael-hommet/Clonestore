@@ -1,50 +1,98 @@
-import Link from "next/link";
-import { Card } from "@/components/ui/card";
+"use client";
 
-const agents = [
-  { slug: "pierre", name: "Pierre", tag: "Assistant RH – mails & relances", soon: false },
-  { slug: "clara",  name: "Clara",  tag: "Recruteuse IA – shortlist & agenda", soon: true },
-  { slug: "alex",   name: "Alex",   tag: "Commercial IA – prospection & relances", soon: true },
-  { slug: "emma",    name: "Emma",    tag: "Assistante de direction – agenda & CR", soon: true },
-  { slug: "noah",   name: "Noah",   tag: "Support IA – tickets & réponses clients", soon: true },
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+
+type OrdersMe = { active: string[]; past_due: string[]; cancelled: string[] };
+
+const AGENTS = [
+  { slug: "pierre", name: "Pierre", role: "Assistant RH rédacteur", price: "299€/mois" },
+  { slug: "clara", name: "Clara", role: "Recruteuse IA", price: "—" },
+  { slug: "alex", name: "Alex", role: "Assistant Ops", price: "—" },
+  { slug: "emma", name: "Emma", role: "Support & mails", price: "—" },
+  { slug: "noah", name: "Noah", role: "Assistant direction", price: "—" },
 ];
 
 export default function AgentsPage() {
+  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<OrdersMe>({ active: [], past_due: [], cancelled: [] });
+
+  const activeSet = useMemo(() => new Set(orders.active), [orders.active]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function run() {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/orders/me", { cache: "no-store" });
+        const data = await res.json();
+        if (!cancelled && !data?.error) setOrders(data);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
-    <section className="mx-auto max-w-6xl py-12 px-4">
-      <h1 className="text-3xl font-bold mb-6">Agents disponibles</h1>
+    <main className="mx-auto max-w-5xl px-4 py-12 space-y-8">
+      <header className="space-y-2">
+        <h1 className="text-3xl font-semibold tracking-tight">Boutique d’agents</h1>
+        <p className="text-muted-foreground text-sm">
+          {loading ? "Chargement des accès…" : "Choisis un agent. Accès instantané après paiement."}
+        </p>
+      </header>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {agents.map((a) => (
-          <Card key={a.slug} className="p-5 hover:shadow-md transition rounded-2xl border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-medium">{a.name}</h2>
-              {a.soon && (
-                <span className="text-xs rounded-full border px-2 py-1 opacity-70">
-                  bientôt
+      <section className="grid gap-4 sm:grid-cols-2">
+        {AGENTS.map((a) => {
+          const has = activeSet.has(a.slug);
+
+          return (
+            <div key={a.slug} className="rounded-2xl border p-6 space-y-4">
+              <div className="space-y-1">
+                <h2 className="text-lg font-medium">{a.name}</h2>
+                <p className="text-sm text-muted-foreground">{a.role}</p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <p className="text-sm">
+                  <span className="text-muted-foreground">Prix :</span>{" "}
+                  <span className="font-medium">{a.price}</span>
+                </p>
+
+                <span className="text-xs text-muted-foreground">
+                  {has ? "Accès actif" : "Non embauché"}
                 </span>
-              )}
-            </div>
+              </div>
 
-            <p className="text-sm text-muted-foreground">{a.tag}</p>
+              <div className="flex gap-3">
+                <Button asChild variant="outline">
+                  <Link href={`/agents/${a.slug}`}>Voir</Link>
+                </Button>
 
-            <div className="mt-4">
-              {!a.soon ? (
-                <Link
-                  href={`/agents/${a.slug}`}
-                  prefetch={false}
-                  className="text-sm underline hover:opacity-80"
-                >
-                  Voir l’agent
-                </Link>
-              ) : (
-                <span className="text-sm opacity-60">Fiche en préparation</span>
-              )}
+                {has ? (
+                  <Button asChild>
+                    <Link href={`/agents/${a.slug}/use`}>Utiliser</Link>
+                  </Button>
+                ) : (
+                  <Button asChild>
+                    <Link href={`/paiement?agent=${a.slug}`}>Embaucher</Link>
+                  </Button>
+                )}
+              </div>
             </div>
-          </Card>
-        ))}
-      </div>
-    </section>
+          );
+        })}
+      </section>
+    </main>
   );
 }
+
+
 

@@ -2,54 +2,110 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [msg, setMsg] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (busy) return;
-    setBusy(true);
-    setMsg(null);
+    setError(null);
+    setLoading(true);
 
-    const sb = getSupabase();
-    if (!sb) {
-      setMsg("Erreur : configuration Supabase manquante (URL/clé).");
-      setBusy(false);
+    const supabase = getSupabase();
+    if (!supabase) {
+      setError("Erreur de configuration. Réessaie plus tard.");
+      setLoading(false);
       return;
     }
 
-    const form = new FormData(e.currentTarget);
-    const email = String(form.get("email") || "").trim();
-    const password = String(form.get("password") || "");
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    const { error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) setMsg(error.message);
-    else router.push("/profile/agents");
-    setBusy(false);
+    if (error) {
+      console.error(error);
+      setError("Email ou mot de passe incorrect.");
+      setLoading(false);
+      return;
+    }
+
+    // Succès → on envoie sur Mon compte
+    router.push("/profile");
   }
 
   return (
-    <section className="mx-auto max-w-sm py-12 px-4">
-      <h1 className="text-2xl font-semibold">Se connecter</h1>
+    <section className="mx-auto max-w-md py-12 px-4">
+      <h1 className="text-2xl font-semibold tracking-tight">
+        Se connecter
+      </h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Accède à ton espace CloneStore pour gérer ton compte et tes agents.
+      </p>
 
-      <form onSubmit={onSubmit} className="mt-6 grid gap-3">
-        <input name="email" type="email" placeholder="Email" className="border rounded p-2" required />
-        <input name="password" type="password" placeholder="Mot de passe" className="border rounded p-2" required />
-        <button disabled={busy} className="border rounded p-2 disabled:opacity-60">
-          {busy ? "Connexion..." : "Connexion"}
-        </button>
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div className="space-y-1 text-sm">
+          <label htmlFor="email" className="font-medium">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1 text-sm">
+          <label htmlFor="password" className="font-medium">
+            Mot de passe
+          </label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        {error && (
+          <p className="text-sm text-red-500">
+            {error}
+          </p>
+        )}
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={loading}
+        >
+          {loading ? "Connexion..." : "Se connecter"}
+        </Button>
       </form>
 
-      {msg && <p className="mt-3 text-sm text-red-600">{msg}</p>}
-
-      <p className="mt-6 text-sm">
-        Pas encore de compte ? <a href="/signup" className="underline">Créer un compte</a>
+      <p className="mt-4 text-xs text-muted-foreground">
+        Pas encore de compte ?{" "}
+        <Link href="/signup" className="underline">
+          Créer un compte
+        </Link>
       </p>
     </section>
   );
 }
+
+
+
 
