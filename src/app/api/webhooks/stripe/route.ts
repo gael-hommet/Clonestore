@@ -1,20 +1,22 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function getStripe(): Stripe {
+function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
   return new Stripe(key, { apiVersion: "2025-11-17.clover" as any });
 }
 
-function getSupabaseAdmin(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+function getSupabaseAdmin() {
+  // ✅ serveur d'abord (recommandé)
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+
+  if (!url) throw new Error("Missing SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL fallback)");
   if (!service) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
 
   return createClient(url, service, { auth: { persistSession: false } });
@@ -24,16 +26,11 @@ function json(status: number, data: unknown) {
   return NextResponse.json(data, { status });
 }
 
-function pick<T>(...vals: Array<T | null | undefined>) {
-  for (const v of vals) if (v !== null && v !== undefined) return v;
-  return null;
-}
-
 async function upsertActive(user_id: string, agent_slug: string, subId: string) {
-  const supabase = getSupabaseAdmin();
+  const admin = getSupabaseAdmin();
   const now = new Date().toISOString();
 
-  const { error } = await supabase
+  const { error } = await admin
     .from("orders")
     .upsert(
       {
@@ -47,19 +44,19 @@ async function upsertActive(user_id: string, agent_slug: string, subId: string) 
       { onConflict: "user_id,agent_slug" }
     );
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error("Supabase upsert failed: " + error.message);
 }
 
 async function cancelBySubId(subId: string) {
-  const supabase = getSupabaseAdmin();
+  const admin = getSupabaseAdmin();
   const now = new Date().toISOString();
 
-  const { error } = await supabase
+  const { error } = await admin
     .from("orders")
     .update({ status: "cancelled", ended_at: now })
     .eq("stripe_subscription_id", subId);
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error("Supabase cancel failed: " + error.message);
 }
 
 export async function POST(req: Request) {
@@ -81,21 +78,26 @@ export async function POST(req: Request) {
       return json(400, { error: msg });
     }
 
-    // ✅ Activation: on prend DIRECTEMENT metadata sur subscription (fiable en re-embauche)
-    if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
+    if (
+      event.type === "customer.subscription.created" ||
+      event.type === "customer.subscription.updated"
+    ) {
       const sub = event.data.object as Stripe.Subscription;
 
       const user_id = typeof sub.metadata?.user_id === "string" ? sub.metadata.user_id : null;
-      const agent_slug = typeof sub.metadata?.agent_slug === "string" ? sub.metadata.agent_slug : null;
+      const agent_slug =
+        typeof sub.metadata?.agent_slug === "string" ? sub.metadata.agent_slug : null;
 
-      if (sub.status === "active" && user_id && agent_slug) {
+      // ✅ active ou trialing = accès OK
+      const ok = sub.status === "active" || sub.status === "trialing";
+
+      if (ok && user_id && agent_slug) {
         await upsertActive(user_id, agent_slug, sub.id);
       }
 
-      return json(200, { received: true, type: event.type, sub: sub.id });
+      return json(200, { received: true, type: event.type, sub: sub.id, ok });
     }
 
-    // ✅ Résiliation
     if (event.type === "customer.subscription.deleted") {
       const sub = event.data.object as Stripe.Subscription;
       if (sub.id) await cancelBySubId(sub.id);
@@ -108,6 +110,7 @@ export async function POST(req: Request) {
     return json(500, { error: msg });
   }
 }
+
 
 
 
