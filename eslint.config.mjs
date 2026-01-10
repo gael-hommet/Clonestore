@@ -1,20 +1,42 @@
-import eslint from "@eslint/js";
+import js from "@eslint/js";
 import tseslint from "typescript-eslint";
+import reactHooks from "eslint-plugin-react-hooks";
 import next from "@next/eslint-plugin-next";
 
 export default [
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
+  // Ignore build + deps
   {
+    ignores: [".next/**", "node_modules/**", "dist/**", "out/**"],
+  },
+
+  // Base JS
+  js.configs.recommended,
+
+  // TS recommended (sans config "type-aware" pour éviter la galère)
+  ...tseslint.configs.recommended,
+
+  // App code
+  {
+    files: ["**/*.{js,jsx,ts,tsx}"],
     plugins: {
+      "react-hooks": reactHooks,
       "@next/next": next,
     },
     rules: {
-      // ✅ Next recommended rules (optionnel mais ok)
-      ...next.configs["core-web-vitals"].rules,
+      // Next recommended
+      ...next.configs.recommended.rules,
 
-      // ✅ LA règle qui te bloque le build
-      "@typescript-eslint/no-explicit-any": "off",
+      // React hooks
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+    },
+  },
+
+  // Node config files (pour éviter "module is not defined")
+  {
+    files: ["**/*.config.{js,cjs,mjs}", "next.config.{js,cjs,mjs}"],
+    rules: {
+      "no-undef": "off",
     },
   },
 ];
