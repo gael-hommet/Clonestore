@@ -1,82 +1,58 @@
-import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
+import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => null);
-    const sessionId = body?.session_id;
+    const body = await req.json();
+    const { user_id, agent_slug, stripe_subscription_id } = body;
 
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!user_id || !agent_slug || !stripe_subscription_id) {
       return NextResponse.json(
-        { ok: false, step: "env", error: "SUPABASE_SERVICE_ROLE_KEY manquante sur le serveur" },
+        { error: "Missing parameters" },
+        { status: 400 }
+      );
+    }
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !serviceKey) {
+      return NextResponse.json(
+        { error: "Supabase env missing" },
         { status: 500 }
       );
     }
 
-    if (!sessionId) {
-      return NextResponse.json(
-        { ok: false, step: "input", error: "session_id manquant" },
-        { status: 400 }
-      );
-    }
+    const supabase = createClient(url, serviceKey, {
+      auth: { persistSession: false },
+    });
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-    if (session.payment_status !== "paid") {
-      return NextResponse.json(
-        { ok: false, step: "stripe", error: "Paiement non validé", payment_status: session.payment_status },
-        { status: 400 }
-      );
-    }
-
-    const userId = session.metadata?.user_id;
-    const agentSlug = session.metadata?.agent_slug;
-
-    if (!userId || !agentSlug) {
-      return NextResponse.json(
-        { ok: false, step: "metadata", error: "metadata manquante (user_id / agent_slug)", metadata: session.metadata || null },
-        { status: 400 }
-      );
-    }
-
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    // IMPORTANT : on force la réactivation même si une ligne "cancelled" existe déjà
     const now = new Date().toISOString();
 
-    const { data, error } = await supabaseAdmin
+    const { error } = await supabase
       .from("orders")
       .upsert(
         {
-          user_id: userId,
-          agent_slug: agentSlug,
+          user_id,
+          agent_slug,
           status: "active",
           started_at: now,
           ended_at: null,
+          stripe_subscription_id,
         },
         { onConflict: "user_id,agent_slug" }
-      )
-      .select("id, user_id, agent_slug, status, started_at, ended_at")
-      .maybeSingle();
+      );
 
     if (error) {
-      return NextResponse.json(
-        { ok: false, step: "db", error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, step: "done", inserted: data });
-  } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, step: "catch", error: e?.message || "Erreur inconnue" },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Server error";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

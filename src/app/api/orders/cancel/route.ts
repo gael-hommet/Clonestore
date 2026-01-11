@@ -1,64 +1,52 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json().catch(() => null);
-    const agent_slug = body?.agent_slug;
-    const access_token = body?.access_token;
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-    if (!agent_slug) {
-      return NextResponse.json({ error: "agent_slug manquant" }, { status: 400 });
-    }
-    if (!access_token) {
-      return NextResponse.json({ error: "access_token manquant" }, { status: 401 });
-    }
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { stripe_subscription_id } = body;
+
+    if (!stripe_subscription_id) {
       return NextResponse.json(
-        { error: "SUPABASE_SERVICE_ROLE_KEY manquante côté serveur" },
+        { error: "Missing subscription id" },
+        { status: 400 }
+      );
+    }
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !serviceKey) {
+      return NextResponse.json(
+        { error: "Supabase env missing" },
         { status: 500 }
       );
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = createClient(url, serviceKey, {
+      auth: { persistSession: false },
+    });
 
-    // Vérifier l'identité à partir du token Supabase (impossible à tricher)
-    const { data: userRes, error: userErr } = await supabaseAdmin.auth.getUser(access_token);
-    if (userErr || !userRes?.user) {
-      return NextResponse.json({ error: "Token invalide" }, { status: 401 });
-    }
+    const now = new Date().toISOString();
 
-    const user_id = userRes.user.id;
-
-    // Mettre fin à l’accès (résiliation)
-    const { data: updated, error: updErr } = await supabaseAdmin
+    const { error } = await supabase
       .from("orders")
-      .update({ status: "cancelled", ended_at: new Date().toISOString() })
-      .eq("user_id", user_id)
-      .eq("agent_slug", agent_slug)
-      .eq("status", "active")
-      .select("id, user_id, agent_slug, status, started_at, ended_at")
-      .maybeSingle();
+      .update({
+        status: "cancelled",
+        ended_at: now,
+      })
+      .eq("stripe_subscription_id", stripe_subscription_id);
 
-    if (updErr) {
-      return NextResponse.json({ error: updErr.message }, { status: 500 });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    if (!updated) {
-      return NextResponse.json(
-        { error: "Aucun accès actif trouvé à résilier." },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ ok: true, cancelled: updated });
-  } catch (e: any) {
-    return NextResponse.json(
-      { error: e?.message || "Erreur résiliation" },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Server error";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
