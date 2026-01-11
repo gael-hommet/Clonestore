@@ -1,67 +1,78 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-11-17.clover" as any,
-});
-
-const PRICE_BY_AGENT: Record<string, string | undefined> = {
-  pierre: process.env.STRIPE_PRICE_PIERRE,
-  clara: process.env.STRIPE_PRICE_CLARA,
-  alex: process.env.STRIPE_PRICE_ALEX,
-  emma: process.env.STRIPE_PRICE_EMMA,
-  noah: process.env.STRIPE_PRICE_NOAH,
+type CheckoutBody = {
+  user_id: string;
+  agent_slug: string;
 };
 
-export async function POST(req: NextRequest) {
+// ✅ Stripe est créé UNIQUEMENT dans une fonction, jamais au top-level
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
+  return new Stripe(key, { apiVersion: "2025-11-17.clover" as unknown as Stripe.LatestApiVersion });
+}
+
+function json(status: number, data: unknown) {
+  return NextResponse.json(data, { status });
+}
+
+export async function POST(req: Request) {
   try {
-    const origin = req.nextUrl.origin;
-    const body = await req.json().catch(() => ({}));
+    const body = (await req.json()) as Partial<CheckoutBody>;
 
-    const user_id =
-      body?.user_id ?? body?.userId ?? body?.uid ?? body?.user ?? null;
-
-    const agent_slug =
-      body?.agent_slug ?? body?.agentSlug ?? body?.agent ?? body?.slug ?? null;
+    const user_id = typeof body.user_id === "string" ? body.user_id : null;
+    const agent_slug = typeof body.agent_slug === "string" ? body.agent_slug : null;
 
     if (!user_id || !agent_slug) {
-      return NextResponse.json(
-        { error: "Paramètres manquants (user_id, agent_slug).", received: body },
-        { status: 400 }
-      );
+      return json(400, { error: "Missing user_id or agent_slug" });
     }
 
-    const priceId = PRICE_BY_AGENT[agent_slug];
-    if (!priceId) {
-      return NextResponse.json(
-        { error: `Aucun price configuré pour agent_slug=${agent_slug}` },
-        { status: 500 }
-      );
+    // ✅ ici seulement on initialise Stripe (donc jamais pendant le build)
+    const stripe = getStripe();
+
+    // ⚠️ Mets ici ton priceId réel selon l’agent
+    // (tu peux déjà mettre un mapping minimal)
+    const PRICE_BY_AGENT: Record<string, string> = {
+      pierre: process.env.STRIPE_PRICE_PIERRE || "",
+      clara: process.env.STRIPE_PRICE_CLARA || "",
+    };
+
+    const price = PRICE_BY_AGENT[agent_slug];
+    if (!price) {
+      return json(500, { error: `Missing price for agent ${agent_slug}` });
     }
+
+    const baseUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.VERCEL_URL?.startsWith("http")
+        ? process.env.VERCEL_URL
+        : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000";
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      line_items: [{ price: priceId, quantity: 1 }],
-
-      success_url: `${origin}/agents/${agent_slug}?success=1`,
-      cancel_url: `${origin}/paiement/cancel`,
-
-      // IMPORTANT : metadata sur session ET sur subscription
+      line_items: [{ price, quantity: 1 }],
+      success_url: `${baseUrl}/paiement/success`,
+      cancel_url: `${baseUrl}/paiement/cancel`,
+      subscription_data: {
+        metadata: { user_id, agent_slug },
+      },
       metadata: { user_id, agent_slug },
-      subscription_data: { metadata: { user_id, agent_slug } },
     });
 
-    return NextResponse.json({ url: session.url });
-  } catch (e: any) {
-    console.error("[checkout] error:", e);
-    return NextResponse.json(
-      { error: e?.message || "Erreur Stripe (checkout)" },
-      { status: 500 }
-    );
+    return json(200, { url: session.url });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Checkout error";
+    // ✅ si STRIPE_SECRET_KEY manque, on le voit clairement
+    return json(500, { error: msg });
   }
 }
+
 
 
 
