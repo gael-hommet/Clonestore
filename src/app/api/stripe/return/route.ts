@@ -1,50 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const sessionId = searchParams.get("session_id");
+// GET /api/stripe/return?success=1
+// ou GET /api/stripe/return?success=0
+export async function GET(req: Request) {
+  const url = new URL(req.url);
 
-    if (!sessionId) {
-      return NextResponse.redirect(new URL("/paiement/cancel", req.url));
-    }
+  // Stripe renvoie souvent des params genre:
+  // ?session_id=cs_test_...&...
+  // toi tu peux aussi envoyer ?success=1 depuis ton front.
+  const success =
+    url.searchParams.get("success") === "1" ||
+    url.searchParams.get("redirect_status") === "succeeded";
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+  // ✅ IMPORTANT: on ne touche PAS à Stripe/Supabase ici.
+  // On redirige juste vers tes pages.
+  const dest = success ? "/paiement/success" : "/paiement/cancel";
 
-    if (session.payment_status !== "paid") {
-      return NextResponse.redirect(new URL("/paiement/cancel", req.url));
-    }
-
-    const userId = session.metadata?.user_id;
-    const agentSlug = session.metadata?.agent_slug;
-
-    // Si metadata absente, on redirige quand même (UX OK), mais pas d’activation.
-    if (!userId || !agentSlug) {
-      return NextResponse.redirect(new URL("/paiement/success", req.url));
-    }
-
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    const { error } = await supabaseAdmin.from("orders").upsert(
-      { user_id: userId, agent_slug: agentSlug },
-      { onConflict: "user_id,agent_slug" }
-    );
-
-    if (error) {
-      console.error("[return] upsert orders error:", error);
-      // On n’empêche pas l’UX, on redirige quand même.
-    }
-
-    return NextResponse.redirect(new URL("/paiement/success", req.url));
-  } catch (e) {
-    console.error("[return]", e);
-    return NextResponse.redirect(new URL("/paiement/success", req.url));
-  }
+  return NextResponse.redirect(new URL(dest, url.origin));
 }
