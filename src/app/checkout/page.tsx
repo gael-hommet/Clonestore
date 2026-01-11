@@ -5,42 +5,60 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 
-type CheckoutResponse = { url?: string; error?: string };
-
 function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anon) {
+    throw new Error(
+      "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY"
+    );
+  }
+
+  return createClient(url, anon);
 }
+
+type CheckoutResponse =
+  | { url: string }
+  | { error: string };
 
 export default function CheckoutPage() {
   const sp = useSearchParams();
   const router = useRouter();
 
-  const agent = sp.get("agent") ?? "pierre";
+  const agent = (sp.get("agent") || "pierre").toLowerCase();
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [canPay, setCanPay] = useState(false);
 
-  async function startCheckout() {
+  useEffect(() => {
+    // si tu veux empêcher des agents inconnus
+    const allowed = ["pierre", "clara", "alex", "emma", "noah"];
+    if (!allowed.includes(agent)) {
+      setErr("Agent invalide.");
+    }
+  }, [agent]);
+
+  async function goCheckout() {
     setErr(null);
     setLoading(true);
 
     try {
       const supabase = getSupabase();
-      const { data, error } = await supabase.auth.getUser();
-      if (error) throw new Error(error.message);
 
-      const user = data?.user;
-      if (!user) {
-        setCanPay(false);
-        setErr("Tu dois te connecter avant de payer.");
+      const { data: userRes, error: userErr } = await supabase.auth.getUser();
+      if (userErr) {
+        setLoading(false);
+        setErr(userErr.message);
         return;
       }
 
-      setCanPay(true);
+      const user = userRes.user;
+      if (!user) {
+        setLoading(false);
+        router.push("/login");
+        return;
+      }
 
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -48,56 +66,55 @@ export default function CheckoutPage() {
         body: JSON.stringify({ user_id: user.id, agent_slug: agent }),
       });
 
-      const json = (await res.json()) as CheckoutResponse;
+      const json = (await res.json().catch(() => ({}))) as Partial<CheckoutResponse>;
 
-      if (!res.ok || !json.url) {
-        setErr(json.error ?? "Checkout impossible.");
+      if (!res.ok) {
+        setLoading(false);
+        setErr((json as { error?: string })?.error || "Checkout impossible.");
         return;
       }
 
-      window.location.href = json.url;
+      const url = (json as { url?: string })?.url;
+      if (!url) {
+        setLoading(false);
+        setErr("Checkout impossible (url manquante).");
+        return;
+      }
+
+      window.location.href = url;
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Erreur inconnue.");
-    } finally {
       setLoading(false);
+      setErr(e instanceof Error ? e.message : "Erreur checkout.");
     }
   }
 
-  useEffect(() => {
-    // auto-start checkout dès l’arrivée sur /checkout
-    startCheckout().catch(() => {
-      // erreurs déjà gérées dans startCheckout
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [agent]);
-
   return (
     <main className="mx-auto max-w-xl px-4 py-12 space-y-6">
-      <h1 className="text-2xl font-semibold">Checkout</h1>
+      <header className="space-y-2">
+        <h1 className="text-2xl font-semibold">Checkout</h1>
+        <p className="text-sm text-muted-foreground">
+          Agent sélectionné : <strong>{agent}</strong>
+        </p>
+      </header>
 
-      <p className="text-sm text-muted-foreground">
-        Préparation du paiement pour : <strong>{agent}</strong>
-      </p>
-
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Redirection vers Stripe...</p>
-      ) : (
-        <>
-          {err && <p className="text-sm text-red-600">{err}</p>}
-
-          <div className="flex gap-3">
-            <Button onClick={startCheckout} disabled={!canPay}>
-              Réessayer
-            </Button>
-            <Button variant="outline" onClick={() => router.push("/login")}>
-              Se connecter
-            </Button>
-          </div>
-        </>
+      {err && (
+        <div className="rounded-xl border p-4">
+          <p className="text-sm text-red-600">{err}</p>
+        </div>
       )}
+
+      <Button onClick={goCheckout} disabled={loading || !!err}>
+        {loading ? "Redirection vers Stripe…" : "Continuer vers Stripe"}
+      </Button>
+
+      <p className="text-xs text-muted-foreground">
+        Si tu as déjà payé et que rien ne s’active, on vérifie ensuite le webhook (étape 3).
+      </p>
     </main>
   );
 }
+
+
 
 
 
