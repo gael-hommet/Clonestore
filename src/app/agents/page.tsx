@@ -3,41 +3,104 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 type OrdersMe = { active: string[]; past_due: string[]; cancelled: string[] };
 
+type OrderRow = {
+  agent_slug: string;
+  status: string;
+};
+
 const AGENTS = [
   { slug: "pierre", name: "Pierre", role: "Assistant RH rédacteur", price: "299€/mois" },
-  { slug: "clara", name: "Clara", role: "Recruteuse IA", price: "—" },
-  { slug: "alex", name: "Alex", role: "Assistant Ops", price: "—" },
-  { slug: "emma", name: "Emma", role: "Support & mails", price: "—" },
-  { slug: "noah", name: "Noah", role: "Assistant direction", price: "—" },
+  { slug: "clara", name: "Clara", role: "Recruteuse IA", price: "549€/mois" },
+  { slug: "alex", name: "Alex", role: "Assistant Ops", price: "399€/mois" },
+  { slug: "emma", name: "Emma", role: "Support & mails", price: "449€/mois" },
+  { slug: "noah", name: "Noah", role: "Assistant direction", price: "499€/mois" },
 ];
 
+function makeSupabase(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon) {
+    throw new Error(
+      "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY"
+    );
+  }
+  return createClient(url, anon);
+}
+
+function normalizeOrders(rows: OrderRow[]): OrdersMe {
+  const active: string[] = [];
+  const past_due: string[] = [];
+  const cancelled: string[] = [];
+
+  for (const r of rows) {
+    const slug = r.agent_slug;
+    const st = (r.status || "").toLowerCase();
+
+    if (!slug) continue;
+
+    if (st === "active") active.push(slug);
+    else if (st === "past_due") past_due.push(slug);
+    else if (st === "cancelled") cancelled.push(slug);
+  }
+
+  return { active, past_due, cancelled };
+}
+
 export default function AgentsPage() {
+  const supabase = useMemo(() => makeSupabase(), []);
+
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrdersMe>({ active: [], past_due: [], cancelled: [] });
 
   const activeSet = useMemo(() => new Set(orders.active), [orders.active]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function run() {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/orders/me", { cache: "no-store" });
-        const data = await res.json();
-        if (!cancelled && !data?.error) setOrders(data);
-      } finally {
-        if (!cancelled) setLoading(false);
+  async function refreshAccess() {
+    setLoading(true);
+    try {
+      const { data: userRes, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userRes?.user) {
+        // pas connecté => aucun accès
+        setOrders({ active: [], past_due: [], cancelled: [] });
+        return;
       }
-    }
 
-    run();
+      const user = userRes.user;
+
+      const { data, error } = await supabase
+        .from("orders")
+        .select("agent_slug,status")
+        .eq("user_id", user.id);
+
+      if (error) {
+        // si erreur => on n’affiche pas “active” à tort
+        setOrders({ active: [], past_due: [], cancelled: [] });
+        return;
+      }
+
+      setOrders(normalizeOrders((data || []) as OrderRow[]));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    // 1) load initial
+    refreshAccess();
+
+    // 2) refresh auto quand on revient sur l’onglet (après Stripe / navigation)
+    const onFocus = () => refreshAccess();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+
     return () => {
-      cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -93,6 +156,7 @@ export default function AgentsPage() {
     </main>
   );
 }
+
 
 
 
