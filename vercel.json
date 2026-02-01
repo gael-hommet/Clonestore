@@ -1,8 +1,7 @@
 {
   "crons": [
     { "path": "/api/cron/pierre", "schedule": "*/2 * * * *" }
-  ],
-  "_note": "force redeploy"
+  ]
 }
 
 
