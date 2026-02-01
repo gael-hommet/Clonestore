@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/pierre", "schedule": "*/2 * * * *" }
+  ]
+}
+

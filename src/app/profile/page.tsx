@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 
@@ -21,28 +21,111 @@ type OrderRow = {
 
 function fmtDate(value: string | null | undefined) {
   if (!value) return "—";
-  try {
-    return new Date(value).toLocaleString("fr-FR");
-  } catch {
-    return value;
-  }
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString("fr-FR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
-function statusBadge(status: string) {
-  if (status === "active") {
-    return { label: "Actif", className: "bg-foreground text-background" };
-  }
-  if (status === "cancelled") {
-    return { label: "Résilié", className: "bg-muted text-foreground" };
-  }
-  return { label: status, className: "bg-muted text-foreground" };
+function statusLabel(status: string) {
+  const st = (status || "").toLowerCase();
+  if (st === "active") return "Actif";
+  if (st === "cancelled") return "Résilié";
+  if (st === "past_due") return "Paiement en attente";
+  return status;
+}
+
+function statusClass(status: string) {
+  const st = (status || "").toLowerCase();
+  if (st === "active") return "bg-foreground text-background";
+  return "bg-muted text-foreground";
+}
+
+function titleCaseSlug(slug: string) {
+  return slug
+    .split(/[-_]/g)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+function safeTrim(v: string | null | undefined) {
+  const t = (v ?? "").trim();
+  return t.length ? t : null;
+}
+
+function Section({
+  title,
+  description,
+  children,
+  right,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+  right?: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border p-6 space-y-4">
+      <header className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h2 className="text-lg font-medium">{title}</h2>
+          {description ? (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          ) : null}
+        </div>
+        {right ? <div className="shrink-0">{right}</div> : null}
+      </header>
+      <div>{children}</div>
+    </section>
+  );
+}
+
+function KeyValueRow({
+  label,
+  value,
+  mono,
+}: {
+  label: string;
+  value: React.ReactNode;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className={`text-sm font-medium truncate ${mono ? "font-mono text-xs" : ""}`}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border p-4 space-y-1">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="text-2xl font-semibold tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <section className="rounded-2xl border p-4">
+      <p className="text-sm text-red-600">{message}</p>
+    </section>
+  );
 }
 
 export default function ProfilePage() {
   const supabase = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    // Si l'env saute -> on affiche une erreur claire au lieu de crash
     if (!url || !anon) return null;
     return createClient(url, anon);
   }, []);
@@ -57,10 +140,25 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [orders, setOrders] = useState<OrderRow[]>([]);
 
-  const activeOrders = orders.filter((o) => o.status === "active");
-  const cancelledOrders = orders.filter((o) => o.status !== "active");
+  const activeOrders = useMemo(
+    () => orders.filter((o) => (o.status || "").toLowerCase() === "active"),
+    [orders]
+  );
+  const cancelledOrders = useMemo(
+    () => orders.filter((o) => (o.status || "").toLowerCase() !== "active"),
+    [orders]
+  );
 
-  async function refresh() {
+  const displayName = useMemo(() => {
+    return (
+      safeTrim(profile?.full_name) ||
+      safeTrim(profile?.email) ||
+      safeTrim(email) ||
+      "Compte CloneStore"
+    );
+  }, [profile?.full_name, profile?.email, email]);
+
+  const refresh = useCallback(async () => {
     setError(null);
     setLoading(true);
 
@@ -72,13 +170,14 @@ export default function ProfilePage() {
       return;
     }
 
-    // 1) User
     const { data: userRes, error: userErr } = await supabase.auth.getUser();
+
     if (userErr) {
       setError(userErr.message);
       setLoading(false);
       return;
     }
+
     if (!userRes.user) {
       setUserId(null);
       setEmail(null);
@@ -92,77 +191,64 @@ export default function ProfilePage() {
     setUserId(uid);
     setEmail(userRes.user.email ?? null);
 
-    // 2) Profile (table public.profiles : id / email / full_name)
-    const prof = await supabase
+    const profRes = await supabase
       .from("profiles")
       .select("id, email, full_name")
       .eq("id", uid)
       .maybeSingle();
 
-    if (prof.error) {
-      // pas bloquant : on affiche quand même la page
-      setProfile(null);
+    if (!profRes.error) {
+      setProfile((profRes.data as ProfileRow) ?? null);
     } else {
-      setProfile((prof.data as ProfileRow) ?? null);
+      setProfile(null);
     }
 
-    // 3) Orders (table public.orders : user_id / agent_slug / status / started_at / ended_at)
-    const ord = await supabase
+    const ordRes = await supabase
       .from("orders")
       .select("id, agent_slug, status, started_at, ended_at")
       .eq("user_id", uid)
       .order("started_at", { ascending: false });
 
-    if (ord.error) {
-      setError(ord.error.message);
+    if (ordRes.error) {
+      setError(ordRes.error.message);
       setOrders([]);
       setLoading(false);
       return;
     }
 
-    setOrders((ord.data ?? []) as OrderRow[]);
+    setOrders((ordRes.data ?? []) as OrderRow[]);
     setLoading(false);
-  }
+  }, [supabase]);
 
-  async function logout() {
+  const logout = useCallback(async () => {
     if (!supabase) return;
     try {
       setLogoutBusy(true);
       setError(null);
       await supabase.auth.signOut();
-      // refresh état UI
       setUserId(null);
       setEmail(null);
       setProfile(null);
       setOrders([]);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Erreur de déconnexion";
-      setError(msg);
+      setError(e instanceof Error ? e.message : "Erreur de déconnexion");
     } finally {
       setLogoutBusy(false);
     }
-  }
+  }, [supabase]);
 
   useEffect(() => {
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refresh]);
 
-  const displayName =
-    profile?.full_name?.trim() ||
-    profile?.email?.trim() ||
-    email?.trim() ||
-    "Compte CloneStore";
+  const lastActive = activeOrders[0] ?? null;
 
   return (
     <main className="mx-auto max-w-5xl py-12 px-4 space-y-8">
-      {/* Header */}
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Mon compte</h1>
-          <p className="text-sm text-muted-foreground">
-            Gestion du compte, sécurité, agents et facturation.
-          </p>
+          <p className="text-sm text-muted-foreground">Compte, agents et facturation.</p>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -175,7 +261,7 @@ export default function ProfilePage() {
           </Button>
 
           <Button asChild variant="outline">
-            <Link href="/questions">Questions</Link>
+            <Link href="/questions">Support</Link>
           </Button>
 
           <Button
@@ -189,116 +275,71 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      {/* Erreur */}
-      {error && (
-        <section className="rounded-2xl border p-4">
-          <p className="text-sm text-red-600">{error}</p>
-        </section>
-      )}
+      {error ? <ErrorBanner message={error} /> : null}
 
-      {/* Not logged */}
-      {!loading && !userId && (
-        <section className="rounded-2xl border p-6 space-y-3">
-          <h2 className="text-lg font-medium">Connexion</h2>
-          <p className="text-sm text-muted-foreground">
-            Tu n’es pas connecté. Connecte-toi pour accéder à ton compte et tes agents.
-          </p>
-          <Button asChild>
-            <Link href="/login">Se connecter</Link>
-          </Button>
-        </section>
-      )}
-
-      {/* Loading */}
-      {loading && (
-        <p className="text-sm text-muted-foreground">Chargement…</p>
-      )}
-
-      {/* Content */}
-      {!loading && userId && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Identité */}
-          <section className="rounded-2xl border p-6 space-y-4">
-            <div className="space-y-1">
-              <h2 className="text-lg font-medium">Identité</h2>
-              <p className="text-sm text-muted-foreground">
-                Informations liées à ton compte CloneStore.
-              </p>
-            </div>
-
-            <div className="rounded-xl border p-4 space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">Nom</p>
-                <p className="text-sm font-medium truncate">{displayName}</p>
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="text-sm font-medium truncate">
-                  {profile?.email || email || "—"}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">User ID</p>
-                <p className="text-xs font-mono truncate">{userId}</p>
-              </div>
-            </div>
-
-            <p className="text-xs text-muted-foreground">
-              (Plus tard on ajoutera : nom d’entreprise, SIRET, rôle, etc.)
+      {!loading && !userId ? (
+        <Section
+          title="Connexion"
+          description="Connecte-toi pour accéder à ton compte et à tes agents."
+          right={
+            <Button asChild>
+              <Link href="/login">Se connecter</Link>
+            </Button>
+          }
+        >
+          <div className="rounded-xl border p-4">
+            <p className="text-sm text-muted-foreground">
+              Une fois connecté, tu pourras gérer tes accès et utiliser tes agents.
             </p>
-          </section>
+          </div>
+        </Section>
+      ) : null}
 
-          {/* Résumé agents */}
-          <section className="rounded-2xl border p-6 space-y-4">
-            <div className="space-y-1">
-              <h2 className="text-lg font-medium">Agents</h2>
-              <p className="text-sm text-muted-foreground">
-                Vue rapide de tes agents actifs et historique.
-              </p>
+      {loading ? <p className="text-sm text-muted-foreground">Chargement…</p> : null}
+
+      {!loading && userId ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Section title="Identité" description="Informations du compte.">
+            <div className="rounded-xl border p-4 space-y-2">
+              <KeyValueRow label="Nom" value={displayName} />
+              <KeyValueRow label="Email" value={profile?.email || email || "—"} />
+              <KeyValueRow label="User ID" value={userId} mono />
             </div>
+          </Section>
 
+          <Section title="Agents" description="Vue rapide des accès.">
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border p-4 space-y-1">
-                <p className="text-sm text-muted-foreground">Actifs</p>
-                <p className="text-2xl font-semibold">{activeOrders.length}</p>
-              </div>
-
-              <div className="rounded-xl border p-4 space-y-1">
-                <p className="text-sm text-muted-foreground">Résiliés</p>
-                <p className="text-2xl font-semibold">{cancelledOrders.length}</p>
-              </div>
+              <StatCard label="Actifs" value={activeOrders.length} />
+              <StatCard label="Résiliés / autres" value={cancelledOrders.length} />
             </div>
 
-            {activeOrders.length > 0 && (
-              <div className="rounded-xl border p-4 space-y-3">
-                <p className="text-sm font-medium">Dernier agent actif</p>
-                {(() => {
-                  const last = activeOrders[0];
-                  const badge = statusBadge(last.status);
-                  return (
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1 min-w-0">
-                        <p className="text-sm font-semibold capitalize">
-                          {last.agent_slug}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Actif depuis : {fmtDate(last.started_at)}
-                        </p>
-                      </div>
-                      <span
-                        className={`shrink-0 rounded-full px-3 py-1 text-xs ${badge.className}`}
-                      >
-                        {badge.label}
-                      </span>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
+            <div className="mt-3 rounded-xl border p-4 space-y-3">
+              <p className="text-sm font-medium">Dernier agent actif</p>
 
-            <div className="flex flex-wrap gap-2">
+              {lastActive ? (
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">
+                      {titleCaseSlug(lastActive.agent_slug)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Actif depuis : {fmtDate(lastActive.started_at)}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-3 py-1 text-xs ${statusClass(
+                      lastActive.status
+                    )}`}
+                  >
+                    {statusLabel(lastActive.status)}
+                  </span>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Aucun agent actif pour l’instant.</p>
+              )}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
               <Button asChild>
                 <Link href="/profile/agents">Gérer mes agents</Link>
               </Button>
@@ -306,106 +347,111 @@ export default function ProfilePage() {
                 <Link href="/agents">Embaucher un agent</Link>
               </Button>
             </div>
-          </section>
+          </Section>
 
-          {/* Facturation */}
-          <section className="rounded-2xl border p-6 space-y-4">
-            <div className="space-y-1">
-              <h2 className="text-lg font-medium">Facturation</h2>
-              <p className="text-sm text-muted-foreground">
-                Accès aux paiements et à l’historique des achats.
-              </p>
-            </div>
-
-            <div className="rounded-xl border p-4 space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Prochaine étape : connecter une page “Factures” (Stripe Customer Portal)
-                et l’historique des transactions.
-              </p>
+          <Section title="Facturation" description="Paiements et abonnements.">
+            <div className="rounded-xl border p-4 space-y-3">
+              <p className="text-sm text-muted-foreground">Accède au paiement et à tes abonnements.</p>
               <div className="flex flex-wrap gap-2">
                 <Button asChild variant="outline">
                   <Link href="/paiement">Paiement</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href="/profile/agents">Voir mes abonnements</Link>
+                  <Link href="/profile/agents">Abonnements</Link>
                 </Button>
               </div>
             </div>
+          </Section>
 
-            <p className="text-xs text-muted-foreground">
-              (On finalise la version “entreprise” plus tard : TVA, adresse, etc.)
-            </p>
-          </section>
-
-          {/* Sécurité */}
-          <section className="rounded-2xl border p-6 space-y-4">
-            <div className="space-y-1">
-              <h2 className="text-lg font-medium">Sécurité & connexion</h2>
+          <Section
+            title="Sécurité"
+            description="Connexion et actions sensibles."
+            right={
+              <Button variant="destructive" onClick={logout} disabled={logoutBusy}>
+                {logoutBusy ? "Déconnexion…" : "Se déconnecter"}
+              </Button>
+            }
+          >
+            <div className="rounded-xl border p-4 space-y-2">
               <p className="text-sm text-muted-foreground">
-                Connexion, sécurité, et actions sensibles.
+                Session : {profile?.email || email || "—"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Si tu as un doute sur un accès, contacte le support.
               </p>
             </div>
+          </Section>
 
-            <div className="rounded-xl border p-4 space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Session</p>
-                  <p className="text-xs text-muted-foreground">
-                    Connecté en tant que {profile?.email || email || "—"}.
-                  </p>
-                </div>
-                <Button
-                  variant="destructive"
-                  onClick={logout}
-                  disabled={logoutBusy}
-                >
-                  {logoutBusy ? "Déconnexion…" : "Se déconnecter"}
-                </Button>
-              </div>
+          <section className="rounded-2xl border p-6 space-y-4 md:col-span-2">
+            <header className="space-y-1">
+              <h2 className="text-lg font-medium">Historique</h2>
+              <p className="text-sm text-muted-foreground">
+                Agents et statuts associés à ton compte.
+              </p>
+            </header>
 
-              <div className="rounded-lg border p-3">
-                <p className="text-sm font-medium">Mot de passe</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  (On ajoutera une page “Changer le mot de passe” propre + email de reset.)
+            {orders.length === 0 ? (
+              <div className="rounded-xl border p-4">
+                <p className="text-sm text-muted-foreground">
+                  Aucun achat / abonnement pour l’instant.
                 </p>
               </div>
-            </div>
-
-            <p className="text-xs text-muted-foreground">
-              Objectif : expérience “niveau SaaS”, zéro zone floue.
-            </p>
-          </section>
-
-          {/* Support */}
-          <section className="rounded-2xl border p-6 space-y-4 md:col-span-2">
-            <div className="space-y-1">
-              <h2 className="text-lg font-medium">Aide & support</h2>
-              <p className="text-sm text-muted-foreground">
-                Besoin d’aide ? Utilise l’assistant ou consulte la boutique.
-              </p>
-            </div>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border">
+                <table className="min-w-full text-sm">
+                  <thead className="text-left text-muted-foreground">
+                    <tr className="border-b">
+                      <th className="py-3 px-4 font-medium">Agent</th>
+                      <th className="py-3 px-4 font-medium">Statut</th>
+                      <th className="py-3 px-4 font-medium">Début</th>
+                      <th className="py-3 px-4 font-medium">Fin</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map((o) => (
+                      <tr key={o.id} className="border-b last:border-b-0">
+                        <td className="py-3 px-4 font-medium">
+                          {titleCaseSlug(o.agent_slug)}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs ${statusClass(
+                              o.status
+                            )}`}
+                          >
+                            {statusLabel(o.status)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-muted-foreground">
+                          {fmtDate(o.started_at)}
+                        </td>
+                        <td className="py-3 px-4 text-muted-foreground">
+                          {fmtDate(o.ended_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-2">
-              <Button asChild>
-                <Link href="/questions">Poser une question</Link>
+              <Button asChild variant="outline">
+                <Link href="/agents">Boutique</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href="/agents">Voir les agents</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/legal/confidentialite">Confidentialité</Link>
+                <Link href="/profile/agents">Mes agents</Link>
               </Button>
             </div>
-
-            <p className="text-xs text-muted-foreground">
-              (Plus tard : page Support, tickets, email support, FAQ.)
-            </p>
           </section>
         </div>
-      )}
+      ) : null}
     </main>
   );
 }
+
+
+
 
 
 

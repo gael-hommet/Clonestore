@@ -1,4 +1,9 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 
 type AgentData = {
@@ -23,7 +28,93 @@ const AGENTS: Record<string, AgentData> = {
   noah: { slug: "noah", name: "Noah", role: "Assistant direction", price: "499€/mois", available: false },
 };
 
-function PierreSalesPage() {
+function makeSupabase(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon) throw new Error("Supabase env manquante (URL/ANON)");
+  return createClient(url, anon);
+}
+
+function useAgentAccess(agentSlug: string, enabled: boolean) {
+  const router = useRouter();
+  const supabase = useMemo(() => makeSupabase(), []);
+
+  const [loading, setLoading] = useState(true);
+  const [isLogged, setIsLogged] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
+
+  useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      setIsLogged(false);
+      setHasAccess(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function run() {
+      setLoading(true);
+
+      const { data: userRes, error: userErr } = await supabase.auth.getUser();
+      const user = userRes?.user;
+
+      if (cancelled) return;
+
+      if (userErr || !user) {
+        setIsLogged(false);
+        setHasAccess(false);
+        setLoading(false);
+        return;
+      }
+
+      setIsLogged(true);
+
+      const { data, error } = await supabase
+        .from("orders")
+        .select("id,status")
+        .eq("user_id", user.id)
+        .eq("agent_slug", agentSlug)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (error || !data) {
+        setHasAccess(false);
+        setLoading(false);
+        return;
+      }
+
+      setHasAccess(true);
+      setLoading(false);
+    }
+
+    run();
+
+    // refresh si login/logout
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      run();
+    });
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
+  }, [agentSlug, enabled, supabase, router]);
+
+  return { loading, isLogged, hasAccess };
+}
+
+/* ------------------------- Pages ------------------------- */
+
+function PierreSalesPage({
+  hasAccess,
+  accessLoading,
+}: {
+  hasAccess: boolean;
+  accessLoading: boolean;
+}) {
   return (
     <main className="mx-auto max-w-6xl px-4 py-12 space-y-10">
       {/* HERO */}
@@ -43,10 +134,20 @@ function PierreSalesPage() {
           </p>
         </div>
 
+        {/* CTA intelligents */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button asChild>
-            <Link href="/paiement?agent=pierre">Embaucher Pierre — 299€/mois</Link>
-          </Button>
+          {accessLoading ? (
+            <Button disabled>Vérification…</Button>
+          ) : hasAccess ? (
+            <Button asChild>
+              <Link href="/agents/pierre/use">Utiliser Pierre</Link>
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href="/paiement?agent=pierre">Embaucher Pierre — 299€/mois</Link>
+            </Button>
+          )}
+
           <Button asChild variant="outline">
             <Link href="/agents">Retour boutique</Link>
           </Button>
@@ -123,9 +224,7 @@ function PierreSalesPage() {
         <div className="rounded-2xl border p-6">
           <p className="text-sm">
             <span className="font-medium">Pierre ne fait pas :</span>{" "}
-            <span className="text-muted-foreground">
-              scoring/tri de CV (ça sera Clara).
-            </span>
+            <span className="text-muted-foreground">scoring/tri de CV (ça sera Clara).</span>
           </p>
         </div>
       </section>
@@ -160,12 +259,24 @@ function PierreSalesPage() {
       <section className="rounded-2xl border p-8 space-y-4">
         <h2 className="text-xl font-semibold">Prêt à gagner du temps dès ce soir ?</h2>
         <p className="text-sm text-muted-foreground">
-          Embauche Pierre et commence à produire des documents RH propres en quelques minutes.
+          {hasAccess
+            ? "Ton accès est actif. Tu peux utiliser Pierre maintenant."
+            : "Embauche Pierre et commence à produire des documents RH propres en quelques minutes."}
         </p>
+
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button asChild>
-            <Link href="/paiement?agent=pierre">Embaucher Pierre — 299€/mois</Link>
-          </Button>
+          {accessLoading ? (
+            <Button disabled>Vérification…</Button>
+          ) : hasAccess ? (
+            <Button asChild>
+              <Link href="/agents/pierre/use">Utiliser Pierre</Link>
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href="/paiement?agent=pierre">Embaucher Pierre — 299€/mois</Link>
+            </Button>
+          )}
+
           <Button asChild variant="outline">
             <Link href="/profile/agents">Voir mes agents</Link>
           </Button>
@@ -177,16 +288,18 @@ function PierreSalesPage() {
 
 function ComingSoon({ slug }: { slug: string }) {
   const a = AGENTS[slug];
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 space-y-6">
       <h1 className="text-3xl font-semibold tracking-tight">
         {a.name} — {a.role}
       </h1>
+
       <p className="text-sm text-muted-foreground">
-        Cette fiche est en cours. Prix indicatif : <span className="font-medium">{a.price}</span>
+        Cet agent arrive bientôt. Prix indicatif : <span className="font-medium">{a.price}</span>
       </p>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <Button asChild variant="outline">
           <Link href="/agents">Retour boutique</Link>
         </Button>
@@ -196,14 +309,13 @@ function ComingSoon({ slug }: { slug: string }) {
   );
 }
 
-export default async function AgentPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
+export default function AgentPage() {
+  const params = useParams<{ slug: string }>();
+  const slug = params.slug;
 
   const agent = AGENTS[slug];
+
+  // Si pas trouvé
   if (!agent) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-12 space-y-6">
@@ -215,7 +327,15 @@ export default async function AgentPage({
     );
   }
 
-  if (slug === "pierre") return <PierreSalesPage />;
+  // Access check uniquement si agent dispo (sinon inutile)
+  const { loading: accessLoading, hasAccess } = useAgentAccess(
+    slug,
+    agent.available === true
+  );
+
+  if (slug === "pierre") {
+    return <PierreSalesPage hasAccess={hasAccess} accessLoading={accessLoading} />;
+  }
 
   return <ComingSoon slug={slug} />;
 }

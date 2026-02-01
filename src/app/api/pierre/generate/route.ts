@@ -1,154 +1,369 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+import crypto from "crypto";
+import { z } from "zod";
 
-function getBearerToken(req: NextRequest) {
-  const auth = req.headers.get("authorization") || "";
-  const m = auth.match(/^Bearer\s+(.+)$/i);
-  return m?.[1] || null;
+export const runtime = "nodejs";
+
+const ROUTER_HMAC_SECRET = process.env.ROUTER_HMAC_SECRET!;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY!;
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+
+if (!ROUTER_HMAC_SECRET) throw new Error("Missing ROUTER_HMAC_SECRET");
+if (!OPENAI_API_KEY) throw new Error("Missing OPENAI_API_KEY");
+
+/**
+ * =========================
+ * HMAC Auth
+ * =========================
+ */
+function timingSafeEqualHex(aHex: string, bHex: string) {
+  const a = Buffer.from(aHex, "hex");
+  const b = Buffer.from(bHex, "hex");
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({ error: "OPENAI_API_KEY manquante" }, { status: 500 });
-    }
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY manquante" }, { status: 500 });
-    }
+function assertRouterAuth(req: Request, rawBody: string) {
+  const clientId = req.headers.get("x-client-id") || "";
+  const timestamp = req.headers.get("x-timestamp") || "";
+  const signature = req.headers.get("x-signature") || "";
 
-    const token = getBearerToken(req);
-    if (!token) {
-      return NextResponse.json({ error: "Non autorisé (token manquant)" }, { status: 401 });
-    }
+  if (!clientId || !timestamp || !signature) throw new Error("UNAUTHORIZED");
 
-    const body = await req.json().catch(() => null);
-    const raw_notes = (body?.raw_notes || "").trim();
-    const tone = (body?.tone || "pro").trim();
-    const language = (body?.language || "fr").trim();
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts)) throw new Error("UNAUTHORIZED");
 
-    if (!raw_notes) {
-      return NextResponse.json({ error: "raw_notes manquant" }, { status: 400 });
-    }
+  const now = Date.now();
+  if (Math.abs(now - ts) > 5 * 60 * 1000) throw new Error("UNAUTHORIZED");
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+  const expected = crypto
+    .createHmac("sha256", ROUTER_HMAC_SECRET)
+    .update(`${clientId}.${timestamp}.${rawBody}`)
+    .digest("hex");
 
-    // 1) Identifier le user à partir du token Supabase (anti-triche)
-    const { data: userRes, error: userErr } = await supabaseAdmin.auth.getUser(token);
-    if (userErr || !userRes?.user) {
-      return NextResponse.json({ error: "Token invalide" }, { status: 401 });
-    }
+  if (!timingSafeEqualHex(expected, signature)) throw new Error("UNAUTHORIZED");
+  return clientId;
+}
 
-    const user_id = userRes.user.id;
+function jsonFail(code: string, message: string, details?: any, status = 400) {
+  return NextResponse.json({ ok: false, error: { code, message, details } }, { status });
+}
 
-    // 2) Vérifier qu’il possède Pierre (orders actif)
-    const { data: order, error: orderErr } = await supabaseAdmin
-      .from("orders")
-      .select("id,status")
-      .eq("user_id", user_id)
-      .eq("agent_slug", "pierre")
-      .eq("status", "active")
-      .maybeSingle();
+/**
+ * =========================
+ * Input schema
+ * =========================
+ */
+const GenerateSchema = z.object({
+  client_id: z.string().min(3),
+  request_id: z.string().min(3),
+  mission: z.enum(["doc", "email", "hris"]),
+  payload: z.object({}).passthrough().default({}),
+});
 
-    if (orderErr) {
-      return NextResponse.json({ error: orderErr.message }, { status: 500 });
-    }
-    if (!order) {
-      return NextResponse.json({ error: "Accès refusé: Pierre non actif" }, { status: 403 });
-    }
+/**
+ * =========================
+ * Output schema (zod) — on reste flexible côté server,
+ * le strict est imposé par le json_schema OpenAI
+ * =========================
+ */
+const ActionSchema = z.object({
+  type: z.literal("call_execute"),
+  action: z.enum(["doc.generate", "email.send", "hris.sync"]),
+  payload: z.object({}).passthrough(),
+});
 
-    // 3) Prompt Pierre (JSON strict)
-    const system = `
-Tu es Pierre, l'agent RH de CloneStore.
+const ModelOutSchema = z.object({
+  agent: z.literal("pierre"),
+  request_id: z.string().min(3),
+  reasoning_summary: z.string().min(1),
+  actions: z.array(ActionSchema).min(1),
+  safety: z.object({
+    pii_detected: z.boolean(),
+    requires_human_review: z.boolean(),
+    notes: z.string().default(""),
+  }),
+});
 
-RÔLE :
-- Tu rédiges et structures des documents RH pour des PME / TPE / startups.
-- Tu ne fais PAS d'analyse de CV ni de scoring.
-- Tu produis des textes prêts à l'emploi : annonces, mails RH, comptes-rendus, fiches de poste, scripts d'entretien, plans d'onboarding.
+/**
+ * =========================
+ * JSON Schema STRICT (OpenAI)
+ * IMPORTANT: additionalProperties: false PARTOUT
+ * =========================
+ */
 
-CONTRAINTES :
-- Tu dois TOUJOURS répondre en JSON STRICT.
-- Tu ne dois JAMAIS ajouter de texte en dehors du JSON.
-- La structure du JSON doit être EXACTEMENT la suivante :
-
-{
-  "status": "success",
-  "kind": "RH_DOCUMENT",
-  "task": "...",
-  "document": {
-    "title": "...",
-    "body": "...",
-    "sections": [
-      { "title": "...", "content": "..." }
-    ]
+// payloads stricts
+const DOC_PAYLOAD = {
+  type: "object",
+  additionalProperties: false,
+  required: ["request_id", "title", "html", "filename", "doc_type"],
+  properties: {
+    request_id: { type: "string", minLength: 3 },
+    title: { type: "string", minLength: 1 },
+    html: { type: "string", minLength: 1 },
+    filename: { type: "string", minLength: 3 },
+    doc_type: { type: "string", minLength: 2 },
   },
-  "summary": "...",
-  "checks": ["..."],
-  "next_actions": ["..."],
-  "meta": {
-    "language": "fr",
-    "tone": "pro",
-    "estimated_read_time_minutes": 1
-  }
-}
+} as const;
 
-RÈGLES :
-- "status" = "success" sauf demande illégale/impossible (alors "error" et document.body explique).
-- "task" doit être un mot simple : "job_offer", "rejection_email", "onboarding_plan", etc.
-- Pas de promesses légales/juridiques.
-- Langage clair, phrases courtes, pas de corporate bullshit.
-`.trim();
+const EMAIL_PAYLOAD = {
+  type: "object",
+  additionalProperties: false,
+  required: ["request_id", "to", "subject", "body_html"],
+  properties: {
+    request_id: { type: "string", minLength: 3 },
+    to: {
+      type: "array",
+      minItems: 1,
+      items: { type: "string", minLength: 3 },
+    },
+    subject: { type: "string", minLength: 1 },
+    body_html: { type: "string", minLength: 1 },
+  },
+} as const;
 
-    const userPayload = {
-      mode: "free",
-      language,
-      tone,
-      raw_notes,
-    };
+// HRIS : payload libre interdit en strict json_schema → on passe un JSON string
+const HRIS_PAYLOAD = {
+  type: "object",
+  additionalProperties: false,
+  required: ["request_id", "vendor", "mode", "payload_json"],
+  properties: {
+    request_id: { type: "string", minLength: 3 },
+    vendor: { type: "string", minLength: 2 },
+    mode: { type: "string", enum: ["import", "api", "both"] },
+    payload_json: { type: "string", minLength: 2 }, // JSON.stringify(...)
+  },
+} as const;
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+// actions discriminées (action → payload)
+const ACTION_DOC = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "action", "payload"],
+  properties: {
+    type: { type: "string", enum: ["call_execute"] },
+    action: { type: "string", enum: ["doc.generate"] },
+    payload: DOC_PAYLOAD,
+  },
+} as const;
+
+const ACTION_EMAIL = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "action", "payload"],
+  properties: {
+    type: { type: "string", enum: ["call_execute"] },
+    action: { type: "string", enum: ["email.send"] },
+    payload: EMAIL_PAYLOAD,
+  },
+} as const;
+
+const ACTION_HRIS = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "action", "payload"],
+  properties: {
+    type: { type: "string", enum: ["call_execute"] },
+    action: { type: "string", enum: ["hris.sync"] },
+    payload: HRIS_PAYLOAD,
+  },
+} as const;
+
+const OUT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["agent", "request_id", "reasoning_summary", "actions", "safety"],
+  properties: {
+    agent: { type: "string", enum: ["pierre"] },
+    request_id: { type: "string", minLength: 3 },
+    reasoning_summary: { type: "string", minLength: 1 },
+    actions: {
+      type: "array",
+      minItems: 1,
+      items: {
+        anyOf: [ACTION_DOC, ACTION_EMAIL, ACTION_HRIS],
       },
-      body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        temperature: 0.2,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: JSON.stringify(userPayload) },
-        ],
-      }),
-    });
+    },
+    safety: {
+      type: "object",
+      additionalProperties: false,
+      required: ["pii_detected", "requires_human_review", "notes"],
+      properties: {
+        pii_detected: { type: "boolean" },
+        requires_human_review: { type: "boolean" },
+        notes: { type: "string" },
+      },
+    },
+  },
+} as const;
 
-    if (!res.ok) {
-      const detail = await res.text().catch(() => "");
-      return NextResponse.json({ error: "Erreur OpenAI", detail }, { status: 500 });
-    }
+function buildInstructions() {
+  return `
+Tu es Pierre, agent RH CloneStore.
 
-    const data = await res.json();
-    const content = data?.choices?.[0]?.message?.content;
+Entrée JSON:
+- client_id
+- request_id
+- mission ∈ ["doc","email","hris"]
+- payload
 
-    if (!content) {
-      return NextResponse.json({ error: "Réponse vide" }, { status: 500 });
-    }
+Tu dois renvoyer du JSON STRICT selon le schema imposé.
 
-    // On parse pour garantir que c'est bien du JSON strict
-    let parsed: any = null;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      return NextResponse.json(
-        { error: "Réponse OpenAI non JSON strict", raw: content },
-        { status: 500 }
-      );
-    }
+Règles:
+- agent="pierre"
+- request_id = copie exacte de l'entrée
+- actions non vide
 
-    return NextResponse.json({ ok: true, data: parsed });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Erreur serveur" }, { status: 500 });
+Conventions:
+- Si mission="doc": renvoie 1 action doc.generate avec payload {request_id:"doc_<request_id>", title, html, filename, doc_type}
+- Si mission="email": renvoie 1 action email.send avec payload {request_id:"email_<request_id>", to, subject, body_html}
+- Si mission="hris": renvoie 1 action hris.sync avec payload {request_id:"hris_<request_id>", vendor, mode, payload_json}
+  - payload_json DOIT être une string JSON (JSON.stringify).
+`.trim();
+}
+
+/**
+ * =========================
+ * Extraction robuste
+ * =========================
+ */
+function tryParseJson(s: any) {
+  if (typeof s !== "string") return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
   }
 }
+
+function extractModelJson(openaiResponse: any) {
+  if (typeof openaiResponse?.output_text === "string") {
+    const j = tryParseJson(openaiResponse.output_text);
+    if (j) return j;
+  }
+
+  const out = openaiResponse?.output;
+  if (Array.isArray(out)) {
+    for (const item of out) {
+      const content = item?.content;
+      if (Array.isArray(content)) {
+        for (const c of content) {
+          if (typeof c?.text === "string") {
+            const j = tryParseJson(c.text);
+            if (j) return j;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * =========================
+ * Call OpenAI (Responses)
+ * =========================
+ */
+async function callOpenAI(input: z.infer<typeof GenerateSchema>) {
+  const res = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: OPENAI_MODEL,
+      instructions: buildInstructions(),
+      input: JSON.stringify(input),
+      temperature: 0.2,
+      text: {
+        format: {
+          type: "json_schema",
+          name: "pierre_generate_v1",
+          strict: true,
+          schema: OUT_SCHEMA,
+        },
+      },
+    }),
+  });
+
+  const rawText = await res.text();
+  let rawJson: any = null;
+  try {
+    rawJson = rawText ? JSON.parse(rawText) : null;
+  } catch {
+    return { ok: false, status: res.status, raw: rawText, error: "OPENAI_NOT_JSON" };
+  }
+
+  if (!res.ok) return { ok: false, status: res.status, raw: rawJson, error: "OPENAI_HTTP_ERROR" };
+
+  const modelJson = extractModelJson(rawJson);
+  if (!modelJson) {
+    return { ok: false, status: 502, raw: rawJson, error: "CANNOT_EXTRACT_MODEL_JSON" };
+  }
+
+  return { ok: true, modelJson };
+}
+
+export async function POST(req: Request) {
+  const raw = await req.text();
+
+  // Auth
+  let clientFromHeader = "";
+  try {
+    clientFromHeader = assertRouterAuth(req, raw);
+  } catch {
+    return jsonFail("UNAUTHORIZED", "Router signature invalid or missing", undefined, 401);
+  }
+
+  // Parse
+  let body: any;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return jsonFail("BAD_REQUEST", "Invalid JSON body");
+  }
+
+  // Validate input
+  let input: z.infer<typeof GenerateSchema>;
+  try {
+    input = GenerateSchema.parse(body);
+  } catch (e: any) {
+    return jsonFail("BAD_REQUEST", "Validation error", e?.errors ?? e, 400);
+  }
+
+  if (input.client_id !== clientFromHeader) {
+    return jsonFail("CLIENT_ID_MISMATCH", "client_id mismatch", undefined, 403);
+  }
+
+  // Call OpenAI
+  const ai = await callOpenAI(input);
+  if (!ai.ok) {
+    return jsonFail("OPENAI_ERROR", "OpenAI call failed", ai, 502);
+  }
+
+  // Force server side safety
+  const fixed = { ...ai.modelJson, agent: "pierre", request_id: input.request_id };
+
+  // Validate output
+  let out: z.infer<typeof ModelOutSchema>;
+  try {
+    out = ModelOutSchema.parse(fixed);
+  } catch (e: any) {
+    return jsonFail(
+      "OPENAI_ERROR",
+      "Model JSON does not match required schema",
+      { zod: e?.errors ?? e, modelJson: ai.modelJson },
+      502
+    );
+  }
+
+  // Post-process: si hris.sync → convertir payload_json string en vrai objet pour execute (optionnel)
+  // (On le fait plutôt dans execute plus tard. Là on renvoie brut.)
+  return NextResponse.json({ ok: true, result: out }, { status: 200 });
+}
+
+
+
+
+
