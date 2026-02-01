@@ -7,46 +7,29 @@ import { createClient, PostgrestError } from "@supabase/supabase-js";
 export const runtime = "nodejs";
 
 /**
- * ========= ENV =========
+ * ========= ENV (NE JAMAIS THROW AU TOP-LEVEL) =========
  */
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const CRON_SECRET = process.env.CRON_SECRET!;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const ROUTER_HMAC_SECRET = process.env.ROUTER_HMAC_SECRET || "";
+const CRON_SECRET = process.env.CRON_SECRET || "";
 
-// Pour appeler ton execute interne (HTTP)
-const BASE_URL = (process.env.CLONESTORE_BASE_URL || "http://127.0.0.1:3000").replace(/\/$/, "");
-const ROUTER_HMAC_SECRET = process.env.ROUTER_HMAC_SECRET!;
-
-function assertEnv() {
-  const missing: string[] = [];
-  if (!SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL");
-  if (!SUPABASE_SERVICE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY");
-  if (!CRON_SECRET) missing.push("CRON_SECRET");
-  if (!BASE_URL) missing.push("CLONESTORE_BASE_URL");
-  if (!ROUTER_HMAC_SECRET) missing.push("ROUTER_HMAC_SECRET");
-  if (missing.length) throw new Error(`Missing env vars: ${missing.join(", ")}`);
-}
-assertEnv();
-
-const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-  auth: { persistSession: false },
-});
-
-/**
- * ========= Helpers =========
- */
-type ApiErrorCode = "UNAUTHORIZED" | "BAD_REQUEST" | "DB_ERROR" | "INTERNAL_ERROR";
-
-function jsonFail(code: ApiErrorCode, message: string, details?: any, status = 400) {
+function jsonFail(code: string, message: string, details?: any, status = 400) {
   return NextResponse.json({ ok: false, error: { code, message, ...(details ? { details } : {}) } }, { status });
 }
-
 function jsonOk(result: any) {
   return NextResponse.json({ ok: true, result }, { status: 200 });
 }
 
 function isPostgrestError(e: any): e is PostgrestError {
   return e && typeof e === "object" && typeof e.message === "string";
+}
+
+function getOrigin(req: Request) {
+  const proto = req.headers.get("x-forwarded-proto") || "https";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  if (!host) return null;
+  return `${proto}://${host}`;
 }
 
 function signHmac(clientId: string, rawBody: string) {
@@ -58,128 +41,32 @@ function signHmac(clientId: string, rawBody: string) {
   return { timestamp, signature };
 }
 
-/**
- * ========= Schema =========
- * tick appelé par cron via query ?secret=...
- */
 const TickQuerySchema = z.object({
   secret: z.string().min(10),
   limit: z.coerce.number().int().min(1).max(25).default(5),
 });
 
-/**
- * ========= Core =========
- */
-async function pickOneTask(limit: number) {
-  // On prend des tâches prêtes, puis on lock côté app.
-  const { data, error } = await supabaseAdmin
-    .from("pierre_queue")
-    .select("id, client_id, action, payload, attempts, run_at, status")
-    .eq("status", "queued")
-    .lte("run_at", new Date().toISOString())
-    .order("run_at", { ascending: true })
-    .limit(limit);
-
-  if (error) throw error;
-  return data ?? [];
-}
-
-async function lockTask(id: string) {
-  const lockToken = crypto.randomBytes(16).toString("hex");
-
-  // lock best-effort: on ne lock que si encore queued + pas lock_token
-  const { data, error } = await supabaseAdmin
-    .from("pierre_queue")
-    .update({
-      status: "processing",
-      locked_at: new Date().toISOString(),
-      lock_token: lockToken,
-    })
-    .eq("id", id)
-    .eq("status", "queued")
-    .is("lock_token", null)
-    .select("id, client_id, action, payload, attempts, lock_token")
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!data) return null;
-  return data as any;
-}
-
-async function markDone(id: string, lockToken: string) {
-  const { error } = await supabaseAdmin
-    .from("pierre_queue")
-    .update({
-      status: "done",
-      processed_at: new Date().toISOString(),
-      last_error: null,
-    })
-    .eq("id", id)
-    .eq("lock_token", lockToken);
-
-  if (error) throw error;
-}
-
 function nextRunAt(attempts: number) {
-  // backoff simple: 1m, 2m, 4m, 8m, 15m max
   const mins = Math.min(15, Math.max(1, Math.pow(2, attempts)));
   return new Date(Date.now() + mins * 60 * 1000).toISOString();
 }
 
-async function markFailedAndRetry(id: string, lockToken: string, attempts: number, errMsg: string) {
-  const next = nextRunAt(attempts + 1);
+export async function GET(req: Request) {
+  // ✅ Validation env au runtime (pas au build)
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    return jsonFail("ENV_ERROR", "Missing Supabase env vars", { need: ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"] }, 500);
+  }
+  if (!ROUTER_HMAC_SECRET) {
+    return jsonFail("ENV_ERROR", "Missing ROUTER_HMAC_SECRET", undefined, 500);
+  }
+  if (!CRON_SECRET) {
+    return jsonFail("ENV_ERROR", "Missing CRON_SECRET", undefined, 500);
+  }
 
-  const { error } = await supabaseAdmin
-    .from("pierre_queue")
-    .update({
-      status: attempts + 1 >= 6 ? "dead" : "queued",
-      attempts: attempts + 1,
-      last_error: errMsg,
-      run_at: attempts + 1 >= 6 ? new Date().toISOString() : next,
-      locked_at: null,
-      lock_token: null,
-    })
-    .eq("id", id)
-    .eq("lock_token", lockToken);
-
-  if (error) throw error;
-}
-
-async function callExecute(client_id: string, action: string, payload: any) {
-  const bodyObj = { client_id, action, payload };
-  const raw = JSON.stringify(bodyObj);
-  const { timestamp, signature } = signHmac(client_id, raw);
-
-  const res = await fetch(`${BASE_URL}/api/pierre/execute`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-client-id": client_id,
-      "x-timestamp": timestamp,
-      "x-signature": signature,
-    },
-    body: raw,
+  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: { persistSession: false },
   });
 
-  const text = await res.text();
-  let json: any = null;
-  try {
-    json = text ? JSON.parse(text) : null;
-  } catch {
-    json = text;
-  }
-
-  if (!res.ok || !json?.ok) {
-    const reason = typeof json === "string" ? json : JSON.stringify(json);
-    throw new Error(`execute_failed: ${res.status} ${reason}`);
-  }
-  return json;
-}
-
-/**
- * ========= Handler =========
- */
-export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const parsed = TickQuerySchema.safeParse({
@@ -195,27 +82,116 @@ export async function GET(req: Request) {
       return jsonFail("UNAUTHORIZED", "Invalid cron secret", undefined, 401);
     }
 
+    const origin = getOrigin(req);
+    if (!origin) {
+      return jsonFail("INTERNAL_ERROR", "Cannot determine origin (host/proto)", undefined, 500);
+    }
+
     const limit = parsed.data.limit;
 
-    const candidates = await pickOneTask(limit);
+    // 1) pick tasks
+    const { data: candidates, error: pickErr } = await supabaseAdmin
+      .from("pierre_queue")
+      .select("id, client_id, action, payload, attempts, run_at, status")
+      .eq("status", "queued")
+      .lte("run_at", new Date().toISOString())
+      .order("run_at", { ascending: true })
+      .limit(limit);
+
+    if (pickErr) throw pickErr;
 
     let processed = 0;
     let done = 0;
     let failed = 0;
 
-    for (const c of candidates) {
-      const locked = await lockTask(c.id);
+    for (const c of candidates ?? []) {
+      // 2) lock task
+      const lockToken = crypto.randomBytes(16).toString("hex");
+
+      const { data: locked, error: lockErr } = await supabaseAdmin
+        .from("pierre_queue")
+        .update({
+          status: "processing",
+          locked_at: new Date().toISOString(),
+          lock_token: lockToken,
+        })
+        .eq("id", c.id)
+        .eq("status", "queued")
+        .is("lock_token", null)
+        .select("id, client_id, action, payload, attempts, lock_token")
+        .maybeSingle();
+
+      if (lockErr) throw lockErr;
       if (!locked) continue;
 
       processed++;
 
+      // 3) call execute
       try {
-        await callExecute(locked.client_id, locked.action, locked.payload ?? {});
-        await markDone(locked.id, locked.lock_token);
+        const bodyObj = { client_id: locked.client_id, action: locked.action, payload: locked.payload ?? {} };
+        const raw = JSON.stringify(bodyObj);
+        const { timestamp, signature } = signHmac(locked.client_id, raw);
+
+        const res = await fetch(`${origin}/api/pierre/execute`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-client-id": locked.client_id,
+            "x-timestamp": timestamp,
+            "x-signature": signature,
+          },
+          body: raw,
+        });
+
+        const text = await res.text();
+        let json: any;
+        try {
+          json = text ? JSON.parse(text) : null;
+        } catch {
+          json = text;
+        }
+
+        if (!res.ok || !json?.ok) {
+          const reason = typeof json === "string" ? json : JSON.stringify(json);
+          throw new Error(`execute_failed: ${res.status} ${reason}`);
+        }
+
+        // 4) done
+        const { error: doneErr } = await supabaseAdmin
+          .from("pierre_queue")
+          .update({
+            status: "done",
+            processed_at: new Date().toISOString(),
+            last_error: null,
+          })
+          .eq("id", locked.id)
+          .eq("lock_token", locked.lock_token);
+
+        if (doneErr) throw doneErr;
+
         done++;
       } catch (e: any) {
+        const attempts = Number(locked.attempts ?? 0);
         const msg = String(e?.message ?? "unknown_error");
-        await markFailedAndRetry(locked.id, locked.lock_token, locked.attempts ?? 0, msg);
+
+        const isDead = attempts + 1 >= 6;
+        const runAt = isDead ? new Date().toISOString() : nextRunAt(attempts + 1);
+
+        const { error: failErr } = await supabaseAdmin
+          .from("pierre_queue")
+          .update({
+            status: isDead ? "dead" : "queued",
+            attempts: attempts + 1,
+            last_error: msg,
+            run_at: runAt,
+            locked_at: null,
+            lock_token: null,
+          })
+          .eq("id", locked.id)
+          .eq("lock_token", locked.lock_token);
+
+        if (failErr) throw failErr;
+
         failed++;
       }
     }
@@ -228,6 +204,7 @@ export async function GET(req: Request) {
     return jsonFail("INTERNAL_ERROR", String(e?.message ?? "Internal error"), undefined, 500);
   }
 }
+
 
 
 
