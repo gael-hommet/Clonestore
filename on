@@ -1,0 +1,60 @@
+[1mdiff --git a/public/brand/clonestore.png b/public/brand/clonestore.png[m
+[1mindex e69de29..7f2ca69 100644[m
+[1m--- a/public/brand/clonestore.png[m
+[1m+++ b/public/brand/clonestore.png[m
+[36m@@ -0,0 +1 @@[m
+[32m+[m[32mc:\Users\homme\Pictures\clonestore.png.png[m
+[1mdiff --git a/src/app/loading.tsx b/src/app/loading.tsx[m
+[1mindex 1f67835..8a3faf6 100644[m
+[1m--- a/src/app/loading.tsx[m
+[1m+++ b/src/app/loading.tsx[m
+[36m@@ -5,3 +5,4 @@[m [mexport default function Loading() {[m
+     </div>[m
+   );[m
+ }[m
+[41m+[m
+[1mdiff --git a/src/components/ui/Header.tsx b/src/components/ui/Header.tsx[m
+[1mindex e69de29..292e415 100644[m
+[1m--- a/src/components/ui/Header.tsx[m
+[1m+++ b/src/components/ui/Header.tsx[m
+[36m@@ -0,0 +1,14 @@[m
+[32m+[m[32mimport Mark from "./Mark";[m
+[32m+[m
+[32m+[m[32mexport default function Header() {[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <header className="w-full border-b">[m
+[32m+[m[32m      <div className="mx-auto max-w-6xl h-14 px-4 flex items-center justify-between">[m
+[32m+[m[32m        <Mark />[m
+[32m+[m[32m        <a href="/shop" className="px-4 py-2 rounded-xl bg-black text-white">[m
+[32m+[m[32m          Boutique[m
+[32m+[m[32m        </a>[m
+[32m+[m[32m      </div>[m
+[32m+[m[32m    </header>[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+[1mdiff --git a/src/components/ui/Mark.tsx b/src/components/ui/Mark.tsx[m
+[1mindex b3c1efb..e119852 100644[m
+[1m--- a/src/components/ui/Mark.tsx[m
+[1m+++ b/src/components/ui/Mark.tsx[m
+[36m@@ -1,11 +1,19 @@[m
+ import Image from "next/image";[m
+ import Link from "next/link";[m
+ [m
+[31m-export default function Logo() {[m
+[32m+[m[32mexport default function Mark() {[m
+   return ([m
+     <Link href="/" className="flex items-center gap-2">[m
+[31m-      <Image src="/brand/icon_master_1024.png" alt="CloneStore" width={28} height={28} priority />[m
+[32m+[m[32m      <Image[m
+[32m+[m[32m        src="/brand/icon_master_1024.png"[m
+[32m+[m[32m        alt="CloneStore"[m
+[32m+[m[32m        width={28}[m
+[32m+[m[32m        height={28}[m
+[32m+[m[32m        priority[m
+[32m+[m[32m      />[m
+       <span className="hidden sm:block font-semibold">CloneStore</span>[m
+     </Link>[m
+   );[m
+ }[m
+[41m+[m
+[41m+[m
