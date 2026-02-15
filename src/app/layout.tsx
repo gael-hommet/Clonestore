@@ -5,14 +5,35 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "CloneStore",
   description: "Vos employés IA, clé en main.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+const ORG_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "CloneStore",
+  url: "https://clonestore.pro",
+  logo: "https://clonestore.pro/icon-512.png",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
       <head>
+        {/* Favicon + iOS */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+        {/* Logo “officiel” pour Google (Knowledge Panel / brand) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
+        />
       </head>
+
       <body className="min-h-screen bg-background text-foreground antialiased">
         {/* HEADER */}
         <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">

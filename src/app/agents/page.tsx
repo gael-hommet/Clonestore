@@ -81,7 +81,7 @@ const CLONES: Clone[] = [
   },
 ];
 
-const UNDER_CONSTRUCTION = new Set(["alex", "noah"]);
+const UNDER_CONSTRUCTION = new Set(["alex", "noah", "clara", "emma"]);
 
 if (process.env.NEXT_PUBLIC_DEPLOY_BLOCK_PIERRE === "1") {
   UNDER_CONSTRUCTION.add("pierre");
@@ -380,6 +380,7 @@ function HowCard({
     </div>
   );
 }
+
 
 
 
