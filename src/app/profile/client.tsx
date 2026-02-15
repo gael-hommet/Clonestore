@@ -36,9 +36,9 @@ const AGENT_CATALOG: Record<string, { name: string; short: string; highlights: s
       "Suivi de pipeline recrutement",
     ],
   },
-  alex: { name: "Alex", short: "Agent CloneStore (bientôt).", highlights: [] },
-  emma: { name: "Emma", short: "Agent CloneStore (bientôt).", highlights: [] },
-  noah: { name: "Noah", short: "Agent CloneStore (bientôt).", highlights: [] },
+  alex: { name: "Alex", short: "Clone CloneStore (bientôt).", highlights: [] },
+  emma: { name: "Emma", short: "Clone CloneStore (bientôt).", highlights: [] },
+  noah: { name: "Noah", short: "Clone CloneStore (bientôt).", highlights: [] },
 };
 
 function statusBadge(status: string) {
@@ -178,10 +178,10 @@ export default function Client() {
       <header className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Mes agents</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Mes clones</h1>
             <p className="text-sm text-muted-foreground">
-              Ici tu retrouves les agents que tu as embauchés. Les agents actifs sont utilisables
-              immédiatement. Les agents résiliés restent visibles en historique.
+              Ici tu retrouves les clones que tu as embauchés. Les clones actifs sont utilisables
+              immédiatement. Les clones résiliés restent visibles en historique.
             </p>
           </div>
 
@@ -192,7 +192,7 @@ export default function Client() {
 
         <section className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border p-4">
-            <p className="text-xs text-muted-foreground">Agents actifs</p>
+            <p className="text-xs text-muted-foreground">Clones actifs</p>
             <p className="text-2xl font-semibold">{active.length}</p>
           </div>
           <div className="rounded-2xl border p-4">
@@ -217,9 +217,9 @@ export default function Client() {
       {!loading && orders.length === 0 && (
         <section className="rounded-2xl border p-8 space-y-4">
           <div className="space-y-1">
-            <p className="text-base font-medium">Aucun agent pour le moment</p>
+            <p className="text-base font-medium">Aucun clone pour le moment</p>
             <p className="text-sm text-muted-foreground">
-              Va dans la boutique pour embaucher ton premier agent.
+              Va dans la boutique pour embaucher ton premier clone.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
@@ -238,13 +238,13 @@ export default function Client() {
             </div>
 
             {active.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Aucun agent actif.</p>
+              <p className="text-sm text-muted-foreground">Aucun clone actif.</p>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
                 {active.map((o) => {
                   const meta = AGENT_CATALOG[o.agent_slug] || {
                     name: o.agent_slug,
-                    short: "Agent CloneStore.",
+                    short: "Clone CloneStore.",
                     highlights: [],
                   };
                   const badge = statusBadge(o.status);
@@ -257,7 +257,9 @@ export default function Client() {
                           <p className="text-sm text-muted-foreground">{meta.short}</p>
                         </div>
 
-                        <span className={`shrink-0 rounded-full px-3 py-1 text-xs ${badge.className}`}>
+                        <span
+                          className={`shrink-0 rounded-full px-3 py-1 text-xs ${badge.className}`}
+                        >
                           {badge.label}
                         </span>
                       </div>
@@ -303,13 +305,13 @@ export default function Client() {
             <h2 className="text-lg font-semibold">Historique</h2>
 
             {history.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Aucun agent résilié.</p>
+              <p className="text-sm text-muted-foreground">Aucun clone résilié.</p>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
                 {history.map((o) => {
                   const meta = AGENT_CATALOG[o.agent_slug] || {
                     name: o.agent_slug,
-                    short: "Agent CloneStore.",
+                    short: "Clone CloneStore.",
                     highlights: [],
                   };
                   const badge = statusBadge(o.status);
@@ -322,7 +324,9 @@ export default function Client() {
                           <p className="text-sm text-muted-foreground">{meta.short}</p>
                         </div>
 
-                        <span className={`shrink-0 rounded-full px-3 py-1 text-xs ${badge.className}`}>
+                        <span
+                          className={`shrink-0 rounded-full px-3 py-1 text-xs ${badge.className}`}
+                        >
                           {badge.label}
                         </span>
                       </div>
@@ -352,4 +356,3 @@ export default function Client() {
     </main>
   );
 }
-

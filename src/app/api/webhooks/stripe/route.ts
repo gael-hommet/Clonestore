@@ -12,7 +12,6 @@ function json(status: number, data: unknown) {
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
-  // ✅ pas d'apiVersion custom => pas d'erreur TS
   return new Stripe(key);
 }
 
@@ -21,11 +20,9 @@ function getSupabaseAdmin() {
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
   if (!service) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
-
   return createClient(url, service, { auth: { persistSession: false } });
 }
 
-/** Helpers ultra-sûrs (pas de `any`) */
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
 }
@@ -108,34 +105,37 @@ export async function POST(req: Request) {
       return json(400, { error: msg });
     }
 
-    // =========================
-    // 1) SUBSCRIPTION CREATED / UPDATED
-    // =========================
-    if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
+    // ✅ 0) CHECKOUT COMPLETED = source de vérité
+    if (event.type === "checkout.session.completed") {
       const obj: unknown = event.data.object;
       if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
 
-      // sub id
-      const subId = getString(obj, "id");
-      if (!subId) return json(200, { received: true, note: "Missing subscription id" });
-
-      // status
-      const status = getString(obj, "status"); // "active" / "past_due" / ...
-      // customer (string most of the time)
+      const mode = getString(obj, "mode"); // "subscription"
+      const payment_status = getString(obj, "payment_status"); // "paid"
+      const subId = getString(obj, "subscription");
       const customerId = getString(obj, "customer");
 
       const meta = getMetadata(obj);
-      const user_id =
-        meta && typeof meta["user_id"] === "string" ? (meta["user_id"] as string) : null;
-      const agent_slug =
-        meta && typeof meta["agent_slug"] === "string" ? (meta["agent_slug"] as string) : null;
+      const user_id = meta && typeof meta["user_id"] === "string" ? (meta["user_id"] as string) : null;
+      const agent_slug = meta && typeof meta["agent_slug"] === "string" ? (meta["agent_slug"] as string) : null;
 
-      // ✅ Active => UPSERT actif avec subId
-      if (status === "active" && user_id && agent_slug) {
+      // On active seulement si paiement OK + subscription id présent
+      if (mode === "subscription" && payment_status === "paid" && subId && user_id && agent_slug) {
         await upsertActive({ user_id, agent_slug, subId, customerId });
       }
 
-      // ✅ Past due => on marque past_due (si on a déjà une ligne)
+      return json(200, { received: true, type: event.type, subId, payment_status });
+    }
+
+    // ✅ 1) SUBSCRIPTION updated : utile pour past_due / etc.
+    if (event.type === "customer.subscription.updated") {
+      const obj: unknown = event.data.object;
+      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+
+      const subId = getString(obj, "id");
+      const status = getString(obj, "status");
+      if (!subId) return json(200, { received: true, note: "Missing subscription id" });
+
       if (status === "past_due") {
         await setPastDueBySubId(subId);
       }
@@ -143,9 +143,7 @@ export async function POST(req: Request) {
       return json(200, { received: true, type: event.type, subId, status });
     }
 
-    // =========================
-    // 2) SUBSCRIPTION DELETED
-    // =========================
+    // ✅ 2) SUBSCRIPTION DELETED
     if (event.type === "customer.subscription.deleted") {
       const obj: unknown = event.data.object;
       if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
@@ -156,9 +154,7 @@ export async function POST(req: Request) {
       return json(200, { received: true, type: event.type, subId });
     }
 
-    // =========================
-    // 3) INVOICE PAYMENT FAILED => past_due
-    // =========================
+    // ✅ 3) PAYMENT FAILED => past_due
     if (event.type === "invoice.payment_failed") {
       const obj: unknown = event.data.object;
       if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
@@ -175,6 +171,8 @@ export async function POST(req: Request) {
     return json(500, { error: msg });
   }
 }
+
+
 
 
 

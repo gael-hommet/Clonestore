@@ -16,27 +16,27 @@ export default function HomePage() {
     <main className="mx-auto max-w-5xl px-4 py-20 space-y-28">
       {/* ================= HERO ================= */}
       <section className="max-w-3xl">
-       <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
-  Des agents IA qui prennent en charge votre travail.
-</h1>
+        <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
+          Des clones IA qui prennent en charge votre travail.
+        </h1>
 
-<p className="mt-4 text-lg md:text-xl font-medium">
-  Gagnez du temps et de l’argent. Sans recruter.
-</p>
+        <p className="mt-4 text-lg md:text-xl font-medium">
+          Gagnez du temps et de l’argent. Sans recruter.
+        </p>
 
-<p className="mt-3 text-muted-foreground text-base md:text-lg leading-relaxed">
-  CloneStore déploie des agents IA spécialisés, configurés pour votre entreprise,
-  capables d’exécuter des tâches réelles (RH, support, opérations), seuls ou en
-  équipe via un Router intelligent.
-</p>
+        <p className="mt-3 text-muted-foreground text-base md:text-lg leading-relaxed">
+          CloneStore déploie des clones IA spécialisés, configurés pour votre entreprise,
+          capables d’exécuter des tâches réelles (RH, support, opérations), seuls ou en
+          équipe via un Router intelligent.
+        </p>
 
         <div className="mt-8 flex flex-wrap gap-4">
           <Button asChild className="px-6">
-            <Link href="/agents">Voir les agents</Link>
+            <Link href="/agents">Voir les clones</Link>
           </Button>
 
           <Button asChild variant="outline" className="px-6">
-            <Link href="/chatbot">Parler au chatbot</Link>
+            <Link href="/assistant">Parler au chatbot</Link>
           </Button>
         </div>
 
@@ -57,7 +57,7 @@ export default function HomePage() {
       {/* ================= VISUEL CONCEPT ================= */}
       <section className="rounded-xl border bg-muted/30 p-6 text-sm text-muted-foreground">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="font-medium">Agents spécialisés</span>
+          <span className="font-medium">Clones spécialisés</span>
           <span>→</span>
           <span className="font-medium">Router CloneStore</span>
           <span>→</span>
@@ -69,8 +69,8 @@ export default function HomePage() {
       <section className="grid gap-10 md:grid-cols-3">
         <Step
           icon={<Users />}
-          title="Choisissez un agent"
-          text="Chaque agent correspond à un métier précis. Ce ne sont pas des prompts génériques."
+          title="Choisissez un clone"
+          text="Chaque clone correspond à un métier précis. Ce ne sont pas des prompts génériques."
         />
         <Step
           icon={<Settings />}
@@ -80,24 +80,24 @@ export default function HomePage() {
         <Step
           icon={<Network />}
           title="Il travaille (seul ou en équipe)"
-          text="Les agents coopèrent via le Router pour produire un résultat final."
+          text="Les clones coopèrent via le Router pour produire un résultat final."
         />
       </section>
 
-      {/* ================= AGENTS = CHARGE DE TRAVAIL ================= */}
+      {/* ================= CLONES = CHARGE DE TRAVAIL ================= */}
       <section className="space-y-6">
         <h2 className="text-2xl font-semibold">
-          Des agents qui remplacent des heures de travail
+          Des clones qui remplacent des heures de travail
         </h2>
 
         <ul className="space-y-4 text-muted-foreground">
-          <li>• Un agent RH peut gérer le tri de CV, la présélection et les emails candidats</li>
-          <li>• Un agent support répond, classe et prépare les réponses clients</li>
-          <li>• Un agent administratif génère documents, mails et synthèses</li>
+          <li>• Un clone RH peut gérer le tri de CV, la présélection et les emails candidats</li>
+          <li>• Un clone support répond, classe et prépare les réponses clients</li>
+          <li>• Un clone administratif génère documents, mails et synthèses</li>
         </ul>
 
         <p className="text-sm text-muted-foreground">
-          → Chaque agent équivaut à plusieurs heures de travail humain par semaine.
+          → Chaque clone équivaut à plusieurs heures de travail humain par semaine.
         </p>
       </section>
 
@@ -105,13 +105,13 @@ export default function HomePage() {
       <section className="grid gap-6 md:grid-cols-2">
         <DiffPoint
           icon={<Users />}
-          title="Agents finis"
-          text="Chaque agent est un produit spécialisé, pas un simple prompt."
+          title="Clones finis"
+          text="Chaque clone est un produit spécialisé, pas un simple prompt."
         />
         <DiffPoint
           icon={<Network />}
-          title="Coopération entre agents"
-          text="Les agents peuvent travailler ensemble via le Router (CloneOS)."
+          title="Coopération entre clones"
+          text="Les clones peuvent travailler ensemble via le Router (CloneOS)."
         />
         <DiffPoint
           icon={<FileText />}
@@ -147,7 +147,7 @@ export default function HomePage() {
           Prêt à déléguer une partie de votre travail ?
         </h2>
         <Button asChild size="lg">
-          <Link href="/agents">Découvrir les agents</Link>
+          <Link href="/agents">Découvrir les clones</Link>
         </Button>
       </section>
     </main>
@@ -195,5 +195,6 @@ function DiffPoint({
     </div>
   );
 }
+
 
 

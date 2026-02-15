@@ -9,9 +9,9 @@ export default function Page() {
     <main className="mx-auto max-w-5xl px-4 py-12 space-y-8">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Mes agents</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Mes clones</h1>
           <p className="text-sm text-muted-foreground">
-            Gère tes accès, retrouve l’historique, et utilise tes agents en 1 clic.
+            Gère tes accès, retrouve l’historique, et utilise tes clones en 1 clic.
           </p>
         </div>
 
@@ -20,7 +20,7 @@ export default function Page() {
             <Link href="/profile">Mon compte</Link>
           </Button>
           <Button asChild>
-            <Link href="/agents">Embaucher un agent</Link>
+            <Link href="/agents">Embaucher un clone</Link>
           </Button>
         </div>
       </header>

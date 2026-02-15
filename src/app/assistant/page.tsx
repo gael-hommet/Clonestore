@@ -11,7 +11,7 @@ export default function AssistantPage() {
     {
       role: "assistant",
       content:
-        "Pose tes questions sur les agents CloneStore (Pierre, Clara). Je réponds uniquement avec ce qui est confirmé.",
+        "Pose tes questions sur les clones CloneStore (Pierre, Clara). Je réponds uniquement avec ce qui est confirmé.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -33,7 +33,7 @@ export default function AssistantPage() {
         body: JSON.stringify({ messages: nextMessages }),
       });
 
-      const payload = await res.json().catch(() => ({}));
+      const payload = await res.json().catch(() => ({} as any));
 
       if (!res.ok) {
         setMessages([
@@ -43,7 +43,11 @@ export default function AssistantPage() {
         return;
       }
 
-      setMessages([...nextMessages, { role: "assistant", content: payload.answer }]);
+      const answer =
+        (payload && typeof payload.answer === "string" && payload.answer.trim()) ||
+        "Réponse vide du serveur. Vérifie /api/assistant.";
+
+      setMessages([...nextMessages, { role: "assistant", content: answer }]);
     } catch {
       setMessages([...nextMessages, { role: "assistant", content: "Erreur réseau. Réessaie." }]);
     } finally {
@@ -64,7 +68,7 @@ export default function AssistantPage() {
             <Link href="/agents">Boutique</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/profile/agents">Voir Mes Agents</Link>
+            <Link href="/profile/agents">Voir Mes Clones</Link>
           </Button>
           <Button asChild>
             <Link href="/paiement">Paiement</Link>
@@ -74,79 +78,96 @@ export default function AssistantPage() {
 
       <section className="rounded-xl border p-4 space-y-4">
         <div className="flex flex-wrap gap-2">
-  <button
-    type="button"
-    className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
-    onClick={() => setInput("Quels sont les agents disponibles sur CloneStore ?")}
-  >
-    Agents disponibles
-  </button>
+          <button
+            type="button"
+            className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
+            onClick={() => setInput("Quels sont les clones disponibles sur CloneStore ?")}
+          >
+            Clones disponibles
+          </button>
 
-  <button
-    type="button"
-    className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
-    onClick={() =>
-      setInput("Quelle est la différence entre les agents CloneStore ?")
-    }
-  >
-    Différences entre agents
-  </button>
+          <button
+            type="button"
+            className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
+            onClick={() => setInput("Quelle est la différence entre les clones CloneStore ?")}
+          >
+            Différences entre clones
+          </button>
 
-  <button
-    type="button"
-    className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
-    onClick={() =>
-      setInput("Quel agent choisir selon mon besoin ?")
-    }
-  >
-    Quel agent choisir ?
-  </button>
+          <button
+            type="button"
+            className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
+            onClick={() => setInput("Quel clone choisir selon mon besoin ?")}
+          >
+            Quel clone choisir ?
+          </button>
 
-  <button
-    type="button"
-    className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
-    onClick={() =>
-      setInput("Que peut faire un agent CloneStore et que ne fait-il pas ?")
-    }
-  >
-    Capacités & limites
-  </button>
+          <button
+            type="button"
+            className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
+            onClick={() => setInput("Que peut faire un clone CloneStore et que ne fait-il pas ?")}
+          >
+            Capacités & limites
+          </button>
 
-  <button
-    type="button"
-    className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
-    onClick={() =>
-      setInput("Comment fonctionne l’accès après paiement ?")
-    }
-  >
-    Accès après paiement
-  </button>
+          <button
+            type="button"
+            className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
+            onClick={() => setInput("Comment fonctionne l’accès après paiement ?")}
+          >
+            Accès après paiement
+          </button>
 
-  <button
-    type="button"
-    className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
-    onClick={() =>
-      setInput("Comment résilier ou changer d’agent ?")
-    }
-  >
-    Résiliation / changement
-  </button>
-</div>
+          <button
+            type="button"
+            className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
+            onClick={() => setInput("Comment résilier ou changer de clone ?")}
+          >
+            Résiliation / changement
+          </button>
+        </div>
 
+        {/* ✅ Affichage des messages (c’était le manque) */}
+        <div className="rounded-lg border bg-background p-3 space-y-3">
+          <div className="max-h-[360px] overflow-y-auto space-y-3 pr-1">
+            {messages.map((m, idx) => (
+              <div
+                key={idx}
+                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed border ${
+                    m.role === "user" ? "bg-muted" : "bg-background"
+                  }`}
+                >
+                  {m.content}
+                </div>
+              </div>
+            ))}
 
-        <div className="flex gap-2">
-          <input
-            className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-            placeholder="Écris ta question…"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") send();
-            }}
-          />
-          <Button onClick={() => send()} disabled={loading}>
-            {loading ? "…" : "Envoyer"}
-          </Button>
+            {loading ? (
+              <div className="flex justify-start">
+                <div className="max-w-[85%] rounded-2xl px-3 py-2 text-sm border bg-background text-muted-foreground">
+                  Réponse en cours…
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+              placeholder="Écris ta question…"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") send();
+              }}
+            />
+            <Button onClick={() => send()} disabled={loading}>
+              {loading ? "…" : "Envoyer"}
+            </Button>
+          </div>
         </div>
       </section>
     </main>

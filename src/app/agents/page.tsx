@@ -9,7 +9,7 @@ import { Check, Clock, ShieldCheck, Layers, Activity, CreditCard } from "lucide-
 type OrdersMe = { active: string[]; past_due: string[]; cancelled: string[] };
 type OrderRow = { agent_slug: string; status: string };
 
-type Agent = {
+type Clone = {
   slug: string;
   name: string;
   role: string;
@@ -18,7 +18,7 @@ type Agent = {
   workload: string; // “équivalence charge de travail”
 };
 
-const AGENTS: Agent[] = [
+const CLONES: Clone[] = [
   {
     slug: "pierre",
     name: "Pierre",
@@ -81,6 +81,12 @@ const AGENTS: Agent[] = [
   },
 ];
 
+const UNDER_CONSTRUCTION = new Set(["alex", "noah"]);
+
+if (process.env.NEXT_PUBLIC_DEPLOY_BLOCK_PIERRE === "1") {
+  UNDER_CONSTRUCTION.add("pierre");
+}
+
 function makeSupabase(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -111,6 +117,9 @@ function normalizeOrders(rows: OrderRow[]): OrdersMe {
 }
 
 function badgeFor(slug: string, orders: OrdersMe) {
+  if (UNDER_CONSTRUCTION.has(slug)) {
+    return { label: "En construction", className: "bg-muted text-foreground" };
+  }
   if (orders.active.includes(slug)) {
     return { label: "Accès actif", className: "bg-foreground text-background" };
   }
@@ -123,7 +132,7 @@ function badgeFor(slug: string, orders: OrdersMe) {
   return { label: "Non embauché", className: "bg-muted text-foreground" };
 }
 
-export default function AgentsPage() {
+export default function ClonesPage() {
   const supabase = useMemo(() => makeSupabase(), []);
 
   const [loading, setLoading] = useState(true);
@@ -179,22 +188,20 @@ export default function AgentsPage() {
     };
   }, [refreshAccess, supabase]);
 
-  const visibleAgents = useMemo(() => {
+  const visibleClones = useMemo(() => {
     if (filter === "mine") {
-      return AGENTS.filter((a) => activeSet.has(a.slug));
+      return CLONES.filter((a) => activeSet.has(a.slug));
     }
-    return AGENTS;
+    return CLONES;
   }, [filter, activeSet]);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-12 space-y-10">
       {/* Header */}
       <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">Boutique d’agents</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Boutique de clones</h1>
         <p className="text-muted-foreground text-sm">
-          {loading
-            ? "Chargement des accès…"
-            : "Choisis un agent. Accès instantané après paiement."}
+          {loading ? "Chargement des accès…" : "Choisis un clone. Accès instantané après paiement."}
         </p>
 
         {/* Mini proof / positioning */}
@@ -206,7 +213,7 @@ export default function AgentsPage() {
             <ShieldCheck size={14} /> Données isolées + logs
           </span>
           <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1">
-            <Layers size={14} /> Agents spécialisés (pas des prompts)
+            <Layers size={14} /> Clones spécialisés (pas des prompts)
           </span>
         </div>
       </header>
@@ -214,8 +221,8 @@ export default function AgentsPage() {
       {/* How it works (simple) */}
       <section className="grid gap-4 md:grid-cols-3">
         <HowCard
-          title="1. Choisis un agent"
-          text="Un agent = un métier. Objectif clair, livrables concrets."
+          title="1. Choisis un clone"
+          text="Un clone = un métier. Objectif clair, livrables concrets."
           icon={<Check />}
         />
         <HowCard
@@ -225,7 +232,7 @@ export default function AgentsPage() {
         />
         <HowCard
           title="3. Il exécute"
-          text="Il travaille seul ou avec d’autres agents via le Router."
+          text="Il travaille seul ou avec d’autres clones via le Router."
           icon={<Layers />}
         />
       </section>
@@ -233,35 +240,33 @@ export default function AgentsPage() {
       {/* Filter */}
       <section className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
-          <h2 className="text-xl font-semibold">Agents disponibles</h2>
+          <h2 className="text-xl font-semibold">Clones disponibles</h2>
           <p className="text-sm text-muted-foreground">
-            Chaque agent est conçu pour réduire une vraie charge de travail.
+            Chaque clone est conçu pour réduire une vraie charge de travail.
           </p>
         </div>
 
         <div className="flex gap-2">
-          <Button
-            variant={filter === "all" ? "default" : "outline"}
-            onClick={() => setFilter("all")}
-          >
+          <Button variant={filter === "all" ? "default" : "outline"} onClick={() => setFilter("all")}>
             Tous
           </Button>
           <Button
             variant={filter === "mine" ? "default" : "outline"}
             onClick={() => setFilter("mine")}
             disabled={loading}
-            title={loading ? "Chargement…" : "Afficher uniquement tes agents actifs"}
+            title={loading ? "Chargement…" : "Afficher uniquement tes clones actifs"}
           >
-            Mes agents
+            Mes clones
           </Button>
         </div>
       </section>
 
       {/* Cards */}
       <section className="grid gap-4 sm:grid-cols-2">
-        {visibleAgents.map((a) => {
+        {visibleClones.map((a) => {
           const has = activeSet.has(a.slug);
           const badge = badgeFor(a.slug, orders);
+          const isUC = UNDER_CONSTRUCTION.has(a.slug);
 
           return (
             <div key={a.slug} className="rounded-2xl border p-6 space-y-5">
@@ -311,7 +316,9 @@ export default function AgentsPage() {
                   <Link href={`/agents/${a.slug}`}>Voir</Link>
                 </Button>
 
-                {has ? (
+                {isUC ? (
+                  <Button disabled>En construction</Button>
+                ) : has ? (
                   <Button asChild>
                     <Link href={`/agents/${a.slug}/use`}>Utiliser</Link>
                   </Button>
@@ -341,11 +348,11 @@ export default function AgentsPage() {
       <section className="text-center space-y-4">
         <h2 className="text-2xl font-semibold">Tu hésites ?</h2>
         <p className="text-sm text-muted-foreground">
-          Parle au chatbot : il te dit quel agent correspond à ta charge de travail.
+          Parle au chatbot : il te dit quel clone correspond à ta charge de travail.
         </p>
         <div className="flex flex-wrap justify-center gap-2">
           <Button asChild>
-            <Link href="/chatbot">Parler au chatbot</Link>
+            <Link href="/assistant">Parler au chatbot</Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/profile">Mon compte</Link>
@@ -367,14 +374,15 @@ function HowCard({
 }) {
   return (
     <div className="rounded-2xl border p-6 space-y-3">
-      <div className="w-10 h-10 rounded-lg border flex items-center justify-center">
-        {icon}
-      </div>
+      <div className="w-10 h-10 rounded-lg border flex items-center justify-center">{icon}</div>
       <h3 className="font-medium">{title}</h3>
       <p className="text-sm text-muted-foreground">{text}</p>
     </div>
   );
 }
+
+
+
 
 
 

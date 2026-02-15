@@ -248,7 +248,7 @@ export default function ProfilePage() {
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Mon compte</h1>
-          <p className="text-sm text-muted-foreground">Compte, agents et facturation.</p>
+          <p className="text-sm text-muted-foreground">Compte, clones et facturation.</p>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -257,7 +257,7 @@ export default function ProfilePage() {
           </Button>
 
           <Button asChild variant="outline">
-            <Link href="/profile/agents">Mes agents</Link>
+            <Link href="/profile/agents">Mes clones</Link>
           </Button>
 
           <Button asChild variant="outline">
@@ -280,7 +280,7 @@ export default function ProfilePage() {
       {!loading && !userId ? (
         <Section
           title="Connexion"
-          description="Connecte-toi pour accéder à ton compte et à tes agents."
+          description="Connecte-toi pour accéder à ton compte et à tes clones."
           right={
             <Button asChild>
               <Link href="/login">Se connecter</Link>
@@ -289,7 +289,7 @@ export default function ProfilePage() {
         >
           <div className="rounded-xl border p-4">
             <p className="text-sm text-muted-foreground">
-              Une fois connecté, tu pourras gérer tes accès et utiliser tes agents.
+              Une fois connecté, tu pourras gérer tes accès et utiliser tes clones.
             </p>
           </div>
         </Section>
@@ -307,14 +307,14 @@ export default function ProfilePage() {
             </div>
           </Section>
 
-          <Section title="Agents" description="Vue rapide des accès.">
+          <Section title="Clones" description="Vue rapide des accès.">
             <div className="grid gap-3 sm:grid-cols-2">
               <StatCard label="Actifs" value={activeOrders.length} />
               <StatCard label="Résiliés / autres" value={cancelledOrders.length} />
             </div>
 
             <div className="mt-3 rounded-xl border p-4 space-y-3">
-              <p className="text-sm font-medium">Dernier agent actif</p>
+              <p className="text-sm font-medium">Dernier clone actif</p>
 
               {lastActive ? (
                 <div className="flex items-start justify-between gap-3">
@@ -335,16 +335,16 @@ export default function ProfilePage() {
                   </span>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">Aucun agent actif pour l’instant.</p>
+                <p className="text-sm text-muted-foreground">Aucun clone actif pour l’instant.</p>
               )}
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
               <Button asChild>
-                <Link href="/profile/agents">Gérer mes agents</Link>
+                <Link href="/profile/agents">Gérer mes clones</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href="/agents">Embaucher un agent</Link>
+                <Link href="/agents">Embaucher un clone</Link>
               </Button>
             </div>
           </Section>
@@ -386,7 +386,7 @@ export default function ProfilePage() {
             <header className="space-y-1">
               <h2 className="text-lg font-medium">Historique</h2>
               <p className="text-sm text-muted-foreground">
-                Agents et statuts associés à ton compte.
+                Clones et statuts associés à ton compte.
               </p>
             </header>
 
@@ -401,7 +401,7 @@ export default function ProfilePage() {
                 <table className="min-w-full text-sm">
                   <thead className="text-left text-muted-foreground">
                     <tr className="border-b">
-                      <th className="py-3 px-4 font-medium">Agent</th>
+                      <th className="py-3 px-4 font-medium">Clone</th>
                       <th className="py-3 px-4 font-medium">Statut</th>
                       <th className="py-3 px-4 font-medium">Début</th>
                       <th className="py-3 px-4 font-medium">Fin</th>
@@ -440,7 +440,7 @@ export default function ProfilePage() {
                 <Link href="/agents">Boutique</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href="/profile/agents">Mes agents</Link>
+                <Link href="/profile/agents">Mes clones</Link>
               </Button>
             </div>
           </section>
@@ -449,6 +449,8 @@ export default function ProfilePage() {
     </main>
   );
 }
+
+
 
 
 

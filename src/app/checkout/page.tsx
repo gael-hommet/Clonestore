@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 
@@ -15,48 +15,68 @@ function getSupabase() {
     );
   }
 
-  return createClient(url, anon);
+  // ✅ important : persistance + auto refresh (comportement normal côté client)
+  return createClient(url, anon, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
 }
 
-type CheckoutResponse =
-  | { url: string }
-  | { error: string };
+type CheckoutResponse = { url: string } | { error: string };
+
+const ALLOWED_AGENTS = ["pierre", "clara", "alex", "emma", "noah"] as const;
+type AgentSlug = (typeof ALLOWED_AGENTS)[number];
+
+function isAllowedAgent(v: string): v is AgentSlug {
+  return (ALLOWED_AGENTS as readonly string[]).includes(v);
+}
 
 export default function CheckoutPage() {
   const sp = useSearchParams();
   const router = useRouter();
 
-  const agent = (sp.get("agent") || "pierre").toLowerCase();
+  const agent = useMemo(() => {
+    const raw = (sp.get("agent") || "pierre").toLowerCase().trim();
+    return raw;
+  }, [sp]);
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    // si tu veux empêcher des agents inconnus
-    const allowed = ["pierre", "clara", "alex", "emma", "noah"];
-    if (!allowed.includes(agent)) {
+    // validation agent
+    if (!isAllowedAgent(agent)) {
       setErr("Agent invalide.");
+    } else {
+      setErr(null);
     }
   }, [agent]);
 
   async function goCheckout() {
+    if (!isAllowedAgent(agent)) return;
+
     setErr(null);
     setLoading(true);
 
     try {
       const supabase = getSupabase();
 
-      const { data: userRes, error: userErr } = await supabase.auth.getUser();
-      if (userErr) {
+      // ✅ session d’abord (plus fiable)
+      const { data: sessionRes, error: sessionErr } = await supabase.auth.getSession();
+      if (sessionErr) {
         setLoading(false);
-        setErr(userErr.message);
+        setErr(sessionErr.message);
         return;
       }
 
-      const user = userRes.user;
+      const user = sessionRes.session?.user;
       if (!user) {
         setLoading(false);
-        router.push("/login");
+        const next = encodeURIComponent(`/paiement/checkout?agent=${agent}`);
+        router.push(`/login?next=${next}`);
         return;
       }
 
@@ -66,22 +86,22 @@ export default function CheckoutPage() {
         body: JSON.stringify({ user_id: user.id, agent_slug: agent }),
       });
 
-      const json = (await res.json().catch(() => ({}))) as Partial<CheckoutResponse>;
+      const data = (await res.json().catch(() => ({}))) as Partial<CheckoutResponse>;
 
       if (!res.ok) {
         setLoading(false);
-        setErr((json as { error?: string })?.error || "Checkout impossible.");
+        setErr((data as { error?: string })?.error || "Checkout impossible.");
         return;
       }
 
-      const url = (json as { url?: string })?.url;
+      const url = (data as { url?: string })?.url;
       if (!url) {
         setLoading(false);
         setErr("Checkout impossible (url manquante).");
         return;
       }
 
-      window.location.href = url;
+      window.location.assign(url);
     } catch (e: unknown) {
       setLoading(false);
       setErr(e instanceof Error ? e.message : "Erreur checkout.");
@@ -91,7 +111,7 @@ export default function CheckoutPage() {
   return (
     <main className="mx-auto max-w-xl px-4 py-12 space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold">Checkout</h1>
+        <h1 className="text-2xl font-semibold">Paiement</h1>
         <p className="text-sm text-muted-foreground">
           Agent sélectionné : <strong>{agent}</strong>
         </p>
@@ -103,16 +123,30 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      <Button onClick={goCheckout} disabled={loading || !!err}>
-        {loading ? "Redirection vers Stripe…" : "Continuer vers Stripe"}
-      </Button>
+      <div className="space-y-3">
+        <Button onClick={goCheckout} disabled={loading || !!err} className="w-full">
+          {loading ? "Redirection vers Stripe…" : "Continuer vers Stripe"}
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => router.push(`/agents/${agent}`)}
+          disabled={loading}
+        >
+          Revenir à la fiche agent
+        </Button>
+      </div>
 
       <p className="text-xs text-muted-foreground">
-        Si tu as déjà payé et que rien ne s’active, on vérifie ensuite le webhook (étape 3).
+        Si tu as déjà payé et que l’agent ne s’active pas, le problème vient du webhook Stripe
+        (activation côté serveur).
       </p>
     </main>
   );
 }
+
 
 
 

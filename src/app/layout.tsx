@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Boutique
               </Link>
               <Link href="/profile/agents" className="hover:opacity-80">
-                Mes agents
+                Mes clones
               </Link>
               <Link href="/profile" className="hover:opacity-80">
                 Mon compte
@@ -62,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
 
 
 
