@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +14,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
 
@@ -20,6 +23,7 @@ export default function LoginPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [needsConfirm, setNeedsConfirm] = useState(false);
 
+  // ================= LOGIN =================
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -51,6 +55,7 @@ export default function LoginPage() {
     router.push("/profile");
   }
 
+  // ================= RESEND CONFIRM =================
   async function resendConfirmEmail() {
     setError(null);
     setInfo(null);
@@ -82,6 +87,37 @@ export default function LoginPage() {
     setResendLoading(false);
   }
 
+  // ================= RESET PASSWORD =================
+  async function handleForgotPassword() {
+    setError(null);
+    setInfo(null);
+
+    if (!email) {
+      setError("Entre ton email pour réinitialiser le mot de passe.");
+      return;
+    }
+
+    if (!supabase) {
+      setError("Supabase non configuré.");
+      return;
+    }
+
+    const redirectTo =
+      (process.env.NEXT_PUBLIC_SITE_URL || "https://www.clonestore.pro").replace(/\/$/, "") +
+      "/login";
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
+
+    if (error) {
+      setError("Impossible d’envoyer l’email de réinitialisation.");
+      return;
+    }
+
+    setInfo("Email de réinitialisation envoyé. Vérifie ta boîte mail.");
+  }
+
   return (
     <section className="mx-auto max-w-md py-12 px-4">
       <h1 className="text-2xl font-semibold tracking-tight">Se connecter</h1>
@@ -90,6 +126,7 @@ export default function LoginPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        {/* EMAIL */}
         <div className="space-y-1 text-sm">
           <label htmlFor="email" className="font-medium">
             Email
@@ -105,19 +142,39 @@ export default function LoginPage() {
           />
         </div>
 
+        {/* PASSWORD */}
         <div className="space-y-1 text-sm">
           <label htmlFor="password" className="font-medium">
             Mot de passe
           </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              className="w-full rounded-md border px-3 py-2 pr-10 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:opacity-70"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleForgotPassword}
+            className="text-xs text-muted-foreground hover:underline"
+          >
+            Mot de passe oublié ?
+          </button>
         </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
@@ -149,6 +206,7 @@ export default function LoginPage() {
     </section>
   );
 }
+
 
 
 
