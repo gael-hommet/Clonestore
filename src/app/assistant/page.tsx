@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -11,15 +11,28 @@ export default function AssistantPage() {
     {
       role: "assistant",
       content:
-        "Pose tes questions sur les clones CloneStore (Pierre, Clara). Je réponds uniquement avec ce qui est confirmé.",
+        "Pose tes questions sur CloneStore (Pierre, Clara, Emma, Alex, Noah). Je réponds uniquement avec ce qui est confirmé et j’indique quand c’est “en construction” ou “option”.",
     },
   ]);
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
+
+  const listRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-scroll
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [messages, loading]);
 
   async function send(text?: string) {
     const content = (text ?? input).trim();
     if (!content || loading) return;
+
+    setLastError(null);
 
     const nextMessages: Msg[] = [...messages, { role: "user", content }];
     setMessages(nextMessages);
@@ -36,23 +49,48 @@ export default function AssistantPage() {
       const payload = await res.json().catch(() => ({} as any));
 
       if (!res.ok) {
+        const detail =
+          (payload && (payload.error || payload.detail)) || "Erreur serveur.";
+        setLastError(typeof detail === "string" ? detail : "Erreur serveur.");
         setMessages([
           ...nextMessages,
-          { role: "assistant", content: "Erreur. Réessaie dans un instant." },
+          {
+            role: "assistant",
+            content: "Erreur. Réessaie dans un instant.",
+          },
         ]);
         return;
       }
 
       const answer =
-        (payload && typeof payload.answer === "string" && payload.answer.trim()) ||
+        (payload &&
+          typeof payload.answer === "string" &&
+          payload.answer.trim()) ||
         "Réponse vide du serveur. Vérifie /api/assistant.";
 
       setMessages([...nextMessages, { role: "assistant", content: answer }]);
     } catch {
-      setMessages([...nextMessages, { role: "assistant", content: "Erreur réseau. Réessaie." }]);
+      setLastError("Erreur réseau.");
+      setMessages([
+        ...nextMessages,
+        { role: "assistant", content: "Erreur réseau. Réessaie." },
+      ]);
     } finally {
       setLoading(false);
     }
+  }
+
+  function clearChat() {
+    setLastError(null);
+    setInput("");
+    setLoading(false);
+    setMessages([
+      {
+        role: "assistant",
+        content:
+          "Ok. Repartons de zéro : pose ta question sur CloneStore et je te réponds uniquement avec du confirmé.",
+      },
+    ]);
   }
 
   return (
@@ -73,6 +111,9 @@ export default function AssistantPage() {
           <Button asChild>
             <Link href="/paiement">Paiement</Link>
           </Button>
+          <Button variant="outline" onClick={clearChat}>
+            Effacer
+          </Button>
         </div>
       </header>
 
@@ -89,9 +130,9 @@ export default function AssistantPage() {
           <button
             type="button"
             className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
-            onClick={() => setInput("Quelle est la différence entre les clones CloneStore ?")}
+            onClick={() => setInput("Quelle est la différence entre Pierre, Clara, Emma, Alex et Noah ?")}
           >
-            Différences entre clones
+            Différences
           </button>
 
           <button
@@ -105,9 +146,17 @@ export default function AssistantPage() {
           <button
             type="button"
             className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
-            onClick={() => setInput("Que peut faire un clone CloneStore et que ne fait-il pas ?")}
+            onClick={() => setInput("Comment fonctionne CloneOS / Router et la collaboration entre clones ?")}
           >
-            Capacités & limites
+            CloneOS / Router
+          </button>
+
+          <button
+            type="button"
+            className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
+            onClick={() => setInput("Comment marche l’email pro via DNS (ex: pierre@monentreprise.com) ?")}
+          >
+            Email via DNS
           </button>
 
           <button
@@ -117,19 +166,13 @@ export default function AssistantPage() {
           >
             Accès après paiement
           </button>
-
-          <button
-            type="button"
-            className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
-            onClick={() => setInput("Comment résilier ou changer de clone ?")}
-          >
-            Résiliation / changement
-          </button>
         </div>
 
-        {/* ✅ Affichage des messages (c’était le manque) */}
         <div className="rounded-lg border bg-background p-3 space-y-3">
-          <div className="max-h-[360px] overflow-y-auto space-y-3 pr-1">
+          <div
+            ref={listRef}
+            className="max-h-[380px] overflow-y-auto space-y-3 pr-1"
+          >
             {messages.map((m, idx) => (
               <div
                 key={idx}
@@ -154,14 +197,23 @@ export default function AssistantPage() {
             ) : null}
           </div>
 
+          {lastError ? (
+            <div className="rounded-md border p-2 text-xs text-red-600">
+              {lastError}
+            </div>
+          ) : null}
+
           <div className="flex gap-2">
-            <input
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-              placeholder="Écris ta question…"
+            <textarea
+              className="w-full min-h-[42px] max-h-[120px] resize-y rounded-md border bg-background px-3 py-2 text-sm outline-none"
+              placeholder="Écris ta question… (Entrée = envoyer, Shift+Entrée = nouvelle ligne)"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") send();
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send();
+                }
               }}
             />
             <Button onClick={() => send()} disabled={loading}>
