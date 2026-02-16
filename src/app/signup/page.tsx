@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
@@ -8,46 +8,68 @@ import { Button } from "@/components/ui/button";
 
 export default function SignupPage() {
   const router = useRouter();
+  const supabase = useMemo(() => getSupabase(), []);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accepted, setAccepted] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setInfo(null);
+
+    if (!accepted) {
+      setError("Tu dois accepter la politique de confidentialité.");
+      return;
+    }
+
     setLoading(true);
 
-    const supabase = getSupabase();
     if (!supabase) {
-      setError("Erreur de configuration. Réessaie plus tard.");
+      setError("Supabase non configuré. Vérifie tes variables NEXT_PUBLIC_*.");
       setLoading(false);
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
+    const emailRedirectTo =
+      (process.env.NEXT_PUBLIC_SITE_URL || "https://www.clonestore.pro").replace(/\/$/, "") +
+      "/login";
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: { emailRedirectTo },
     });
 
     if (error) {
-      console.error(error);
-      setError("Impossible de créer le compte. Vérifie l’email ou réessaie.");
+      setError(error.message || "Impossible de créer le compte.");
       setLoading(false);
       return;
     }
 
-    // Succès → on envoie sur Mon compte
+    // confirmation email activée => session null => normal
+    if (!data.session) {
+      setInfo(
+        "Compte créé ✅ Vérifie ton email pour confirmer ton compte (pense aux spams), puis reviens te connecter."
+      );
+      setLoading(false);
+      return;
+    }
+
+    router.refresh();
     router.push("/profile");
   }
 
   return (
     <section className="mx-auto max-w-md py-12 px-4">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        Créer un compte
-      </h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Créer un compte</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Crée ton espace CloneStore pour activer et gérer tes agents IA.
+        Crée ton espace CloneStore pour activer et gérer tes clones IA.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -81,17 +103,31 @@ export default function SignupPage() {
           />
         </div>
 
-        {error && (
-          <p className="text-sm text-red-500">
-            {error}
-          </p>
-        )}
+        <label className="flex items-start gap-2 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={accepted}
+            onChange={(e) => setAccepted(e.target.checked)}
+          />
+          <span>
+            J’ai lu et j’accepte la{" "}
+            <a
+              href="https://www.clonestore.pro/legal/confidentialite"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline font-medium hover:opacity-80"
+            >
+              politique de confidentialité
+            </a>
+            .
+          </span>
+        </label>
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={loading}
-        >
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        {info && <p className="text-sm text-muted-foreground">{info}</p>}
+
+        <Button type="submit" className="w-full" disabled={loading || !accepted}>
           {loading ? "Création du compte..." : "Créer mon compte"}
         </Button>
       </form>
@@ -105,6 +141,8 @@ export default function SignupPage() {
     </section>
   );
 }
+
+
 
 
 

@@ -26,7 +26,7 @@ function makeSupabase(): SupabaseClient {
       "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY"
     );
   }
-  return createClient(url, anon);
+  return createClient(url, anon)
 }
 
 function Pill({ children }: { children: React.ReactNode }) {

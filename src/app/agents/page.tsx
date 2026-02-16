@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { getSupabase } from "@/lib/supabase";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Check, Clock, ShieldCheck, Layers, Activity, CreditCard } from "lucide-react";
 
 type OrdersMe = { active: string[]; past_due: string[]; cancelled: string[] };
@@ -87,17 +88,6 @@ if (process.env.NEXT_PUBLIC_DEPLOY_BLOCK_PIERRE === "1") {
   UNDER_CONSTRUCTION.add("pierre");
 }
 
-function makeSupabase(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) {
-    throw new Error(
-      "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY"
-    );
-  }
-  return createClient(url, anon);
-}
-
 function normalizeOrders(rows: OrderRow[]): OrdersMe {
   const active: string[] = [];
   const past_due: string[] = [];
@@ -133,7 +123,8 @@ function badgeFor(slug: string, orders: OrdersMe) {
 }
 
 export default function ClonesPage() {
-  const supabase = useMemo(() => makeSupabase(), []);
+  // ✅ seul changement technique : singleton Supabase
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
 
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrdersMe>({ active: [], past_due: [], cancelled: [] });
@@ -145,6 +136,11 @@ export default function ClonesPage() {
     setLoading(true);
 
     try {
+      if (!supabase) {
+        setOrders({ active: [], past_due: [], cancelled: [] });
+        return;
+      }
+
       const { data: userRes, error: userErr } = await supabase.auth.getUser();
 
       if (userErr || !userRes?.user) {
@@ -177,14 +173,14 @@ export default function ClonesPage() {
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
 
-    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+    const sub = supabase?.auth.onAuthStateChange(() => {
       refreshAccess();
     });
 
     return () => {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
-      sub.subscription.unsubscribe();
+      sub?.data.subscription.unsubscribe();
     };
   }, [refreshAccess, supabase]);
 
@@ -247,7 +243,10 @@ export default function ClonesPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button variant={filter === "all" ? "default" : "outline"} onClick={() => setFilter("all")}>
+          <Button
+            variant={filter === "all" ? "default" : "outline"}
+            onClick={() => setFilter("all")}
+          >
             Tous
           </Button>
           <Button
@@ -374,7 +373,9 @@ function HowCard({
 }) {
   return (
     <div className="rounded-2xl border p-6 space-y-3">
-      <div className="w-10 h-10 rounded-lg border flex items-center justify-center">{icon}</div>
+      <div className="w-10 h-10 rounded-lg border flex items-center justify-center">
+        {icon}
+      </div>
       <h3 className="font-medium">{title}</h3>
       <p className="text-sm text-muted-foreground">{text}</p>
     </div>

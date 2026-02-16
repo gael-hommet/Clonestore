@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
+import { getSupabase } from "@/lib/supabase";
 
 type OrderRow = {
   id: string;
@@ -62,15 +63,9 @@ function fmtDate(value: string | null) {
   }
 }
 
-function getSupabaseOrNull(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) return null;
-  return createClient(url, anon);
-}
-
 export default function Client() {
-  const supabase = useMemo(() => getSupabaseOrNull(), []);
+  // ✅ seul changement technique : singleton Supabase
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
 
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderRow[]>([]);
@@ -356,3 +351,4 @@ export default function Client() {
     </main>
   );
 }
+

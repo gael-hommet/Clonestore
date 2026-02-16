@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 
 type ProfileRow = {
@@ -123,12 +124,8 @@ function ErrorBanner({ message }: { message: string }) {
 }
 
 export default function ProfilePage() {
-  const supabase = useMemo(() => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !anon) return null;
-    return createClient(url, anon);
-  }, []);
+  // ✅ Seul changement technique : singleton Supabase (plus de createClient ici)
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
 
   const [loading, setLoading] = useState(true);
   const [logoutBusy, setLogoutBusy] = useState(false);
@@ -410,9 +407,7 @@ export default function ProfilePage() {
                   <tbody>
                     {orders.map((o) => (
                       <tr key={o.id} className="border-b last:border-b-0">
-                        <td className="py-3 px-4 font-medium">
-                          {titleCaseSlug(o.agent_slug)}
-                        </td>
+                        <td className="py-3 px-4 font-medium">{titleCaseSlug(o.agent_slug)}</td>
                         <td className="py-3 px-4">
                           <span
                             className={`inline-flex items-center rounded-full px-3 py-1 text-xs ${statusClass(
@@ -422,12 +417,8 @@ export default function ProfilePage() {
                             {statusLabel(o.status)}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-muted-foreground">
-                          {fmtDate(o.started_at)}
-                        </td>
-                        <td className="py-3 px-4 text-muted-foreground">
-                          {fmtDate(o.ended_at)}
-                        </td>
+                        <td className="py-3 px-4 text-muted-foreground">{fmtDate(o.started_at)}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{fmtDate(o.ended_at)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -449,6 +440,7 @@ export default function ProfilePage() {
     </main>
   );
 }
+
 
 
 

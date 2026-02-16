@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
@@ -8,46 +8,85 @@ import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
   const router = useRouter();
+  const supabase = useMemo(() => getSupabase(), []);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [needsConfirm, setNeedsConfirm] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setInfo(null);
+    setNeedsConfirm(false);
     setLoading(true);
 
-    const supabase = getSupabase();
     if (!supabase) {
-      setError("Erreur de configuration. Réessaie plus tard.");
+      setError("Supabase non configuré. Vérifie tes variables NEXT_PUBLIC_*.");
       setLoading(false);
       return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      const msg = (error.message || "").toLowerCase();
+      if (msg.includes("email not confirmed")) {
+        setNeedsConfirm(true);
+        setError("Email non confirmé. Vérifie ta boîte mail (et les spams).");
+      } else {
+        setError("Email ou mot de passe incorrect.");
+      }
+      setLoading(false);
+      return;
+    }
+
+    router.refresh();
+    router.push("/profile");
+  }
+
+  async function resendConfirmEmail() {
+    setError(null);
+    setInfo(null);
+    setResendLoading(true);
+
+    if (!supabase) {
+      setError("Supabase non configuré.");
+      setResendLoading(false);
+      return;
+    }
+
+    const emailRedirectTo =
+      (process.env.NEXT_PUBLIC_SITE_URL || "https://www.clonestore.pro").replace(/\/$/, "") +
+      "/login";
+
+    const { error } = await supabase.auth.resend({
+      type: "signup",
       email,
-      password,
+      options: { emailRedirectTo },
     });
 
     if (error) {
-      console.error(error);
-      setError("Email ou mot de passe incorrect.");
-      setLoading(false);
+      setError("Impossible de renvoyer l’email. Réessaie.");
+      setResendLoading(false);
       return;
     }
 
-    // Succès → on envoie sur Mon compte
-    router.push("/profile");
+    setInfo("Email de confirmation renvoyé. Vérifie aussi tes spams.");
+    setResendLoading(false);
   }
 
   return (
     <section className="mx-auto max-w-md py-12 px-4">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        Se connecter
-      </h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Se connecter</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Accède à ton espace CloneStore pour gérer ton compte et tes agents.
+        Accède à ton espace CloneStore pour gérer ton compte et tes clones.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -81,17 +120,22 @@ export default function LoginPage() {
           />
         </div>
 
-        {error && (
-          <p className="text-sm text-red-500">
-            {error}
-          </p>
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        {info && <p className="text-sm text-muted-foreground">{info}</p>}
+
+        {needsConfirm && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={resendConfirmEmail}
+            disabled={resendLoading || !email}
+          >
+            {resendLoading ? "Envoi..." : "Renvoyer l’email de confirmation"}
+          </Button>
         )}
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={loading}
-        >
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Connexion..." : "Se connecter"}
         </Button>
       </form>
@@ -105,6 +149,7 @@ export default function LoginPage() {
     </section>
   );
 }
+
 
 
 
