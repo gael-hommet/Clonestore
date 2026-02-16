@@ -253,7 +253,7 @@ export default function ClaraPage() {
 
       {/* AUTONOMIE / CLONEOS */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Autonomie & CloneOS (le mode “big boss”)</h2>
+        <h2 className="text-xl font-semibold">Autonomie & CloneOS </h2>
 
         <div className="grid gap-4 md:grid-cols-3">
           <Card
@@ -274,7 +274,7 @@ export default function ClaraPage() {
         </div>
 
         <div className="rounded-2xl border p-6 space-y-2">
-          <p className="text-sm font-medium">Ce que je promets / ce que je ne promets pas</p>
+          <p className="text-sm font-medium">Ce que Clara promet / ce qu'elle ne promet pas</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Clara peut absorber une grosse charge de recrutement et te faire gagner énormément de temps, mais je ne
             vends pas “5 employés” comme une garantie. La performance dépend du volume, de la qualité des CV, et de tes
