@@ -29,7 +29,7 @@ type AccessCheckResult = { ok: boolean; has: boolean };
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">
+    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground cs-pill">
       {children}
     </span>
   );
@@ -45,7 +45,7 @@ function Card({
   desc: string;
 }) {
   return (
-    <div className="rounded-2xl border p-6 space-y-2">
+    <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground">{icon}</span>
         <p className="font-medium">{title}</p>
@@ -265,7 +265,7 @@ export default function EmmaPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Objectif</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Réduire drastiquement le temps support, sans dégrader la qualité. Emma ne remplace pas ton produit — elle
@@ -291,7 +291,7 @@ export default function EmmaPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Résultat</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Un support pro, plus rapide, plus cohérent, avec moins d’oublis et moins de clients laissés “sans réponse”.
@@ -321,7 +321,7 @@ export default function EmmaPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Note</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Les intégrations dépendent de ton outil. Sans connecteur direct, on passe par Router/Make ou API quand c’est
@@ -367,7 +367,7 @@ export default function EmmaPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 cs-card shadow-soft">
           <p className="text-sm">
             <span className="font-medium">Emma ne fait pas :</span>{" "}
             <span className="text-muted-foreground">
@@ -383,7 +383,7 @@ export default function EmmaPage() {
         <h2 className="text-xl font-semibold">Exemples de briefs (et ce que tu obtiens)</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Client énervé : ‘je n’ai pas accès’, reste calme, demande les infos utiles.”
@@ -394,7 +394,7 @@ export default function EmmaPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Résume ce fil de 12 mails et dis la prochaine action.”
@@ -405,7 +405,7 @@ export default function EmmaPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Classe ces 30 demandes : bug / facturation / livraison / accès.”
@@ -416,7 +416,7 @@ export default function EmmaPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Mode autonome : nouvelle demande → réponse brouillon + tag + alerte si urgent.”
@@ -434,19 +434,19 @@ export default function EmmaPage() {
         <h2 className="text-xl font-semibold">Comment ça marche</h2>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">1) Tu définis les règles</p>
             <p className="text-sm text-muted-foreground">
               Ton, garanties, FAQ, ce que Emma peut dire / ne pas dire, et quand escalader.
             </p>
           </div>
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">2) Emma traite</p>
             <p className="text-sm text-muted-foreground">
               Classe, résume, propose une réponse, et demande ce qui manque.
             </p>
           </div>
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">3) Automatisation (option)</p>
             <p className="text-sm text-muted-foreground">
               Déclencheurs CloneOS/Router : mails, tickets, suivi, relances — avec logs.
@@ -455,7 +455,7 @@ export default function EmmaPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border p-6 space-y-3">
+      <section className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
         <h3 className="text-lg font-medium">3 modes d’utilisation</h3>
 
         <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
@@ -475,7 +475,7 @@ export default function EmmaPage() {
       </section>
 
       {/* ACCÈS / CTA */}
-      <section id="acces" className="rounded-2xl border p-8 space-y-4">
+      <section id="acces" className="rounded-2xl border p-8 space-y-4 cs-card shadow-soft">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-xl font-semibold">Accès à Emma</h2>
@@ -536,6 +536,4 @@ export default function EmmaPage() {
     </main>
   );
 }
-
-
 

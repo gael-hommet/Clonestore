@@ -31,7 +31,7 @@ type AccessCheckResult = { ok: boolean; has: boolean };
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">
+    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground cs-pill">
       {children}
     </span>
   );
@@ -47,7 +47,7 @@ function Card({
   desc: string;
 }) {
   return (
-    <div className="rounded-2xl border p-6 space-y-2">
+    <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground">{icon}</span>
         <p className="font-medium">{title}</p>
@@ -264,7 +264,7 @@ export default function NoahPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Promesse réaliste</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Noah ne “magique” pas une entreprise. Il te rend meilleur au quotidien : moins de dispersion, plus de clarté,
@@ -290,7 +290,7 @@ export default function NoahPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Cas typique</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Après une réunion : Noah génère le compte rendu + décisions + actions + mail récapitulatif prêt à partir.
@@ -320,7 +320,7 @@ export default function NoahPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Note</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Les intégrations dépendent des outils. Sans connecteur direct, on passe par Router/Make ou API quand c’est possible.
@@ -365,7 +365,7 @@ export default function NoahPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 cs-card shadow-soft">
           <p className="text-sm">
             <span className="font-medium">Noah ne fait pas :</span>{" "}
             <span className="text-muted-foreground">
@@ -380,7 +380,7 @@ export default function NoahPage() {
         <h2 className="text-xl font-semibold">Exemples de briefs (et ce que tu obtiens)</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “J’ai trop de sujets. Fais un tri : urgent / important, et donne un plan de la semaine.”
@@ -391,7 +391,7 @@ export default function NoahPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Notes réunion → compte rendu + décisions + actions + mail à envoyer.”
@@ -402,7 +402,7 @@ export default function NoahPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Je dois cadrer un projet. Fais un doc : objectif, périmètre, étapes, risques.”
@@ -413,7 +413,7 @@ export default function NoahPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Prépare un mail d’alignement à l’équipe (objectifs, attentes, ton pro).”
@@ -431,19 +431,19 @@ export default function NoahPage() {
         <h2 className="text-xl font-semibold">Comment ça marche</h2>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">1) Tu donnes le contexte</p>
             <p className="text-sm text-muted-foreground">
               Notes brutes, messages, objectifs, contraintes. Même brouillon.
             </p>
           </div>
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">2) Noah structure</p>
             <p className="text-sm text-muted-foreground">
               Synthèse, décisions proposées, plan, docs, messages prêts.
             </p>
           </div>
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">3) Mode CloneOS (option)</p>
             <p className="text-sm text-muted-foreground">
               Déclencheurs Router : routines, coopération, exécution autorisée, logs.
@@ -452,7 +452,7 @@ export default function NoahPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border p-6 space-y-3">
+      <section className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
         <h3 className="text-lg font-medium">3 modes d’utilisation</h3>
 
         <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
@@ -469,7 +469,7 @@ export default function NoahPage() {
       </section>
 
       {/* ACCÈS / CTA */}
-      <section id="acces" className="rounded-2xl border p-8 space-y-4">
+      <section id="acces" className="rounded-2xl border p-8 space-y-4 cs-card shadow-soft">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-xl font-semibold">Accès à Noah</h2>
@@ -504,7 +504,7 @@ export default function NoahPage() {
             <p className="text-sm text-muted-foreground">
               {isLogged
                 ? "Noah n’est pas encore disponible à l’achat. Tu peux déjà poser des questions via l’assistant."
-                : "Connecte-toi pour suivre l’arrivée de Noah. En attendant, tu peux poser tes questions via l’assistant."}
+                : "Connecte-toi pour suivre l’arrivée de Noah. En attendant, tu peux poser des questions via l’assistant."}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -530,4 +530,3 @@ export default function NoahPage() {
     </main>
   );
 }
-

@@ -1,284 +1,361 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { getSupabase } from "@/lib/supabase";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { Check, Clock, ShieldCheck, Layers, Activity, CreditCard } from "lucide-react";
 
-type AgentData = {
+type OrdersMe = { active: string[]; past_due: string[]; cancelled: string[] };
+type OrderRow = { agent_slug: string; status: string };
+
+type Clone = {
   slug: string;
   name: string;
   role: string;
   price: string;
-  available: boolean;
+  bullets: string[];
+  workload: string; // “équivalence charge de travail”
 };
 
-const AGENTS: Record<string, AgentData> = {
-  pierre: {
+const CLONES: Clone[] = [
+  {
     slug: "pierre",
     name: "Pierre",
     role: "Assistant RH rédacteur",
     price: "299€/mois",
-    available: true,
+    bullets: [
+      "Rédige vos documents RH (mails, courriers, notes, process)",
+      "Standardise vos modèles et vos réponses en interne",
+      "Produit des textes prêts à envoyer, au bon ton",
+    ],
+    workload: "≈ 4 à 8 h / semaine économisées (rédaction & administratif RH)",
   },
-  clara: { slug: "clara", name: "Clara", role: "Recruteuse IA", price: "549€/mois", available: false },
-  alex: { slug: "alex", name: "Alex", role: "Assistant Ops", price: "399€/mois", available: false },
-  emma: { slug: "emma", name: "Emma", role: "Support & mails", price: "449€/mois", available: false },
-  noah: { slug: "noah", name: "Noah", role: "Assistant direction", price: "499€/mois", available: false },
-};
+  {
+    slug: "clara",
+    name: "Clara",
+    role: "Recruteuse IA",
+    price: "549€/mois",
+    bullets: [
+      "Analyse les candidatures et structure les profils",
+      "Score les candidats selon vos critères",
+      "Prépare une shortlist exploitable",
+    ],
+    workload: "≈ 6 à 12 h / semaine économisées (tri & présélection)",
+  },
+  {
+    slug: "alex",
+    name: "Alex",
+    role: "Assistant Ops",
+    price: "399€/mois",
+    bullets: [
+      "Prépare des procédures et checklists opérationnelles",
+      "Synthétise, structure, formalise vos infos",
+      "Aide à standardiser les process d’équipe",
+    ],
+    workload: "≈ 3 à 7 h / semaine économisées (structuration & ops)",
+  },
+  {
+    slug: "emma",
+    name: "Emma",
+    role: "Support & mails",
+    price: "449€/mois",
+    bullets: [
+      "Prépare des réponses support claires et cohérentes",
+      "Classe les demandes et résume les échanges",
+      "Aide à maintenir un ton client constant",
+    ],
+    workload: "≈ 5 à 10 h / semaine économisées (support & email)",
+  },
+  {
+    slug: "noah",
+    name: "Noah",
+    role: "Assistant direction",
+    price: "499€/mois",
+    bullets: [
+      "Prépare des synthèses et décisions (notes, résumés, plans)",
+      "Rédige des mails et documents de pilotage",
+      "Aide à cadrer et prioriser des actions",
+    ],
+    workload: "≈ 3 à 8 h / semaine économisées (pilotage & administratif)",
+  },
+];
 
-function makeSupabase(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) throw new Error("Supabase env manquante (URL/ANON)");
-  return createClient(url, anon);
+const UNDER_CONSTRUCTION = new Set(["alex", "noah", "clara", "emma"]);
+
+if (process.env.NEXT_PUBLIC_DEPLOY_BLOCK_PIERRE === "1") {
+  UNDER_CONSTRUCTION.add("pierre");
 }
 
-function useAgentAccess(agentSlug: string, enabled: boolean) {
-  const router = useRouter();
-  const supabase = useMemo(() => makeSupabase(), []);
+function normalizeOrders(rows: OrderRow[]): OrdersMe {
+  const active: string[] = [];
+  const past_due: string[] = [];
+  const cancelled: string[] = [];
+
+  for (const r of rows) {
+    const slug = r.agent_slug;
+    const st = (r.status || "").toLowerCase();
+    if (!slug) continue;
+
+    if (st === "active") active.push(slug);
+    else if (st === "past_due") past_due.push(slug);
+    else if (st === "cancelled") cancelled.push(slug);
+  }
+
+  return { active, past_due, cancelled };
+}
+
+function badgeFor(slug: string, orders: OrdersMe) {
+  if (UNDER_CONSTRUCTION.has(slug)) {
+    return { label: "En construction", className: "bg-muted text-foreground" };
+  }
+  if (orders.active.includes(slug)) {
+    return { label: "Accès actif", className: "bg-foreground text-background" };
+  }
+  if (orders.past_due.includes(slug)) {
+    return { label: "Paiement en attente", className: "bg-muted text-foreground" };
+  }
+  if (orders.cancelled.includes(slug)) {
+    return { label: "Résilié", className: "bg-muted text-foreground" };
+  }
+  return { label: "Non embauché", className: "bg-muted text-foreground" };
+}
+
+export default function ClonesPage() {
+  // ✅ garde ton choix : getSupabase() (qui doit être un singleton)
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
 
   const [loading, setLoading] = useState(true);
-  const [isLogged, setIsLogged] = useState(false);
-  const [hasAccess, setHasAccess] = useState(false);
+  const [orders, setOrders] = useState<OrdersMe>({ active: [], past_due: [], cancelled: [] });
+  const [filter, setFilter] = useState<"all" | "mine">("all");
 
-  useEffect(() => {
-    if (!enabled) {
-      setLoading(false);
-      setIsLogged(false);
-      setHasAccess(false);
-      return;
-    }
+  const activeSet = useMemo(() => new Set(orders.active), [orders.active]);
 
-    let cancelled = false;
+  const refreshAccess = useCallback(async () => {
+    setLoading(true);
 
-    async function run() {
-      setLoading(true);
-
-      const { data: userRes, error: userErr } = await supabase.auth.getUser();
-      const user = userRes?.user;
-
-      if (cancelled) return;
-
-      if (userErr || !user) {
-        setIsLogged(false);
-        setHasAccess(false);
-        setLoading(false);
+    try {
+      if (!supabase) {
+        setOrders({ active: [], past_due: [], cancelled: [] });
         return;
       }
 
-      setIsLogged(true);
+      const { data: userRes, error: userErr } = await supabase.auth.getUser();
+
+      if (userErr || !userRes?.user) {
+        setOrders({ active: [], past_due: [], cancelled: [] });
+        return;
+      }
+
+      const user = userRes.user;
 
       const { data, error } = await supabase
         .from("orders")
-        .select("id,status")
-        .eq("user_id", user.id)
-        .eq("agent_slug", agentSlug)
-        .eq("status", "active")
-        .maybeSingle();
+        .select("agent_slug,status")
+        .eq("user_id", user.id);
 
-      if (cancelled) return;
-
-      if (error || !data) {
-        setHasAccess(false);
-        setLoading(false);
+      if (error) {
+        setOrders({ active: [], past_due: [], cancelled: [] });
         return;
       }
 
-      setHasAccess(true);
+      setOrders(normalizeOrders((data || []) as OrderRow[]));
+    } finally {
       setLoading(false);
     }
+  }, [supabase]);
 
-    run();
+  useEffect(() => {
+    refreshAccess();
 
-    // refresh si login/logout
-    const { data: sub } = supabase.auth.onAuthStateChange(() => {
-      run();
+    const onFocus = () => refreshAccess();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+
+    const sub = supabase?.auth.onAuthStateChange(() => {
+      refreshAccess();
     });
 
     return () => {
-      cancelled = true;
-      sub.subscription.unsubscribe();
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+      sub?.data.subscription.unsubscribe();
     };
-  }, [agentSlug, enabled, supabase, router]);
+  }, [refreshAccess, supabase]);
 
-  return { loading, isLogged, hasAccess };
-}
+  const visibleClones = useMemo(() => {
+    if (filter === "mine") {
+      return CLONES.filter((a) => activeSet.has(a.slug));
+    }
+    return CLONES;
+  }, [filter, activeSet]);
 
-/* ------------------------- Pages ------------------------- */
-
-function PierreSalesPage({
-  hasAccess,
-  accessLoading,
-}: {
-  hasAccess: boolean;
-  accessLoading: boolean;
-}) {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12 space-y-10">
-      {/* HERO */}
-      <header className="space-y-5">
-        <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-muted-foreground">
-          Agent CloneStore • RH rédaction & structuration
-        </div>
-
-        <div className="space-y-3">
-          <h1 className="text-4xl font-semibold tracking-tight">
-            Pierre — l’assistant RH qui transforme un brief flou en documents prêts à envoyer
-          </h1>
-          <p className="text-muted-foreground text-base leading-relaxed max-w-3xl">
-            Tu écris 3 lignes. Pierre te rend un document RH propre, clair, structuré, au bon ton,
-            prêt à être envoyé ou publié. Offres d’emploi, mails candidats, fiches de poste, grilles
-            d’entretien, onboarding, procédures… sans perdre 1h à reformuler.
-          </p>
-        </div>
-
-        {/* CTA intelligents */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          {accessLoading ? (
-            <Button disabled>Vérification…</Button>
-          ) : hasAccess ? (
-            <Button asChild>
-              <Link href="/agents/pierre/use">Utiliser Pierre</Link>
-            </Button>
-          ) : (
-            <Button asChild>
-              <Link href="/paiement?agent=pierre">Embaucher Pierre — 299€/mois</Link>
-            </Button>
-          )}
-
-          <Button asChild variant="outline">
-            <Link href="/agents">Retour boutique</Link>
-          </Button>
-        </div>
-
-        <p className="text-xs text-muted-foreground">
-          Idéal pour PME / managers / RH débordés. Résultat en quelques secondes, format pro, ton maîtrisé.
+    <main className="mx-auto max-w-5xl px-4 py-12 space-y-10">
+      {/* Header */}
+      <header className="space-y-3">
+        <h1 className="text-3xl font-semibold tracking-tight">Boutique de clones</h1>
+        <p className="text-muted-foreground text-sm">
+          {loading ? "Chargement des accès…" : "Choisis un clone. Accès instantané après paiement."}
         </p>
+
+        {/* Mini proof / positioning */}
+        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1">
+            <Clock size={14} /> Mise en place &lt; 24h
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1">
+            <ShieldCheck size={14} /> Données isolées + logs
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1">
+            <Layers size={14} /> Clones spécialisés (pas des prompts)
+          </span>
+        </div>
       </header>
 
-      {/* PROOF / PROMESSE */}
+      {/* How it works (simple) */}
       <section className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border p-6 space-y-2">
-          <p className="text-sm font-medium">Gain de temps immédiat</p>
+        <HowCard
+          title="1. Choisis un clone"
+          text="Un clone = un métier. Objectif clair, livrables concrets."
+          icon={<Check />}
+        />
+        <HowCard
+          title="2. Configuration entreprise"
+          text="Tu le règles à ton contexte : règles, formats, données autorisées."
+          icon={<Activity />}
+        />
+        <HowCard
+          title="3. Il exécute"
+          text="Il travaille seul ou avec d’autres clones via le Router."
+          icon={<Layers />}
+        />
+      </section>
+
+      {/* Filter */}
+      <section className="flex flex-wrap items-center justify-between gap-3">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold">Clones disponibles</h2>
           <p className="text-sm text-muted-foreground">
-            Un brief brut → un document utilisable. Tu arrêtes de “réécrire pour faire pro”.
+            Chaque clone est conçu pour réduire une vraie charge de travail.
           </p>
         </div>
-        <div className="rounded-2xl border p-6 space-y-2">
-          <p className="text-sm font-medium">Qualité RH constante</p>
-          <p className="text-sm text-muted-foreground">
-            Structure claire, formulation propre, ton adapté (pro/convivial), cohérence.
-          </p>
-        </div>
-        <div className="rounded-2xl border p-6 space-y-2">
-          <p className="text-sm font-medium">Prêt à envoyer</p>
-          <p className="text-sm text-muted-foreground">
-            Contenu final directement copiable. Pas une ébauche “brouillon”.
-          </p>
+
+        <div className="flex gap-2">
+          <Button
+            variant={filter === "all" ? "default" : "outline"}
+            onClick={() => setFilter("all")}
+          >
+            Tous
+          </Button>
+          <Button
+            variant={filter === "mine" ? "default" : "outline"}
+            onClick={() => setFilter("mine")}
+            disabled={loading}
+            title={loading ? "Chargement…" : "Afficher uniquement tes clones actifs"}
+          >
+            Mes clones
+          </Button>
         </div>
       </section>
 
-      {/* CE QUE PIERRE FAIT */}
-      <section className="space-y-4">
-        <div className="flex items-end justify-between gap-3">
-          <div className="space-y-1">
-            <h2 className="text-xl font-semibold">Ce que Pierre fait</h2>
-            <p className="text-sm text-muted-foreground">
-              Le but : sortir des documents RH clean en un temps record.
-            </p>
-          </div>
-        </div>
+      {/* Cards */}
+      <section className="grid gap-4 sm:grid-cols-2">
+        {visibleClones.map((a) => {
+          const has = activeSet.has(a.slug);
+          const badge = badgeFor(a.slug, orders);
+          const isUC = UNDER_CONSTRUCTION.has(a.slug);
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border p-6 space-y-2">
-            <p className="font-medium">Offres d’emploi & fiches de poste</p>
-            <p className="text-sm text-muted-foreground">
-              À partir de : poste, stack, missions, profil, salaire, lieu, type de contrat.
-            </p>
-          </div>
+          return (
+            <div key={a.slug} className="rounded-2xl border p-6 space-y-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1 min-w-0">
+                  <h3 className="text-lg font-medium truncate">{a.name}</h3>
+                  <p className="text-sm text-muted-foreground">{a.role}</p>
+                </div>
 
-          <div className="rounded-2xl border p-6 space-y-2">
-            <p className="font-medium">Mails candidats</p>
-            <p className="text-sm text-muted-foreground">
-              Reçu, refus, convocation, relance, confirmation, onboarding — ton propre et humain.
-            </p>
-          </div>
+                <span className={`shrink-0 rounded-full px-3 py-1 text-xs ${badge.className}`}>
+                  {badge.label}
+                </span>
+              </div>
 
-          <div className="rounded-2xl border p-6 space-y-2">
-            <p className="font-medium">Entretiens</p>
-            <p className="text-sm text-muted-foreground">
-              Questions + grille simple + compte rendu structuré à partir de tes notes.
-            </p>
-          </div>
+              <div className="rounded-xl border p-4 space-y-3">
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  {a.bullets.slice(0, 3).map((b, idx) => (
+                    <li key={idx} className="flex gap-2">
+                      <span className="mt-0.5">•</span>
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
 
-          <div className="rounded-2xl border p-6 space-y-2">
-            <p className="font-medium">Onboarding & docs internes</p>
-            <p className="text-sm text-muted-foreground">
-              Plans 30/60/90 jours, procédures, scripts, documents internes.
-            </p>
-          </div>
-        </div>
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium">Équivalence :</span> {a.workload}
+                </p>
+              </div>
 
-        <div className="rounded-2xl border p-6">
-          <p className="text-sm">
-            <span className="font-medium">Pierre ne fait pas :</span>{" "}
-            <span className="text-muted-foreground">scoring/tri de CV (ça sera Clara).</span>
-          </p>
-        </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm">
+                  <span className="text-muted-foreground">Prix :</span>{" "}
+                  <span className="font-medium">{a.price}</span>
+                </p>
+
+                {!has ? (
+                  <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+                    <CreditCard size={14} /> Accès après paiement
+                  </span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">Utilisable maintenant</span>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <Button asChild variant="outline">
+                  <Link href={`/agents/${a.slug}`}>Voir</Link>
+                </Button>
+
+                {isUC ? (
+                  <Button disabled>En construction</Button>
+                ) : has ? (
+                  <Button asChild>
+                    <Link href={`/agents/${a.slug}/use`}>Utiliser</Link>
+                  </Button>
+                ) : (
+                  <Button asChild>
+                    <Link href={`/paiement?agent=${a.slug}`}>Embaucher</Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </section>
 
-      {/* COMMENT ÇA MARCHE */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Comment ça marche</h2>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border p-6 space-y-2">
-            <p className="text-sm font-medium">1) Tu donnes un brief</p>
-            <p className="text-sm text-muted-foreground">
-              Même brouillon. Pierre pose une structure et reformule.
-            </p>
-          </div>
-          <div className="rounded-2xl border p-6 space-y-2">
-            <p className="text-sm font-medium">2) Tu choisis le ton</p>
-            <p className="text-sm text-muted-foreground">
-              Pro, convivial… Pierre adapte la rédaction.
-            </p>
-          </div>
-          <div className="rounded-2xl border p-6 space-y-2">
-            <p className="text-sm font-medium">3) Tu récupères le doc</p>
-            <p className="text-sm text-muted-foreground">
-              Directement copiable. Prêt à envoyer / publier.
-            </p>
-          </div>
-        </div>
+      {/* Trust / Security (short, no overtalk) */}
+      <section className="rounded-2xl border p-6 space-y-3">
+        <h2 className="text-lg font-medium">Sécurité & confiance</h2>
+        <ul className="text-sm text-muted-foreground space-y-2">
+          <li>• Données cloisonnées par entreprise</li>
+          <li>• Historique / logs des actions (traçabilité)</li>
+          <li>• Aucune donnée utilisée pour l’entraînement</li>
+          <li>• Support : chatbot + humain si besoin</li>
+        </ul>
       </section>
 
-      {/* CTA FINAL */}
-      <section className="rounded-2xl border p-8 space-y-4">
-        <h2 className="text-xl font-semibold">Prêt à gagner du temps dès ce soir ?</h2>
+      {/* CTA final */}
+      <section className="text-center space-y-4">
+        <h2 className="text-2xl font-semibold">Tu hésites ?</h2>
         <p className="text-sm text-muted-foreground">
-          {hasAccess
-            ? "Ton accès est actif. Tu peux utiliser Pierre maintenant."
-            : "Embauche Pierre et commence à produire des documents RH propres en quelques minutes."}
+          Parle au chatbot : il te dit quel clone correspond à ta charge de travail.
         </p>
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          {accessLoading ? (
-            <Button disabled>Vérification…</Button>
-          ) : hasAccess ? (
-            <Button asChild>
-              <Link href="/agents/pierre/use">Utiliser Pierre</Link>
-            </Button>
-          ) : (
-            <Button asChild>
-              <Link href="/paiement?agent=pierre">Embaucher Pierre — 299€/mois</Link>
-            </Button>
-          )}
-
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button asChild>
+            <Link href="/assistant">Parler au chatbot</Link>
+          </Button>
           <Button asChild variant="outline">
-            <Link href="/profile/agents">Voir mes agents</Link>
+            <Link href="/profile">Mon compte</Link>
           </Button>
         </div>
       </section>
@@ -286,57 +363,21 @@ function PierreSalesPage({
   );
 }
 
-function ComingSoon({ slug }: { slug: string }) {
-  const a = AGENTS[slug];
-
+function HowCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: ReactNode;
+}) {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 space-y-6">
-      <h1 className="text-3xl font-semibold tracking-tight">
-        {a.name} — {a.role}
-      </h1>
-
-      <p className="text-sm text-muted-foreground">
-        Cet agent arrive bientôt. Prix indicatif : <span className="font-medium">{a.price}</span>
-      </p>
-
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button asChild variant="outline">
-          <Link href="/agents">Retour boutique</Link>
-        </Button>
-        <Button disabled>Bientôt disponible</Button>
-      </div>
-    </main>
+    <div className="rounded-2xl border p-6 space-y-3">
+      <div className="w-10 h-10 rounded-lg border flex items-center justify-center">{icon}</div>
+      <h3 className="font-medium">{title}</h3>
+      <p className="text-sm text-muted-foreground">{text}</p>
+    </div>
   );
-}
-
-export default function AgentPage() {
-  const params = useParams<{ slug: string }>();
-  const slug = params.slug;
-
-  const agent = AGENTS[slug];
-
-  // Si pas trouvé
-  if (!agent) {
-    return (
-      <main className="mx-auto max-w-3xl px-4 py-12 space-y-6">
-        <h1 className="text-2xl font-semibold">Agent introuvable</h1>
-        <Button asChild variant="outline">
-          <Link href="/agents">Retour boutique</Link>
-        </Button>
-      </main>
-    );
-  }
-
-  // Access check uniquement si agent dispo (sinon inutile)
-  const { loading: accessLoading, hasAccess } = useAgentAccess(
-    slug,
-    agent.available === true
-  );
-
-  if (slug === "pierre") {
-    return <PierreSalesPage hasAccess={hasAccess} accessLoading={accessLoading} />;
-  }
-
-  return <ComingSoon slug={slug} />;
 }
 

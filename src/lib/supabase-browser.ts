@@ -1,14 +1,22 @@
-import { createClient } from "@supabase/supabase-js";
+// src/lib/supabase-browser.ts
+"use client";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-if (!url || !anon) {
-  throw new Error(
-    "Supabase non configuré : NEXT_PUBLIC_SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_ANON_KEY manquante (.env.local à la racine)."
-  );
+let browserClient: SupabaseClient | null = null;
+
+export function supabaseBrowser() {
+  if (browserClient) return browserClient;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+  if (!url || !anon) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  browserClient = createBrowserClient(url, anon);
+
+  return browserClient;
 }
-
-export const supabaseBrowser = createClient(url, anon);
-
-

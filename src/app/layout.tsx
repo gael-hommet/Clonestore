@@ -21,13 +21,13 @@ const ORG_JSON_LD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <head>
         {/* Favicon + iOS */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-        {/* Logo “officiel” pour Google (Knowledge Panel / brand) */}
+        {/* Logo “officiel” pour Google */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
@@ -35,14 +35,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
 
       <body className="min-h-screen bg-background text-foreground antialiased">
+        {/* Backdrop global subtil */}
+        <div className="cs-bg" aria-hidden="true" />
+
         {/* HEADER */}
-        <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
+        <header className="sticky top-0 z-50 border-b bg-background/75 backdrop-blur">
           <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
             <Link
               href="/"
-              className="text-xl font-semibold tracking-tight hover:opacity-80"
+              className="group inline-flex items-center gap-3 text-base font-semibold tracking-tight hover:opacity-90"
             >
-              CloneStore
+              <span className="cs-mark" aria-hidden="true" />
+              <span>CloneStore</span>
             </Link>
 
             <div className="flex items-center gap-6 text-sm">
@@ -55,9 +59,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/profile" className="hover:opacity-80">
                 Mon compte
               </Link>
+
               <Link
                 href="/assistant"
-                className="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold hover:bg-muted transition"
+                className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full border bg-card text-xs font-semibold shadow-soft hover:bg-muted transition"
                 aria-label="Questions"
                 title="Questions"
               >
@@ -83,8 +88,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
-
 
 
 

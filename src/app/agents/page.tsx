@@ -268,7 +268,7 @@ export default function ClonesPage() {
           const isUC = UNDER_CONSTRUCTION.has(a.slug);
 
           return (
-            <div key={a.slug} className="rounded-2xl border p-6 space-y-5">
+            <div key={a.slug} className="rounded-2xl border p-6 space-y-5 cs-card">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 min-w-0">
                   <h3 className="text-lg font-medium truncate">{a.name}</h3>
@@ -280,7 +280,7 @@ export default function ClonesPage() {
                 </span>
               </div>
 
-              <div className="rounded-xl border p-4 space-y-3">
+              <div className="rounded-xl border p-4 space-y-3 cs-card">
                 <ul className="text-sm text-muted-foreground space-y-2">
                   {a.bullets.slice(0, 3).map((b, idx) => (
                     <li key={idx} className="flex gap-2">
@@ -333,7 +333,7 @@ export default function ClonesPage() {
       </section>
 
       {/* Trust / Security (short, no overtalk) */}
-      <section className="rounded-2xl border p-6 space-y-3">
+      <section className="rounded-2xl border p-6 space-y-3 cs-card">
         <h2 className="text-lg font-medium">Sécurité & confiance</h2>
         <ul className="text-sm text-muted-foreground space-y-2">
           <li>• Données cloisonnées par entreprise</li>
@@ -372,7 +372,7 @@ function HowCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border p-6 space-y-3">
+    <div className="rounded-2xl border p-6 space-y-3 cs-card">
       <div className="w-10 h-10 rounded-lg border flex items-center justify-center">
         {icon}
       </div>
@@ -381,9 +381,6 @@ function HowCard({
     </div>
   );
 }
-
-
-
 
 
 

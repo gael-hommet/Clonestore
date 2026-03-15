@@ -8,77 +8,108 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
+
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
+
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
+
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
+
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
+
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* =========================
+   CloneStore — Light Premium
+   Beige + splashes IA (violet/rose/bleu)
+   ========================= */
+
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --radius: 1rem;
+
+  /* Brand */
+  --cs-cream: #faf7f2;
+  --cs-white: #ffffff;
+  --cs-ink: #111111;
+  --cs-gray: #6b7280;
+  --cs-line: #e5e7eb;
+  --cs-beige: #e8dccb;
+
+  /* Accent IA */
+  --cs-violet: #7c3aed; /* base */
+  --cs-violet-2: #8b5cf6; /* glow */
+  --cs-violet-3: #a78bfa; /* soft */
+  --cs-blue: #1f5eff;
+  --cs-rose: #ff4fd8;
+
+  /* Splashes (opacités contrôlées business) */
+  --cs-splash-v: rgba(124, 58, 237, 0.16);
+  --cs-splash-v2: rgba(139, 92, 246, 0.14);
+  --cs-splash-b: rgba(31, 94, 255, 0.12);
+  --cs-splash-r: rgba(255, 79, 216, 0.10);
+
+  --cs-border: rgba(17, 17, 17, 0.08);
+  --cs-border-v: rgba(124, 58, 237, 0.18);
+
+  --cs-shadow-soft: 0 8px 24px rgba(17, 17, 17, 0.06);
+  --cs-shadow-card: 0 6px 18px rgba(17, 17, 17, 0.05);
+
+  /* shadcn tokens (OKLCH) */
+  --background: oklch(0.985 0.012 86);
   --foreground: oklch(0.141 0.005 285.823);
+
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
+
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
+
   --primary: oklch(0.21 0.006 285.885);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
+
+  --secondary: oklch(0.965 0.01 86);
   --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
+
+  --muted: oklch(0.965 0.01 86);
   --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
+
+  --accent: oklch(0.965 0.01 86);
   --accent-foreground: oklch(0.21 0.006 285.885);
+
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
+
+  --border: oklch(0.92 0.01 86);
+  --input: oklch(0.92 0.01 86);
+  --ring: oklch(0.35 0.01 285);
+
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.705 0.015 286.067);
 }
 
 .dark {
+  /* Dark possible plus tard */
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
@@ -97,26 +128,231 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.552 0.016 285.938);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
 }
 
+/* =========================
+   Base
+   ========================= */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  /* IMPORTANT: isolation = règle le bug "texte sous overlay noir" */
   body {
     @apply bg-background text-foreground;
+    position: relative;
+    isolation: isolate;
+    background:
+      radial-gradient(900px 520px at 12% 10%, rgba(139, 92, 246, 0.10), transparent 60%),
+      radial-gradient(880px 520px at 88% 0%, rgba(31, 94, 255, 0.07), transparent 58%),
+      radial-gradient(980px 600px at 80% 85%, rgba(255, 79, 216, 0.05), transparent 62%),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0)),
+      var(--cs-cream);
+    background-attachment: fixed;
+  }
+
+  /* Titres toujours AU-DESSUS (fix “on voit pas l’écriture”) */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--cs-ink);
+    position: relative;
+    z-index: 5;
+  }
+
+  ::selection {
+    background: rgba(124, 58, 237, 0.22);
+  }
+}
+
+/* =========================
+   Utilities
+   ========================= */
+@layer utilities {
+  .shadow-soft {
+    box-shadow: 0 8px 24px rgba(17, 17, 17, 0.06);
+  }
+
+  .shadow-card {
+    box-shadow: 0 6px 18px rgba(17, 17, 17, 0.05);
+  }
+
+  /* petit plus : texte noir “premium” */
+  .cs-title {
+    color: var(--cs-ink);
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* =========================
+   Components
+   ========================= */
+@layer components {
+  /* -------------------------------------------------------
+     Fond IA / splashes imparfaits (NE CHANGE RIEN AU LAYOUT)
+     ------------------------------------------------------- */
+  .cs-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+
+    /* IMPORTANT: derrière tout (plus jamais au-dessus des titres) */
+    z-index: -1;
+
+    background:
+      /* splashes violets */
+      radial-gradient(640px 420px at 14% 16%, var(--cs-splash-v), transparent 62%),
+      radial-gradient(520px 360px at 22% 42%, rgba(139, 92, 246, 0.10), transparent 65%),
+
+      /* bleu */
+      radial-gradient(520px 380px at 88% 18%, var(--cs-splash-b), transparent 62%),
+
+      /* rose */
+      radial-gradient(560px 420px at 86% 72%, var(--cs-splash-r), transparent 64%),
+
+      /* halo beige doux */
+      radial-gradient(980px 520px at 50% 8%, rgba(232, 220, 203, 0.34), transparent 70%);
+
+    filter: saturate(1.02);
+    opacity: 1;
+
+    /* masque pour garder le haut “premium” */
+    mask-image: radial-gradient(circle at 50% 18%, black 0%, transparent 72%);
+  }
+
+  /* micro-grain premium (très léger) */
+  .cs-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+    background-size: 22px 22px;
+    opacity: 0.10;
+    mix-blend-mode: multiply;
+  }
+
+  /* -------------------------------------------------------
+     Fix général anti “voile noir” sur le contenu
+     (si un overlay existe ailleurs, ce bloc garde le contenu au-dessus)
+     ------------------------------------------------------- */
+  main,
+  header,
+  nav,
+  section,
+  article,
+  footer,
+  aside {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* -------------------------------------------------------
+     ✅ Logo CloneStore : ovale lumineux violet (IDENTIQUE)
+     ------------------------------------------------------- */
+  .cs-mark {
+    width: 18px;
+    height: 36px;
+    border-radius: 999px;
+    border: 2px solid rgba(124, 58, 237, 0.9);
+
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(139, 92, 246, 0.25),
+      transparent 70%
+    );
+
+    box-shadow:
+      0 0 12px rgba(139, 92, 246, 0.5),
+      0 0 30px rgba(139, 92, 246, 0.25);
+
+    transition: all 0.3s ease;
+  }
+
+  .cs-mark:hover {
+    box-shadow:
+      0 0 18px rgba(139, 92, 246, 0.8),
+      0 0 40px rgba(139, 92, 246, 0.35);
+  }
+
+  /* -------------------------------------------------------
+     Cards premium (gardent la dispo, juste look)
+     ------------------------------------------------------- */
+  .cs-card {
+    @apply rounded-xl border bg-card text-card-foreground;
+    box-shadow: 0 6px 18px rgba(17, 17, 17, 0.05);
+    border-color: rgba(17, 17, 17, 0.08);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* effet “IA” léger dans les cartes */
+  .cs-card::before {
+    content: "";
+    position: absolute;
+    inset: -60px;
+    background:
+      radial-gradient(260px 180px at 16% 18%, rgba(124, 58, 237, 0.10), transparent 60%),
+      radial-gradient(320px 220px at 92% 8%, rgba(31, 94, 255, 0.06), transparent 60%),
+      radial-gradient(260px 180px at 86% 88%, rgba(255, 79, 216, 0.05), transparent 62%);
+    opacity: 0.95;
+    pointer-events: none;
+  }
+
+  .cs-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55) inset;
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  /* -------------------------------------------------------
+     Pills
+     ------------------------------------------------------- */
+  .cs-pill {
+    @apply inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-sm text-muted-foreground;
+    box-shadow: 0 8px 24px rgba(17, 17, 17, 0.06);
+    border-color: rgba(17, 17, 17, 0.08);
+  }
+
+  /* -------------------------------------------------------
+     Header glass (si tu l’utilises déjà, ça ne bouge pas la dispo)
+     ------------------------------------------------------- */
+  .cs-glass {
+    background: rgba(250, 247, 242, 0.78);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+  }
+
+  /* -------------------------------------------------------
+     IMPORTANT: si un composant ajoute un overlay noir via ::before/::after,
+     on évite qu'il passe devant le texte
+     ------------------------------------------------------- */
+  .cs-no-overlay,
+  .cs-no-overlay * {
+    mix-blend-mode: normal !important;
+  }
+}
+
+/* =========================
+   Motion safe
+   ========================= */
+@media (prefers-reduced-motion: reduce) {
+  .cs-mark {
+    transition: none !important;
+  }
+  .cs-card {
+    transition: none !important;
   }
 }

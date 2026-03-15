@@ -2,70 +2,62 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseBrowser } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anon) {
-    throw new Error(
-      "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY"
-    );
-  }
-
-  // ✅ important : persistance + auto refresh (comportement normal côté client)
-  return createClient(url, anon, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-    },
-  });
-}
-
-type CheckoutResponse = { url: string } | { error: string };
+type CheckoutSuccess = { url: string };
+type CheckoutFailure = { error: string };
+type CheckoutResponse = CheckoutSuccess | CheckoutFailure;
 
 const ALLOWED_AGENTS = ["pierre", "clara", "alex", "emma", "noah"] as const;
 type AgentSlug = (typeof ALLOWED_AGENTS)[number];
 
-function isAllowedAgent(v: string): v is AgentSlug {
-  return (ALLOWED_AGENTS as readonly string[]).includes(v);
+function isAllowedAgent(value: string): value is AgentSlug {
+  return (ALLOWED_AGENTS as readonly string[]).includes(value);
 }
 
 export default function CheckoutPage() {
-  const sp = useSearchParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
 
   const agent = useMemo(() => {
-    const raw = (sp.get("agent") || "pierre").toLowerCase().trim();
+    const raw = (searchParams.get("agent") || "pierre").toLowerCase().trim();
     return raw;
-  }, [sp]);
+  }, [searchParams]);
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    // validation agent
     if (!isAllowedAgent(agent)) {
       setErr("Agent invalide.");
-    } else {
-      setErr(null);
+      return;
     }
+
+    setErr(null);
   }, [agent]);
 
   async function goCheckout() {
-    if (!isAllowedAgent(agent)) return;
+    if (!isAllowedAgent(agent)) {
+      setErr("Agent invalide.");
+      return;
+    }
 
     setErr(null);
     setLoading(true);
 
     try {
-      const supabase = getSupabase();
+      const browserClient = supabaseBrowser();
 
-      // ✅ session d’abord (plus fiable)
-      const { data: sessionRes, error: sessionErr } = await supabase.auth.getSession();
+      if (!browserClient) {
+        setLoading(false);
+        setErr("Supabase navigateur non configuré.");
+        return;
+      }
+
+      const { data: sessionRes, error: sessionErr } =
+        await browserClient.auth.getSession();
+
       if (sessionErr) {
         setLoading(false);
         setErr(sessionErr.message);
@@ -73,28 +65,35 @@ export default function CheckoutPage() {
       }
 
       const user = sessionRes.session?.user;
+
       if (!user) {
         setLoading(false);
-        const next = encodeURIComponent(`/paiement/checkout?agent=${agent}`);
+        const next = encodeURIComponent(`/checkout?agent=${agent}`);
         router.push(`/login?next=${next}`);
         return;
       }
 
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.id, agent_slug: agent }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          agent_slug: agent,
+        }),
       });
 
       const data = (await res.json().catch(() => ({}))) as Partial<CheckoutResponse>;
 
       if (!res.ok) {
         setLoading(false);
-        setErr((data as { error?: string })?.error || "Checkout impossible.");
+        setErr((data as CheckoutFailure)?.error || "Checkout impossible.");
         return;
       }
 
-      const url = (data as { url?: string })?.url;
+      const url = (data as CheckoutSuccess)?.url;
+
       if (!url) {
         setLoading(false);
         setErr("Checkout impossible (url manquante).");
@@ -109,7 +108,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-12 space-y-6">
+    <main className="mx-auto max-w-xl space-y-6 px-4 py-12">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold">Paiement</h1>
         <p className="text-sm text-muted-foreground">
@@ -146,7 +145,6 @@ export default function CheckoutPage() {
     </main>
   );
 }
-
 
 
 

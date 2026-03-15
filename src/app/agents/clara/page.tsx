@@ -31,7 +31,7 @@ type AccessCheckResult = { ok: boolean; has: boolean };
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">
+    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground cs-pill">
       {children}
     </span>
   );
@@ -47,7 +47,7 @@ function Card({
   desc: string;
 }) {
   return (
-    <div className="rounded-2xl border p-6 space-y-2">
+    <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground">{icon}</span>
         <p className="font-medium">{title}</p>
@@ -273,7 +273,7 @@ export default function ClaraPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Ce que Clara promet / ce qu'elle ne promet pas</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Clara peut absorber une grosse charge de recrutement et te faire gagner énormément de temps, mais je ne
@@ -300,7 +300,7 @@ export default function ClaraPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Résultat</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Un ton RH constant, une expérience candidat plus propre, et un pipeline qui avance même quand tu es occupé.
@@ -330,7 +330,7 @@ export default function ClaraPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Note</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Les intégrations dépendent de ton outil (et des autorisations). Si un connecteur n’existe pas, on passe par un
@@ -376,7 +376,7 @@ export default function ClaraPage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 cs-card shadow-soft">
           <p className="text-sm">
             <span className="font-medium">Clara ne fait pas :</span>{" "}
             <span className="text-muted-foreground">
@@ -392,7 +392,7 @@ export default function ClaraPage() {
         <h2 className="text-xl font-semibold">Exemples de briefs (et ce que tu obtiens)</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “J’ai 37 CV pour un commercial B2B. Score + shortlist de 5 + raisons.”
@@ -403,7 +403,7 @@ export default function ClaraPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Compare ces 3 candidats et propose une décision (avec risques).”
@@ -414,7 +414,7 @@ export default function ClaraPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Prépare l’entretien : questions ciblées + grille d’éval.”
@@ -425,7 +425,7 @@ export default function ClaraPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Pipeline : on reçoit 10 CV/jour. Classe automatiquement et alerte quand profil ‘A’.”
@@ -443,19 +443,19 @@ export default function ClaraPage() {
         <h2 className="text-xl font-semibold">Comment ça marche</h2>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">1) Tu fournis le contexte</p>
             <p className="text-sm text-muted-foreground">
               Poste, must-have, niveau, critères, ton process (même simple).
             </p>
           </div>
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">2) Clara analyse & score</p>
             <p className="text-sm text-muted-foreground">
               Extraction, synthèse, scoring, shortlist et recommandations.
             </p>
           </div>
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">3) Clara peut automatiser</p>
             <p className="text-sm text-muted-foreground">
               Déclencheurs via CloneOS/Router : tri continu, alertes, messages, coopération avec Pierre.
@@ -464,7 +464,7 @@ export default function ClaraPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border p-6 space-y-3">
+      <section className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
         <h3 className="text-lg font-medium">3 modes d’utilisation</h3>
 
         <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
@@ -484,7 +484,7 @@ export default function ClaraPage() {
       </section>
 
       {/* ACCÈS / CTA */}
-      <section id="acces" className="rounded-2xl border p-8 space-y-4">
+      <section id="acces" className="rounded-2xl border p-8 space-y-4 cs-card shadow-soft">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-xl font-semibold">Accès à Clara</h2>

@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseBrowser } from "@/lib/supabase";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // -------- helpers --------
 function titleCaseSlug(slug: string) {
@@ -14,15 +15,6 @@ function titleCaseSlug(slug: string) {
     .filter(Boolean)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
-}
-
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) {
-    throw new Error("Supabase non configuré : NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  }
-  return createClient(url, anon, { auth: { persistSession: true } });
 }
 
 type ActivateResponse =
@@ -51,7 +43,7 @@ export default function PaiementSuccessPage() {
 
   const didRun = useRef(false);
 
-  // 1) TENTE l’activation via session_id (si ton API existe)
+  // 1) TENTE l’activation via session_id
   useEffect(() => {
     const sessionId = params.get("session_id");
     if (!sessionId) return;
@@ -105,15 +97,14 @@ export default function PaiementSuccessPage() {
 
     async function pollOrders() {
       try {
-        const supabase = getSupabase();
+        const supabase: SupabaseClient = supabaseBrowser();
 
         // user obligatoire
-        const { data: userRes } = await supabase.auth.getUser();
+        const { data: userRes, error: userErr } = await supabase.auth.getUser();
         const user = userRes?.user;
 
-        if (!user) {
+        if (userErr || !user) {
           setChecking(false);
-          // s’il est plus loggué (cookies), on l’envoie login
           router.replace("/login");
           return;
         }
@@ -123,7 +114,6 @@ export default function PaiementSuccessPage() {
         const intervalMs = 1200; // 1.2s
 
         while (!stopped) {
-          // récupère les orders de l’utilisateur
           const { data, error: sbErr } = await supabase
             .from("orders")
             .select("agent_slug,status")
@@ -136,29 +126,27 @@ export default function PaiementSuccessPage() {
 
           const rows = (data || []) as OrderRow[];
 
-          // si un agent précis est demandé, on check celui-là en priorité
           const target = activatedAgent || agentFromUrl;
 
-          const isActive =
-            target
-              ? rows.some((r) => r.agent_slug === target && r.status === "active")
-              : rows.some((r) => r.status === "active");
+          const isActive = target
+            ? rows.some((r) => r.agent_slug === target && r.status === "active")
+            : rows.some((r) => r.status === "active");
 
           if (isActive) {
             setChecking(false);
-            // redirection immédiate vers la page agents (le vrai fix)
             router.replace("/profile/agents");
             return;
           }
 
           if (Date.now() - startedAt > timeoutMs) {
             setChecking(false);
-            // au bout de 20s, on n’insiste pas : user peut aller voir
             return;
           }
 
           await new Promise((r) => setTimeout(r, intervalMs));
         }
+
+        setChecking(false);
       } catch (e: unknown) {
         setChecking(false);
         setError(e instanceof Error ? e.message : "Erreur vérification activation.");
@@ -205,7 +193,8 @@ export default function PaiementSuccessPage() {
           <span>
             {showSpinner
               ? "Activation en cours… (ça peut prendre quelques secondes)"
-              : "Si rien ne s’affiche, clique sur “Voir mes agents”."}
+              : "Si rien ne s’affiche, clique sur “Voir mes agents”."
+            }
           </span>
         </div>
 
@@ -228,8 +217,6 @@ export default function PaiementSuccessPage() {
     </main>
   );
 }
-
-
 
 
 

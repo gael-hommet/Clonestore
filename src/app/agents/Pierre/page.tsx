@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ type AccessCheckResult = { ok: boolean; has: boolean };
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">
+    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground cs-pill">
       {children}
     </span>
   );
@@ -43,7 +43,7 @@ function Card({
   desc: string;
 }) {
   return (
-    <div className="rounded-2xl border p-6 space-y-2">
+    <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground">{icon}</span>
         <p className="font-medium">{title}</p>
@@ -54,8 +54,8 @@ function Card({
 }
 
 export default function PierrePage() {
-  // ✅ singleton Supabase (évite multiples clients GoTrue)
-  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+  // ✅ IMPORTANT : on initialise Supabase APRES mount (sinon SSR => window undefined)
+  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [isLogged, setIsLogged] = useState(false);
@@ -64,22 +64,27 @@ export default function PierrePage() {
 
   // Hydration-safe
   const [shouldPoll, setShouldPoll] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
 
   useEffect(() => {
+    // supabase uniquement côté navigateur
+    setSupabase(getSupabase() as SupabaseClient);
+
     const u = new URL(window.location.href);
     setShouldPoll(u.searchParams.get("success") === "1");
   }, []);
 
-  async function checkAccess(): Promise<AccessCheckResult> {
+  async function checkAccess(opts?: { silent?: boolean }): Promise<AccessCheckResult> {
+    const silent = opts?.silent === true;
+
+    if (!silent) setLoading(true);
     setError(null);
 
     if (!supabase) {
+      // tant que supabase n'est pas prêt (avant mount), on ne fait rien de cassant
       setIsLogged(false);
       setHasPierre(false);
       setLoading(false);
-      setError(
-        "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY (local + Vercel)."
-      );
       return { ok: false, has: false };
     }
 
@@ -125,24 +130,28 @@ export default function PierrePage() {
     }
   }
 
+  // Check + polling post-paiement
   useEffect(() => {
+    if (!supabase) return;
+
     let stopped = false;
     let intervalId: ReturnType<typeof setInterval> | null = null;
 
     async function run() {
-      setLoading(true);
-      const first = await checkAccess();
+      const first = await checkAccess({ silent: false });
 
       if (shouldPoll && first.ok && !first.has) {
-        const started = Date.now();
+        setIsPolling(true);
 
+        const started = Date.now();
         intervalId = setInterval(async () => {
           if (stopped) return;
 
-          const res = await checkAccess();
+          const res = await checkAccess({ silent: true });
 
           if (res.has) {
             if (intervalId) clearInterval(intervalId);
+            setIsPolling(false);
 
             const u = new URL(window.location.href);
             u.searchParams.delete("success");
@@ -151,6 +160,7 @@ export default function PierrePage() {
 
           if (Date.now() - started > 25_000) {
             if (intervalId) clearInterval(intervalId);
+            setIsPolling(false);
           }
         }, 1500);
       }
@@ -161,8 +171,39 @@ export default function PierrePage() {
     return () => {
       stopped = true;
       if (intervalId) clearInterval(intervalId);
+      setIsPolling(false);
     };
-  }, [shouldPoll]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase, shouldPoll]);
+
+  // Refresh sur focus/visibility + auth changes
+  useEffect(() => {
+    if (!supabase) return;
+
+    const onFocus = () => {
+      checkAccess({ silent: true });
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        checkAccess({ silent: true });
+      }
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    const sub = supabase.auth.onAuthStateChange(() => {
+      checkAccess({ silent: true });
+    });
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+      sub.data.subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase]);
 
   return (
     <main className="mx-auto max-w-6xl py-12 px-4 space-y-12">
@@ -243,7 +284,7 @@ export default function PierrePage() {
           <Card
             icon={<Bot className="h-4 w-4" />}
             title="Clone autonome"
-            desc="Tu lui donnes un cadre (ton, règles, modèles, formats) et il exécute les tâches récurrentes sans relance manuelle."
+            desc="Tu lui donnes un cadre (ton, règles, modèles, formats, données autorisées) et il exécute les tâches récurrentes sans relance manuelle."
           />
           <Card
             icon={<Workflow className="h-4 w-4" />}
@@ -257,7 +298,7 @@ export default function PierrePage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Important</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             L’autonomie dépend de ton setup (règles, autorisations, actions disponibles). Pierre peut fonctionner en
@@ -283,7 +324,7 @@ export default function PierrePage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Ce que ça permet</p>
           <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
             <li>Réponses RH cohérentes au ton de la marque</li>
@@ -310,7 +351,7 @@ export default function PierrePage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Usage typique</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Le support reçoit un message → le Router déclenche Pierre → Pierre prépare une réponse + résumé + prochaines
@@ -346,7 +387,7 @@ export default function PierrePage() {
           />
         </div>
 
-        <div className="rounded-2xl border p-6 space-y-2">
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm">
             <span className="font-medium">Pierre ne fait pas :</span>{" "}
             <span className="text-muted-foreground">
@@ -362,7 +403,7 @@ export default function PierrePage() {
         <h2 className="text-xl font-semibold">Exemples de briefs (et ce que tu obtiens)</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Mail de refus candidat — dev front — on garde en shortlist — ton humain.”
@@ -373,7 +414,7 @@ export default function PierrePage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Fiche de poste + annonce : assistant administratif, temps partiel, Auxerre, salaire 1 400–1 600.”
@@ -384,7 +425,7 @@ export default function PierrePage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Onboard une nouvelle recrue : commercial B2B, remote 3j, objectifs à 30/60/90 jours.”
@@ -395,7 +436,7 @@ export default function PierrePage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border p-6 space-y-3">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
               “Support : client énervé, il veut être remboursé. Réponse calme, ferme, et pro (pas de promesses).”
@@ -413,46 +454,32 @@ export default function PierrePage() {
         <h2 className="text-xl font-semibold">Comment ça marche</h2>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">1) Tu donnes un brief</p>
-            <p className="text-sm text-muted-foreground">
-              Même brouillon. Pierre comprend l’intention et récupère l’essentiel.
-            </p>
+            <p className="text-sm text-muted-foreground">Même brouillon. Pierre comprend l’intention et récupère l’essentiel.</p>
           </div>
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">2) Pierre rédige (format final)</p>
-            <p className="text-sm text-muted-foreground">
-              Structure claire, ton adapté, contenu prêt à être utilisé sans retouches.
-            </p>
+            <p className="text-sm text-muted-foreground">Structure claire, ton adapté, contenu prêt à être utilisé sans retouches.</p>
           </div>
-          <div className="rounded-2xl border p-6 space-y-2">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">3) Pierre peut agir seul</p>
-            <p className="text-sm text-muted-foreground">
-              Selon ton setup : règles + autorisations + déclencheurs (CloneOS). Historique clair à chaque action.
-            </p>
+            <p className="text-sm text-muted-foreground">Selon ton setup : règles + autorisations + déclencheurs (CloneOS). Historique clair à chaque action.</p>
           </div>
         </div>
       </section>
 
-      <section className="rounded-2xl border p-6 space-y-3">
+      <section className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
         <h3 className="text-lg font-medium">3 modes d’utilisation</h3>
-
         <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
-          <li>
-            <span className="font-medium text-foreground">Mode simple :</span> brief → document final.
-          </li>
-          <li>
-            <span className="font-medium text-foreground">Mode action :</span> prépare + exécute (mail/doc) si autorisé.
-          </li>
-          <li>
-            <span className="font-medium text-foreground">Mode multi-clones :</span> un autre clone (ex : Clara) déclenche
-            Pierre via le Router automatiquement.
-          </li>
+          <li><span className="font-medium text-foreground">Mode simple :</span> brief → document final.</li>
+          <li><span className="font-medium text-foreground">Mode action :</span> prépare + exécute (mail/doc) si autorisé.</li>
+          <li><span className="font-medium text-foreground">Mode multi-clones :</span> un autre clone (ex : Clara) déclenche Pierre via le Router automatiquement.</li>
         </ul>
       </section>
 
       {/* ACCÈS / CTA */}
-      <section id="acces" className="rounded-2xl border p-8 space-y-4">
+      <section id="acces" className="rounded-2xl border p-8 space-y-4 cs-card shadow-soft">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-xl font-semibold">Accès à Pierre</h2>
@@ -467,6 +494,7 @@ export default function PierrePage() {
           <p className="text-sm text-muted-foreground">
             Vérification en cours…
             {shouldPoll && <span> (post-paiement, attente activation...)</span>}
+            {isPolling && <span> (synchronisation…)</span>}
           </p>
         ) : hasPierre ? (
           <>
@@ -497,7 +525,7 @@ export default function PierrePage() {
                 </Button>
               )}
 
-              <Button variant="outline" onClick={() => checkAccess()}>
+              <Button variant="outline" onClick={() => checkAccess({ silent: false })}>
                 Rafraîchir l’accès
               </Button>
             </div>
@@ -509,7 +537,6 @@ export default function PierrePage() {
     </main>
   );
 }
-
 
 
 
