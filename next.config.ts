@@ -1,10 +1,5 @@
-import type { NextConfig } from "next";
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
 
-const nextConfig: NextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-};
-
-export default nextConfig;
-
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.

@@ -1,0 +1,5614 @@
+﻿===== FILE: src/components/ui/navigation-menu.tsx =====
+
+import * as React from "react"
+import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu"
+import { cva } from "class-variance-authority"
+import { ChevronDownIcon } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+function NavigationMenu({
+  className,
+  children,
+  viewport = true,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Root> & {
+  viewport?: boolean
+}) {
+  return (
+    <NavigationMenuPrimitive.Root
+      data-slot="navigation-menu"
+      data-viewport={viewport}
+      className={cn(
+        "group/navigation-menu relative flex max-w-max flex-1 items-center justify-center",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      {viewport && <NavigationMenuViewport />}
+    </NavigationMenuPrimitive.Root>
+  )
+}
+
+function NavigationMenuList({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.List>) {
+  return (
+    <NavigationMenuPrimitive.List
+      data-slot="navigation-menu-list"
+      className={cn(
+        "group flex flex-1 list-none items-center justify-center gap-1",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function NavigationMenuItem({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Item>) {
+  return (
+    <NavigationMenuPrimitive.Item
+      data-slot="navigation-menu-item"
+      className={cn("relative", className)}
+      {...props}
+    />
+  )
+}
+
+const navigationMenuTriggerStyle = cva(
+  "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 data-[state=open]:hover:bg-accent data-[state=open]:text-accent-foreground data-[state=open]:focus:bg-accent data-[state=open]:bg-accent/50 focus-visible:ring-ring/50 outline-none transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1"
+)
+
+function NavigationMenuTrigger({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Trigger>) {
+  return (
+    <NavigationMenuPrimitive.Trigger
+      data-slot="navigation-menu-trigger"
+      className={cn(navigationMenuTriggerStyle(), "group", className)}
+      {...props}
+    >
+      {children}{" "}
+      <ChevronDownIcon
+        className="relative top-[1px] ml-1 size-3 transition duration-300 group-data-[state=open]:rotate-180"
+        aria-hidden="true"
+      />
+    </NavigationMenuPrimitive.Trigger>
+  )
+}
+
+function NavigationMenuContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Content>) {
+  return (
+    <NavigationMenuPrimitive.Content
+      data-slot="navigation-menu-content"
+      className={cn(
+        "data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 top-0 left-0 w-full p-2 pr-2.5 md:absolute md:w-auto",
+        "group-data-[viewport=false]/navigation-menu:bg-popover group-data-[viewport=false]/navigation-menu:text-popover-foreground group-data-[viewport=false]/navigation-menu:data-[state=open]:animate-in group-data-[viewport=false]/navigation-menu:data-[state=closed]:animate-out group-data-[viewport=false]/navigation-menu:data-[state=closed]:zoom-out-95 group-data-[viewport=false]/navigation-menu:data-[state=open]:zoom-in-95 group-data-[viewport=false]/navigation-menu:data-[state=open]:fade-in-0 group-data-[viewport=false]/navigation-menu:data-[state=closed]:fade-out-0 group-data-[viewport=false]/navigation-menu:top-full group-data-[viewport=false]/navigation-menu:mt-1.5 group-data-[viewport=false]/navigation-menu:overflow-hidden group-data-[viewport=false]/navigation-menu:rounded-md group-data-[viewport=false]/navigation-menu:border group-data-[viewport=false]/navigation-menu:shadow group-data-[viewport=false]/navigation-menu:duration-200 **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function NavigationMenuViewport({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Viewport>) {
+  return (
+    <div
+      className={cn(
+        "absolute top-full left-0 isolate z-50 flex justify-center"
+      )}
+    >
+      <NavigationMenuPrimitive.Viewport
+        data-slot="navigation-menu-viewport"
+        className={cn(
+          "origin-top-center bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border shadow md:w-[var(--radix-navigation-menu-viewport-width)]",
+          className
+        )}
+        {...props}
+      />
+    </div>
+  )
+}
+
+function NavigationMenuLink({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Link>) {
+  return (
+    <NavigationMenuPrimitive.Link
+      data-slot="navigation-menu-link"
+      className={cn(
+        "data-[active=true]:focus:bg-accent data-[active=true]:hover:bg-accent data-[active=true]:bg-accent/50 data-[active=true]:text-accent-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-ring/50 [&_svg:not([class*='text-'])]:text-muted-foreground flex flex-col gap-1 rounded-sm p-2 text-sm transition-all outline-none focus-visible:ring-[3px] focus-visible:outline-1 [&_svg:not([class*='size-'])]:size-4",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function NavigationMenuIndicator({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Indicator>) {
+  return (
+    <NavigationMenuPrimitive.Indicator
+      data-slot="navigation-menu-indicator"
+      className={cn(
+        "data-[state=visible]:animate-in data-[state=hidden]:animate-out data-[state=hidden]:fade-out data-[state=visible]:fade-in top-full z-[1] flex h-1.5 items-end justify-center overflow-hidden",
+        className
+      )}
+      {...props}
+    >
+      <div className="bg-border relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm shadow-md" />
+    </NavigationMenuPrimitive.Indicator>
+  )
+}
+
+export {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuContent,
+  NavigationMenuTrigger,
+  NavigationMenuLink,
+  NavigationMenuIndicator,
+  NavigationMenuViewport,
+  navigationMenuTriggerStyle,
+}
+
+
+===== FILE: src/components/ui/separator.tsx =====
+
+"use client"
+
+import * as React from "react"
+import * as SeparatorPrimitive from "@radix-ui/react-separator"
+
+import { cn } from "@/lib/utils"
+
+function Separator({
+  className,
+  orientation = "horizontal",
+  decorative = true,
+  ...props
+}: React.ComponentProps<typeof SeparatorPrimitive.Root>) {
+  return (
+    <SeparatorPrimitive.Root
+      data-slot="separator"
+      decorative={decorative}
+      orientation={orientation}
+      className={cn(
+        "bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Separator }
+
+
+===== FILE: src/hooks/pierre/usePierreCompanyMemory.ts =====
+
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+type SenderIdentityResolved = {
+  senderName: string | null;
+  senderEmail: string | null;
+  senderDomain: string | null;
+  source: "memory" | "fallback" | "none";
+};
+
+type CompanyMemoryRecord = {
+  id?: string | null;
+  company_id?: string | null;
+  tone_guide?: string | null;
+  communication_style?: string | null;
+  preferred_language?: string | null;
+  sender_name?: string | null;
+  sender_email?: string | null;
+  sender_domain?: string | null;
+  sender_identity?: unknown;
+  company_rules?: unknown;
+  approval_rules?: unknown;
+  memory?: unknown;
+  preferences?: unknown;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+};
+
+type HookError = {
+  message: string;
+  status?: number;
+  code?: string | null;
+  details?: unknown;
+};
+
+export type UsePierreCompanyMemoryOptions = {
+  autoLoad?: boolean;
+};
+
+export type UsePierreCompanyMemoryReturn = {
+  memory: CompanyMemoryRecord | null;
+  loading: boolean;
+  refreshing: boolean;
+  saving: boolean;
+  error: HookError | null;
+  lastUpdatedAt: string | null;
+  senderIdentityResolved: SenderIdentityResolved;
+  refresh: () => Promise<CompanyMemoryRecord | null>;
+  refetch: () => Promise<CompanyMemoryRecord | null>;
+  reload: () => Promise<CompanyMemoryRecord | null>;
+  updateMemory: (patch: Record<string, unknown>) => Promise<CompanyMemoryRecord | null>;
+  clearError: () => void;
+};
+
+const DEFAULT_OPTIONS: Required<UsePierreCompanyMemoryOptions> = {
+  autoLoad: true,
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
+function normalizeError(error: unknown): HookError {
+  if (error instanceof Error) {
+    return { message: error.message || "Une erreur est survenue." };
+  }
+
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error) ||
+        asString(error.detail) ||
+        "Une erreur est survenue.",
+      status:
+        typeof error.status === "number" && Number.isFinite(error.status)
+          ? error.status
+          : undefined,
+      code: asString(error.code),
+      details: error.details,
+    };
+  }
+
+  return { message: "Une erreur est survenue." };
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+async function safeReadJson(response: Response): Promise<unknown | null> {
+  const text = await response.text();
+
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+async function requestJson<T>(
+  url: string,
+  init?: RequestInit,
+): Promise<T | null> {
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
+    },
+    cache: "no-store",
+  });
+
+  const data = await safeReadJson(response);
+
+  if (!response.ok) {
+    const source = isObject(data) ? data : {};
+    throw {
+      message:
+        asString(source.message) ||
+        asString(source.error) ||
+        asString(source.detail) ||
+        `HTTP ${response.status}`,
+      status: response.status,
+      code: asString(source.code),
+      details: data,
+    };
+  }
+
+  return (data as T | null) ?? null;
+}
+
+function normalizeCompanyMemory(raw: unknown): CompanyMemoryRecord | null {
+  if (!isObject(raw)) return null;
+
+  return {
+    ...raw,
+    id: asString(raw.id),
+    company_id: asString(raw.company_id),
+    tone_guide: asString(raw.tone_guide),
+    communication_style: asString(raw.communication_style),
+    preferred_language: asString(raw.preferred_language),
+    sender_name: asString(raw.sender_name),
+    sender_email: asString(raw.sender_email),
+    sender_domain: asString(raw.sender_domain),
+    created_at: asString(raw.created_at),
+    updated_at: asString(raw.updated_at),
+  };
+}
+
+function extractMemoryPayload(data: unknown): CompanyMemoryRecord | null {
+  const source = isObject(data) ? data : {};
+  const dataBlock = isObject(source.data) ? source.data : null;
+  const resultBlock = isObject(source.result) ? source.result : null;
+
+  return (
+    normalizeCompanyMemory(source.memory) ||
+    normalizeCompanyMemory(source.companyMemory) ||
+    normalizeCompanyMemory(dataBlock?.memory) ||
+    normalizeCompanyMemory(dataBlock?.companyMemory) ||
+    normalizeCompanyMemory(resultBlock?.memory) ||
+    normalizeCompanyMemory(resultBlock?.companyMemory) ||
+    normalizeCompanyMemory(data)
+  );
+}
+
+function resolveSenderIdentity(memory: CompanyMemoryRecord | null): SenderIdentityResolved {
+  const fallbackEmail =
+    typeof process !== "undefined"
+      ? asString(process.env.NEXT_PUBLIC_PIERRE_FALLBACK_SENDER_EMAIL)
+      : null;
+
+  const fallbackName =
+    typeof process !== "undefined"
+      ? asString(process.env.NEXT_PUBLIC_PIERRE_FALLBACK_SENDER_NAME)
+      : null;
+
+  const senderIdentityBlock = isObject(memory?.sender_identity)
+    ? memory?.sender_identity
+    : null;
+
+  const senderName =
+    asString(memory?.sender_name) ||
+    asString(senderIdentityBlock?.sender_name) ||
+    asString(senderIdentityBlock?.name) ||
+    fallbackName ||
+    null;
+
+  const senderEmail =
+    asString(memory?.sender_email) ||
+    asString(senderIdentityBlock?.sender_email) ||
+    asString(senderIdentityBlock?.email) ||
+    fallbackEmail ||
+    null;
+
+  const senderDomain =
+    asString(memory?.sender_domain) ||
+    asString(senderIdentityBlock?.sender_domain) ||
+    (senderEmail && senderEmail.includes("@") ? senderEmail.split("@")[1] : null);
+
+  if (asString(memory?.sender_email) || asString(memory?.sender_name) || senderIdentityBlock) {
+    return {
+      senderName,
+      senderEmail,
+      senderDomain,
+      source: "memory",
+    };
+  }
+
+  if (fallbackEmail || fallbackName) {
+    return {
+      senderName,
+      senderEmail,
+      senderDomain,
+      source: "fallback",
+    };
+  }
+
+  return {
+    senderName: null,
+    senderEmail: null,
+    senderDomain: null,
+    source: "none",
+  };
+}
+
+export default function usePierreCompanyMemory(
+  options?: UsePierreCompanyMemoryOptions,
+): UsePierreCompanyMemoryReturn {
+  const resolvedOptions = { ...DEFAULT_OPTIONS, ...(options ?? {}) };
+
+  const [memory, setMemory] = useState<CompanyMemoryRecord | null>(null);
+  const [loading, setLoading] = useState<boolean>(resolvedOptions.autoLoad);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [error, setError] = useState<HookError | null>(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+
+  const mountedRef = useRef<boolean>(true);
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const refresh = useCallback(async (): Promise<CompanyMemoryRecord | null> => {
+    setRefreshing(true);
+    setError(null);
+
+    try {
+      const data = await requestJson<unknown>("/api/pierre/company-memory", {
+        method: "GET",
+      });
+
+      const nextMemory = extractMemoryPayload(data);
+      setMemory(nextMemory);
+      setLastUpdatedAt(nowIso());
+
+      return nextMemory;
+    } catch (caught) {
+      const normalized = normalizeError(caught);
+      setError(normalized);
+      throw normalized;
+    } finally {
+      if (mountedRef.current) {
+        setRefreshing(false);
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  const updateMemory = useCallback(
+    async (patch: Record<string, unknown>): Promise<CompanyMemoryRecord | null> => {
+      setSaving(true);
+      setError(null);
+
+      try {
+        const data = await requestJson<unknown>("/api/pierre/company-memory", {
+          method: "PATCH",
+          body: JSON.stringify(patch),
+        });
+
+        const nextMemory = extractMemoryPayload(data);
+        setMemory(nextMemory);
+        setLastUpdatedAt(nowIso());
+
+        return nextMemory;
+      } catch (caught) {
+        const normalized = normalizeError(caught);
+        setError(normalized);
+        throw normalized;
+      } finally {
+        if (mountedRef.current) {
+          setSaving(false);
+          setLoading(false);
+        }
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!resolvedOptions.autoLoad) {
+      setLoading(false);
+      return;
+    }
+
+    void refresh();
+  }, [refresh, resolvedOptions.autoLoad]);
+
+  const senderIdentityResolved = useMemo(() => {
+    return resolveSenderIdentity(memory);
+  }, [memory]);
+
+  return {
+    memory,
+    loading,
+    refreshing,
+    saving,
+    error,
+    lastUpdatedAt,
+    senderIdentityResolved,
+    refresh,
+    refetch: refresh,
+    reload: refresh,
+    updateMemory,
+    clearError,
+  };
+}
+
+===== FILE: src/hooks/pierre/usePierreHistory.ts =====
+
+"use client";
+
+import * as React from "react";
+
+export type PierreHistoryKind =
+  | "mission"
+  | "task"
+  | "document"
+  | "email"
+  | "pdf"
+  | "log"
+  | "history";
+
+export type PierreHistoryItem = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  status: string | null;
+  kind: PierreHistoryKind;
+  mission_id: string | null;
+  task_id: string | null;
+  document_id: string | null;
+  email_id: string | null;
+  pdf_id: string | null;
+  pinned: boolean;
+  favorite: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+  raw: Record<string, unknown>;
+};
+
+type RefreshOptions = {
+  includeTasks?: boolean;
+};
+
+type HistoryResponse = {
+  ok?: boolean;
+  items?: unknown[];
+  nextCursor?: string | null;
+  next_cursor?: string | null;
+  hasMore?: boolean;
+  has_more?: boolean;
+  error?: string;
+  message?: string;
+};
+
+type UsePierreHistoryReturn = {
+  items: PierreHistoryItem[];
+  loading: boolean;
+  error: string | null;
+  hasMore: boolean;
+  refresh: (options?: RefreshOptions) => Promise<void>;
+  loadMore: () => Promise<void>;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function text(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function bool(value: unknown): boolean {
+  return value === true;
+}
+
+function toKind(value: unknown): PierreHistoryKind {
+  const raw = String(value ?? "").trim().toLowerCase();
+
+  switch (raw) {
+    case "mission":
+      return "mission";
+    case "task":
+      return "task";
+    case "document":
+      return "document";
+    case "email":
+      return "email";
+    case "pdf":
+      return "pdf";
+    case "log":
+      return "log";
+    default:
+      return "history";
+  }
+}
+
+function dateValue(value?: string | null): number {
+  if (!value) return 0;
+  const date = new Date(value);
+  const time = date.getTime();
+  return Number.isNaN(time) ? 0 : time;
+}
+
+function extractStableId(raw: Record<string, unknown>): string | null {
+  return (
+    text(raw.id) ??
+    text(raw.history_id) ??
+    text(raw.event_id) ??
+    text(raw.mission_id) ??
+    text(raw.task_id) ??
+    text(raw.document_id) ??
+    text(raw.email_id) ??
+    text(raw.pdf_id)
+  );
+}
+
+function buildTitle(raw: Record<string, unknown>): string {
+  return (
+    text(raw.title) ??
+    text(raw.name) ??
+    text(raw.subject) ??
+    text(raw.doc_title) ??
+    text(raw.event) ??
+    "Ã‰lÃ©ment Pierre"
+  );
+}
+
+function buildSubtitle(raw: Record<string, unknown>): string | null {
+  return (
+    text(raw.subtitle) ??
+    text(raw.summary) ??
+    text(raw.description) ??
+    text(raw.request_text) ??
+    text(raw.message) ??
+    text(raw.note) ??
+    null
+  );
+}
+
+function normalizeItem(value: unknown): PierreHistoryItem | null {
+  if (!isRecord(value)) return null;
+
+  const id = extractStableId(value);
+  if (!id) return null;
+
+  return {
+    id,
+    title: buildTitle(value),
+    subtitle: buildSubtitle(value),
+    status: text(value.status),
+    kind: toKind(value.kind ?? value.type),
+    mission_id: text(value.mission_id),
+    task_id: text(value.task_id),
+    document_id: text(value.document_id),
+    email_id: text(value.email_id),
+    pdf_id: text(value.pdf_id),
+    pinned: bool(value.pinned),
+    favorite: bool(value.favorite ?? value.favourited),
+    created_at: text(value.created_at),
+    updated_at: text(value.updated_at),
+    raw: value,
+  };
+}
+
+function sortItems(items: PierreHistoryItem[]) {
+  return [...items].sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    if (a.favorite !== b.favorite) return a.favorite ? -1 : 1;
+
+    const da = dateValue(a.updated_at) || dateValue(a.created_at);
+    const db = dateValue(b.updated_at) || dateValue(b.created_at);
+    return db - da;
+  });
+}
+
+function mergeItems(
+  current: PierreHistoryItem[],
+  incoming: PierreHistoryItem[]
+): PierreHistoryItem[] {
+  const map = new Map<string, PierreHistoryItem>();
+
+  for (const item of current) {
+    map.set(item.id, item);
+  }
+
+  for (const item of incoming) {
+    const existing = map.get(item.id);
+    map.set(item.id, existing ? { ...existing, ...item, raw: { ...existing.raw, ...item.raw } } : item);
+  }
+
+  return sortItems(Array.from(map.values()));
+}
+
+async function safeJson<T>(response: Response): Promise<T | null> {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) return null;
+
+  try {
+    return (await response.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+function extractError(payload: unknown): string | null {
+  if (!isRecord(payload)) return null;
+  return text(payload.error) ?? text(payload.message);
+}
+
+export function usePierreHistory(): UsePierreHistoryReturn {
+  const [items, setItems] = React.useState<PierreHistoryItem[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [cursor, setCursor] = React.useState<string | null>(null);
+  const [hasMore, setHasMore] = React.useState(false);
+
+  const mountedRef = React.useRef(true);
+  const lastRefreshOptionsRef = React.useRef<RefreshOptions | undefined>(undefined);
+
+  React.useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const refresh = React.useCallback(async (options?: RefreshOptions) => {
+    lastRefreshOptionsRef.current = options;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams();
+      if (options?.includeTasks) params.set("includeTasks", "true");
+
+      const url = `/api/pierre/history/list${params.toString() ? `?${params.toString()}` : ""}`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+        },
+        cache: "no-store",
+      });
+
+      const payload = await safeJson<HistoryResponse>(response);
+
+      if (!response.ok) {
+        const message =
+          extractError(payload) ??
+          (response.status === 401
+            ? "Session indisponible pour charger lâ€™historique Pierre."
+            : response.status === 404
+            ? "Route dâ€™historique Pierre introuvable."
+            : "Impossible de charger lâ€™historique Pierre.");
+
+        if (mountedRef.current) {
+          setItems([]);
+          setCursor(null);
+          setHasMore(false);
+          setError(message);
+        }
+        return;
+      }
+
+      const normalized = Array.isArray(payload?.items)
+        ? payload.items
+            .map(normalizeItem)
+            .filter((item): item is PierreHistoryItem => Boolean(item))
+        : [];
+
+      if (mountedRef.current) {
+        setItems(sortItems(normalized));
+        setCursor(payload?.nextCursor ?? payload?.next_cursor ?? null);
+        setHasMore(Boolean(payload?.hasMore ?? payload?.has_more ?? false));
+        setError(null);
+      }
+    } catch {
+      if (mountedRef.current) {
+        setItems([]);
+        setCursor(null);
+        setHasMore(false);
+        setError("Erreur rÃ©seau pendant le chargement de lâ€™historique Pierre.");
+      }
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  const loadMore = React.useCallback(async () => {
+    if (!cursor || loading) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams();
+      params.set("cursor", cursor);
+      if (lastRefreshOptionsRef.current?.includeTasks) {
+        params.set("includeTasks", "true");
+      }
+
+      const response = await fetch(`/api/pierre/history/list?${params.toString()}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+        },
+        cache: "no-store",
+      });
+
+      const payload = await safeJson<HistoryResponse>(response);
+
+      if (!response.ok) {
+        const message =
+          extractError(payload) ??
+          (response.status === 401
+            ? "Session indisponible pour charger la suite de lâ€™historique."
+            : "Impossible de charger la suite de lâ€™historique Pierre.");
+
+        if (mountedRef.current) {
+          setError(message);
+        }
+        return;
+      }
+
+      const normalized = Array.isArray(payload?.items)
+        ? payload.items
+            .map(normalizeItem)
+            .filter((item): item is PierreHistoryItem => Boolean(item))
+        : [];
+
+      if (mountedRef.current) {
+        setItems((prev) => mergeItems(prev, normalized));
+        setCursor(payload?.nextCursor ?? payload?.next_cursor ?? null);
+        setHasMore(Boolean(payload?.hasMore ?? payload?.has_more ?? false));
+        setError(null);
+      }
+    } catch {
+      if (mountedRef.current) {
+        setError("Erreur rÃ©seau pendant le chargement complÃ©mentaire de lâ€™historique.");
+      }
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, [cursor, loading]);
+
+  return {
+    items,
+    loading,
+    error,
+    hasMore,
+    refresh,
+    loadMore,
+  };
+}
+
+===== FILE: src/hooks/pierre/usePierreMissionCenter.ts =====
+
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+type Primitive = string | number | boolean | null | undefined;
+type JsonValue = Primitive | JsonObject | JsonValue[];
+type JsonObject = { [key: string]: JsonValue };
+
+type MissionRiskLevel = "normal" | "sensitive" | "critical" | "unknown";
+type MissionLifecycleStatus =
+  | "draft"
+  | "created"
+  | "queued"
+  | "running"
+  | "awaiting_info"
+  | "awaiting_approval"
+  | "blocked"
+  | "completed"
+  | "cancelled"
+  | "failed"
+  | "unknown";
+
+type TaskLifecycleStatus =
+  | "pending"
+  | "queued"
+  | "running"
+  | "awaiting_info"
+  | "awaiting_approval"
+  | "scheduled"
+  | "blocked"
+  | "completed"
+  | "cancelled"
+  | "failed"
+  | "unknown";
+
+type HookError = {
+  message: string;
+  status?: number;
+  code?: string | null;
+  details?: unknown;
+};
+
+export type PierreMissionRecord = {
+  id: string;
+  company_id?: string | null;
+  user_id?: string | null;
+  title?: string | null;
+  summary?: string | null;
+  description?: string | null;
+  classification?: string | null;
+  status?: MissionLifecycleStatus | string | null;
+  risk_level?: MissionRiskLevel | string | null;
+  approval_required?: boolean | null;
+  language?: string | null;
+  tone?: string | null;
+  missing_info?: unknown;
+  interpretation?: unknown;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+};
+
+export type PierreTaskRecord = {
+  id: string;
+  mission_id?: string | null;
+  type?: string | null;
+  title?: string | null;
+  description?: string | null;
+  status?: TaskLifecycleStatus | string | null;
+  risk_level?: MissionRiskLevel | string | null;
+  approval_required?: boolean | null;
+  scheduled_for?: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  blocked_reason?: string | null;
+  error_message?: string | null;
+  payload?: unknown;
+  result?: unknown;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+};
+
+export type PierreTaskLogRecord = {
+  id: string;
+  mission_id?: string | null;
+  task_id?: string | null;
+  level?: string | null;
+  event?: string | null;
+  message?: string | null;
+  payload?: unknown;
+  created_at?: string | null;
+  [key: string]: unknown;
+};
+
+export type PierreDocumentRecord = {
+  id: string;
+  mission_id?: string | null;
+  task_id?: string | null;
+  title?: string | null;
+  doc_type?: string | null;
+  status?: string | null;
+  text_content?: string | null;
+  html_content?: string | null;
+  content?: unknown;
+  metadata?: unknown;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+};
+
+export type PierreOutboundEmailRecord = {
+  id: string;
+  mission_id?: string | null;
+  task_id?: string | null;
+  to?: string | string[] | null;
+  cc?: string | string[] | null;
+  bcc?: string | string[] | null;
+  subject?: string | null;
+  body_text?: string | null;
+  body_html?: string | null;
+  sender_name?: string | null;
+  sender_email?: string | null;
+  status?: string | null;
+  provider_message_id?: string | null;
+  attachments?: unknown;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+};
+
+export type PierrePdfRecord = {
+  id: string;
+  mission_id?: string | null;
+  task_id?: string | null;
+  title?: string | null;
+  filename?: string | null;
+  storage_path?: string | null;
+  public_url?: string | null;
+  signed_url?: string | null;
+  status?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+};
+
+export type PierreMissionInterpretation = {
+  intent?: string | null;
+  classification?: string | null;
+  summary?: string | null;
+  language?: string | null;
+  tone?: string | null;
+  risk_level?: MissionRiskLevel | string | null;
+  approval_required?: boolean | null;
+  missing_info_questions?: string[];
+  missing_info?: unknown;
+  tasks?: unknown[];
+  [key: string]: unknown;
+};
+
+export type PierreMissionSubmitPayload = {
+  input: string;
+  missionId?: string | null;
+  context?: unknown;
+};
+
+export type PierreDirectDocumentPayload = {
+  instructions: string;
+  context?: string;
+  type?: string;
+  tone?: string;
+  language?: string;
+  title?: string;
+  missionId?: string | null;
+};
+
+export type PierreDirectEmailPayload = {
+  to?: string;
+  cc?: string;
+  bcc?: string;
+  subject?: string;
+  body?: string;
+  tone?: string;
+  language?: string;
+  senderName?: string;
+  senderEmail?: string;
+  missionId?: string | null;
+  attachments?: unknown;
+};
+
+export type PierreDirectPdfPayload = {
+  title?: string;
+  text: string;
+  filename?: string;
+  missionId?: string | null;
+};
+
+export type PierreTaskActionPayload = {
+  taskId: string;
+  body?: Record<string, unknown>;
+  missionId?: string | null;
+};
+
+export type PierreTaskReschedulePayload = {
+  taskId: string;
+  scheduledFor: string;
+  reason?: string;
+  missionId?: string | null;
+};
+
+export type PierreMissionCenterOptions = {
+  initialFocusedMissionId?: string | null;
+  autoLoad?: boolean;
+  autoPoll?: boolean;
+  pollIntervalMs?: number;
+};
+
+type MissionSnapshot = {
+  mission: PierreMissionRecord | null;
+  interpretation: PierreMissionInterpretation | null;
+  tasks: PierreTaskRecord[];
+  logs: PierreTaskLogRecord[];
+  documents: PierreDocumentRecord[];
+  outboundEmails: PierreOutboundEmailRecord[];
+  pdfs: PierrePdfRecord[];
+};
+
+type UsePierreMissionCenterState = {
+  missions: PierreMissionRecord[];
+  activeMission: PierreMissionRecord | null;
+  focusedMissionId: string | null;
+  interpretation: PierreMissionInterpretation | null;
+  tasks: PierreTaskRecord[];
+  logs: PierreTaskLogRecord[];
+  documents: PierreDocumentRecord[];
+  outboundEmails: PierreOutboundEmailRecord[];
+  pdfs: PierrePdfRecord[];
+  directDocuments: PierreDocumentRecord[];
+  directEmails: PierreOutboundEmailRecord[];
+  directPdfs: PierrePdfRecord[];
+  loading: boolean;
+  refreshing: boolean;
+  submittingMission: boolean;
+  runningTask: boolean;
+  approvingTask: boolean;
+  cancellingTask: boolean;
+  reschedulingTask: boolean;
+  generatingDirectDocument: boolean;
+  draftingDirectEmail: boolean;
+  sendingDirectEmail: boolean;
+  generatingDirectPdf: boolean;
+  error: HookError | null;
+  lastUpdatedAt: string | null;
+};
+
+export type UsePierreMissionCenterReturn = UsePierreMissionCenterState & {
+  setFocusedMissionId: (missionId: string | null) => void;
+  clearError: () => void;
+  setActiveMissionFromRecord: (mission: PierreMissionRecord | null) => void;
+  submitMission: (
+    payload: PierreMissionSubmitPayload,
+  ) => Promise<{
+    mission: PierreMissionRecord | null;
+    interpretation: PierreMissionInterpretation | null;
+    tasks: PierreTaskRecord[];
+  }>;
+  refreshMission: (missionId?: string | null) => Promise<MissionSnapshot | null>;
+  refreshAll: (missionId?: string | null) => Promise<MissionSnapshot | null>;
+  runTask: (payload: PierreTaskActionPayload) => Promise<Record<string, unknown> | null>;
+  approveTask: (payload: PierreTaskActionPayload) => Promise<Record<string, unknown> | null>;
+  cancelTask: (payload: PierreTaskActionPayload) => Promise<Record<string, unknown> | null>;
+  rescheduleTask: (
+    payload: PierreTaskReschedulePayload,
+  ) => Promise<Record<string, unknown> | null>;
+  generateDirectDocument: (
+    payload: PierreDirectDocumentPayload,
+  ) => Promise<PierreDocumentRecord | null>;
+  draftDirectEmail: (
+    payload: PierreDirectEmailPayload,
+  ) => Promise<PierreOutboundEmailRecord | null>;
+  sendDirectEmail: (
+    payload: PierreDirectEmailPayload,
+  ) => Promise<PierreOutboundEmailRecord | null>;
+  generateDirectPdf: (payload: PierreDirectPdfPayload) => Promise<PierrePdfRecord | null>;
+  hasActiveExecution: boolean;
+  awaitingApprovalCount: number;
+  blockedCount: number;
+  completedCount: number;
+};
+
+const DEFAULT_OPTIONS: Required<PierreMissionCenterOptions> = {
+  initialFocusedMissionId: null,
+  autoLoad: true,
+  autoPoll: true,
+  pollIntervalMs: 6000,
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asArray<T = unknown>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
+function asBoolean(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
+}
+
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+function normalizeError(error: unknown): HookError {
+  if (error instanceof Error) {
+    return { message: error.message || "Une erreur est survenue." };
+  }
+
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error) ||
+        asString(error.detail) ||
+        "Une erreur est survenue.",
+      status:
+        typeof error.status === "number" && Number.isFinite(error.status)
+          ? error.status
+          : undefined,
+      code: asString(error.code),
+      details: error.details,
+    };
+  }
+
+  return { message: "Une erreur est survenue." };
+}
+
+async function safeReadJson(response: Response): Promise<unknown | null> {
+  const text = await response.text();
+
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+async function requestJson<T>(
+  url: string,
+  init?: RequestInit,
+): Promise<T | null> {
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
+    },
+    cache: "no-store",
+  });
+
+  const data = await safeReadJson(response);
+
+  if (!response.ok) {
+    const source = isObject(data) ? data : {};
+    throw {
+      message:
+        asString(source.message) ||
+        asString(source.error) ||
+        asString(source.detail) ||
+        `HTTP ${response.status}`,
+      status: response.status,
+      code: asString(source.code),
+      details: data,
+    };
+  }
+
+  return (data as T | null) ?? null;
+}
+
+function normalizeMission(raw: unknown): PierreMissionRecord | null {
+  if (!isObject(raw)) return null;
+
+  const id = asString(raw.id);
+  if (!id) return null;
+
+  return {
+    ...raw,
+    id,
+    company_id: asString(raw.company_id),
+    user_id: asString(raw.user_id),
+    title: asString(raw.title),
+    summary: asString(raw.summary),
+    description: asString(raw.description),
+    classification: asString(raw.classification),
+    status: (asString(raw.status) ?? "unknown") as PierreMissionRecord["status"],
+    risk_level: (asString(raw.risk_level) ?? "unknown") as PierreMissionRecord["risk_level"],
+    approval_required: asBoolean(raw.approval_required),
+    language: asString(raw.language),
+    tone: asString(raw.tone),
+    created_at: asString(raw.created_at),
+    updated_at: asString(raw.updated_at),
+  };
+}
+
+function normalizeTask(raw: unknown): PierreTaskRecord | null {
+  if (!isObject(raw)) return null;
+
+  const id = asString(raw.id);
+  if (!id) return null;
+
+  return {
+    ...raw,
+    id,
+    mission_id: asString(raw.mission_id),
+    type: asString(raw.type),
+    title: asString(raw.title),
+    description: asString(raw.description),
+    status: (asString(raw.status) ?? "unknown") as PierreTaskRecord["status"],
+    risk_level: (asString(raw.risk_level) ?? "unknown") as PierreTaskRecord["risk_level"],
+    approval_required: asBoolean(raw.approval_required),
+    scheduled_for: asString(raw.scheduled_for),
+    started_at: asString(raw.started_at),
+    completed_at: asString(raw.completed_at),
+    blocked_reason: asString(raw.blocked_reason),
+    error_message: asString(raw.error_message),
+    created_at: asString(raw.created_at),
+    updated_at: asString(raw.updated_at),
+  };
+}
+
+function normalizeLog(raw: unknown): PierreTaskLogRecord | null {
+  if (!isObject(raw)) return null;
+
+  const id = asString(raw.id);
+  if (!id) return null;
+
+  return {
+    ...raw,
+    id,
+    mission_id: asString(raw.mission_id),
+    task_id: asString(raw.task_id),
+    level: asString(raw.level),
+    event: asString(raw.event),
+    message: asString(raw.message),
+    created_at: asString(raw.created_at),
+  };
+}
+
+function normalizeDocument(raw: unknown): PierreDocumentRecord | null {
+  if (!isObject(raw)) return null;
+
+  const id = asString(raw.id);
+  if (!id) return null;
+
+  return {
+    ...raw,
+    id,
+    mission_id: asString(raw.mission_id),
+    task_id: asString(raw.task_id),
+    title: asString(raw.title),
+    doc_type: asString(raw.doc_type),
+    status: asString(raw.status),
+    text_content: asString(raw.text_content),
+    html_content: asString(raw.html_content),
+    created_at: asString(raw.created_at),
+    updated_at: asString(raw.updated_at),
+  };
+}
+
+function normalizeEmail(raw: unknown): PierreOutboundEmailRecord | null {
+  if (!isObject(raw)) return null;
+
+  const id = asString(raw.id);
+  if (!id) return null;
+
+  return {
+    ...raw,
+    id,
+    mission_id: asString(raw.mission_id),
+    task_id: asString(raw.task_id),
+    subject: asString(raw.subject),
+    body_text: asString(raw.body_text),
+    body_html: asString(raw.body_html),
+    sender_name: asString(raw.sender_name),
+    sender_email: asString(raw.sender_email),
+    status: asString(raw.status),
+    provider_message_id: asString(raw.provider_message_id),
+    created_at: asString(raw.created_at),
+    updated_at: asString(raw.updated_at),
+  };
+}
+
+function normalizePdf(raw: unknown): PierrePdfRecord | null {
+  if (!isObject(raw)) return null;
+
+  const id = asString(raw.id);
+  if (!id) return null;
+
+  return {
+    ...raw,
+    id,
+    mission_id: asString(raw.mission_id),
+    task_id: asString(raw.task_id),
+    title: asString(raw.title),
+    filename: asString(raw.filename),
+    storage_path: asString(raw.storage_path),
+    public_url: asString(raw.public_url),
+    signed_url: asString(raw.signed_url),
+    status: asString(raw.status),
+    created_at: asString(raw.created_at),
+    updated_at: asString(raw.updated_at),
+  };
+}
+
+function normalizeInterpretation(raw: unknown): PierreMissionInterpretation | null {
+  if (!isObject(raw)) return null;
+
+  return {
+    ...raw,
+    intent: asString(raw.intent),
+    classification: asString(raw.classification),
+    summary: asString(raw.summary),
+    language: asString(raw.language),
+    tone: asString(raw.tone),
+    risk_level: asString(raw.risk_level),
+    approval_required: asBoolean(raw.approval_required),
+    missing_info_questions: asArray<string>(raw.missing_info_questions).filter(
+      (item): item is string => typeof item === "string" && item.trim().length > 0,
+    ),
+    missing_info: raw.missing_info,
+    tasks: asArray(raw.tasks),
+  };
+}
+
+function extractSnapshot(data: unknown): MissionSnapshot {
+  const source = isObject(data) ? data : {};
+  const dataBlock = isObject(source.data) ? source.data : null;
+  const resultBlock = isObject(source.result) ? source.result : null;
+
+  const mission =
+    normalizeMission(source.mission) ||
+    normalizeMission(dataBlock?.mission) ||
+    normalizeMission(resultBlock?.mission);
+
+  const interpretation =
+    normalizeInterpretation(source.interpretation) ||
+    normalizeInterpretation(dataBlock?.interpretation) ||
+    normalizeInterpretation(resultBlock?.interpretation) ||
+    normalizeInterpretation(mission?.interpretation);
+
+  const tasksSource =
+    asArray(source.tasks).length > 0
+      ? asArray(source.tasks)
+      : asArray(dataBlock?.tasks).length > 0
+        ? asArray(dataBlock?.tasks)
+        : asArray(resultBlock?.tasks);
+
+  const logsSource =
+    asArray(source.logs).length > 0
+      ? asArray(source.logs)
+      : asArray(source.task_logs).length > 0
+        ? asArray(source.task_logs)
+        : asArray(dataBlock?.logs).length > 0
+          ? asArray(dataBlock?.logs)
+          : asArray(dataBlock?.task_logs).length > 0
+            ? asArray(dataBlock?.task_logs)
+            : asArray(resultBlock?.logs).length > 0
+              ? asArray(resultBlock?.logs)
+              : asArray(resultBlock?.task_logs);
+
+  const documentsSource =
+    asArray(source.documents).length > 0
+      ? asArray(source.documents)
+      : asArray(dataBlock?.documents).length > 0
+        ? asArray(dataBlock?.documents)
+        : asArray(resultBlock?.documents);
+
+  const outboundEmailsSource =
+    asArray(source.outbound_emails).length > 0
+      ? asArray(source.outbound_emails)
+      : asArray(source.outboundEmails).length > 0
+        ? asArray(source.outboundEmails)
+        : asArray(dataBlock?.outbound_emails).length > 0
+          ? asArray(dataBlock?.outbound_emails)
+          : asArray(dataBlock?.outboundEmails).length > 0
+            ? asArray(dataBlock?.outboundEmails)
+            : asArray(resultBlock?.outbound_emails).length > 0
+              ? asArray(resultBlock?.outbound_emails)
+              : asArray(resultBlock?.outboundEmails);
+
+  const pdfsSource =
+    asArray(source.pdfs).length > 0
+      ? asArray(source.pdfs)
+      : asArray(dataBlock?.pdfs).length > 0
+        ? asArray(dataBlock?.pdfs)
+        : asArray(resultBlock?.pdfs);
+
+  return {
+    mission,
+    interpretation,
+    tasks: tasksSource.map(normalizeTask).filter((item): item is PierreTaskRecord => Boolean(item)),
+    logs: logsSource.map(normalizeLog).filter((item): item is PierreTaskLogRecord => Boolean(item)),
+    documents: documentsSource
+      .map(normalizeDocument)
+      .filter((item): item is PierreDocumentRecord => Boolean(item)),
+    outboundEmails: outboundEmailsSource
+      .map(normalizeEmail)
+      .filter((item): item is PierreOutboundEmailRecord => Boolean(item)),
+    pdfs: pdfsSource.map(normalizePdf).filter((item): item is PierrePdfRecord => Boolean(item)),
+  };
+}
+
+function sortByUpdatedDesc<T extends { updated_at?: string | null; created_at?: string | null }>(
+  items: T[],
+): T[] {
+  return [...items].sort((a, b) => {
+    const aTs = new Date(a.updated_at || a.created_at || 0).getTime();
+    const bTs = new Date(b.updated_at || b.created_at || 0).getTime();
+    return bTs - aTs;
+  });
+}
+
+function mergeMissionRecord(
+  list: PierreMissionRecord[],
+  mission: PierreMissionRecord | null,
+): PierreMissionRecord[] {
+  if (!mission) return list;
+
+  const index = list.findIndex((item) => item.id === mission.id);
+
+  if (index === -1) {
+    return sortByUpdatedDesc([mission, ...list]);
+  }
+
+  const next = [...list];
+  next[index] = { ...next[index], ...mission };
+  return sortByUpdatedDesc(next);
+}
+
+function mergeArtifactRecord<
+  T extends { id: string; updated_at?: string | null; created_at?: string | null },
+>(list: T[], item: T | null): T[] {
+  if (!item) return list;
+
+  const index = list.findIndex((entry) => entry.id === item.id);
+
+  if (index === -1) {
+    return sortByUpdatedDesc([item, ...list]);
+  }
+
+  const next = [...list];
+  next[index] = { ...next[index], ...item };
+  return sortByUpdatedDesc(next);
+}
+
+function normalizeTaskStatus(status: string | null | undefined): TaskLifecycleStatus {
+  const value = (status || "").trim().toLowerCase();
+
+  if (!value) return "unknown";
+
+  if (
+    value === "pending" ||
+    value === "queued" ||
+    value === "running" ||
+    value === "awaiting_info" ||
+    value === "awaiting_approval" ||
+    value === "scheduled" ||
+    value === "blocked" ||
+    value === "completed" ||
+    value === "cancelled" ||
+    value === "failed"
+  ) {
+    return value;
+  }
+
+  if (value === "done" || value === "success") return "completed";
+  if (value === "error") return "failed";
+  if (value === "needs_approval" || value === "pending_approval") return "awaiting_approval";
+
+  return "unknown";
+}
+
+function shouldPollMission(
+  mission: PierreMissionRecord | null,
+  tasks: PierreTaskRecord[],
+): boolean {
+  const missionStatus = (mission?.status || "").toString().trim().toLowerCase();
+
+  if (missionStatus === "running" || missionStatus === "queued") return true;
+
+  return tasks.some((task) => {
+    const status = normalizeTaskStatus(task.status);
+    return status === "queued" || status === "running" || status === "scheduled";
+  });
+}
+
+export default function usePierreMissionCenter(
+  options?: PierreMissionCenterOptions,
+): UsePierreMissionCenterReturn {
+  const resolvedOptions = { ...DEFAULT_OPTIONS, ...(options ?? {}) };
+
+  const [missions, setMissions] = useState<PierreMissionRecord[]>([]);
+  const [activeMission, setActiveMission] = useState<PierreMissionRecord | null>(null);
+  const [focusedMissionId, setFocusedMissionIdState] = useState<string | null>(
+    resolvedOptions.initialFocusedMissionId,
+  );
+  const [interpretation, setInterpretation] = useState<PierreMissionInterpretation | null>(null);
+  const [tasks, setTasks] = useState<PierreTaskRecord[]>([]);
+  const [logs, setLogs] = useState<PierreTaskLogRecord[]>([]);
+  const [documents, setDocuments] = useState<PierreDocumentRecord[]>([]);
+  const [outboundEmails, setOutboundEmails] = useState<PierreOutboundEmailRecord[]>([]);
+  const [pdfs, setPdfs] = useState<PierrePdfRecord[]>([]);
+  const [directDocuments, setDirectDocuments] = useState<PierreDocumentRecord[]>([]);
+  const [directEmails, setDirectEmails] = useState<PierreOutboundEmailRecord[]>([]);
+  const [directPdfs, setDirectPdfs] = useState<PierrePdfRecord[]>([]);
+
+  const [loading, setLoading] = useState<boolean>(resolvedOptions.autoLoad);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [submittingMission, setSubmittingMission] = useState<boolean>(false);
+  const [runningTask, setRunningTask] = useState<boolean>(false);
+  const [approvingTask, setApprovingTask] = useState<boolean>(false);
+  const [cancellingTask, setCancellingTask] = useState<boolean>(false);
+  const [reschedulingTask, setReschedulingTask] = useState<boolean>(false);
+  const [generatingDirectDocument, setGeneratingDirectDocument] = useState<boolean>(false);
+  const [draftingDirectEmail, setDraftingDirectEmail] = useState<boolean>(false);
+  const [sendingDirectEmail, setSendingDirectEmail] = useState<boolean>(false);
+  const [generatingDirectPdf, setGeneratingDirectPdf] = useState<boolean>(false);
+  const [error, setError] = useState<HookError | null>(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+
+  const isMountedRef = useRef<boolean>(true);
+  const pollingTimerRef = useRef<number | null>(null);
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const applySnapshot = useCallback((snapshot: MissionSnapshot) => {
+    setActiveMission(snapshot.mission);
+    setInterpretation(snapshot.interpretation);
+    setTasks(sortByUpdatedDesc(snapshot.tasks));
+    setLogs(sortByUpdatedDesc(snapshot.logs));
+    setDocuments(sortByUpdatedDesc(snapshot.documents));
+    setOutboundEmails(sortByUpdatedDesc(snapshot.outboundEmails));
+    setPdfs(sortByUpdatedDesc(snapshot.pdfs));
+
+    if (snapshot.mission) {
+      setMissions((prev) => mergeMissionRecord(prev, snapshot.mission));
+    }
+
+    setLastUpdatedAt(nowIso());
+  }, []);
+
+  const setFocusedMissionId = useCallback((missionId: string | null) => {
+    setFocusedMissionIdState(missionId);
+  }, []);
+
+  const setActiveMissionFromRecord = useCallback((mission: PierreMissionRecord | null) => {
+    setActiveMission(mission);
+    setFocusedMissionIdState(mission?.id ?? null);
+
+    if (mission) {
+      setMissions((prev) => mergeMissionRecord(prev, mission));
+    }
+  }, []);
+
+  const refreshMission = useCallback(
+    async (missionId?: string | null): Promise<MissionSnapshot | null> => {
+      const targetMissionId = missionId ?? focusedMissionId ?? activeMission?.id ?? null;
+
+      if (!targetMissionId) return null;
+
+      setRefreshing(true);
+      setError(null);
+
+      try {
+        const data = await requestJson<unknown>(
+          `/api/pierre/use/mission/${encodeURIComponent(targetMissionId)}`,
+          { method: "GET" },
+        );
+
+        const snapshot = extractSnapshot(data);
+        applySnapshot(snapshot);
+
+        if (snapshot.mission?.id && snapshot.mission.id !== focusedMissionId) {
+          setFocusedMissionIdState(snapshot.mission.id);
+        }
+
+        return snapshot;
+      } catch (caught) {
+        const normalized = normalizeError(caught);
+        setError(normalized);
+        throw normalized;
+      } finally {
+        if (isMountedRef.current) {
+          setRefreshing(false);
+          setLoading(false);
+        }
+      }
+    },
+    [activeMission?.id, applySnapshot, focusedMissionId],
+  );
+
+  const refreshAll = useCallback(
+    async (missionId?: string | null): Promise<MissionSnapshot | null> => {
+      return refreshMission(missionId);
+    },
+    [refreshMission],
+  );
+
+  const submitMission = useCallback(
+    async (
+      payload: PierreMissionSubmitPayload,
+    ): Promise<{
+      mission: PierreMissionRecord | null;
+      interpretation: PierreMissionInterpretation | null;
+      tasks: PierreTaskRecord[];
+    }> => {
+      setSubmittingMission(true);
+      setError(null);
+
+      try {
+        const data = await requestJson<unknown>("/api/pierre/use/submit", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+
+        const snapshot = extractSnapshot(data);
+        applySnapshot(snapshot);
+
+        if (snapshot.mission?.id) {
+          setFocusedMissionIdState(snapshot.mission.id);
+        }
+
+        return {
+          mission: snapshot.mission,
+          interpretation: snapshot.interpretation,
+          tasks: snapshot.tasks,
+        };
+      } catch (caught) {
+        const normalized = normalizeError(caught);
+        setError(normalized);
+        throw normalized;
+      } finally {
+        if (isMountedRef.current) {
+          setSubmittingMission(false);
+          setLoading(false);
+        }
+      }
+    },
+    [applySnapshot],
+  );
+
+  const runTask = useCallback(
+    async (payload: PierreTaskActionPayload): Promise<Record<string, unknown> | null> => {
+      setRunningTask(true);
+      setError(null);
+
+      try {
+        const data = await requestJson<Record<string, unknown>>(
+          `/api/pierre/use/task/${encodeURIComponent(payload.taskId)}/run`,
+          {
+            method: "POST",
+            body: JSON.stringify(payload.body ?? {}),
+          },
+        );
+
+        await refreshMission(payload.missionId);
+        return data;
+      } catch (caught) {
+        const normalized = normalizeError(caught);
+        setError(normalized);
+        throw normalized;
+      } finally {
+        if (isMountedRef.current) {
+          setRunningTask(false);
+        }
+      }
+    },
+    [refreshMission],
+  );
+
+  const approveTask = useCallback(
+    async (payload: PierreTaskActionPayload): Promise<Record<string, unknown> | null> => {
+      setApprovingTask(true);
+      setError(null);
+
+      try {
+        const data = await requestJson<Record<string, unknown>>(
+          `/api/pierre/use/task/${encodeURIComponent(payload.taskId)}/approve`,
+          {
+            method: "POST",
+            body: JSON.stringify(payload.body ?? {}),
+          },
+        );
+
+        await refreshMission(payload.missionId);
+        return data;
+      } catch (caught) {
+        const normalized = normalizeError(caught);
+        setError(normalized);
+        throw normalized;
+      } finally {
+        if (isMountedRef.current) {
+          setApprovingTask(false);
+        }
+      }
+    },
+    [refreshMission],
+  );
+
+  const cancelTask = useCallback(
+    async (payload: PierreTaskActionPayload): Promise<Record<string, unknown> | null> => {
+      setCancellingTask(true);
+      setError(null);
+
+      try {
+        const data = await requestJson<Record<string, unknown>>(
+          `/api/pierre/use/task/${encodeURIComponent(payload.taskId)}/cancel`,
+          {
+            method: "POST",
+            body: JSON.stringify(payload.body ?? {}),
+          },
+        );
+
+        await refreshMission(payload.missionId);
+        return data;
+      } catch (caught) {
+        const normalized = normalizeError(caught);
+        setError(normalized);
+        throw normalized;
+      } finally {
+        if (isMountedRef.current) {
+          setCancellingTask(false);
+        }
+      }
+    },
+    [refreshMission],
+  );
+
+  const rescheduleTask = useCallback(
+    async (
+      payload: PierreTaskReschedulePayload,
+    ): Promise<Record<string, unknown> | null> => {
+      setReschedulingTask(true);
+      setError(null);
+
+      try {
+        const data = await requestJson<Record<string, unknown>>(
+          `/api/pierre/use/task/${encodeURIComponent(payload.taskId)}/reschedule`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              scheduledFor: payload.scheduledFor,
+              reason: payload.reason ?? null,
+            }),
+          },
+        );
+
+        await refreshMission(payload.missionId);
+        return data;
+      } catch (caught) {
+        const normalized = normalizeError(caught);
+        setError(normalized);
+        throw normalized;
+      } finally {
+        if (isMountedRef.current) {
+          setReschedulingTask(false);
+        }
+      }
+    },
+    [refreshMission],
+  );
+
+  const generateDirectDocument = useCallback(
+    async (payload: PierreDirectDocumentPayload): Promise<PierreDocumentRecord | null> => {
+      setGeneratingDirectDocument(true);
+      setError(null);
+
+      try {
+        const data = await requestJson<unknown>("/api/pierre/doc/generate", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+
+        const source = isObject(data) ? data : {};
+        const document =
+          normalizeDocument(source.document) ||
+          normalizeDocument(isObject(source.data) ? source.data.document : null) ||
+          normalizeDocument(isObject(source.result) ? source.result.document : null) ||
+          normalizeDocument(data);
+
+        if (document) {
+          setDirectDocuments((prev) => mergeArtifactRecord(prev, document));
+        }
+
+        const targetMissionId = payload.missionId ?? focusedMissionId ?? activeMission?.id ?? null;
+        if (targetMissionId) {
+          await refreshMission(targetMissionId);
+        } else {
+          setLastUpdatedAt(nowIso());
+        }
+
+        return document;
+      } catch (caught) {
+        const normalized = normalizeError(caught);
+        setError(normalized);
+        throw normalized;
+      } finally {
+        if (isMountedRef.current) {
+          setGeneratingDirectDocument(false);
+        }
+      }
+    },
+    [activeMission?.id, focusedMissionId, refreshMission],
+  );
+
+  const draftDirectEmail = useCallback(
+    async (payload: PierreDirectEmailPayload): Promise<PierreOutboundEmailRecord | null> => {
+      setDraftingDirectEmail(true);
+      setError(null);
+
+      try {
+        const data = await requestJson<unknown>("/api/pierre/email/draft", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+
+        const source = isObject(data) ? data : {};
+        const email =
+          normalizeEmail(source.email) ||
+          normalizeEmail(source.draft) ||
+          normalizeEmail(isObject(source.data) ? source.data.email ?? source.data.draft : null) ||
+          normalizeEmail(isObject(source.result) ? source.result.email ?? source.result.draft : null) ||
+          normalizeEmail(data);
+
+        if (email) {
+          setDirectEmails((prev) => mergeArtifactRecord(prev, email));
+        }
+
+        const targetMissionId = payload.missionId ?? focusedMissionId ?? activeMission?.id ?? null;
+        if (targetMissionId) {
+          await refreshMission(targetMissionId);
+        } else {
+          setLastUpdatedAt(nowIso());
+        }
+
+        return email;
+      } catch (caught) {
+        const normalized = normalizeError(caught);
+        setError(normalized);
+        throw normalized;
+      } finally {
+        if (isMountedRef.current) {
+          setDraftingDirectEmail(false);
+        }
+      }
+    },
+    [activeMission?.id, focusedMissionId, refreshMission],
+  );
+
+  const sendDirectEmail = useCallback(
+    async (payload: PierreDirectEmailPayload): Promise<PierreOutboundEmailRecord | null> => {
+      setSendingDirectEmail(true);
+      setError(null);
+
+      try {
+        const data = await requestJson<unknown>("/api/pierre/email/send", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+
+        const source = isObject(data) ? data : {};
+        const email =
+          normalizeEmail(source.email) ||
+          normalizeEmail(source.sent) ||
+          normalizeEmail(isObject(source.data) ? source.data.email ?? source.data.sent : null) ||
+          normalizeEmail(isObject(source.result) ? source.result.email ?? source.result.sent : null) ||
+          normalizeEmail(data);
+
+        if (email) {
+          setDirectEmails((prev) => mergeArtifactRecord(prev, email));
+        }
+
+        const targetMissionId = payload.missionId ?? focusedMissionId ?? activeMission?.id ?? null;
+        if (targetMissionId) {
+          await refreshMission(targetMissionId);
+        } else {
+          setLastUpdatedAt(nowIso());
+        }
+
+        return email;
+      } catch (caught) {
+        const normalized = normalizeError(caught);
+        setError(normalized);
+        throw normalized;
+      } finally {
+        if (isMountedRef.current) {
+          setSendingDirectEmail(false);
+        }
+      }
+    },
+    [activeMission?.id, focusedMissionId, refreshMission],
+  );
+
+  const generateDirectPdf = useCallback(
+    async (payload: PierreDirectPdfPayload): Promise<PierrePdfRecord | null> => {
+      setGeneratingDirectPdf(true);
+      setError(null);
+
+      try {
+        const data = await requestJson<unknown>("/api/pierre/pdf/generate", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+
+        const source = isObject(data) ? data : {};
+        const pdf =
+          normalizePdf(source.pdf) ||
+          normalizePdf(source.file) ||
+          normalizePdf(isObject(source.data) ? source.data.pdf ?? source.data.file : null) ||
+          normalizePdf(isObject(source.result) ? source.result.pdf ?? source.result.file : null) ||
+          normalizePdf(data);
+
+        if (pdf) {
+          setDirectPdfs((prev) => mergeArtifactRecord(prev, pdf));
+        }
+
+        const targetMissionId = payload.missionId ?? focusedMissionId ?? activeMission?.id ?? null;
+        if (targetMissionId) {
+          await refreshMission(targetMissionId);
+        } else {
+          setLastUpdatedAt(nowIso());
+        }
+
+        return pdf;
+      } catch (caught) {
+        const normalized = normalizeError(caught);
+        setError(normalized);
+        throw normalized;
+      } finally {
+        if (isMountedRef.current) {
+          setGeneratingDirectPdf(false);
+        }
+      }
+    },
+    [activeMission?.id, focusedMissionId, refreshMission],
+  );
+
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+
+      if (pollingTimerRef.current !== null) {
+        window.clearInterval(pollingTimerRef.current);
+        pollingTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!resolvedOptions.autoLoad) {
+      setLoading(false);
+      return;
+    }
+
+    const initialMissionId = resolvedOptions.initialFocusedMissionId ?? null;
+    if (!initialMissionId) {
+      setLoading(false);
+      return;
+    }
+
+    void refreshMission(initialMissionId);
+
+    // mount/options only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvedOptions.autoLoad, resolvedOptions.initialFocusedMissionId]);
+
+  useEffect(() => {
+    if (!resolvedOptions.autoPoll) {
+      if (pollingTimerRef.current !== null) {
+        window.clearInterval(pollingTimerRef.current);
+        pollingTimerRef.current = null;
+      }
+      return;
+    }
+
+    const pollNeeded = shouldPollMission(activeMission, tasks);
+
+    if (!pollNeeded) {
+      if (pollingTimerRef.current !== null) {
+        window.clearInterval(pollingTimerRef.current);
+        pollingTimerRef.current = null;
+      }
+      return;
+    }
+
+    if (pollingTimerRef.current !== null) {
+      window.clearInterval(pollingTimerRef.current);
+      pollingTimerRef.current = null;
+    }
+
+    pollingTimerRef.current = window.setInterval(() => {
+      const missionId = focusedMissionId ?? activeMission?.id ?? null;
+      if (!missionId) return;
+
+      void refreshMission(missionId).catch(() => undefined);
+    }, Math.max(2500, resolvedOptions.pollIntervalMs));
+
+    return () => {
+      if (pollingTimerRef.current !== null) {
+        window.clearInterval(pollingTimerRef.current);
+        pollingTimerRef.current = null;
+      }
+    };
+  }, [
+    activeMission,
+    focusedMissionId,
+    refreshMission,
+    resolvedOptions.autoPoll,
+    resolvedOptions.pollIntervalMs,
+    tasks,
+  ]);
+
+  const hasActiveExecution = useMemo(() => {
+    return shouldPollMission(activeMission, tasks);
+  }, [activeMission, tasks]);
+
+  const awaitingApprovalCount = useMemo(() => {
+    return tasks.filter((task) => normalizeTaskStatus(task.status) === "awaiting_approval").length;
+  }, [tasks]);
+
+  const blockedCount = useMemo(() => {
+    return tasks.filter((task) => normalizeTaskStatus(task.status) === "blocked").length;
+  }, [tasks]);
+
+  const completedCount = useMemo(() => {
+    return tasks.filter((task) => normalizeTaskStatus(task.status) === "completed").length;
+  }, [tasks]);
+
+  return {
+    missions,
+    activeMission,
+    focusedMissionId,
+    interpretation,
+    tasks,
+    logs,
+    documents,
+    outboundEmails,
+    pdfs,
+    directDocuments,
+    directEmails,
+    directPdfs,
+    loading,
+    refreshing,
+    submittingMission,
+    runningTask,
+    approvingTask,
+    cancellingTask,
+    reschedulingTask,
+    generatingDirectDocument,
+    draftingDirectEmail,
+    sendingDirectEmail,
+    generatingDirectPdf,
+    error,
+    lastUpdatedAt,
+    setFocusedMissionId,
+    clearError,
+    setActiveMissionFromRecord,
+    submitMission,
+    refreshMission,
+    refreshAll,
+    runTask,
+    approveTask,
+    cancelTask,
+    rescheduleTask,
+    generateDirectDocument,
+    draftDirectEmail,
+    sendDirectEmail,
+    generateDirectPdf,
+    hasActiveExecution,
+    awaitingApprovalCount,
+    blockedCount,
+    completedCount,
+  };
+}
+
+===== FILE: src/lib/.eslintrc.json =====
+
+{
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off"
+  }
+}
+
+
+===== FILE: src/lib/agent-catalog.ts =====
+
+export type AgentSpec = {
+  slug: string;
+  name: string;
+  role: string;
+  forWho: string[];
+  does: string[];
+  doesNot: string[];
+  examples: string[];
+  pricingNote?: string;
+};
+
+export const AGENTS: AgentSpec[] = [
+  {
+    slug: "pierre",
+    name: "Pierre",
+    role: "Clone RH autonome â€” rÃ©daction, structuration & exÃ©cution RH (CloneOS)",
+    forWho: [
+      "Dirigeants de PME",
+      "Responsables RH",
+      "Office managers",
+      "Fondateurs sans RH dÃ©diÃ©",
+      "Managers qui recrutent",
+    ],
+    does: [
+      "RÃ©dige et standardise des documents RH prÃªts Ã  envoyer (mails, courriers, notes, process)",
+      "Offres dâ€™emploi complÃ¨tes (fiche + annonce prÃªte Ã  publier)",
+      "Fiches de poste (missions, compÃ©tences, niveau, contexte, conditions)",
+      "Mails candidats types (refus, convocation, relance, confirmation, onboarding) avec un ton adaptÃ©",
+      "Scripts dâ€™entretien + grilles simples + critÃ¨res de dÃ©cision",
+      "Comptes rendus dâ€™entretien (notes brutes â†’ rÃ©sumÃ© structurÃ© exploitable)",
+      "Plans dâ€™onboarding 1 Ã  3 mois (30/60/90 jours) + documents internes",
+      "Peut fonctionner en mode autonome : prÃ©pare le livrable complet sans aller-retours inutiles",
+      "Compatible CloneOS : peut Ãªtre dÃ©clenchÃ© automatiquement via le Router par des rÃ¨gles/Ã©vÃ©nements ou par un autre clone",
+      "Optionnel : peut exÃ©cuter des actions selon configuration (ex: envoyer un mail / gÃ©nÃ©rer un document / sâ€™intÃ©grer Ã  un flux)",
+      "Optionnel : adresse email au nom de lâ€™entreprise via DNS (ex: pierre@monentreprise.com) selon setup",
+      "Optionnel : liaison support/SAV selon le setup (ex: rÃ©ponses et traitement mail) ",
+    ],
+    doesNot: [
+      "Analyse/scoring de CV (rÃ©servÃ© Ã  Clara)",
+      "Conseil juridique formel",
+      "Promesses contractuelles inventÃ©es",
+      "Deviner des informations absentes (il demande ce qui manque)",
+    ],
+    examples: [
+      "RÃ©dige une annonce de Responsable Marketing (PME SaaS B2B, hybride, CDI).",
+      "Ã‰cris un mail de refus poli en gardant le candidat en shortlist.",
+      "Structure un compte rendu dâ€™entretien Ã  partir de notes brutes.",
+      "CrÃ©e une fiche de poste complÃ¨te + grille dâ€™entretien pour un profil Sales B2B.",
+      "Ã‰cris un mail de convocation entretien + les crÃ©neaux proposÃ©s + les piÃ¨ces Ã  prÃ©parer.",
+    ],
+    pricingNote: "Tarif dÃ©fini sur la page de paiement CloneStore.",
+  },
+
+  {
+    slug: "clara",
+    name: "Clara",
+    role: "Clone recruteuse IA autonome â€” analyse & scoring candidats (CloneOS)",
+    forWho: ["PME", "RH", "Fondateurs sans RH dÃ©diÃ©", "Managers recruteurs"],
+    does: [
+      "Analyse de CV (extraction des infos utiles + synthÃ¨se)",
+      "Scoring des profils selon tes critÃ¨res (must-have / nice-to-have / senioritÃ©)",
+      "Shortlists claires avec raisons (pourquoi oui / pourquoi non)",
+      "Comparaison de candidats et justification structurÃ©e",
+      "Aide Ã  prÃ©parer les entretiens (questions ciblÃ©es selon poste + CV)",
+      "Peut fonctionner en mode autonome : tri, scoring et shortlist sans micro-management",
+      "Compatible CloneOS : peut collaborer avec Pierre via le Router (ex: shortlist â†’ Pierre prÃ©pare les mails et docs RH)",
+      "Optionnel : intÃ©grations RH selon configuration (ATS / outils RH) â€” si activÃ© dans ton setup",
+      "Optionnel : adresse email au nom de lâ€™entreprise via DNS selon setup",
+    ],
+    doesNot: [
+      "RÃ©daction de documents RH complets (câ€™est Pierre)",
+      "Promesses juridiques",
+      "Deviner des infos absentes dans les CV",
+      "Remplacer un entretien humain (elle prÃ©pare la dÃ©cision, elle ne la â€œsubitâ€ pas)",
+    ],
+    examples: [
+      "Score ces 30 CV pour un poste de Sales B2B (critÃ¨res: closing, prospection, CRM, 2+ ans).",
+      "Fais une shortlist des 5 meilleurs profils et explique pourquoi.",
+      "Compare ces 3 candidats et recommande le meilleur profil selon le poste.",
+      "GÃ©nÃ¨re 10 questions dâ€™entretien pertinentes Ã  partir du CV et de lâ€™offre.",
+    ],
+    pricingNote: "En construction",
+  },
+
+  {
+    slug: "alex",
+    name: "Alex",
+    role: "Clone Ops / organisation (CloneOS) â€” bientÃ´t",
+    forWho: ["PME", "Ops", "Managers"],
+    does: ["Contenu en cours de finalisation."],
+    doesNot: ["Contenu en cours de finalisation."],
+    examples: ["Contenu en cours de finalisation."],
+    pricingNote: "En construction",
+  },
+
+  {
+    slug: "emma",
+    name: "Emma",
+    role: "Clone Support & mails (CloneOS) â€” bientÃ´t",
+    forWho: ["PME", "Support", "Service client", "SAV"],
+    does: ["Contenu en cours de finalisation."],
+    doesNot: ["Contenu en cours de finalisation."],
+    examples: ["Contenu en cours de finalisation."],
+    pricingNote: "En construction",
+  },
+
+  {
+    slug: "noah",
+    name: "Noah",
+    role: "Clone Assistant direction (CloneOS) â€” bientÃ´t",
+    forWho: ["Dirigeants", "PME", "Assistants", "Managers"],
+    does: ["Contenu en cours de finalisation."],
+    doesNot: ["Contenu en cours de finalisation."],
+    examples: ["Contenu en cours de finalisation."],
+    pricingNote: "En construction",
+  },
+];
+
+
+===== FILE: src/lib/assistant/knowledge.ts =====
+
+export type AssistantAccountContext = {
+  isAuthenticated: boolean;
+  hasPierreAccess: boolean;
+  onboardingCompleted: boolean;
+  companyName: string;
+  contactFirstName: string;
+  contactJobTitle: string;
+  usualTone: string;
+  preferredLanguage: string;
+  senderMode: string;
+  senderStatus: string;
+  domainStatus: string;
+  senderEmailRequested: string;
+  senderEmailEffective: string;
+  replyToEmail: string;
+};
+
+export type AssistantIntent =
+  | "clone_choice"
+  | "post_payment"
+  | "onboarding"
+  | "use_page"
+  | "email_identity"
+  | "email_pdf_action"
+  | "limits"
+  | "status_other_agents"
+  | "pricing"
+  | "general";
+
+export type AssistantStatusCard = {
+  label: string;
+  value: string;
+  tone?: "default" | "success" | "warn" | "violet";
+};
+
+export type AssistantLinkCard = {
+  label: string;
+  href: string;
+  description: string;
+};
+
+type KnowledgeArticle = {
+  id: string;
+  title: string;
+  tags: string[];
+  body: string;
+};
+
+export const DEFAULT_ASSISTANT_CONTEXT: AssistantAccountContext = {
+  isAuthenticated: false,
+  hasPierreAccess: false,
+  onboardingCompleted: false,
+  companyName: "",
+  contactFirstName: "",
+  contactJobTitle: "",
+  usualTone: "",
+  preferredLanguage: "fr",
+  senderMode: "",
+  senderStatus: "",
+  domainStatus: "",
+  senderEmailRequested: "",
+  senderEmailEffective: "",
+  replyToEmail: "",
+};
+
+const KNOWLEDGE_ARTICLES: KnowledgeArticle[] = [
+  {
+    id: "positioning-now",
+    title: "Positionnement rÃ©el aujourd'hui",
+    tags: ["positionnement", "clone", "choix", "pierre", "clara"],
+    body: [
+      "Aujourd'hui, si un utilisateur veut un clone utile tout de suite, la recommandation la plus honnÃªte est Pierre.",
+      "Pierre est le clone le plus concret pour produire de la valeur immÃ©diatement : rÃ©daction RH, structuration, transformation du contenu en action, logique email et PDF, historique, et onboarding dÃ©jÃ  prÃ©sent.",
+      "Clara, Alex, Emma et Noah ne doivent pas Ãªtre prÃ©sentÃ©s comme pleinement prÃªts tant que leur niveau de finition n'est pas rÃ©ellement confirmÃ©.",
+      "Quand l'utilisateur demande lequel choisir, il faut trancher. Si le besoin est immÃ©diat et concret, on recommande Pierre sans tourner autour du pot.",
+    ].join("\n"),
+  },
+  {
+    id: "post-payment-flow",
+    title: "Parcours aprÃ¨s paiement",
+    tags: ["paiement", "acces", "apres paiement", "activation"],
+    body: [
+      "AprÃ¨s paiement, le parcours simple est : accÃ¨s Pierre actif, puis formulaire 1, puis page Pierre Use.",
+      "Si Pierre est actif mais que l'onboarding n'est pas terminÃ©, le bon prochain pas est le formulaire 1.",
+      "Si Pierre est actif et que l'onboarding est terminÃ©, le bon prochain pas est la page Pierre Use.",
+      "L'assistant doit rÃ©pondre avec le meilleur prochain pas, pas avec une explication floue.",
+    ].join("\n"),
+  },
+  {
+    id: "onboarding-role",
+    title: "RÃ´le du formulaire 1",
+    tags: ["onboarding", "formulaire 1", "setup", "memoire"],
+    body: [
+      "Le formulaire 1 est la mÃ©moire de base de Pierre pour une entreprise donnÃ©e.",
+      "Il contient l'identitÃ© de l'entreprise, le contact principal, le contexte RH, le ton habituel, la signature, le pied de mail, la logique email et les rÃ¨gles internes.",
+      "Plus il est bien rempli, plus Pierre Ã©crit juste dÃ¨s le dÃ©part. Il ne s'agit pas d'un formulaire dÃ©coratif mais d'un vrai socle de production.",
+      "Le formulaire 1 peut Ãªtre enregistrÃ© en brouillon puis validÃ© plus tard.",
+      "Une fois rempli, il peut Ãªtre modifiÃ© Ã  tout moment depuis le compte client.",
+    ].join("\n"),
+  },
+  {
+    id: "onboarding-priority-fields",
+    title: "Blocs les plus importants du formulaire 1",
+    tags: ["onboarding", "important", "remplir", "priorite"],
+    body: [
+      "Les sections les plus importantes Ã  remplir proprement sont : identitÃ© de l'entreprise, contact principal, contexte RH, signature et rÃ¨gles internes.",
+      "Le bloc configuration email devient particuliÃ¨rement important si l'entreprise veut une identitÃ© d'envoi premium au nom de son domaine.",
+      "Si l'utilisateur veut aller vite, il faut lui recommander de commencer par les champs qui influencent directement la qualitÃ© des textes : entreprise, ton, signature, besoins RH, types de documents et contraintes internes.",
+    ].join("\n"),
+  },
+  {
+    id: "use-page-role",
+    title: "RÃ´le de la page Pierre Use",
+    tags: ["use page", "page use", "utiliser pierre", "quotidien"],
+    body: [
+      "La page Pierre Use sert Ã  produire des contenus RH Ã  partir d'un brief et Ã  les transformer en action.",
+      "L'utilisateur peut choisir une langue, un ton, un preset, complÃ©ter des options pro, gÃ©nÃ©rer le contenu, puis le retoucher Ã  la main si nÃ©cessaire.",
+      "Une bonne rÃ©ponse doit expliquer cette logique trÃ¨s simplement : brief, gÃ©nÃ©ration, retouche Ã©ventuelle, action finale.",
+    ].join("\n"),
+  },
+  {
+    id: "editable-result",
+    title: "RÃ©sultat modifiable",
+    tags: ["modifier", "editer", "contenu", "resultat"],
+    body: [
+      "Le rÃ©sultat dans Pierre Use peut Ãªtre modifiÃ© manuellement via un mode Modifier / Enregistrer / Annuler.",
+      "Une fois la version modifiÃ©e enregistrÃ©e, elle devient la version active pour les actions suivantes.",
+      "Cela veut dire que Copier, Envoyer email, Exporter PDF, Voir PDF, TÃ©lÃ©charger PDF et Envoyer PDF en piÃ¨ce jointe doivent repartir de la version modifiÃ©e si elle a Ã©tÃ© sauvegardÃ©e.",
+    ].join("\n"),
+  },
+  {
+    id: "history-role",
+    title: "Historique Pierre",
+    tags: ["historique", "memoire", "versions"],
+    body: [
+      "L'historique sert Ã  retrouver, rÃ©utiliser et organiser les gÃ©nÃ©rations prÃ©cÃ©dentes.",
+      "L'utilisateur peut y restaurer un contenu, le relancer, le renommer, le taguer, le pinner ou le supprimer.",
+      "Les versions modifiÃ©es peuvent aussi Ãªtre sauvegardÃ©es dans l'historique.",
+      "Une bonne rÃ©ponse sur l'historique doit montrer qu'il s'agit d'un outil de production, pas d'un simple log passif.",
+    ].join("\n"),
+  },
+  {
+    id: "email-logic",
+    title: "Logique email dans Pierre",
+    tags: ["email", "envoyer", "destinataire", "objet"],
+    body: [
+      "L'email part du contenu actuellement affichÃ© dans Pierre Use.",
+      "Si l'utilisateur a modifiÃ© le contenu et l'a enregistrÃ©, c'est cette version qui est envoyÃ©e.",
+      "L'objet peut Ãªtre automatique ou surchargÃ© via les options pro.",
+      "L'utilisateur renseigne le destinataire et Pierre s'occupe de l'envoi via la route d'action prÃ©vue pour cela.",
+    ].join("\n"),
+  },
+  {
+    id: "pdf-logic",
+    title: "Logique PDF dans Pierre",
+    tags: ["pdf", "export", "telecharger", "voir"],
+    body: [
+      "Le PDF part du contenu actuellement affichÃ© dans Pierre Use.",
+      "Si le contenu a changÃ© aprÃ¨s une premiÃ¨re gÃ©nÃ©ration de PDF, l'ancien PDF n'est plus la bonne version et il faut le rÃ©gÃ©nÃ©rer.",
+      "Voir PDF, TÃ©lÃ©charger PDF et Envoyer PDF en piÃ¨ce jointe doivent idÃ©alement utiliser un PDF frais, alignÃ© avec le contenu actif.",
+      "Une bonne rÃ©ponse doit l'expliquer simplement, sans jargon technique.",
+    ].join("\n"),
+  },
+  {
+    id: "pdf-email-joint-logic",
+    title: "Email avec PDF en piÃ¨ce jointe",
+    tags: ["piece jointe", "email pdf", "pj"],
+    body: [
+      "Envoyer un PDF en piÃ¨ce jointe signifie : partir du contenu affichÃ©, s'assurer que le PDF correspond bien Ã  cette version, puis envoyer l'email avec ce PDF attachÃ©.",
+      "Si le contenu a Ã©tÃ© modifiÃ©, il faut considÃ©rer l'ancien PDF comme obsolÃ¨te et rÃ©gÃ©nÃ©rer avant envoi.",
+    ].join("\n"),
+  },
+  {
+    id: "sender-identity",
+    title: "IdentitÃ© d'envoi et fallback CloneStore",
+    tags: ["dns", "fallback", "identite", "sender", "reply-to"],
+    body: [
+      "Par dÃ©faut, l'envoi peut utiliser une identitÃ© de fallback CloneStore, souvent clonestore@clonestore.pro.",
+      "L'entreprise peut demander une identitÃ© cible de type pierre@entreprise.com.",
+      "Tant que le domaine de l'entreprise n'est pas vÃ©rifiÃ©, le systÃ¨me peut rester en fallback CloneStore, avec Ã©ventuellement un reply-to vers l'entreprise si configurÃ©.",
+      "Quand le domaine est vÃ©rifiÃ© et que l'identitÃ© demandÃ©e est bien configurÃ©e, on peut basculer vers l'identitÃ© client.",
+      "Il faut expliquer cela simplement : adresse voulue, vÃ©rification du domaine, puis bascule. Pas besoin de noyer l'utilisateur dans la technique DNS.",
+    ].join("\n"),
+  },
+  {
+    id: "sender-statuses",
+    title: "Statuts d'envoi et de domaine",
+    tags: ["sender status", "domain status", "verified", "pending"],
+    body: [
+      "sender_status dÃ©crit l'Ã©tat de prÃ©paration de l'identitÃ© d'envoi.",
+      "domain_status dÃ©crit l'Ã©tat du domaine de l'entreprise : not_started, pending, verified, failed par exemple.",
+      "Si domain_status n'est pas verified, il faut Ã©viter de faire croire que l'envoi au nom du client est dÃ©jÃ  pleinement opÃ©rationnel.",
+    ].join("\n"),
+  },
+  {
+    id: "pierre-capabilities",
+    title: "Ce que Pierre fait bien",
+    tags: ["capacites", "ce que fait pierre", "rÃ©daction"],
+    body: [
+      "Pierre est surtout fort sur la rÃ©daction RH et la structuration de documents : emails candidats, offres d'emploi, fiches de poste, comptes rendus, procÃ©dures, onboarding, scripts et contenus RH exploitables.",
+      "Pierre peut aussi transformer ce contenu en action via email et PDF, selon le setup disponible.",
+      "Il faut parler de Pierre comme d'un clone RH rÃ©dacteur concret, pas comme d'une IA vague qui fait tout et n'importe quoi.",
+    ].join("\n"),
+  },
+  {
+    id: "pierre-limits",
+    title: "Limites rÃ©elles de Pierre",
+    tags: ["limites", "ne fait pas", "ce que pierre ne fait pas"],
+    body: [
+      "Pierre ne doit pas Ãªtre prÃ©sentÃ© comme un outil d'analyse massive et de scoring CV : ce terrain relÃ¨ve plutÃ´t de Clara, quand Clara sera rÃ©ellement prÃªte.",
+      "Pierre ne doit pas Ãªtre prÃ©sentÃ© comme un conseiller juridique formel.",
+      "Pierre ne doit pas inventer des informations absentes. S'il manque des informations importantes, il doit demander ou signaler qu'il faut prÃ©ciser.",
+    ].join("\n"),
+  },
+  {
+    id: "other-agents-status",
+    title: "Statut des autres agents",
+    tags: ["clara", "alex", "emma", "noah", "statut"],
+    body: [
+      "Clara ne doit pas Ãªtre vendue comme pleinement finalisÃ©e si ce n'est pas rÃ©ellement confirmÃ© dans le produit.",
+      "Alex, Emma et Noah doivent aussi rester dans un statut honnÃªte : en construction tant qu'ils ne sont pas rÃ©ellement prÃªts.",
+      "Quand l'utilisateur demande lequel choisir aujourd'hui, il faut lui Ã©viter de perdre du temps. Si l'objectif est d'avoir quelque chose d'utilisable maintenant, Pierre reste la rÃ©ponse honnÃªte.",
+    ].join("\n"),
+  },
+  {
+    id: "tone-style",
+    title: "Style de rÃ©ponse attendu",
+    tags: ["style", "ton", "reponse"],
+    body: [
+      "RÃ©ponses en franÃ§ais, naturelles, premium, crÃ©dibles et directes.",
+      "Ã‰viter les rÃ©ponses scolaires en 5 parties.",
+      "PrÃ©fÃ©rer des blocs courts, comprÃ©hensibles tout de suite.",
+      "Quand il faut choisir, choisir franchement.",
+      "Quand il faut prÃ©venir d'une limite, le faire franchement aussi.",
+    ].join("\n"),
+  },
+  {
+    id: "practical-next-step",
+    title: "Meilleur prochain pas",
+    tags: ["prochain pas", "quoi faire", "next step"],
+    body: [
+      "Quand l'utilisateur demande quoi faire maintenant, la rÃ©ponse doit se terminer par un prochain pas concret et logique selon son Ã©tat rÃ©el.",
+      "Si Pierre est actif mais l'onboarding non terminÃ© : prochain pas = formulaire 1.",
+      "Si Pierre est actif et l'onboarding terminÃ© : prochain pas = page Pierre Use.",
+      "Si Pierre n'est pas encore actif : prochain pas = activation / paiement, ou comprendre Pierre si l'utilisateur est encore au stade de dÃ©cision.",
+    ].join("\n"),
+  },
+];
+
+function clean(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function includesOne(text: string, terms: string[]) {
+  return terms.some((term) => text.includes(term));
+}
+
+function scoreArticle(query: string, intent: AssistantIntent, article: KnowledgeArticle) {
+  const q = clean(query);
+  let score = 0;
+
+  for (const tag of article.tags) {
+    if (q.includes(clean(tag))) score += 3;
+  }
+
+  const titleWords = clean(article.title).split(/\s+/).filter(Boolean);
+  for (const word of titleWords) {
+    if (q.includes(word)) score += 2;
+  }
+
+  if (intent === "onboarding" && article.tags.includes("onboarding")) score += 6;
+  if (intent === "use_page" && article.tags.includes("use page")) score += 6;
+  if (intent === "email_identity" && article.tags.includes("dns")) score += 6;
+  if (intent === "email_pdf_action" && (article.tags.includes("pdf") || article.tags.includes("email"))) score += 5;
+  if (intent === "clone_choice" && article.tags.includes("clone")) score += 5;
+  if (intent === "limits" && article.tags.includes("limites")) score += 5;
+  if (intent === "status_other_agents" && article.tags.includes("statut")) score += 5;
+  if (intent === "post_payment" && article.tags.includes("paiement")) score += 6;
+
+  return score;
+}
+
+export function buildKnowledgeContext() {
+  return KNOWLEDGE_ARTICLES.map((article) => `## ${article.title}\n${article.body}`).join("\n\n");
+}
+
+export function buildKnowledgeDigest(query: string) {
+  const top = [...KNOWLEDGE_ARTICLES]
+    .map((article) => ({ article, score: scoreArticle(query, "general", article) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4)
+    .map(({ article }) => `## ${article.title}\n${article.body}`)
+    .join("\n\n");
+
+  return top || buildKnowledgeContext();
+}
+
+export function buildRelevantKnowledge(
+  query: string,
+  intent: AssistantIntent,
+  context: AssistantAccountContext
+) {
+  const top = [...KNOWLEDGE_ARTICLES]
+    .map((article) => ({ article, score: scoreArticle(query, intent, article) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5)
+    .map(({ article }) => `## ${article.title}\n${article.body}`)
+    .join("\n\n");
+
+  const snapshot = buildAccountSnapshot(context);
+
+  return [
+    "## Snapshot compte",
+    snapshot,
+    top || buildKnowledgeContext(),
+  ].join("\n\n");
+}
+
+export function buildAccountSnapshot(context: AssistantAccountContext) {
+  return [
+    `isAuthenticated: ${context.isAuthenticated ? "yes" : "no"}`,
+    `hasPierreAccess: ${context.hasPierreAccess ? "yes" : "no"}`,
+    `onboardingCompleted: ${context.onboardingCompleted ? "yes" : "no"}`,
+    `companyName: ${context.companyName || "non renseigne"}`,
+    `contactFirstName: ${context.contactFirstName || "non renseigne"}`,
+    `contactJobTitle: ${context.contactJobTitle || "non renseigne"}`,
+    `usualTone: ${context.usualTone || "non renseigne"}`,
+    `preferredLanguage: ${context.preferredLanguage || "fr"}`,
+    `senderMode: ${context.senderMode || "non renseigne"}`,
+    `senderStatus: ${context.senderStatus || "non renseigne"}`,
+    `domainStatus: ${context.domainStatus || "non renseigne"}`,
+    `senderEmailRequested: ${context.senderEmailRequested || "non renseigne"}`,
+    `senderEmailEffective: ${context.senderEmailEffective || "non renseigne"}`,
+    `replyToEmail: ${context.replyToEmail || "non renseigne"}`,
+  ].join("\n");
+}
+
+export function buildSuggestedStatusCards(
+  context: AssistantAccountContext
+): AssistantStatusCard[] {
+  return [
+    {
+      label: "Compte",
+      value: context.isAuthenticated ? "ConnectÃ©" : "Visiteur",
+      tone: context.isAuthenticated ? "success" : "default",
+    },
+    {
+      label: "Pierre",
+      value: context.hasPierreAccess ? "Actif" : "Non actif",
+      tone: context.hasPierreAccess ? "success" : "warn",
+    },
+    {
+      label: "Formulaire 1",
+      value: context.onboardingCompleted ? "TerminÃ©" : context.hasPierreAccess ? "Ã€ faire" : "â€”",
+      tone: context.onboardingCompleted ? "success" : context.hasPierreAccess ? "warn" : "default",
+    },
+    {
+      label: "IdentitÃ© d'envoi",
+      value: context.senderEmailRequested || context.senderEmailEffective || "Non configurÃ©e",
+      tone: context.senderEmailRequested ? "violet" : "default",
+    },
+    {
+      label: "Domaine",
+      value: context.domainStatus || "Non commencÃ©",
+      tone: context.domainStatus === "verified" ? "success" : context.domainStatus ? "warn" : "default",
+    },
+    {
+      label: "Ton habituel",
+      value: context.usualTone || "Non renseignÃ©",
+      tone: context.usualTone ? "violet" : "default",
+    },
+  ];
+}
+
+export function buildSuggestedLinks(context: AssistantAccountContext): AssistantLinkCard[] {
+  const links: AssistantLinkCard[] = [];
+
+  if (!context.hasPierreAccess) {
+    links.push({
+      label: "Activer Pierre",
+      href: "/paiement?agent=pierre",
+      description: "Si tu veux un clone utile aujourd'hui, c'est le meilleur point de dÃ©part.",
+    });
+  }
+
+  if (context.hasPierreAccess && !context.onboardingCompleted) {
+    links.push({
+      label: "Ouvrir le formulaire 1",
+      href: "/agents/pierre/setup",
+      description: "Le vrai prochain pas pour rendre Pierre cohÃ©rent et utile.",
+    });
+  }
+
+  if (context.hasPierreAccess) {
+    links.push({
+      label: "Ouvrir Pierre Use",
+      href: "/agents/pierre/use",
+      description: "GÃ©nÃ©rer, modifier, envoyer et exporter les contenus RH.",
+    });
+  }
+
+  links.push({
+    label: "Voir la fiche Pierre",
+    href: "/agents/pierre",
+    description: "Pour revoir son positionnement, ses usages et ses limites rÃ©elles.",
+  });
+
+  links.push({
+    label: "Retour boutique",
+    href: "/agents",
+    description: "Pour comparer proprement les clones sans perdre de temps.",
+  });
+
+  return links.slice(0, 4);
+}
+
+export function getAssistantWelcome(context: AssistantAccountContext) {
+  if (!context.isAuthenticated) {
+    return "Je peux t'aider Ã  comprendre CloneStore, choisir le bon clone, et surtout t'expliquer comment fonctionne Pierre concrÃ¨tement. Si ton objectif est d'avoir quelque chose d'utile maintenant, je te le dis d'avance : Pierre est le meilleur choix aujourd'hui.";
+  }
+
+  if (context.hasPierreAccess && !context.onboardingCompleted) {
+    return `Tu as dÃ©jÃ  accÃ¨s Ã  Pierre${context.companyName ? ` pour ${context.companyName}` : ""}. Le vrai bon prochain pas, c'est de terminer le formulaire 1. AprÃ¨s Ã§a, Pierre devient beaucoup plus cohÃ©rent dans ses textes et ses actions.`;
+  }
+
+  if (context.hasPierreAccess && context.onboardingCompleted) {
+    return `Tu as dÃ©jÃ  Pierre actif${context.companyName ? ` pour ${context.companyName}` : ""}. Maintenant, je peux surtout t'aider Ã  t'en servir comme il faut : page use, modifications, email, PDF, historique et identitÃ© d'envoi.`;
+  }
+
+  return "Tu es connectÃ©, mais Pierre n'est pas encore actif sur ce compte. Si tu veux un clone utile maintenant, Pierre reste le choix le plus concret. Et si tu veux juste comprendre comment il marche avant de dÃ©cider, je peux te le poser clairement.";
+}
+
+export function getAssistantQuickAsks(context: AssistantAccountContext) {
+  if (!context.isAuthenticated) {
+    return [
+      "Je veux le clone le plus utile aujourd'hui. Tu me conseilles lequel ?",
+      "Comment fonctionne Pierre concrÃ¨tement ?",
+      "Ã€ quoi sert le formulaire 1 ?",
+      "Comment se passe l'accÃ¨s aprÃ¨s paiement ?",
+      "Clara est-elle vraiment prÃªte ?",
+      "Pierre peut faire quoi exactement ?",
+    ];
+  }
+
+  if (context.hasPierreAccess && !context.onboardingCompleted) {
+    return [
+      "Je viens d'activer Pierre. Qu'est-ce que je fais maintenant ?",
+      "Explique-moi le formulaire 1 simplement.",
+      "Quelles parties du formulaire 1 sont les plus importantes ?",
+      "Comment remplir le bloc email sans me tromper ?",
+      "Une fois le formulaire 1 fini, je vais oÃ¹ ?",
+      "Le fallback CloneStore, Ã§a veut dire quoi pour moi ?",
+    ];
+  }
+
+  if (context.hasPierreAccess && context.onboardingCompleted) {
+    return [
+      "Comment utiliser Pierre au quotidien ?",
+      "Comment modifier puis envoyer un email depuis Pierre ?",
+      "Comment fonctionne le PDF si j'ai modifiÃ© le contenu ?",
+      "Explique-moi le fallback CloneStore et le domaine vÃ©rifiÃ©.",
+      "Ã€ quoi sert l'historique dans Pierre ?",
+      "Pierre peut faire quoi exactement, et ne pas faire quoi ?",
+    ];
+  }
+
+  return [
+    "Je veux le clone le plus utile aujourd'hui. Tu me conseilles lequel ?",
+    "Comment marche Pierre au quotidien ?",
+    "Ã€ quoi sert le formulaire 1 ?",
+    "Comment se passe l'accÃ¨s aprÃ¨s paiement ?",
+    "Clara est-elle prÃªte ou pas ?",
+    "Pourquoi tu recommandes Pierre aujourd'hui ?",
+  ];
+}
+
+export function classifyIntent(question: string): AssistantIntent {
+  const q = clean(question);
+
+  if (
+    includesOne(q, [
+      "quel clone",
+      "lequel prendre",
+      "lequel tu me conseilles",
+      "tu me conseilles quoi",
+      "quel agent",
+      "entre pierre et clara",
+      "entre clara et pierre",
+      "quel assistant",
+    ])
+  ) {
+    return "clone_choice";
+  }
+
+  if (
+    includesOne(q, [
+      "apres paiement",
+      "apres avoir paye",
+      "apres avoir payÃ©",
+      "je viens de payer",
+      "j'ai paye",
+      "jai paye",
+      "paiement",
+      "activation",
+      "acces",
+    ])
+  ) {
+    return "post_payment";
+  }
+
+  if (
+    includesOne(q, [
+      "formulaire 1",
+      "onboarding",
+      "setup",
+      "remplir",
+      "memoire de base",
+      "mÃ©moire de base",
+    ])
+  ) {
+    return "onboarding";
+  }
+
+  if (
+    includesOne(q, [
+      "page use",
+      "utiliser pierre",
+      "au quotidien",
+      "brief",
+      "historique",
+      "modifier le contenu",
+      "editer le contenu",
+      "Ã©diter le contenu",
+    ])
+  ) {
+    return "use_page";
+  }
+
+  if (
+    includesOne(q, [
+      "dns",
+      "fallback",
+      "sender",
+      "reply-to",
+      "reply to",
+      "domaine verifie",
+      "domaine vÃ©rifiÃ©",
+      "identite d'envoi",
+      "identitÃ© d'envoi",
+      "expediteur",
+      "expÃ©diteur",
+    ])
+  ) {
+    return "email_identity";
+  }
+
+  if (
+    includesOne(q, [
+      "pdf",
+      "piece jointe",
+      "piÃ¨ce jointe",
+      "envoyer un mail",
+      "envoyer email",
+      "email",
+      "telecharger",
+      "tÃ©lÃ©charger",
+      "voir pdf",
+    ])
+  ) {
+    return "email_pdf_action";
+  }
+
+  if (includesOne(q, ["limites", "ne fait pas", "ce qu'il ne fait pas", "ce que pierre ne fait pas"])) {
+    return "limits";
+  }
+
+  if (includesOne(q, ["clara", "alex", "emma", "noah"])) {
+    return "status_other_agents";
+  }
+
+  if (includesOne(q, ["prix", "tarif", "299", "combien", "mois"])) {
+    return "pricing";
+  }
+
+  return "general";
+}
+
+export function buildDeterministicAnswer(
+  question: string,
+  context: AssistantAccountContext,
+  intent: AssistantIntent
+): string | null {
+  const q = clean(question);
+
+  if (intent === "clone_choice") {
+    return "Aujourd'hui, je te conseille Pierre. C'est le clone le plus concret et le plus exploitable maintenant. Tu peux dÃ©jÃ  le configurer, l'utiliser sur la page use, modifier le contenu, envoyer des emails, gÃ©nÃ©rer des PDF et travailler proprement avec l'historique. Clara et les autres ne sont pas Ã  ce niveau de maturitÃ© produit aujourd'hui, donc je ne vais pas te vendre du flou : si tu veux quelque chose d'utile maintenant, prends Pierre.";
+  }
+
+  if (intent === "status_other_agents") {
+    if (includesOne(q, ["pret", "prete", "prÃªte", "fini", "finalise", "finalisÃ©", "disponible"])) {
+      return "Non, je ne te les prÃ©senterais pas comme prÃªts aujourd'hui. La rÃ©ponse honnÃªte, c'est que Pierre est le clone le plus concret maintenant. Pour Clara, Alex, Emma et Noah, il faut rester propre : tant qu'ils ne sont pas rÃ©ellement finalisÃ©s dans le produit, je les considÃ¨re en construction.";
+    }
+
+    return "Je prÃ©fÃ¨re Ãªtre propre lÃ -dessus : Pierre est le clone le plus concret aujourd'hui. Pour Clara, Alex, Emma et Noah, il faut garder un statut honnÃªte et ne pas les vendre comme finalisÃ©s tant que ce n'est pas rÃ©ellement le cas.";
+  }
+
+  if (intent === "post_payment") {
+    if (context.hasPierreAccess && !context.onboardingCompleted) {
+      return "Tu as dÃ©jÃ  Pierre actif. Le meilleur prochain pas, c'est d'ouvrir le formulaire 1 sur /agents/pierre/setup et de le remplir proprement. C'est ce qui donne Ã  Pierre sa mÃ©moire de base, son ton, sa signature et ses rÃ¨gles. Une fois Ã§a fait, tu pourras passer sur /agents/pierre/use pour produire des contenus propres sans bricolage.";
+    }
+
+    if (context.hasPierreAccess && context.onboardingCompleted) {
+      return "Ton accÃ¨s Pierre est dÃ©jÃ  prÃªt. Le meilleur prochain pas, c'est d'aller sur /agents/pierre/use. C'est lÃ  que tu rÃ©diges, modifies, copies, envoies et exportes tes contenus. Ã€ ce stade, le plus important n'est plus l'activation : c'est l'usage propre et rÃ©gulier.";
+    }
+
+    return "AprÃ¨s paiement, la logique simple c'est : accÃ¨s Pierre, puis formulaire 1, puis page Pierre Use. En clair : d'abord tu donnes Ã  Pierre son cadre, ensuite tu t'en sers au quotidien. Si tu veux le meilleur enchaÃ®nement sans te perdre, pense-le comme Ã§a : configuration d'abord, production ensuite.";
+  }
+
+  if (intent === "onboarding") {
+    if (includesOne(q, ["a quoi sert", "Ã§a sert Ã  quoi", "sert a quoi", "pourquoi"])) {
+      return "Le formulaire 1 sert Ã  donner Ã  Pierre sa mÃ©moire de base sur ton entreprise. C'est lÃ  qu'il rÃ©cupÃ¨re ton identitÃ©, ton ton, ta signature, tes besoins RH, ta logique email et tes rÃ¨gles internes. Plus il est bien rempli, plus Pierre Ã©crit juste dÃ¨s le dÃ©part. Donc non, ce n'est pas un formulaire administratif pour faire joli : c'est le socle de qualitÃ© du produit.";
+    }
+
+    if (includesOne(q, ["quelles parties", "plus importantes", "important", "priorite", "prioritÃ©"])) {
+      return "Si tu veux aller vite sans mal faire, commence par l'identitÃ© de l'entreprise, le contact principal, le contexte RH, la signature et les rÃ¨gles internes. C'est Ã§a qui influence le plus la qualitÃ© rÃ©elle des textes. Le bloc email devient important dÃ¨s que tu veux une vraie identitÃ© d'envoi au nom de l'entreprise.";
+    }
+
+    if (includesOne(q, ["comment remplir", "remplir le bloc email", "bloc email"])) {
+      return "Pour le bloc email, reste simple : tu indiques l'adresse cible souhaitÃ©e si tu veux une identitÃ© de type pierre@entreprise.com, tu renseignes le reply-to si besoin, et tu assumes qu'au dÃ©but l'envoi peut rester en fallback CloneStore tant que le domaine n'est pas vÃ©rifiÃ©. Le plus important, c'est d'Ãªtre cohÃ©rent et de ne pas prÃ©tendre que l'identitÃ© client est dÃ©jÃ  active si elle ne l'est pas.";
+    }
+
+    return "Le formulaire 1, c'est la mÃ©moire de base de Pierre. Tu le remplis une premiÃ¨re fois, tu peux l'enregistrer en brouillon, puis le valider quand il est propre. Ensuite tu peux le modifier Ã  tout moment, mais l'idÃ©e c'est de donner Ã  Pierre un vrai cadre stable dÃ¨s le dÃ©part.";
+  }
+
+  if (intent === "use_page") {
+    if (includesOne(q, ["modifier", "editer", "Ã©diter"])) {
+      return "Oui, tu peux modifier le contenu directement dans Pierre Use. Tu passes en mode Modifier, tu ajustes le texte, puis tu fais Enregistrer. Ã€ partir de lÃ , c'est cette version enregistrÃ©e qui devient la base pour le copier, l'email et le PDF. C'est justement ce qui rend la page vraiment exploitable cÃ´tÃ© client.";
+    }
+
+    if (includesOne(q, ["historique"])) {
+      return "L'historique n'est pas juste un log. Il sert Ã  retrouver un bon document, le restaurer dans la page, le relancer, le taguer, le pinner ou repartir d'une ancienne version sans tout refaire. Si tu veux travailler proprement dans le temps, il devient vite trÃ¨s utile.";
+    }
+
+    return "Le plus simple pour utiliser Pierre au quotidien, c'est : tu vas sur la page use, tu Ã©cris ton brief, tu gÃ©nÃ¨res, tu ajustes si besoin, puis tu transformes le rÃ©sultat en action. En pratique, la sÃ©quence saine c'est : brief â†’ gÃ©nÃ©ration â†’ retouche Ã©ventuelle â†’ email ou PDF. Il ne faut pas le voir comme une simple zone de texte, mais comme une vraie page de production.";
+  }
+
+  if (intent === "email_pdf_action") {
+    if (includesOne(q, ["pdf", "piece jointe", "piÃ¨ce jointe"])) {
+      return "Le PDF repart du contenu affichÃ© dans Pierre Use. Donc si tu modifies le texte, l'ancien PDF n'est plus la bonne version et il faut le rÃ©gÃ©nÃ©rer. La logique propre, c'est : je modifie, j'enregistre, je rÃ©gÃ©nÃ¨re mon PDF, puis je l'ouvre, je le tÃ©lÃ©charge ou je l'envoie en piÃ¨ce jointe. Comme Ã§a, tu Ã©vites d'envoyer une version obsolÃ¨te.";
+    }
+
+    return "L'email part lui aussi du contenu affichÃ© dans Pierre Use. Si tu as retouchÃ© le texte et enregistrÃ© la nouvelle version, c'est cette version qui doit partir. En pratique, tu vÃ©rifies le contenu, tu renseignes le destinataire et l'objet si besoin, puis tu envoies. L'idÃ©e, c'est vraiment que la version active devienne ta source de vÃ©ritÃ©.";
+  }
+
+  if (intent === "email_identity") {
+    if (context.domainStatus === "verified" && context.senderEmailRequested) {
+      return `Dans ton Ã©tat actuel, la logique simple est la suivante : le domaine est marquÃ© comme vÃ©rifiÃ© et l'identitÃ© visÃ©e est ${context.senderEmailRequested}. Donc Pierre peut tendre vers cette identitÃ© client. LÃ  oÃ¹ il faut rester propre, c'est sur ce qui est effectivement en production cÃ´tÃ© envoi rÃ©el, mais sur le principe, tu n'es plus dans le simple fallback.`;
+    }
+
+    return "Le fallback CloneStore veut juste dire que tant que le domaine de l'entreprise n'est pas vÃ©rifiÃ©, l'envoi peut partir depuis une identitÃ© CloneStore au lieu d'une adresse du type pierre@entreprise.com. Le reply-to peut quand mÃªme pointer vers l'entreprise si c'est configurÃ©. Une fois le domaine vÃ©rifiÃ©, on peut basculer vers l'identitÃ© client. Donc la logique Ã  retenir, c'est : adresse cible, vÃ©rification du domaine, puis bascule propre.";
+  }
+
+  if (intent === "limits") {
+    return "Pierre est trÃ¨s utile pour rÃ©diger et structurer, mais il ne faut pas lui faire jouer un rÃ´le qu'il n'a pas. Il n'est pas lÃ  pour scorer massivement des CV, il n'est pas un conseiller juridique formel, et il ne doit pas inventer des informations absentes. LÃ  oÃ¹ il est fort, c'est quand tu veux un contenu RH propre, cohÃ©rent et directement exploitable.";
+  }
+
+  if (intent === "pricing") {
+    return "Pour Pierre, la rÃ©fÃ©rence visible aujourd'hui, c'est 299â‚¬/mois sur sa fiche d'accÃ¨s. Et si ta vraie question derriÃ¨re le prix, c'est de savoir s'il vaut le coup maintenant, ma rÃ©ponse reste la mÃªme : oui, c'est le clone le plus concret aujourd'hui si tu veux quelque chose d'utile tout de suite.";
+  }
+
+  return null;
+}
+
+export function buildFallbackAnswer(
+  question: string,
+  context: AssistantAccountContext,
+  intent: AssistantIntent
+) {
+  const base = buildDeterministicAnswer(question, context, intent);
+  if (base) return base;
+
+  if (context.hasPierreAccess && !context.onboardingCompleted) {
+    return "Je vais te rÃ©pondre simplement : dans ton Ã©tat actuel, le vrai prochain pas reste le formulaire 1. C'est ce qui va rendre Pierre cohÃ©rent et rÃ©ellement utile. Si ta question portait sur autre chose, reformule-la de faÃ§on directe et je te rÃ©pondrai plus prÃ©cisÃ©ment.";
+  }
+
+  if (context.hasPierreAccess && context.onboardingCompleted) {
+    return "Je peux t'aider sur Pierre de faÃ§on trÃ¨s concrÃ¨te : page use, modification du contenu, email, PDF, historique ou identitÃ© d'envoi. Pose-moi la question de faÃ§on plus directe, et je te rÃ©pondrai sans tourner autour.";
+  }
+
+  return "Je peux t'aider Ã  choisir le bon clone, comprendre Pierre et te dire quoi faire ensuite. Si ton but est d'avoir un clone utile maintenant, la rÃ©ponse la plus honnÃªte reste Pierre. Si tu veux aller plus loin, pose-moi la question exacte qui te bloque.";
+}
+
+
+===== FILE: src/lib/base-url.ts =====
+
+export function getBaseUrl() {
+  // 1) Tu forces Ã§a toi-mÃªme (recommandÃ©)
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL;
+  if (explicit) {
+    return explicit.startsWith("http") ? explicit : `https://${explicit}`;
+  }
+
+  // 2) En prod Vercel, VERCEL_URL existe mais sans "https://"
+  const vercel = process.env.VERCEL_URL;
+  if (vercel) return `https://${vercel}`;
+
+  // 3) Local
+  return "http://localhost:3000";
+}
+
+
+===== FILE: src/lib/pierre/__tests__/interpret.test.ts =====
+
+import { describe, expect, it } from "vitest";
+
+import { interpretPierreMission } from "@/lib/pierre/mission/interpret";
+
+describe("interpretPierreMission", () => {
+  it("dÃ©tecte une mission email simple", () => {
+    const result = interpretPierreMission(
+      "Envoie un mail Ã  jean.dupont@gmail.com pour confirmer l'entretien."
+    );
+
+    expect(result.intent).toBe("rh_email");
+    expect(result.tasks.length).toBeGreaterThan(0);
+    expect(result.tasks.some((task) => task.type === "email.send")).toBe(true);
+    expect(result.missing_info.length).toBe(0);
+  });
+
+  it("dÃ©tecte une mission document + email", () => {
+    const result = interpretPierreMission(
+      "PrÃ©pare une convocation et envoie-la Ã  candidat@test.com"
+    );
+
+    expect(result.intent).toBe("rh_doc_plus_email");
+    expect(result.tasks.some((task) => task.type === "doc.generate")).toBe(true);
+    expect(result.tasks.some((task) => task.type === "email.send")).toBe(true);
+  });
+
+  it("dÃ©tecte une demande hors pÃ©rimÃ¨tre", () => {
+    const result = interpretPierreMission(
+      "Lance une campagne massive de cold emailing"
+    );
+
+    expect(result.intent).toBe("out_of_scope");
+    expect(result.understanding_status).toBe("out_of_scope");
+    expect(result.tasks).toHaveLength(0);
+    expect(result.approval_required).toBe(true);
+  });
+
+  it("dÃ©tecte missing_info quand un email est demandÃ© sans destinataire", () => {
+    const result = interpretPierreMission(
+      "Envoie un mail de convocation pour demain"
+    );
+
+    expect(result.understanding_status).toBe("missing_info");
+    expect(
+      result.missing_info.some((item) => item.key === "recipient_email")
+    ).toBe(true);
+  });
+
+  it("dÃ©tecte une rÃ©Ã©criture", () => {
+    const result = interpretPierreMission(
+      "RÃ©Ã©cris ce courrier pour le rendre plus pro"
+    );
+
+    expect(result.intent).toBe("rh_rewrite");
+    expect(result.tasks.some((task) => task.type === "doc.rewrite")).toBe(true);
+  });
+});
+
+===== FILE: src/lib/pierre/__tests__/risk.test.ts =====
+
+import { describe, expect, it } from "vitest";
+
+import {
+  detectPierreApprovalRequired,
+  detectPierreRiskLevel,
+} from "@/lib/pierre/mission/risk";
+
+describe("Pierre risk", () => {
+  it("dÃ©tecte un risque high sur licenciement", () => {
+    const risk = detectPierreRiskLevel(
+      "PrÃ©pare un courrier de licenciement"
+    );
+
+    expect(risk).toBe("high");
+  });
+
+  it("dÃ©tecte un risque medium sur convocation", () => {
+    const risk = detectPierreRiskLevel(
+      "PrÃ©pare une convocation RH"
+    );
+
+    expect(risk).toBe("medium");
+  });
+
+  it("dÃ©tecte un risque low sur une demande simple", () => {
+    const risk = detectPierreRiskLevel(
+      "PrÃ©pare une note RH interne"
+    );
+
+    expect(risk).toBe("low");
+  });
+
+  it("force approval_required si risque high", () => {
+    const approval = detectPierreApprovalRequired(
+      "PrÃ©pare un licenciement",
+      "high"
+    );
+
+    expect(approval).toBe(true);
+  });
+
+  it("dÃ©tecte approval_required via mots-clÃ©s explicites", () => {
+    const approval = detectPierreApprovalRequired(
+      "Envoie le mail aprÃ¨s validation",
+      "low"
+    );
+
+    expect(approval).toBe(true);
+  });
+});
+
+===== FILE: src/lib/pierre/__tests__/schedule.test.ts =====
+
+import { describe, expect, it } from "vitest";
+
+import {
+  detectPierreScheduleIso,
+  isScheduledIsoInFuture,
+} from "@/lib/pierre/mission/schedule";
+
+describe("Pierre schedule", () => {
+  it("retourne null si aucune heure n'est trouvÃ©e", () => {
+    const value = detectPierreScheduleIso("PrÃ©pare le document RH");
+    expect(value).toBeNull();
+  });
+
+  it("retourne un ISO valide pour une heure explicite", () => {
+    const value = detectPierreScheduleIso("Ã€ 17h envoie le mail");
+    expect(typeof value).toBe("string");
+
+    const dt = new Date(value as string);
+    expect(Number.isNaN(dt.getTime())).toBe(false);
+  });
+
+  it("isScheduledIsoInFuture valide un futur proche", () => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    expect(isScheduledIsoInFuture(future)).toBe(true);
+  });
+
+  it("isScheduledIsoInFuture refuse une date passÃ©e", () => {
+    const past = new Date(Date.now() - 60_000).toISOString();
+    expect(isScheduledIsoInFuture(past)).toBe(false);
+  });
+
+  it("isScheduledIsoInFuture refuse une date invalide", () => {
+    expect(isScheduledIsoInFuture("not-a-date")).toBe(false);
+  });
+});
+
+===== FILE: src/lib/pierre/__tests__/tasks.test.ts =====
+
+import { describe, expect, it } from "vitest";
+
+import { buildPierreTasks } from "@/lib/pierre/mission/build-tasks";
+import type { PierreClassification } from "@/lib/pierre/mission/classify";
+
+function makeClassification(
+  patch?: Partial<PierreClassification>
+): PierreClassification {
+  return {
+    asksEmail: false,
+    asksDocument: false,
+    asksRewrite: false,
+    asksPdf: false,
+    asksReminder: false,
+    outOfScope: false,
+    ...patch,
+  };
+}
+
+describe("buildPierreTasks", () => {
+  it("construit une task email.send si email dÃ©tectÃ©", () => {
+    const tasks = buildPierreTasks({
+      rawInput: "Envoie un mail Ã  test@gmail.com",
+      classification: makeClassification({ asksEmail: true }),
+      missingInfo: [],
+      approvalRequired: false,
+      executeAt: null,
+    });
+
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].type).toBe("email.send");
+    expect(tasks[0].status).toBe("ready");
+  });
+
+  it("construit une task email.draft si destinataire absent", () => {
+    const tasks = buildPierreTasks({
+      rawInput: "Envoie un mail de suivi",
+      classification: makeClassification({ asksEmail: true }),
+      missingInfo: [
+        {
+          key: "recipient_email",
+          question: "Quel est lâ€™email exact du destinataire ?",
+          expected_format: "email",
+          required: true,
+        },
+      ],
+      approvalRequired: false,
+      executeAt: null,
+    });
+
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].type).toBe("email.draft");
+    expect(tasks[0].status).toBe("blocked");
+  });
+
+  it("construit une task document par dÃ©faut si ni email ni reminder", () => {
+    const tasks = buildPierreTasks({
+      rawInput: "PrÃ©pare un document RH",
+      classification: makeClassification({ asksDocument: true }),
+      missingInfo: [],
+      approvalRequired: false,
+      executeAt: null,
+    });
+
+    expect(tasks.some((task) => task.type === "doc.generate")).toBe(true);
+  });
+
+  it("construit une task pdf.generate", () => {
+    const tasks = buildPierreTasks({
+      rawInput: "GÃ©nÃ¨re un PDF",
+      classification: makeClassification({ asksPdf: true }),
+      missingInfo: [],
+      approvalRequired: false,
+      executeAt: null,
+    });
+
+    expect(tasks.some((task) => task.type === "pdf.generate")).toBe(true);
+  });
+
+  it("construit une task followup.schedule si reminder demandÃ©", () => {
+    const tasks = buildPierreTasks({
+      rawInput: "Relance demain Ã  17h",
+      classification: makeClassification({ asksReminder: true }),
+      missingInfo: [],
+      approvalRequired: false,
+      executeAt: new Date(Date.now() + 3_600_000).toISOString(),
+    });
+
+    expect(tasks.some((task) => task.type === "followup.schedule")).toBe(true);
+    expect(tasks.find((task) => task.type === "followup.schedule")?.status).toBe(
+      "scheduled"
+    );
+  });
+});
+
+===== FILE: src/lib/pierre/access.ts =====
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export async function hasPierreAccess(supabase: SupabaseClient, userId: string) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id,status")
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error) {
+    return {
+      ok: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    ok: Boolean(data),
+    error: null as string | null,
+  };
+}
+
+===== FILE: src/lib/pierre/auth.ts =====
+
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { safeString } from "@/lib/pierre/utils";
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+export function makePierreServerSupabase(): SupabaseClient {
+  const url = getEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRole = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase serveur non configurÃ©.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+export function getBearerTokenFromRequest(req: Request) {
+  const auth =
+    req.headers.get("authorization") ||
+    req.headers.get("Authorization") ||
+    "";
+
+  if (!auth.startsWith("Bearer ")) return "";
+  return auth.slice("Bearer ".length).trim();
+}
+
+export async function getAuthenticatedPierreUser(
+  req: Request,
+  supabase: SupabaseClient
+): Promise<{ error: string | null; user: User | null }> {
+  const token = safeString(getBearerTokenFromRequest(req));
+
+  if (!token) {
+    return { error: "Token manquant.", user: null };
+  }
+
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error || !data.user) {
+    return {
+      error: error?.message || "Utilisateur non authentifiÃ©.",
+      user: null,
+    };
+  }
+
+  return { error: null, user: data.user };
+}
+
+===== FILE: src/lib/pierre/constants.ts =====
+
+import type { PierreClassification, PierreTaskType } from "./types";
+
+export const PIERRE_NAME = "Pierre";
+
+export const PIERRE_PRODUCT_LABEL = "Assistant RH AutomatisÃ©";
+
+export const PIERRE_ALLOWED_SCOPE = [
+  "documents RH simples",
+  "communications RH simples",
+  "onboarding",
+  "convocations",
+  "refus candidats",
+  "relances",
+  "rappels de procÃ©dure",
+  "notes RH internes",
+  "comptes rendus simples",
+  "organisation de tÃ¢ches RH",
+  "suivi et continuitÃ© RH",
+] as const;
+
+export const PIERRE_BLOCKED_SCOPE_KEYWORDS = [
+  "licencier",
+  "licenciement",
+  "sanction disciplinaire",
+  "blÃ¢me",
+  "mise Ã  pied",
+  "discrimination",
+  "choix juridique",
+  "fraude",
+  "mensonge RH",
+  "faux document",
+] as const;
+
+export const PIERRE_VALIDATION_KEYWORDS = [
+  "attends ma validation",
+  "aprÃ¨s validation",
+  "Ã  valider",
+  "soumets-moi",
+  "avant envoi",
+  "avant d'envoyer",
+  "avant de l'envoyer",
+  "fais valider",
+] as const;
+
+export const PIERRE_MULTI_ACTION_SEPARATORS = [
+  " puis ",
+  " ensuite ",
+  " et ",
+  ", puis ",
+  ";",
+] as const;
+
+export const PIERRE_CLASSIFICATION_KEYWORDS: Array<{
+  classification: PierreClassification;
+  keywords: string[];
+}> = [
+  {
+    classification: "convocation",
+    keywords: ["convocation", "convoque", "entretien", "rendez-vous entretien"],
+  },
+  {
+    classification: "candidate_refusal",
+    keywords: ["refus", "refuser candidature", "refus candidat", "candidature refusÃ©e"],
+  },
+  {
+    classification: "candidate_followup",
+    keywords: ["relance candidat", "relancer candidat", "sans rÃ©ponse candidat"],
+  },
+  {
+    classification: "onboarding",
+    keywords: ["onboarding", "intÃ©gration", "message d'accueil", "arrivÃ©e lundi"],
+  },
+  {
+    classification: "internal_hr_communication",
+    keywords: ["note interne", "communication interne", "message manager", "message interne"],
+  },
+  {
+    classification: "procedure_reminder",
+    keywords: ["procÃ©dure", "rappel procÃ©dure", "rappel administratif", "consigne RH"],
+  },
+  {
+    classification: "interview_summary",
+    keywords: ["compte rendu", "synthÃ¨se entretien", "rÃ©sumÃ© entretien"],
+  },
+  {
+    classification: "document_request",
+    keywords: ["document", "prÃ©pare le document", "gÃ©nÃ¨re un document", "pdf"],
+  },
+  {
+    classification: "planning",
+    keywords: ["organise", "planifie", "programme", "demain", "semaine", "planning"],
+  },
+  {
+    classification: "followup_mission",
+    keywords: ["relance", "suis", "suivi", "si pas de rÃ©ponse", "rappelle-moi"],
+  },
+  {
+    classification: "application",
+    keywords: ["candidature", "poste", "offre d'emploi", "recrutement"],
+  },
+];
+
+export const PIERRE_CLASSIFICATION_TO_PRIMARY_TASK: Record<
+  PierreClassification,
+  PierreTaskType
+> = {
+  recruitment: "organize_work",
+  application: "prepare_email",
+  convocation: "write_document",
+  candidate_refusal: "prepare_email",
+  candidate_followup: "follow_up_candidate",
+  onboarding: "prepare_email",
+  internal_hr_communication: "prepare_email",
+  procedure_reminder: "write_document",
+  hr_note: "write_document",
+  interview_summary: "write_document",
+  simple_hr_letter: "write_document",
+  document_request: "write_document",
+  planning: "organize_work",
+  followup_mission: "follow_up_internal",
+  internal_followup: "follow_up_internal",
+  external_followup: "follow_up_candidate",
+  sensitive_request: "wait_validation",
+  out_of_scope: "block_mission",
+  unknown: "summarize_request",
+};
+
+export const PIERRE_DEFAULT_LANGUAGE = "fr";
+
+export const PIERRE_DEFAULT_TONE = "professional";
+
+export const PIERRE_MAX_MISSING_INFO_QUESTIONS = 6;
+
+===== FILE: src/lib/pierre/dataset.seed.ts =====
+
+// src/lib/pierre/dataset.seed.ts
+
+import { PierreTone } from "./docTypes";
+
+export type PierreSeedCase = {
+  id: string;
+  input: string;
+  tone?: (typeof PierreTone)[keyof typeof PierreTone];
+  expected_doc_type:
+    | "JOB_OFFER"
+    | "JOB_DESCRIPTION"
+    | "CANDIDATE_EMAIL_REJECTION"
+    | "CANDIDATE_EMAIL_INVITE"
+    | "CANDIDATE_EMAIL_FOLLOWUP"
+    | "CANDIDATE_EMAIL_ONBOARDING"
+    | "INTERVIEW_SCORECARD"
+    | "INTERVIEW_REPORT"
+    | "PLAN_30_60_90"
+    | "INTERNAL_PROCEDURE"
+    | "UNKNOWN";
+};
+
+export const PIERRE_SEED_DATASET: PierreSeedCase[] = [
+  {
+    id: "mail-refus-junior-humain",
+    input:
+      "Besoin dâ€™un mail de refus pour un candidat junior. Ton humain. 2 phrases sur la raison (manque de fit sur lâ€™expÃ©rience). Poste: assistant commercial. Il a passÃ© un entretien visio hier.",
+    tone: PierreTone.CONVIVIAL,
+    expected_doc_type: "CANDIDATE_EMAIL_REJECTION",
+  },
+  {
+    id: "mail-convocation-entretien",
+    input:
+      "Ã‰cris un mail de convocation pour un entretien. Poste: technicien maintenance. Entretien mardi 10h, sur site Ã  Nanterre. DurÃ©e 45 min. Avec qui: responsable maintenance + RH. Demander de venir 10 min avant.",
+    tone: PierreTone.PRO,
+    expected_doc_type: "CANDIDATE_EMAIL_INVITE",
+  },
+  {
+    id: "mail-relance-candidat",
+    input:
+      "Relance un candidat qui nâ€™a pas rÃ©pondu Ã  notre proposition de crÃ©neau. Poste: dÃ©veloppeur front. Ton pro, court. Proposer 2 crÃ©neaux la semaine prochaine.",
+    tone: PierreTone.PRO,
+    expected_doc_type: "CANDIDATE_EMAIL_FOLLOWUP",
+  },
+  {
+    id: "mail-onboarding-avant-arrivee",
+    input:
+      "Mail onboarding avant lâ€™arrivÃ©e dâ€™une nouvelle recrue. Poste: comptable. Date dâ€™arrivÃ©e: 3 mars. Expliquer documents Ã  apporter, horaires du 1er jour, personne de contact. Ton chaleureux mais pro.",
+    tone: PierreTone.CONVIVIAL,
+    expected_doc_type: "CANDIDATE_EMAIL_ONBOARDING",
+  },
+  {
+    id: "offre-emploi-commercial",
+    input:
+      "RÃ©dige une offre dâ€™emploi: commercial B2B. CDI. Paris. Fixe 35k + variable. Secteur: logiciels. Missions: prospection, dÃ©mos, closing. Profil: 2 ans exp, Ã  lâ€™aise au tel, autonome.",
+    tone: PierreTone.PRO,
+    expected_doc_type: "JOB_OFFER",
+  },
+  {
+    id: "fiche-poste-rh-generaliste",
+    input:
+      "Fiche de poste RH gÃ©nÃ©raliste. PME 80 personnes. Missions: admin du personnel, recrutement, onboarding, relations sociales. Rattachement: DG. Lieu: Boulogne. Niveau: confirmÃ©.",
+    tone: PierreTone.PRO,
+    expected_doc_type: "JOB_DESCRIPTION",
+  },
+  {
+    id: "grille-entretien-support-client",
+    input:
+      "CrÃ©e une grille dâ€™entretien simple + questions pour un poste support client. Ã‰valuer: communication, gestion stress, rÃ©solution, sens service. Ajouter barÃ¨me 1-5.",
+    tone: PierreTone.PRO,
+    expected_doc_type: "INTERVIEW_SCORECARD",
+  },
+  {
+    id: "compte-rendu-entretien-notes",
+    input:
+      "Transforme ces notes en compte rendu dâ€™entretien structurÃ©. Poste: assistant logistique. Notes: ponctuel, expÃ©rience 1 an, hÃ©sitant sur excel, bon relationnel, motivÃ©, dispo immÃ©diate. Reco: Ã  revoir pour 2e entretien.",
+    tone: PierreTone.PRO,
+    expected_doc_type: "INTERVIEW_REPORT",
+  },
+  {
+    id: "plan-306090-sales",
+    input:
+      "Plan 30/60/90 jours pour un nouveau business developer SaaS. Objectifs: maÃ®triser produit, pipeline, 3 deals signÃ©s Ã  90 jours. Ton pro.",
+    tone: PierreTone.PRO,
+    expected_doc_type: "PLAN_30_60_90",
+  },
+  {
+    id: "procedure-teletravail",
+    input:
+      "ProcÃ©dure interne tÃ©lÃ©travail. RÃ¨gles: 2 jours/semaine max, validation manager, disponibilitÃ© 9h-12h / 14h-18h, sÃ©curitÃ© (VPN), matÃ©riel fourni, exceptions possibles. Ton pro.",
+    tone: PierreTone.PRO,
+    expected_doc_type: "INTERNAL_PROCEDURE",
+  },
+];
+
+
+===== FILE: src/lib/pierre/docTypes.ts =====
+
+// src/lib/pierre/docTypes.ts
+
+export const PIERRE_SCHEMA_VERSION = "1.0" as const;
+
+export const PierreTone = {
+  PRO: "pro",
+  CONVIVIAL: "convivial",
+} as const;
+
+export type PierreTone = (typeof PierreTone)[keyof typeof PierreTone];
+
+export const PierreDocType = {
+  JOB_OFFER: "JOB_OFFER",
+  JOB_DESCRIPTION: "JOB_DESCRIPTION",
+
+  CANDIDATE_EMAIL_REJECTION: "CANDIDATE_EMAIL_REJECTION",
+  CANDIDATE_EMAIL_INVITE: "CANDIDATE_EMAIL_INVITE",
+  CANDIDATE_EMAIL_FOLLOWUP: "CANDIDATE_EMAIL_FOLLOWUP",
+  CANDIDATE_EMAIL_ONBOARDING: "CANDIDATE_EMAIL_ONBOARDING",
+
+  INTERVIEW_SCORECARD: "INTERVIEW_SCORECARD",
+  INTERVIEW_REPORT: "INTERVIEW_REPORT",
+
+  PLAN_30_60_90: "PLAN_30_60_90",
+  INTERNAL_PROCEDURE: "INTERNAL_PROCEDURE",
+
+  UNKNOWN: "UNKNOWN",
+} as const;
+
+export type PierreDocType = (typeof PierreDocType)[keyof typeof PierreDocType];
+
+export const PIERRE_CONFIDENCE_THRESHOLD = 0.72;
+export const PIERRE_DEFAULT_LANGUAGE = "fr-FR" as const;
+
+// Ton par dÃ©faut (si onboarding pas renseignÃ©)
+export const PIERRE_DEFAULT_TONE: PierreTone = PierreTone.PRO;
+
+
+===== FILE: src/lib/pierre/documents/doc-type.ts =====
+
+import { containsAny } from "@/lib/pierre/utils";
+
+export type PierreDocumentType =
+  | "convocation"
+  | "refus"
+  | "onboarding"
+  | "offre_emploi"
+  | "fiche_poste"
+  | "procedure"
+  | "compte_rendu"
+  | "note_rh"
+  | "courrier"
+  | "generic";
+
+export function detectPierreDocumentType(input: string): PierreDocumentType {
+  if (containsAny(input, ["convocation"])) return "convocation";
+  if (containsAny(input, ["refus"])) return "refus";
+  if (containsAny(input, ["onboarding", "intÃ©gration", "integration"])) return "onboarding";
+  if (containsAny(input, ["offre d'emploi", "offre dâ€™emploi"])) return "offre_emploi";
+  if (containsAny(input, ["fiche de poste"])) return "fiche_poste";
+  if (containsAny(input, ["procÃ©dure", "procedure"])) return "procedure";
+  if (containsAny(input, ["compte rendu", "compte-rendu"])) return "compte_rendu";
+  if (containsAny(input, ["note rh", "synthÃ¨se", "synthese"])) return "note_rh";
+  if (containsAny(input, ["courrier"])) return "courrier";
+
+  return "generic";
+}
+
+===== FILE: src/lib/pierre/documents/generate.ts =====
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { PierreRunnableTask } from "@/lib/pierre/tasks/executors";
+import { safeString } from "@/lib/pierre/utils";
+import { detectPierreDocumentType } from "@/lib/pierre/documents/doc-type";
+import { buildPierreDocumentTitle } from "@/lib/pierre/documents/title";
+import { normalizePierreDocumentText } from "@/lib/pierre/documents/normalize-text";
+import { normalizePierreDocumentHtml } from "@/lib/pierre/documents/normalize-html";
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function textToHtml(value: string) {
+  const escaped = value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+  return `<div>${escaped.replace(/\n{2,}/g, "</div><div>").replace(/\n/g, "<br />")}</div>`;
+}
+
+function buildFallbackDocumentText(rawInput: string, title: string) {
+  return normalizePierreDocumentText([
+    title,
+    "",
+    "Document prÃ©parÃ© par Pierre.",
+    "",
+    "Consigne dâ€™origine :",
+    rawInput,
+    "",
+    "Ã€ complÃ©ter / ajuster selon le contexte RH rÃ©el de lâ€™entreprise.",
+  ].join("\n"));
+}
+
+export async function generatePierreDocument(
+  supabase: SupabaseClient,
+  input: {
+    task: PierreRunnableTask;
+  }
+) {
+  const payload = input.task.payload_json || {};
+  const rawInput =
+    safeString(payload.raw_input) ||
+    safeString(payload.input) ||
+    safeString(payload.prompt);
+
+  const companyName =
+    safeString(payload.company_name) || null;
+
+  const docType = detectPierreDocumentType(rawInput);
+  const title =
+    safeString(payload.title) ||
+    buildPierreDocumentTitle({
+      docType,
+      companyName,
+    });
+
+  const engineUrl = getEnv("PIERRE_DOCUMENT_ENGINE_URL");
+  let bodyText = "";
+  let bodyHtml = "";
+
+  if (engineUrl) {
+    const response = await fetch(engineUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(getEnv("PIERRE_DOCUMENT_ENGINE_SECRET")
+          ? {
+              "x-pierre-document-secret":
+                getEnv("PIERRE_DOCUMENT_ENGINE_SECRET"),
+            }
+          : {}),
+      },
+      body: JSON.stringify({
+        mode: "generate",
+        title,
+        doc_type: docType,
+        raw_input: rawInput,
+        payload,
+      }),
+    });
+
+    const raw = await response.text();
+    const parsed = (() => {
+      try {
+        return JSON.parse(raw) as Record<string, unknown>;
+      } catch {
+        return { raw };
+      }
+    })();
+
+    if (!response.ok) {
+      throw new Error(
+        typeof parsed.error === "string"
+          ? parsed.error
+          : "Le moteur document Pierre a Ã©chouÃ©."
+      );
+    }
+
+    bodyText = normalizePierreDocumentText(
+      safeString(parsed.body_text) || buildFallbackDocumentText(rawInput, title)
+    );
+
+    bodyHtml = normalizePierreDocumentHtml(
+      safeString(parsed.body_html) || textToHtml(bodyText)
+    );
+  } else {
+    bodyText = buildFallbackDocumentText(rawInput, title);
+    bodyHtml = normalizePierreDocumentHtml(textToHtml(bodyText));
+  }
+
+  let documentId: string | null = null;
+
+  try {
+    const { data } = await supabase
+      .from("pierre_documents")
+      .insert({
+        user_id: input.task.user_id,
+        mission_id: input.task.mission_id,
+        task_id: input.task.id,
+        agent_slug: "pierre",
+        title,
+        doc_type: docType,
+        body_text: bodyText,
+        body_html: bodyHtml,
+        status: "generated",
+        meta_json: {
+          source_task_type: input.task.type,
+        },
+      })
+      .select("id")
+      .maybeSingle();
+
+    documentId = (data?.id as string | undefined) || null;
+  } catch (error) {
+    console.error("[PIERRE_DOCUMENT_INSERT_ERROR]", error);
+  }
+
+  return {
+    document_id: documentId,
+    title,
+    doc_type: docType,
+    body_text: bodyText,
+    body_html: bodyHtml,
+  };
+}
+
+===== FILE: src/lib/pierre/documents/normalize-html.ts =====
+
+export function normalizePierreDocumentHtml(value: string) {
+  return value
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+===== FILE: src/lib/pierre/documents/normalize-text.ts =====
+
+import { normalizeSpaces } from "@/lib/pierre/utils";
+
+export function normalizePierreDocumentText(value: string) {
+  return value
+    .split("\n")
+    .map((line) => normalizeSpaces(line))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+===== FILE: src/lib/pierre/documents/rewrite.ts =====
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { PierreRunnableTask } from "@/lib/pierre/tasks/executors";
+import { safeString } from "@/lib/pierre/utils";
+import { detectPierreDocumentType } from "@/lib/pierre/documents/doc-type";
+import { buildPierreDocumentTitle } from "@/lib/pierre/documents/title";
+import { normalizePierreDocumentText } from "@/lib/pierre/documents/normalize-text";
+import { normalizePierreDocumentHtml } from "@/lib/pierre/documents/normalize-html";
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function textToHtml(value: string) {
+  const escaped = value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+  return `<div>${escaped.replace(/\n{2,}/g, "</div><div>").replace(/\n/g, "<br />")}</div>`;
+}
+
+export async function rewritePierreDocument(
+  supabase: SupabaseClient,
+  input: {
+    task: PierreRunnableTask;
+  }
+) {
+  const payload = input.task.payload_json || {};
+  const originalText =
+    safeString(payload.body_text) ||
+    safeString(payload.text) ||
+    safeString(payload.document_text) ||
+    safeString(payload.raw_input);
+
+  if (!originalText) {
+    throw new Error("Aucun contenu Ã  rÃ©Ã©crire nâ€™a Ã©tÃ© trouvÃ© pour cette task.");
+  }
+
+  const companyName = safeString(payload.company_name) || null;
+  const docType = detectPierreDocumentType(originalText);
+  const title =
+    safeString(payload.title) ||
+    buildPierreDocumentTitle({
+      docType,
+      companyName,
+    });
+
+  const engineUrl = getEnv("PIERRE_DOCUMENT_ENGINE_URL");
+  let bodyText = "";
+
+  if (engineUrl) {
+    const response = await fetch(engineUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(getEnv("PIERRE_DOCUMENT_ENGINE_SECRET")
+          ? {
+              "x-pierre-document-secret":
+                getEnv("PIERRE_DOCUMENT_ENGINE_SECRET"),
+            }
+          : {}),
+      },
+      body: JSON.stringify({
+        mode: "rewrite",
+        title,
+        doc_type: docType,
+        original_text: originalText,
+        payload,
+      }),
+    });
+
+    const raw = await response.text();
+    const parsed = (() => {
+      try {
+        return JSON.parse(raw) as Record<string, unknown>;
+      } catch {
+        return { raw };
+      }
+    })();
+
+    if (!response.ok) {
+      throw new Error(
+        typeof parsed.error === "string"
+          ? parsed.error
+          : "Le moteur de rÃ©Ã©criture Pierre a Ã©chouÃ©."
+      );
+    }
+
+    bodyText = normalizePierreDocumentText(
+      safeString(parsed.body_text) || originalText
+    );
+  } else {
+    bodyText = normalizePierreDocumentText(originalText);
+  }
+
+  const bodyHtml = normalizePierreDocumentHtml(textToHtml(bodyText));
+
+  let documentId: string | null = null;
+
+  try {
+    const { data } = await supabase
+      .from("pierre_documents")
+      .insert({
+        user_id: input.task.user_id,
+        mission_id: input.task.mission_id,
+        task_id: input.task.id,
+        agent_slug: "pierre",
+        title,
+        doc_type: docType,
+        body_text: bodyText,
+        body_html: bodyHtml,
+        status: "rewritten",
+        meta_json: {
+          source_task_type: input.task.type,
+        },
+      })
+      .select("id")
+      .maybeSingle();
+
+    documentId = (data?.id as string | undefined) || null;
+  } catch (error) {
+    console.error("[PIERRE_DOCUMENT_REWRITE_INSERT_ERROR]", error);
+  }
+
+  return {
+    document_id: documentId,
+    title,
+    doc_type: docType,
+    body_text: bodyText,
+    body_html: bodyHtml,
+  };
+}
+
+===== FILE: src/lib/pierre/documents/title.ts =====
+
+import type { PierreDocumentType } from "@/lib/pierre/documents/doc-type";
+
+export function buildPierreDocumentTitle(input: {
+  docType: PierreDocumentType;
+  companyName?: string | null;
+}) {
+  const date = new Date().toISOString().slice(0, 10);
+
+  const base =
+    input.docType === "convocation"
+      ? "Convocation RH"
+      : input.docType === "refus"
+      ? "Courrier de refus"
+      : input.docType === "onboarding"
+      ? "Document dâ€™onboarding"
+      : input.docType === "offre_emploi"
+      ? "Offre dâ€™emploi"
+      : input.docType === "fiche_poste"
+      ? "Fiche de poste"
+      : input.docType === "procedure"
+      ? "ProcÃ©dure RH"
+      : input.docType === "compte_rendu"
+      ? "Compte rendu RH"
+      : input.docType === "note_rh"
+      ? "Note RH"
+      : input.docType === "courrier"
+      ? "Courrier RH"
+      : "Document RH";
+
+  return input.companyName
+    ? `${base} â€” ${input.companyName} â€” ${date}`
+    : `${base} â€” ${date}`;
+}
+
+===== FILE: src/lib/pierre/email/attachments.ts =====
+
+import { safeString } from "@/lib/pierre/utils";
+
+export type PierreEmailAttachment = {
+  filename: string;
+  content_type: string | null;
+  url?: string | null;
+  content_base64?: string | null;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeAttachment(input: unknown): PierreEmailAttachment | null {
+  if (typeof input === "string") {
+    const url = safeString(input);
+    if (!url) return null;
+
+    const filename =
+      url.split("/").pop()?.split("?")[0]?.trim() || "attachment";
+
+    return {
+      filename,
+      content_type: null,
+      url,
+      content_base64: null,
+    };
+  }
+
+  if (!isRecord(input)) return null;
+
+  const filename =
+    safeString(input.filename) ||
+    safeString(input.name) ||
+    "attachment";
+
+  const contentType =
+    safeString(input.content_type) ||
+    safeString(input.mime_type) ||
+    safeString(input.contentType) ||
+    null;
+
+  const url =
+    safeString(input.url) ||
+    safeString(input.file_url) ||
+    safeString(input.download_url) ||
+    null;
+
+  const contentBase64 =
+    safeString(input.content_base64) ||
+    safeString(input.base64) ||
+    null;
+
+  if (!url && !contentBase64) return null;
+
+  return {
+    filename,
+    content_type: contentType,
+    url,
+    content_base64: contentBase64,
+  };
+}
+
+export function normalizePierreEmailAttachments(
+  payload: Record<string, unknown> | null | undefined
+): PierreEmailAttachment[] {
+  const source = payload || {};
+
+  const raw =
+    source.attachments ||
+    source.files ||
+    source.attachment_urls ||
+    [];
+
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map(normalizeAttachment)
+    .filter((item): item is PierreEmailAttachment => Boolean(item));
+}
+
+===== FILE: src/lib/pierre/email/build-payload.ts =====
+
+import { detectEmailInText, safeString } from "@/lib/pierre/utils";
+import type { PierreSenderProfile } from "@/lib/pierre/email/sender-profile";
+import {
+  normalizePierreEmailAttachments,
+  type PierreEmailAttachment,
+} from "@/lib/pierre/email/attachments";
+
+export type PierreBuiltEmailPayload = {
+  from: {
+    email: string;
+    name: string;
+  };
+  reply_to: string | null;
+  to: string[];
+  cc: string[];
+  bcc: string[];
+  subject: string;
+  body_text: string;
+  body_html: string;
+  attachments: PierreEmailAttachment[];
+};
+
+function isProbablyEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(value.trim());
+}
+
+function uniqueEmails(values: string[]) {
+  return [...new Set(values.map((value) => value.trim().toLowerCase()))];
+}
+
+function collectEmails(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return uniqueEmails(
+      value
+        .map((item) => safeString(item))
+        .filter((item) => isProbablyEmail(item))
+    );
+  }
+
+  if (typeof value === "string") {
+    const matches = value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [];
+    return uniqueEmails(matches);
+  }
+
+  return [];
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function textToHtml(value: string) {
+  const safe = escapeHtml(value);
+  return `<div>${safe.replace(/\n{2,}/g, "</div><div>").replace(/\n/g, "<br />")}</div>`;
+}
+
+function buildDefaultSubject(payload: Record<string, unknown>) {
+  return (
+    safeString(payload.subject) ||
+    safeString(payload.email_subject) ||
+    safeString(payload.title) ||
+    "Message RH prÃ©parÃ© par Pierre"
+  );
+}
+
+function buildDefaultBodyText(payload: Record<string, unknown>) {
+  const preferred =
+    safeString(payload.body_text) ||
+    safeString(payload.text) ||
+    safeString(payload.message_text) ||
+    safeString(payload.document_text) ||
+    safeString(payload.generated_document_text);
+
+  if (preferred) return preferred;
+
+  const rawInput =
+    safeString(payload.raw_input) ||
+    safeString(payload.input) ||
+    safeString(payload.prompt);
+
+  if (rawInput) {
+    return [
+      "Bonjour,",
+      "",
+      "Pierre a prÃ©parÃ© ce message Ã  partir de la consigne suivante :",
+      rawInput,
+      "",
+      "Merci.",
+    ].join("\n");
+  }
+
+  return "Bonjour,\n\nMessage prÃ©parÃ© par Pierre.\n\nMerci.";
+}
+
+export function buildPierreEmailPayload(input: {
+  senderProfile: PierreSenderProfile;
+  payload: Record<string, unknown> | null | undefined;
+}): PierreBuiltEmailPayload {
+  const payload = input.payload || {};
+
+  const to = uniqueEmails([
+    ...collectEmails(payload.to),
+    ...collectEmails(payload.recipient_email),
+    ...collectEmails(payload.recipient_emails),
+    ...collectEmails(payload.destinataire_email),
+    ...collectEmails(payload.destinataires),
+    ...collectEmails(safeString(payload.raw_input)),
+  ]);
+
+  const cc = uniqueEmails([
+    ...collectEmails(payload.cc),
+    ...collectEmails(payload.cc_emails),
+  ]);
+
+  const bcc = uniqueEmails([
+    ...collectEmails(payload.bcc),
+    ...collectEmails(payload.bcc_emails),
+  ]);
+
+  if (to.length === 0) {
+    const detected = detectEmailInText(safeString(payload.raw_input));
+    if (detected && isProbablyEmail(detected)) {
+      to.push(detected.toLowerCase());
+    }
+  }
+
+  if (to.length === 0) {
+    throw new Error("Aucun destinataire email valide nâ€™a Ã©tÃ© dÃ©tectÃ©.");
+  }
+
+  const subject = buildDefaultSubject(payload);
+  const bodyText = buildDefaultBodyText(payload);
+
+  const bodyHtml =
+    safeString(payload.body_html) ||
+    safeString(payload.html) ||
+    safeString(payload.message_html) ||
+    safeString(payload.document_html) ||
+    safeString(payload.generated_document_html) ||
+    textToHtml(bodyText);
+
+  return {
+    from: {
+      email: input.senderProfile.sender_email,
+      name: input.senderProfile.sender_name,
+    },
+    reply_to: input.senderProfile.reply_to,
+    to,
+    cc,
+    bcc,
+    subject,
+    body_text: bodyText,
+    body_html: bodyHtml,
+    attachments: normalizePierreEmailAttachments(payload),
+  };
+}
+
+===== FILE: src/lib/pierre/email/draft.ts =====
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { PierreRunnableTask } from "@/lib/pierre/tasks/executors";
+import { buildPierreEmailPayload } from "@/lib/pierre/email/build-payload";
+import { resolvePierreSenderProfile } from "@/lib/pierre/email/sender-profile";
+
+export async function createPierreEmailDraft(
+  supabase: SupabaseClient,
+  input: {
+    task: PierreRunnableTask;
+  }
+) {
+  const senderProfile = await resolvePierreSenderProfile(supabase, {
+    userId: input.task.user_id,
+    payload: input.task.payload_json,
+  });
+
+  const emailPayload = buildPierreEmailPayload({
+    senderProfile,
+    payload: input.task.payload_json,
+  });
+
+  let draftId: string | null = null;
+
+  try {
+    const { data } = await supabase
+      .from("pierre_outbound_emails")
+      .insert({
+        user_id: input.task.user_id,
+        mission_id: input.task.mission_id,
+        task_id: input.task.id,
+        agent_slug: "pierre",
+        from_email: emailPayload.from.email,
+        from_name: emailPayload.from.name,
+        to_json: emailPayload.to,
+        cc_json: emailPayload.cc,
+        bcc_json: emailPayload.bcc,
+        subject: emailPayload.subject,
+        body_text: emailPayload.body_text,
+        body_html: emailPayload.body_html,
+        status: "draft",
+        provider: "draft_only",
+      })
+      .select("id")
+      .maybeSingle();
+
+    draftId = (data?.id as string | undefined) || null;
+  } catch (error) {
+    console.error("[PIERRE_EMAIL_DRAFT_INSERT_ERROR]", error);
+  }
+
+  return {
+    draft_id: draftId,
+    sender_email: emailPayload.from.email,
+    sender_name: emailPayload.from.name,
+    to: emailPayload.to,
+    cc: emailPayload.cc,
+    bcc: emailPayload.bcc,
+    subject: emailPayload.subject,
+    body_text: emailPayload.body_text,
+    body_html: emailPayload.body_html,
+  };
+}
+
+===== FILE: src/lib/pierre/email/provider.ts =====
+
+import type { PierreBuiltEmailPayload } from "@/lib/pierre/email/build-payload";
+import type { PierreSenderProfile } from "@/lib/pierre/email/sender-profile";
+
+export type PierreEmailProviderSendResult = {
+  ok: boolean;
+  provider: string;
+  message_id: string | null;
+  status: string;
+  response_json: Record<string, unknown>;
+};
+
+function safeJsonParse(value: string) {
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object"
+      ? (parsed as Record<string, unknown>)
+      : { raw: value };
+  } catch {
+    return { raw: value };
+  }
+}
+
+export async function sendPierreEmailWithProvider(input: {
+  senderProfile: PierreSenderProfile;
+  email: PierreBuiltEmailPayload;
+}) : Promise<PierreEmailProviderSendResult> {
+  const endpoint = input.senderProfile.provider_url;
+
+  if (!endpoint) {
+    throw new Error(
+      "Aucun provider dâ€™envoi email nâ€™est configurÃ© pour Pierre."
+    );
+  }
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(input.senderProfile.provider_secret
+        ? { "x-pierre-provider-secret": input.senderProfile.provider_secret }
+        : {}),
+      ...(input.senderProfile.provider_api_key
+        ? { Authorization: `Bearer ${input.senderProfile.provider_api_key}` }
+        : {}),
+    },
+    body: JSON.stringify({
+      mode: input.senderProfile.provider_mode,
+      from: input.email.from,
+      reply_to: input.email.reply_to,
+      to: input.email.to,
+      cc: input.email.cc,
+      bcc: input.email.bcc,
+      subject: input.email.subject,
+      body_text: input.email.body_text,
+      body_html: input.email.body_html,
+      attachments: input.email.attachments,
+    }),
+  });
+
+  const rawText = await response.text();
+  const parsed = safeJsonParse(rawText);
+
+  if (!response.ok) {
+    throw new Error(
+      typeof parsed.error === "string"
+        ? parsed.error
+        : `Le provider email Pierre a renvoyÃ© HTTP ${response.status}.`
+    );
+  }
+
+  return {
+    ok: true,
+    provider:
+      typeof parsed.provider === "string"
+        ? parsed.provider
+        : input.senderProfile.provider_mode,
+    message_id:
+      typeof parsed.message_id === "string"
+        ? parsed.message_id
+        : typeof parsed.id === "string"
+        ? parsed.id
+        : null,
+    status:
+      typeof parsed.status === "string"
+        ? parsed.status
+        : "sent",
+    response_json: parsed,
+  };
+}
+
+===== FILE: src/lib/pierre/email/send.ts =====
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { PierreRunnableTask } from "@/lib/pierre/tasks/executors";
+import { buildPierreEmailPayload } from "@/lib/pierre/email/build-payload";
+import { resolvePierreSenderProfile } from "@/lib/pierre/email/sender-profile";
+import { sendPierreEmailWithProvider } from "@/lib/pierre/email/provider";
+
+async function persistPierreOutboundEmail(
+  supabase: SupabaseClient,
+  input: {
+    task: PierreRunnableTask;
+    sender_email: string;
+    sender_name: string;
+    to: string[];
+    cc: string[];
+    bcc: string[];
+    subject: string;
+    body_text: string;
+    body_html: string;
+    provider: string;
+    provider_message_id: string | null;
+    status: string;
+    provider_response_json: Record<string, unknown>;
+  }
+) {
+  try {
+    await supabase.from("pierre_outbound_emails").insert({
+      user_id: input.task.user_id,
+      mission_id: input.task.mission_id,
+      task_id: input.task.id,
+      agent_slug: "pierre",
+      from_email: input.sender_email,
+      from_name: input.sender_name,
+      to_json: input.to,
+      cc_json: input.cc,
+      bcc_json: input.bcc,
+      subject: input.subject,
+      body_text: input.body_text,
+      body_html: input.body_html,
+      provider: input.provider,
+      provider_message_id: input.provider_message_id,
+      status: input.status,
+      provider_response_json: input.provider_response_json,
+    });
+  } catch (error) {
+    console.error("[PIERRE_OUTBOUND_EMAIL_INSERT_ERROR]", error);
+  }
+}
+
+export async function sendPierreEmail(
+  supabase: SupabaseClient,
+  input: {
+    task: PierreRunnableTask;
+  }
+) {
+  const senderProfile = await resolvePierreSenderProfile(supabase, {
+    userId: input.task.user_id,
+    payload: input.task.payload_json,
+  });
+
+  const emailPayload = buildPierreEmailPayload({
+    senderProfile,
+    payload: input.task.payload_json,
+  });
+
+  const providerResult = await sendPierreEmailWithProvider({
+    senderProfile,
+    email: emailPayload,
+  });
+
+  await persistPierreOutboundEmail(supabase, {
+    task: input.task,
+    sender_email: emailPayload.from.email,
+    sender_name: emailPayload.from.name,
+    to: emailPayload.to,
+    cc: emailPayload.cc,
+    bcc: emailPayload.bcc,
+    subject: emailPayload.subject,
+    body_text: emailPayload.body_text,
+    body_html: emailPayload.body_html,
+    provider: providerResult.provider,
+    provider_message_id: providerResult.message_id,
+    status: providerResult.status,
+    provider_response_json: providerResult.response_json,
+  });
+
+  return {
+    provider: providerResult.provider,
+    provider_message_id: providerResult.message_id,
+    sender_email: emailPayload.from.email,
+    sender_name: emailPayload.from.name,
+    to: emailPayload.to,
+    cc: emailPayload.cc,
+    bcc: emailPayload.bcc,
+    subject: emailPayload.subject,
+    status: providerResult.status,
+    response_json: providerResult.response_json,
+  };
+}
+
+===== FILE: src/lib/pierre/email/sender-profile.ts =====
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import { safeString } from "@/lib/pierre/utils";
+
+export type PierreSenderProfile = {
+  sender_email: string;
+  sender_name: string;
+  reply_to: string | null;
+  company_name: string | null;
+  sending_domain: string | null;
+  provider_mode: "gateway" | "webhook";
+  provider_url: string | null;
+  provider_secret: string | null;
+  provider_api_key: string | null;
+};
+
+type GenericRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is GenericRecord {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function isProbablyEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(value.trim());
+}
+
+function normalizeDomain(value: string) {
+  return value.trim().toLowerCase().replace(/^@+/, "");
+}
+
+function extractFirstObject(input: GenericRecord, keys: string[]) {
+  for (const key of keys) {
+    const value = input[key];
+    if (isRecord(value)) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function readStringDeep(input: GenericRecord | null, keys: string[]) {
+  if (!input) return "";
+
+  for (const key of keys) {
+    const value = safeString(input[key]);
+    if (value) return value;
+  }
+
+  return "";
+}
+
+function buildSenderEmailFromDomain(localPart: string, domain: string) {
+  const cleanLocalPart = safeString(localPart).toLowerCase() || "pierre";
+  const cleanDomain = normalizeDomain(domain);
+
+  if (!cleanDomain) return "";
+
+  return `${cleanLocalPart}@${cleanDomain}`;
+}
+
+function resolveMemoryConfig(row: GenericRecord | null) {
+  if (!row) return null;
+
+  const directNested =
+    extractFirstObject(row, [
+      "memory_json",
+      "profile_json",
+      "settings_json",
+      "config_json",
+      "configuration_json",
+      "data_json",
+      "value_json",
+      "context_json",
+      "company_context_json",
+    ]) || row;
+
+  const emailConfig =
+    extractFirstObject(directNested, [
+      "email",
+      "mail",
+      "email_settings",
+      "mail_settings",
+      "sender_profile",
+      "sender",
+      "smtp",
+      "provider",
+    ]) || directNested;
+
+  return {
+    root: directNested,
+    email: emailConfig,
+  };
+}
+
+export async function resolvePierreSenderProfile(
+  supabase: SupabaseClient,
+  input: {
+    userId: string;
+    payload?: Record<string, unknown> | null;
+  }
+): Promise<PierreSenderProfile> {
+  const payload = (input.payload || {}) as GenericRecord;
+
+  let memoryRow: GenericRecord | null = null;
+
+  try {
+    const { data } = await supabase
+      .from("pierre_company_memory")
+      .select("*")
+      .eq("user_id", input.userId)
+      .maybeSingle();
+
+    memoryRow = (data as GenericRecord | null) || null;
+  } catch {
+    memoryRow = null;
+  }
+
+  const memory = resolveMemoryConfig(memoryRow);
+
+  const payloadSenderEmail = safeString(payload.sender_email);
+  const payloadSenderName = safeString(payload.sender_name);
+  const payloadReplyTo = safeString(payload.reply_to);
+  const payloadCompanyName = safeString(payload.company_name);
+  const payloadSendingDomain = safeString(payload.sending_domain);
+  const payloadProviderMode = safeString(payload.provider_mode);
+  const payloadProviderUrl = safeString(payload.provider_url);
+  const payloadProviderSecret = safeString(payload.provider_secret);
+  const payloadProviderApiKey = safeString(payload.provider_api_key);
+  const payloadLocalPart = safeString(payload.sender_local_part) || "pierre";
+
+  const memorySenderEmail = readStringDeep(memory?.email || null, [
+    "sender_email",
+    "from_email",
+    "email",
+  ]);
+
+  const memorySenderName = readStringDeep(memory?.email || null, [
+    "sender_name",
+    "from_name",
+    "name",
+  ]);
+
+  const memoryReplyTo = readStringDeep(memory?.email || null, [
+    "reply_to",
+    "replyTo",
+  ]);
+
+  const memoryCompanyName =
+    readStringDeep(memory?.root || null, [
+      "company_name",
+      "companyName",
+      "legal_name",
+      "brand_name",
+      "brandName",
+    ]) ||
+    readStringDeep(memory?.email || null, [
+      "company_name",
+      "companyName",
+    ]);
+
+  const memorySendingDomain = readStringDeep(memory?.email || null, [
+    "sending_domain",
+    "domain",
+    "mail_domain",
+    "email_domain",
+  ]);
+
+  const memoryProviderMode = readStringDeep(memory?.email || null, [
+    "provider_mode",
+    "mode",
+  ]);
+
+  const memoryProviderUrl = readStringDeep(memory?.email || null, [
+    "provider_url",
+    "webhook_url",
+    "gateway_url",
+  ]);
+
+  const memoryProviderSecret = readStringDeep(memory?.email || null, [
+    "provider_secret",
+    "webhook_secret",
+    "gateway_secret",
+  ]);
+
+  const memoryProviderApiKey = readStringDeep(memory?.email || null, [
+    "provider_api_key",
+    "api_key",
+    "apiKey",
+  ]);
+
+  const fallbackCompanyName = getEnv("PIERRE_DEFAULT_COMPANY_NAME");
+  const fallbackSenderName = getEnv("PIERRE_DEFAULT_SENDER_NAME") || "Pierre";
+  const fallbackSenderEmail = getEnv("PIERRE_DEFAULT_SENDER_EMAIL");
+  const fallbackSendingDomain = getEnv("PIERRE_DEFAULT_SENDING_DOMAIN");
+  const fallbackProviderMode = getEnv("PIERRE_EMAIL_PROVIDER_MODE") || "gateway";
+  const fallbackProviderUrl = getEnv("PIERRE_EMAIL_GATEWAY_URL");
+  const fallbackProviderSecret = getEnv("PIERRE_EMAIL_GATEWAY_SECRET");
+  const fallbackProviderApiKey = getEnv("PIERRE_EMAIL_PROVIDER_API_KEY");
+
+  const sendingDomain =
+    payloadSendingDomain ||
+    memorySendingDomain ||
+    fallbackSendingDomain ||
+    null;
+
+  let senderEmail =
+    payloadSenderEmail ||
+    memorySenderEmail ||
+    fallbackSenderEmail ||
+    "";
+
+  if (!senderEmail && sendingDomain) {
+    senderEmail = buildSenderEmailFromDomain(payloadLocalPart, sendingDomain);
+  }
+
+  if (!isProbablyEmail(senderEmail)) {
+    throw new Error(
+      "Aucune adresse dâ€™envoi Pierre valide nâ€™est configurÃ©e pour cette entreprise."
+    );
+  }
+
+  const senderName =
+    payloadSenderName ||
+    memorySenderName ||
+    (memoryCompanyName ? `Pierre â€” ${memoryCompanyName}` : "") ||
+    fallbackSenderName;
+
+  const replyToRaw =
+    payloadReplyTo ||
+    memoryReplyTo ||
+    senderEmail;
+
+  const replyTo = isProbablyEmail(replyToRaw) ? replyToRaw : null;
+
+  const providerModeRaw =
+    payloadProviderMode ||
+    memoryProviderMode ||
+    fallbackProviderMode;
+
+  const providerMode =
+    providerModeRaw === "webhook" ? "webhook" : "gateway";
+
+  return {
+    sender_email: senderEmail,
+    sender_name: senderName || "Pierre",
+    reply_to: replyTo,
+    company_name:
+      payloadCompanyName ||
+      memoryCompanyName ||
+      fallbackCompanyName ||
+      null,
+    sending_domain: sendingDomain,
+    provider_mode: providerMode,
+    provider_url:
+      payloadProviderUrl ||
+      memoryProviderUrl ||
+      fallbackProviderUrl ||
+      null,
+    provider_secret:
+      payloadProviderSecret ||
+      memoryProviderSecret ||
+      fallbackProviderSecret ||
+      null,
+    provider_api_key:
+      payloadProviderApiKey ||
+      memoryProviderApiKey ||
+      fallbackProviderApiKey ||
+      null,
+  };
+}
+
+===== FILE: src/lib/pierre/guards.ts =====
+
+import {
+  PIERRE_BLOCKED_SCOPE_KEYWORDS,
+  PIERRE_VALIDATION_KEYWORDS,
+} from "./constants";
+import type { PierreCompanyMemoryLike, PierreTone } from "./types";
+
+function normalize(input: string): string {
+  return input
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+export function pierreTextIncludesAny(text: string, needles: readonly string[]): boolean {
+  const normalized = normalize(text);
+  return needles.some((needle) => normalized.includes(normalize(needle)));
+}
+
+export function pierreNeedsHumanValidation(text: string): boolean {
+  return pierreTextIncludesAny(text, PIERRE_VALIDATION_KEYWORDS);
+}
+
+export function pierreIsBlockedRequest(text: string): boolean {
+  return pierreTextIncludesAny(text, PIERRE_BLOCKED_SCOPE_KEYWORDS);
+}
+
+export function pierreResolvePreferredTone(
+  companyMemory?: PierreCompanyMemoryLike | null
+): PierreTone {
+  const tone = String(companyMemory?.tone ?? "").toLowerCase().trim();
+
+  switch (tone) {
+    case "professional":
+    case "neutral":
+    case "human":
+    case "warm":
+    case "direct":
+    case "firm":
+    case "formal":
+      return tone;
+    default:
+      return "professional";
+  }
+}
+
+===== FILE: src/lib/pierre/logs.ts =====
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { PierreTaskLogInsert } from "@/lib/pierre/types";
+
+export async function insertPierreLogs(
+  supabase: SupabaseClient,
+  rows: PierreTaskLogInsert[]
+) {
+  if (!rows.length) return;
+
+  const { error } = await supabase.from("pierre_task_logs").insert(rows);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function insertPierreMissionCreatedLog(
+  supabase: SupabaseClient,
+  input: {
+    missionId: string;
+    userId: string;
+    source: string;
+    understandingStatus: string;
+    riskLevel: string;
+    approvalRequired: boolean;
+  }
+) {
+  await insertPierreLogs(supabase, [
+    {
+      mission_id: input.missionId,
+      task_id: null,
+      user_id: input.userId,
+      agent_slug: "pierre",
+      event_type: "mission_created",
+      message: "Mission Pierre crÃ©Ã©e.",
+      meta_json: {
+        source: input.source,
+        understanding_status: input.understandingStatus,
+        risk_level: input.riskLevel,
+        approval_required: input.approvalRequired,
+      },
+    },
+  ]);
+}
+
+export async function insertPierreTaskCreatedLogs(
+  supabase: SupabaseClient,
+  input: {
+    missionId: string;
+    userId: string;
+    tasks: Array<{
+      id: string;
+      type: string;
+      title: string;
+      status: string;
+      approval_required?: boolean;
+      execute_at?: string | null;
+    }>;
+  }
+) {
+  if (!input.tasks.length) return;
+
+  await insertPierreLogs(
+    supabase,
+    input.tasks.map((task) => ({
+      mission_id: input.missionId,
+      task_id: task.id,
+      user_id: input.userId,
+      agent_slug: "pierre",
+      event_type: "task_created",
+      message: `Task crÃ©Ã©e : ${task.title}`,
+      meta_json: {
+        type: task.type,
+        status: task.status,
+        approval_required: Boolean(task.approval_required),
+        execute_at: task.execute_at || null,
+      },
+    }))
+  );
+}
+
+export async function insertPierreTaskStatusLog(
+  supabase: SupabaseClient,
+  input: {
+    missionId: string | null;
+    taskId: string;
+    userId: string;
+    eventType: string;
+    message: string;
+    meta?: Record<string, unknown>;
+  }
+) {
+  await insertPierreLogs(supabase, [
+    {
+      mission_id: input.missionId,
+      task_id: input.taskId,
+      user_id: input.userId,
+      agent_slug: "pierre",
+      event_type: input.eventType,
+      message: input.message,
+      meta_json: input.meta || {},
+    },
+  ]);
+}
+
+===== FILE: src/lib/pierre/memory.ts =====
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import { safeString } from "@/lib/pierre/utils";
+
+export type PierreCompanyMemoryRow = {
+  id?: string;
+  user_id: string;
+  agent_slug: "pierre";
+  memory_json: Record<string, unknown>;
+  created_at?: string;
+  updated_at?: string;
+};
+
+type GenericRecord = Record<string, unknown>;
+
+function isPlainObject(value: unknown): value is GenericRecord {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function sanitizeString(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return trimmed.length > 5000 ? trimmed.slice(0, 5000) : trimmed;
+}
+
+function sanitizeArray(input: unknown[], depth: number): unknown[] {
+  return input
+    .slice(0, 100)
+    .map((item) => sanitizePierreMemoryValue(item, depth + 1))
+    .filter((item) => item !== undefined);
+}
+
+function sanitizeObject(input: GenericRecord, depth: number): GenericRecord {
+  const output: GenericRecord = {};
+
+  for (const [key, value] of Object.entries(input).slice(0, 200)) {
+    const cleanKey = safeString(key);
+    if (!cleanKey) continue;
+
+    const cleanValue = sanitizePierreMemoryValue(value, depth + 1);
+
+    if (cleanValue !== undefined) {
+      output[cleanKey] = cleanValue;
+    }
+  }
+
+  return output;
+}
+
+export function sanitizePierreMemoryValue(
+  value: unknown,
+  depth = 0
+): unknown {
+  if (depth > 8) return undefined;
+
+  if (value === null) return null;
+
+  if (typeof value === "string") {
+    const clean = sanitizeString(value);
+    return clean || "";
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : undefined;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return sanitizeArray(value, depth);
+  }
+
+  if (isPlainObject(value)) {
+    return sanitizeObject(value, depth);
+  }
+
+  return undefined;
+}
+
+export function sanitizePierreMemoryPatch(
+  patch: Record<string, unknown>
+): Record<string, unknown> {
+  return sanitizeObject(patch, 0);
+}
+
+export function deepMergePierreMemory(
+  base: Record<string, unknown>,
+  patch: Record<string, unknown>
+): Record<string, unknown> {
+  const output: Record<string, unknown> = { ...base };
+
+  for (const [key, patchValue] of Object.entries(patch)) {
+    const baseValue = output[key];
+
+    if (isPlainObject(baseValue) && isPlainObject(patchValue)) {
+      output[key] = deepMergePierreMemory(baseValue, patchValue);
+      continue;
+    }
+
+    output[key] = patchValue;
+  }
+
+  return output;
+}
+
+export async function getPierreCompanyMemory(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<PierreCompanyMemoryRow | null> {
+  const { data, error } = await supabase
+    .from("pierre_company_memory")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data as PierreCompanyMemoryRow | null) || null;
+}
+
+export async function upsertPierreCompanyMemory(
+  supabase: SupabaseClient,
+  input: {
+    userId: string;
+    patch: Record<string, unknown>;
+    mode?: "merge" | "replace";
+  }
+): Promise<PierreCompanyMemoryRow> {
+  const existing = await getPierreCompanyMemory(supabase, input.userId);
+
+  const cleanPatch = sanitizePierreMemoryPatch(input.patch);
+  const mode = input.mode || "merge";
+
+  const nextMemory =
+    mode === "replace"
+      ? cleanPatch
+      : deepMergePierreMemory(existing?.memory_json || {}, cleanPatch);
+
+  if (existing?.id) {
+    const { data, error } = await supabase
+      .from("pierre_company_memory")
+      .update({
+        memory_json: nextMemory,
+      })
+      .eq("id", existing.id)
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      throw new Error(
+        error?.message || "Impossible de mettre Ã  jour la mÃ©moire entreprise Pierre."
+      );
+    }
+
+    return data as PierreCompanyMemoryRow;
+  }
+
+  const { data, error } = await supabase
+    .from("pierre_company_memory")
+    .insert({
+      user_id: input.userId,
+      agent_slug: "pierre",
+      memory_json: nextMemory,
+    })
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    throw new Error(
+      error?.message || "Impossible de crÃ©er la mÃ©moire entreprise Pierre."
+    );
+  }
+
+  return data as PierreCompanyMemoryRow;
+}
+
+export function buildPierreDefaultMemoryShape(
+  existing?: Record<string, unknown> | null
+) {
+  const base = existing || {};
+
+  return deepMergePierreMemory(
+    {
+      company_profile: {
+        company_name: "",
+        sector: "",
+        country: "France",
+        language: "fr",
+      },
+      email: {
+        sender_name: "Pierre",
+        sender_local_part: "pierre",
+        sender_email: "",
+        reply_to: "",
+        sending_domain: "",
+        provider_mode: "gateway",
+        provider_url: "",
+        provider_secret: "",
+        provider_api_key: "",
+      },
+      hr_preferences: {
+        default_tone: "professionnel",
+        signature_name: "Pierre",
+        approval_policy: "sensitive_only",
+      },
+      legal_preferences: {
+        contract_language: "fr",
+        require_human_validation_for_sensitive_actions: true,
+      },
+    },
+    base
+  );
+}
+
+===== FILE: src/lib/pierre/mission/build-tasks.ts =====
+
+import type {
+  PierreMissionClassification,
+} from "./classify";
+import type {
+  PierreMissionRiskLevel,
+} from "./risk";
+
+export type PierreMissionTaskStatus =
+  | "pending"
+  | "queued"
+  | "scheduled"
+  | "awaiting_info"
+  | "awaiting_approval"
+  | "blocked";
+
+export type PierreMissionTaskDraft = {
+  type: string;
+  title: string;
+  description: string;
+  status: PierreMissionTaskStatus;
+  approval_required: boolean;
+  risk_level: PierreMissionRiskLevel;
+  scheduled_for: string | null;
+  payload: Record<string, unknown>;
+};
+
+export type PierreBuildTasksInput = {
+  rawInput: string;
+  classification: PierreMissionClassification;
+  language: string;
+  tone: string;
+  risk_level: PierreMissionRiskLevel;
+  approval_required: boolean;
+  missing_info: string[];
+  missing_info_questions: string[];
+  refusals?: string[];
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function detectScheduling(value: string): string | null {
+  const lower = value.toLowerCase();
+  const now = new Date();
+
+  if (lower.includes("demain")) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + 1);
+    date.setHours(9, 0, 0, 0);
+    return date.toISOString();
+  }
+
+  const hourMatch = lower.match(/\b(\d{1,2})h(\d{2})?\b/);
+  if (hourMatch) {
+    const date = new Date(now);
+    const hours = Number(hourMatch[1]);
+    const minutes = hourMatch[2] ? Number(hourMatch[2]) : 0;
+
+    if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+      date.setHours(hours, minutes, 0, 0);
+      if (date.getTime() < now.getTime()) {
+        date.setDate(date.getDate() + 1);
+      }
+      return date.toISOString();
+    }
+  }
+
+  if (
+    lower.includes("plus tard aujourd'hui") ||
+    lower.includes("plus tard aujourd hui")
+  ) {
+    const date = new Date(now);
+    date.setHours(Math.max(now.getHours() + 2, 16), 0, 0, 0);
+    return date.toISOString();
+  }
+
+  return null;
+}
+
+function baseStatus(params: {
+  missingInfoCount: number;
+  approvalRequired: boolean;
+  scheduledFor: string | null;
+  blocked: boolean;
+}): PierreMissionTaskStatus {
+  if (params.blocked) return "blocked";
+  if (params.missingInfoCount > 0) return "awaiting_info";
+  if (params.approvalRequired) return "awaiting_approval";
+  if (params.scheduledFor) return "scheduled";
+  return "queued";
+}
+
+function classificationNeedsDocument(
+  classification: PierreMissionClassification,
+): boolean {
+  return [
+    "offre_emploi",
+    "convocation_entretien",
+    "refus_candidat",
+    "onboarding",
+    "note_rh",
+    "rappel_procedure",
+    "compte_rendu",
+    "courrier_rh",
+    "communication_interne_rh",
+  ].includes(classification);
+}
+
+function classificationNeedsEmail(
+  classification: PierreMissionClassification,
+): boolean {
+  return [
+    "convocation_entretien",
+    "refus_candidat",
+    "relance_candidat",
+    "onboarding",
+    "communication_interne_rh",
+  ].includes(classification);
+}
+
+function classificationCanGeneratePdf(
+  classification: PierreMissionClassification,
+): boolean {
+  return [
+    "offre_emploi",
+    "convocation_entretien",
+    "refus_candidat",
+    "onboarding",
+    "note_rh",
+    "courrier_rh",
+    "compte_rendu",
+  ].includes(classification);
+}
+
+function buildDocumentTitle(
+  classification: PierreMissionClassification,
+): string {
+  switch (classification) {
+    case "offre_emploi":
+      return "Produire lâ€™offre dâ€™emploi";
+    case "convocation_entretien":
+      return "RÃ©diger la convocation dâ€™entretien";
+    case "refus_candidat":
+      return "RÃ©diger le refus candidat";
+    case "onboarding":
+      return "PrÃ©parer le document dâ€™onboarding";
+    case "note_rh":
+      return "RÃ©diger la note RH";
+    case "rappel_procedure":
+      return "RÃ©diger le rappel de procÃ©dure";
+    case "compte_rendu":
+      return "RÃ©diger le compte rendu";
+    case "courrier_rh":
+      return "RÃ©diger le courrier RH";
+    case "communication_interne_rh":
+      return "RÃ©diger la communication RH interne";
+    default:
+      return "Produire le document RH";
+  }
+}
+
+function buildDocumentDescription(
+  classification: PierreMissionClassification,
+): string {
+  switch (classification) {
+    case "offre_emploi":
+      return "CrÃ©er une offre dâ€™emploi claire, crÃ©dible, structurÃ©e et alignÃ©e avec le ton de lâ€™entreprise.";
+    case "convocation_entretien":
+      return "RÃ©diger une convocation dâ€™entretien propre, lisible, prÃ©cise et professionnelle.";
+    case "refus_candidat":
+      return "RÃ©diger un refus candidat respectueux, humain et traÃ§able.";
+    case "onboarding":
+      return "PrÃ©parer un document dâ€™intÃ©gration clair, opÃ©rationnel et rassurant.";
+    case "note_rh":
+      return "Structurer une note RH propre et facilement diffusable.";
+    case "rappel_procedure":
+      return "RÃ©diger un rappel de procÃ©dure clair, ferme si nÃ©cessaire, et comprÃ©hensible.";
+    case "compte_rendu":
+      return "Formaliser un compte rendu RH exploitable, propre et traÃ§able.";
+    case "courrier_rh":
+      return "RÃ©diger un courrier RH formel, cohÃ©rent et maÃ®trisÃ©.";
+    case "communication_interne_rh":
+      return "PrÃ©parer une communication interne RH claire et bien cadrÃ©e.";
+    default:
+      return "Produire un livrable RH premium Ã  partir de la mission libre.";
+  }
+}
+
+function buildEmailTitle(
+  classification: PierreMissionClassification,
+): string {
+  switch (classification) {
+    case "convocation_entretien":
+      return "PrÃ©parer lâ€™email de convocation";
+    case "refus_candidat":
+      return "PrÃ©parer lâ€™email de refus";
+    case "relance_candidat":
+      return "PrÃ©parer lâ€™email de relance";
+    case "onboarding":
+      return "PrÃ©parer lâ€™email dâ€™onboarding";
+    case "communication_interne_rh":
+      return "PrÃ©parer lâ€™email de communication interne";
+    default:
+      return "PrÃ©parer lâ€™email RH";
+  }
+}
+
+function buildEmailDescription(
+  classification: PierreMissionClassification,
+): string {
+  switch (classification) {
+    case "convocation_entretien":
+      return "PrÃ©parer un email clair de convocation dâ€™entretien avec les informations pratiques nÃ©cessaires.";
+    case "refus_candidat":
+      return "PrÃ©parer un email de refus candidat propre, respectueux et cohÃ©rent avec lâ€™image de lâ€™entreprise.";
+    case "relance_candidat":
+      return "PrÃ©parer un email de relance RH clair, poli et actionnable.";
+    case "onboarding":
+      return "PrÃ©parer un email dâ€™intÃ©gration structurÃ© et rassurant.";
+    case "communication_interne_rh":
+      return "PrÃ©parer un email interne RH lisible et directement diffusable.";
+    default:
+      return "PrÃ©parer un email RH traÃ§able, cohÃ©rent et contrÃ´lable.";
+  }
+}
+
+export function buildMissionTasks(
+  input: PierreBuildTasksInput,
+): PierreMissionTaskDraft[] {
+  const lower = normalizeText(input.rawInput);
+  const scheduledFor = detectScheduling(input.rawInput);
+  const refusals = input.refusals || [];
+
+  const tasks: PierreMissionTaskDraft[] = [];
+
+  const blockedByRefusal = refusals.length > 0;
+  const commonStatus = baseStatus({
+    missingInfoCount: input.missing_info.length,
+    approvalRequired: input.approval_required,
+    scheduledFor,
+    blocked: blockedByRefusal,
+  });
+
+  if (classificationNeedsDocument(input.classification)) {
+    tasks.push({
+      type: "generate_document",
+      title: buildDocumentTitle(input.classification),
+      description: buildDocumentDescription(input.classification),
+      status: commonStatus,
+      approval_required: input.approval_required,
+      risk_level: input.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        classification: input.classification,
+        language: input.language,
+        tone: input.tone,
+      },
+    });
+  }
+
+  if (
+    classificationNeedsEmail(input.classification) ||
+    lower.includes("email") ||
+    lower.includes("mail") ||
+    lower.includes("envoyer") ||
+    lower.includes("send")
+  ) {
+    tasks.push({
+      type: "prepare_email",
+      title: buildEmailTitle(input.classification),
+      description: buildEmailDescription(input.classification),
+      status: commonStatus === "queued" && scheduledFor ? "scheduled" : commonStatus,
+      approval_required: input.approval_required,
+      risk_level: input.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        classification: input.classification,
+        language: input.language,
+        tone: input.tone,
+        scheduled_for: scheduledFor,
+      },
+    });
+  }
+
+  if (
+    classificationCanGeneratePdf(input.classification) ||
+    lower.includes("pdf") ||
+    lower.includes("export") ||
+    lower.includes("piece jointe") ||
+    lower.includes("piÃ¨ce jointe")
+  ) {
+    tasks.push({
+      type: "generate_pdf",
+      title: "PrÃ©parer lâ€™export PDF",
+      description:
+        "GÃ©nÃ©rer un PDF propre Ã  partir du livrable RH final ou dâ€™un document joint Ã  une communication.",
+      status: commonStatus,
+      approval_required: input.approval_required,
+      risk_level: input.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+      },
+    });
+  }
+
+  if (
+    lower.includes("relance") ||
+    lower.includes("si pas de reponse") ||
+    lower.includes("si pas de rÃ©ponse")
+  ) {
+    tasks.push({
+      type: "schedule_follow_up",
+      title: "PrÃ©parer la relance RH",
+      description:
+        "Programmer une relance propre, traÃ§able et contrÃ´lÃ©e si aucune rÃ©ponse nâ€™est obtenue.",
+      status:
+        blockedByRefusal
+          ? "blocked"
+          : input.missing_info.length > 0
+            ? "awaiting_info"
+            : "scheduled",
+      approval_required: true,
+      risk_level: input.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        conditional: true,
+      },
+    });
+  }
+
+  if (input.missing_info.length > 0) {
+    tasks.push({
+      type: "request_missing_info",
+      title: "Demander les informations manquantes",
+      description:
+        "Suspendre lâ€™exÃ©cution complÃ¨te tant que les informations essentielles Ã  une action RH propre et sÃ»re ne sont pas rÃ©unies.",
+      status: "awaiting_info",
+      approval_required: false,
+      risk_level: input.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        missing_info: input.missing_info,
+        questions: input.missing_info_questions,
+      },
+    });
+  }
+
+  if (refusals.length > 0) {
+    tasks.push({
+      type: "block_mission",
+      title: "Bloquer la mission",
+      description:
+        "EmpÃªcher lâ€™exÃ©cution tant que la demande reste hors pÃ©rimÃ¨tre ou incompatible avec les rÃ¨gles de sÃ©curitÃ© RH de Pierre.",
+      status: "blocked",
+      approval_required: true,
+      risk_level: input.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        refusals,
+      },
+    });
+  }
+
+  if (tasks.length === 0) {
+    tasks.push({
+      type: "structure_mission",
+      title: "Structurer la mission RH",
+      description:
+        "CrÃ©er un cadre dâ€™exÃ©cution RH exploitable Ã  partir de la demande libre.",
+      status: commonStatus,
+      approval_required: input.approval_required,
+      risk_level: input.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        classification: input.classification,
+      },
+    });
+  }
+
+  return tasks;
+}
+
+

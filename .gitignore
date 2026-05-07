@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local checkpoints
+_checkpoint-build-ok-*
+_checkpoint-build-ok-*.zip
+_backups_ts/
+

@@ -1,157 +1,422 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Suspense, useMemo, useState, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  CheckCircle2,
+  CreditCard,
+  Loader2,
+  LockKeyhole,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
 
-type CheckoutSuccess = { url: string };
-type CheckoutFailure = { error: string };
-type CheckoutResponse = CheckoutSuccess | CheckoutFailure;
+import { LiquidGlass } from "@/components/ui/LiquidGlass";
+import { cn } from "@/lib/utils";
 
-const ALLOWED_AGENTS = ["pierre", "clara", "alex", "emma", "noah"] as const;
-type AgentSlug = (typeof ALLOWED_AGENTS)[number];
+type CheckoutAgent = {
+  slug: string;
+  name: string;
+  role: string;
+  price?: string;
+  available: boolean;
+  pageHref: string;
+  description: string;
+  bullets: string[];
+};
 
-function isAllowedAgent(value: string): value is AgentSlug {
-  return (ALLOWED_AGENTS as readonly string[]).includes(value);
+const AGENTS: Record<string, CheckoutAgent> = {
+  pierre: {
+    slug: "pierre",
+    name: "Pierre",
+    role: "Poste RH opÃ©rationnel automatisÃ©",
+    price: "449â‚¬/mois",
+    available: true,
+    pageHref: "/agents/pierre",
+    description:
+      "Pierre automatise une large part du travail RH opÃ©rationnel : missions, documents, emails, relances, validations et traÃ§abilitÃ©.",
+    bullets: [
+      "Mission RH libre",
+      "Documents, emails et PDF",
+      "Relances et continuitÃ©",
+      "Validation humaine sur le sensible",
+    ],
+  },
+  clara: {
+    slug: "clara",
+    name: "Clara",
+    role: "Recrutement automatisÃ©",
+    available: false,
+    pageHref: "/agents/clara",
+    description:
+      "Clara structurera les candidatures, les shortlists, les suivis et la coordination recrutement.",
+    bullets: ["BientÃ´t disponible"],
+  },
+  emma: {
+    slug: "emma",
+    name: "Emma",
+    role: "Support & communication",
+    available: false,
+    pageHref: "/agents/emma",
+    description:
+      "Emma prendra en charge les rÃ©ponses, le suivi client, la continuitÃ© relationnelle et les escalades.",
+    bullets: ["BientÃ´t disponible"],
+  },
+  adrien: {
+    slug: "adrien",
+    name: "Adrien",
+    role: "Commandes & opÃ©rations",
+    available: false,
+    pageHref: "/agents/adrien",
+    description:
+      "Adrien suivra les commandes, les opÃ©rations, les prioritÃ©s et les points bloquants.",
+    bullets: ["BientÃ´t disponible"],
+  },
+};
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn("clone-liquid-button", primary && "clone-liquid-button--dark")}
+    >
+      <span>{label}</span>
+      {icon}
+    </Link>
+  );
 }
 
-export default function CheckoutPage() {
+function GlassInfoCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: ReactNode;
+}) {
+  return (
+    <LiquidGlass
+      variant="clear"
+      intensity="soft"
+      interactive
+      className="h-full rounded-[2rem] p-5"
+    >
+      <div className="flex h-full flex-col gap-3">
+        <div className="flex items-center gap-2 text-[#6f83ff]">
+          {icon}
+          <p className="text-sm font-semibold text-[var(--cs-ink-1)]">{title}</p>
+        </div>
+        <p className="text-sm leading-6 text-[var(--cs-ink-3)]">{text}</p>
+      </div>
+    </LiquidGlass>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="grid gap-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#6f83ff]" />
+          <span className="text-sm leading-6 text-[var(--cs-ink-3)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function CheckoutFallback() {
+  return (
+    <main className="cs-page">
+      <div className="cs-page-shell">
+        <LiquidGlass
+          variant="panel"
+          intensity="strong"
+          refractive
+          className="grid min-h-[520px] place-items-center rounded-[2.4rem] p-8"
+        >
+          <div className="flex items-center gap-3 text-sm font-semibold text-[var(--cs-ink-3)]">
+            <Loader2 className="h-4 w-4 animate-spin text-[#6f83ff]" />
+            Chargement du checkoutâ€¦
+          </div>
+        </LiquidGlass>
+      </div>
+    </main>
+  );
+}
+
+function CheckoutContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const agent = useMemo(() => {
-    const raw = (searchParams.get("agent") || "pierre").toLowerCase().trim();
-    return raw;
-  }, [searchParams]);
+  const agentSlug = searchParams.get("agent")?.toLowerCase() || "pierre";
+  const agent = useMemo(() => AGENTS[agentSlug] ?? AGENTS.pierre, [agentSlug]);
 
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  async function handleCheckout() {
+    if (!agent.available || isLoading) return;
 
-  useEffect(() => {
-    if (!isAllowedAgent(agent)) {
-      setErr("Agent invalide.");
-      return;
-    }
-
-    setErr(null);
-  }, [agent]);
-
-  async function goCheckout() {
-    if (!isAllowedAgent(agent)) {
-      setErr("Agent invalide.");
-      return;
-    }
-
-    setErr(null);
-    setLoading(true);
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const browserClient = supabaseBrowser();
-
-      if (!browserClient) {
-        setLoading(false);
-        setErr("Supabase navigateur non configuré.");
-        return;
-      }
-
-      const { data: sessionRes, error: sessionErr } =
-        await browserClient.auth.getSession();
-
-      if (sessionErr) {
-        setLoading(false);
-        setErr(sessionErr.message);
-        return;
-      }
-
-      const user = sessionRes.session?.user;
-
-      if (!user) {
-        setLoading(false);
-        const next = encodeURIComponent(`/checkout?agent=${agent}`);
-        router.push(`/login?next=${next}`);
-        return;
-      }
-
-      const res = await fetch("/api/checkout", {
+      const response = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: user.id,
-          agent_slug: agent,
+          agent_slug: agent.slug,
         }),
       });
 
-      const data = (await res.json().catch(() => ({}))) as Partial<CheckoutResponse>;
+      const data = await response.json().catch(() => null);
 
-      if (!res.ok) {
-        setLoading(false);
-        setErr((data as CheckoutFailure)?.error || "Checkout impossible.");
-        return;
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            data?.message ||
+            "Impossible de dÃ©marrer le paiement pour le moment."
+        );
       }
 
-      const url = (data as CheckoutSuccess)?.url;
+      const checkoutUrl = data?.url || data?.checkout_url || data?.sessionUrl || null;
 
-      if (!url) {
-        setLoading(false);
-        setErr("Checkout impossible (url manquante).");
-        return;
+      if (!checkoutUrl) {
+        throw new Error("Aucune URL de paiement nâ€™a Ã©tÃ© renvoyÃ©e.");
       }
 
-      window.location.assign(url);
-    } catch (e: unknown) {
-      setLoading(false);
-      setErr(e instanceof Error ? e.message : "Erreur checkout.");
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible de dÃ©marrer le paiement pour le moment."
+      );
+      setIsLoading(false);
     }
   }
 
   return (
-    <main className="mx-auto max-w-xl space-y-6 px-4 py-12">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold">Paiement</h1>
-        <p className="text-sm text-muted-foreground">
-          Agent sélectionné : <strong>{agent}</strong>
-        </p>
-      </header>
+    <main className="cs-page">
+      <div className="cs-page-shell">
+        <section className="grid min-h-[calc(100vh-170px)] items-center gap-6">
+          <LiquidGlass
+            variant="panel"
+            intensity="strong"
+            refractive
+            className="overflow-hidden rounded-[2.6rem] p-6 md:p-8 xl:p-10"
+          >
+            <div className="grid gap-8 xl:grid-cols-[1fr_430px] xl:items-center">
+              <div className="space-y-7">
+                <div className="flex flex-wrap gap-2">
+                  <span className="cs-pill">
+                    <CreditCard className="h-3.5 w-3.5 text-[#6f83ff]" />
+                    Paiement CloneStore
+                  </span>
+                  <span className="cs-pill">
+                    <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                    SÃ©curisÃ©, clair, premium
+                  </span>
+                </div>
 
-      {err && (
-        <div className="rounded-xl border p-4">
-          <p className="text-sm text-red-600">{err}</p>
-        </div>
-      )}
+                <div className="max-w-4xl space-y-5">
+                  <h1 className="cs-heading text-[clamp(2.4rem,5vw,5.7rem)] leading-[0.94] tracking-[-0.065em]">
+                    Activer{" "}
+                    <span className="bg-[linear-gradient(135deg,#151922_0%,#2d3446_46%,#667cff_100%)] bg-clip-text text-transparent">
+                      {agent.name}
+                    </span>
+                    .
+                  </h1>
 
-      <div className="space-y-3">
-        <Button onClick={goCheckout} disabled={loading || !!err} className="w-full">
-          {loading ? "Redirection vers Stripe…" : "Continuer vers Stripe"}
-        </Button>
+                  <p className="max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
+                    Confirmez lâ€™employÃ© IA Ã  intÃ©grer dans votre entreprise, puis
+                    continuez vers le paiement sÃ©curisÃ©.
+                  </p>
+                </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={() => router.push(`/agents/${agent}`)}
-          disabled={loading}
-        >
-          Revenir à la fiche agent
-        </Button>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <GlassInfoCard
+                    title="EmployÃ© IA"
+                    text="Vous activez un poste automatisÃ©, pas une simple fonctionnalitÃ©."
+                    icon={<BriefcaseBusiness className="h-4 w-4" />}
+                  />
+                  <GlassInfoCard
+                    title="AccÃ¨s privÃ©"
+                    text="AprÃ¨s validation, lâ€™accÃ¨s continue vers votre espace CloneStore."
+                    icon={<LockKeyhole className="h-4 w-4" />}
+                  />
+                  <GlassInfoCard
+                    title="Suite guidÃ©e"
+                    text="Configuration, cockpit et aide restent accessibles aprÃ¨s paiement."
+                    icon={<Waypoints className="h-4 w-4" />}
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <ActionButton
+                    href={agent.pageHref}
+                    label={`Voir ${agent.name}`}
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/agents"
+                    label="Retour boutique"
+                    icon={<Sparkles className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/assistant"
+                    label="Demander Ã  CloneStore"
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+
+              <LiquidGlass
+                variant="clear"
+                intensity="strong"
+                refractive
+                className="rounded-[2.35rem] p-5 md:p-6"
+              >
+                <div className="space-y-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="cs-eyebrow">RÃ©sumÃ©</p>
+                      <h2 className="mt-3 text-3xl font-semibold tracking-[-0.06em] text-[var(--cs-ink-1)]">
+                        {agent.name}
+                      </h2>
+                      <p className="mt-2 text-sm font-medium leading-6 text-[var(--cs-ink-3)]">
+                        {agent.role}
+                      </p>
+                    </div>
+
+                    <span
+                      className={cn(
+                        "cs-status",
+                        agent.available ? "cs-status--success" : "cs-status--warn"
+                      )}
+                    >
+                      {agent.available ? "Disponible" : "Ã€ venir"}
+                    </span>
+                  </div>
+
+                  <div className="h-px w-full bg-[linear-gradient(90deg,transparent,rgba(21,25,34,0.18),transparent)]" />
+
+                  <p className="text-sm leading-7 text-[var(--cs-ink-3)]">
+                    {agent.description}
+                  </p>
+
+                  <LiquidGlass
+                    variant="clear"
+                    intensity="soft"
+                    className="rounded-[1.8rem] p-5"
+                  >
+                    <div className="space-y-3">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--cs-ink-4)]">
+                        Tarif
+                      </p>
+
+                      {agent.price ? (
+                        <div className="flex flex-wrap items-end gap-2">
+                          <span className="text-4xl font-semibold tracking-[-0.06em] text-[var(--cs-ink-1)]">
+                            {agent.price}
+                          </span>
+                          <span className="pb-1 text-xs font-medium text-[var(--cs-ink-4)]">
+                            prix fondateur
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="text-sm font-medium text-[var(--cs-ink-3)]">
+                          Tarif Ã  venir.
+                        </p>
+                      )}
+                    </div>
+                  </LiquidGlass>
+
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                      Inclus
+                    </p>
+                    <BulletList items={agent.bullets} />
+                  </div>
+
+                  {error ? (
+                    <LiquidGlass
+                      variant="clear"
+                      intensity="soft"
+                      className="rounded-[1.5rem] border border-[rgba(184,74,74,0.22)] p-4"
+                    >
+                      <p className="text-sm leading-6 text-[var(--cs-danger)]">{error}</p>
+                    </LiquidGlass>
+                  ) : null}
+
+                  {agent.available ? (
+                    <button
+                      type="button"
+                      onClick={handleCheckout}
+                      disabled={isLoading}
+                      className={cn(
+                        "clone-liquid-button clone-liquid-button--dark min-h-12 w-full",
+                        isLoading && "pointer-events-none opacity-75"
+                      )}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Redirectionâ€¦</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Continuer vers le paiement</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <div className="grid gap-3">
+                      <ActionButton
+                        href="/checkout?agent=pierre"
+                        label="Commencer avec Pierre"
+                        primary
+                        icon={<ArrowRight className="h-4 w-4" />}
+                      />
+                      <ActionButton
+                        href="/assistant"
+                        label="Demander conseil"
+                        icon={<Bot className="h-4 w-4" />}
+                      />
+                    </div>
+                  )}
+                </div>
+              </LiquidGlass>
+            </div>
+          </LiquidGlass>
+        </section>
       </div>
-
-      <p className="text-xs text-muted-foreground">
-        Si tu as déjà payé et que l’agent ne s’active pas, le problème vient du webhook Stripe
-        (activation côté serveur).
-      </p>
     </main>
   );
 }
 
-
-
-
-
-
-
-
-
-
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<CheckoutFallback />}>
+      <CheckoutContent />
+    </Suspense>
+  );
+}

@@ -1,0 +1,2365 @@
+﻿
+
+
+============================================================
+FILE: package.json
+============================================================
+
+{
+  "name": "clonestore",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.76.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dotenv": "^17.2.3",
+    "framer-motion": "^12.35.2",
+    "lucide-react": "^0.546.0",
+    "next": "15.5.9",
+    "openai": "^6.22.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "stripe": "^20.0.0",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.6",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "tailwindcss": "^4",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^5",
+    "typescript-eslint": "^8.52.0",
+    "vitest": "^4.1.0"
+  }
+}
+
+
+
+============================================================
+FILE: tsconfig.json
+============================================================
+
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "global.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}
+
+
+============================================================
+FILE: next.config.ts
+============================================================
+
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+
+============================================================
+FILE: eslint.config.mjs
+============================================================
+
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import reactHooks from "eslint-plugin-react-hooks";
+import next from "@next/eslint-plugin-next";
+
+export default [
+  { ignores: [".next/**", "node_modules/**", "dist/**", "out/**"] },
+
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+
+  {
+    files: ["**/*.{js,jsx,ts,tsx}"],
+    plugins: {
+      "react-hooks": reactHooks,
+      "@next/next": next,
+    },
+    rules: {
+      ...next.configs.recommended.rules,
+
+      // ✅ Hooks OK
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+
+      // ✅ STOP les blocages build
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+
+  // configs node
+  {
+    files: ["**/*.config.{js,cjs,mjs}", "next.config.{js,cjs,mjs}"],
+    rules: { "no-undef": "off" },
+  },
+];
+
+
+
+
+
+============================================================
+FILE: postcss.config.mjs
+============================================================
+
+const config = {
+  plugins: ["@tailwindcss/postcss"],
+};
+
+export default config;
+
+
+
+============================================================
+FILE: components.json
+============================================================
+
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/app/globals.css",
+    "baseColor": "zinc",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "registries": {}
+}
+
+
+
+============================================================
+FILE: global.d.ts
+============================================================
+
+declare module "*.css";
+declare module "*.scss";
+
+
+============================================================
+FILE: AGENTS.md
+============================================================
+
+# CloneStore / Pierre — Instructions projet pour Codex
+
+## Règle absolue
+Tu ne prends AUCUNE initiative produit seul.
+Tu n'inventes pas de direction.
+Tu n'élargis jamais le scope.
+Tu n'ajoutes jamais de fonctionnalités non demandées.
+
+## Comportement attendu
+- Tu exécutes uniquement la tâche demandée.
+- Tu respectes strictement l'architecture existante et les instructions données.
+- Tu ne supprimes rien sans demande explicite.
+- Tu ne renommes rien sans demande explicite.
+- Tu ne fais aucun refactor large sans demande explicite.
+- Tu ne modifies jamais plusieurs zones non liées "pour améliorer".
+- Tu ne changes jamais le style global sans demande explicite.
+- Tu ne touches jamais aux fichiers hors scope si ce n'est pas nécessaire à la compilation.
+
+## Priorité produit
+Le projet concerne CloneStore Pro et l'agent Pierre.
+Pierre est un employé IA RH premium, pas un simple outil.
+La page Use doit évoluer vers un centre de missions RH.
+La requête libre doit être pensée comme un chat de commandement :
+le client parle à Pierre comme à un employé en télétravail.
+
+## Architecture retenue
+- Pas de Make pour Pierre.
+- Pierre est piloté 100% par le code.
+- Stack principale : Next.js / React / Tailwind / shadcn / Supabase.
+- Le coeur de Pierre repose sur :
+  - missions
+  - tasks
+  - logs
+  - mémoire
+  - exécution en code
+  - email en code
+  - PDF en code
+
+## Règles de code
+- Toujours produire du code directement exploitable.
+- Toujours privilégier la version premium/finale si elle reste réaliste et stable.
+- Ne jamais livrer une version brouillonne visible client.
+- Ne jamais ajouter de panneau debug visible client.
+- Garder une UI propre, premium, cohérente CloneStore.
+- Quand un fichier doit être refait, le réécrire entièrement si demandé.
+- Ne pas simplifier en retirant des capacités utiles.
+
+## Sécurité d'exécution
+- Demander confirmation avant toute action destructive ou très large.
+- Demander confirmation avant suppression de fichiers.
+- Demander confirmation avant migration risquée.
+- Ne jamais lancer d'action hors du repo sans demande explicite.
+
+## Manière de répondre
+- Être concret.
+- Être précis.
+- Ne pas faire de longs discours.
+- Expliquer ce qui a été modifié.
+- Signaler clairement les hypothèses.
+- S'arrêter strictement au scope demandé.
+
+
+============================================================
+FILE: README.md
+============================================================
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+
+============================================================
+FILE: src\middleware.ts
+============================================================
+
+// src/middleware.ts
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({ request });
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anon) return response;
+
+  const supabase = createServerClient(url, anon, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet: any[]) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
+      },
+    },
+  });
+
+  // refresh session if needed
+  await supabase.auth.getUser();
+
+  return response;
+}
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};
+
+
+============================================================
+FILE: src\app\layout.tsx
+============================================================
+
+import "./globals.css";
+import type { Metadata } from "next";
+import Link from "next/link";
+import SiteHeader from "../components/site/site-header";
+
+export const metadata: Metadata = {
+  title: "CloneStore",
+  description: "CloneStore — gagner du temps et de l'argent.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+const ORG_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "CloneStore",
+  url: "https://clonestore.pro",
+  logo: "https://clonestore.pro/icon-512.png",
+  description: "CloneStore aide les entreprises à gagner du temps et de l'argent.",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="fr" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
+        />
+      </head>
+
+      <body>
+        <div className="cs-backdrop" aria-hidden="true">
+          <div className="cs-backdrop__halo cs-backdrop__halo--a" />
+          <div className="cs-backdrop__halo cs-backdrop__halo--b" />
+          <div className="cs-backdrop__halo cs-backdrop__halo--c" />
+          <div className="cs-backdrop__arc" />
+          <div className="cs-backdrop__film" />
+        </div>
+
+        <div className="cs-vignette" aria-hidden="true" />
+
+        <SiteHeader />
+
+        <div className="cs-main">{children}</div>
+
+        <footer className="cs-footer">
+          <div className="cs-shell">
+            <div className="flex flex-col gap-3 py-6 text-sm text-[var(--cs-ink-3)] md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-3">
+                <span className="cs-mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 56" className="h-[38px] w-[16px]" fill="none">
+                    <rect
+                      x="3"
+                      y="3"
+                      width="18"
+                      height="50"
+                      rx="9"
+                      stroke="url(#footerMarkGradient)"
+                      strokeWidth="3.5"
+                    />
+                    <defs>
+                      <linearGradient id="footerMarkGradient" x1="3" y1="3" x2="21" y2="53">
+                        <stop stopColor="color-mix(in srgb, var(--cs-violet) 84%, white 16%)" />
+                        <stop
+                          offset="1"
+                          stopColor="color-mix(in srgb, var(--cs-violet-2) 88%, white 12%)"
+                        />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </span>
+
+                <p>
+                  © {new Date().getFullYear()} CloneStore — gagner du temps et de l&apos;argent.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-5">
+                <Link href="/legal/confidentialite" className="hover:text-[var(--cs-ink-1)]">
+                  Confidentialité
+                </Link>
+                <Link href="/questions" className="hover:text-[var(--cs-ink-1)]">
+                  Support
+                </Link>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </body>
+    </html>
+  );
+}
+
+
+============================================================
+FILE: src\app\globals.css
+============================================================
+
+@import "tailwindcss";
+
+:root {
+  --cs-bg: #f6f3ee;
+  --cs-bg-2: #f0ebe3;
+  --cs-bg-3: #ebe4da;
+
+  --cs-surface: rgba(255, 255, 255, 0.58);
+  --cs-surface-strong: rgba(255, 255, 255, 0.74);
+  --cs-surface-soft: rgba(255, 255, 255, 0.42);
+  --cs-surface-white: rgba(255, 255, 255, 0.88);
+
+  --cs-line: rgba(28, 32, 42, 0.10);
+  --cs-line-soft: rgba(28, 32, 42, 0.07);
+  --cs-line-strong: rgba(28, 32, 42, 0.14);
+
+  --cs-ink-1: #171b23;
+  --cs-ink-2: #2d3441;
+  --cs-ink-3: #5e6878;
+  --cs-ink-4: #8d97a8;
+
+  --cs-violet: #6f63f6;
+  --cs-violet-2: #8b7cff;
+  --cs-violet-3: #a89eff;
+  --cs-violet-soft: rgba(111, 99, 246, 0.12);
+
+  --cs-account-accent: #6f63f6;
+  --cs-accent-blue: #6f8cff;
+  --cs-info: #4169e1;
+
+  --cs-success: #16815e;
+  --cs-success-bg: rgba(22, 129, 94, 0.10);
+
+  --cs-warn: #a86a18;
+  --cs-warn-bg: rgba(168, 106, 24, 0.10);
+
+  --cs-danger: #bb4c4c;
+  --cs-danger-bg: rgba(187, 76, 76, 0.10);
+
+  --cs-radius-2xl: 2rem;
+  --cs-radius-xl: 1.75rem;
+  --cs-radius-lg: 1.25rem;
+  --cs-radius-md: 1rem;
+  --cs-radius-sm: 0.875rem;
+  --cs-radius-pill: 999px;
+
+  --cs-shadow-soft: 0 10px 28px rgba(18, 24, 36, 0.05);
+  --cs-shadow-panel: 0 22px 60px rgba(18, 24, 36, 0.07);
+  --cs-shadow-float: 0 28px 80px rgba(18, 24, 36, 0.10);
+  --cs-shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+
+  --cs-speed-fast: 180ms;
+  --cs-speed-slow: 420ms;
+  --cs-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --cs-ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--cs-ink-1);
+  background:
+    radial-gradient(1000px 560px at 10% 10%, rgba(111, 99, 246, 0.08), transparent 62%),
+    radial-gradient(860px 500px at 88% 8%, rgba(138, 124, 255, 0.06), transparent 64%),
+    radial-gradient(640px 360px at 50% 100%, rgba(255, 255, 255, 0.42), transparent 72%),
+    linear-gradient(180deg, #faf8f4 0%, #f4f0e9 52%, #efe9df 100%);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(111, 99, 246, 0.16);
+  color: var(--cs-ink-1);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+/* ---------- Layout roots ---------- */
+
+.cs-main {
+  position: relative;
+  z-index: 2;
+  min-height: calc(100vh - 120px);
+}
+
+.cs-page {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.cs-shell,
+.cs-page-shell,
+.cs-shell-narrow {
+  width: min(100%, 1480px);
+  margin-inline: auto;
+  padding-inline: 28px;
+}
+
+.cs-page-shell {
+  padding-top: 28px;
+  padding-bottom: 44px;
+}
+
+.cs-shell-narrow {
+  width: min(100%, 1320px);
+}
+
+@media (max-width: 1024px) {
+  .cs-shell,
+  .cs-page-shell,
+  .cs-shell-narrow {
+    padding-inline: 18px;
+  }
+
+  .cs-page-shell {
+    padding-top: 20px;
+    padding-bottom: 30px;
+  }
+}
+
+/* ---------- Background system ---------- */
+
+.cs-backdrop {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.cs-backdrop__halo {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(56px);
+  opacity: 0.52;
+  animation: csFloat 18s ease-in-out infinite;
+}
+
+.cs-backdrop__halo--a {
+  width: 560px;
+  height: 560px;
+  left: -140px;
+  top: 70px;
+  background: rgba(111, 99, 246, 0.10);
+}
+
+.cs-backdrop__halo--b {
+  width: 520px;
+  height: 520px;
+  right: -110px;
+  top: 120px;
+  background: rgba(138, 124, 255, 0.08);
+  animation-delay: -6s;
+}
+
+.cs-backdrop__halo--c {
+  width: 520px;
+  height: 520px;
+  left: 34%;
+  bottom: -160px;
+  background: rgba(255, 255, 255, 0.36);
+  animation-delay: -10s;
+}
+
+.cs-backdrop__arc {
+  position: absolute;
+  inset: auto 0 6% 0;
+  height: 320px;
+  background: radial-gradient(closest-side, rgba(111, 99, 246, 0.06), transparent 72%);
+  filter: blur(12px);
+  opacity: 0.64;
+}
+
+.cs-backdrop__film {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.02)),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.20),
+      transparent 30%,
+      transparent 70%,
+      rgba(255, 255, 255, 0.16)
+    );
+  opacity: 0.28;
+}
+
+.cs-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  box-shadow: inset 0 0 140px rgba(12, 18, 28, 0.04);
+}
+
+@keyframes csFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -16px, 0) scale(1.04);
+  }
+}
+
+/* ---------- Header ---------- */
+
+.cs-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding-top: 14px;
+  padding-bottom: 10px;
+  backdrop-filter: blur(18px);
+}
+
+.cs-mark-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cs-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.cs-brand-text {
+  color: var(--cs-ink-1);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+
+.cs-nav-rail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: var(--cs-radius-pill);
+  border: 1px solid var(--cs-line-soft);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.46));
+  box-shadow: var(--cs-shadow-soft), var(--cs-shadow-inner);
+  backdrop-filter: blur(14px);
+}
+
+.cs-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding-inline: 14px;
+  border-radius: var(--cs-radius-pill);
+  color: var(--cs-ink-3);
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition:
+    background-color var(--cs-speed-fast) var(--cs-ease),
+    color var(--cs-speed-fast) var(--cs-ease),
+    transform var(--cs-speed-fast) var(--cs-ease),
+    box-shadow var(--cs-speed-fast) var(--cs-ease);
+}
+
+.cs-nav-link:hover {
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--cs-ink-1);
+}
+
+.cs-nav-link--active {
+  color: var(--cs-ink-1);
+  background: rgba(111, 99, 246, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(111, 99, 246, 0.10);
+}
+
+.cs-glass {
+  border: 1px solid var(--cs-line-soft);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.48));
+  box-shadow: var(--cs-shadow-soft), var(--cs-shadow-inner);
+  backdrop-filter: blur(14px);
+}
+
+/* ---------- Footer ---------- */
+
+.cs-footer {
+  position: relative;
+  z-index: 2;
+  margin-top: 6px;
+}
+
+/* ---------- Panels / surfaces ---------- */
+
+.cs-panel,
+.cs-card,
+.cs-command-surface {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--cs-line-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.64), rgba(255, 255, 255, 0.46));
+  box-shadow: var(--cs-shadow-panel), var(--cs-shadow-inner);
+  backdrop-filter: blur(14px);
+}
+
+.cs-panel::before,
+.cs-card::before,
+.cs-command-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.16),
+      transparent 22%,
+      transparent 78%,
+      rgba(255, 255, 255, 0.06)
+    );
+  opacity: 0.72;
+}
+
+.cs-panel,
+.cs-command-surface {
+  border-radius: var(--cs-radius-xl);
+}
+
+.cs-card {
+  border-radius: var(--cs-radius-lg);
+  padding: 20px;
+}
+
+.cs-card-tight {
+  padding: 18px;
+}
+
+.cs-command-surface {
+  padding: 28px;
+}
+
+@media (max-width: 1024px) {
+  .cs-command-surface {
+    padding: 20px;
+  }
+
+  .cs-card,
+  .cs-card-tight {
+    padding: 16px;
+  }
+}
+
+.cs-system-halo {
+  position: absolute;
+  inset: auto;
+  right: -120px;
+  top: -120px;
+  width: 360px;
+  height: 360px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(111, 99, 246, 0.14) 0%, transparent 68%);
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+.cs-hover-lift {
+  transition:
+    transform var(--cs-speed-fast) var(--cs-ease),
+    box-shadow var(--cs-speed-fast) var(--cs-ease),
+    background-color var(--cs-speed-fast) var(--cs-ease);
+}
+
+.cs-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 22px 64px rgba(15, 23, 42, 0.08),
+    var(--cs-shadow-inner);
+}
+
+/* ---------- Typography ---------- */
+
+.cs-display {
+  font-weight: 600;
+  color: var(--cs-ink-1);
+  letter-spacing: -0.068em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.cs-heading {
+  font-weight: 600;
+  color: var(--cs-ink-1);
+  letter-spacing: -0.052em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.cs-copy {
+  color: var(--cs-ink-3);
+  line-height: 1.58;
+}
+
+.cs-eyebrow {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cs-ink-4);
+  font-weight: 700;
+}
+
+.cs-gradient-text {
+  background: linear-gradient(135deg, var(--cs-violet), var(--cs-violet-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- Pills / statuses ---------- */
+
+.cs-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding-inline: 11px;
+  border-radius: var(--cs-radius-pill);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.50));
+  border: 1px solid var(--cs-line-soft);
+  box-shadow: var(--cs-shadow-soft), var(--cs-shadow-inner);
+  color: var(--cs-ink-2);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.cs-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding-inline: 9px;
+  border-radius: var(--cs-radius-pill);
+  border: 1px solid var(--cs-line-soft);
+  background: rgba(255, 255, 255, 0.52);
+  color: var(--cs-ink-3);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.cs-status--info {
+  border-color: rgba(111, 99, 246, 0.16);
+  background: rgba(111, 99, 246, 0.08);
+  color: var(--cs-violet);
+}
+
+.cs-status--success {
+  border-color: rgba(22, 129, 94, 0.18);
+  background: var(--cs-success-bg);
+  color: var(--cs-success);
+}
+
+.cs-status--warn {
+  border-color: rgba(168, 106, 24, 0.18);
+  background: var(--cs-warn-bg);
+  color: var(--cs-warn);
+}
+
+.cs-status--danger {
+  border-color: rgba(187, 76, 76, 0.18);
+  background: var(--cs-danger-bg);
+  color: var(--cs-danger);
+}
+
+/* ---------- Utilities ---------- */
+
+.shadow-soft {
+  box-shadow: var(--cs-shadow-soft);
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+
+============================================================
+FILE: src\app\loading.tsx
+============================================================
+
+export default function Loading() {
+  return (
+    <div style={{ padding: 24 }}>
+      <p>Chargement…</p>
+    </div>
+  );
+}
+
+
+
+
+============================================================
+FILE: src\app\global-error.tsx
+============================================================
+
+'use client';
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  console.error(error);
+  return (
+    <html lang="fr">
+      <body>
+        <div style={{ padding: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700 }}>Erreur globale</h1>
+          <p style={{ opacity: 0.7, marginTop: 8 }}>On recharge l’application.</p>
+          <button
+            onClick={() => reset()}
+            style={{
+              marginTop: 16,
+              padding: '8px 12px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 6,
+              cursor: 'pointer',
+            }}
+          >
+            Recharger
+          </button>
+        </div>
+      </body>
+    </html>
+  );
+}
+
+
+
+============================================================
+FILE: src\app\error.bak.tsx
+============================================================
+
+'use client';
+
+export default function ErrorPage({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  console.error(error);
+  return (
+    <div style={{ padding: 24 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700 }}>Oups — une erreur est survenue</h1>
+      <p style={{ opacity: 0.7, marginTop: 8 }}>On va relancer la page.</p>
+      <button
+        onClick={() => reset()}
+        style={{
+          marginTop: 16,
+          padding: '8px 12px',
+          border: '1px solid #e5e7eb',
+          borderRadius: 6,
+          cursor: 'pointer',
+        }}
+      >
+        Réessayer
+      </button>
+    </div>
+  );
+}
+
+
+
+============================================================
+FILE: src\components\site\site-header.tsx
+============================================================
+
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import TopbarAuthSlot from "./topbar-auth-slot";
+
+const navItems = [
+  { href: "/", label: "Accueil" },
+  { href: "/agents", label: "Boutique" },
+  { href: "/profile/agents", label: "Mes employés" },
+  { href: "/profile", label: "Mon espace" },
+  { href: "/questions", label: "Support" },
+];
+
+function Brand() {
+  return (
+    <Link href="/" className="cs-mark-wrap shrink-0">
+      <span className="cs-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 56" className="h-[54px] w-[22px]" fill="none">
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="50"
+            rx="9"
+            stroke="url(#markGradientHeader)"
+            strokeWidth="3.5"
+          />
+          <defs>
+            <linearGradient id="markGradientHeader" x1="3" y1="3" x2="21" y2="53">
+              <stop stopColor="color-mix(in srgb, var(--cs-violet) 84%, white 16%)" />
+              <stop
+                offset="1"
+                stopColor="color-mix(in srgb, var(--cs-violet-2) 88%, white 12%)"
+              />
+            </linearGradient>
+          </defs>
+        </svg>
+      </span>
+
+      <span className="cs-brand-text">CloneStore</span>
+    </Link>
+  );
+}
+
+export default function SiteHeader() {
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const currentPath = useMemo(() => pathname || "/", [pathname]);
+
+  return (
+    <header className="cs-header">
+      <div className="cs-shell">
+        <div className="cs-glass rounded-[1.65rem] px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <Brand />
+
+            <nav className="hidden xl:flex items-center justify-center flex-1">
+              <div className="cs-nav-rail">
+                {navItems.map((item) => {
+                  const active =
+                    item.href === "/"
+                      ? currentPath === "/"
+                      : currentPath === item.href || currentPath.startsWith(`${item.href}/`);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn("cs-nav-link", active && "cs-nav-link--active")}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </nav>
+
+            <div className="hidden xl:flex items-center gap-2">
+              <Link
+                href="/assistant"
+                className="inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-[var(--cs-ink-1)] cs-glass hover:opacity-95"
+              >
+                CloneChat
+              </Link>
+
+              <TopbarAuthSlot variant="desktop" />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setMobileOpen((prev) => !prev)}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--cs-line-soft)] bg-white/58 text-[var(--cs-ink-1)] shadow-[var(--cs-shadow-soft)] xl:hidden"
+              aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-expanded={mobileOpen}
+              aria-controls="site-mobile-menu"
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+
+          <div
+            id="site-mobile-menu"
+            className={cn(
+              "overflow-hidden transition-all duration-[var(--cs-speed-slow)] ease-[var(--cs-ease-premium)] xl:hidden",
+              mobileOpen ? "max-h-[80vh] pt-4 opacity-100" : "max-h-0 pt-0 opacity-0"
+            )}
+          >
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                {navItems.map((item) => {
+                  const active =
+                    item.href === "/"
+                      ? currentPath === "/"
+                      : currentPath === item.href || currentPath.startsWith(`${item.href}/`);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        "flex items-center justify-between rounded-[1.1rem] border px-4 py-3 text-sm font-semibold transition",
+                        active
+                          ? "border-[rgba(111,99,246,0.14)] bg-[rgba(111,99,246,0.08)] text-[var(--cs-ink-1)]"
+                          : "border-[var(--cs-line-soft)] bg-white/50 text-[var(--cs-ink-2)]"
+                      )}
+                    >
+                      <span>{item.label}</span>
+                      <span className="text-[var(--cs-ink-4)]">→</span>
+                    </Link>
+                  );
+                })}
+
+                <Link
+                  href="/assistant"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-between rounded-[1.1rem] border border-[var(--cs-line-soft)] bg-white/50 px-4 py-3 text-sm font-semibold text-[var(--cs-ink-2)]"
+                >
+                  <span>CloneChat</span>
+                  <span className="text-[var(--cs-ink-4)]">→</span>
+                </Link>
+              </div>
+
+              <TopbarAuthSlot variant="mobile" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+
+============================================================
+FILE: src\components\site\topbar-auth-slot.tsx
+============================================================
+
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { getSupabase } from "@/lib/supabase";
+
+type AuthState = "loading" | "guest" | "authenticated";
+
+type TopbarAuthSlotProps = {
+  variant?: "desktop" | "mobile";
+};
+
+export default function TopbarAuthSlot({
+  variant = "desktop",
+}: TopbarAuthSlotProps) {
+  const [authState, setAuthState] = useState<AuthState>("loading");
+
+  const supabase = useMemo(() => {
+    try {
+      return getSupabase();
+    } catch {
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      if (!supabase) {
+        if (mounted) setAuthState("guest");
+        return;
+      }
+
+      const { data } = await supabase.auth.getUser();
+      if (!mounted) return;
+
+      setAuthState(data.user ? "authenticated" : "guest");
+    }
+
+    void load();
+
+    if (!supabase) return;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setAuthState(session?.user ? "authenticated" : "guest");
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const isMobile = variant === "mobile";
+
+  if (authState === "loading") {
+    return (
+      <div className={isMobile ? "grid gap-2" : "flex items-center gap-2"}>
+        <div className="h-11 w-28 rounded-full cs-glass" />
+        <div className="h-11 w-32 rounded-full cs-glass" />
+      </div>
+    );
+  }
+
+  if (authState === "authenticated") {
+    return (
+      <div className={isMobile ? "grid gap-2" : "flex items-center gap-2"}>
+        <Link
+          href="/profile"
+          className="inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-[var(--cs-ink-1)] cs-glass hover:opacity-95"
+        >
+          Mon espace
+        </Link>
+
+        <Link
+          href="/profile/agents"
+          className="inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
+          style={{
+            background:
+              "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+            boxShadow: "0 12px 30px rgba(95, 92, 230, 0.22)",
+          }}
+        >
+          Mes employés
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className={isMobile ? "grid gap-2" : "flex items-center gap-2"}>
+      <Link
+        href="/login"
+        className="inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-[var(--cs-ink-1)] cs-glass hover:opacity-95"
+      >
+        Connexion
+      </Link>
+
+      <Link
+        href="/signup"
+        className="inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
+        style={{
+          background:
+            "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+          boxShadow: "0 12px 30px rgba(95, 92, 230, 0.22)",
+        }}
+      >
+        Créer un compte
+      </Link>
+    </div>
+  );
+}
+
+
+============================================================
+FILE: src\components\site\public-primitives.tsx
+============================================================
+
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { CheckCircle2 } from "lucide-react";
+
+export function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease)] border",
+        primary
+          ? "border-[color:color-mix(in_srgb,var(--cs-violet)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_30%,var(--cs-violet)))] text-white shadow-[0_18px_40px_rgba(95,92,230,0.18)] hover:-translate-y-0.5"
+          : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))] text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/92",
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+export function SectionTitle({
+  kicker,
+  title,
+  text,
+  right,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+  right?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="max-w-3xl space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+          {kicker}
+        </p>
+        <h2 className="cs-heading text-2xl md:text-4xl">{title}</h2>
+        <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+      </div>
+      {right ? <div className="shrink-0">{right}</div> : null}
+    </div>
+  );
+}
+
+export function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-violet)]"
+      : tone === "blue"
+        ? "text-[color:#4f73ff]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm leading-7 text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+export function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-violet)]" />
+          <span className="text-sm leading-7 text-[var(--cs-ink-4)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+
+============================================================
+FILE: src\components\site\clonestore-sections.ts
+============================================================
+
+export type CloneStoreSectionId =
+  | "vision"
+  | "technologies"
+  | "fonctionnement"
+  | "controle"
+  | "memoire"
+  | "securite"
+  | "deploiement";
+
+export type CloneStoreSection = {
+  id: CloneStoreSectionId;
+  label: string;
+  title: string;
+  summary: string;
+  intro: string;
+  blocks: Array<{
+    title: string;
+    text: string;
+  }>;
+};
+
+export const CLONESTORE_SECTIONS: CloneStoreSection[] = [
+  {
+    id: "vision",
+    label: "Vision",
+    title: "CloneStore est un système d’exploitation d’employés IA.",
+    summary:
+      "CloneStore ne vend pas des gadgets IA. CloneStore vend de la capacité opérationnelle, du temps rendu, de la continuité et du contrôle.",
+    intro:
+      "La logique centrale de CloneStore est simple : permettre à une entreprise de déléguer une part réelle de son travail opérationnel à des employés IA spécialisés, gouvernés et pilotables depuis une interface claire.",
+    blocks: [
+      {
+        title: "Postes automatisés",
+        text:
+          "Chaque employé CloneStore correspond à un vrai périmètre métier. L’objectif n’est pas d’ajouter un outil de plus, mais d’absorber un bloc de travail réel, durable et pilotable.",
+      },
+      {
+        title: "Temps et argent",
+        text:
+          "La promesse publique reste volontairement directe : faire gagner du temps et de l’argent grâce à une exécution plus rapide, plus disciplinée, mieux suivie et moins dépendante de la charge mentale humaine.",
+      },
+      {
+        title: "Produit entreprise",
+        text:
+          "CloneStore doit être perçu comme une infrastructure sérieuse, haut de gamme, conçue pour des usages concrets et non pour des démonstrations impressionnantes mais fragiles.",
+      },
+      {
+        title: "Différenciation",
+        text:
+          "Le produit doit se distinguer des assistants génériques par sa capacité à structurer, mémoriser, gouverner, exécuter et rendre visible le travail dans le temps.",
+      },
+      {
+        title: "Système, pas collection",
+        text:
+          "CloneStore n’est pas une liste de bots séparés. C’est un système coordonné d’employés IA reliés entre eux par une logique d’entreprise commune.",
+      },
+      {
+        title: "Vision long terme",
+        text:
+          "La cible n’est pas un simple gain marginal. La cible est une nouvelle manière pour les PME d’absorber du travail opérationnel avec plus de constance, de vitesse et de contrôle.",
+      },
+    ],
+  },
+  {
+    id: "technologies",
+    label: "Technologies",
+    title: "Un socle technologique lisible, visible et cohérent.",
+    summary:
+      "CloneStore repose sur des technologies nommées, compréhensibles, qui expliquent la puissance du système sans noyer le client.",
+    intro:
+      "Le produit doit rester simple à lire, mais la profondeur technologique doit être réelle. Les grandes briques visibles structurent la compréhension et la confiance.",
+    blocks: [
+      {
+        title: "CloneOS",
+        text:
+          "Le noyau opératoire invisible. Il transforme les demandes en missions, répartit les tâches, coordonne les employés et centralise les résultats.",
+      },
+      {
+        title: "CloneChat",
+        text:
+          "Le point d’entrée naturel. Il sert à demander, orienter, débloquer, comprendre et lancer des actions sans friction inutile.",
+      },
+      {
+        title: "CloneGuard",
+        text:
+          "La couche de gouvernance. Elle encadre les permissions, les validations, les refus, les blocages et les zones sensibles du système.",
+      },
+      {
+        title: "CloneTrace",
+        text:
+          "La couche de traçabilité. Elle rend visible ce qui a été demandé, produit, validé, bloqué, envoyé ou terminé dans le temps.",
+      },
+      {
+        title: "CloneADN",
+        text:
+          "La couche d’alignement entreprise. Elle contient le ton, les préférences, les règles, les habitudes et les éléments de comportement utiles à l’entreprise.",
+      },
+      {
+        title: "Technologies visibles",
+        text:
+          "Ces briques doivent être assez claires pour être mémorisables et assez solides pour vraiment structurer le produit. Elles ne sont pas décoratives.",
+      },
+    ],
+  },
+  {
+    id: "fonctionnement",
+    label: "Comment ça marche",
+    title: "Une demande simple, un travail structuré, un résultat pilotable.",
+    summary:
+      "Le fonctionnement de CloneStore doit sembler naturel côté client, mais extrêmement structuré côté système.",
+    intro:
+      "Le client ne doit pas sentir une machinerie compliquée. Il doit juste comprendre qu’il demande, que le système agit, et que tout reste lisible.",
+    blocks: [
+      {
+        title: "Entrée naturelle",
+        text:
+          "Le client passe par CloneChat, le cockpit ou un employé spécialisé. La demande peut être libre, simple, naturelle et non technique.",
+      },
+      {
+        title: "Transformation en mission",
+        text:
+          "CloneStore comprend la demande, la transforme en mission, découpe les actions, identifie les points sensibles et prépare l’exécution.",
+      },
+      {
+        title: "Distribution du travail",
+        text:
+          "Les tâches peuvent être attribuées au bon employé ou rester concentrées sur un seul si le besoin le justifie.",
+      },
+      {
+        title: "Exécution réelle",
+        text:
+          "Le système produit des actions concrètes : documents, emails, suivis, relances, validations, coordination et continuité.",
+      },
+      {
+        title: "Visibilité continue",
+        text:
+          "Le client doit voir ce qui a été compris, ce qui est en cours, ce qui attend une validation et ce qui est terminé.",
+      },
+      {
+        title: "Boucle de continuité",
+        text:
+          "Le travail ne doit pas disparaître après la première réponse. CloneStore doit pouvoir reprendre une mission, maintenir un suivi et conserver un historique utile.",
+      },
+    ],
+  },
+  {
+    id: "controle",
+    label: "Contrôle",
+    title: "Déléguer beaucoup, sans perdre la main.",
+    summary:
+      "CloneStore est conçu pour permettre une délégation forte tout en gardant un niveau de contrôle élevé sur les cas sensibles.",
+    intro:
+      "Le produit doit rassurer : plus d’exécution, oui, mais jamais au prix de la lisibilité ou de la gouvernance.",
+    blocks: [
+      {
+        title: "Cockpit central",
+        text:
+          "Le cockpit réunit les missions, les validations, l’historique et les accès clés. C’est le centre de pilotage du client.",
+      },
+      {
+        title: "Validations",
+        text:
+          "Les cas sensibles, ambigus ou plus risqués doivent remonter proprement. Le produit ne doit jamais donner une impression de roue libre.",
+      },
+      {
+        title: "Règles d’entreprise",
+        text:
+          "L’entreprise définit ses circuits humains, ses permissions, ses interdits et ses niveaux de validation. Le système doit les appliquer réellement.",
+      },
+      {
+        title: "Lisibilité d’action",
+        text:
+          "Le client doit toujours pouvoir comprendre pourquoi une action est passée, bloquée ou soumise à validation.",
+      },
+      {
+        title: "Autonomie cadrée",
+        text:
+          "CloneStore doit déléguer beaucoup sur le répétitif et l’opérationnel, tout en gardant l’humain sur les décisions sensibles ou engageantes.",
+      },
+      {
+        title: "Positionnement crédible",
+        text:
+          "La crédibilité vient d’une combinaison rare : puissance d’exécution, contrôle visible et refus des zones floues quand c’est nécessaire.",
+      },
+    ],
+  },
+  {
+    id: "memoire",
+    label: "Mémoire & personnalisation",
+    title: "Un système qui s’aligne sur l’entreprise.",
+    summary:
+      "CloneStore doit progressivement ressembler à la manière de travailler de l’entreprise, pas à une IA générique.",
+    intro:
+      "La personnalisation n’est pas cosmétique. Elle concerne le ton, les règles, les habitudes, les circuits de validation et la logique métier.",
+    blocks: [
+      {
+        title: "CloneADN",
+        text:
+          "CloneADN contient l’identité opérationnelle de l’entreprise : ton, style, niveaux de formalité, habitudes, formulations et comportements attendus.",
+      },
+      {
+        title: "Empreinte Entreprise",
+        text:
+          "Le setup maître structure les règles, les permissions, les valideurs, les documents de référence et les préférences d’exécution.",
+      },
+      {
+        title: "Mémoire utile",
+        text:
+          "La mémoire doit servir l’exécution : meilleure qualité de rédaction, meilleure cohérence, meilleure compréhension du contexte et des habitudes.",
+      },
+      {
+        title: "Progression",
+        text:
+          "Plus CloneStore travaille dans l’entreprise, plus il doit devenir précis, cohérent et naturel, sans cesser d’être gouverné.",
+      },
+      {
+        title: "Personnalisation réelle",
+        text:
+          "Le système doit pouvoir refléter une entreprise concrète et non un style générique plaqué partout.",
+      },
+      {
+        title: "Valeur stratégique",
+        text:
+          "Cette mémoire rend les employés IA plus utiles dans le temps. Elle transforme un usage ponctuel en continuité opérationnelle.",
+      },
+    ],
+  },
+  {
+    id: "securite",
+    label: "Sécurité & traçabilité",
+    title: "Un système puissant doit rester traçable.",
+    summary:
+      "La confiance vient de la lisibilité : savoir ce qui s’est passé, pourquoi, quand, et dans quel cadre.",
+    intro:
+      "CloneStore ne doit pas être perçu comme une boîte noire. Il doit produire une exécution claire, vérifiable et auditabile.",
+    blocks: [
+      {
+        title: "CloneTrace",
+        text:
+          "CloneTrace conserve les missions, tâches, validations, blocages, documents, emails et changements d’état dans un historique propre.",
+      },
+      {
+        title: "Isolation",
+        text:
+          "Les données, règles et actions doivent rester strictement rattachées à l’entreprise, avec des permissions et des niveaux d’accès cohérents.",
+      },
+      {
+        title: "Relecture",
+        text:
+          "Le client doit pouvoir reprendre une mission, comprendre une décision, retrouver un livrable et revoir les actions sans confusion.",
+      },
+      {
+        title: "Gouvernance",
+        text:
+          "Les couches de contrôle et de validation doivent protéger le client sans casser l’expérience utilisateur.",
+      },
+      {
+        title: "Crédibilité",
+        text:
+          "La sécurité perçue dépend aussi de la lisibilité des actions. Un système traçable paraît immédiatement plus sérieux.",
+      },
+      {
+        title: "Auditabilité",
+        text:
+          "À mesure que CloneStore grandit, la capacité à revoir le travail produit deviendra un avantage clé auprès des entreprises.",
+      },
+    ],
+  },
+  {
+    id: "deploiement",
+    label: "Déploiement & usage",
+    title: "Un produit conçu pour être réellement utilisé.",
+    summary:
+      "Le déploiement CloneStore doit être simple côté client, tout en préparant un système puissant et évolutif.",
+    intro:
+      "Le produit doit être facile à adopter, simple à comprendre et immédiatement utile, sans dépendre d’un parcours compliqué.",
+    blocks: [
+      {
+        title: "Boutique",
+        text:
+          "La boutique présente les employés IA disponibles ou en construction, avec une lecture claire de la gamme, des périmètres et de la maturité produit.",
+      },
+      {
+        title: "Mes employés",
+        text:
+          "Cette zone correspond au cockpit d’usage réel. C’est là que l’entreprise fait travailler CloneStore et retrouve ses points d’entrée concrets.",
+      },
+      {
+        title: "Mon espace",
+        text:
+          "Mon espace réunit le compte, l’empreinte, les statistiques, les abonnements, la personnalisation et les réglages globaux.",
+      },
+      {
+        title: "Activation",
+        text:
+          "Le parcours de paiement puis d’activation doit rester lisible, rassurant et cohérent avec le niveau premium attendu du produit.",
+      },
+      {
+        title: "Onboarding utile",
+        text:
+          "Le setup ne doit pas être un formulaire décoratif. Il doit rendre l’employé immédiatement plus cohérent et plus fort.",
+      },
+      {
+        title: "Adoption progressive",
+        text:
+          "CloneStore doit pouvoir commencer par un premier employé fort, puis s’étendre vers un système plus large sans perdre en lisibilité.",
+      },
+    ],
+  },
+];
+
+export function getCloneStoreSectionById(id: string) {
+  return CLONESTORE_SECTIONS.find((section) => section.id === id);
+}
+
+
+============================================================
+FILE: src\components\ui\Header.tsx
+============================================================
+
+import Link from "next/link";
+import { ArrowRight, Bot } from "lucide-react";
+import Mark from "./Mark";
+import { Button } from "./button";
+
+export default function Header() {
+  return (
+    <header className="relative z-20 w-full px-4 py-4">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 rounded-[1.8rem] border border-[var(--cs-line-soft)] bg-[linear-gradient(180deg,rgba(255,255,255,0.70),rgba(255,255,255,0.48))] px-4 py-3 shadow-[0_18px_60px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-[18px]">
+        <Link
+          href="/"
+          className="inline-flex items-center transition-opacity hover:opacity-95"
+          aria-label="Retour à l’accueil CloneStore"
+        >
+          <Mark withWordmark />
+        </Link>
+
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" className="hidden sm:inline-flex">
+            <Link href="/assistant">
+              <Bot className="h-4 w-4" />
+              CloneChat
+            </Link>
+          </Button>
+
+          <Button asChild>
+            <Link href="/agents">
+              Boutique
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+
+============================================================
+FILE: src\components\ui\button.tsx
+============================================================
+
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+
+const buttonVariants = cva(
+  [
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full",
+    "text-sm font-semibold tracking-[-0.02em] outline-none",
+    "transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+    "disabled:pointer-events-none disabled:opacity-50",
+    "focus-visible:ring-[3px] focus-visible:ring-ring/35",
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  ].join(" "),
+  {
+    variants: {
+      variant: {
+        default: [
+          "text-white",
+          "border border-[color:color-mix(in_srgb,var(--cs-violet)_18%,white)]",
+          "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_88%,white_12%))]",
+          "shadow-[0_16px_36px_rgba(103,87,255,0.22)]",
+          "hover:-translate-y-[1px] hover:shadow-[0_22px_46px_rgba(103,87,255,0.26)]",
+        ].join(" "),
+        secondary: [
+          "text-[color:var(--cs-ink-1)]",
+          "border border-[color:var(--cs-line-soft)]",
+          "bg-[linear-gradient(180deg,rgba(255,255,255,0.76),rgba(255,255,255,0.56))]",
+          "shadow-[var(--cs-shadow-soft),var(--cs-shadow-inner)]",
+          "backdrop-blur-md",
+          "hover:-translate-y-[1px] hover:bg-white/90",
+        ].join(" "),
+        outline: [
+          "text-[color:var(--cs-ink-1)]",
+          "border border-[color:var(--cs-line)]",
+          "bg-white/42",
+          "backdrop-blur-md",
+          "hover:-translate-y-[1px] hover:bg-white/62",
+        ].join(" "),
+        ghost: [
+          "text-[color:var(--cs-ink-2)]",
+          "hover:bg-white/50 hover:text-[color:var(--cs-ink-1)]",
+        ].join(" "),
+        destructive: [
+          "text-white",
+          "border border-[color:rgba(183,74,74,0.22)]",
+          "bg-[linear-gradient(180deg,#d65f5f,#b74a4a)]",
+          "shadow-[0_14px_32px_rgba(183,74,74,0.18)]",
+          "hover:-translate-y-[1px]",
+        ].join(" "),
+        link: "rounded-none px-0 text-[color:var(--cs-violet)] underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4",
+        sm: "h-8 px-3 text-[13px]",
+        lg: "h-11 px-5 text-[15px]",
+        xl: "h-12 px-6 text-[15px]",
+        icon: "size-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+);
+
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean;
+  }) {
+  const Comp = asChild ? Slot : "button";
+
+  return <Comp className={cn(buttonVariants({ variant, size, className }))} {...props} />;
+}
+
+export { Button, buttonVariants };
+
+
+============================================================
+FILE: src\components\ui\card.tsx
+============================================================
+
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+function Card({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card"
+      className={cn("cs-card flex flex-col gap-5", className)}
+      {...props}
+    />
+  );
+}
+
+function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-header"
+      className={cn("grid auto-rows-min grid-rows-[auto_auto] items-start gap-2", className)}
+      {...props}
+    />
+  );
+}
+
+function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-title"
+      className={cn("text-[1.04rem] font-semibold tracking-[-0.03em] text-[color:var(--cs-ink-1)]", className)}
+      {...props}
+    />
+  );
+}
+
+function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-description"
+      className={cn("text-sm leading-6 text-[color:var(--cs-ink-3)]", className)}
+      {...props}
+    />
+  );
+}
+
+function CardAction({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-action"
+      className={cn("col-start-2 row-span-2 row-start-1 self-start justify-self-end", className)}
+      {...props}
+    />
+  );
+}
+
+function CardContent({ className, ...props }: React.ComponentProps<"div">) {
+  return <div data-slot="card-content" className={cn("space-y-4", className)} {...props} />;
+}
+
+function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-footer"
+      className={cn("mt-auto flex items-center gap-3 pt-1 text-sm text-[color:var(--cs-ink-3)]", className)}
+      {...props}
+    />
+  );
+}
+
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+};
+
+
+============================================================
+FILE: src\components\ui\input.tsx
+============================================================
+
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+  return (
+    <input
+      type={type}
+      data-slot="input"
+      className={cn(
+        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Input }
+
+
+
+============================================================
+FILE: src\components\ui\Mark.tsx
+============================================================
+
+import { useId } from "react";
+import { cn } from "@/lib/utils";
+
+type MarkProps = {
+  withWordmark?: boolean;
+  className?: string;
+};
+
+export default function Mark({
+  withWordmark = false,
+  className = "",
+}: MarkProps) {
+  const rawId = useId();
+  const scope = rawId.replace(/[:]/g, "");
+  const strokeGradientId = `${scope}-stroke`;
+  const glowGradientId = `${scope}-glow`;
+
+  return (
+    <span className={cn("inline-flex items-center gap-3", className)}>
+      <span className="relative inline-flex h-[56px] w-[26px] items-center justify-center">
+        <span
+          className="pointer-events-none absolute inset-0 rounded-[999px] opacity-90"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 20%, rgba(255,255,255,0.78), transparent 42%), radial-gradient(circle at 50% 75%, rgba(111,99,246,0.16), transparent 70%)",
+          }}
+        />
+
+        <svg
+          width="26"
+          height="56"
+          viewBox="0 0 26 56"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="relative z-[1]"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id={strokeGradientId} x1="4" y1="4" x2="22" y2="52">
+              <stop stopColor="color-mix(in srgb, var(--cs-violet) 90%, white 10%)" />
+              <stop
+                offset="1"
+                stopColor="color-mix(in srgb, var(--cs-violet-2) 88%, white 12%)"
+              />
+            </linearGradient>
+
+            <linearGradient id={glowGradientId} x1="13" y1="6" x2="13" y2="50">
+              <stop stopColor="rgba(255,255,255,0.66)" />
+              <stop offset="1" stopColor="rgba(255,255,255,0)" />
+            </linearGradient>
+          </defs>
+
+          <rect
+            x="4"
+            y="3.5"
+            width="18"
+            height="49"
+            rx="9"
+            stroke={`url(#${strokeGradientId})`}
+            strokeWidth="3.2"
+          />
+
+          <rect
+            x="8.5"
+            y="10"
+            width="9"
+            height="30"
+            rx="4.5"
+            fill={`url(#${glowGradientId})`}
+            opacity="0.55"
+          />
+        </svg>
+      </span>
+
+      {withWordmark ? (
+        <span className="flex flex-col leading-none">
+          <span className="text-[0.98rem] font-semibold tracking-[-0.06em] text-[var(--cs-ink-1)]">
+            CloneStore
+          </span>
+          <span className="mt-1 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[var(--cs-ink-4)]">
+            OS d’employés IA
+          </span>
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+
+============================================================
+FILE: src\components\ui\navigation-menu.tsx
+============================================================
+
+import * as React from "react"
+import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu"
+import { cva } from "class-variance-authority"
+import { ChevronDownIcon } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+function NavigationMenu({
+  className,
+  children,
+  viewport = true,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Root> & {
+  viewport?: boolean
+}) {
+  return (
+    <NavigationMenuPrimitive.Root
+      data-slot="navigation-menu"
+      data-viewport={viewport}
+      className={cn(
+        "group/navigation-menu relative flex max-w-max flex-1 items-center justify-center",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      {viewport && <NavigationMenuViewport />}
+    </NavigationMenuPrimitive.Root>
+  )
+}
+
+function NavigationMenuList({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.List>) {
+  return (
+    <NavigationMenuPrimitive.List
+      data-slot="navigation-menu-list"
+      className={cn(
+        "group flex flex-1 list-none items-center justify-center gap-1",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function NavigationMenuItem({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Item>) {
+  return (
+    <NavigationMenuPrimitive.Item
+      data-slot="navigation-menu-item"
+      className={cn("relative", className)}
+      {...props}
+    />
+  )
+}
+
+const navigationMenuTriggerStyle = cva(
+  "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 data-[state=open]:hover:bg-accent data-[state=open]:text-accent-foreground data-[state=open]:focus:bg-accent data-[state=open]:bg-accent/50 focus-visible:ring-ring/50 outline-none transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1"
+)
+
+function NavigationMenuTrigger({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Trigger>) {
+  return (
+    <NavigationMenuPrimitive.Trigger
+      data-slot="navigation-menu-trigger"
+      className={cn(navigationMenuTriggerStyle(), "group", className)}
+      {...props}
+    >
+      {children}{" "}
+      <ChevronDownIcon
+        className="relative top-[1px] ml-1 size-3 transition duration-300 group-data-[state=open]:rotate-180"
+        aria-hidden="true"
+      />
+    </NavigationMenuPrimitive.Trigger>
+  )
+}
+
+function NavigationMenuContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Content>) {
+  return (
+    <NavigationMenuPrimitive.Content
+      data-slot="navigation-menu-content"
+      className={cn(
+        "data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 top-0 left-0 w-full p-2 pr-2.5 md:absolute md:w-auto",
+        "group-data-[viewport=false]/navigation-menu:bg-popover group-data-[viewport=false]/navigation-menu:text-popover-foreground group-data-[viewport=false]/navigation-menu:data-[state=open]:animate-in group-data-[viewport=false]/navigation-menu:data-[state=closed]:animate-out group-data-[viewport=false]/navigation-menu:data-[state=closed]:zoom-out-95 group-data-[viewport=false]/navigation-menu:data-[state=open]:zoom-in-95 group-data-[viewport=false]/navigation-menu:data-[state=open]:fade-in-0 group-data-[viewport=false]/navigation-menu:data-[state=closed]:fade-out-0 group-data-[viewport=false]/navigation-menu:top-full group-data-[viewport=false]/navigation-menu:mt-1.5 group-data-[viewport=false]/navigation-menu:overflow-hidden group-data-[viewport=false]/navigation-menu:rounded-md group-data-[viewport=false]/navigation-menu:border group-data-[viewport=false]/navigation-menu:shadow group-data-[viewport=false]/navigation-menu:duration-200 **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function NavigationMenuViewport({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Viewport>) {
+  return (
+    <div
+      className={cn(
+        "absolute top-full left-0 isolate z-50 flex justify-center"
+      )}
+    >
+      <NavigationMenuPrimitive.Viewport
+        data-slot="navigation-menu-viewport"
+        className={cn(
+          "origin-top-center bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border shadow md:w-[var(--radix-navigation-menu-viewport-width)]",
+          className
+        )}
+        {...props}
+      />
+    </div>
+  )
+}
+
+function NavigationMenuLink({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Link>) {
+  return (
+    <NavigationMenuPrimitive.Link
+      data-slot="navigation-menu-link"
+      className={cn(
+        "data-[active=true]:focus:bg-accent data-[active=true]:hover:bg-accent data-[active=true]:bg-accent/50 data-[active=true]:text-accent-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-ring/50 [&_svg:not([class*='text-'])]:text-muted-foreground flex flex-col gap-1 rounded-sm p-2 text-sm transition-all outline-none focus-visible:ring-[3px] focus-visible:outline-1 [&_svg:not([class*='size-'])]:size-4",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function NavigationMenuIndicator({
+  className,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuPrimitive.Indicator>) {
+  return (
+    <NavigationMenuPrimitive.Indicator
+      data-slot="navigation-menu-indicator"
+      className={cn(
+        "data-[state=visible]:animate-in data-[state=hidden]:animate-out data-[state=hidden]:fade-out data-[state=visible]:fade-in top-full z-[1] flex h-1.5 items-end justify-center overflow-hidden",
+        className
+      )}
+      {...props}
+    >
+      <div className="bg-border relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm shadow-md" />
+    </NavigationMenuPrimitive.Indicator>
+  )
+}
+
+export {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuContent,
+  NavigationMenuTrigger,
+  NavigationMenuLink,
+  NavigationMenuIndicator,
+  NavigationMenuViewport,
+  navigationMenuTriggerStyle,
+}
+
+
+
+============================================================
+FILE: src\components\ui\separator.tsx
+============================================================
+
+"use client"
+
+import * as React from "react"
+import * as SeparatorPrimitive from "@radix-ui/react-separator"
+
+import { cn } from "@/lib/utils"
+
+function Separator({
+  className,
+  orientation = "horizontal",
+  decorative = true,
+  ...props
+}: React.ComponentProps<typeof SeparatorPrimitive.Root>) {
+  return (
+    <SeparatorPrimitive.Root
+      data-slot="separator"
+      decorative={decorative}
+      orientation={orientation}
+      className={cn(
+        "bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Separator }
+
+
+
+============================================================
+FILE: src\lib\utils.ts
+============================================================
+
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+
+
+============================================================
+FILE: src\lib\base-url.ts
+============================================================
+
+export function getBaseUrl() {
+  // 1) Tu forces ça toi-même (recommandé)
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL;
+  if (explicit) {
+    return explicit.startsWith("http") ? explicit : `https://${explicit}`;
+  }
+
+  // 2) En prod Vercel, VERCEL_URL existe mais sans "https://"
+  const vercel = process.env.VERCEL_URL;
+  if (vercel) return `https://${vercel}`;
+
+  // 3) Local
+  return "http://localhost:3000";
+}
+

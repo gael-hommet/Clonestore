@@ -1,0 +1,5755 @@
+﻿===== FILE: src/app/api/pierre/use/mission/[missionId]/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+type DbRow = Record<string, unknown>;
+
+type AuthenticatedContext = {
+  userId: string;
+  accessToken: string | null;
+};
+
+type JsonErrorExtra = {
+  code?: string | null;
+  details?: unknown;
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: message,
+      ...(extra ?? {}),
+    },
+    { status },
+  );
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase environment is not configured.");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  const directCandidates = [
+    "sb-access-token",
+    "supabase-access-token",
+    "access-token",
+  ];
+
+  for (const key of directCandidates) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (typeof candidate === "string") return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateRequest(
+  request: NextRequest,
+  supabaseAdmin: SupabaseClient,
+): Promise<AuthenticatedContext> {
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw {
+      status: 401,
+      message: "Auth session missing.",
+      code: "AUTH_SESSION_MISSING",
+    };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return {
+    userId: data.user.id,
+    accessToken,
+  };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      code: null,
+      details: null,
+    };
+  }
+
+  return {
+    message: "Unexpected database error.",
+    code: null,
+    details: null,
+  };
+}
+
+async function verifyMissionOwnership(
+  supabaseAdmin: SupabaseClient,
+  missionId: string,
+  userId: string,
+): Promise<DbRow> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_missions")
+    .select("*")
+    .eq("id", missionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load mission.",
+      code: "MISSION_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  if (!data) {
+    throw {
+      status: 404,
+      message: "Mission not found.",
+      code: "MISSION_NOT_FOUND",
+    };
+  }
+
+  return data satisfies DbRow;
+}
+
+async function fetchMissionTasks(
+  supabaseAdmin: SupabaseClient,
+  missionId: string,
+): Promise<DbRow[]> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_tasks")
+    .select("*")
+    .eq("mission_id", missionId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load mission tasks.",
+      code: "TASKS_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return (data ?? []) as DbRow[];
+}
+
+async function fetchMissionLogs(
+  supabaseAdmin: SupabaseClient,
+  missionId: string,
+): Promise<DbRow[]> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_task_logs")
+    .select("*")
+    .eq("mission_id", missionId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load mission logs.",
+      code: "LOGS_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return (data ?? []) as DbRow[];
+}
+
+async function fetchMissionDocuments(
+  supabaseAdmin: SupabaseClient,
+  missionId: string,
+): Promise<DbRow[]> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_documents")
+    .select("*")
+    .eq("mission_id", missionId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load mission documents.",
+      code: "DOCUMENTS_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return (data ?? []) as DbRow[];
+}
+
+async function fetchMissionOutboundEmails(
+  supabaseAdmin: SupabaseClient,
+  missionId: string,
+): Promise<DbRow[]> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_outbound_emails")
+    .select("*")
+    .eq("mission_id", missionId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load mission outbound emails.",
+      code: "EMAILS_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return (data ?? []) as DbRow[];
+}
+
+function extractPdfCandidates(documents: DbRow[]): DbRow[] {
+  return documents.filter((document) => {
+    const docType = (asString(document.doc_type) || "").toLowerCase();
+    const filename = (asString(document.filename) || "").toLowerCase();
+    const storagePath = (asString(document.storage_path) || "").toLowerCase();
+    const mimeType = (asString(document.mime_type) || "").toLowerCase();
+
+    return (
+      docType.includes("pdf") ||
+      filename.endsWith(".pdf") ||
+      storagePath.endsWith(".pdf") ||
+      mimeType === "application/pdf"
+    );
+  });
+}
+
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ missionId: string }> | { missionId: string } },
+) {
+  try {
+    const resolvedParams = await Promise.resolve(context.params);
+    const missionId = asString(resolvedParams?.missionId);
+
+    if (!missionId) {
+      return jsonError("Mission id is required.", 400, {
+        code: "MISSION_ID_REQUIRED",
+      });
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateRequest(request, supabaseAdmin);
+
+    const mission = await verifyMissionOwnership(
+      supabaseAdmin,
+      missionId,
+      auth.userId,
+    );
+
+    const [tasks, logs, documents, outboundEmails] = await Promise.all([
+      fetchMissionTasks(supabaseAdmin, missionId),
+      fetchMissionLogs(supabaseAdmin, missionId),
+      fetchMissionDocuments(supabaseAdmin, missionId),
+      fetchMissionOutboundEmails(supabaseAdmin, missionId),
+    ]);
+
+    const pdfs = extractPdfCandidates(documents);
+
+    return NextResponse.json({
+      ok: true,
+      mission,
+      interpretation: mission.interpretation ?? null,
+      tasks,
+      logs,
+      documents,
+      outbound_emails: outboundEmails,
+      pdfs,
+      meta: {
+        missionId,
+        userId: auth.userId,
+        fetchedAt: new Date().toISOString(),
+        counts: {
+          tasks: tasks.length,
+          logs: logs.length,
+          documents: documents.length,
+          outbound_emails: outboundEmails.length,
+          pdfs: pdfs.length,
+        },
+      },
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(
+        asString(error.message) || "Request failed.",
+        error.status,
+        {
+          code: asString(error.code),
+          details: error.details ?? null,
+        },
+      );
+    }
+
+    const mapped = mapDbError(error);
+
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+===== FILE: src/app/api/pierre/use/submit/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+type DbRow = Record<string, unknown>;
+
+type AuthenticatedContext = {
+  userId: string;
+  accessToken: string | null;
+};
+
+type SubmitBody = {
+  input: string;
+  missionId?: string | null;
+  context?: unknown;
+};
+
+type MissionRiskLevel = "normal" | "sensitive" | "critical";
+
+type TaskLifecycleStatus =
+  | "pending"
+  | "queued"
+  | "scheduled"
+  | "awaiting_info"
+  | "awaiting_approval"
+  | "blocked";
+
+type MissionTaskDraft = {
+  type: string;
+  title: string;
+  description: string;
+  status: TaskLifecycleStatus;
+  approval_required: boolean;
+  risk_level: MissionRiskLevel;
+  scheduled_for: string | null;
+  payload: Record<string, unknown>;
+};
+
+type MissionInterpretationBase = {
+  intent: string;
+  classification: string;
+  summary: string;
+  language: string;
+  tone: string;
+  risk_level: MissionRiskLevel;
+  approval_required: boolean;
+  missing_info: string[];
+  missing_info_questions: string[];
+};
+
+type MissionInterpretation = MissionInterpretationBase & {
+  tasks: MissionTaskDraft[];
+};
+
+type JsonErrorExtra = {
+  code?: string | null;
+  details?: unknown;
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: message,
+      ...(extra ?? {}),
+    },
+    { status },
+  );
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase environment is not configured.");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  const directCandidates = [
+    "sb-access-token",
+    "supabase-access-token",
+    "access-token",
+  ];
+
+  for (const key of directCandidates) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (typeof candidate === "string") return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateRequest(
+  request: NextRequest,
+  supabaseAdmin: SupabaseClient,
+): Promise<AuthenticatedContext> {
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw {
+      status: 401,
+      message: "Auth session missing.",
+      code: "AUTH_SESSION_MISSING",
+    };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return {
+    userId: data.user.id,
+    accessToken,
+  };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      code: null,
+      details: null,
+    };
+  }
+
+  return {
+    message: "Unexpected database error.",
+    code: null,
+    details: null,
+  };
+}
+
+function normalizeBody(raw: unknown): SubmitBody {
+  if (!isObject(raw)) {
+    return {
+      input: "",
+      missionId: null,
+      context: null,
+    };
+  }
+
+  return {
+    input: asString(raw.input) || "",
+    missionId: asString(raw.missionId),
+    context: raw.context ?? null,
+  };
+}
+
+function detectLanguage(input: string): string {
+  const lower = input.toLowerCase();
+
+  const englishSignals = [
+    "candidate",
+    "interview",
+    "job offer",
+    "follow up",
+    "meeting",
+    "please",
+    "draft",
+    "recruitment",
+    "hiring",
+  ];
+
+  const englishHits = englishSignals.filter((signal) =>
+    lower.includes(signal),
+  ).length;
+
+  return englishHits >= 2 ? "en" : "fr";
+}
+
+function detectTone(input: string): string {
+  const lower = input.toLowerCase();
+
+  if (
+    lower.includes("ferme") ||
+    lower.includes("strict") ||
+    lower.includes("recadr") ||
+    lower.includes("formal warning")
+  ) {
+    return "ferme";
+  }
+
+  if (
+    lower.includes("humain") ||
+    lower.includes("bienveillant") ||
+    lower.includes("chaleureux")
+  ) {
+    return "humain";
+  }
+
+  if (
+    lower.includes("professionnel") ||
+    lower.includes("corporate") ||
+    lower.includes("pro")
+  ) {
+    return "professionnel";
+  }
+
+  return "professionnel";
+}
+
+function detectClassification(input: string): string {
+  const lower = input.toLowerCase();
+
+  if (lower.includes("offre d'emploi") || lower.includes("job offer")) {
+    return "offre_emploi";
+  }
+  if (lower.includes("convocation") || lower.includes("entretien")) {
+    return "convocation_entretien";
+  }
+  if (lower.includes("refus") || lower.includes("rejet candidature")) {
+    return "refus_candidat";
+  }
+  if (lower.includes("relance") || lower.includes("follow up")) {
+    return "relance_rh";
+  }
+  if (lower.includes("onboarding") || lower.includes("intÃ©gration")) {
+    return "onboarding";
+  }
+  if (lower.includes("note rh")) {
+    return "note_rh";
+  }
+  if (lower.includes("procÃ©dure") || lower.includes("procedure")) {
+    return "rappel_procedure";
+  }
+  if (lower.includes("compte rendu") || lower.includes("compte-rendu")) {
+    return "compte_rendu";
+  }
+  if (lower.includes("courrier")) {
+    return "courrier_rh";
+  }
+  if (lower.includes("candidat") || lower.includes("recrut")) {
+    return "recrutement";
+  }
+
+  return "mission_rh_generale";
+}
+
+function detectIntent(input: string): string {
+  const lower = input.toLowerCase();
+
+  if (
+    lower.includes("envoie") ||
+    lower.includes("envoyer") ||
+    lower.includes("send")
+  ) {
+    return "execute_rh_action";
+  }
+  if (
+    lower.includes("prÃ©pare") ||
+    lower.includes("prepare") ||
+    lower.includes("rÃ©dige") ||
+    lower.includes("redige") ||
+    lower.includes("draft")
+  ) {
+    return "prepare_rh_deliverable";
+  }
+  if (lower.includes("relance")) {
+    return "follow_up_rh_action";
+  }
+  if (lower.includes("programme") || lower.includes("planifie")) {
+    return "schedule_rh_action";
+  }
+
+  return "structure_rh_mission";
+}
+
+function detectRisk(
+  input: string,
+  classification: string,
+): MissionRiskLevel {
+  const lower = input.toLowerCase();
+
+  const criticalSignals = [
+    "licenciement",
+    "sanction disciplinaire",
+    "harcÃ¨lement",
+    "harcelement",
+    "plainte",
+    "contentieux",
+    "prud'hommes",
+    "discrimination",
+    "rupture conventionnelle forcÃ©e",
+  ];
+
+  const sensitiveSignals = [
+    "avertissement",
+    "mise Ã  pied",
+    "mise a pied",
+    "conflit",
+    "problÃ¨me salariÃ©",
+    "probleme salarie",
+    "absence injustifiÃ©e",
+    "absence injustifiee",
+    "salaire",
+    "confidentiel",
+    "dossier sensible",
+  ];
+
+  if (criticalSignals.some((signal) => lower.includes(signal))) {
+    return "critical";
+  }
+
+  if (sensitiveSignals.some((signal) => lower.includes(signal))) {
+    return "sensitive";
+  }
+
+  if (
+    classification === "refus_candidat" ||
+    classification === "convocation_entretien" ||
+    classification === "onboarding" ||
+    classification === "offre_emploi"
+  ) {
+    return "normal";
+  }
+
+  return "normal";
+}
+
+function needsApproval(
+  input: string,
+  risk: MissionRiskLevel,
+): boolean {
+  const lower = input.toLowerCase();
+
+  if (risk === "critical") return true;
+
+  const approvalSignals = [
+    "aprÃ¨s validation",
+    "apres validation",
+    "soumets moi avant envoi",
+    "avant d'envoyer",
+    "avant envoi",
+    "Ã  valider",
+    "a valider",
+    "validation manager",
+    "validation humaine",
+  ];
+
+  if (approvalSignals.some((signal) => lower.includes(signal))) return true;
+  if (risk === "sensitive") return true;
+
+  return false;
+}
+
+function detectScheduling(input: string): string | null {
+  const lower = input.toLowerCase();
+  const now = new Date();
+
+  if (lower.includes("demain")) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + 1);
+    date.setHours(9, 0, 0, 0);
+    return date.toISOString();
+  }
+
+  const hourMatch = lower.match(/\b(\d{1,2})h(\d{2})?\b/);
+  if (hourMatch) {
+    const date = new Date(now);
+    const hours = Number(hourMatch[1]);
+    const minutes = hourMatch[2] ? Number(hourMatch[2]) : 0;
+
+    if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+      date.setHours(hours, minutes, 0, 0);
+
+      if (date.getTime() < now.getTime()) {
+        date.setDate(date.getDate() + 1);
+      }
+
+      return date.toISOString();
+    }
+  }
+
+  if (
+    lower.includes("plus tard aujourd'hui") ||
+    lower.includes("plus tard aujourd hui")
+  ) {
+    const date = new Date(now);
+    date.setHours(Math.max(now.getHours() + 2, 16), 0, 0, 0);
+    return date.toISOString();
+  }
+
+  return null;
+}
+
+function detectMissingInfo(
+  input: string,
+  classification: string,
+): { missing: string[]; questions: string[] } {
+  const lower = input.toLowerCase();
+  const missing: string[] = [];
+  const questions: string[] = [];
+
+  const hasPersonName =
+    /\b[A-ZÃ‰ÃˆÃ€Ã‚ÃŠÃŽÃ”Ã›Ã„Ã‹ÃÃ–Ãœ][a-zÃ©Ã¨Ã Ã¢ÃªÃ®Ã´Ã»Ã¤Ã«Ã¯Ã¶Ã¼'-]+\s+[A-ZÃ‰ÃˆÃ€Ã‚ÃŠÃŽÃ”Ã›Ã„Ã‹ÃÃ–Ãœ][a-zÃ©Ã¨Ã Ã¢ÃªÃ®Ã´Ã»Ã¤Ã«Ã¯Ã¶Ã¼'-]+\b/.test(
+      input,
+    );
+
+  const hasEmail = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(input);
+  const hasDate = /\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\b/.test(input);
+  const hasHour = /\b\d{1,2}h(\d{2})?\b/i.test(input);
+
+  if (classification === "convocation_entretien" && !hasDate) {
+    missing.push("Date dâ€™entretien manquante");
+    questions.push("Quelle est la date exacte de lâ€™entretien ?");
+  }
+
+  if (classification === "convocation_entretien" && !hasHour) {
+    missing.push("Horaire dâ€™entretien manquant");
+    questions.push("Ã€ quelle heure doit avoir lieu lâ€™entretien ?");
+  }
+
+  if (
+    (
+      classification === "refus_candidat" ||
+      classification === "relance_rh" ||
+      classification === "onboarding" ||
+      classification === "convocation_entretien"
+    ) &&
+    !hasPersonName
+  ) {
+    missing.push("IdentitÃ© de la personne concernÃ©e manquante");
+    questions.push("Quel est le nom complet de la personne concernÃ©e ?");
+  }
+
+  if (
+    (
+      classification === "refus_candidat" ||
+      classification === "relance_rh" ||
+      classification === "convocation_entretien"
+    ) &&
+    !hasEmail
+  ) {
+    missing.push("Adresse email destinataire manquante");
+    questions.push("Quelle est lâ€™adresse email du destinataire ?");
+  }
+
+  if (classification === "offre_emploi" && !lower.includes("poste")) {
+    missing.push("IntitulÃ© du poste absent ou insuffisant");
+    questions.push("Quel est lâ€™intitulÃ© exact du poste ?");
+  }
+
+  return {
+    missing,
+    questions,
+  };
+}
+
+function buildMissionSummary(
+  input: string,
+  classification: string,
+  risk: MissionRiskLevel,
+): string {
+  const base = input.trim().replace(/\s+/g, " ");
+  const clipped = base.length > 260 ? `${base.slice(0, 257)}â€¦` : base;
+
+  return `Mission RH classÃ©e "${classification}" avec niveau de risque "${risk}". Demande structurÃ©e Ã  partir de : ${clipped}`;
+}
+
+function buildTasks(
+  input: string,
+  interpretation: MissionInterpretationBase,
+): MissionTaskDraft[] {
+  const lower = input.toLowerCase();
+  const scheduledFor = detectScheduling(input);
+
+  const tasks: MissionTaskDraft[] = [];
+
+  const requiresDraftDocument =
+    interpretation.classification === "offre_emploi" ||
+    interpretation.classification === "convocation_entretien" ||
+    interpretation.classification === "refus_candidat" ||
+    interpretation.classification === "onboarding" ||
+    interpretation.classification === "note_rh" ||
+    interpretation.classification === "courrier_rh" ||
+    interpretation.classification === "compte_rendu" ||
+    interpretation.classification === "rappel_procedure";
+
+  if (requiresDraftDocument) {
+    tasks.push({
+      type: "generate_document",
+      title: "Produire le document RH",
+      description:
+        "RÃ©diger un livrable RH premium cohÃ©rent avec la demande, le ton voulu, la langue dÃ©tectÃ©e et les contraintes de risque.",
+      status:
+        interpretation.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretation.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretation.approval_required,
+      risk_level: interpretation.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        classification: interpretation.classification,
+        language: interpretation.language,
+        tone: interpretation.tone,
+      },
+    });
+  }
+
+  if (
+    lower.includes("mail") ||
+    lower.includes("email") ||
+    lower.includes("envoyer") ||
+    lower.includes("send") ||
+    interpretation.classification === "refus_candidat" ||
+    interpretation.classification === "convocation_entretien" ||
+    interpretation.classification === "relance_rh" ||
+    interpretation.classification === "onboarding"
+  ) {
+    tasks.push({
+      type: "prepare_email",
+      title: "PrÃ©parer lâ€™email RH",
+      description:
+        "PrÃ©parer un email clair, traÃ§able et cohÃ©rent avec la mission, prÃªt Ã  Ãªtre validÃ© ou envoyÃ© selon le niveau de risque.",
+      status:
+        interpretation.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretation.approval_required
+            ? "awaiting_approval"
+            : scheduledFor
+              ? "scheduled"
+              : "queued",
+      approval_required: interpretation.approval_required,
+      risk_level: interpretation.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        language: interpretation.language,
+        tone: interpretation.tone,
+        scheduled_for: scheduledFor,
+      },
+    });
+  }
+
+  if (
+    lower.includes("pdf") ||
+    lower.includes("export") ||
+    lower.includes("document Ã  joindre") ||
+    lower.includes("document a joindre") ||
+    lower.includes("piece jointe") ||
+    lower.includes("piÃ¨ce jointe")
+  ) {
+    tasks.push({
+      type: "generate_pdf",
+      title: "PrÃ©parer lâ€™export PDF",
+      description:
+        "GÃ©nÃ©rer un PDF propre Ã  partir du document ou du contenu RH finalisÃ©.",
+      status:
+        interpretation.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretation.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretation.approval_required,
+      risk_level: interpretation.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+      },
+    });
+  }
+
+  if (
+    lower.includes("relance") ||
+    lower.includes("si pas de rÃ©ponse") ||
+    lower.includes("si pas de reponse")
+  ) {
+    tasks.push({
+      type: "schedule_follow_up",
+      title: "PrÃ©parer une relance RH",
+      description:
+        "Programmer une relance propre et traÃ§able si aucune rÃ©ponse nâ€™est obtenue.",
+      status:
+        interpretation.approval_required || interpretation.missing_info.length > 0
+          ? "awaiting_approval"
+          : "scheduled",
+      approval_required: true,
+      risk_level: interpretation.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        conditional: true,
+      },
+    });
+  }
+
+  if (interpretation.missing_info.length > 0) {
+    tasks.push({
+      type: "request_missing_info",
+      title: "Demander les informations manquantes",
+      description:
+        "Bloquer lâ€™exÃ©cution complÃ¨te tant que les Ã©lÃ©ments indispensables Ã  une action RH propre ne sont pas fournis.",
+      status: "awaiting_info",
+      approval_required: false,
+      risk_level: interpretation.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        missing_info: interpretation.missing_info,
+        questions: interpretation.missing_info_questions,
+      },
+    });
+  }
+
+  if (tasks.length === 0) {
+    tasks.push({
+      type: "structure_mission",
+      title: "Structurer la mission RH",
+      description:
+        "CrÃ©er un cadre dâ€™exÃ©cution RH exploitable Ã  partir de la demande libre.",
+      status:
+        interpretation.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretation.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretation.approval_required,
+      risk_level: interpretation.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+      },
+    });
+  }
+
+  return tasks;
+}
+
+function interpretMission(input: string): MissionInterpretation {
+  const classification = detectClassification(input);
+  const language = detectLanguage(input);
+  const tone = detectTone(input);
+  const risk_level = detectRisk(input, classification);
+  const approval_required = needsApproval(input, risk_level);
+  const intent = detectIntent(input);
+  const missingInfo = detectMissingInfo(input, classification);
+  const summary = buildMissionSummary(input, classification, risk_level);
+
+  const baseInterpretation: MissionInterpretationBase = {
+    intent,
+    classification,
+    summary,
+    language,
+    tone,
+    risk_level,
+    approval_required,
+    missing_info: missingInfo.missing,
+    missing_info_questions: missingInfo.questions,
+  };
+
+  return {
+    ...baseInterpretation,
+    tasks: buildTasks(input, baseInterpretation),
+  };
+}
+
+async function insertMission(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+  body: SubmitBody,
+  interpretation: MissionInterpretation,
+): Promise<DbRow> {
+  const title =
+    body.input.length > 120
+      ? `${body.input.slice(0, 117).trim()}â€¦`
+      : body.input || "Mission RH";
+
+  const insertPayload = {
+    user_id: userId,
+    title,
+    summary: interpretation.summary,
+    description: body.input,
+    classification: interpretation.classification,
+    status:
+      interpretation.missing_info.length > 0
+        ? "awaiting_info"
+        : interpretation.approval_required
+          ? "awaiting_approval"
+          : "queued",
+    risk_level: interpretation.risk_level,
+    approval_required: interpretation.approval_required,
+    language: interpretation.language,
+    tone: interpretation.tone,
+    missing_info: interpretation.missing_info,
+    interpretation,
+    context: body.context ?? null,
+  };
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_missions")
+    .insert(insertPayload)
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    throw {
+      status: 500,
+      message: "Unable to create mission.",
+      code: "MISSION_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return data satisfies DbRow;
+}
+
+async function insertTasks(
+  supabaseAdmin: SupabaseClient,
+  missionId: string,
+  interpretation: MissionInterpretation,
+): Promise<DbRow[]> {
+  const taskRows = interpretation.tasks.map((task) => ({
+    mission_id: missionId,
+    type: task.type,
+    title: task.title,
+    description: task.description,
+    status: task.status,
+    risk_level: task.risk_level,
+    approval_required: task.approval_required,
+    scheduled_for: task.scheduled_for,
+    payload: task.payload,
+  }));
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_tasks")
+    .insert(taskRows)
+    .select("*");
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to create mission tasks.",
+      code: "TASKS_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return (data ?? []) as DbRow[];
+}
+
+async function insertLogs(
+  supabaseAdmin: SupabaseClient,
+  missionId: string,
+  tasks: DbRow[],
+  interpretation: MissionInterpretation,
+): Promise<DbRow[]> {
+  const logs: Array<Record<string, unknown>> = [
+    {
+      mission_id: missionId,
+      level: "info",
+      event: "mission_created",
+      message: "Mission crÃ©Ã©e et structurÃ©e par Pierre.",
+      payload: {
+        classification: interpretation.classification,
+        risk_level: interpretation.risk_level,
+        approval_required: interpretation.approval_required,
+      },
+    },
+    {
+      mission_id: missionId,
+      level:
+        interpretation.risk_level === "critical"
+          ? "warning"
+          : interpretation.missing_info.length > 0
+            ? "warning"
+            : "info",
+      event: "mission_interpreted",
+      message:
+        interpretation.missing_info.length > 0
+          ? "Mission interprÃ©tÃ©e avec informations manquantes."
+          : interpretation.approval_required
+            ? "Mission interprÃ©tÃ©e avec validation requise."
+            : "Mission interprÃ©tÃ©e et prÃªte pour exÃ©cution contrÃ´lÃ©e.",
+      payload: interpretation,
+    },
+  ];
+
+  for (const task of tasks) {
+    logs.push({
+      mission_id: missionId,
+      task_id: task.id,
+      level: "info",
+      event: "task_created",
+      message: `TÃ¢che crÃ©Ã©e : ${asString(task.title) || asString(task.type) || "task"}`,
+      payload: {
+        task_type: asString(task.type),
+        task_status: asString(task.status),
+      },
+    });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_task_logs")
+    .insert(logs)
+    .select("*");
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to create mission logs.",
+      code: "LOGS_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return (data ?? []) as DbRow[];
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = normalizeBody(await request.json());
+
+    if (!body.input || !body.input.trim()) {
+      return jsonError("Mission input is required.", 400, {
+        code: "MISSION_INPUT_REQUIRED",
+      });
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateRequest(request, supabaseAdmin);
+
+    const interpretation = interpretMission(body.input);
+    const mission = await insertMission(
+      supabaseAdmin,
+      auth.userId,
+      body,
+      interpretation,
+    );
+
+    const tasks = await insertTasks(
+      supabaseAdmin,
+      mission.id as string,
+      interpretation,
+    );
+
+    const logs = await insertLogs(
+      supabaseAdmin,
+      mission.id as string,
+      tasks,
+      interpretation,
+    );
+
+    return NextResponse.json({
+      ok: true,
+      mission,
+      interpretation,
+      tasks,
+      logs,
+      threadEntries: [
+        {
+          id: `assistant-${mission.id as string}`,
+          role: "assistant",
+          content:
+            interpretation.missing_info.length > 0
+              ? "Mission comprise partiellement. Pierre a structurÃ© la demande mais a dÃ©tectÃ© des informations manquantes avant exÃ©cution complÃ¨te."
+              : interpretation.approval_required
+                ? "Mission comprise. Pierre a structurÃ© lâ€™action et positionnÃ© une validation humaine avant exÃ©cution sensible."
+                : "Mission comprise et structurÃ©e. Pierre a crÃ©Ã© les tÃ¢ches nÃ©cessaires pour lancer le traitement RH.",
+          created_at: new Date().toISOString(),
+        },
+      ],
+      meta: {
+        missionId: mission.id,
+        userId: auth.userId,
+        fetchedAt: new Date().toISOString(),
+        counts: {
+          tasks: tasks.length,
+          logs: logs.length,
+        },
+      },
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(
+        asString(error.message) || "Request failed.",
+        error.status,
+        {
+          code: asString(error.code),
+          details: error.details ?? null,
+        },
+      );
+    }
+
+    const mapped = mapDbError(error);
+
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+===== FILE: src/app/api/pierre/use/task/[taskId]/approve/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+type DbRow = Record<string, unknown>;
+type JsonErrorExtra = { code?: string | null; details?: unknown };
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json({ ok: false, error: message, ...(extra ?? {}) }, { status });
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase environment is not configured.");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token || scheme.toLowerCase() !== "bearer") return null;
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  for (const key of ["sb-access-token", "supabase-access-token", "access-token"]) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (candidate) return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateRequest(request: NextRequest, supabaseAdmin: SupabaseClient) {
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw { status: 401, message: "Auth session missing.", code: "AUTH_SESSION_MISSING" };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return { userId: data.user.id };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+  if (error instanceof Error) {
+    return { message: error.message, code: null, details: null };
+  }
+  return { message: "Unexpected database error.", code: null, details: null };
+}
+
+async function loadOwnedTask(
+  supabaseAdmin: SupabaseClient,
+  taskId: string,
+  userId: string,
+): Promise<DbRow> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_tasks")
+    .select(`
+      *,
+      pierre_missions!inner (
+        id,
+        user_id
+      )
+    `)
+    .eq("id", taskId)
+    .eq("pierre_missions.user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load task.",
+      code: "TASK_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  if (!data) {
+    throw { status: 404, message: "Task not found.", code: "TASK_NOT_FOUND" };
+  }
+
+  return data as DbRow;
+}
+
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ taskId: string }> | { taskId: string } },
+) {
+  try {
+    const resolvedParams = await Promise.resolve(context.params);
+    const taskId = asString(resolvedParams?.taskId);
+
+    if (!taskId) {
+      return jsonError("Task id is required.", 400, { code: "TASK_ID_REQUIRED" });
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateRequest(request, supabaseAdmin);
+    const task = await loadOwnedTask(supabaseAdmin, taskId, auth.userId);
+
+    if ((asString(task.status) || "") !== "awaiting_approval") {
+      return jsonError("Task is not awaiting approval.", 409, {
+        code: "TASK_NOT_AWAITING_APPROVAL",
+      });
+    }
+
+    const patch = {
+      status: "queued",
+      approval_required: false,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabaseAdmin
+      .from("pierre_tasks")
+      .update(patch)
+      .eq("id", taskId);
+
+    if (error) {
+      throw {
+        status: 500,
+        message: "Unable to approve task.",
+        code: "TASK_APPROVE_FAILED",
+        details: mapDbError(error),
+      };
+    }
+
+    await supabaseAdmin.from("pierre_task_logs").insert({
+      mission_id: task.mission_id ?? null,
+      task_id: taskId,
+      level: "info",
+      event: "task_approved",
+      message: "La tÃ¢che a Ã©tÃ© approuvÃ©e et replacÃ©e en file dâ€™attente.",
+      payload: null,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      taskId,
+      patch,
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(asString(error.message) || "Request failed.", error.status, {
+        code: asString(error.code),
+        details: error.details ?? null,
+      });
+    }
+
+    const mapped = mapDbError(error);
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+===== FILE: src/app/api/pierre/use/task/[taskId]/cancel/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+type DbRow = Record<string, unknown>;
+type JsonErrorExtra = { code?: string | null; details?: unknown };
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json({ ok: false, error: message, ...(extra ?? {}) }, { status });
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) throw new Error("Supabase environment is not configured.");
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token || scheme.toLowerCase() !== "bearer") return null;
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  for (const key of ["sb-access-token", "supabase-access-token", "access-token"]) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (candidate) return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateRequest(request: NextRequest, supabaseAdmin: SupabaseClient) {
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw { status: 401, message: "Auth session missing.", code: "AUTH_SESSION_MISSING" };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return { userId: data.user.id };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+  if (error instanceof Error) {
+    return { message: error.message, code: null, details: null };
+  }
+  return { message: "Unexpected database error.", code: null, details: null };
+}
+
+async function loadOwnedTask(
+  supabaseAdmin: SupabaseClient,
+  taskId: string,
+  userId: string,
+): Promise<DbRow> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_tasks")
+    .select(`
+      *,
+      pierre_missions!inner (
+        id,
+        user_id
+      )
+    `)
+    .eq("id", taskId)
+    .eq("pierre_missions.user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load task.",
+      code: "TASK_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  if (!data) {
+    throw { status: 404, message: "Task not found.", code: "TASK_NOT_FOUND" };
+  }
+
+  return data as DbRow;
+}
+
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ taskId: string }> | { taskId: string } },
+) {
+  try {
+    const resolvedParams = await Promise.resolve(context.params);
+    const taskId = asString(resolvedParams?.taskId);
+
+    if (!taskId) {
+      return jsonError("Task id is required.", 400, { code: "TASK_ID_REQUIRED" });
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateRequest(request, supabaseAdmin);
+    const task = await loadOwnedTask(supabaseAdmin, taskId, auth.userId);
+
+    const currentStatus = asString(task.status) || "unknown";
+
+    if (["completed", "cancelled", "failed"].includes(currentStatus)) {
+      return jsonError("Task is already terminal.", 409, {
+        code: "TASK_ALREADY_TERMINAL",
+      });
+    }
+
+    const patch = {
+      status: "cancelled",
+      locked_until: null,
+      claimed_at: null,
+      claimed_by: null,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabaseAdmin
+      .from("pierre_tasks")
+      .update(patch)
+      .eq("id", taskId);
+
+    if (error) {
+      throw {
+        status: 500,
+        message: "Unable to cancel task.",
+        code: "TASK_CANCEL_FAILED",
+        details: mapDbError(error),
+      };
+    }
+
+    await supabaseAdmin.from("pierre_task_logs").insert({
+      mission_id: task.mission_id ?? null,
+      task_id: taskId,
+      level: "warning",
+      event: "task_cancelled",
+      message: `La tÃ¢che a Ã©tÃ© annulÃ©e depuis le statut ${currentStatus}.`,
+      payload: null,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      taskId,
+      patch,
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(asString(error.message) || "Request failed.", error.status, {
+        code: asString(error.code),
+        details: error.details ?? null,
+      });
+    }
+
+    const mapped = mapDbError(error);
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+===== FILE: src/app/api/pierre/use/task/[taskId]/reschedule/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+type DbRow = Record<string, unknown>;
+type JsonErrorExtra = { code?: string | null; details?: unknown };
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json({ ok: false, error: message, ...(extra ?? {}) }, { status });
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) throw new Error("Supabase environment is not configured.");
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token || scheme.toLowerCase() !== "bearer") return null;
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  for (const key of ["sb-access-token", "supabase-access-token", "access-token"]) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (candidate) return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateRequest(request: NextRequest, supabaseAdmin: SupabaseClient) {
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw { status: 401, message: "Auth session missing.", code: "AUTH_SESSION_MISSING" };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return { userId: data.user.id };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+  if (error instanceof Error) {
+    return { message: error.message, code: null, details: null };
+  }
+  return { message: "Unexpected database error.", code: null, details: null };
+}
+
+async function loadOwnedTask(
+  supabaseAdmin: SupabaseClient,
+  taskId: string,
+  userId: string,
+): Promise<DbRow> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_tasks")
+    .select(`
+      *,
+      pierre_missions!inner (
+        id,
+        user_id
+      )
+    `)
+    .eq("id", taskId)
+    .eq("pierre_missions.user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load task.",
+      code: "TASK_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  if (!data) {
+    throw { status: 404, message: "Task not found.", code: "TASK_NOT_FOUND" };
+  }
+
+  return data as DbRow;
+}
+
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ taskId: string }> | { taskId: string } },
+) {
+  try {
+    const resolvedParams = await Promise.resolve(context.params);
+    const taskId = asString(resolvedParams?.taskId);
+
+    if (!taskId) {
+      return jsonError("Task id is required.", 400, { code: "TASK_ID_REQUIRED" });
+    }
+
+    const bodyRaw = await request.json().catch(() => null);
+    const scheduledFor = isObject(bodyRaw) ? asString(bodyRaw.scheduledFor) : null;
+    const reason = isObject(bodyRaw) ? asString(bodyRaw.reason) : null;
+
+    if (!scheduledFor) {
+      return jsonError("scheduledFor is required.", 400, {
+        code: "TASK_SCHEDULED_FOR_REQUIRED",
+      });
+    }
+
+    const parsed = new Date(scheduledFor);
+    if (Number.isNaN(parsed.getTime())) {
+      return jsonError("scheduledFor must be a valid date.", 400, {
+        code: "TASK_SCHEDULED_FOR_INVALID",
+      });
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateRequest(request, supabaseAdmin);
+    const task = await loadOwnedTask(supabaseAdmin, taskId, auth.userId);
+
+    const patch = {
+      status: "scheduled",
+      scheduled_for: parsed.toISOString(),
+      locked_until: null,
+      claimed_at: null,
+      claimed_by: null,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabaseAdmin
+      .from("pierre_tasks")
+      .update(patch)
+      .eq("id", taskId);
+
+    if (error) {
+      throw {
+        status: 500,
+        message: "Unable to reschedule task.",
+        code: "TASK_RESCHEDULE_FAILED",
+        details: mapDbError(error),
+      };
+    }
+
+    await supabaseAdmin.from("pierre_task_logs").insert({
+      mission_id: task.mission_id ?? null,
+      task_id: taskId,
+      level: "info",
+      event: "task_rescheduled",
+      message: reason || `La tÃ¢che a Ã©tÃ© replanifiÃ©e au ${parsed.toISOString()}.`,
+      payload: {
+        scheduled_for: parsed.toISOString(),
+      },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      taskId,
+      patch,
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(asString(error.message) || "Request failed.", error.status, {
+        code: asString(error.code),
+        details: error.details ?? null,
+      });
+    }
+
+    const mapped = mapDbError(error);
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+===== FILE: src/app/api/pierre/use/task/[taskId]/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type JsonObject = Record<string, unknown>;
+
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
+function isPlainObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function trimOrNull(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value.trim();
+  return clean ? clean : null;
+}
+
+function getSupabaseAdmin(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRole =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase admin env is missing.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryParseJsonString(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function extractTokenFromCookieValue(raw: string): string | null {
+  const clean = raw.trim();
+  if (!clean) return null;
+
+  if (clean.startsWith("eyJ") && clean.split(".").length >= 3) {
+    return clean;
+  }
+
+  const parsed = tryParseJsonString(clean);
+
+  if (Array.isArray(parsed)) {
+    for (const item of parsed) {
+      if (typeof item === "string" && item.startsWith("eyJ") && item.split(".").length >= 3) {
+        return item;
+      }
+    }
+  }
+
+  if (isPlainObject(parsed)) {
+    const candidates = [
+      parsed.access_token,
+      parsed.accessToken,
+      parsed.token,
+      parsed.currentSession && isPlainObject(parsed.currentSession)
+        ? parsed.currentSession.access_token
+        : null,
+      parsed.session && isPlainObject(parsed.session)
+        ? parsed.session.access_token
+        : null,
+    ];
+
+    for (const candidate of candidates) {
+      if (
+        typeof candidate === "string" &&
+        candidate.startsWith("eyJ") &&
+        candidate.split(".").length >= 3
+      ) {
+        return candidate;
+      }
+    }
+  }
+
+  return null;
+}
+
+function extractBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) return token;
+  }
+
+  for (const cookie of request.cookies.getAll()) {
+    const name = cookie.name.toLowerCase();
+    if (
+      name.includes("auth-token") ||
+      name.includes("access-token") ||
+      name.startsWith("sb-")
+    ) {
+      const token = extractTokenFromCookieValue(cookie.value);
+      if (token) return token;
+    }
+  }
+
+  return null;
+}
+
+async function resolveUser(
+  supabase: SupabaseClient,
+  request: NextRequest
+): Promise<User | null> {
+  const token = extractBearerToken(request);
+  if (!token) return null;
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) return null;
+
+  return data.user;
+}
+
+function sortDesc<T extends { updated_at?: string | null; created_at?: string | null }>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => {
+    const da = new Date(a.updated_at ?? a.created_at ?? 0).getTime();
+    const db = new Date(b.updated_at ?? b.created_at ?? 0).getTime();
+    return db - da;
+  });
+}
+
+export async function GET(
+  request: NextRequest,
+  context: { params: { taskId: string } }
+) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const user = await resolveUser(supabase, request);
+    const taskId = trimOrNull(context.params?.taskId);
+
+    if (!taskId) {
+      return json(
+        {
+          ok: false,
+          error: "taskId manquant.",
+        },
+        400
+      );
+    }
+
+    let taskQuery = supabase
+      .from("pierre_tasks")
+      .select("*")
+      .eq("id", taskId)
+      .limit(1);
+
+    if (user) {
+      taskQuery = taskQuery.eq("user_id", user.id);
+    }
+
+    const { data: task, error: taskError } = await taskQuery.maybeSingle();
+    if (taskError) throw taskError;
+
+    if (!task) {
+      return json(
+        {
+          ok: false,
+          error: "TÃ¢che Pierre introuvable.",
+        },
+        404
+      );
+    }
+
+    const [logsResult, documentsResult, emailsResult] = await Promise.all([
+      supabase
+        .from("pierre_task_logs")
+        .select("*")
+        .eq("task_id", taskId)
+        .order("created_at", { ascending: false })
+        .limit(200),
+      supabase
+        .from("pierre_documents")
+        .select("*")
+        .eq("task_id", taskId)
+        .order("updated_at", { ascending: false }),
+      supabase
+        .from("pierre_outbound_emails")
+        .select("*")
+        .eq("task_id", taskId)
+        .order("updated_at", { ascending: false }),
+    ]);
+
+    if (logsResult.error) throw logsResult.error;
+    if (documentsResult.error) throw documentsResult.error;
+    if (emailsResult.error) throw emailsResult.error;
+
+    return json({
+      ok: true,
+      task,
+      logs: sortDesc(Array.isArray(logsResult.data) ? logsResult.data : []),
+      documents: sortDesc(Array.isArray(documentsResult.data) ? documentsResult.data : []),
+      outbound_emails: sortDesc(Array.isArray(emailsResult.data) ? emailsResult.data : []),
+      auth: user ? "resolved" : "missing",
+    });
+  } catch (error) {
+    console.error("[pierre/use/task/[taskId]][GET]", error);
+
+    return json(
+      {
+        ok: false,
+        error: "Impossible de charger la tÃ¢che Pierre.",
+      },
+      500
+    );
+  }
+}
+
+===== FILE: src/app/api/pierre/use/task/[taskId]/run/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { buildPierreTaskClaimPatch } from "@/lib/pierre/tasks/claim";
+import { processPierreTask } from "@/lib/pierre/queue/process-task";
+
+type DbRow = Record<string, unknown>;
+
+type AuthenticatedContext = {
+  userId: string;
+  accessToken: string | null;
+};
+
+type JsonErrorExtra = {
+  code?: string | null;
+  details?: unknown;
+};
+
+type RunTaskBody = {
+  workerId?: string | null;
+  force?: boolean;
+  lockMinutes?: number;
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+function asBoolean(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
+}
+
+function asNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: message,
+      ...(extra ?? {}),
+    },
+    { status },
+  );
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase environment is not configured.");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  for (const key of ["sb-access-token", "supabase-access-token", "access-token"]) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (candidate) return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateRequest(
+  request: NextRequest,
+  supabaseAdmin: SupabaseClient,
+): Promise<AuthenticatedContext> {
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw {
+      status: 401,
+      message: "Auth session missing.",
+      code: "AUTH_SESSION_MISSING",
+    };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return {
+    userId: data.user.id,
+    accessToken,
+  };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      code: null,
+      details: null,
+    };
+  }
+
+  return {
+    message: "Unexpected database error.",
+    code: null,
+    details: null,
+  };
+}
+
+function normalizeBody(raw: unknown): RunTaskBody {
+  if (!isObject(raw)) {
+    return {
+      workerId: null,
+      force: false,
+      lockMinutes: undefined,
+    };
+  }
+
+  return {
+    workerId: asString(raw.workerId),
+    force: asBoolean(raw.force) ?? false,
+    lockMinutes: asNumber(raw.lockMinutes) ?? undefined,
+  };
+}
+
+async function loadOwnedTask(
+  supabaseAdmin: SupabaseClient,
+  taskId: string,
+  userId: string,
+): Promise<DbRow> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_tasks")
+    .select(
+      `
+      *,
+      pierre_missions!inner (
+        id,
+        user_id
+      )
+    `,
+    )
+    .eq("id", taskId)
+    .eq("pierre_missions.user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load task.",
+      code: "TASK_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  if (!data) {
+    throw {
+      status: 404,
+      message: "Task not found.",
+      code: "TASK_NOT_FOUND",
+    };
+  }
+
+  return data as DbRow;
+}
+
+function buildPersistenceAdapter(supabaseAdmin: SupabaseClient) {
+  return {
+    updateTask: async (taskId: string, patch: Record<string, unknown>) => {
+      const { error } = await supabaseAdmin
+        .from("pierre_tasks")
+        .update(patch)
+        .eq("id", taskId);
+
+      if (error) {
+        throw new Error(`Unable to update task: ${error.message}`);
+      }
+    },
+    insertTaskLog: async (entry: {
+      mission_id?: string | null;
+      task_id?: string | null;
+      level: "info" | "warning" | "error";
+      event: string;
+      message: string;
+      payload?: Record<string, unknown> | null;
+    }) => {
+      const { error } = await supabaseAdmin.from("pierre_task_logs").insert({
+        mission_id: entry.mission_id ?? null,
+        task_id: entry.task_id ?? null,
+        level: entry.level,
+        event: entry.event,
+        message: entry.message,
+        payload: entry.payload ?? null,
+      });
+
+      if (error) {
+        throw new Error(`Unable to insert task log: ${error.message}`);
+      }
+    },
+  };
+}
+
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ taskId: string }> | { taskId: string } },
+) {
+  try {
+    const resolvedParams = await Promise.resolve(context.params);
+    const taskId = asString(resolvedParams?.taskId);
+
+    if (!taskId) {
+      return jsonError("Task id is required.", 400, {
+        code: "TASK_ID_REQUIRED",
+      });
+    }
+
+    const body = normalizeBody(await request.json().catch(() => null));
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateRequest(request, supabaseAdmin);
+    const task = await loadOwnedTask(supabaseAdmin, taskId, auth.userId);
+
+    const workerId = body.workerId || `manual-api-${auth.userId}`;
+    const now = new Date();
+
+    const claimPatch = buildPierreTaskClaimPatch({
+      task: task as never,
+      workerId,
+      now,
+      lockMinutes: body.lockMinutes,
+      force: body.force,
+    });
+
+    if (!claimPatch.allowed) {
+      return jsonError(claimPatch.reason, 409, {
+        code: claimPatch.conflict_code,
+      });
+    }
+
+    const persistence = buildPersistenceAdapter(supabaseAdmin);
+
+    await persistence.updateTask(taskId, claimPatch.patch);
+    await persistence.insertTaskLog({
+      mission_id: asString(task.mission_id),
+      task_id: taskId,
+      level: "info",
+      event: "task_claimed_manual_run",
+      message: claimPatch.reason,
+      payload: {
+        worker_id: workerId,
+      },
+    });
+
+    const result = await processPierreTask({
+      task: {
+        ...(task as DbRow),
+        ...(claimPatch.patch as DbRow),
+      } as never,
+      workerId,
+      persistence,
+      now,
+    });
+
+    return NextResponse.json({
+      ok: result.ok,
+      result,
+      meta: {
+        taskId,
+        workerId,
+        fetchedAt: now.toISOString(),
+      },
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(
+        asString(error.message) || "Request failed.",
+        error.status,
+        {
+          code: asString(error.code),
+          details: error.details ?? null,
+        },
+      );
+    }
+
+    const mapped = mapDbError(error);
+
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+===== FILE: src/app/api/router/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { getSupabase } from "@/lib/supabase";
+
+// âš ï¸ Mets ici l'URL EXACTE de ton webhook Make
+const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/u8nkxlkauyxlygy1r6p59rhmdk35ta4r";
+
+// =============================
+// TYPES
+// =============================
+type RouterRequestBody = {
+  client_id?: string; // ignorÃ© cÃ´tÃ© front, on utilise le token
+  token?: string;
+  agent?: string;
+  payload?: any;
+};
+
+type RouterStatus = "OK" | "UNAUTHORIZED" | "FORBIDDEN" | "ERROR";
+
+type RouterResponse = {
+  status: RouterStatus;
+  agent: string | null;
+  data: any | null;
+  error: string | null;
+};
+
+// =============================
+// RÃ‰PONSE STANDARD
+// =============================
+function buildResponse(
+  status: RouterStatus,
+  agent: string | null,
+  data: any = null,
+  error: string | null = null
+) {
+  const body: RouterResponse = { status, agent, data, error };
+  return NextResponse.json(body);
+}
+
+// =============================
+// HANDLER PRINCIPAL : POST /api/router
+// =============================
+export async function POST(req: NextRequest) {
+  try {
+    const body = (await req.json()) as RouterRequestBody;
+    const { token, agent, payload } = body;
+
+    // 1) VÃ©rif des champs obligatoires (token + agent)
+    if (!token || !agent) {
+      return buildResponse(
+        "ERROR",
+        agent ?? null,
+        null,
+        "Missing token or agent"
+      );
+    }
+
+    const supabase = getSupabase();
+
+    // 2) RÃ©cupÃ©rer le client_id Ã  partir du token
+    const clientId = await getClientIdFromToken(supabase, token);
+    if (!clientId) {
+      return buildResponse("UNAUTHORIZED", agent, null, "Invalid credentials");
+    }
+
+    // 3) VÃ©rifier que ce client possÃ¨de bien cet agent
+    const allowed = await checkAgentPermission(supabase, clientId, agent);
+    if (!allowed) {
+      return buildResponse(
+        "FORBIDDEN",
+        agent,
+        null,
+        "Agent not owned by this client"
+      );
+    }
+
+    // 4) Appel Ã  Make : on envoie agent + payload
+    try {
+      const makeResponse = await fetch(MAKE_WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          agent: agent,
+          payload: payload,
+        }),
+      });
+
+      const rawText = await makeResponse.text();
+      let parsed: any = null;
+
+      if (rawText && rawText.trim().length > 0) {
+        // On essaie de rÃ©cupÃ©rer tout ce qu'il y a entre le 1er { et le dernier }
+        const match = rawText.match(/{[\s\S]*}/);
+        if (match) {
+          const jsonSlice = match[0];
+          try {
+            parsed = JSON.parse(jsonSlice);
+          } catch (e) {
+            console.error("JSON.parse failed on slice, keeping rawText:", e);
+            parsed = rawText;
+          }
+        } else {
+          // pas de {} trouvÃ©s, on garde le texte brut
+          parsed = rawText;
+        }
+      } else {
+        parsed = null;
+      }
+
+      return buildResponse("OK", agent, parsed, null);
+    } catch (err) {
+      console.error("Make call error:", err);
+      return buildResponse("ERROR", agent, null, "Make error");
+    }
+  } catch (err) {
+    console.error("Router error:", err);
+    return buildResponse("ERROR", null, null, "Unexpected server error");
+  }
+}
+
+// =============================
+// RÃ©cupÃ©rer le client_id Ã  partir du token
+// =============================
+async function getClientIdFromToken(
+  supabase: any,
+  token: string
+): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from("api_tokens")
+      .select("client_id, active")
+      .eq("token", token)
+      .eq("active", true)
+      .maybeSingle();
+
+    console.log("getClientIdFromToken result:", { data, error });
+
+    if (error) {
+      console.error("getClientIdFromToken error:", error);
+      return null;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return data.client_id as string;
+  } catch (err) {
+    console.error("getClientIdFromToken exception:", err);
+    return null;
+  }
+}
+
+// =============================
+// VÃ©rifier si ce client possÃ¨de cet agent
+// =============================
+async function checkAgentPermission(
+  supabase: any,
+  clientId: string,
+  agent: string
+): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from("agents_owned")
+      .select("id")
+      .eq("client_id", clientId)
+      .eq("agent_name", agent)
+      .maybeSingle();
+
+    console.log("checkAgentPermission result:", { data, error });
+
+    if (error) {
+      console.error("checkAgentPermission error:", error);
+      return false;
+    }
+
+    if (!data) {
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error("checkAgentPermission exception:", err);
+    return false;
+  }
+}
+
+
+
+
+
+
+
+
+
+  
+
+
+
+===== FILE: src/app/api/stripe/return/route.ts =====
+
+import { NextResponse } from "next/server";
+import { getBaseUrl } from "@/lib/base-url";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const base = getBaseUrl();
+  const url = new URL("/profile/agents", base);
+  return NextResponse.redirect(url);
+}
+
+
+
+===== FILE: src/app/api/webhooks/stripe/route.ts =====
+
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function json(status: number, data: unknown) {
+  return NextResponse.json(data, { status });
+}
+
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
+  return new Stripe(key);
+}
+
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+  if (!service) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+  return createClient(url, service, { auth: { persistSession: false } });
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
+function getString(obj: Record<string, unknown>, key: string): string | null {
+  const v = obj[key];
+  return typeof v === "string" ? v : null;
+}
+
+function getMetadata(obj: Record<string, unknown>): Record<string, unknown> | null {
+  const meta = obj["metadata"];
+  return isRecord(meta) ? meta : null;
+}
+
+async function upsertActive(args: {
+  user_id: string;
+  agent_slug: string;
+  subId: string;
+  customerId: string | null;
+}) {
+  const sb = getSupabaseAdmin();
+  const now = new Date().toISOString();
+
+  const { error } = await sb
+    .from("orders")
+    .upsert(
+      {
+        user_id: args.user_id,
+        agent_slug: args.agent_slug,
+        status: "active",
+        started_at: now,
+        ended_at: null,
+        stripe_subscription_id: args.subId,
+        stripe_customer_id: args.customerId,
+      },
+      { onConflict: "user_id,agent_slug" }
+    );
+
+  if (error) throw new Error(error.message);
+}
+
+async function setCancelledBySubId(subId: string) {
+  const sb = getSupabaseAdmin();
+  const now = new Date().toISOString();
+
+  const { error } = await sb
+    .from("orders")
+    .update({ status: "cancelled", ended_at: now })
+    .eq("stripe_subscription_id", subId);
+
+  if (error) throw new Error(error.message);
+}
+
+async function setPastDueBySubId(subId: string) {
+  const sb = getSupabaseAdmin();
+  const { error } = await sb
+    .from("orders")
+    .update({ status: "past_due" })
+    .eq("stripe_subscription_id", subId);
+
+  if (error) throw new Error(error.message);
+}
+
+export async function POST(req: Request) {
+  try {
+    const sig = req.headers.get("stripe-signature");
+    if (!sig) return json(400, { error: "Missing stripe-signature" });
+
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!secret) return json(500, { error: "Missing STRIPE_WEBHOOK_SECRET" });
+
+    const rawBody = await req.text();
+    const stripe = getStripe();
+
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(rawBody, sig, secret);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Webhook signature verification failed";
+      return json(400, { error: msg });
+    }
+
+    // âœ… 0) CHECKOUT COMPLETED = source de vÃ©ritÃ©
+    if (event.type === "checkout.session.completed") {
+      const obj: unknown = event.data.object;
+      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+
+      const mode = getString(obj, "mode"); // "subscription"
+      const payment_status = getString(obj, "payment_status"); // "paid"
+      const subId = getString(obj, "subscription");
+      const customerId = getString(obj, "customer");
+
+      const meta = getMetadata(obj);
+      const user_id = meta && typeof meta["user_id"] === "string" ? (meta["user_id"] as string) : null;
+      const agent_slug = meta && typeof meta["agent_slug"] === "string" ? (meta["agent_slug"] as string) : null;
+
+      // On active seulement si paiement OK + subscription id prÃ©sent
+      if (mode === "subscription" && payment_status === "paid" && subId && user_id && agent_slug) {
+        await upsertActive({ user_id, agent_slug, subId, customerId });
+      }
+
+      return json(200, { received: true, type: event.type, subId, payment_status });
+    }
+
+    // âœ… 1) SUBSCRIPTION updated : utile pour past_due / etc.
+    if (event.type === "customer.subscription.updated") {
+      const obj: unknown = event.data.object;
+      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+
+      const subId = getString(obj, "id");
+      const status = getString(obj, "status");
+      if (!subId) return json(200, { received: true, note: "Missing subscription id" });
+
+      if (status === "past_due") {
+        await setPastDueBySubId(subId);
+      }
+
+      return json(200, { received: true, type: event.type, subId, status });
+    }
+
+    // âœ… 2) SUBSCRIPTION DELETED
+    if (event.type === "customer.subscription.deleted") {
+      const obj: unknown = event.data.object;
+      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+
+      const subId = getString(obj, "id");
+      if (subId) await setCancelledBySubId(subId);
+
+      return json(200, { received: true, type: event.type, subId });
+    }
+
+    // âœ… 3) PAYMENT FAILED => past_due
+    if (event.type === "invoice.payment_failed") {
+      const obj: unknown = event.data.object;
+      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+
+      const subId = getString(obj, "subscription");
+      if (subId) await setPastDueBySubId(subId);
+
+      return json(200, { received: true, type: event.type, subId });
+    }
+
+    return json(200, { received: true, type: event.type });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Webhook failed";
+    return json(500, { error: msg });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+===== FILE: src/app/assistant/page.tsx =====
+
+"use client";
+
+import { useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  CornerDownLeft,
+  Loader2,
+  MessagesSquare,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+type MessageItem = {
+  role: "assistant" | "user";
+  content: string;
+};
+
+const QUICK_PROMPTS = [
+  "Explique CloneStore simplement",
+  "Quelle est la diffÃ©rence entre Boutique, Mes employÃ©s et Mon espace ?",
+  "Ã€ quoi sert CloneChat ?",
+  "Comment fonctionne CloneStore concrÃ¨tement ?",
+];
+
+function extractAssistantText(data: unknown): string {
+  if (!data || typeof data !== "object") {
+    return "Je nâ€™ai pas pu produire de rÃ©ponse exploitable pour le moment.";
+  }
+
+  const record = data as Record<string, unknown>;
+
+  const directKeys = ["answer", "response", "content", "message", "text"];
+  for (const key of directKeys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  const choices = record.choices;
+  if (Array.isArray(choices) && choices.length > 0) {
+    const first = choices[0] as Record<string, unknown>;
+    const message = first.message as Record<string, unknown> | undefined;
+    const content = message?.content;
+    if (typeof content === "string" && content.trim()) {
+      return content.trim();
+    }
+  }
+
+  return "Je nâ€™ai pas pu produire de rÃ©ponse exploitable pour le moment.";
+}
+
+export default function AssistantPage() {
+  const [messages, setMessages] = useState<MessageItem[]>([
+    {
+      role: "assistant",
+      content:
+        "Bonjour. Je suis CloneChat. Je sers Ã  expliquer CloneStore, orienter vers la bonne zone du produit et rÃ©duire les frictions dans lâ€™usage.",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const canSend = useMemo(() => input.trim().length > 0 && !loading, [input, loading]);
+
+  async function sendMessage(rawText: string) {
+    const clean = rawText.trim();
+    if (!clean || loading) return;
+
+    setMessages((prev) => [...prev, { role: "user", content: clean }]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/assistant", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: clean,
+          input: clean,
+          query: clean,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+      const answer = extractAssistantText(data);
+
+      setMessages((prev) => [...prev, { role: "assistant", content: answer }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "Je nâ€™ai pas pu rÃ©pondre correctement pour le moment. Tu peux continuer via la Boutique, Mes employÃ©s ou Mon espace.",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-5">
+          <section className="cs-command-surface">
+            <div className="grid gap-5 xl:grid-cols-[1.02fr_0.98fr] xl:items-center">
+              <div className="space-y-5">
+                <span className="cs-pill">
+                  <Bot className="h-4 w-4 text-[var(--cs-violet)]" />
+                  CloneChat
+                </span>
+
+                <div className="space-y-3">
+                  <h1 className="cs-display text-[clamp(1.95rem,3vw,3.2rem)] leading-[0.98]">
+                    Comprendre, orienter,
+                    <br />
+                    <span className="cs-gradient-text">dÃ©bloquer</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
+                    CloneChat est le point dâ€™entrÃ©e naturel de CloneStore. Il
+                    aide Ã  comprendre le produit, Ã  aller au bon endroit et Ã 
+                    rÃ©duire les questions inutiles dans le parcours.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    asChild
+                    className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    <Link href="/profile/agents">
+                      Mes employÃ©s
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    <Link href="/agents">Voir la boutique</Link>
+                  </Button>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <MiniPoint
+                    icon={<MessagesSquare className="h-4 w-4" />}
+                    title="Explication"
+                    text="rend le produit lisible"
+                  />
+                  <MiniPoint
+                    icon={<Waypoints className="h-4 w-4" />}
+                    title="Orientation"
+                    text="envoie vers la bonne zone"
+                  />
+                  <MiniPoint
+                    icon={<ShieldCheck className="h-4 w-4" />}
+                    title="Support"
+                    text="rÃ©duit les frictions"
+                  />
+                </div>
+              </div>
+
+              <div className="cs-panel p-5">
+                <div className="space-y-4">
+                  <p className="cs-eyebrow">Prompts rapides</p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {QUICK_PROMPTS.map((prompt) => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        onClick={() => void sendMessage(prompt)}
+                        className="inline-flex h-10 items-center rounded-full border border-[var(--cs-line-soft)] bg-white/42 px-4 text-[0.84rem] font-medium text-[var(--cs-ink-2)] transition hover:bg-white/56"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="rounded-[1.25rem] border border-[var(--cs-line-soft)] bg-white/30 p-4">
+                    <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">
+                      RÃ´le dans lâ€™expÃ©rience
+                    </p>
+                    <p className="mt-2 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+                      CloneChat ne remplace pas le cockpit. Il sert Ã 
+                      comprendre, orienter, clarifier et accÃ©lÃ©rer lâ€™accÃ¨s au
+                      bon endroit dans CloneStore.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="cs-panel p-5">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="cs-eyebrow">Conversation</p>
+                  <h2 className="mt-2 text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                    Parler Ã  CloneChat
+                  </h2>
+                </div>
+
+                <span className="cs-status cs-status--info">Interface active</span>
+              </div>
+
+              <div className="rounded-[1.35rem] border border-[var(--cs-line-soft)] bg-white/28 p-4">
+                <div className="flex max-h-[440px] min-h-[340px] flex-col gap-3 overflow-y-auto pr-1">
+                  {messages.map((message, index) => (
+                    <div
+                      key={`${message.role}-${index}`}
+                      className={[
+                        "max-w-[86%] rounded-[1.1rem] px-4 py-3 text-[0.88rem] leading-6",
+                        message.role === "assistant"
+                          ? "border border-[var(--cs-line-soft)] bg-white/64 text-[var(--cs-ink-2)]"
+                          : "ml-auto border border-[rgba(95,92,230,0.10)] bg-[rgba(95,92,230,0.08)] text-[var(--cs-ink-1)]",
+                      ].join(" ")}
+                    >
+                      {message.content}
+                    </div>
+                  ))}
+
+                  {loading ? (
+                    <div className="inline-flex max-w-[86%] items-center gap-2 rounded-[1.1rem] border border-[var(--cs-line-soft)] bg-white/64 px-4 py-3 text-[0.84rem] text-[var(--cs-ink-3)]">
+                      <Loader2 className="h-4 w-4 animate-spin text-[var(--cs-violet)]" />
+                      <span>CloneChat rÃ©flÃ©chitâ€¦</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void sendMessage(input);
+                }}
+                className="flex flex-col gap-3 sm:flex-row"
+              >
+                <div className="relative flex-1">
+                  <input
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                    placeholder="Pose une question sur CloneStoreâ€¦"
+                    className="h-11 w-full rounded-full border border-[var(--cs-line-soft)] bg-white/42 px-5 pr-12 text-[0.88rem] text-[var(--cs-ink-1)] outline-none transition placeholder:text-[var(--cs-ink-4)] focus:border-[rgba(95,92,230,0.16)] focus:bg-white/56"
+                  />
+                  <CornerDownLeft className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--cs-ink-4)]" />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={!canSend}
+                  className="h-11 rounded-full px-5 text-[0.88rem] font-medium text-white"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                    boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                  }}
+                >
+                  Envoyer
+                </Button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniPoint({
+  icon,
+  title,
+  text,
+}: {
+  icon: ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+        <div>
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">
+            {title}
+          </p>
+          <p className="mt-1 text-[0.84rem] text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+===== FILE: src/app/checkout/page.tsx =====
+
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  CheckCircle2,
+  CreditCard,
+  FileCheck2,
+  Loader2,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+
+type CheckoutAgent = {
+  slug: string;
+  name: string;
+  role: string;
+  price?: string;
+  available: boolean;
+  description: string;
+  bullets: string[];
+};
+
+const AGENTS: Record<string, CheckoutAgent> = {
+  pierre: {
+    slug: "pierre",
+    name: "Pierre",
+    role: "Poste RH opÃ©rationnel automatisÃ©",
+    price: "449â‚¬/mois",
+    available: true,
+    description:
+      "Pierre absorbe une part massive du travail RH opÃ©rationnel : documents, emails, relances, onboarding, continuitÃ©, validations et traÃ§abilitÃ©.",
+    bullets: [
+      "Mission libre RH",
+      "Documents et emails premium",
+      "Relances et continuitÃ©",
+      "ContrÃ´le humain sur le sensible",
+    ],
+  },
+  clara: {
+    slug: "clara",
+    name: "Clara",
+    role: "Recrutement automatisÃ©",
+    available: false,
+    description:
+      "Pipeline candidats, coordination recrutement, shortlists et continuitÃ© de suivi.",
+    bullets: ["BientÃ´t disponible"],
+  },
+  emma: {
+    slug: "emma",
+    name: "Emma",
+    role: "Support & communication",
+    available: false,
+    description:
+      "RÃ©ponses, suivi, communication et continuitÃ© relationnelle.",
+    bullets: ["BientÃ´t disponible"],
+  },
+  adrien: {
+    slug: "adrien",
+    name: "Adrien",
+    role: "Commandes & opÃ©rations",
+    available: false,
+    description:
+      "Traitement, suivi et continuitÃ© des commandes et opÃ©rations.",
+    bullets: ["BientÃ´t disponible"],
+  },
+};
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-3xl space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+        {kicker}
+      </p>
+      <h2 className="cs-heading text-2xl md:text-3xl">{title}</h2>
+      <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-account-accent)]" />
+          <span className="text-sm text-[var(--cs-ink-4)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function CheckoutPage() {
+  const searchParams = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const agentSlug = searchParams.get("agent")?.toLowerCase() || "pierre";
+
+  const agent = useMemo(() => {
+    return AGENTS[agentSlug] ?? AGENTS.pierre;
+  }, [agentSlug]);
+
+  async function handleCheckout() {
+    if (!agent.available || isLoading) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          agent_slug: agent.slug,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            data?.message ||
+            "Impossible de dÃ©marrer le paiement pour le moment.",
+        );
+      }
+
+      const checkoutUrl =
+        data?.url || data?.checkout_url || data?.sessionUrl || null;
+
+      if (!checkoutUrl) {
+        throw new Error("Aucune URL de paiement nâ€™a Ã©tÃ© renvoyÃ©e.");
+      }
+
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible de dÃ©marrer le paiement pour le moment.",
+      );
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        {/* HERO */}
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.03fr_0.97fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <CreditCard className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Checkout CloneStore</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>EntrÃ©e propre vers lâ€™activation</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Finaliser lâ€™entrÃ©e dans CloneStore
+                  <br />
+                  <span className="cs-gradient-text">
+                    avec une expÃ©rience simple et premium.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Cette Ã©tape doit Ãªtre claire, rassurante et sans friction.
+                  On confirme le bon employÃ©, on comprend ce quâ€™on achÃ¨te, puis
+                  on bascule proprement vers lâ€™activation et le cockpit.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href={`/agents/${agent.slug === "pierre" ? "pierre" : ""}`.replace(/\/$/, "")}
+                  label={`Retour Ã  ${agent.name}`}
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents"
+                  label="Retour boutique"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <InfoCard
+                  title="Choix clair"
+                  text="Le client doit voir immÃ©diatement quel employÃ© il est en train dâ€™activer."
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Confiance"
+                  text="Le ton, la clartÃ© et la structure doivent rassurer avant lâ€™achat."
+                  icon={<Lock className="h-4 w-4" />}
+                  tone="blue"
+                />
+                <InfoCard
+                  title="Suite logique"
+                  text="AprÃ¨s paiement, lâ€™entrÃ©e doit continuer vers lâ€™activation puis le cockpit."
+                  icon={<Waypoints className="h-4 w-4" />}
+                  tone="green"
+                />
+              </div>
+            </div>
+
+            {/* SUMMARY */}
+            <div className="cs-panel">
+              <div className="relative space-y-6">
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--cs-ink-4)]">
+                    RÃ©sumÃ© de lâ€™activation
+                  </p>
+                  <h2 className="cs-heading text-2xl">{agent.name}</h2>
+                  <p className="text-sm text-[var(--cs-ink-4)]">{agent.role}</p>
+                </div>
+
+                <div className="cs-card">
+                  <div className="relative space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                          EmployÃ© sÃ©lectionnÃ©
+                        </p>
+                        <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
+                          {agent.description}
+                        </p>
+                      </div>
+
+                      <span
+                        className={
+                          agent.available
+                            ? "cs-status cs-status--success"
+                            : "cs-status cs-status--warn"
+                        }
+                      >
+                        {agent.available ? "Disponible" : "En construction"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="cs-card">
+                  <div className="relative space-y-3">
+                    <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                      Prix
+                    </p>
+
+                    {agent.price ? (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                          {agent.price}
+                        </span>
+                        <span className="text-xs text-[var(--cs-ink-4)]">
+                          prix fondateur actuel
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-[var(--cs-ink-4)]">
+                        Prix non affichÃ© pour le moment.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="cs-card">
+                  <div className="relative space-y-3">
+                    <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                      Inclus
+                    </p>
+                    <BulletList items={agent.bullets} />
+                  </div>
+                </div>
+
+                {error ? (
+                  <div className="rounded-[1.2rem] border border-[color:rgba(161,75,83,0.22)] bg-[rgba(161,75,83,0.08)] px-4 py-3 text-sm text-[var(--cs-danger)]">
+                    {error}
+                  </div>
+                ) : null}
+
+                {agent.available ? (
+                  <button
+                    type="button"
+                    onClick={handleCheckout}
+                    disabled={isLoading}
+                    className={[
+                      "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+                      "border",
+                      isLoading
+                        ? "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.62),rgba(255,249,242,0.42))] text-[var(--cs-ink-4)] opacity-80"
+                        : "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))] text-white shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)] hover:-translate-y-0.5",
+                    ].join(" ")}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Redirection vers le paiementâ€¦</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Continuer vers le paiement</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <div className="cs-card">
+                    <div className="relative space-y-3">
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                        EmployÃ© pas encore ouvert au lancement
+                      </p>
+                      <p className="text-sm text-[var(--cs-ink-4)]">
+                        Cet employÃ© est visible pour montrer la profondeur de
+                        CloneStore, mais lâ€™activation publique nâ€™est pas encore
+                        ouverte.
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        <ActionButton
+                          href="/agents/pierre"
+                          label="Commencer par Pierre"
+                          primary
+                          icon={<ArrowRight className="h-4 w-4" />}
+                        />
+                        <ActionButton
+                          href="/questions"
+                          label="Demander conseil"
+                          icon={<Bot className="h-4 w-4" />}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-xs text-[var(--cs-ink-4)]">
+                  Si ton API checkout attend un autre nom de champ que
+                  <span className="font-mono text-[var(--cs-ink-3)]"> agent_slug</span>,
+                  ajuste uniquement la ligne du body JSON.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* WHY THIS PAGE MATTERS */}
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Pourquoi cette page compte"
+              title="Le paiement ne doit jamais ressembler Ã  une transition bricolÃ©e."
+              text="MÃªme cette Ã©tape doit rester CloneStore : claire, calme, contrÃ´lÃ©e, premium et comprÃ©hensible pour quelquâ€™un qui nâ€™aime pas lâ€™informatique."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="RÃ©sumÃ© net"
+                text="Le client doit voir ce quâ€™il active, ce quâ€™il paie et pourquoi."
+                icon={<CreditCard className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Projection"
+                text="Il doit dÃ©jÃ  sentir la suite : activation, cockpit, personnalisation, usage."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="RÃ©assurance"
+                text="Le ton, la structure et lâ€™assistant doivent supprimer le doute inutile."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="AprÃ¨s paiement"
+              title="Le client ne doit pas tomber dans le vide."
+              text="Une fois le paiement terminÃ©, on doit lâ€™emmener vers une vraie suite logique : succÃ¨s, activation, puis cockpit."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Activation"
+                text="Le compte et lâ€™accÃ¨s doivent Ãªtre cadrÃ©s proprement aprÃ¨s achat."
+                icon={<Sparkles className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Onboarding"
+                text="Empreinte Entreprise et premiÃ¨res Ã©tapes doivent Ãªtre limpides."
+                icon={<BriefcaseBusiness className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Cockpit"
+                text="Lâ€™arrivÃ©e finale doit se faire dans lâ€™espace oÃ¹ le client agit rÃ©ellement."
+                icon={<FileCheck2 className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+===== FILE: src/app/clonestore/[slug]/page.tsx =====
+
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
+import {
+  CLONESTORE_SECTIONS,
+  getCloneStoreSectionById,
+  type CloneStoreSection,
+} from "@/components/site/clonestore-sections";
+
+export function generateStaticParams() {
+  return CLONESTORE_SECTIONS.map((section: CloneStoreSection) => ({
+    slug: section.id,
+  }));
+}
+
+export default async function CloneStoreDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const section = getCloneStoreSectionById(slug);
+
+  if (!section) {
+    notFound();
+  }
+
+  return (
+    <div className="cs-page">
+      <div className="cs-shell-narrow">
+        <div className="space-y-5">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-[0.84rem] font-medium text-[var(--cs-ink-2)] cs-glass"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Retour Ã  lâ€™accueil
+          </Link>
+
+          <section className="cs-command-surface">
+            <div className="space-y-4">
+              <p className="cs-eyebrow">{section.label}</p>
+
+              <h1 className="cs-display text-[clamp(1.95rem,3.1vw,3.5rem)] leading-[0.98]">
+                {section.title}
+              </h1>
+
+              <p className="max-w-4xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
+                {section.intro}
+              </p>
+            </div>
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {section.blocks.map((block) => (
+              <article key={block.title} className="cs-card">
+                <div className="space-y-3">
+                  <h2 className="text-[1rem] font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                    {block.title}
+                  </h2>
+                  <p className="text-[0.88rem] leading-7 text-[var(--cs-ink-3)]">
+                    {block.text}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+===== FILE: src/app/error.bak.tsx =====
+
+'use client';
+
+export default function ErrorPage({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  console.error(error);
+  return (
+    <div style={{ padding: 24 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700 }}>Oups â€” une erreur est survenue</h1>
+      <p style={{ opacity: 0.7, marginTop: 8 }}>On va relancer la page.</p>
+      <button
+        onClick={() => reset()}
+        style={{
+          marginTop: 16,
+          padding: '8px 12px',
+          border: '1px solid #e5e7eb',
+          borderRadius: 6,
+          cursor: 'pointer',
+        }}
+      >
+        RÃ©essayer
+      </button>
+    </div>
+  );
+}
+
+
+===== FILE: src/app/global-error.tsx =====
+
+'use client';
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  console.error(error);
+  return (
+    <html lang="fr">
+      <body>
+        <div style={{ padding: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700 }}>Erreur globale</h1>
+          <p style={{ opacity: 0.7, marginTop: 8 }}>On recharge lâ€™application.</p>
+          <button
+            onClick={() => reset()}
+            style={{
+              marginTop: 16,
+              padding: '8px 12px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 6,
+              cursor: 'pointer',
+            }}
+          >
+            Recharger
+          </button>
+        </div>
+      </body>
+    </html>
+  );
+}
+
+
+===== FILE: src/app/globals.css =====
+
+@import "tailwindcss";
+
+:root {
+  --cs-bg: #f5f4f1;
+  --cs-bg-2: #efede8;
+  --cs-surface: rgba(255, 255, 255, 0.58);
+  --cs-surface-strong: rgba(255, 255, 255, 0.72);
+  --cs-surface-soft: rgba(255, 255, 255, 0.38);
+
+  --cs-line: rgba(17, 24, 39, 0.08);
+  --cs-line-soft: rgba(17, 24, 39, 0.06);
+
+  --cs-ink-1: #111827;
+  --cs-ink-2: #2b3445;
+  --cs-ink-3: #5f6b7c;
+  --cs-ink-4: #8c97a8;
+
+  --cs-violet: #6f63f6;
+  --cs-violet-2: #8a7cff;
+  --cs-violet-soft: rgba(111, 99, 246, 0.12);
+
+  --cs-success: #12805c;
+  --cs-success-bg: rgba(18, 128, 92, 0.10);
+
+  --cs-warn: #a56715;
+  --cs-warn-bg: rgba(165, 103, 21, 0.10);
+
+  --cs-danger: #b84242;
+
+  --cs-radius-xl: 1.75rem;
+  --cs-radius-lg: 1.25rem;
+  --cs-radius-md: 1rem;
+  --cs-radius-pill: 999px;
+
+  --cs-shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.05);
+  --cs-shadow-panel: 0 20px 60px rgba(15, 23, 42, 0.06);
+  --cs-shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+
+  --cs-speed-fast: 180ms;
+  --cs-speed-slow: 420ms;
+  --cs-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--cs-ink-1);
+  background:
+    radial-gradient(900px 500px at 12% 12%, rgba(111, 99, 246, 0.07), transparent 60%),
+    radial-gradient(700px 400px at 88% 10%, rgba(138, 124, 255, 0.05), transparent 62%),
+    linear-gradient(180deg, #f8f7f4 0%, #f2f0eb 100%);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+/* ---------- Layout roots ---------- */
+
+.cs-main {
+  position: relative;
+  z-index: 2;
+}
+
+.cs-page {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.cs-shell,
+.cs-page-shell,
+.cs-shell-narrow {
+  width: min(100%, 1440px);
+  margin-inline: auto;
+  padding-inline: 28px;
+}
+
+.cs-page-shell {
+  padding-top: 28px;
+  padding-bottom: 44px;
+}
+
+.cs-shell-narrow {
+  width: min(100%, 1320px);
+}
+
+@media (max-width: 1024px) {
+  .cs-shell,
+  .cs-page-shell,
+  .cs-shell-narrow {
+    padding-inline: 18px;
+  }
+
+  .cs-page-shell {
+    padding-top: 20px;
+    padding-bottom: 28px;
+  }
+}
+
+/* ---------- Background system ---------- */
+
+.cs-backdrop {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.cs-backdrop__halo {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(56px);
+  opacity: 0.45;
+  animation: csFloat 18s ease-in-out infinite;
+}
+
+.cs-backdrop__halo--a {
+  width: 540px;
+  height: 540px;
+  left: -140px;
+  top: 80px;
+  background: rgba(111, 99, 246, 0.09);
+}
+
+.cs-backdrop__halo--b {
+  width: 520px;
+  height: 520px;
+  right: -120px;
+  top: 120px;
+  background: rgba(138, 124, 255, 0.08);
+  animation-delay: -6s;
+}
+
+.cs-backdrop__halo--c {
+  width: 460px;
+  height: 460px;
+  left: 34%;
+  bottom: -140px;
+  background: rgba(255, 255, 255, 0.35);
+  animation-delay: -10s;
+}
+
+.cs-backdrop__arc {
+  position: absolute;
+  inset: auto 0 8% 0;
+  height: 320px;
+  background:
+    radial-gradient(closest-side, rgba(111, 99, 246, 0.06), transparent 72%);
+  filter: blur(12px);
+  opacity: 0.65;
+}
+
+.cs-backdrop__film {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.02)),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.22), transparent 30%, transparent 70%, rgba(255, 255, 255, 0.18));
+  opacity: 0.26;
+}
+
+.cs-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  box-shadow: inset 0 0 120px rgba(12, 18, 28, 0.03);
+}
+
+@keyframes csFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0) scale(1.04);
+  }
+}
+
+/* ---------- Header ---------- */
+
+.cs-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding-top: 14px;
+  padding-bottom: 10px;
+  backdrop-filter: blur(18px);
+}
+
+.cs-mark-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cs-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.cs-brand-text {
+  color: var(--cs-ink-1);
+  font-size: 0.94rem;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.cs-nav-rail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: var(--cs-radius-pill);
+  border: 1px solid var(--cs-line-soft);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.42));
+  box-shadow: var(--cs-shadow-soft), var(--cs-shadow-inner);
+}
+
+.cs-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding-inline: 13px;
+  border-radius: var(--cs-radius-pill);
+  color: var(--cs-ink-3);
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition:
+    background-color var(--cs-speed-fast) var(--cs-ease),
+    color var(--cs-speed-fast) var(--cs-ease),
+    transform var(--cs-speed-fast) var(--cs-ease);
+}
+
+.cs-nav-link:hover {
+  background: rgba(255, 255, 255, 0.46);
+  color: var(--cs-ink-1);
+}
+
+.cs-glass {
+  border: 1px solid var(--cs-line-soft);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.48));
+  box-shadow: var(--cs-shadow-soft), var(--cs-shadow-inner);
+}
+
+/* ---------- Footer ---------- */
+
+.cs-footer {
+  position: relative;
+  z-index: 2;
+  margin-top: 10px;
+}
+
+/* ---------- Panels / surfaces ---------- */
+
+.cs-panel,
+.cs-card,
+.cs-command-surface {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--cs-line-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.60), rgba(255, 255, 255, 0.44));
+  box-shadow: var(--cs-shadow-panel), var(--cs-shadow-inner);
+  backdrop-filter: blur(14px);
+}
+
+.cs-panel,
+.cs-command-surface {
+  border-radius: var(--cs-radius-xl);
+}
+
+.cs-card {
+  border-radius: var(--cs-radius-lg);
+  padding: 20px;
+}
+
+.cs-card-tight {
+  padding: 18px;
+}
+
+.cs-command-surface {
+  padding: 28px;
+}
+
+@media (max-width: 1024px) {
+  .cs-command-surface {
+    padding: 20px;
+  }
+
+  .cs-card,
+  .cs-card-tight {
+    padding: 16px;
+  }
+}
+
+.cs-hover-lift {
+  transition:
+    transform var(--cs-speed-fast) var(--cs-ease),
+    box-shadow var(--cs-speed-fast) var(--cs-ease),
+    background-color var(--cs-speed-fast) var(--cs-ease);
+}
+
+.cs-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 22px 64px rgba(15, 23, 42, 0.08),
+    var(--cs-shadow-inner);
+}
+
+/* ---------- Typography ---------- */
+
+.cs-display {
+  font-weight: 555;
+  color: var(--cs-ink-1);
+  letter-spacing: -0.064em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.cs-heading {
+  font-weight: 555;
+  color: var(--cs-ink-1);
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.cs-copy {
+  color: var(--cs-ink-3);
+  line-height: 1.58;
+}
+
+.cs-eyebrow {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cs-ink-4);
+  font-weight: 600;
+}
+
+.cs-gradient-text {
+  background: linear-gradient(135deg, var(--cs-violet), var(--cs-violet-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- Pills / statuses ---------- */
+
+.cs-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding-inline: 11px;
+  border-radius: var(--cs-radius-pill);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.44));
+  border: 1px solid var(--cs-line-soft);
+  box-shadow: var(--cs-shadow-soft), var(--cs-shadow-inner);
+  color: var(--cs-ink-2);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.cs-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding-inline: 9px;
+  border-radius: var(--cs-radius-pill);
+  border: 1px solid var(--cs-line-soft);
+  background: rgba(255, 255, 255, 0.46);
+  color: var(--cs-ink-3);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.cs-status--info {
+  border-color: rgba(111, 99, 246, 0.14);
+  background: rgba(111, 99, 246, 0.08);
+  color: var(--cs-violet);
+}
+
+.cs-status--success {
+  border-color: rgba(18, 128, 92, 0.16);
+  background: var(--cs-success-bg);
+  color: var(--cs-success);
+}
+
+.cs-status--warn {
+  border-color: rgba(165, 103, 21, 0.16);
+  background: var(--cs-warn-bg);
+  color: var(--cs-warn);
+}
+
+/* ---------- Helpers ---------- */
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+===== FILE: src/app/healt/page.tsx =====
+
+export default function HealthPage() {
+  return (
+    <section className="mx-auto max-w-3xl py-12 px-4">
+      <h1 className="text-2xl font-semibold">Health OK</h1>
+      <p className="text-muted-foreground mt-2">Si tu vois cette page, le routing et le layout fonctionnent.</p>
+    </section>
+  );
+}
+
+
+===== FILE: src/app/layout.tsx =====
+
+import "./globals.css";
+import type { Metadata } from "next";
+import Link from "next/link";
+import SiteHeader from "@/components/site/site-header";
+
+export const metadata: Metadata = {
+  title: "CloneStore",
+  description: "CloneStore â€” gagner du temps et de l'argent.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+const ORG_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "CloneStore",
+  url: "https://clonestore.pro",
+  logo: "https://clonestore.pro/icon-512.png",
+  description: "CloneStore aide les entreprises Ã  gagner du temps et de l'argent.",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="fr" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
+        />
+      </head>
+
+      <body>
+        <div className="cs-backdrop" aria-hidden="true">
+          <div className="cs-backdrop__halo cs-backdrop__halo--a" />
+          <div className="cs-backdrop__halo cs-backdrop__halo--b" />
+          <div className="cs-backdrop__halo cs-backdrop__halo--c" />
+          <div className="cs-backdrop__arc" />
+          <div className="cs-backdrop__film" />
+        </div>
+
+        <div className="cs-vignette" aria-hidden="true" />
+
+        <SiteHeader />
+
+        <div className="cs-main">{children}</div>
+
+        <footer className="cs-footer">
+          <div className="cs-shell">
+            <div className="flex flex-col gap-3 py-6 text-sm text-[var(--cs-ink-3)] md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-3">
+                <span className="cs-mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 56" className="h-[38px] w-[16px]" fill="none">
+                    <rect
+                      x="3"
+                      y="3"
+                      width="18"
+                      height="50"
+                      rx="9"
+                      stroke="url(#footerMarkGradient)"
+                      strokeWidth="3.5"
+                    />
+                    <defs>
+                      <linearGradient id="footerMarkGradient" x1="3" y1="3" x2="21" y2="53">
+                        <stop stopColor="color-mix(in srgb, var(--cs-violet) 84%, white 16%)" />
+                        <stop offset="1" stopColor="color-mix(in srgb, var(--cs-violet-2) 88%, white 12%)" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </span>
+
+                <p>Â© {new Date().getFullYear()} CloneStore â€” gagner du temps et de l&apos;argent.</p>
+              </div>
+
+              <div className="flex items-center gap-5">
+                <Link href="/legal/confidentialite" className="hover:text-[var(--cs-ink-1)]">
+                  ConfidentialitÃ©
+                </Link>
+                <Link href="/questions" className="hover:text-[var(--cs-ink-1)]">
+                  Support
+                </Link>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </body>
+    </html>
+  );
+}
+
+===== FILE: src/app/legal/confidentialite/page.tsx =====
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Database,
+  Eye,
+  FileCheck2,
+  Lock,
+  Mail,
+  Server,
+  ShieldCheck,
+  Sparkles,
+  UserCheck,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-3xl space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+        {kicker}
+      </p>
+      <h2 className="cs-heading text-2xl md:text-3xl">{title}</h2>
+      <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+      ? "text-[var(--cs-info)]"
+      : tone === "rose"
+      ? "text-[var(--cs-danger)]"
+      : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function LegalSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="cs-card">
+      <div className="relative space-y-4">
+        <h3 className="text-xl font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+          {title}
+        </h3>
+        <div className="space-y-3 text-sm leading-7 text-[var(--cs-ink-4)]">
+          {children}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-2">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <span className="mt-[10px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--cs-account-accent)]" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function ConfidentialitePage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        {/* HERO */}
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.05fr_0.95fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Politique de confidentialitÃ©</span>
+                </span>
+                <span className="cs-pill">
+                  <Lock className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>ClartÃ©, contrÃ´le, transparence</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Une confidentialitÃ© claire,
+                  <br />
+                  <span className="cs-gradient-text">
+                    Ã  la hauteur dâ€™un produit entreprise.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  CloneStore doit inspirer confiance. Cette page explique
+                  simplement quelles donnÃ©es peuvent Ãªtre traitÃ©es, dans quel
+                  cadre, pour quelles finalitÃ©s, et avec quels droits pour
+                  lâ€™utilisateur. Le fond juridique prÃ©cis pourra Ãªtre ajustÃ© si
+                  nÃ©cessaire, mais la philosophie est claire : lisibilitÃ©,
+                  contrÃ´le et sÃ©rieux.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/profile"
+                  label="Retour au cockpit"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <InfoCard
+                title="Transparence"
+                text="Le client doit comprendre ce qui est collectÃ©, utilisÃ©, conservÃ© et affichÃ©."
+                icon={<Eye className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="ContrÃ´le"
+                text="Le produit doit permettre de piloter, corriger, supprimer ou ajuster ce qui est nÃ©cessaire."
+                icon={<UserCheck className="h-4 w-4" />}
+                tone="green"
+              />
+              <InfoCard
+                title="TraÃ§abilitÃ©"
+                text="CloneStore valorise la visibilitÃ© des actions, des missions, des validations et des historiques."
+                icon={<FileCheck2 className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Infrastructure"
+                text="La logique produit repose sur un systÃ¨me dâ€™entreprise, pas sur une simple interface de chat."
+                icon={<Server className="h-4 w-4" />}
+                tone="rose"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* INTRO */}
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Vue dâ€™ensemble"
+            title="Ce que cette politique doit expliquer clairement"
+            text="Le but nâ€™est pas dâ€™Ã©craser le lecteur sous le jargon. Le but est dâ€™expliquer honnÃªtement ce qui est traitÃ© dans CloneStore et pourquoi."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard
+              title="Qui traite"
+              text="Lâ€™entitÃ© CloneStore, ou lâ€™entitÃ© dâ€™exploitation associÃ©e, dans le cadre du service proposÃ©."
+              icon={<ShieldCheck className="h-4 w-4" />}
+              tone="violet"
+            />
+            <InfoCard
+              title="Quelles donnÃ©es"
+              text="Compte, entreprise, usage, missions, documents, messages, paramÃ¨tres, historique."
+              icon={<Database className="h-4 w-4" />}
+              tone="blue"
+            />
+            <InfoCard
+              title="Pourquoi"
+              text="Fournir le service, sÃ©curiser lâ€™usage, piloter le produit, amÃ©liorer lâ€™expÃ©rience et assister le client."
+              icon={<Sparkles className="h-4 w-4" />}
+              tone="green"
+            />
+            <InfoCard
+              title="Quels droits"
+              text="AccÃ¨s, rectification, suppression, limitation, opposition et demande dâ€™information."
+              icon={<Mail className="h-4 w-4" />}
+              tone="rose"
+            />
+          </div>
+        </section>
+
+        {/* LEGAL BODY */}
+        <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="space-y-6">
+            <LegalSection title="1. Responsable du traitement">
+              <p>
+                CloneStore agit dans le cadre de la fourniture dâ€™un service
+                logiciel destinÃ© aux entreprises. Les coordonnÃ©es exactes du
+                responsable du traitement, de lâ€™entitÃ© dâ€™exploitation, de
+                lâ€™adresse de contact et des Ã©ventuelles mentions lÃ©gales
+                complÃ©mentaires devront Ãªtre confirmÃ©es et mises Ã  jour dans la
+                version juridique finale du site.
+              </p>
+              <p>
+                Pour toute question liÃ©e Ã  la confidentialitÃ©, une adresse de
+                contact dÃ©diÃ©e pourra Ãªtre fournie, par exemple :
+                <span className="font-medium text-[var(--cs-ink-2)]">
+                  {" "}
+                  privacy@clonestore.pro
+                </span>
+                .
+              </p>
+            </LegalSection>
+
+            <LegalSection title="2. DonnÃ©es susceptibles dâ€™Ãªtre traitÃ©es">
+              <BulletList
+                items={[
+                  "Informations de compte : identitÃ©, email, informations dâ€™accÃ¨s, prÃ©fÃ©rences utilisateur.",
+                  "Informations dâ€™entreprise : nom, secteur, paramÃ¨tres, identitÃ© de messagerie, configuration dâ€™Empreinte Entreprise.",
+                  "DonnÃ©es dâ€™usage : missions, tÃ¢ches, validations, historiques, Ã©vÃ©nements, journaux fonctionnels et Ã©lÃ©ments de traÃ§abilitÃ©.",
+                  "Documents et contenus fournis dans le cadre du service : fichiers, textes, emails, Ã©lÃ©ments RH ou opÃ©rationnels selon les employÃ©s IA activÃ©s.",
+                  "DonnÃ©es techniques : informations de sÃ©curitÃ©, logs applicatifs, donnÃ©es nÃ©cessaires au bon fonctionnement, Ã  la maintenance et Ã  la prÃ©vention des abus.",
+                ]}
+              />
+            </LegalSection>
+
+            <LegalSection title="3. FinalitÃ©s principales">
+              <BulletList
+                items={[
+                  "CrÃ©er et gÃ©rer les comptes utilisateurs et les accÃ¨s entreprise.",
+                  "Permettre lâ€™utilisation des employÃ©s IA, des missions, des livrables, des messages et de la traÃ§abilitÃ© produit.",
+                  "Configurer les rÃ¨gles, prÃ©fÃ©rences, paramÃ¨tres et Ã©lÃ©ments dâ€™identitÃ© liÃ©s Ã  lâ€™entreprise cliente.",
+                  "Fournir lâ€™assistance, lâ€™onboarding, les rÃ©ponses aux questions et les services liÃ©s au support.",
+                  "Renforcer la sÃ©curitÃ©, prÃ©venir les abus, maintenir la stabilitÃ© de lâ€™infrastructure et tracer certains Ã©vÃ©nements critiques.",
+                  "AmÃ©liorer le service, dans le respect du cadre contractuel et des engagements pris vis-Ã -vis des clients.",
+                ]}
+              />
+            </LegalSection>
+
+            <LegalSection title="4. Bases juridiques">
+              <p>
+                Selon les cas, le traitement peut reposer sur :
+              </p>
+              <BulletList
+                items={[
+                  "lâ€™exÃ©cution du contrat ou des mesures prÃ©contractuelles liÃ©es au service CloneStore ;",
+                  "le respect dâ€™obligations lÃ©gales applicables ;",
+                  "lâ€™intÃ©rÃªt lÃ©gitime liÃ© Ã  la sÃ©curitÃ©, Ã  la fiabilitÃ©, Ã  lâ€™amÃ©lioration du service et Ã  la prÃ©vention des abus ;",
+                  "le consentement lorsque celui-ci est requis dans certains cas spÃ©cifiques.",
+                ]}
+              />
+              <p>
+                La qualification prÃ©cise des bases juridiques devra Ãªtre
+                vÃ©rifiÃ©e dans la version juridique finale.
+              </p>
+            </LegalSection>
+          </div>
+
+          <div className="space-y-6">
+            <LegalSection title="5. Partage et sous-traitants">
+              <p>
+                CloneStore peut sâ€™appuyer sur des prestataires techniques et
+                sous-traitants nÃ©cessaires Ã  lâ€™exploitation du service, par
+                exemple pour lâ€™hÃ©bergement, la base de donnÃ©es, lâ€™envoi dâ€™emails
+                transactionnels, le paiement ou certaines briques
+                dâ€™infrastructure.
+              </p>
+              <p>
+                Lâ€™objectif produit reste clair : limiter lâ€™accÃ¨s aux donnÃ©es Ã 
+                ce qui est strictement nÃ©cessaire au fonctionnement, Ã  la
+                sÃ©curitÃ© et Ã  lâ€™exploitation du service.
+              </p>
+            </LegalSection>
+
+            <LegalSection title="6. SÃ©curitÃ© et gouvernance">
+              <BulletList
+                items={[
+                  "Isolation logique des comptes et des entreprises.",
+                  "Gestion des accÃ¨s, authentification et contrÃ´le des permissions.",
+                  "Historique, traÃ§abilitÃ© et journalisation dâ€™Ã©vÃ©nements critiques lorsque cela est nÃ©cessaire au service.",
+                  "MÃ©canismes de validation, de blocage et de gouvernance dans la logique produit.",
+                  "Approche de sÃ©curitÃ© conÃ§ue pour un usage entreprise, mÃªme si les dÃ©tails dâ€™implÃ©mentation internes ne sont pas tous exposÃ©s publiquement.",
+                ]}
+              />
+            </LegalSection>
+
+            <LegalSection title="7. DurÃ©e de conservation">
+              <p>
+                Les donnÃ©es sont conservÃ©es pendant une durÃ©e cohÃ©rente avec les
+                finalitÃ©s du service, les obligations lÃ©gales applicables, les
+                impÃ©ratifs de sÃ©curitÃ© et les besoins raisonnables de
+                traÃ§abilitÃ©, dâ€™historique, de support ou de continuitÃ©
+                opÃ©rationnelle.
+              </p>
+              <p>
+                Certaines donnÃ©es peuvent Ãªtre supprimÃ©es ou anonymisÃ©es aprÃ¨s
+                expiration de leur utilitÃ©, selon les rÃ¨gles internes retenues
+                pour le service.
+              </p>
+            </LegalSection>
+
+            <LegalSection title="8. Vos droits">
+              <BulletList
+                items={[
+                  "demander lâ€™accÃ¨s Ã  certaines donnÃ©es vous concernant ;",
+                  "demander la rectification ou la mise Ã  jour de donnÃ©es inexactes ;",
+                  "demander la suppression lorsque cela est juridiquement possible ;",
+                  "demander la limitation de certains traitements ;",
+                  "vous opposer Ã  certains traitements lorsque le cadre le permet ;",
+                  "introduire une rÃ©clamation auprÃ¨s de lâ€™autoritÃ© compÃ©tente si nÃ©cessaire.",
+                ]}
+              />
+              <p>
+                Les modalitÃ©s exactes dâ€™exercice de ces droits devront Ãªtre
+                prÃ©cisÃ©es dans la version juridique finale avec les bons canaux
+                de contact.
+              </p>
+            </LegalSection>
+
+            <LegalSection title="9. Mise Ã  jour de la politique">
+              <p>
+                Cette politique pourra Ã©voluer pour reflÃ©ter :
+              </p>
+              <BulletList
+                items={[
+                  "lâ€™Ã©volution du service CloneStore ;",
+                  "lâ€™ajout de nouvelles fonctionnalitÃ©s ou couches produit ;",
+                  "des exigences juridiques, techniques ou contractuelles nouvelles ;",
+                  "des ajustements liÃ©s Ã  lâ€™infrastructure, aux sous-traitants ou Ã  la sÃ©curitÃ©.",
+                ]}
+              />
+              <p>
+                La date de derniÃ¨re mise Ã  jour pourra Ãªtre indiquÃ©e ici dans la
+                version finale publiÃ©e.
+              </p>
+            </LegalSection>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-account-accent)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                <span>Encore une question sur la confidentialitÃ© ?</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Demandez une rÃ©ponse claire plutÃ´t que de rester dans le doute.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--cs-ink-4)] md:text-base">
+              Lâ€™assistant et le support doivent faire gagner du temps, y compris
+              sur les sujets de confiance, dâ€™usage et de cadre produit.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/questions"
+                label="Poser une question"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/profile"
+                label="Retour au cockpit"
+                icon={<Sparkles className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+===== FILE: src/app/loading.tsx =====
+
+export default function Loading() {
+  return (
+    <div style={{ padding: 24 }}>
+      <p>Chargementâ€¦</p>
+    </div>
+  );
+}
+
+
+
+===== FILE: src/app/login/page.tsx =====
+
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  ArrowRight,
+  Bot,
+  KeyRound,
+  Loader2,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+  Waypoints,
+} from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-3xl space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+        {kicker}
+      </p>
+      <h2 className="cs-heading text-2xl md:text-3xl">{title}</h2>
+      <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  icon,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  autoComplete,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  type?: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  autoComplete?: string;
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-sm font-medium text-[var(--cs-ink-2)]">{label}</span>
+      <div className="flex items-center gap-3 rounded-[1.2rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.78),rgba(255,250,244,0.52))] px-4 py-3 shadow-[var(--cs-shadow-soft)]">
+        <span className="text-[var(--cs-account-accent)]">{icon}</span>
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          className="w-full border-0 bg-transparent text-sm text-[var(--cs-ink-2)] outline-none placeholder:text-[var(--cs-ink-4)]"
+        />
+      </div>
+    </label>
+  );
+}
+
+export default function LoginPage() {
+  const router = useRouter();
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [mode, setMode] = useState<"password" | "magic">("password");
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const canSubmit = useMemo(() => {
+    if (!email.trim()) return false;
+    if (mode === "password" && !password.trim()) return false;
+    return !isLoading;
+  }, [email, password, mode, isLoading]);
+
+  async function handlePasswordLogin() {
+    if (!supabase) {
+      setError(
+        "Configuration Supabase manquante. VÃ©rifie tes variables dâ€™environnement puis redÃ©marre le projet.",
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) {
+        throw signInError;
+      }
+
+      router.push("/profile");
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible de se connecter pour le moment.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleMagicLink() {
+    if (!supabase) {
+      setError(
+        "Configuration Supabase manquante. VÃ©rifie tes variables dâ€™environnement puis redÃ©marre le projet.",
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const redirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/profile`
+          : undefined;
+
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: redirectTo,
+        },
+      });
+
+      if (otpError) {
+        throw otpError;
+      }
+
+      setSuccess(
+        "Lien envoyÃ©. Ouvre ton email puis reviens dans CloneStore depuis le lien de connexion.",
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible dâ€™envoyer le lien magique pour le moment.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+
+    if (mode === "password") {
+      await handlePasswordLogin();
+      return;
+    }
+
+    await handleMagicLink();
+  }
+
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <UserRound className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Connexion CloneStore</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>EntrÃ©e vers le cockpit</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Entrez dans CloneStore
+                  <br />
+                  <span className="cs-gradient-text">
+                    sans friction, sans confusion.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Une fois connectÃ©, vous arrivez directement dans votre cockpit :
+                  employÃ©s IA, messages, missions, traÃ§abilitÃ©, rÃ©glages,
+                  personnalisation et contrÃ´le total du systÃ¨me.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/signup"
+                  label="CrÃ©er un compte"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents"
+                  label="Voir la boutique"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard
+                  title="EntrÃ©e cockpit"
+                  text="AprÃ¨s connexion, le client doit entrer lÃ  oÃ¹ il agit vraiment : son espace CloneStore."
+                  icon={<Waypoints className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="SimplicitÃ©"
+                  text="Lâ€™expÃ©rience doit rester limpide, mÃªme pour quelquâ€™un qui nâ€™aime pas lâ€™informatique."
+                  icon={<Sparkles className="h-4 w-4" />}
+                  tone="green"
+                />
+                <InfoCard
+                  title="Confiance"
+                  text="Validation, gouvernance, mÃ©moire, trace et sÃ©curitÃ© sont au cÅ“ur du systÃ¨me."
+                  icon={<Lock className="h-4 w-4" />}
+                  tone="blue"
+                />
+                <InfoCard
+                  title="Assistance"
+                  text="Lâ€™assistant CloneStore reste accessible avant, pendant et aprÃ¨s la connexion."
+                  icon={<Bot className="h-4 w-4" />}
+                  tone="rose"
+                />
+              </div>
+            </div>
+
+            <div className="cs-panel">
+              <div className="relative space-y-6">
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--cs-ink-4)]">
+                    AccÃ¨s sÃ©curisÃ©
+                  </p>
+                  <h2 className="cs-heading text-2xl">Se connecter</h2>
+                  <p className="text-sm text-[var(--cs-ink-4)]">
+                    Choisis la mÃ©thode la plus simple pour toi.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("password");
+                      setError(null);
+                      setSuccess(null);
+                    }}
+                    className={[
+                      "rounded-full border px-4 py-2 text-sm font-medium transition",
+                      mode === "password"
+                        ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_22%,white)] bg-[color:color-mix(in_srgb,var(--cs-account-accent)_12%,white)] text-[var(--cs-ink-1)]"
+                        : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/52 text-[var(--cs-ink-3)]",
+                    ].join(" ")}
+                  >
+                    Email + mot de passe
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("magic");
+                      setError(null);
+                      setSuccess(null);
+                    }}
+                    className={[
+                      "rounded-full border px-4 py-2 text-sm font-medium transition",
+                      mode === "magic"
+                        ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_22%,white)] bg-[color:color-mix(in_srgb,var(--cs-account-accent)_12%,white)] text-[var(--cs-ink-1)]"
+                        : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/52 text-[var(--cs-ink-3)]",
+                    ].join(" ")}
+                  >
+                    Lien magique
+                  </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <Field
+                    label="Adresse email"
+                    icon={<Mail className="h-4 w-4" />}
+                    value={email}
+                    onChange={setEmail}
+                    placeholder="vous@entreprise.com"
+                    autoComplete="email"
+                    type="email"
+                  />
+
+                  {mode === "password" ? (
+                    <Field
+                      label="Mot de passe"
+                      icon={<KeyRound className="h-4 w-4" />}
+                      value={password}
+                      onChange={setPassword}
+                      placeholder="Votre mot de passe"
+                      autoComplete="current-password"
+                      type="password"
+                    />
+                  ) : (
+                    <div className="cs-card">
+                      <div className="relative space-y-2">
+                        <p className="text-sm font-medium text-[var(--cs-ink-2)]">
+                          Connexion sans mot de passe
+                        </p>
+                        <p className="text-sm text-[var(--cs-ink-4)]">
+                          Nous tâ€™enverrons un lien de connexion directement par
+                          email pour entrer dans CloneStore.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {error ? (
+                    <div className="rounded-[1.2rem] border border-[color:rgba(161,75,83,0.22)] bg-[rgba(161,75,83,0.08)] px-4 py-3 text-sm text-[var(--cs-danger)]">
+                      {error}
+                    </div>
+                  ) : null}
+
+                  {success ? (
+                    <div className="rounded-[1.2rem] border border-[color:rgba(35,122,82,0.22)] bg-[rgba(35,122,82,0.08)] px-4 py-3 text-sm text-[var(--cs-success)]">
+                      {success}
+                    </div>
+                  ) : null}
+
+                  <button
+                    type="submit"
+                    disabled={!canSubmit}
+                    className={[
+                      "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+                      "border",
+                      canSubmit
+                        ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))] text-white shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)] hover:-translate-y-0.5"
+                        : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.62),rgba(255,249,242,0.42))] text-[var(--cs-ink-4)] opacity-70",
+                    ].join(" ")}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Connexionâ€¦</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>
+                          {mode === "password"
+                            ? "Entrer dans CloneStore"
+                            : "Envoyer le lien magique"}
+                        </span>
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--cs-line-soft)] pt-4">
+                  <p className="text-sm text-[var(--cs-ink-4)]">
+                    Pas encore de compte ?
+                  </p>
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-[var(--cs-ink-2)] transition hover:text-[var(--cs-ink-1)]"
+                  >
+                    CrÃ©er un compte
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Pourquoi cette page compte"
+              title="La connexion ne doit pas casser lâ€™image premium du produit."
+              text="Si lâ€™entrÃ©e compte est banale ou confuse, on casse une partie de la promesse CloneStore. Cette page doit rester fluide, simple, rassurante et cohÃ©rente."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="SimplicitÃ© dâ€™accÃ¨s"
+                text="Un client doit savoir quoi faire immÃ©diatement, sans jargon et sans friction."
+                icon={<UserRound className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Orientation claire"
+                text="On nâ€™entre pas dans un profil vide : on entre dans un cockpit vivant."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Confiance"
+                text="Le ton, la sÃ©curitÃ© et la clartÃ© doivent Ãªtre perceptibles dÃ¨s la connexion."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Assistance"
+              title="MÃªme ici, lâ€™assistant doit pouvoir aider."
+              text="Quelquâ€™un peut bloquer au moment de se connecter. Le support et lâ€™assistant doivent dÃ©jÃ  Ãªtre accessibles Ã  cette Ã©tape."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Question produit"
+                text="Comprendre ce quâ€™on va trouver une fois connectÃ©."
+                icon={<Bot className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Question compte"
+                text="ÃŠtre guidÃ© si on ne sait pas quelle mÃ©thode choisir."
+                icon={<Mail className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Question cockpit"
+                text="Savoir oÃ¹ lâ€™on va arriver et pourquoi câ€™est le bon point dâ€™entrÃ©e."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="rose"
+              />
+            </div>
+
+            <div className="mt-6">
+              <ActionButton
+                href="/questions"
+                label="Ouvrir lâ€™assistant"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+

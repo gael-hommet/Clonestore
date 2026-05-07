@@ -1,0 +1,6385 @@
+﻿===== FILE: src/app/api/pierre/company-memory/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type JsonObject = Record<string, unknown>;
+
+type PierreCompanyMemoryRow = {
+  id?: string;
+  user_id?: string | null;
+  company_id?: string | null;
+  company_name?: string | null;
+  sender_name?: string | null;
+  sender_email?: string | null;
+  tone?: string | null;
+  language?: string | null;
+  rules?: string[] | null;
+  preferences?: Record<string, unknown> | null;
+  email_identity?: {
+    sender_name?: string | null;
+    sender_email?: string | null;
+    reply_to?: string | null;
+    provider?: string | null;
+    domain_verified?: boolean | null;
+    [key: string]: unknown;
+  } | null;
+  metadata?: Record<string, unknown> | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+};
+
+type SenderIdentityResolved = {
+  sender_name: string | null;
+  sender_email: string | null;
+  reply_to?: string | null;
+  provider?: string | null;
+  domain_verified?: boolean | null;
+  source: "memory.email_identity" | "memory.root" | "fallback.env" | "none";
+};
+
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
+function isPlainObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function trimOrNull(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value.trim();
+  return clean ? clean : null;
+}
+
+function getSupabaseAdmin(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRole =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase admin env is missing.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryParseJsonString(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function extractTokenFromCookieValue(raw: string): string | null {
+  const clean = raw.trim();
+  if (!clean) return null;
+
+  if (clean.startsWith("eyJ") && clean.split(".").length >= 3) {
+    return clean;
+  }
+
+  const parsed = tryParseJsonString(clean);
+
+  if (Array.isArray(parsed)) {
+    for (const item of parsed) {
+      if (typeof item === "string" && item.startsWith("eyJ") && item.split(".").length >= 3) {
+        return item;
+      }
+    }
+  }
+
+  if (isPlainObject(parsed)) {
+    const candidates = [
+      parsed.access_token,
+      parsed.accessToken,
+      parsed.token,
+      parsed.currentSession && isPlainObject(parsed.currentSession)
+        ? parsed.currentSession.access_token
+        : null,
+      parsed.session && isPlainObject(parsed.session)
+        ? parsed.session.access_token
+        : null,
+    ];
+
+    for (const candidate of candidates) {
+      if (
+        typeof candidate === "string" &&
+        candidate.startsWith("eyJ") &&
+        candidate.split(".").length >= 3
+      ) {
+        return candidate;
+      }
+    }
+  }
+
+  return null;
+}
+
+function extractBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) return token;
+  }
+
+  const cookieCandidates = request.cookies.getAll();
+
+  for (const cookie of cookieCandidates) {
+    const name = cookie.name.toLowerCase();
+
+    if (
+      name.includes("auth-token") ||
+      name.includes("access-token") ||
+      name.startsWith("sb-")
+    ) {
+      const token = extractTokenFromCookieValue(cookie.value);
+      if (token) return token;
+    }
+  }
+
+  return null;
+}
+
+async function resolveUser(
+  supabase: SupabaseClient,
+  request: NextRequest
+): Promise<User | null> {
+  const token = extractBearerToken(request);
+  if (!token) return null;
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) return null;
+
+  return data.user;
+}
+
+function normalizeMemoryRow(raw: unknown): PierreCompanyMemoryRow | null {
+  if (!isPlainObject(raw)) return null;
+
+  return {
+    ...raw,
+    sender_name: trimOrNull(raw.sender_name),
+    sender_email: trimOrNull(raw.sender_email),
+    tone: trimOrNull(raw.tone),
+    language: trimOrNull(raw.language),
+    rules: Array.isArray(raw.rules) ? raw.rules.map(String) : null,
+    preferences: isPlainObject(raw.preferences)
+      ? (raw.preferences as Record<string, unknown>)
+      : null,
+    metadata: isPlainObject(raw.metadata)
+      ? (raw.metadata as Record<string, unknown>)
+      : null,
+    email_identity: isPlainObject(raw.email_identity)
+      ? {
+          ...raw.email_identity,
+          sender_name: trimOrNull(raw.email_identity.sender_name),
+          sender_email: trimOrNull(raw.email_identity.sender_email),
+          reply_to: trimOrNull(raw.email_identity.reply_to),
+          provider: trimOrNull(raw.email_identity.provider),
+          domain_verified:
+            typeof raw.email_identity.domain_verified === "boolean"
+              ? raw.email_identity.domain_verified
+              : null,
+        }
+      : null,
+  };
+}
+
+function resolveSenderIdentity(memory: PierreCompanyMemoryRow | null): SenderIdentityResolved {
+  const envSenderName = trimOrNull(process.env.PIERRE_DEFAULT_SENDER_NAME);
+  const envSenderEmail = trimOrNull(process.env.PIERRE_DEFAULT_SENDER_EMAIL);
+  const envReplyTo = trimOrNull(process.env.PIERRE_DEFAULT_REPLY_TO);
+
+  const nestedSenderName = trimOrNull(memory?.email_identity?.sender_name);
+  const nestedSenderEmail = trimOrNull(memory?.email_identity?.sender_email);
+  const nestedReplyTo = trimOrNull(memory?.email_identity?.reply_to);
+  const nestedProvider = trimOrNull(memory?.email_identity?.provider);
+
+  if (nestedSenderName || nestedSenderEmail || nestedReplyTo) {
+    return {
+      sender_name: nestedSenderName,
+      sender_email: nestedSenderEmail,
+      reply_to: nestedReplyTo ?? undefined,
+      provider: nestedProvider ?? undefined,
+      domain_verified:
+        typeof memory?.email_identity?.domain_verified === "boolean"
+          ? memory.email_identity.domain_verified
+          : undefined,
+      source: "memory.email_identity",
+    };
+  }
+
+  const rootSenderName = trimOrNull(memory?.sender_name);
+  const rootSenderEmail = trimOrNull(memory?.sender_email);
+
+  if (rootSenderName || rootSenderEmail) {
+    return {
+      sender_name: rootSenderName,
+      sender_email: rootSenderEmail,
+      source: "memory.root",
+    };
+  }
+
+  if (envSenderName || envSenderEmail || envReplyTo) {
+    return {
+      sender_name: envSenderName,
+      sender_email: envSenderEmail,
+      reply_to: envReplyTo ?? undefined,
+      source: "fallback.env",
+    };
+  }
+
+  return {
+    sender_name: null,
+    sender_email: null,
+    source: "none",
+  };
+}
+
+function sanitizePatchBody(raw: unknown): Partial<PierreCompanyMemoryRow> {
+  if (!isPlainObject(raw)) return {};
+
+  const output: Partial<PierreCompanyMemoryRow> = {};
+
+  if ("company_id" in raw) output.company_id = trimOrNull(raw.company_id);
+  if ("company_name" in raw) output.company_name = trimOrNull(raw.company_name);
+  if ("sender_name" in raw) output.sender_name = trimOrNull(raw.sender_name);
+  if ("sender_email" in raw) output.sender_email = trimOrNull(raw.sender_email);
+  if ("tone" in raw) output.tone = trimOrNull(raw.tone);
+  if ("language" in raw) output.language = trimOrNull(raw.language);
+
+  if ("rules" in raw) {
+    output.rules = Array.isArray(raw.rules)
+      ? raw.rules.map(String)
+      : raw.rules == null
+      ? null
+      : [String(raw.rules)];
+  }
+
+  if ("preferences" in raw) {
+    output.preferences = isPlainObject(raw.preferences)
+      ? (raw.preferences as Record<string, unknown>)
+      : null;
+  }
+
+  if ("metadata" in raw) {
+    output.metadata = isPlainObject(raw.metadata)
+      ? (raw.metadata as Record<string, unknown>)
+      : null;
+  }
+
+  if ("email_identity" in raw) {
+    output.email_identity = isPlainObject(raw.email_identity)
+      ? {
+          sender_name: trimOrNull(raw.email_identity.sender_name),
+          sender_email: trimOrNull(raw.email_identity.sender_email),
+          reply_to: trimOrNull(raw.email_identity.reply_to),
+          provider: trimOrNull(raw.email_identity.provider),
+          domain_verified:
+            typeof raw.email_identity.domain_verified === "boolean"
+              ? raw.email_identity.domain_verified
+              : null,
+        }
+      : null;
+  }
+
+  return output;
+}
+
+async function getMemoryForUser(
+  supabase: SupabaseClient,
+  user: User | null
+): Promise<PierreCompanyMemoryRow | null> {
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("pierre_company_memory")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return normalizeMemoryRow(data);
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const user = await resolveUser(supabase, request);
+    const memory = await getMemoryForUser(supabase, user);
+    const senderIdentity = resolveSenderIdentity(memory);
+
+    return json({
+      ok: true,
+      memory,
+      sender_identity: senderIdentity,
+      auth: user ? "resolved" : "missing",
+    });
+  } catch (error) {
+    console.error("[pierre/company-memory][GET]", error);
+
+    return json(
+      {
+        ok: false,
+        error: "Impossible de charger la mÃ©moire entreprise Pierre.",
+      },
+      500
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const user = await resolveUser(supabase, request);
+
+    if (!user) {
+      return json(
+        {
+          ok: false,
+          error: "Non autorisÃ© pour modifier la mÃ©moire entreprise.",
+        },
+        401
+      );
+    }
+
+    const body = sanitizePatchBody(await request.json());
+    const existing = await getMemoryForUser(supabase, user);
+
+    let savedRow: PierreCompanyMemoryRow | null = null;
+
+    if (existing?.id) {
+      const nextPayload = {
+        ...body,
+        user_id: user.id,
+      };
+
+      const { data, error } = await supabase
+        .from("pierre_company_memory")
+        .update(nextPayload)
+        .eq("id", existing.id)
+        .select("*")
+        .maybeSingle();
+
+      if (error) throw error;
+      savedRow = normalizeMemoryRow(data);
+    } else {
+      const insertPayload: Partial<PierreCompanyMemoryRow> = {
+        user_id: user.id,
+        ...body,
+      };
+
+      const { data, error } = await supabase
+        .from("pierre_company_memory")
+        .insert(insertPayload)
+        .select("*")
+        .maybeSingle();
+
+      if (error) throw error;
+      savedRow = normalizeMemoryRow(data);
+    }
+
+    return json({
+      ok: true,
+      memory: savedRow,
+      sender_identity: resolveSenderIdentity(savedRow),
+    });
+  } catch (error) {
+    console.error("[pierre/company-memory][PATCH]", error);
+
+    return json(
+      {
+        ok: false,
+        error: "Impossible dâ€™enregistrer la mÃ©moire entreprise Pierre.",
+      },
+      500
+    );
+  }
+}
+
+===== FILE: src/app/api/pierre/doc/generate/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+type DbRow = Record<string, unknown>;
+
+type AuthenticatedContext = {
+  userId: string;
+  accessToken: string | null;
+};
+
+type MissionRiskLevel = "normal" | "sensitive" | "critical";
+
+type GenerateDocumentBody = {
+  instructions: string;
+  context?: string | null;
+  type?: string | null;
+  tone?: string | null;
+  language?: string | null;
+  title?: string | null;
+  missionId?: string | null;
+};
+
+type SenderMemory = {
+  preferred_language?: string | null;
+  tone_guide?: string | null;
+  communication_style?: string | null;
+  company_rules?: unknown;
+  approval_rules?: unknown;
+};
+
+type JsonErrorExtra = {
+  code?: string | null;
+  details?: unknown;
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: message,
+      ...(extra ?? {}),
+    },
+    { status },
+  );
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase environment is not configured.");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  const directCandidates = [
+    "sb-access-token",
+    "supabase-access-token",
+    "access-token",
+  ];
+
+  for (const key of directCandidates) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (typeof candidate === "string") return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateRequest(
+  request: NextRequest,
+  supabaseAdmin: SupabaseClient,
+): Promise<AuthenticatedContext> {
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw {
+      status: 401,
+      message: "Auth session missing.",
+      code: "AUTH_SESSION_MISSING",
+    };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return {
+    userId: data.user.id,
+    accessToken,
+  };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      code: null,
+      details: null,
+    };
+  }
+
+  return {
+    message: "Unexpected database error.",
+    code: null,
+    details: null,
+  };
+}
+
+function normalizeBody(raw: unknown): GenerateDocumentBody {
+  if (!isObject(raw)) {
+    return {
+      instructions: "",
+      context: null,
+      type: null,
+      tone: null,
+      language: null,
+      title: null,
+      missionId: null,
+    };
+  }
+
+  return {
+    instructions: asString(raw.instructions) || "",
+    context: asString(raw.context),
+    type: asString(raw.type),
+    tone: asString(raw.tone),
+    language: asString(raw.language),
+    title: asString(raw.title),
+    missionId: asString(raw.missionId),
+  };
+}
+
+function detectLanguage(input: string): string {
+  const lower = input.toLowerCase();
+  const englishSignals = [
+    "candidate",
+    "interview",
+    "job",
+    "follow up",
+    "meeting",
+    "please",
+    "draft",
+    "recruitment",
+    "hiring",
+  ];
+
+  const hits = englishSignals.filter((signal) => lower.includes(signal)).length;
+  return hits >= 2 ? "en" : "fr";
+}
+
+function normalizeDocType(value: string | null | undefined): string {
+  const type = (value || "").trim().toLowerCase();
+
+  if (!type) return "document_rh";
+  if (type.includes("offre")) return "offre_emploi";
+  if (type.includes("convocation")) return "convocation_entretien";
+  if (type.includes("refus")) return "refus_candidat";
+  if (type.includes("relance")) return "relance_rh";
+  if (type.includes("onboarding")) return "onboarding";
+  if (type.includes("note")) return "note_rh";
+  if (type.includes("procedure")) return "rappel_procedure";
+  if (type.includes("procÃ©dure")) return "rappel_procedure";
+  if (type.includes("compte")) return "compte_rendu";
+  if (type.includes("courrier")) return "courrier_rh";
+
+  return type;
+}
+
+function inferTitle(body: GenerateDocumentBody, docType: string): string {
+  if (body.title) return body.title;
+
+  switch (docType) {
+    case "offre_emploi":
+      return "Offre dâ€™emploi";
+    case "convocation_entretien":
+      return "Convocation dâ€™entretien";
+    case "refus_candidat":
+      return "Refus de candidature";
+    case "relance_rh":
+      return "Relance RH";
+    case "onboarding":
+      return "Document dâ€™onboarding";
+    case "note_rh":
+      return "Note RH";
+    case "rappel_procedure":
+      return "Rappel de procÃ©dure";
+    case "compte_rendu":
+      return "Compte rendu RH";
+    case "courrier_rh":
+      return "Courrier RH";
+    default:
+      return "Document RH";
+  }
+}
+
+function inferRisk(instructions: string, docType: string): MissionRiskLevel {
+  const lower = instructions.toLowerCase();
+
+  const criticalSignals = [
+    "licenciement",
+    "sanction disciplinaire",
+    "harcÃ¨lement",
+    "harcelement",
+    "contentieux",
+    "prud'hommes",
+    "discrimination",
+  ];
+
+  const sensitiveSignals = [
+    "avertissement",
+    "mise Ã  pied",
+    "mise a pied",
+    "conflit",
+    "absence injustifiÃ©e",
+    "absence injustifiee",
+    "salaire",
+    "confidentiel",
+  ];
+
+  if (criticalSignals.some((signal) => lower.includes(signal))) return "critical";
+  if (sensitiveSignals.some((signal) => lower.includes(signal))) return "sensitive";
+
+  if (
+    docType === "refus_candidat" ||
+    docType === "convocation_entretien" ||
+    docType === "offre_emploi" ||
+    docType === "onboarding"
+  ) {
+    return "normal";
+  }
+
+  return "normal";
+}
+
+async function loadCompanyMemory(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+): Promise<SenderMemory | null> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_company_memory")
+    .select("*")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load company memory.",
+      code: "COMPANY_MEMORY_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  if (!data) return null;
+
+  return {
+    preferred_language: asString(data.preferred_language),
+    tone_guide: asString(data.tone_guide),
+    communication_style: asString(data.communication_style),
+    company_rules: data.company_rules ?? null,
+    approval_rules: data.approval_rules ?? null,
+  };
+}
+
+async function verifyMissionOwnershipIfNeeded(
+  supabaseAdmin: SupabaseClient,
+  missionId: string | null | undefined,
+  userId: string,
+): Promise<DbRow | null> {
+  if (!missionId) return null;
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_missions")
+    .select("*")
+    .eq("id", missionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load mission.",
+      code: "MISSION_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  if (!data) {
+    throw {
+      status: 404,
+      message: "Mission not found.",
+      code: "MISSION_NOT_FOUND",
+    };
+  }
+
+  return data as DbRow;
+}
+
+function buildDocumentText(params: {
+  title: string;
+  docType: string;
+  instructions: string;
+  context: string | null;
+  tone: string;
+  language: string;
+  memory: SenderMemory | null;
+}): string {
+  const {
+    title,
+    docType,
+    instructions,
+    context,
+    tone,
+    language,
+    memory,
+  } = params;
+
+  const intro =
+    language === "en"
+      ? `This HR document was prepared by Pierre as a premium operational draft.`
+      : `Ce document RH a Ã©tÃ© prÃ©parÃ© par Pierre comme brouillon opÃ©rationnel premium.`;
+
+  const toneLine =
+    language === "en"
+      ? `Requested tone: ${tone}.`
+      : `Ton demandÃ© : ${tone}.`;
+
+  const memoryTone = memory?.tone_guide
+    ? language === "en"
+      ? `Company tone guide: ${memory.tone_guide}.`
+      : `Guide de ton entreprise : ${memory.tone_guide}.`
+    : null;
+
+  const contextLine = context
+    ? language === "en"
+      ? `Context: ${context}`
+      : `Contexte : ${context}`
+    : language === "en"
+      ? `No additional context was provided.`
+      : `Aucun contexte complÃ©mentaire nâ€™a Ã©tÃ© fourni.`;
+
+  const mainBody =
+    language === "en"
+      ? [
+          `Title: ${title}`,
+          `Document type: ${docType}`,
+          intro,
+          toneLine,
+          memoryTone,
+          contextLine,
+          `Mission instructions: ${instructions}`,
+          `Operational note: this draft must remain editable, traceable and subject to human validation when required.`,
+        ]
+          .filter(Boolean)
+          .join("\n\n")
+      : [
+          `Titre : ${title}`,
+          `Type de document : ${docType}`,
+          intro,
+          toneLine,
+          memoryTone,
+          contextLine,
+          `Instructions de mission : ${instructions}`,
+          `Note opÃ©rationnelle : ce brouillon doit rester modifiable, traÃ§able et soumis Ã  validation humaine quand nÃ©cessaire.`,
+        ]
+          .filter(Boolean)
+          .join("\n\n");
+
+  return mainBody;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function buildDocumentHtml(params: {
+  title: string;
+  docType: string;
+  textContent: string;
+  tone: string;
+  language: string;
+  risk: MissionRiskLevel;
+}): string {
+  const { title, docType, textContent, tone, language, risk } = params;
+
+  const paragraphs = textContent
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => `<p>${escapeHtml(block).replace(/\n/g, "<br />")}</p>`)
+    .join("");
+
+  const subtitle =
+    language === "en"
+      ? `HR premium draft Â· ${docType} Â· tone ${tone} Â· risk ${risk}`
+      : `Brouillon RH premium Â· ${docType} Â· ton ${tone} Â· risque ${risk}`;
+
+  return `
+    <article>
+      <header>
+        <h1>${escapeHtml(title)}</h1>
+        <p><strong>${escapeHtml(subtitle)}</strong></p>
+      </header>
+      ${paragraphs}
+    </article>
+  `.trim();
+}
+
+async function insertDocument(params: {
+  supabaseAdmin: SupabaseClient;
+  missionId: string | null;
+  title: string;
+  docType: string;
+  textContent: string;
+  htmlContent: string;
+  metadata: Record<string, unknown>;
+}): Promise<DbRow> {
+  const { supabaseAdmin, missionId, title, docType, textContent, htmlContent, metadata } = params;
+
+  const insertPayload = {
+    mission_id: missionId,
+    title,
+    doc_type: docType,
+    status: "generated",
+    text_content: textContent,
+    html_content: htmlContent,
+    metadata,
+  };
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_documents")
+    .insert(insertPayload)
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    throw {
+      status: 500,
+      message: "Unable to save document.",
+      code: "DOCUMENT_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return data as DbRow;
+}
+
+async function insertMissionLogIfNeeded(params: {
+  supabaseAdmin: SupabaseClient;
+  missionId: string | null;
+  message: string;
+  payload: Record<string, unknown>;
+}) {
+  const { supabaseAdmin, missionId, message, payload } = params;
+  if (!missionId) return;
+
+  const { error } = await supabaseAdmin.from("pierre_task_logs").insert({
+    mission_id: missionId,
+    level: "info",
+    event: "document_generated_direct",
+    message,
+    payload,
+  });
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to create mission log.",
+      code: "MISSION_LOG_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = normalizeBody(await request.json());
+
+    if (!body.instructions || !body.instructions.trim()) {
+      return jsonError("Document instructions are required.", 400, {
+        code: "DOCUMENT_INSTRUCTIONS_REQUIRED",
+      });
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateRequest(request, supabaseAdmin);
+
+    const [mission, memory] = await Promise.all([
+      verifyMissionOwnershipIfNeeded(supabaseAdmin, body.missionId, auth.userId),
+      loadCompanyMemory(supabaseAdmin, auth.userId),
+    ]);
+
+    const docType = normalizeDocType(body.type);
+    const language =
+      body.language ||
+      memory?.preferred_language ||
+      detectLanguage(`${body.instructions}\n${body.context || ""}`);
+    const tone =
+      body.tone || memory?.tone_guide || memory?.communication_style || "professionnel";
+    const title = inferTitle(body, docType);
+    const risk = inferRisk(body.instructions, docType);
+
+    const textContent = buildDocumentText({
+      title,
+      docType,
+      instructions: body.instructions,
+      context: body.context || null,
+      tone,
+      language,
+      memory,
+    });
+
+    const htmlContent = buildDocumentHtml({
+      title,
+      docType,
+      textContent,
+      tone,
+      language,
+      risk,
+    });
+
+    const document = await insertDocument({
+      supabaseAdmin,
+      missionId: mission ? (mission.id as string) : null,
+      title,
+      docType,
+      textContent,
+      htmlContent,
+      metadata: {
+        source: "api:pierre:doc:generate",
+        tone,
+        language,
+        risk_level: risk,
+        context: body.context || null,
+        mission_id: mission ? (mission.id as string) : null,
+      },
+    });
+
+    await insertMissionLogIfNeeded({
+      supabaseAdmin,
+      missionId: mission ? (mission.id as string) : null,
+      message: `Document gÃ©nÃ©rÃ© : ${title}`,
+      payload: {
+        document_id: document.id,
+        doc_type: docType,
+        tone,
+        language,
+        risk_level: risk,
+      },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      document,
+      meta: {
+        fetchedAt: new Date().toISOString(),
+        missionId: mission ? (mission.id as string) : null,
+      },
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(
+        asString(error.message) || "Request failed.",
+        error.status,
+        {
+          code: asString(error.code),
+          details: error.details ?? null,
+        },
+      );
+    }
+
+    const mapped = mapDbError(error);
+
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+===== FILE: src/app/api/pierre/doc/rewrite/route.ts =====
+
+import { type NextRequest } from "next/server";
+
+import type { PierreInterpretation } from "@/lib/pierre/types";
+import { buildJsonResponse, safeString } from "@/lib/pierre/utils";
+import {
+  getAuthenticatedPierreUser,
+  makePierreServerSupabase,
+} from "@/lib/pierre/auth";
+import { hasPierreAccess } from "@/lib/pierre/access";
+import { createPierreMissionAndTasks } from "@/lib/pierre/tasks/create";
+import { buildPierreTaskExecutors } from "@/lib/pierre/tasks/executors";
+import { runPierreTaskById } from "@/lib/pierre/tasks/run";
+
+type DocRewriteBody = Record<string, unknown>;
+
+function buildRawInput(body: DocRewriteBody) {
+  const bodyText =
+    safeString(body.body_text) ||
+    safeString(body.text) ||
+    safeString(body.document_text);
+
+  if (bodyText) return bodyText;
+
+  return (
+    safeString(body.raw_input) ||
+    safeString(body.input) ||
+    safeString(body.prompt) ||
+    "RÃ©Ã©cris et amÃ©liore ce contenu RH."
+  );
+}
+
+function buildInterpretation(body: DocRewriteBody): PierreInterpretation {
+  const rawInput = buildRawInput(body);
+
+  return {
+    intent: "api_doc_rewrite",
+    mission_summary: "Mission API : rÃ©Ã©crire un document RH.",
+    understanding_status: "understood",
+    risk_level: "low",
+    approval_required: false,
+    missing_info: [],
+    tasks: [
+      {
+        type: "doc.rewrite",
+        title: "RÃ©Ã©crire le document RH",
+        description: "RÃ©Ã©criture directe via /api/pierre/doc/rewrite.",
+        status: "ready",
+        priority: 95,
+        approval_required: false,
+        execute_at: null,
+        payload_json: {
+          ...body,
+          raw_input: rawInput,
+        },
+        depends_on_json: [],
+      },
+    ],
+  };
+}
+
+export async function POST(req: NextRequest) {
+  const supabase = makePierreServerSupabase();
+
+  const { error: authError, user } = await getAuthenticatedPierreUser(
+    req,
+    supabase
+  );
+
+  if (authError || !user) {
+    return buildJsonResponse(401, {
+      ok: false,
+      error: authError || "Non authentifiÃ©.",
+    });
+  }
+
+  const access = await hasPierreAccess(supabase, user.id);
+
+  if (access.error) {
+    return buildJsonResponse(500, {
+      ok: false,
+      error: access.error,
+    });
+  }
+
+  if (!access.ok) {
+    return buildJsonResponse(403, {
+      ok: false,
+      error: "Pierre nâ€™est pas actif sur ce compte.",
+    });
+  }
+
+  let body: DocRewriteBody;
+
+  try {
+    body = (await req.json()) as DocRewriteBody;
+  } catch {
+    return buildJsonResponse(400, {
+      ok: false,
+      error: "Body JSON invalide.",
+    });
+  }
+
+  const interpretation = buildInterpretation(body);
+
+  const { mission, tasks } = await createPierreMissionAndTasks(supabase, {
+    userId: user.id,
+    source: "api",
+    rawInput: buildRawInput(body),
+    interpretation,
+    contextSnapshot: {
+      route: "/api/pierre/doc/rewrite",
+      direct_api: true,
+    },
+  });
+
+  const createdTask = tasks[0];
+
+  if (!createdTask?.id) {
+    return buildJsonResponse(500, {
+      ok: false,
+      error: "Impossible de crÃ©er la task de rÃ©Ã©criture.",
+    });
+  }
+
+  const result = await runPierreTaskById(supabase, {
+    taskId: createdTask.id,
+    executors: buildPierreTaskExecutors(),
+  });
+
+  return buildJsonResponse(200, {
+    ok: true,
+    mission,
+    created_task: createdTask,
+    result,
+  });
+}
+
+===== FILE: src/app/api/pierre/doc/route.ts =====
+
+
+
+===== FILE: src/app/api/pierre/email/draft/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+type DbRow = Record<string, unknown>;
+
+type AuthenticatedContext = {
+  userId: string;
+  accessToken: string | null;
+};
+
+type DraftEmailBody = {
+  to?: string | null;
+  cc?: string | null;
+  bcc?: string | null;
+  subject?: string | null;
+  body?: string | null;
+  tone?: string | null;
+  language?: string | null;
+  senderName?: string | null;
+  senderEmail?: string | null;
+  missionId?: string | null;
+  attachments?: unknown;
+};
+
+type SenderIdentityResolved = {
+  senderName: string | null;
+  senderEmail: string | null;
+  senderDomain: string | null;
+  source: "payload" | "memory" | "fallback" | "none";
+};
+
+type JsonErrorExtra = {
+  code?: string | null;
+  details?: unknown;
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: message,
+      ...(extra ?? {}),
+    },
+    { status },
+  );
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase environment is not configured.");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  const directCandidates = [
+    "sb-access-token",
+    "supabase-access-token",
+    "access-token",
+  ];
+
+  for (const key of directCandidates) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (typeof candidate === "string") return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateRequest(
+  request: NextRequest,
+  supabaseAdmin: SupabaseClient,
+): Promise<AuthenticatedContext> {
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw {
+      status: 401,
+      message: "Auth session missing.",
+      code: "AUTH_SESSION_MISSING",
+    };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return {
+    userId: data.user.id,
+    accessToken,
+  };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      code: null,
+      details: null,
+    };
+  }
+
+  return {
+    message: "Unexpected database error.",
+    code: null,
+    details: null,
+  };
+}
+
+function normalizeBody(raw: unknown): DraftEmailBody {
+  if (!isObject(raw)) {
+    return {
+      to: null,
+      cc: null,
+      bcc: null,
+      subject: null,
+      body: null,
+      tone: null,
+      language: null,
+      senderName: null,
+      senderEmail: null,
+      missionId: null,
+      attachments: null,
+    };
+  }
+
+  return {
+    to: asString(raw.to),
+    cc: asString(raw.cc),
+    bcc: asString(raw.bcc),
+    subject: asString(raw.subject),
+    body: asString(raw.body),
+    tone: asString(raw.tone),
+    language: asString(raw.language),
+    senderName: asString(raw.senderName),
+    senderEmail: asString(raw.senderEmail),
+    missionId: asString(raw.missionId),
+    attachments: raw.attachments ?? null,
+  };
+}
+
+async function verifyMissionOwnershipIfNeeded(
+  supabaseAdmin: SupabaseClient,
+  missionId: string | null | undefined,
+  userId: string,
+): Promise<DbRow | null> {
+  if (!missionId) return null;
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_missions")
+    .select("*")
+    .eq("id", missionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load mission.",
+      code: "MISSION_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  if (!data) {
+    throw {
+      status: 404,
+      message: "Mission not found.",
+      code: "MISSION_NOT_FOUND",
+    };
+  }
+
+  return data as DbRow;
+}
+
+async function loadCompanyMemory(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+): Promise<DbRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_company_memory")
+    .select("*")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load company memory.",
+      code: "COMPANY_MEMORY_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return (data ?? null) as DbRow | null;
+}
+
+function resolveSenderIdentity(
+  body: DraftEmailBody,
+  memory: DbRow | null,
+): SenderIdentityResolved {
+  const senderIdentity = isObject(memory?.sender_identity)
+    ? memory?.sender_identity
+    : null;
+
+  const payloadName = body.senderName;
+  const payloadEmail = body.senderEmail;
+
+  if (payloadName || payloadEmail) {
+    const email = payloadEmail || null;
+    return {
+      senderName: payloadName || null,
+      senderEmail: email,
+      senderDomain: email && email.includes("@") ? email.split("@")[1] : null,
+      source: "payload",
+    };
+  }
+
+  const memoryName =
+    asString(memory?.sender_name) ||
+    asString(senderIdentity?.sender_name) ||
+    asString(senderIdentity?.name);
+  const memoryEmail =
+    asString(memory?.sender_email) ||
+    asString(senderIdentity?.sender_email) ||
+    asString(senderIdentity?.email);
+
+  if (memoryName || memoryEmail) {
+    return {
+      senderName: memoryName || null,
+      senderEmail: memoryEmail || null,
+      senderDomain:
+        asString(memory?.sender_domain) ||
+        (memoryEmail && memoryEmail.includes("@") ? memoryEmail.split("@")[1] : null),
+      source: "memory",
+    };
+  }
+
+  const fallbackName = asString(process.env.PIERRE_FALLBACK_SENDER_NAME);
+  const fallbackEmail = asString(process.env.PIERRE_FALLBACK_SENDER_EMAIL);
+
+  if (fallbackName || fallbackEmail) {
+    return {
+      senderName: fallbackName || null,
+      senderEmail: fallbackEmail || null,
+      senderDomain:
+        fallbackEmail && fallbackEmail.includes("@")
+          ? fallbackEmail.split("@")[1]
+          : null,
+      source: "fallback",
+    };
+  }
+
+  return {
+    senderName: null,
+    senderEmail: null,
+    senderDomain: null,
+    source: "none",
+  };
+}
+
+function buildDraftSubject(body: DraftEmailBody): string {
+  return body.subject || "Email RH";
+}
+
+function buildDraftBody(params: {
+  body: DraftEmailBody;
+  sender: SenderIdentityResolved;
+  memory: DbRow | null;
+}): string {
+  const { body, sender, memory } = params;
+
+  if (body.body) return body.body;
+
+  const language =
+    body.language ||
+    asString(memory?.preferred_language) ||
+    "fr";
+
+  const tone =
+    body.tone ||
+    asString(memory?.tone_guide) ||
+    asString(memory?.communication_style) ||
+    "professionnel";
+
+  if (language === "en") {
+    return [
+      "Hello,",
+      "",
+      "This is a premium HR draft prepared by Pierre.",
+      `Requested tone: ${tone}.`,
+      sender.senderName ? `Proposed sender identity: ${sender.senderName}.` : null,
+      "",
+      "Please complete or adjust the operational content before final validation.",
+      "",
+      "Best regards,",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  return [
+    "Bonjour,",
+    "",
+    "Ceci est un brouillon RH premium prÃ©parÃ© par Pierre.",
+    `Ton demandÃ© : ${tone}.`,
+    sender.senderName ? `IdentitÃ© dâ€™envoi proposÃ©e : ${sender.senderName}.` : null,
+    "",
+    "Merci de complÃ©ter ou ajuster le contenu opÃ©rationnel avant validation finale.",
+    "",
+    "Bien cordialement,",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+async function insertDraftEmail(params: {
+  supabaseAdmin: SupabaseClient;
+  missionId: string | null;
+  sender: SenderIdentityResolved;
+  body: DraftEmailBody;
+  subject: string;
+  content: string;
+}): Promise<DbRow> {
+  const { supabaseAdmin, missionId, sender, body, subject, content } = params;
+
+  const insertPayload = {
+    mission_id: missionId,
+    to: body.to || null,
+    cc: body.cc || null,
+    bcc: body.bcc || null,
+    subject,
+    body_text: content,
+    body_html: null,
+    sender_name: sender.senderName,
+    sender_email: sender.senderEmail,
+    status: "draft",
+    attachments: body.attachments ?? null,
+  };
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_outbound_emails")
+    .insert(insertPayload)
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    throw {
+      status: 500,
+      message: "Unable to save email draft.",
+      code: "EMAIL_DRAFT_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return data as DbRow;
+}
+
+async function insertMissionLogIfNeeded(params: {
+  supabaseAdmin: SupabaseClient;
+  missionId: string | null;
+  subject: string;
+  emailId: string;
+}) {
+  const { supabaseAdmin, missionId, subject, emailId } = params;
+  if (!missionId) return;
+
+  const { error } = await supabaseAdmin.from("pierre_task_logs").insert({
+    mission_id: missionId,
+    level: "info",
+    event: "email_draft_created",
+    message: `Brouillon email crÃ©Ã© : ${subject}`,
+    payload: {
+      email_id: emailId,
+      subject,
+    },
+  });
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to create mission log.",
+      code: "MISSION_LOG_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = normalizeBody(await request.json());
+
+    if (!body.subject && !body.body) {
+      return jsonError("Email subject or body is required.", 400, {
+        code: "EMAIL_DRAFT_CONTENT_REQUIRED",
+      });
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateRequest(request, supabaseAdmin);
+
+    const [mission, memory] = await Promise.all([
+      verifyMissionOwnershipIfNeeded(supabaseAdmin, body.missionId, auth.userId),
+      loadCompanyMemory(supabaseAdmin, auth.userId),
+    ]);
+
+    const sender = resolveSenderIdentity(body, memory);
+    const subject = buildDraftSubject(body);
+    const content = buildDraftBody({ body, sender, memory });
+
+    const email = await insertDraftEmail({
+      supabaseAdmin,
+      missionId: mission ? (mission.id as string) : null,
+      sender,
+      body,
+      subject,
+      content,
+    });
+
+    await insertMissionLogIfNeeded({
+      supabaseAdmin,
+      missionId: mission ? (mission.id as string) : null,
+      subject,
+      emailId: String(email.id),
+    });
+
+    return NextResponse.json({
+      ok: true,
+      email,
+      draft: email,
+      meta: {
+        fetchedAt: new Date().toISOString(),
+        missionId: mission ? (mission.id as string) : null,
+        senderIdentityResolved: sender,
+      },
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(
+        asString(error.message) || "Request failed.",
+        error.status,
+        {
+          code: asString(error.code),
+          details: error.details ?? null,
+        },
+      );
+    }
+
+    const mapped = mapDbError(error);
+
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+===== FILE: src/app/api/pierre/email/route.ts =====
+
+
+
+===== FILE: src/app/api/pierre/email/send/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+type DbRow = Record<string, unknown>;
+
+type AuthenticatedContext = {
+  userId: string;
+  accessToken: string | null;
+};
+
+type SendEmailBody = {
+  to?: string | null;
+  cc?: string | null;
+  bcc?: string | null;
+  subject?: string | null;
+  body?: string | null;
+  senderName?: string | null;
+  senderEmail?: string | null;
+  missionId?: string | null;
+  attachments?: unknown;
+};
+
+type SenderIdentityResolved = {
+  senderName: string | null;
+  senderEmail: string | null;
+  senderDomain: string | null;
+  source: "payload" | "memory" | "fallback" | "none";
+};
+
+type JsonErrorExtra = {
+  code?: string | null;
+  details?: unknown;
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: message,
+      ...(extra ?? {}),
+    },
+    { status },
+  );
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase environment is not configured.");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  const directCandidates = [
+    "sb-access-token",
+    "supabase-access-token",
+    "access-token",
+  ];
+
+  for (const key of directCandidates) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (typeof candidate === "string") return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateRequest(
+  request: NextRequest,
+  supabaseAdmin: SupabaseClient,
+): Promise<AuthenticatedContext> {
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw {
+      status: 401,
+      message: "Auth session missing.",
+      code: "AUTH_SESSION_MISSING",
+    };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return {
+    userId: data.user.id,
+    accessToken,
+  };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      code: null,
+      details: null,
+    };
+  }
+
+  return {
+    message: "Unexpected database error.",
+    code: null,
+    details: null,
+  };
+}
+
+function normalizeBody(raw: unknown): SendEmailBody {
+  if (!isObject(raw)) {
+    return {
+      to: null,
+      cc: null,
+      bcc: null,
+      subject: null,
+      body: null,
+      senderName: null,
+      senderEmail: null,
+      missionId: null,
+      attachments: null,
+    };
+  }
+
+  return {
+    to: asString(raw.to),
+    cc: asString(raw.cc),
+    bcc: asString(raw.bcc),
+    subject: asString(raw.subject),
+    body: asString(raw.body),
+    senderName: asString(raw.senderName),
+    senderEmail: asString(raw.senderEmail),
+    missionId: asString(raw.missionId),
+    attachments: raw.attachments ?? null,
+  };
+}
+
+async function verifyMissionOwnershipIfNeeded(
+  supabaseAdmin: SupabaseClient,
+  missionId: string | null | undefined,
+  userId: string,
+): Promise<DbRow | null> {
+  if (!missionId) return null;
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_missions")
+    .select("*")
+    .eq("id", missionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load mission.",
+      code: "MISSION_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  if (!data) {
+    throw {
+      status: 404,
+      message: "Mission not found.",
+      code: "MISSION_NOT_FOUND",
+    };
+  }
+
+  return data as DbRow;
+}
+
+async function loadCompanyMemory(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+): Promise<DbRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_company_memory")
+    .select("*")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load company memory.",
+      code: "COMPANY_MEMORY_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return (data ?? null) as DbRow | null;
+}
+
+function resolveSenderIdentity(
+  body: SendEmailBody,
+  memory: DbRow | null,
+): SenderIdentityResolved {
+  const senderIdentity = isObject(memory?.sender_identity)
+    ? memory?.sender_identity
+    : null;
+
+  const payloadName = body.senderName;
+  const payloadEmail = body.senderEmail;
+
+  if (payloadName || payloadEmail) {
+    const email = payloadEmail || null;
+    return {
+      senderName: payloadName || null,
+      senderEmail: email,
+      senderDomain: email && email.includes("@") ? email.split("@")[1] : null,
+      source: "payload",
+    };
+  }
+
+  const memoryName =
+    asString(memory?.sender_name) ||
+    asString(senderIdentity?.sender_name) ||
+    asString(senderIdentity?.name);
+  const memoryEmail =
+    asString(memory?.sender_email) ||
+    asString(senderIdentity?.sender_email) ||
+    asString(senderIdentity?.email);
+
+  if (memoryName || memoryEmail) {
+    return {
+      senderName: memoryName || null,
+      senderEmail: memoryEmail || null,
+      senderDomain:
+        asString(memory?.sender_domain) ||
+        (memoryEmail && memoryEmail.includes("@") ? memoryEmail.split("@")[1] : null),
+      source: "memory",
+    };
+  }
+
+  const fallbackName = asString(process.env.PIERRE_FALLBACK_SENDER_NAME);
+  const fallbackEmail = asString(process.env.PIERRE_FALLBACK_SENDER_EMAIL);
+
+  if (fallbackName || fallbackEmail) {
+    return {
+      senderName: fallbackName || null,
+      senderEmail: fallbackEmail || null,
+      senderDomain:
+        fallbackEmail && fallbackEmail.includes("@")
+          ? fallbackEmail.split("@")[1]
+          : null,
+      source: "fallback",
+    };
+  }
+
+  return {
+    senderName: null,
+    senderEmail: null,
+    senderDomain: null,
+    source: "none",
+  };
+}
+
+function validateSendBody(body: SendEmailBody) {
+  if (!body.to) {
+    throw {
+      status: 400,
+      message: "Recipient email is required.",
+      code: "EMAIL_TO_REQUIRED",
+    };
+  }
+
+  if (!body.subject) {
+    throw {
+      status: 400,
+      message: "Email subject is required.",
+      code: "EMAIL_SUBJECT_REQUIRED",
+    };
+  }
+
+  if (!body.body) {
+    throw {
+      status: 400,
+      message: "Email body is required.",
+      code: "EMAIL_BODY_REQUIRED",
+    };
+  }
+}
+
+function buildProviderMessageId() {
+  return `pierre_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+async function insertSentEmail(params: {
+  supabaseAdmin: SupabaseClient;
+  missionId: string | null;
+  sender: SenderIdentityResolved;
+  body: SendEmailBody;
+  providerMessageId: string;
+}): Promise<DbRow> {
+  const { supabaseAdmin, missionId, sender, body, providerMessageId } = params;
+
+  const insertPayload = {
+    mission_id: missionId,
+    to: body.to || null,
+    cc: body.cc || null,
+    bcc: body.bcc || null,
+    subject: body.subject || null,
+    body_text: body.body || null,
+    body_html: null,
+    sender_name: sender.senderName,
+    sender_email: sender.senderEmail,
+    status: "sent",
+    provider_message_id: providerMessageId,
+    attachments: body.attachments ?? null,
+  };
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_outbound_emails")
+    .insert(insertPayload)
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    throw {
+      status: 500,
+      message: "Unable to save sent email.",
+      code: "EMAIL_SEND_SAVE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return data as DbRow;
+}
+
+async function insertMissionLogIfNeeded(params: {
+  supabaseAdmin: SupabaseClient;
+  missionId: string | null;
+  subject: string;
+  emailId: string;
+  to: string;
+}) {
+  const { supabaseAdmin, missionId, subject, emailId, to } = params;
+  if (!missionId) return;
+
+  const { error } = await supabaseAdmin.from("pierre_task_logs").insert({
+    mission_id: missionId,
+    level: "info",
+    event: "email_sent_direct",
+    message: `Email envoyÃ© : ${subject}`,
+    payload: {
+      email_id: emailId,
+      to,
+      subject,
+    },
+  });
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to create mission log.",
+      code: "MISSION_LOG_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = normalizeBody(await request.json());
+    validateSendBody(body);
+
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateRequest(request, supabaseAdmin);
+
+    const [mission, memory] = await Promise.all([
+      verifyMissionOwnershipIfNeeded(supabaseAdmin, body.missionId, auth.userId),
+      loadCompanyMemory(supabaseAdmin, auth.userId),
+    ]);
+
+    const sender = resolveSenderIdentity(body, memory);
+    const providerMessageId = buildProviderMessageId();
+
+    const email = await insertSentEmail({
+      supabaseAdmin,
+      missionId: mission ? (mission.id as string) : null,
+      sender,
+      body,
+      providerMessageId,
+    });
+
+    await insertMissionLogIfNeeded({
+      supabaseAdmin,
+      missionId: mission ? (mission.id as string) : null,
+      subject: body.subject as string,
+      emailId: String(email.id),
+      to: body.to as string,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      email,
+      sent: email,
+      provider: {
+        provider: "internal_stub",
+        messageId: providerMessageId,
+        deliveryAccepted: true,
+        senderIdentityResolved: sender,
+      },
+      meta: {
+        fetchedAt: new Date().toISOString(),
+        missionId: mission ? (mission.id as string) : null,
+      },
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(
+        asString(error.message) || "Request failed.",
+        error.status,
+        {
+          code: asString(error.code),
+          details: error.details ?? null,
+        },
+      );
+    }
+
+    const mapped = mapDbError(error);
+
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+===== FILE: src/app/api/pierre/execute/route.ts =====
+
+// src/app/api/pierre/execute/route.ts
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import crypto from "crypto";
+import { createClient, PostgrestError } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+
+/**
+ * =========================================
+ * 0) ENV
+ * =========================================
+ */
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const ROUTER_HMAC_SECRET = process.env.ROUTER_HMAC_SECRET!;
+
+const MAKE_EMAIL_WEBHOOK_URL = process.env.MAKE_EMAIL_WEBHOOK_URL!;
+const MAKE_DOC_WEBHOOK_URL = process.env.MAKE_DOC_WEBHOOK_URL!;
+const MAKE_INTEGRATIONS_WEBHOOK_URL = process.env.MAKE_INTEGRATIONS_WEBHOOK_URL!;
+
+function assertEnv() {
+  const missing: string[] = [];
+  if (!SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!SUPABASE_SERVICE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (!ROUTER_HMAC_SECRET) missing.push("ROUTER_HMAC_SECRET");
+  if (!MAKE_EMAIL_WEBHOOK_URL) missing.push("MAKE_EMAIL_WEBHOOK_URL");
+  if (!MAKE_DOC_WEBHOOK_URL) missing.push("MAKE_DOC_WEBHOOK_URL");
+  if (!MAKE_INTEGRATIONS_WEBHOOK_URL) missing.push("MAKE_INTEGRATIONS_WEBHOOK_URL");
+  if (missing.length) throw new Error(`Missing env vars: ${missing.join(", ")}`);
+}
+assertEnv();
+
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+  auth: { persistSession: false },
+});
+
+/**
+ * =========================================
+ * 1) Helpers
+ * =========================================
+ */
+type ApiErrorCode =
+  | "UNAUTHORIZED"
+  | "CLIENT_ID_MISMATCH"
+  | "BAD_REQUEST"
+  | "UNKNOWN_ACTION"
+  | "FORBIDDEN"
+  | "MAKE_ERROR"
+  | "DB_ERROR"
+  | "INTERNAL_ERROR";
+
+function jsonOk(action: string, result: any) {
+  return NextResponse.json({ ok: true, action, result }, { status: 200 });
+}
+
+function jsonFail(code: ApiErrorCode, message: string, details?: any, status = 400) {
+  return NextResponse.json(
+    { ok: false, error: { code, message, ...(details ? { details } : {}) } },
+    { status }
+  );
+}
+
+function isPostgrestError(e: any): e is PostgrestError {
+  return e && typeof e === "object" && typeof e.message === "string" && typeof e.details === "string";
+}
+
+function timingSafeEqualHex(aHex: string, bHex: string) {
+  const a = Buffer.from(aHex, "hex");
+  const b = Buffer.from(bHex, "hex");
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+/**
+ * =========================================
+ * 2) Router Auth (HMAC + anti-replay)
+ * =========================================
+ * headers requis :
+ * - x-client-id
+ * - x-timestamp (ms)
+ * - x-signature = HMAC_SHA256(secret, `${clientId}.${timestamp}.${rawBody}`) hex
+ */
+function assertRouterAuth(req: Request, rawBody: string) {
+  const clientId = req.headers.get("x-client-id") || "";
+  const timestamp = req.headers.get("x-timestamp") || "";
+  const signature = req.headers.get("x-signature") || "";
+
+  if (!clientId || !timestamp || !signature) throw new Error("UNAUTHORIZED");
+
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts)) throw new Error("UNAUTHORIZED");
+
+  const now = Date.now();
+  if (Math.abs(now - ts) > 5 * 60 * 1000) throw new Error("UNAUTHORIZED");
+
+  const expected = crypto
+    .createHmac("sha256", ROUTER_HMAC_SECRET)
+    .update(`${clientId}.${timestamp}.${rawBody}`)
+    .digest("hex");
+
+  if (!timingSafeEqualHex(expected, signature)) throw new Error("UNAUTHORIZED");
+  return clientId;
+}
+
+/**
+ * =========================================
+ * 3) Audit (best-effort)
+ * =========================================
+ */
+async function auditLog(params: {
+  client_id: string;
+  action: string;
+  payload: any;
+  ok: boolean;
+  result: any;
+  actor?: string;
+}) {
+  const { client_id, action, payload, ok, result, actor } = params;
+  try {
+    await supabaseAdmin.from("audit_log").insert({
+      client_id,
+      action,
+      payload: payload ?? {},
+      ok,
+      result: result ?? {},
+      actor: actor ?? "system",
+    });
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * =========================================
+ * 4) Idempotency (optional)
+ * =========================================
+ */
+async function maybeReturnIdempotentResult(client_id: string, action: string, payload: any) {
+  const request_id = typeof payload?.request_id === "string" ? payload.request_id.trim() : "";
+  if (!request_id) return null;
+
+  const { data, error } = await supabaseAdmin
+    .from("audit_log")
+    .select("ok,result,created_at")
+    .eq("client_id", client_id)
+    .eq("action", action)
+    .contains("payload", { request_id })
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (error || !data?.length) return null;
+  const row: any = data[0];
+  if (row?.ok === true) return row.result ?? {};
+  return null;
+}
+
+/**
+ * =========================================
+ * 5) Access check
+ * =========================================
+ */
+async function assertPierreAccess(client_id: string) {
+  const { data: cfg, error: cfgErr } = await supabaseAdmin
+    .from("agent_configs")
+    .select("client_id,agent_key")
+    .eq("client_id", client_id)
+    .eq("agent_key", "pierre")
+    .maybeSingle();
+
+  if (cfgErr) throw cfgErr;
+  if (!cfg) throw new Error("FORBIDDEN");
+}
+
+/**
+ * =========================================
+ * 6) Make call (ROBUST)
+ * =========================================
+ */
+async function callMake(url: string, payload: any) {
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const text = await res.text();
+
+    let parsed: any = null;
+    try {
+      parsed = text ? JSON.parse(text) : null;
+    } catch {
+      parsed = text;
+    }
+
+    if (!res.ok) {
+      return { ok: false, error: "MAKE_HTTP_ERROR", status: res.status, body: parsed };
+    }
+
+    if (parsed && typeof parsed === "object") return parsed;
+    return { ok: true, data: parsed };
+  } catch (e: any) {
+    return { ok: false, error: "MAKE_FETCH_ERROR", message: e?.message ?? "unknown" };
+  }
+}
+
+/**
+ * =========================================
+ * 7) Schemas
+ * =========================================
+ */
+const ExecuteSchema = z.object({
+  client_id: z.string().min(3),
+  action: z.string().min(3),
+  payload: z.object({}).passthrough().default({}),
+});
+
+function withRequestId<T extends z.ZodTypeAny>(schema: T) {
+  return schema.and(z.object({ request_id: z.string().min(6).optional() }));
+}
+
+/**
+ * email.send
+ */
+const EmailSendSchema = withRequestId(
+  z.object({
+    to: z.array(z.string().min(3)).min(1),
+    subject: z.string().min(1),
+    body_html: z.string().min(1),
+    reply_to: z.string().email().optional(),
+  })
+);
+
+/**
+ * doc.generate
+ * - Format A (pro) : doc_type/template_id/data
+ * - Format B (simple) : html/filename direct
+ */
+const DocGenerateSchema = withRequestId(
+  z.union([
+    z.object({
+      employee_id: z.string().uuid().optional(),
+      doc_type: z.string().min(2),
+      template_id: z.string().min(2),
+      title: z.string().optional(),
+      data: z.object({}).passthrough().default({}),
+    }),
+    z.object({
+      title: z.string().optional(),
+      html: z.string().min(1),
+      filename: z.string().optional(),
+      doc_type: z.string().optional(),
+    }),
+  ])
+);
+
+/**
+ * hris.sync
+ * âœ… On supporte 2 formats :
+ * - ancien : payload objet
+ * - nouveau (depuis generate strict) : payload_json string (JSON.stringify)
+ */
+const HrisSyncSchema = withRequestId(
+  z.object({
+    vendor: z.string().optional(),
+    mode: z.enum(["import", "api", "both"]).optional(),
+    payload: z.object({}).passthrough().optional(),
+    payload_json: z.string().optional(),
+  })
+);
+
+/**
+ * Best-effort : enregistrer doc_url dans documents si la table existe
+ */
+async function tryInsertDocument(params: {
+  client_id: string;
+  doc_url: string;
+  title?: string | null;
+  doc_type?: string | null;
+  employee_id?: string | null;
+  metadata?: any;
+}) {
+  try {
+    await supabaseAdmin.from("documents").insert({
+      client_id: params.client_id,
+      doc_url: params.doc_url,
+      title: params.title ?? null,
+      doc_type: params.doc_type ?? null,
+      employee_id: params.employee_id ?? null,
+      status: "final",
+      version: 1,
+      metadata: params.metadata ?? {},
+    });
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Helper: parse payload_json safely
+ */
+function safeParseJsonString(s: any) {
+  if (typeof s !== "string") return null;
+  try {
+    const parsed = JSON.parse(s);
+    if (parsed && typeof parsed === "object") return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * =========================================
+ * 8) Handler
+ * =========================================
+ */
+export async function POST(req: Request) {
+  const raw = await req.text();
+
+  // 1) HMAC auth
+  let client_id_from_header = "";
+  try {
+    client_id_from_header = assertRouterAuth(req, raw);
+  } catch {
+    return jsonFail("UNAUTHORIZED", "Router signature invalid or missing", undefined, 401);
+  }
+
+  // 2) Parse JSON body
+  let body: any;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return jsonFail("BAD_REQUEST", "Invalid JSON body");
+  }
+
+  // 3) Validate envelope
+  let envelope: { client_id: string; action: string; payload: any };
+  try {
+    envelope = ExecuteSchema.parse(body);
+  } catch (e: any) {
+    return jsonFail("BAD_REQUEST", "Invalid request format", { zod: e?.errors ?? e }, 400);
+  }
+
+  const { client_id, action, payload } = envelope;
+
+  // 4) client_id must match signed header
+  if (client_id !== client_id_from_header) {
+    await auditLog({
+      client_id,
+      action,
+      payload,
+      ok: false,
+      result: { error: "CLIENT_ID_MISMATCH" },
+    });
+    return jsonFail("CLIENT_ID_MISMATCH", "client_id mismatch", undefined, 403);
+  }
+
+  // 5) Access
+  try {
+    await assertPierreAccess(client_id);
+  } catch {
+    await auditLog({ client_id, action, payload, ok: false, result: { error: "FORBIDDEN" } });
+    return jsonFail("FORBIDDEN", "Pierre access denied or not configured", undefined, 403);
+  }
+
+  // 6) Idempotency
+  try {
+    const prev = await maybeReturnIdempotentResult(client_id, action, payload);
+    if (prev) return jsonOk(action, { idempotent: true, ...prev });
+  } catch {
+    // ignore
+  }
+
+  // 7) Execute
+  try {
+    /**
+     * =========================
+     * email.send
+     * =========================
+     */
+    if (action === "email.send") {
+      const p = EmailSendSchema.parse(payload);
+
+      const { data: cfg, error: cfgErr } = await supabaseAdmin
+        .from("agent_configs")
+        .select("sender_email,sender_name,email_signature,legal_footer,email_provider")
+        .eq("client_id", client_id)
+        .eq("agent_key", "pierre")
+        .maybeSingle();
+
+      if (cfgErr) throw cfgErr;
+
+      const signature = cfg?.email_signature ? `<br><br>${cfg.email_signature}` : "";
+      const footer = cfg?.legal_footer ? `<br><br><small>${cfg.legal_footer}</small>` : "";
+
+      const makePayload = {
+        client_id,
+        from: cfg?.sender_email,
+        from_name: cfg?.sender_name ?? "Pierre",
+        to: p.to,
+        subject: p.subject,
+        body_html: p.body_html + signature + footer,
+        reply_to: p.reply_to,
+        request_id: (p as any).request_id,
+      };
+
+      const makeRes = await callMake(MAKE_EMAIL_WEBHOOK_URL, makePayload);
+
+      if (makeRes?.ok === false) {
+        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes } });
+        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
+      }
+
+      await auditLog({ client_id, action, payload, ok: true, result: makeRes });
+      return jsonOk(action, makeRes);
+    }
+
+    /**
+     * =========================
+     * doc.generate
+     * =========================
+     */
+    if (action === "doc.generate") {
+      const p = DocGenerateSchema.parse(payload) as any;
+
+      const isSimple = typeof p?.html === "string" && p.html.length > 0;
+
+      const makePayload = isSimple
+        ? {
+            client_id,
+            request_id: p.request_id,
+            title: p.title ?? "Document",
+            html: p.html,
+            filename: p.filename ?? "document.pdf",
+            doc_type: p.doc_type ?? "document",
+          }
+        : {
+            client_id,
+            employee_id: p.employee_id,
+            doc_type: p.doc_type,
+            template_id: p.template_id,
+            title: p.title,
+            data: p.data ?? {},
+            request_id: p.request_id,
+          };
+
+      const makeRes = await callMake(MAKE_DOC_WEBHOOK_URL, makePayload);
+      if (makeRes?.ok === false) {
+        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes } });
+        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
+      }
+
+      const doc_url = makeRes?.doc_url ?? makeRes?.data?.doc_url;
+      if (typeof doc_url === "string" && doc_url.startsWith("http")) {
+        await tryInsertDocument({
+          client_id,
+          doc_url,
+          title: makePayload?.title ?? null,
+          doc_type: makePayload?.doc_type ?? null,
+          employee_id: makePayload?.employee_id ?? null,
+          metadata: { make: makeRes },
+        });
+      }
+
+      await auditLog({ client_id, action, payload, ok: true, result: makeRes });
+      return jsonOk(action, makeRes);
+    }
+
+    /**
+     * =========================
+     * hris.sync
+     * =========================
+     */
+    if (action === "hris.sync") {
+      const p = HrisSyncSchema.parse(payload) as any;
+
+      // âœ… NOUVEAU: si payload_json string existe, on le parse
+      const parsedFromString = safeParseJsonString(p?.payload_json);
+      const payloadObj =
+        parsedFromString ??
+        (p?.payload && typeof p.payload === "object" ? p.payload : {}) ??
+        {};
+
+      const makePayload = {
+        client_id,
+        vendor: p.vendor,
+        mode: p.mode,
+        payload: payloadObj,
+        request_id: p.request_id,
+      };
+
+      const makeRes = await callMake(MAKE_INTEGRATIONS_WEBHOOK_URL, makePayload);
+      if (makeRes?.ok === false) {
+        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes } });
+        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
+      }
+
+      await auditLog({ client_id, action, payload, ok: true, result: makeRes });
+      return jsonOk(action, makeRes);
+    }
+
+    /**
+     * =========================
+     * Unknown action
+     * =========================
+     */
+    await auditLog({ client_id, action, payload, ok: false, result: { error: "UNKNOWN_ACTION" } });
+    return jsonFail("UNKNOWN_ACTION", "Unknown action", { action }, 400);
+  } catch (e: any) {
+    let code: ApiErrorCode = "INTERNAL_ERROR";
+    let message = "Unexpected error";
+    let details: any = undefined;
+    let status = 500;
+
+    if (isPostgrestError(e)) {
+      code = "DB_ERROR";
+      message = "Database error";
+      details = { db: e.message, hint: e.hint, details: e.details };
+      status = 500;
+    } else if (e?.name === "ZodError") {
+      code = "BAD_REQUEST";
+      message = "Validation error";
+      details = { zod: e.errors };
+      status = 400;
+    } else if (e?.message === "FORBIDDEN") {
+      code = "FORBIDDEN";
+      message = "Forbidden";
+      status = 403;
+    } else if (e?.message) {
+      code = "INTERNAL_ERROR";
+      message = String(e.message);
+      status = 500;
+    }
+
+    await auditLog({
+      client_id: (body?.client_id ?? "unknown") as string,
+      action: (body?.action ?? "unknown") as string,
+      payload: body?.payload ?? {},
+      ok: false,
+      result: { error: { code, message, details } },
+    });
+
+    return jsonFail(code, message, details, status);
+  }
+}
+
+
+
+===== FILE: src/app/api/pierre/generate/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type JsonObject = Record<string, unknown>;
+
+type DocumentGenerateBody = {
+  title?: string;
+  instructions?: string;
+  context?: string;
+  tone?: string;
+  language?: string;
+};
+
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
+function isPlainObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function trimOrNull(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value.trim();
+  return clean ? clean : null;
+}
+
+function trimOrEmpty(value: unknown): string {
+  return trimOrNull(value) ?? "";
+}
+
+function getSupabaseAdmin(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRole =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase admin env is missing.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+function getOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY missing.");
+  }
+  return new OpenAI({ apiKey });
+}
+
+function tryParseJsonString(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function extractTokenFromCookieValue(raw: string): string | null {
+  const clean = raw.trim();
+  if (!clean) return null;
+
+  if (clean.startsWith("eyJ") && clean.split(".").length >= 3) return clean;
+
+  const parsed = tryParseJsonString(clean);
+
+  if (Array.isArray(parsed)) {
+    for (const item of parsed) {
+      if (typeof item === "string" && item.startsWith("eyJ") && item.split(".").length >= 3) {
+        return item;
+      }
+    }
+  }
+
+  if (isPlainObject(parsed)) {
+    const candidates = [
+      parsed.access_token,
+      parsed.accessToken,
+      parsed.token,
+      parsed.currentSession && isPlainObject(parsed.currentSession)
+        ? parsed.currentSession.access_token
+        : null,
+      parsed.session && isPlainObject(parsed.session)
+        ? parsed.session.access_token
+        : null,
+    ];
+
+    for (const candidate of candidates) {
+      if (
+        typeof candidate === "string" &&
+        candidate.startsWith("eyJ") &&
+        candidate.split(".").length >= 3
+      ) {
+        return candidate;
+      }
+    }
+  }
+
+  return null;
+}
+
+function extractBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) return token;
+  }
+
+  for (const cookie of request.cookies.getAll()) {
+    const name = cookie.name.toLowerCase();
+    if (name.includes("auth-token") || name.includes("access-token") || name.startsWith("sb-")) {
+      const token = extractTokenFromCookieValue(cookie.value);
+      if (token) return token;
+    }
+  }
+
+  return null;
+}
+
+async function resolveUser(supabase: SupabaseClient, request: NextRequest): Promise<User | null> {
+  const token = extractBearerToken(request);
+  if (!token) return null;
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) return null;
+
+  return data.user;
+}
+
+async function getCompanyMemory(supabase: SupabaseClient, user: User | null) {
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("pierre_company_memory")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+function inferDocumentType(text: string): string {
+  const lower = text.toLowerCase();
+
+  if (lower.includes("convocation")) return "convocation";
+  if (lower.includes("refus")) return "refus_candidat";
+  if (lower.includes("onboarding") || lower.includes("accueil")) return "onboarding";
+  if (lower.includes("offre d'emploi") || lower.includes("offre emploi")) return "offre_emploi";
+  if (lower.includes("compte rendu")) return "compte_rendu";
+  if (lower.includes("relance")) return "relance";
+  if (lower.includes("note interne")) return "note_interne";
+  if (lower.includes("procÃ©dure")) return "rappel_procedure";
+
+  return "document_rh";
+}
+
+function buildDocumentPrompt(input: {
+  instructions: string;
+  context: string;
+  tone: string;
+  language: string;
+  companyMemory: Record<string, unknown> | null;
+}) {
+  const companyName =
+    trimOrNull(input.companyMemory?.company_name) ?? "lâ€™entreprise cliente";
+
+  return `
+Tu es Pierre, employÃ© IA RH premium de CloneStore.
+
+Ta mission :
+produire un document RH propre, exploitable, professionnel, crÃ©dible et directement utilisable.
+
+Contraintes absolues :
+- ne jamais inventer des faits prÃ©cis qui ne sont pas donnÃ©s ;
+- si une information manque, rester gÃ©nÃ©rique et propre sans inventer de dÃ©tails sensibles ;
+- ton demandÃ© : ${input.tone};
+- langue demandÃ©e : ${input.language};
+- entreprise concernÃ©e : ${companyName};
+- produire un rÃ©sultat premium, lisible, clair, humain et professionnel ;
+- Ã©viter tout ton juridique excessif ;
+- rester dans un pÃ©rimÃ¨tre RH / administratif raisonnable.
+
+Contexte entreprise :
+${input.context || "Aucun contexte complÃ©mentaire fourni."}
+
+MÃ©moire entreprise utile :
+${JSON.stringify(input.companyMemory ?? {}, null, 2)}
+
+Instructions utilisateur :
+${input.instructions}
+
+RÃ©ponds en JSON strict au format :
+{
+  "title": "titre du document",
+  "type": "type_document",
+  "text": "version texte finale",
+  "html": "version HTML propre avec paragraphes et listes si utile",
+  "summary": "rÃ©sumÃ© trÃ¨s court",
+  "missing_variables": ["..."]
+}
+`.trim();
+}
+
+function safeJsonParse<T>(value: string): T | null {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
+function escapeHtml(input: string): string {
+  return input
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function textToHtml(text: string): string {
+  const paragraphs = text
+    .split(/\n{2,}/g)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  if (paragraphs.length === 0) return "<p></p>";
+
+  return paragraphs
+    .map((paragraph) => {
+      const lines = paragraph
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      const bulletLines = lines.filter((line) => /^[-â€¢]/.test(line));
+
+      if (bulletLines.length === lines.length && lines.length > 0) {
+        const items = lines
+          .map((line) => line.replace(/^[-â€¢]\s*/, "").trim())
+          .map((line) => `<li>${escapeHtml(line)}</li>`)
+          .join("");
+        return `<ul>${items}</ul>`;
+      }
+
+      return `<p>${escapeHtml(lines.join(" "))}</p>`;
+    })
+    .join("");
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = (await request.json().catch(() => null)) as DocumentGenerateBody | null;
+    const instructions = trimOrEmpty(body?.instructions);
+    const context = trimOrEmpty(body?.context);
+    const tone = trimOrNull(body?.tone) ?? "professionnel";
+    const language = trimOrNull(body?.language) ?? "fr";
+    const requestedTitle = trimOrNull(body?.title);
+
+    if (!instructions) {
+      return json(
+        {
+          ok: false,
+          error: "Instructions manquantes pour gÃ©nÃ©rer le document.",
+        },
+        400
+      );
+    }
+
+    const supabase = getSupabaseAdmin();
+    const user = await resolveUser(supabase, request);
+    const memory = await getCompanyMemory(supabase, user);
+
+    const openai = getOpenAIClient();
+    const response = await openai.responses.create({
+      model: "gpt-5",
+      input: buildDocumentPrompt({
+        instructions,
+        context,
+        tone,
+        language,
+        companyMemory: isPlainObject(memory) ? memory : null,
+      }),
+    });
+
+    const rawText = response.output_text?.trim() ?? "";
+    const parsed = safeJsonParse<{
+      title?: string;
+      type?: string;
+      text?: string;
+      html?: string;
+      summary?: string;
+      missing_variables?: string[];
+    }>(rawText);
+
+    const finalText =
+      trimOrNull(parsed?.text) ??
+      rawText ??
+      "Document gÃ©nÃ©rÃ© sans contenu texte exploitable.";
+    const finalHtml = trimOrNull(parsed?.html) ?? textToHtml(finalText);
+    const finalTitle =
+      requestedTitle ??
+      trimOrNull(parsed?.title) ??
+      "Document Pierre";
+    const finalType =
+      trimOrNull(parsed?.type) ?? inferDocumentType(`${instructions}\n${context}`);
+
+    const insertPayload = {
+      user_id: user?.id ?? null,
+      mission_id: null,
+      task_id: null,
+      title: finalTitle,
+      type: finalType,
+      status: "ready",
+      text: finalText,
+      html: finalHtml,
+      metadata: {
+        source: "direct_studio",
+        summary: trimOrNull(parsed?.summary),
+        missing_variables: Array.isArray(parsed?.missing_variables)
+          ? parsed?.missing_variables.map(String)
+          : [],
+        tone,
+        language,
+      },
+    };
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("pierre_documents")
+      .insert(insertPayload)
+      .select("*")
+      .maybeSingle();
+
+    if (insertError) throw insertError;
+
+    return json({
+      ok: true,
+      document: inserted,
+    });
+  } catch (error) {
+    console.error("[pierre/doc/generate][POST]", error);
+    return json(
+      {
+        ok: false,
+        error: "Impossible de gÃ©nÃ©rer le document Pierre.",
+      },
+      500
+    );
+  }
+}
+
+===== FILE: src/app/api/pierre/history/list/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type JsonObject = Record<string, unknown>;
+
+type HistoryItem = {
+  id: string;
+  title?: string | null;
+  subtitle?: string | null;
+  kind?: string | null;
+  status?: string | null;
+  mission_id?: string | null;
+  task_id?: string | null;
+  document_id?: string | null;
+  email_id?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+};
+
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
+function isPlainObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function trimOrNull(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value.trim();
+  return clean ? clean : null;
+}
+
+function getSupabaseAdmin(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRole =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase admin env is missing.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryParseJsonString(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function extractTokenFromCookieValue(raw: string): string | null {
+  const clean = raw.trim();
+  if (!clean) return null;
+
+  if (clean.startsWith("eyJ") && clean.split(".").length >= 3) {
+    return clean;
+  }
+
+  const parsed = tryParseJsonString(clean);
+
+  if (Array.isArray(parsed)) {
+    for (const item of parsed) {
+      if (typeof item === "string" && item.startsWith("eyJ") && item.split(".").length >= 3) {
+        return item;
+      }
+    }
+  }
+
+  if (isPlainObject(parsed)) {
+    const candidates = [
+      parsed.access_token,
+      parsed.accessToken,
+      parsed.token,
+      parsed.currentSession && isPlainObject(parsed.currentSession)
+        ? parsed.currentSession.access_token
+        : null,
+      parsed.session && isPlainObject(parsed.session)
+        ? parsed.session.access_token
+        : null,
+    ];
+
+    for (const candidate of candidates) {
+      if (
+        typeof candidate === "string" &&
+        candidate.startsWith("eyJ") &&
+        candidate.split(".").length >= 3
+      ) {
+        return candidate;
+      }
+    }
+  }
+
+  return null;
+}
+
+function extractBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) return token;
+  }
+
+  for (const cookie of request.cookies.getAll()) {
+    const name = cookie.name.toLowerCase();
+
+    if (
+      name.includes("auth-token") ||
+      name.includes("access-token") ||
+      name.startsWith("sb-")
+    ) {
+      const token = extractTokenFromCookieValue(cookie.value);
+      if (token) return token;
+    }
+  }
+
+  return null;
+}
+
+async function resolveUser(
+  supabase: SupabaseClient,
+  request: NextRequest
+): Promise<User | null> {
+  const token = extractBearerToken(request);
+  if (!token) return null;
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) return null;
+
+  return data.user;
+}
+
+function asIso(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return value;
+}
+
+function sortDesc<T extends { updated_at?: string | null; created_at?: string | null }>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => {
+    const da = new Date(a.updated_at ?? a.created_at ?? 0).getTime();
+    const db = new Date(b.updated_at ?? b.created_at ?? 0).getTime();
+    return db - da;
+  });
+}
+
+function buildMissionItem(row: Record<string, unknown>): HistoryItem | null {
+  const id = trimOrNull(row.id);
+  if (!id) return null;
+
+  return {
+    id: `mission:${id}`,
+    title: trimOrNull(row.title) ?? "Mission Pierre",
+    subtitle: trimOrNull(row.request_text) ?? trimOrNull(row.summary),
+    kind: "mission",
+    status: trimOrNull(row.status),
+    mission_id: id,
+    created_at: asIso(row.created_at),
+    updated_at: asIso(row.updated_at),
+  };
+}
+
+function buildTaskItem(row: Record<string, unknown>): HistoryItem | null {
+  const id = trimOrNull(row.id);
+  if (!id) return null;
+
+  return {
+    id: `task:${id}`,
+    title: trimOrNull(row.title) ?? "TÃ¢che Pierre",
+    subtitle: trimOrNull(row.type),
+    kind: "task",
+    status: trimOrNull(row.status),
+    mission_id: trimOrNull(row.mission_id),
+    task_id: id,
+    created_at: asIso(row.created_at),
+    updated_at: asIso(row.updated_at),
+  };
+}
+
+function buildDocumentItem(row: Record<string, unknown>): HistoryItem | null {
+  const id = trimOrNull(row.id);
+  if (!id) return null;
+
+  return {
+    id: `document:${id}`,
+    title: trimOrNull(row.title) ?? "Document Pierre",
+    subtitle: trimOrNull(row.type),
+    kind: "document",
+    status: trimOrNull(row.status),
+    mission_id: trimOrNull(row.mission_id),
+    task_id: trimOrNull(row.task_id),
+    document_id: id,
+    created_at: asIso(row.created_at),
+    updated_at: asIso(row.updated_at),
+  };
+}
+
+function buildEmailItem(row: Record<string, unknown>): HistoryItem | null {
+  const id = trimOrNull(row.id);
+  if (!id) return null;
+
+  return {
+    id: `email:${id}`,
+    title: trimOrNull(row.subject) ?? "Email Pierre",
+    subtitle: trimOrNull(row.sender_email),
+    kind: "email",
+    status: trimOrNull(row.status),
+    mission_id: trimOrNull(row.mission_id),
+    task_id: trimOrNull(row.task_id),
+    email_id: id,
+    created_at: asIso(row.created_at),
+    updated_at: asIso(row.updated_at),
+  };
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const user = await resolveUser(supabase, request);
+
+    if (!user) {
+      return json({
+        ok: true,
+        items: [],
+        next_cursor: null,
+        auth: "missing",
+      });
+    }
+
+    const url = new URL(request.url);
+    const includeTasks = url.searchParams.get("includeTasks") === "true";
+    const limitRaw = Number(url.searchParams.get("limit") ?? "20");
+    const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 100) : 20;
+    const cursor = trimOrNull(url.searchParams.get("cursor"));
+
+    let missionQuery = supabase
+      .from("pierre_missions")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(limit + 1);
+
+    if (cursor) {
+      missionQuery = missionQuery.lt("updated_at", cursor);
+    }
+
+    const { data: missionRows, error: missionError } = await missionQuery;
+    if (missionError) throw missionError;
+
+    const missions = Array.isArray(missionRows) ? missionRows : [];
+    const hasMore = missions.length > limit;
+    const visibleMissions = missions.slice(0, limit);
+    const missionIds = visibleMissions
+      .map((row) => trimOrNull((row as Record<string, unknown>).id))
+      .filter((value): value is string => Boolean(value));
+
+    const items: HistoryItem[] = [];
+
+    for (const row of visibleMissions) {
+      const item = buildMissionItem(row as Record<string, unknown>);
+      if (item) items.push(item);
+    }
+
+    if (includeTasks && missionIds.length > 0) {
+      const [{ data: taskRows, error: taskError }, { data: docRows, error: docError }, { data: emailRows, error: emailError }] =
+        await Promise.all([
+          supabase
+            .from("pierre_tasks")
+            .select("*")
+            .in("mission_id", missionIds)
+            .order("updated_at", { ascending: false })
+            .limit(limit * 2),
+          supabase
+            .from("pierre_documents")
+            .select("*")
+            .in("mission_id", missionIds)
+            .order("updated_at", { ascending: false })
+            .limit(limit * 2),
+          supabase
+            .from("pierre_outbound_emails")
+            .select("*")
+            .in("mission_id", missionIds)
+            .order("updated_at", { ascending: false })
+            .limit(limit * 2),
+        ]);
+
+      if (taskError) throw taskError;
+      if (docError) throw docError;
+      if (emailError) throw emailError;
+
+      for (const row of Array.isArray(taskRows) ? taskRows : []) {
+        const item = buildTaskItem(row as Record<string, unknown>);
+        if (item) items.push(item);
+      }
+
+      for (const row of Array.isArray(docRows) ? docRows : []) {
+        const item = buildDocumentItem(row as Record<string, unknown>);
+        if (item) items.push(item);
+      }
+
+      for (const row of Array.isArray(emailRows) ? emailRows : []) {
+        const item = buildEmailItem(row as Record<string, unknown>);
+        if (item) items.push(item);
+      }
+    }
+
+    const sortedItems = sortDesc(items).slice(0, limit * (includeTasks ? 4 : 1));
+    const nextCursor =
+      hasMore && visibleMissions.length > 0
+        ? trimOrNull(
+            (visibleMissions[visibleMissions.length - 1] as Record<string, unknown>).updated_at
+          )
+        : null;
+
+    return json({
+      ok: true,
+      items: sortedItems,
+      next_cursor: nextCursor,
+      auth: "resolved",
+    });
+  } catch (error) {
+    console.error("[pierre/history/list][GET]", error);
+
+    return json(
+      {
+        ok: false,
+        error: "Impossible de charger lâ€™historique Pierre.",
+      },
+      500
+    );
+  }
+}
+
+===== FILE: src/app/api/pierre/history/route.ts =====
+
+
+
+===== FILE: src/app/api/pierre/onboarding/page.tsx =====
+
+"use client";
+
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowRight,
+  Bot,
+  Briefcase,
+  Building2,
+  CheckCircle2,
+  Clock3,
+  FileText,
+  Mail,
+  PenSquare,
+  ShieldCheck,
+  Sparkles,
+  Workflow,
+  type LucideIcon,
+} from "lucide-react";
+
+type StepItem = {
+  number: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  bullets: string[];
+  href: string;
+  cta: string;
+};
+
+type UseCaseItem = {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+};
+
+type PrincipleItem = {
+  title: string;
+  text: string;
+  icon: LucideIcon;
+};
+
+const steps: StepItem[] = [
+  {
+    number: "01",
+    title: "Configurer lâ€™entreprise",
+    description:
+      "Pierre doit dâ€™abord comprendre ton entreprise, ton ton, ta signature, tes coordonnÃ©es et tes rÃ¨gles internes pour produire des contenus vraiment cohÃ©rents.",
+    icon: Building2,
+    bullets: [
+      "IdentitÃ© de lâ€™entreprise",
+      "Contact principal RH",
+      "Signature et coordonnÃ©es",
+      "RÃ¨gles internes et contraintes",
+    ],
+    href: "/agents/pierre/setup",
+    cta: "Ouvrir le formulaire 1",
+  },
+  {
+    number: "02",
+    title: "Utiliser Pierre au quotidien",
+    description:
+      "Une fois configurÃ©, Pierre peut rÃ©diger tes emails et documents RH Ã  partir dâ€™un simple brief, avec historique et rÃ©utilisation.",
+    icon: PenSquare,
+    bullets: [
+      "Brief libre ou preset rapide",
+      "RÃ©daction RH structurÃ©e",
+      "Copie texte ou HTML",
+      "Historique rÃ©utilisable",
+    ],
+    href: "/agents/pierre/use",
+    cta: "Utiliser Pierre",
+  },
+  {
+    number: "03",
+    title: "Transformer le rÃ©sultat en action",
+    description:
+      "Pierre peut ensuite servir de base pour lâ€™envoi dâ€™email, la gÃ©nÃ©ration documentaire, puis les PDF complets et exacts.",
+    icon: Workflow,
+    bullets: [
+      "Envoi email pilotÃ©",
+      "IdentitÃ© dâ€™envoi cadrÃ©e",
+      "Fallback sÃ©curisÃ©",
+      "Base prÃªte pour les PDF",
+    ],
+    href: "/agents/pierre",
+    cta: "Voir la fiche Pierre",
+  },
+];
+
+const useCases: UseCaseItem[] = [
+  {
+    title: "Refus candidat",
+    description:
+      "Pierre rÃ©dige un refus clair, humain et professionnel, cohÃ©rent avec le ton de lâ€™entreprise.",
+    icon: Mail,
+  },
+  {
+    title: "Compte rendu RH",
+    description:
+      "Pierre structure les faits, les dÃ©cisions et les actions dans un document directement exploitable.",
+    icon: FileText,
+  },
+  {
+    title: "Annonce interne",
+    description:
+      "Pierre reformule une communication RH en version propre, lisible et adaptÃ©e Ã  lâ€™Ã©quipe.",
+    icon: Briefcase,
+  },
+];
+
+const principles: PrincipleItem[] = [
+  {
+    title: "Simple Ã  comprendre",
+    text: "Le client doit savoir quoi faire immÃ©diatement, sans chercher oÃ¹ cliquer ni comment dÃ©marrer.",
+    icon: Sparkles,
+  },
+  {
+    title: "SÃ©rieux et rassurant",
+    text: "Pierre doit inspirer confiance, avec un cadre clair, une logique cohÃ©rente et une prÃ©sentation propre.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Vraiment utile",
+    text: "Pierre ne sert pas Ã  faire joli : il doit faire gagner du temps et produire des contenus prÃªts Ã  lâ€™emploi.",
+    icon: Bot,
+  },
+];
+
+function VioletBadge({
+  children,
+  icon: Icon,
+}: {
+  children: React.ReactNode;
+  icon?: LucideIcon;
+}) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs text-violet-700 shadow-sm">
+      {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
+      {children}
+    </span>
+  );
+}
+
+function SectionTitle({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="space-y-2">
+      {eyebrow ? <p className="text-sm font-medium text-violet-700">{eyebrow}</p> : null}
+      <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+      {description ? <p className="max-w-3xl text-sm text-muted-foreground">{description}</p> : null}
+    </div>
+  );
+}
+
+export default function PierreOnboardingPage() {
+  return (
+    <main className="mx-auto max-w-6xl space-y-12 px-4 py-12">
+      <motion.section
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="relative overflow-hidden rounded-[28px] border bg-gradient-to-br from-background via-violet-50/60 to-background p-8 shadow-sm"
+      >
+        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-violet-200/30 blur-3xl" />
+        <div className="pointer-events-none absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-fuchsia-200/20 blur-3xl" />
+
+        <div className="relative grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+          <div className="space-y-6">
+            <div className="flex flex-wrap gap-2">
+              <VioletBadge icon={Sparkles}>Onboarding Pierre</VioletBadge>
+              <VioletBadge icon={Clock3}>DÃ©marrage guidÃ©</VioletBadge>
+              <VioletBadge icon={ShieldCheck}>StructurÃ© et sÃ©curisÃ©</VioletBadge>
+            </div>
+
+            <div className="space-y-3">
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+                Bien dÃ©marrer avec <span className="text-violet-700">Pierre</span>
+              </h1>
+              <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
+                Pierre est ton clone RH rÃ©dacteur. Cette page tâ€™explique simplement comment le
+                configurer, comment lâ€™utiliser au quotidien, et comment obtenir des rÃ©sultats
+                propres, cohÃ©rents et directement exploitables.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Button asChild className="gap-2">
+                <Link href="/agents/pierre/setup">
+                  Commencer la configuration
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+
+              <Button asChild variant="outline">
+                <Link href="/agents/pierre/use">Utiliser Pierre</Link>
+              </Button>
+            </div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.45, delay: 0.08 }}
+            className="rounded-3xl border border-violet-200/60 bg-background/90 p-6 shadow-sm"
+          >
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-violet-700">
+                  <Bot className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Pierre</p>
+                  <p className="text-xs text-muted-foreground">Assistant RH rÃ©dacteur automatisÃ©</p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border bg-violet-50/40 p-4">
+                <p className="text-sm font-medium">Ce que Pierre fait trÃ¨s bien</p>
+                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-violet-700" />
+                    RÃ©diger des emails RH propres et cohÃ©rents
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-violet-700" />
+                    Produire des documents RH structurÃ©s rapidement
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-violet-700" />
+                    Sâ€™adapter au ton, Ã  la signature et aux rÃ¨gles internes
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-violet-700" />
+                    PrÃ©parer une base solide pour lâ€™envoi et les futurs PDF
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      <section className="space-y-6">
+        <SectionTitle
+          eyebrow="Ã‰tapes"
+          title="Comment fonctionne Pierre"
+          description="Le parcours est volontairement simple : dâ€™abord on configure, ensuite on utilise, puis on transforme le rÃ©sultat en action."
+        />
+
+        <div className="grid gap-4 lg:grid-cols-3">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+
+            return (
+              <motion.div
+                key={step.number}
+                initial={{ opacity: 0, y: 22 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.08 * index }}
+                className="rounded-3xl border bg-background/80 p-6 shadow-sm"
+              >
+                <div className="space-y-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-violet-700">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-medium text-violet-700">
+                      {step.number}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold tracking-tight">{step.title}</h3>
+                    <p className="text-sm text-muted-foreground">{step.description}</p>
+                  </div>
+
+                  <ul className="space-y-2">
+                    {step.bullets.map((bullet) => (
+                      <li
+                        key={bullet}
+                        className="flex items-start gap-2 text-sm text-muted-foreground"
+                      >
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-violet-700" />
+                        <span>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href={step.href}>{step.cta}</Link>
+                  </Button>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <SectionTitle
+          eyebrow="Cas dâ€™usage"
+          title="Ce que le client peut faire facilement"
+          description="Pierre doit Ãªtre compris vite. Voici les usages les plus simples et les plus concrets."
+        />
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {useCases.map((item, index) => {
+            const Icon = item.icon;
+
+            return (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.06 * index }}
+                className="rounded-3xl border bg-background/80 p-6 shadow-sm"
+              >
+                <div className="space-y-4">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-violet-700">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-base font-semibold">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <SectionTitle
+          eyebrow="Principes"
+          title="Ce que le client doit ressentir"
+          description="Pierre doit Ãªtre perÃ§u comme un outil sÃ©rieux, simple et rassurant."
+        />
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {principles.map((item, index) => {
+            const Icon = item.icon;
+
+            return (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.05 * index }}
+                className="rounded-3xl border bg-background/80 p-6 shadow-sm"
+              >
+                <div className="space-y-4">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-violet-700">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-base font-semibold">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.text}</p>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </section>
+
+      <motion.section
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.12 }}
+        className="rounded-[28px] border bg-gradient-to-r from-violet-50 via-background to-fuchsia-50 p-8 shadow-sm"
+      >
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-violet-700">PrÃªt Ã  dÃ©marrer</p>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Le meilleur point de dÃ©part reste le formulaire 1
+            </h2>
+            <p className="max-w-2xl text-sm text-muted-foreground">
+              Plus le formulaire 1 est bien rempli, plus Pierre sera cohÃ©rent, prÃ©cis et utile.
+              Ensuite, cette base pourra Ãªtre modifiÃ©e Ã  tout moment depuis le compte client.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+            <Button asChild className="gap-2">
+              <Link href="/agents/pierre/setup">
+                Ouvrir le formulaire 1
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/agents/pierre/use">Aller sur Pierre</Link>
+            </Button>
+          </div>
+        </div>
+      </motion.section>
+    </main>
+  );
+}
+
+===== FILE: src/app/api/pierre/onboarding/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+
+type PierreOnboardingPayload = {
+  company_name: string;
+  legal_company_name: string;
+  company_email_domain: string;
+  company_website: string;
+  company_phone: string;
+  company_address: string;
+  company_city: string;
+  company_postal_code: string;
+  company_country: string;
+  company_siren: string;
+  company_size: string;
+  company_industry: string;
+  company_description: string;
+
+  contact_first_name: string;
+  contact_last_name: string;
+  contact_job_title: string;
+  contact_email: string;
+  contact_phone: string;
+
+  hr_team_size: string;
+  recruitment_volume: string;
+  main_hr_needs: string;
+  typical_document_types: string;
+  usual_tone: string;
+  preferred_language: string;
+  signature_name: string;
+  signature_job_title: string;
+  signature_email: string;
+  signature_phone: string;
+  default_email_footer: string;
+
+  sender_mode: string;
+  sender_email_requested: string;
+  sender_email_effective: string;
+  reply_to_email: string;
+  sender_status: string;
+  domain_status: string;
+  domain_name: string;
+  postmark_domain_id: string;
+  postmark_signature_id: string;
+
+  legal_mentions: string;
+  confidentiality_notes: string;
+  forbidden_words: string;
+  mandatory_words: string;
+  internal_policy_notes: string;
+
+  onboarding_completed: boolean;
+};
+
+function json(status: number, body: Record<string, unknown>) {
+  return NextResponse.json(body, { status });
+}
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function getBearerToken(req: NextRequest) {
+  const auth = req.headers.get("authorization") || req.headers.get("Authorization") || "";
+  if (!auth.startsWith("Bearer ")) return "";
+  return auth.slice("Bearer ".length).trim();
+}
+
+function safeString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function safeBool(value: unknown) {
+  return value === true;
+}
+
+function normalizeDomain(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split("/")[0]
+    .trim();
+}
+
+function makeServerSupabase(): SupabaseClient {
+  const url = getEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRole = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase serveur non configurÃ©.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+async function getAuthenticatedUser(
+  req: NextRequest,
+  supabase: SupabaseClient
+): Promise<{ error: string | null; user: User | null }> {
+  const token = getBearerToken(req);
+
+  if (!token) {
+    return { error: "Token manquant.", user: null };
+  }
+
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error || !data.user) {
+    return { error: error?.message || "Utilisateur non authentifiÃ©.", user: null };
+  }
+
+  return { error: null, user: data.user };
+}
+
+function validatePayload(raw: Record<string, unknown>): PierreOnboardingPayload {
+  const companyEmailDomain = normalizeDomain(
+    safeString(raw.company_email_domain) || safeString(raw.company_website)
+  );
+
+  const senderEmailRequested = safeString(raw.sender_email_requested);
+  const requestedDomain = senderEmailRequested.includes("@")
+    ? senderEmailRequested.split("@")[1].toLowerCase().trim()
+    : "";
+
+  return {
+    company_name: safeString(raw.company_name),
+    legal_company_name: safeString(raw.legal_company_name),
+    company_email_domain: companyEmailDomain,
+    company_website: safeString(raw.company_website),
+    company_phone: safeString(raw.company_phone),
+    company_address: safeString(raw.company_address),
+    company_city: safeString(raw.company_city),
+    company_postal_code: safeString(raw.company_postal_code),
+    company_country: safeString(raw.company_country) || "France",
+    company_siren: safeString(raw.company_siren),
+    company_size: safeString(raw.company_size),
+    company_industry: safeString(raw.company_industry),
+    company_description: safeString(raw.company_description),
+
+    contact_first_name: safeString(raw.contact_first_name),
+    contact_last_name: safeString(raw.contact_last_name),
+    contact_job_title: safeString(raw.contact_job_title),
+    contact_email: safeString(raw.contact_email),
+    contact_phone: safeString(raw.contact_phone),
+
+    hr_team_size: safeString(raw.hr_team_size),
+    recruitment_volume: safeString(raw.recruitment_volume),
+    main_hr_needs: safeString(raw.main_hr_needs),
+    typical_document_types: safeString(raw.typical_document_types),
+    usual_tone: safeString(raw.usual_tone) || "professionnel",
+    preferred_language: safeString(raw.preferred_language) || "fr",
+    signature_name: safeString(raw.signature_name),
+    signature_job_title: safeString(raw.signature_job_title),
+    signature_email: safeString(raw.signature_email),
+    signature_phone: safeString(raw.signature_phone),
+    default_email_footer: safeString(raw.default_email_footer),
+
+    sender_mode: safeString(raw.sender_mode) || "clonestore_fallback",
+    sender_email_requested: senderEmailRequested,
+    sender_email_effective:
+      safeString(raw.sender_email_effective) || "clonestore@clonestore.pro",
+    reply_to_email: safeString(raw.reply_to_email) || safeString(raw.contact_email),
+    sender_status: safeString(raw.sender_status) || "draft",
+    domain_status: safeString(raw.domain_status) || "not_started",
+    domain_name: safeString(raw.domain_name) || requestedDomain || companyEmailDomain,
+    postmark_domain_id: safeString(raw.postmark_domain_id),
+    postmark_signature_id: safeString(raw.postmark_signature_id),
+
+    legal_mentions: safeString(raw.legal_mentions),
+    confidentiality_notes: safeString(raw.confidentiality_notes),
+    forbidden_words: safeString(raw.forbidden_words),
+    mandatory_words: safeString(raw.mandatory_words),
+    internal_policy_notes: safeString(raw.internal_policy_notes),
+
+    onboarding_completed: safeBool(raw.onboarding_completed),
+  };
+}
+
+export async function GET(req: NextRequest) {
+  let supabase: SupabaseClient;
+
+  try {
+    supabase = makeServerSupabase();
+  } catch (e: unknown) {
+    return json(500, {
+      error: e instanceof Error ? e.message : "Configuration serveur invalide.",
+    });
+  }
+
+  const { error: authError, user } = await getAuthenticatedUser(req, supabase);
+  if (authError || !user) {
+    return json(401, { error: authError || "Non authentifiÃ©." });
+  }
+
+  const { data, error } = await supabase
+    .from("agent_onboarding_pierre")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("agent_slug", "pierre")
+    .maybeSingle();
+
+  if (error) {
+    return json(500, { error: error.message });
+  }
+
+  return json(200, {
+    ok: true,
+    onboarding: data || null,
+  });
+}
+
+export async function POST(req: NextRequest) {
+  let supabase: SupabaseClient;
+
+  try {
+    supabase = makeServerSupabase();
+  } catch (e: unknown) {
+    return json(500, {
+      error: e instanceof Error ? e.message : "Configuration serveur invalide.",
+    });
+  }
+
+  const { error: authError, user } = await getAuthenticatedUser(req, supabase);
+  if (authError || !user) {
+    return json(401, { error: authError || "Non authentifiÃ©." });
+  }
+
+  let rawBody: Record<string, unknown>;
+  try {
+    rawBody = (await req.json()) as Record<string, unknown>;
+  } catch {
+    return json(400, { error: "Body JSON invalide." });
+  }
+
+  const payload = validatePayload(rawBody);
+
+  if (!payload.company_name) {
+    return json(400, { error: "Le nom de lâ€™entreprise est obligatoire." });
+  }
+
+  if (!payload.contact_first_name || !payload.contact_last_name) {
+    return json(400, { error: "Le contact principal est obligatoire." });
+  }
+
+  if (!payload.contact_email) {
+    return json(400, { error: "Lâ€™email principal est obligatoire." });
+  }
+
+  const row = {
+    user_id: user.id,
+    agent_slug: "pierre",
+
+    ...payload,
+    onboarding_completed_at: payload.onboarding_completed ? new Date().toISOString() : null,
+  };
+
+  const { data, error } = await supabase
+    .from("agent_onboarding_pierre")
+    .upsert(row, {
+      onConflict: "user_id,agent_slug",
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    return json(500, { error: error.message });
+  }
+
+  return json(200, {
+    ok: true,
+    onboarding: data,
+  });
+}
+
+===== FILE: src/app/api/pierre/pdf/generate/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+type DbRow = Record<string, unknown>;
+
+type AuthenticatedContext = {
+  userId: string;
+  accessToken: string | null;
+};
+
+type SendEmailBody = {
+  to?: string | null;
+  cc?: string | null;
+  bcc?: string | null;
+  subject?: string | null;
+  body?: string | null;
+  senderName?: string | null;
+  senderEmail?: string | null;
+  missionId?: string | null;
+  attachments?: unknown;
+};
+
+type SenderIdentityResolved = {
+  senderName: string | null;
+  senderEmail: string | null;
+  senderDomain: string | null;
+  source: "payload" | "memory" | "fallback" | "none";
+};
+
+type JsonErrorExtra = {
+  code?: string | null;
+  details?: unknown;
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: message,
+      ...(extra ?? {}),
+    },
+    { status },
+  );
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase environment is not configured.");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  const directCandidates = [
+    "sb-access-token",
+    "supabase-access-token",
+    "access-token",
+  ];
+
+  for (const key of directCandidates) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (typeof candidate === "string") return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateRequest(
+  request: NextRequest,
+  supabaseAdmin: SupabaseClient,
+): Promise<AuthenticatedContext> {
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw {
+      status: 401,
+      message: "Auth session missing.",
+      code: "AUTH_SESSION_MISSING",
+    };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return {
+    userId: data.user.id,
+    accessToken,
+  };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      code: null,
+      details: null,
+    };
+  }
+
+  return {
+    message: "Unexpected database error.",
+    code: null,
+    details: null,
+  };
+}
+
+function normalizeBody(raw: unknown): SendEmailBody {
+  if (!isObject(raw)) {
+    return {
+      to: null,
+      cc: null,
+      bcc: null,
+      subject: null,
+      body: null,
+      senderName: null,
+      senderEmail: null,
+      missionId: null,
+      attachments: null,
+    };
+  }
+
+  return {
+    to: asString(raw.to),
+    cc: asString(raw.cc),
+    bcc: asString(raw.bcc),
+    subject: asString(raw.subject),
+    body: asString(raw.body),
+    senderName: asString(raw.senderName),
+    senderEmail: asString(raw.senderEmail),
+    missionId: asString(raw.missionId),
+    attachments: raw.attachments ?? null,
+  };
+}
+
+async function verifyMissionOwnershipIfNeeded(
+  supabaseAdmin: SupabaseClient,
+  missionId: string | null | undefined,
+  userId: string,
+): Promise<DbRow | null> {
+  if (!missionId) return null;
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_missions")
+    .select("*")
+    .eq("id", missionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load mission.",
+      code: "MISSION_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  if (!data) {
+    throw {
+      status: 404,
+      message: "Mission not found.",
+      code: "MISSION_NOT_FOUND",
+    };
+  }
+
+  return data as DbRow;
+}
+
+async function loadCompanyMemory(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+): Promise<DbRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_company_memory")
+    .select("*")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load company memory.",
+      code: "COMPANY_MEMORY_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return (data ?? null) as DbRow | null;
+}
+
+function resolveSenderIdentity(
+  body: SendEmailBody,
+  memory: DbRow | null,
+): SenderIdentityResolved {
+  const senderIdentity = isObject(memory?.sender_identity)
+    ? memory?.sender_identity
+    : null;
+
+  const payloadName = body.senderName;
+  const payloadEmail = body.senderEmail;
+
+  if (payloadName || payloadEmail) {
+    const email = payloadEmail || null;
+    return {
+      senderName: payloadName || null,
+      senderEmail: email,
+      senderDomain: email && email.includes("@") ? email.split("@")[1] : null,
+      source: "payload",
+    };
+  }
+
+  const memoryName =
+    asString(memory?.sender_name) ||
+    asString(senderIdentity?.sender_name) ||
+    asString(senderIdentity?.name);
+  const memoryEmail =
+    asString(memory?.sender_email) ||
+    asString(senderIdentity?.sender_email) ||
+    asString(senderIdentity?.email);
+
+  if (memoryName || memoryEmail) {
+    return {
+      senderName: memoryName || null,
+      senderEmail: memoryEmail || null,
+      senderDomain:
+        asString(memory?.sender_domain) ||
+        (memoryEmail && memoryEmail.includes("@") ? memoryEmail.split("@")[1] : null),
+      source: "memory",
+    };
+  }
+
+  const fallbackName = asString(process.env.PIERRE_FALLBACK_SENDER_NAME);
+  const fallbackEmail = asString(process.env.PIERRE_FALLBACK_SENDER_EMAIL);
+
+  if (fallbackName || fallbackEmail) {
+    return {
+      senderName: fallbackName || null,
+      senderEmail: fallbackEmail || null,
+      senderDomain:
+        fallbackEmail && fallbackEmail.includes("@")
+          ? fallbackEmail.split("@")[1]
+          : null,
+      source: "fallback",
+    };
+  }
+
+  return {
+    senderName: null,
+    senderEmail: null,
+    senderDomain: null,
+    source: "none",
+  };
+}
+
+function validateSendBody(body: SendEmailBody) {
+  if (!body.to) {
+    throw {
+      status: 400,
+      message: "Recipient email is required.",
+      code: "EMAIL_TO_REQUIRED",
+    };
+  }
+
+  if (!body.subject) {
+    throw {
+      status: 400,
+      message: "Email subject is required.",
+      code: "EMAIL_SUBJECT_REQUIRED",
+    };
+  }
+
+  if (!body.body) {
+    throw {
+      status: 400,
+      message: "Email body is required.",
+      code: "EMAIL_BODY_REQUIRED",
+    };
+  }
+}
+
+function buildProviderMessageId() {
+  return `pierre_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+async function insertSentEmail(params: {
+  supabaseAdmin: SupabaseClient;
+  missionId: string | null;
+  sender: SenderIdentityResolved;
+  body: SendEmailBody;
+  providerMessageId: string;
+}): Promise<DbRow> {
+  const { supabaseAdmin, missionId, sender, body, providerMessageId } = params;
+
+  const insertPayload = {
+    mission_id: missionId,
+    to: body.to || null,
+    cc: body.cc || null,
+    bcc: body.bcc || null,
+    subject: body.subject || null,
+    body_text: body.body || null,
+    body_html: null,
+    sender_name: sender.senderName,
+    sender_email: sender.senderEmail,
+    status: "sent",
+    provider_message_id: providerMessageId,
+    attachments: body.attachments ?? null,
+  };
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_outbound_emails")
+    .insert(insertPayload)
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    throw {
+      status: 500,
+      message: "Unable to save sent email.",
+      code: "EMAIL_SEND_SAVE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return data as DbRow;
+}
+
+async function insertMissionLogIfNeeded(params: {
+  supabaseAdmin: SupabaseClient;
+  missionId: string | null;
+  subject: string;
+  emailId: string;
+  to: string;
+}) {
+  const { supabaseAdmin, missionId, subject, emailId, to } = params;
+  if (!missionId) return;
+
+  const { error } = await supabaseAdmin.from("pierre_task_logs").insert({
+    mission_id: missionId,
+    level: "info",
+    event: "email_sent_direct",
+    message: `Email envoyÃ© : ${subject}`,
+    payload: {
+      email_id: emailId,
+      to,
+      subject,
+    },
+  });
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to create mission log.",
+      code: "MISSION_LOG_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = normalizeBody(await request.json());
+    validateSendBody(body);
+
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateRequest(request, supabaseAdmin);
+
+    const [mission, memory] = await Promise.all([
+      verifyMissionOwnershipIfNeeded(supabaseAdmin, body.missionId, auth.userId),
+      loadCompanyMemory(supabaseAdmin, auth.userId),
+    ]);
+
+    const sender = resolveSenderIdentity(body, memory);
+    const providerMessageId = buildProviderMessageId();
+
+    const email = await insertSentEmail({
+      supabaseAdmin,
+      missionId: mission ? (mission.id as string) : null,
+      sender,
+      body,
+      providerMessageId,
+    });
+
+    await insertMissionLogIfNeeded({
+      supabaseAdmin,
+      missionId: mission ? (mission.id as string) : null,
+      subject: body.subject as string,
+      emailId: String(email.id),
+      to: body.to as string,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      email,
+      sent: email,
+      provider: {
+        provider: "internal_stub",
+        messageId: providerMessageId,
+        deliveryAccepted: true,
+        senderIdentityResolved: sender,
+      },
+      meta: {
+        fetchedAt: new Date().toISOString(),
+        missionId: mission ? (mission.id as string) : null,
+      },
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(
+        asString(error.message) || "Request failed.",
+        error.status,
+        {
+          code: asString(error.code),
+          details: error.details ?? null,
+        },
+      );
+    }
+
+    const mapped = mapDbError(error);
+
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+===== FILE: src/app/api/pierre/pdf/route.ts =====
+
+
+
+===== FILE: src/app/api/pierre/queue/process-next/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const origin = new URL(request.url).origin;
+
+    const response = await fetch(`${origin}/api/pierre/queue/run-next`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    });
+
+    const payload = await response.json().catch(() => null);
+
+    return json(
+      payload ?? {
+        ok: false,
+        error: "RÃ©ponse queue invalide.",
+      },
+      response.status
+    );
+  } catch (error) {
+    console.error("[pierre/queue/process-next][POST]", error);
+
+    return json(
+      {
+        ok: false,
+        error: "Impossible de traiter la prochaine tÃ¢che Pierre.",
+      },
+      500
+    );
+  }
+}
+
+===== FILE: src/app/api/pierre/queue/process-task/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type JsonObject = Record<string, unknown>;
+
+type ProcessTaskBody = {
+  taskId?: string;
+};
+
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
+function isPlainObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function trimOrNull(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value.trim();
+  return clean ? clean : null;
+}
+
+function getSupabaseAdmin(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRole =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase admin env is missing.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function getOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY missing.");
+  }
+
+  return new OpenAI({ apiKey });
+}
+
+function safeJsonParse<T>(value: string): T | null {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
+function escapeHtml(input: string): string {
+  return input
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function textToHtml(text: string): string {
+  const blocks = text
+    .split(/\n{2,}/g)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (blocks.length === 0) return "<p></p>";
+
+  return blocks.map((block) => `<p>${escapeHtml(block.replace(/\n/g, " "))}</p>`).join("");
+}
+
+async function appendLog(
+  supabase: SupabaseClient,
+  input: {
+    task_id?: string | null;
+    mission_id?: string | null;
+    level?: string;
+    event: string;
+    message: string;
+    metadata?: Record<string, unknown> | null;
+  }
+) {
+  await supabase.from("pierre_task_logs").insert({
+    task_id: input.task_id ?? null,
+    mission_id: input.mission_id ?? null,
+    level: input.level ?? "info",
+    event: input.event,
+    message: input.message,
+    metadata: input.metadata ?? null,
+  });
+}
+
+function buildDocumentPrompt(input: {
+  requestText: string;
+  taskTitle: string;
+  missionSummary: string | null;
+  companyMemory: Record<string, unknown> | null;
+}) {
+  return `
+Tu es Pierre, employÃ© IA RH premium de CloneStore.
+
+Tu dois produire un document RH propre, exploitable et crÃ©dible.
+
+Mission :
+${input.requestText}
+
+RÃ©sumÃ© mission :
+${input.missionSummary ?? "Aucun rÃ©sumÃ©."}
+
+TÃ¢che :
+${input.taskTitle}
+
+MÃ©moire entreprise :
+${JSON.stringify(input.companyMemory ?? {}, null, 2)}
+
+RÃ©ponds en JSON strict :
+{
+  "title": "titre",
+  "type": "document_rh",
+  "text": "contenu final",
+  "html": "contenu html",
+  "summary": "rÃ©sumÃ© court"
+}
+`.trim();
+}
+
+function buildEmailPrompt(input: {
+  requestText: string;
+  taskTitle: string;
+  missionSummary: string | null;
+  companyMemory: Record<string, unknown> | null;
+}) {
+  return `
+Tu es Pierre, employÃ© IA RH premium de CloneStore.
+
+Tu dois produire un email RH professionnel prÃªt Ã  Ãªtre relu.
+
+Mission :
+${input.requestText}
+
+RÃ©sumÃ© mission :
+${input.missionSummary ?? "Aucun rÃ©sumÃ©."}
+
+TÃ¢che :
+${input.taskTitle}
+
+MÃ©moire entreprise :
+${JSON.stringify(input.companyMemory ?? {}, null, 2)}
+
+RÃ©ponds en JSON strict :
+{
+  "subject": "objet email",
+  "text": "contenu texte",
+  "html": "contenu html",
+  "summary": "rÃ©sumÃ© court"
+}
+`.trim();
+}
+
+async function generateDocumentArtifact(
+  supabase: SupabaseClient,
+  input: {
+    task: Record<string, unknown>;
+    mission: Record<string, unknown>;
+    companyMemory: Record<string, unknown> | null;
+  }
+) {
+  const openai = getOpenAIClient();
+  const response = await openai.responses.create({
+    model: "gpt-5",
+    input: buildDocumentPrompt({
+      requestText: trimOrNull(input.mission.request_text) ?? "",
+      taskTitle: trimOrNull(input.task.title) ?? "Document RH",
+      missionSummary: trimOrNull(input.mission.summary),
+      companyMemory: input.companyMemory,
+    }),
+  });
+
+  const parsed = safeJsonParse<{
+    title?: string;
+    type?: string;
+    text?: string;
+    html?: string;
+    summary?: string;
+  }>(response.output_text?.trim() ?? "");
+
+  const finalText = trimOrNull(parsed?.text) ?? response.output_text?.trim() ?? "";
+  const finalHtml = trimOrNull(parsed?.html) ?? textToHtml(finalText);
+
+  const { data, error } = await supabase
+    .from("pierre_documents")
+    .insert({
+      user_id: input.task.user_id ?? null,
+      company_id: input.task.company_id ?? null,
+      mission_id: input.mission.id ?? null,
+      task_id: input.task.id ?? null,
+      title: trimOrNull(parsed?.title) ?? trimOrNull(input.task.title) ?? "Document Pierre",
+      type: trimOrNull(parsed?.type) ?? "document_rh",
+      status: "ready",
+      text: finalText,
+      html: finalHtml,
+      metadata: {
+        source: "process_task",
+        summary: trimOrNull(parsed?.summary),
+      },
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+async function generateEmailArtifact(
+  supabase: SupabaseClient,
+  input: {
+    task: Record<string, unknown>;
+    mission: Record<string, unknown>;
+    companyMemory: Record<string, unknown> | null;
+  }
+) {
+  const openai = getOpenAIClient();
+  const response = await openai.responses.create({
+    model: "gpt-5",
+    input: buildEmailPrompt({
+      requestText: trimOrNull(input.mission.request_text) ?? "",
+      taskTitle: trimOrNull(input.task.title) ?? "Email RH",
+      missionSummary: trimOrNull(input.mission.summary),
+      companyMemory: input.companyMemory,
+    }),
+  });
+
+  const parsed = safeJsonParse<{
+    subject?: string;
+    text?: string;
+    html?: string;
+    summary?: string;
+  }>(response.output_text?.trim() ?? "");
+
+  const finalText = trimOrNull(parsed?.text) ?? response.output_text?.trim() ?? "";
+  const finalHtml = trimOrNull(parsed?.html) ?? textToHtml(finalText);
+
+  const senderName =
+    trimOrNull(
+      input.companyMemory?.email_identity && isPlainObject(input.companyMemory.email_identity)
+        ? input.companyMemory.email_identity.sender_name
+        : null
+    ) ??
+    trimOrNull(input.companyMemory?.sender_name) ??
+    trimOrNull(process.env.PIERRE_DEFAULT_SENDER_NAME);
+
+  const senderEmail =
+    trimOrNull(
+      input.companyMemory?.email_identity && isPlainObject(input.companyMemory.email_identity)
+        ? input.companyMemory.email_identity.sender_email
+        : null
+    ) ??
+    trimOrNull(input.companyMemory?.sender_email) ??
+    trimOrNull(process.env.PIERRE_DEFAULT_SENDER_EMAIL);
+
+  const { data, error } = await supabase
+    .from("pierre_outbound_emails")
+    .insert({
+      user_id: input.task.user_id ?? null,
+      company_id: input.task.company_id ?? null,
+      mission_id: input.mission.id ?? null,
+      task_id: input.task.id ?? null,
+      to: [],
+      cc: [],
+      bcc: [],
+      subject: trimOrNull(parsed?.subject) ?? trimOrNull(input.task.title) ?? "Email Pierre",
+      text: finalText,
+      html: finalHtml,
+      status: "draft",
+      sender_name: senderName,
+      sender_email: senderEmail,
+      metadata: {
+        source: "process_task",
+        summary: trimOrNull(parsed?.summary),
+        pending_reason: "Destinataires Ã  complÃ©ter ou validation Ã  dÃ©clencher avant envoi rÃ©el.",
+      },
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = (await request.json().catch(() => null)) as ProcessTaskBody | null;
+    const taskId = trimOrNull(body?.taskId);
+
+    if (!taskId) {
+      return json(
+        {
+          ok: false,
+          error: "taskId manquant.",
+        },
+        400
+      );
+    }
+
+    const supabase = getSupabaseAdmin();
+
+    const { data: task, error: taskError } = await supabase
+      .from("pierre_tasks")
+      .select("*")
+      .eq("id", taskId)
+      .limit(1)
+      .maybeSingle();
+
+    if (taskError) throw taskError;
+    if (!task?.id) {
+      return json(
+        {
+          ok: false,
+          error: "TÃ¢che Pierre introuvable.",
+        },
+        404
+      );
+    }
+
+    const currentStatus = trimOrNull(task.status);
+    if (currentStatus === "completed" || currentStatus === "done") {
+      return json({
+        ok: true,
+        processed: false,
+        message: "La tÃ¢che est dÃ©jÃ  terminÃ©e.",
+        task,
+      });
+    }
+
+    const { data: lockedTask, error: lockError } = await supabase
+      .from("pierre_tasks")
+      .update({
+        status: "running",
+        started_at: new Date().toISOString(),
+      })
+      .eq("id", taskId)
+      .select("*")
+      .maybeSingle();
+
+    if (lockError) throw lockError;
+    if (!lockedTask?.id) {
+      throw new Error("Impossible de verrouiller la tÃ¢che.");
+    }
+
+    const { data: mission, error: missionError } = await supabase
+      .from("pierre_missions")
+      .select("*")
+      .eq("id", lockedTask.mission_id)
+      .limit(1)
+      .maybeSingle();
+
+    if (missionError) throw missionError;
+    if (!mission?.id) {
+      throw new Error("Mission introuvable pour la tÃ¢che.");
+    }
+
+    const { data: companyMemory, error: memoryError } = await supabase
+      .from("pierre_company_memory")
+      .select("*")
+      .eq("user_id", lockedTask.user_id)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (memoryError) throw memoryError;
+
+    await appendLog(supabase, {
+      task_id: lockedTask.id,
+      mission_id: mission.id,
+      event: "task_execution_started",
+      message: "ExÃ©cution ciblÃ©e de la tÃ¢che dÃ©marrÃ©e.",
+      metadata: {
+        type: lockedTask.type ?? null,
+      },
+    });
+
+    let artifact: Record<string, unknown> | null = null;
+    const taskType = trimOrNull(lockedTask.type) ?? "other";
+
+    if (taskType === "document" || taskType === "pdf") {
+      artifact = (await generateDocumentArtifact(supabase, {
+        task: lockedTask,
+        mission,
+        companyMemory: isPlainObject(companyMemory) ? companyMemory : null,
+      })) as Record<string, unknown>;
+    } else if (taskType === "email") {
+      artifact = (await generateEmailArtifact(supabase, {
+        task: lockedTask,
+        mission,
+        companyMemory: isPlainObject(companyMemory) ? companyMemory : null,
+      })) as Record<string, unknown>;
+    }
+
+    const { data: completedTask, error: completedError } = await supabase
+      .from("pierre_tasks")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", taskId)
+      .select("*")
+      .maybeSingle();
+
+    if (completedError) throw completedError;
+
+    await appendLog(supabase, {
+      task_id: lockedTask.id,
+      mission_id: mission.id,
+      event: "task_execution_completed",
+      message: "ExÃ©cution ciblÃ©e de la tÃ¢che terminÃ©e.",
+      metadata: {
+        artifact_id: trimOrNull(artifact?.id),
+        artifact_type:
+          taskType === "email"
+            ? "outbound_email"
+            : taskType === "document" || taskType === "pdf"
+            ? "document"
+            : null,
+      },
+    });
+
+    return json({
+      ok: true,
+      processed: true,
+      task: completedTask,
+      artifact,
+    });
+  } catch (error) {
+    console.error("[pierre/queue/process-task][POST]", error);
+
+    return json(
+      {
+        ok: false,
+        error: "Impossible de traiter cette tÃ¢che Pierre.",
+      },
+      500
+    );
+  }
+}
+
+===== FILE: src/app/api/pierre/queue/release-stuck/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
+function getSupabaseAdmin(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRole =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase admin env is missing.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+export async function POST(_request: NextRequest) {
+  try {
+    const supabase = getSupabaseAdmin();
+
+    const thresholdDate = new Date(Date.now() - 1000 * 60 * 15).toISOString();
+
+    const { data: stuckTasks, error: selectError } = await supabase
+      .from("pierre_tasks")
+      .select("*")
+      .eq("status", "running")
+      .lt("started_at", thresholdDate);
+
+    if (selectError) throw selectError;
+
+    const tasks = Array.isArray(stuckTasks) ? stuckTasks : [];
+
+    if (tasks.length === 0) {
+      return json({
+        ok: true,
+        released: 0,
+        task_ids: [],
+      });
+    }
+
+    const taskIds = tasks.map((task) => task.id).filter(Boolean);
+
+    const { error: updateError } = await supabase
+      .from("pierre_tasks")
+      .update({
+        status: "retry",
+      })
+      .in("id", taskIds);
+
+    if (updateError) throw updateError;
+
+    const logRows = tasks.map((task) => ({
+      task_id: task.id,
+      mission_id: task.mission_id ?? null,
+      level: "warning",
+      event: "task_released_stuck",
+      message: "TÃ¢che relÃ¢chÃ©e automatiquement aprÃ¨s blocage prolongÃ©.",
+      metadata: {
+        previous_status: task.status ?? null,
+        next_status: "retry",
+        started_at: task.started_at ?? null,
+      },
+    }));
+
+    const { error: logsError } = await supabase.from("pierre_task_logs").insert(logRows);
+    if (logsError) throw logsError;
+
+    return json({
+      ok: true,
+      released: taskIds.length,
+      task_ids: taskIds,
+    });
+  } catch (error) {
+    console.error("[pierre/queue/release-stuck][POST]", error);
+
+    return json(
+      {
+        ok: false,
+        error: "Impossible de relÃ¢cher les tÃ¢ches bloquÃ©es Pierre.",
+      },
+      500
+    );
+  }
+}
+
+===== FILE: src/app/api/pierre/queue/run-next/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { processNextPierreTask } from "@/src/lib/pierre/queue/process-next";
+
+type DbRow = Record<string, unknown>;
+type JsonErrorExtra = { code?: string | null; details?: unknown };
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
+}
+
+function asNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function asBoolean(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json({ ok: false, error: message, ...(extra ?? {}) }, { status });
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) throw new Error("Supabase environment is not configured.");
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token || scheme.toLowerCase() !== "bearer") return null;
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  for (const key of ["sb-access-token", "supabase-access-token", "access-token"]) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (candidate) return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateWorkerRequest(
+  request: NextRequest,
+  supabaseAdmin: SupabaseClient,
+) {
+  const workerSecret = process.env.PIERRE_QUEUE_WORKER_SECRET;
+  const requestSecret = request.headers.get("x-pierre-worker-secret");
+
+  if (workerSecret && requestSecret && requestSecret === workerSecret) {
+    return { mode: "worker_secret" as const };
+  }
+
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw { status: 401, message: "Auth session missing.", code: "AUTH_SESSION_MISSING" };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return { mode: "user_auth" as const, userId: data.user.id };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+  if (error instanceof Error) {
+    return { message: error.message, code: null, details: null };
+  }
+  return { message: "Unexpected database error.", code: null, details: null };
+}
+
+function normalizeBody(raw: unknown) {
+  if (!isObject(raw)) {
+    return {
+      workerId: null,
+      lockMinutes: undefined as number | undefined,
+      onlyUserId: null,
+    };
+  }
+
+  return {
+    workerId: asString(raw.workerId),
+    lockMinutes: asNumber(raw.lockMinutes) ?? undefined,
+    onlyUserId: asString(raw.onlyUserId),
+  };
+}
+
+function buildQueueSourceAdapter(
+  supabaseAdmin: SupabaseClient,
+  onlyUserId?: string | null,
+) {
+  return {
+    fetchNextRunnableTask: async ({ now }: { now: Date }): Promise<DbRow | null> => {
+      let query = supabaseAdmin
+        .from("pierre_tasks")
+        .select(`
+          *,
+          pierre_missions!inner (
+            id,
+            user_id
+          )
+        `)
+        .in("status", ["pending", "queued", "scheduled"])
+        .or(`scheduled_for.is.null,scheduled_for.lte.${now.toISOString()}`)
+        .order("scheduled_for", { ascending: true, nullsFirst: true })
+        .order("created_at", { ascending: true })
+        .limit(1);
+
+      if (onlyUserId) {
+        query = query.eq("pierre_missions.user_id", onlyUserId);
+      }
+
+      const { data, error } = await query.maybeSingle();
+
+      if (error) {
+        throw new Error(`Unable to fetch next runnable task: ${error.message}`);
+      }
+
+      return (data ?? null) as DbRow | null;
+    },
+  };
+}
+
+function buildPersistenceAdapter(supabaseAdmin: SupabaseClient) {
+  return {
+    updateTask: async (taskId: string, patch: Record<string, unknown>) => {
+      const { error } = await supabaseAdmin
+        .from("pierre_tasks")
+        .update(patch)
+        .eq("id", taskId);
+
+      if (error) {
+        throw new Error(`Unable to update task: ${error.message}`);
+      }
+    },
+    insertTaskLog: async (entry: {
+      mission_id?: string | null;
+      task_id?: string | null;
+      level: "info" | "warning" | "error";
+      event: string;
+      message: string;
+      payload?: Record<string, unknown> | null;
+    }) => {
+      const { error } = await supabaseAdmin.from("pierre_task_logs").insert({
+        mission_id: entry.mission_id ?? null,
+        task_id: entry.task_id ?? null,
+        level: entry.level,
+        event: entry.event,
+        message: entry.message,
+        payload: entry.payload ?? null,
+      });
+
+      if (error) {
+        throw new Error(`Unable to insert task log: ${error.message}`);
+      }
+    },
+  };
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = normalizeBody(await request.json().catch(() => null));
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateWorkerRequest(request, supabaseAdmin);
+
+    const workerId =
+      body.workerId ||
+      (auth.mode === "user_auth" ? `api-user-${auth.userId}` : "queue-worker");
+
+    const onlyUserId = auth.mode === "user_auth" ? auth.userId : body.onlyUserId;
+
+    const result = await processNextPierreTask({
+      workerId,
+      queueSource: buildQueueSourceAdapter(supabaseAdmin, onlyUserId),
+      persistence: buildPersistenceAdapter(supabaseAdmin),
+      now: new Date(),
+      lockMinutes: body.lockMinutes,
+    });
+
+    return NextResponse.json({
+      ok: result.ok,
+      result,
+      meta: {
+        workerId,
+        onlyUserId: onlyUserId || null,
+        fetchedAt: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(asString(error.message) || "Request failed.", error.status, {
+        code: asString(error.code),
+        details: error.details ?? null,
+      });
+    }
+
+    const mapped = mapDbError(error);
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+===== FILE: src/app/api/pierre/route.ts =====
+
+import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+
+/**
+ * Endpoint "index" pour /api/pierre
+ * (Ã©vite que Next/TS plante si le dossier a une route racine vide)
+ */
+export async function GET() {
+  return NextResponse.json(
+    {
+      ok: true,
+      service: "pierre",
+      endpoints: [
+        "/api/pierre/execute",
+        "/api/pierre/run",
+        "/api/pierre/tick",
+        "/api/pierre/enqueue",
+        "/api/pierre/generate",
+      ],
+    },
+    { status: 200 }
+  );
+}
+
+// Optionnel : POST sur /api/pierre â†’ 404 propre
+export async function POST() {
+  return NextResponse.json(
+    { ok: false, error: { code: "NOT_FOUND", message: "Use /api/pierre/execute" } },
+    { status: 404 }
+  );
+}
+
+
+===== FILE: src/app/api/pierre/run/route.ts =====
+
+// src/app/api/pierre/run/route.ts
+import { NextResponse } from "next/server";
+import crypto from "crypto";
+import { z } from "zod";
+import { createClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+
+/**
+ * =========================================
+ * 0) ENV
+ * =========================================
+ */
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const ROUTER_HMAC_SECRET = process.env.ROUTER_HMAC_SECRET!;
+
+function assertEnv() {
+  const missing: string[] = [];
+  if (!SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!SUPABASE_SERVICE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (!ROUTER_HMAC_SECRET) missing.push("ROUTER_HMAC_SECRET");
+  if (missing.length) throw new Error(`Missing env vars: ${missing.join(", ")}`);
+}
+assertEnv();
+
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+  auth: { persistSession: false },
+});
+
+/**
+ * =========================================
+ * 1) Helpers
+ * =========================================
+ */
+type ApiErrorCode =
+  | "UNAUTHORIZED"
+  | "CLIENT_ID_MISMATCH"
+  | "BAD_REQUEST"
+  | "FORBIDDEN"
+  | "GENERATE_ERROR"
+  | "EXECUTE_ERROR"
+  | "INTERNAL_ERROR";
+
+function jsonOk(result: any) {
+  return NextResponse.json({ ok: true, result }, { status: 200 });
+}
+
+function jsonFail(code: ApiErrorCode, message: string, details?: any, status = 400) {
+  return NextResponse.json({ ok: false, error: { code, message, details } }, { status });
+}
+
+function timingSafeEqualHex(aHex: string, bHex: string) {
+  const a = Buffer.from(aHex, "hex");
+  const b = Buffer.from(bHex, "hex");
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+/**
+ * =========================================
+ * 2) Router Auth (HMAC + anti-replay)
+ * =========================================
+ */
+function assertRouterAuth(req: Request, rawBody: string) {
+  const clientId = req.headers.get("x-client-id") || "";
+  const timestamp = req.headers.get("x-timestamp") || "";
+  const signature = req.headers.get("x-signature") || "";
+
+  if (!clientId || !timestamp || !signature) throw new Error("UNAUTHORIZED");
+
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts)) throw new Error("UNAUTHORIZED");
+
+  const now = Date.now();
+  if (Math.abs(now - ts) > 5 * 60 * 1000) throw new Error("UNAUTHORIZED");
+
+  const expected = crypto
+    .createHmac("sha256", ROUTER_HMAC_SECRET)
+    .update(`${clientId}.${timestamp}.${rawBody}`)
+    .digest("hex");
+
+  if (!timingSafeEqualHex(expected, signature)) throw new Error("UNAUTHORIZED");
+  return clientId;
+}
+
+/**
+ * =========================================
+ * 3) Access check (Pierre configurÃ©)
+ * =========================================
+ */
+async function assertPierreAccess(client_id: string) {
+  const { data: cfg, error } = await supabaseAdmin
+    .from("agent_configs")
+    .select("client_id,agent_key")
+    .eq("client_id", client_id)
+    .eq("agent_key", "pierre")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!cfg) throw new Error("FORBIDDEN");
+}
+
+/**
+ * =========================================
+ * 4) Audit best-effort
+ * =========================================
+ */
+async function auditLog(params: {
+  client_id: string;
+  action: string;
+  payload: any;
+  ok: boolean;
+  result: any;
+  actor?: string;
+}) {
+  try {
+    await supabaseAdmin.from("audit_log").insert({
+      client_id: params.client_id,
+      action: params.action,
+      payload: params.payload ?? {},
+      ok: params.ok,
+      result: params.result ?? {},
+      actor: params.actor ?? "system",
+    });
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * =========================================
+ * 5) Schemas
+ * =========================================
+ */
+const RunSchema = z.object({
+  client_id: z.string().min(3),
+  request_id: z.string().min(3),
+  mission: z.enum(["doc", "email", "hris"]),
+  payload: z.object({}).passthrough().default({}),
+});
+
+/**
+ * generate output minimal (on valide le strict cÃ´tÃ© generate dÃ©jÃ )
+ */
+const GeneratedActionSchema = z.object({
+  type: z.literal("call_execute"),
+  action: z.string().min(3),
+  payload: z.object({}).passthrough(),
+});
+
+const GenerateResultSchema = z.object({
+  agent: z.literal("pierre"),
+  request_id: z.string().min(3),
+  reasoning_summary: z.string().min(1),
+  actions: z.array(GeneratedActionSchema).min(1),
+  safety: z
+    .object({
+      pii_detected: z.boolean(),
+      requires_human_review: z.boolean(),
+      notes: z.string().optional(),
+    })
+    .passthrough(),
+});
+
+/**
+ * =========================================
+ * 6) Internal fetch (robust + timeout)
+ * =========================================
+ */
+async function fetchJson(url: string, options: RequestInit, timeoutMs = 45000) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+
+    const text = await res.text();
+    let json: any = null;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch {
+      json = { _non_json: true, text };
+    }
+
+    return { ok: res.ok, status: res.status, json };
+  } catch (e: any) {
+    return {
+      ok: false,
+      status: 0,
+      json: { _fetch_error: true, message: e?.message ?? "unknown" },
+    };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/**
+ * =========================================
+ * 7) Handler
+ * =========================================
+ */
+export async function POST(req: Request) {
+  const raw = await req.text();
+
+  // 1) Auth HMAC
+  let client_id_from_header = "";
+  try {
+    client_id_from_header = assertRouterAuth(req, raw);
+  } catch {
+    return jsonFail("UNAUTHORIZED", "Router signature invalid or missing", undefined, 401);
+  }
+
+  // 2) Parse JSON
+  let body: any;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return jsonFail("BAD_REQUEST", "Invalid JSON body");
+  }
+
+  // 3) Validate input
+  let input: z.infer<typeof RunSchema>;
+  try {
+    input = RunSchema.parse(body);
+  } catch (e: any) {
+    return jsonFail("BAD_REQUEST", "Validation error", { zod: e?.errors ?? e }, 400);
+  }
+
+  const { client_id, request_id, mission, payload } = input;
+
+  // 4) client_id must match signed header
+  if (client_id !== client_id_from_header) {
+    await auditLog({
+      client_id,
+      action: "pierre.run",
+      payload: input,
+      ok: false,
+      result: { error: "CLIENT_ID_MISMATCH" },
+    });
+    return jsonFail("CLIENT_ID_MISMATCH", "client_id mismatch", undefined, 403);
+  }
+
+  // 5) Access check
+  try {
+    await assertPierreAccess(client_id);
+  } catch (e: any) {
+    await auditLog({
+      client_id,
+      action: "pierre.run",
+      payload: input,
+      ok: false,
+      result: { error: "FORBIDDEN" },
+    });
+    return jsonFail("FORBIDDEN", "Pierre access denied or not configured", undefined, 403);
+  }
+
+  // 6) Build base url (same host)
+  const origin = new URL(req.url).origin;
+
+  // IMPORTANT: on propage les headers HMAC au /generate et /execute
+  const forwardHeaders = {
+    "Content-Type": "application/json",
+    "x-client-id": req.headers.get("x-client-id") || "",
+    "x-timestamp": req.headers.get("x-timestamp") || "",
+    "x-signature": req.headers.get("x-signature") || "",
+  };
+
+  // 7) Call generate
+  const generateBody = { client_id, request_id, mission, payload };
+  const gen = await fetchJson(`${origin}/api/pierre/generate`, {
+    method: "POST",
+    headers: forwardHeaders,
+    body: JSON.stringify(generateBody),
+  });
+
+  if (!gen.ok) {
+    await auditLog({
+      client_id,
+      action: "pierre.run",
+      payload: { step: "generate", generateBody },
+      ok: false,
+      result: { status: gen.status, response: gen.json },
+    });
+    return jsonFail(
+      "GENERATE_ERROR",
+      "Generate failed",
+      { status: gen.status, ok: gen.ok, json: gen.json },
+      502
+    );
+  }
+
+  const genResultRaw = gen.json?.result;
+  let genResult: z.infer<typeof GenerateResultSchema>;
+  try {
+    genResult = GenerateResultSchema.parse(genResultRaw);
+  } catch (e: any) {
+    await auditLog({
+      client_id,
+      action: "pierre.run",
+      payload: { step: "generate_parse", generateBody },
+      ok: false,
+      result: { zod: e?.errors ?? e, raw: gen.json },
+    });
+    return jsonFail(
+      "GENERATE_ERROR",
+      "Generate returned invalid format",
+      { zod: e?.errors ?? e, raw: gen.json },
+      502
+    );
+  }
+
+  // 8) Execute actions sequentially (safe + traceable)
+  const executions: Array<{
+    index: number;
+    action: string;
+    ok: boolean;
+    status: number;
+    response: any;
+  }> = [];
+
+  for (let i = 0; i < genResult.actions.length; i++) {
+    const a = genResult.actions[i];
+
+    const execBody = {
+      client_id,
+      action: a.action,
+      payload: a.payload ?? {},
+    };
+
+    const exec = await fetchJson(`${origin}/api/pierre/execute`, {
+      method: "POST",
+      headers: forwardHeaders,
+      body: JSON.stringify(execBody),
+    });
+
+    executions.push({
+      index: i,
+      action: a.action,
+      ok: exec.ok,
+      status: exec.status,
+      response: exec.json,
+    });
+
+    // stop on first failure (premium safety)
+    if (!exec.ok) break;
+  }
+
+  const allOk = executions.length > 0 && executions.every((x) => x.ok);
+
+  // 9) Audit run summary
+  await auditLog({
+    client_id,
+    action: "pierre.run",
+    payload: { client_id, request_id, mission },
+    ok: allOk,
+    result: {
+      reasoning_summary: genResult.reasoning_summary,
+      actions_count: genResult.actions.length,
+      executed_count: executions.length,
+      executions,
+    },
+  });
+
+  // 10) Return summary
+  return jsonOk({
+    agent: "pierre",
+    request_id,
+    mission,
+    reasoning_summary: genResult.reasoning_summary,
+    planned_actions: genResult.actions,
+    executions,
+    ok: allOk,
+  });
+}
+
+
+
+
+
+
+
+===== FILE: src/app/api/pierre/tick/route.ts =====
+
+// src/app/api/pierre/tick/route.ts
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import crypto from "crypto";
+import { createClient, PostgrestError } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+
+/**
+ * ========= ENV (NE JAMAIS THROW AU TOP-LEVEL) =========
+ */
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const ROUTER_HMAC_SECRET = process.env.ROUTER_HMAC_SECRET || "";
+const CRON_SECRET = process.env.CRON_SECRET || "";
+
+function jsonFail(code: string, message: string, details?: any, status = 400) {
+  return NextResponse.json({ ok: false, error: { code, message, ...(details ? { details } : {}) } }, { status });
+}
+function jsonOk(result: any) {
+  return NextResponse.json({ ok: true, result }, { status: 200 });
+}
+
+function isPostgrestError(e: any): e is PostgrestError {
+  return e && typeof e === "object" && typeof e.message === "string";
+}
+
+function getOrigin(req: Request) {
+  const proto = req.headers.get("x-forwarded-proto") || "https";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  if (!host) return null;
+  return `${proto}://${host}`;
+}
+
+function signHmac(clientId: string, rawBody: string) {
+  const timestamp = String(Date.now());
+  const signature = crypto
+    .createHmac("sha256", ROUTER_HMAC_SECRET)
+    .update(`${clientId}.${timestamp}.${rawBody}`)
+    .digest("hex");
+  return { timestamp, signature };
+}
+
+const TickQuerySchema = z.object({
+  secret: z.string().min(10),
+  limit: z.coerce.number().int().min(1).max(25).default(5),
+});
+
+function nextRunAt(attempts: number) {
+  const mins = Math.min(15, Math.max(1, Math.pow(2, attempts)));
+  return new Date(Date.now() + mins * 60 * 1000).toISOString();
+}
+
+export async function GET(req: Request) {
+  // âœ… Validation env au runtime (pas au build)
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    return jsonFail("ENV_ERROR", "Missing Supabase env vars", { need: ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"] }, 500);
+  }
+  if (!ROUTER_HMAC_SECRET) {
+    return jsonFail("ENV_ERROR", "Missing ROUTER_HMAC_SECRET", undefined, 500);
+  }
+  if (!CRON_SECRET) {
+    return jsonFail("ENV_ERROR", "Missing CRON_SECRET", undefined, 500);
+  }
+
+  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: { persistSession: false },
+  });
+
+  try {
+    const url = new URL(req.url);
+    const parsed = TickQuerySchema.safeParse({
+      secret: url.searchParams.get("secret"),
+      limit: url.searchParams.get("limit") ?? "5",
+    });
+
+    if (!parsed.success) {
+      return jsonFail("BAD_REQUEST", "Invalid query", parsed.error.issues, 400);
+    }
+
+    if (parsed.data.secret !== CRON_SECRET) {
+      return jsonFail("UNAUTHORIZED", "Invalid cron secret", undefined, 401);
+    }
+
+    const origin = getOrigin(req);
+    if (!origin) {
+      return jsonFail("INTERNAL_ERROR", "Cannot determine origin (host/proto)", undefined, 500);
+    }
+
+    const limit = parsed.data.limit;
+
+    // 1) pick tasks
+    const { data: candidates, error: pickErr } = await supabaseAdmin
+      .from("pierre_queue")
+      .select("id, client_id, action, payload, attempts, run_at, status")
+      .eq("status", "queued")
+      .lte("run_at", new Date().toISOString())
+      .order("run_at", { ascending: true })
+      .limit(limit);
+
+    if (pickErr) throw pickErr;
+
+    let processed = 0;
+    let done = 0;
+    let failed = 0;
+
+    for (const c of candidates ?? []) {
+      // 2) lock task
+      const lockToken = crypto.randomBytes(16).toString("hex");
+
+      const { data: locked, error: lockErr } = await supabaseAdmin
+        .from("pierre_queue")
+        .update({
+          status: "processing",
+          locked_at: new Date().toISOString(),
+          lock_token: lockToken,
+        })
+        .eq("id", c.id)
+        .eq("status", "queued")
+        .is("lock_token", null)
+        .select("id, client_id, action, payload, attempts, lock_token")
+        .maybeSingle();
+
+      if (lockErr) throw lockErr;
+      if (!locked) continue;
+
+      processed++;
+
+      // 3) call execute
+      try {
+        const bodyObj = { client_id: locked.client_id, action: locked.action, payload: locked.payload ?? {} };
+        const raw = JSON.stringify(bodyObj);
+        const { timestamp, signature } = signHmac(locked.client_id, raw);
+
+        const res = await fetch(`${origin}/api/pierre/execute`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-client-id": locked.client_id,
+            "x-timestamp": timestamp,
+            "x-signature": signature,
+          },
+          body: raw,
+        });
+
+        const text = await res.text();
+        let json: any;
+        try {
+          json = text ? JSON.parse(text) : null;
+        } catch {
+          json = text;
+        }
+
+        if (!res.ok || !json?.ok) {
+          const reason = typeof json === "string" ? json : JSON.stringify(json);
+          throw new Error(`execute_failed: ${res.status} ${reason}`);
+        }
+
+        // 4) done
+        const { error: doneErr } = await supabaseAdmin
+          .from("pierre_queue")
+          .update({
+            status: "done",
+            processed_at: new Date().toISOString(),
+            last_error: null,
+          })
+          .eq("id", locked.id)
+          .eq("lock_token", locked.lock_token);
+
+        if (doneErr) throw doneErr;
+
+        done++;
+      } catch (e: any) {
+        const attempts = Number(locked.attempts ?? 0);
+        const msg = String(e?.message ?? "unknown_error");
+
+        const isDead = attempts + 1 >= 6;
+        const runAt = isDead ? new Date().toISOString() : nextRunAt(attempts + 1);
+
+        const { error: failErr } = await supabaseAdmin
+          .from("pierre_queue")
+          .update({
+            status: isDead ? "dead" : "queued",
+            attempts: attempts + 1,
+            last_error: msg,
+            run_at: runAt,
+            locked_at: null,
+            lock_token: null,
+          })
+          .eq("id", locked.id)
+          .eq("lock_token", locked.lock_token);
+
+        if (failErr) throw failErr;
+
+        failed++;
+      }
+    }
+
+    return jsonOk({ processed, done, failed });
+  } catch (e: any) {
+    if (isPostgrestError(e)) {
+      return jsonFail("DB_ERROR", "Database error", e, 500);
+    }
+    return jsonFail("INTERNAL_ERROR", String(e?.message ?? "Internal error"), undefined, 500);
+  }
+}
+
+
+
+
+
+
+

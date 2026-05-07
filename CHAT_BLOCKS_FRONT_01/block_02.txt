@@ -1,0 +1,865 @@
+===== FILE: src/app/assistant/page.tsx =====
+"use client";
+
+import { useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  CornerDownLeft,
+  Loader2,
+  MessagesSquare,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+type MessageItem = {
+  role: "assistant" | "user";
+  content: string;
+};
+
+const QUICK_PROMPTS = [
+  "Explique CloneStore simplement",
+  "Quelle est la différence entre Boutique, Mes employés et Mon espace ?",
+  "À quoi sert CloneChat ?",
+  "Comment fonctionne CloneStore concrètement ?",
+];
+
+function extractAssistantText(data: unknown): string {
+  if (!data || typeof data !== "object") {
+    return "Je n’ai pas pu produire de réponse exploitable pour le moment.";
+  }
+
+  const record = data as Record<string, unknown>;
+
+  const directKeys = ["answer", "response", "content", "message", "text"];
+  for (const key of directKeys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  const choices = record.choices;
+  if (Array.isArray(choices) && choices.length > 0) {
+    const first = choices[0] as Record<string, unknown>;
+    const message = first.message as Record<string, unknown> | undefined;
+    const content = message?.content;
+    if (typeof content === "string" && content.trim()) {
+      return content.trim();
+    }
+  }
+
+  return "Je n’ai pas pu produire de réponse exploitable pour le moment.";
+}
+
+export default function AssistantPage() {
+  const [messages, setMessages] = useState<MessageItem[]>([
+    {
+      role: "assistant",
+      content:
+        "Bonjour. Je suis CloneChat. Je sers à expliquer CloneStore, orienter vers la bonne zone du produit et réduire les frictions dans l’usage.",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const canSend = useMemo(() => input.trim().length > 0 && !loading, [input, loading]);
+
+  async function sendMessage(rawText: string) {
+    const clean = rawText.trim();
+    if (!clean || loading) return;
+
+    setMessages((prev) => [...prev, { role: "user", content: clean }]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/assistant", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: clean,
+          input: clean,
+          query: clean,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+      const answer = extractAssistantText(data);
+
+      setMessages((prev) => [...prev, { role: "assistant", content: answer }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "Je n’ai pas pu répondre correctement pour le moment. Tu peux continuer via la Boutique, Mes employés ou Mon espace.",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-5">
+          <section className="cs-command-surface">
+            <div className="grid gap-5 xl:grid-cols-[1.02fr_0.98fr] xl:items-center">
+              <div className="space-y-5">
+                <span className="cs-pill">
+                  <Bot className="h-4 w-4 text-[var(--cs-violet)]" />
+                  CloneChat
+                </span>
+
+                <div className="space-y-3">
+                  <h1 className="cs-display text-[clamp(1.95rem,3vw,3.2rem)] leading-[0.98]">
+                    Comprendre, orienter,
+                    <br />
+                    <span className="cs-gradient-text">débloquer</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
+                    CloneChat est le point d’entrée naturel de CloneStore. Il
+                    aide à comprendre le produit, à aller au bon endroit et à
+                    réduire les questions inutiles dans le parcours.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    asChild
+                    className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    <Link href="/profile/agents">
+                      Mes employés
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    <Link href="/agents">Voir la boutique</Link>
+                  </Button>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <MiniPoint
+                    icon={<MessagesSquare className="h-4 w-4" />}
+                    title="Explication"
+                    text="rend le produit lisible"
+                  />
+                  <MiniPoint
+                    icon={<Waypoints className="h-4 w-4" />}
+                    title="Orientation"
+                    text="envoie vers la bonne zone"
+                  />
+                  <MiniPoint
+                    icon={<ShieldCheck className="h-4 w-4" />}
+                    title="Support"
+                    text="réduit les frictions"
+                  />
+                </div>
+              </div>
+
+              <div className="cs-panel p-5">
+                <div className="space-y-4">
+                  <p className="cs-eyebrow">Prompts rapides</p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {QUICK_PROMPTS.map((prompt) => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        onClick={() => void sendMessage(prompt)}
+                        className="inline-flex h-10 items-center rounded-full border border-[var(--cs-line-soft)] bg-white/42 px-4 text-[0.84rem] font-medium text-[var(--cs-ink-2)] transition hover:bg-white/56"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="rounded-[1.25rem] border border-[var(--cs-line-soft)] bg-white/30 p-4">
+                    <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">
+                      Rôle dans l’expérience
+                    </p>
+                    <p className="mt-2 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+                      CloneChat ne remplace pas le cockpit. Il sert à
+                      comprendre, orienter, clarifier et accélérer l’accès au
+                      bon endroit dans CloneStore.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="cs-panel p-5">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="cs-eyebrow">Conversation</p>
+                  <h2 className="mt-2 text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                    Parler à CloneChat
+                  </h2>
+                </div>
+
+                <span className="cs-status cs-status--info">Interface active</span>
+              </div>
+
+              <div className="rounded-[1.35rem] border border-[var(--cs-line-soft)] bg-white/28 p-4">
+                <div className="flex max-h-[440px] min-h-[340px] flex-col gap-3 overflow-y-auto pr-1">
+                  {messages.map((message, index) => (
+                    <div
+                      key={`${message.role}-${index}`}
+                      className={[
+                        "max-w-[86%] rounded-[1.1rem] px-4 py-3 text-[0.88rem] leading-6",
+                        message.role === "assistant"
+                          ? "border border-[var(--cs-line-soft)] bg-white/64 text-[var(--cs-ink-2)]"
+                          : "ml-auto border border-[rgba(95,92,230,0.10)] bg-[rgba(95,92,230,0.08)] text-[var(--cs-ink-1)]",
+                      ].join(" ")}
+                    >
+                      {message.content}
+                    </div>
+                  ))}
+
+                  {loading ? (
+                    <div className="inline-flex max-w-[86%] items-center gap-2 rounded-[1.1rem] border border-[var(--cs-line-soft)] bg-white/64 px-4 py-3 text-[0.84rem] text-[var(--cs-ink-3)]">
+                      <Loader2 className="h-4 w-4 animate-spin text-[var(--cs-violet)]" />
+                      <span>CloneChat réfléchit…</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void sendMessage(input);
+                }}
+                className="flex flex-col gap-3 sm:flex-row"
+              >
+                <div className="relative flex-1">
+                  <input
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                    placeholder="Pose une question sur CloneStore…"
+                    className="h-11 w-full rounded-full border border-[var(--cs-line-soft)] bg-white/42 px-5 pr-12 text-[0.88rem] text-[var(--cs-ink-1)] outline-none transition placeholder:text-[var(--cs-ink-4)] focus:border-[rgba(95,92,230,0.16)] focus:bg-white/56"
+                  />
+                  <CornerDownLeft className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--cs-ink-4)]" />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={!canSend}
+                  className="h-11 rounded-full px-5 text-[0.88rem] font-medium text-white"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                    boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                  }}
+                >
+                  Envoyer
+                </Button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniPoint({
+  icon,
+  title,
+  text,
+}: {
+  icon: ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+        <div>
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">
+            {title}
+          </p>
+          <p className="mt-1 text-[0.84rem] text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+===== FILE: src/app/agents/page.tsx =====
+import type { ReactNode } from "react";
+import { BriefcaseBusiness, Clock3, Hammer, Sparkles } from "lucide-react";
+
+type EmployeeCard = {
+  name: string;
+  role: string;
+  description: string;
+  status: "En construction";
+  price?: string;
+  note: string;
+};
+
+const EMPLOYEES: EmployeeCard[] = [
+  {
+    name: "Pierre",
+    role: "RH opérationnel automatisé",
+    description:
+      "Documents RH, emails, relances, suivi opérationnel, missions libres et continuité de travail dans un cockpit dédié.",
+    status: "En construction",
+    price: "449€/mois",
+    note: "Prix de lancement connu. Ouverture commerciale plus tard.",
+  },
+  {
+    name: "Clara",
+    role: "Recrutement automatisé",
+    description:
+      "Scoring, shortlist, coordination recrutement, relances et visibilité plus propre du pipeline candidat.",
+    status: "En construction",
+    note: "Périmètre produit défini. Tarification à venir.",
+  },
+  {
+    name: "Sophie",
+    role: "Direction administrative automatisée",
+    description:
+      "Pilotage administratif, cadrage des opérations, continuité structurelle et routines de suivi.",
+    status: "En construction",
+    note: "Périmètre produit défini. Tarification à venir.",
+  },
+  {
+    name: "Lucas",
+    role: "Finance automatisée",
+    description:
+      "Facturation, relances, suivi financier, supports d’exécution et routines de contrôle plus rigoureuses.",
+    status: "En construction",
+    note: "Périmètre produit défini. Tarification à venir.",
+  },
+  {
+    name: "Emma",
+    role: "Support client automatisé",
+    description:
+      "Traitement du support, réponses, tri, routage, continuité et cadre de réponse contrôlé.",
+    status: "En construction",
+    note: "Périmètre produit défini. Tarification à venir.",
+  },
+  {
+    name: "Alex",
+    role: "Prospection automatisée",
+    description:
+      "Qualification, premiers contacts, préparation d’actions commerciales et structuration du flux prospect.",
+    status: "En construction",
+    note: "Périmètre produit défini. Tarification à venir.",
+  },
+  {
+    name: "Léa",
+    role: "Marketing opérationnel automatisé",
+    description:
+      "Coordination marketing, contenus, campagnes et routines d’exécution plus propres et mieux suivies.",
+    status: "En construction",
+    note: "Périmètre produit défini. Tarification à venir.",
+  },
+  {
+    name: "Noah",
+    role: "Coordination commerciale automatisée",
+    description:
+      "Organisation des flux commerciaux, suivi des actions et continuité des routines de coordination.",
+    status: "En construction",
+    note: "Périmètre produit défini. Tarification à venir.",
+  },
+  {
+    name: "Iris",
+    role: "Achats et coordination automatisés",
+    description:
+      "Préparation, suivi, coordination et continuité sur les flux d’achats et d’opérations.",
+    status: "En construction",
+    note: "Périmètre produit défini. Tarification à venir.",
+  },
+  {
+    name: "Victor",
+    role: "Pilotage opérationnel automatisé",
+    description:
+      "Organisation, alertes, suivi transverse et vue consolidée sur les opérations du système.",
+    status: "En construction",
+    note: "Périmètre produit défini. Tarification à venir.",
+  },
+];
+
+export default function AgentsPage() {
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-5">
+          <section className="cs-command-surface">
+            <div className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr] xl:items-center">
+              <div className="space-y-4">
+                <span className="cs-pill">
+                  <BriefcaseBusiness className="h-4 w-4 text-[var(--cs-violet)]" />
+                  Boutique CloneStore
+                </span>
+
+                <div className="space-y-3">
+                  <h1 className="cs-display text-[clamp(1.95rem,3vw,3.35rem)] leading-[0.98]">
+                    Des employés IA conçus pour{" "}
+                    <span className="cs-gradient-text">gagner du temps</span> et
+                    de l’argent.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
+                    La boutique présente la gamme CloneStore. Tous les employés
+                    ci-dessous sont encore en construction. Pierre est le seul
+                    dont le prix public est déjà défini à ce stade.
+                  </p>
+                </div>
+              </div>
+
+              <div className="cs-panel p-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <MiniNote
+                    icon={<Hammer className="h-4 w-4 text-[var(--cs-violet)]" />}
+                    title="Statut"
+                    text="Toute la gamme affichée ici est encore en construction."
+                  />
+                  <MiniNote
+                    icon={<Clock3 className="h-4 w-4 text-[var(--cs-violet)]" />}
+                    title="Tarification"
+                    text="Seul Pierre possède déjà un prix public connu."
+                  />
+                  <MiniNote
+                    icon={<Sparkles className="h-4 w-4 text-[var(--cs-violet)]" />}
+                    title="Positionnement"
+                    text="Des postes automatisés, pas une galerie d’outils IA."
+                  />
+                  <MiniNote
+                    icon={
+                      <BriefcaseBusiness className="h-4 w-4 text-[var(--cs-violet)]" />
+                    }
+                    title="Lecture"
+                    text="Une vue claire de la gamme en préparation CloneStore."
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-2">
+            {EMPLOYEES.map((employee) => (
+              <article
+                key={employee.name}
+                className="cs-panel cs-hover-lift p-5"
+              >
+                <div className="flex h-full flex-col justify-between gap-5">
+                  <div className="space-y-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="cs-status">{employee.status}</span>
+                          {employee.price ? (
+                            <span className="cs-status cs-status--info">
+                              {employee.price}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div>
+                          <h2 className="text-[1.3rem] font-semibold tracking-[-0.045em] text-[var(--cs-ink-1)]">
+                            {employee.name}
+                          </h2>
+                          <p className="mt-1 text-[0.88rem] font-medium text-[var(--cs-ink-2)]">
+                            {employee.role}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-[0.9rem] leading-7 text-[var(--cs-ink-3)]">
+                      {employee.description}
+                    </p>
+
+                    <div className="rounded-[1.25rem] border border-[var(--cs-line-soft)] bg-white/35 px-4 py-4">
+                      <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">
+                        {employee.note}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 pt-1">
+                    <span className="text-[0.84rem] text-[var(--cs-ink-4)]">
+                      CloneStore — gamme en préparation
+                    </span>
+
+                    <span className="inline-flex h-10 items-center rounded-full border border-[var(--cs-line-soft)] bg-white/42 px-4 text-[0.84rem] font-medium text-[var(--cs-ink-2)]">
+                      Bientôt disponible
+                    </span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniNote({
+  icon,
+  title,
+  text,
+}: {
+  icon: ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5">{icon}</div>
+        <div>
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">
+            {title}
+          </p>
+          <p className="mt-2 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+            {text}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+===== FILE: src/app/agents/[slug]/page.tsx =====
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  ArrowRight,
+  Bot,
+  CheckCircle2,
+  Clock3,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Mark from "@/components/ui/Mark";
+
+type AgentDefinition = {
+  slug: string;
+  name: string;
+  role: string;
+  short: string;
+  status: "opening" | "building";
+  note?: string;
+  pillars: string[];
+  surfaces: {
+    title: string;
+    text: string;
+  }[];
+};
+
+const AGENTS: Record<string, AgentDefinition> = {
+  pierre: {
+    slug: "pierre",
+    name: "Pierre",
+    role: "RH opérationnel automatisé",
+    short:
+      "Pierre absorbe une grande partie du travail RH opérationnel : documents, emails, relances, validations, continuité et historique.",
+    status: "opening",
+    note: "tarif cible au lancement : 449€/mois",
+    pillars: [
+      "mission libre",
+      "documents & emails propres",
+      "continuité de mission",
+      "contrôle humain sur le sensible",
+    ],
+    surfaces: [
+      {
+        title: "Mission libre",
+        text: "Le client parle naturellement, Pierre structure la demande et prépare l’exécution.",
+      },
+      {
+        title: "Livrables",
+        text: "Emails, documents, relances, PDF et sorties propres dans un seul flux.",
+      },
+      {
+        title: "Traçabilité",
+        text: "Historique, validations, étapes et logique d’action restent lisibles.",
+      },
+    ],
+  },
+  clara: {
+    slug: "clara",
+    name: "Clara",
+    role: "Recrutement automatisé",
+    short:
+      "Clara vise un recrutement plus structuré : suivi candidats, coordination, shortlists et pipeline clair.",
+    status: "building",
+    pillars: [
+      "pipeline candidat",
+      "coordination recrutement",
+      "shortlists",
+      "visibilité claire",
+    ],
+    surfaces: [
+      {
+        title: "Suivi candidats",
+        text: "Un flux plus lisible, plus propre et plus cohérent.",
+      },
+      {
+        title: "Coordination",
+        text: "Managers, étapes, réponses et priorités mieux organisés.",
+      },
+      {
+        title: "Préparation",
+        text: "Clara se construit dans la continuité de CloneStore.",
+      },
+    ],
+  },
+  emma: {
+    slug: "emma",
+    name: "Emma",
+    role: "Support & communication",
+    short:
+      "Emma vise un support plus organisé, plus suivi et plus rassurant pour l’entreprise.",
+    status: "building",
+    pillars: [
+      "support structuré",
+      "communication suivie",
+      "continuité",
+      "vue plus nette",
+    ],
+    surfaces: [
+      {
+        title: "Support",
+        text: "Réponses plus propres, mieux rangées et plus cohérentes.",
+      },
+      {
+        title: "Communication",
+        text: "Une continuité relationnelle plus sérieuse.",
+      },
+      {
+        title: "Préparation",
+        text: "Emma est encore en construction.",
+      },
+    ],
+  },
+  alex: {
+    slug: "alex",
+    name: "Alex",
+    role: "Opérations automatisées",
+    short:
+      "Alex vise une exécution opérationnelle plus stable, plus lisible et mieux pilotable.",
+    status: "building",
+    pillars: ["flux", "coordination", "exécution", "lisibilité"],
+    surfaces: [
+      { title: "Flux", text: "Organisation plus propre des opérations répétitives." },
+      { title: "Pilotage", text: "Moins de confusion, plus de structure." },
+      { title: "Préparation", text: "Alex est encore en construction." },
+    ],
+  },
+  noah: {
+    slug: "noah",
+    name: "Noah",
+    role: "Flux internes",
+    short:
+      "Noah se concentre sur les flux internes, la continuité et l’organisation récurrente.",
+    status: "building",
+    pillars: ["interne", "organisation", "continuité", "discipline"],
+    surfaces: [
+      { title: "Interne", text: "Fluidifier les échanges et les flux de travail." },
+      { title: "Organisation", text: "Mettre de l’ordre sans surcharge." },
+      { title: "Préparation", text: "Noah est encore en construction." },
+    ],
+  },
+  lucas: {
+    slug: "lucas",
+    name: "Lucas",
+    role: "Finance opérationnelle",
+    short:
+      "Lucas vise un suivi finance plus rigoureux, plus stable et plus visible.",
+    status: "building",
+    pillars: ["finance", "suivi", "rigueur", "lisibilité"],
+    surfaces: [
+      { title: "Suivi", text: "Une lecture plus nette des opérations financières." },
+      { title: "Rigueur", text: "Plus de discipline et moins d’angles morts." },
+      { title: "Préparation", text: "Lucas est encore en construction." },
+    ],
+  },
+};
+
+function StatusPill({ status }: { status: AgentDefinition["status"] }) {
+  if (status === "opening") {
+    return <span className="cs-status cs-status--info">ouverture progressive</span>;
+  }
+
+  return <span className="cs-status cs-status--warn">en construction</span>;
+}
+
+export default async function AgentPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const agent = AGENTS[slug];
+
+  if (!agent) {
+    notFound();
+  }
+
+  return (
+    <div className="space-y-5">
+      <section className="grid gap-4 xl:grid-cols-[1.06fr_0.94fr]">
+        <div className="cs-command-surface">
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-3">
+                <Mark />
+                <div>
+                  <p className="text-sm font-medium text-[color:var(--cs-ink-1)]">{agent.name}</p>
+                  <p className="text-xs text-[color:var(--cs-ink-3)]">CloneStore employee</p>
+                </div>
+              </div>
+
+              <StatusPill status={agent.status} />
+            </div>
+
+            <div className="space-y-4">
+              <h1 className="cs-display text-[clamp(2.1rem,4.6vw,4.2rem)] leading-[0.95]">
+                {agent.role}
+              </h1>
+
+              <p className="cs-copy max-w-[56ch] text-[0.98rem] sm:text-[1.03rem]">
+                {agent.short}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {agent.slug === "pierre" ? (
+                <>
+                  <Button asChild>
+                    <Link href="/profile">
+                      <span>Voir le cockpit</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+
+                  <Button asChild variant="secondary">
+                    <Link href="/assistant">
+                      <span>Parler à CloneChat</span>
+                      <Bot className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button asChild>
+                    <Link href="/assistant">
+                      <span>Suivre cet employé</span>
+                      <Sparkles className="h-4 w-4" />
+                    </Link>
+                  </Button>
+
+                  <Button asChild variant="secondary">
+                    <Link href="/agents">
+                      <span>Retour employés</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="cs-panel p-6 sm:p-7">
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <p className="cs-eyebrow">Essentiel</p>
+              <h2 className="cs-heading text-[clamp(1.35rem,2.7vw,2rem)] leading-[1.04]">
+                Ce qu’il faut comprendre
+                <br />
+                tout de suite.
+              </h2>
+            </div>
+
+            <div className="space-y-3">
+              {agent.pillars.map((item) => (
+                <div key={item} className="flex items-center gap-2 text-sm text-[color:var(--cs-ink-2)]">
+                  <CheckCircle2 className="h-4 w-4 text-[color:var(--cs-violet)]" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            {agent.note ? (
+              <div className="rounded-[1.2rem] border border-[color:var(--cs-line-soft)] bg-white/52 px-4 py-3">
+                <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--cs-ink-4)]">
+                  Indication
+                </p>
+                <p className="mt-1 text-sm font-medium text-[color:var(--cs-ink-1)]">
+                  {agent.note}
+                </p>
+              </div>
+            ) : null}
+
+            <div className="rounded-[1.2rem] border border-[color:var(--cs-line-soft)] bg-white/52 px-4 py-3">
+              <div className="flex items-start gap-2">
+                <Clock3 className="mt-0.5 h-4 w-4 text-[color:var(--cs-violet)]" />
+                <p className="text-sm text-[color:var(--cs-ink-3)]">
+                  {agent.slug === "pierre"
+                    ? "L’accès commercial reste volontairement fermé tant que l’ouverture n’est pas complètement prête."
+                    : "Cette fiche existe pour poser la vision du système sans prétendre à une ouverture immédiate."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        {agent.surfaces.map((item) => (
+          <div key={item.title} className="cs-card h-full">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-[color:var(--cs-violet)]">
+                {item.title === "Traçabilité" ? (
+                  <ShieldCheck className="h-4 w-4" />
+                ) : item.title === "Mission libre" || item.title === "Interne" ? (
+                  <Waypoints className="h-4 w-4" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                <span className="text-sm font-medium text-[color:var(--cs-ink-1)]">
+                  {item.title}
+                </span>
+              </div>
+
+              <p className="text-sm leading-6 text-[color:var(--cs-ink-3)]">
+                {item.text}
+              </p>
+            </div>
+          </div>
+        ))}
+      </section>
+    </div>
+  );
+}

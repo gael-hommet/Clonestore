@@ -1,43 +1,10 @@
-export type AssistantAccountContext = {
-  isAuthenticated: boolean;
-  hasPierreAccess: boolean;
-  onboardingCompleted: boolean;
-  companyName: string;
-  contactFirstName: string;
-  contactJobTitle: string;
-  usualTone: string;
-  preferredLanguage: string;
-  senderMode: string;
-  senderStatus: string;
-  domainStatus: string;
-  senderEmailRequested: string;
-  senderEmailEffective: string;
-  replyToEmail: string;
-};
-
-export type AssistantIntent =
-  | "clone_choice"
-  | "post_payment"
-  | "onboarding"
-  | "use_page"
-  | "email_identity"
-  | "email_pdf_action"
-  | "limits"
-  | "status_other_agents"
-  | "pricing"
-  | "general";
-
-export type AssistantStatusCard = {
-  label: string;
-  value: string;
-  tone?: "default" | "success" | "warn" | "violet";
-};
-
-export type AssistantLinkCard = {
-  label: string;
-  href: string;
-  description: string;
-};
+import type {
+  AssistantAccountContext,
+  AssistantIntent,
+  AssistantKnowledgeMatch,
+  AssistantLinkCard,
+  AssistantStatusCard,
+} from "./types";
 
 type KnowledgeArticle = {
   id: string;
@@ -65,262 +32,573 @@ export const DEFAULT_ASSISTANT_CONTEXT: AssistantAccountContext = {
 
 const KNOWLEDGE_ARTICLES: KnowledgeArticle[] = [
   {
-    id: "positioning-now",
-    title: "Positionnement réel aujourd'hui",
-    tags: ["positionnement", "clone", "choix", "pierre", "clara"],
+    id: "clonestore-positioning",
+    title: "Positionnement central de CloneStore",
+    tags: [
+      "clonestore",
+      "vision",
+      "positionnement",
+      "produit",
+      "systeme",
+      "os",
+      "employes ia",
+      "employÃ©s ia",
+    ],
     body: [
-      "Aujourd'hui, si un utilisateur veut un clone utile tout de suite, la recommandation la plus honnête est Pierre.",
-      "Pierre est le clone le plus concret pour produire de la valeur immédiatement : rédaction RH, structuration, transformation du contenu en action, logique email et PDF, historique, et onboarding déjà présent.",
-      "Clara, Alex, Emma et Noah ne doivent pas être présentés comme pleinement prêts tant que leur niveau de finition n'est pas réellement confirmé.",
-      "Quand l'utilisateur demande lequel choisir, il faut trancher. Si le besoin est immédiat et concret, on recommande Pierre sans tourner autour du pot.",
+      "CloneStore n'est pas censÃ© Ãªtre prÃ©sentÃ© comme une collection de petits outils IA.",
+      "CloneStore est un systÃ¨me d'exploitation d'employÃ©s IA pour entreprises, avec logique premium, cockpit, gouvernance, mÃ©moire et traÃ§abilitÃ©.",
+      "Le vocabulaire Ã  privilÃ©gier est employÃ©s IA, pas gadgets ni agents bricolÃ©s.",
+      "Le produit doit toujours Ãªtre perÃ§u comme sÃ©rieux, pilotable, haut de gamme et orientÃ© exÃ©cution rÃ©elle.",
     ].join("\n"),
   },
   {
-    id: "post-payment-flow",
-    title: "Parcours après paiement",
-    tags: ["paiement", "acces", "apres paiement", "activation"],
+    id: "current-public-truth",
+    title: "VÃ©ritÃ© produit actuelle cÃ´tÃ© public",
+    tags: [
+      "verite",
+      "vÃ©ritÃ©",
+      "etat",
+      "Ã©tat",
+      "pret",
+      "prÃªt",
+      "public",
+      "disponible",
+      "construction",
+    ],
     body: [
-      "Après paiement, le parcours simple est : accès Pierre actif, puis formulaire 1, puis page Pierre Use.",
-      "Si Pierre est actif mais que l'onboarding n'est pas terminé, le bon prochain pas est le formulaire 1.",
-      "Si Pierre est actif et que l'onboarding est terminé, le bon prochain pas est la page Pierre Use.",
-      "L'assistant doit répondre avec le meilleur prochain pas, pas avec une explication floue.",
+      "L'employÃ© le plus concret aujourd'hui est Pierre.",
+      "Pierre est l'entrÃ©e la plus crÃ©dible pour un utilisateur qui veut une valeur rÃ©elle maintenant.",
+      "Les autres employÃ©s visibles peuvent exister dans l'univers produit, mais ils ne doivent pas Ãªtre vendus comme totalement prÃªts si ce n'est pas rÃ©ellement le cas.",
+      "Quand l'utilisateur demande quoi choisir aujourd'hui, il faut rÃ©pondre franchement : Pierre est le meilleur choix immÃ©diat.",
     ].join("\n"),
   },
   {
-    id: "onboarding-role",
-    title: "Rôle du formulaire 1",
-    tags: ["onboarding", "formulaire 1", "setup", "memoire"],
+    id: "pierre-positioning",
+    title: "Positionnement rÃ©el de Pierre",
+    tags: [
+      "pierre",
+      "rh",
+      "poste rh",
+      "assistant rh",
+      "employe rh",
+      "employÃ© rh",
+      "documents",
+      "emails",
+      "relances",
+    ],
     body: [
-      "Le formulaire 1 est la mémoire de base de Pierre pour une entreprise donnée.",
-      "Il contient l'identité de l'entreprise, le contact principal, le contexte RH, le ton habituel, la signature, le pied de mail, la logique email et les règles internes.",
-      "Plus il est bien rempli, plus Pierre écrit juste dès le départ. Il ne s'agit pas d'un formulaire décoratif mais d'un vrai socle de production.",
-      "Le formulaire 1 peut être enregistré en brouillon puis validé plus tard.",
-      "Une fois rempli, il peut être modifié à tout moment depuis le compte client.",
+      "Pierre est un poste RH opÃ©rationnel automatisÃ©.",
+      "Il sert Ã  comprendre une demande RH libre, produire des documents RH, prÃ©parer des emails, relancer, suivre une mission et garder une trace claire.",
+      "Il ne doit pas Ãªtre rÃ©duit Ã  un simple gÃ©nÃ©rateur de texte.",
+      "La logique produit de Pierre repose sur mission -> tÃ¢ches -> validations Ã©ventuelles -> exÃ©cution -> suivi -> historique.",
     ].join("\n"),
   },
   {
-    id: "onboarding-priority-fields",
-    title: "Blocs les plus importants du formulaire 1",
-    tags: ["onboarding", "important", "remplir", "priorite"],
-    body: [
-      "Les sections les plus importantes à remplir proprement sont : identité de l'entreprise, contact principal, contexte RH, signature et règles internes.",
-      "Le bloc configuration email devient particulièrement important si l'entreprise veut une identité d'envoi premium au nom de son domaine.",
-      "Si l'utilisateur veut aller vite, il faut lui recommander de commencer par les champs qui influencent directement la qualité des textes : entreprise, ton, signature, besoins RH, types de documents et contraintes internes.",
-    ].join("\n"),
-  },
-  {
-    id: "use-page-role",
-    title: "Rôle de la page Pierre Use",
-    tags: ["use page", "page use", "utiliser pierre", "quotidien"],
-    body: [
-      "La page Pierre Use sert à produire des contenus RH à partir d'un brief et à les transformer en action.",
-      "L'utilisateur peut choisir une langue, un ton, un preset, compléter des options pro, générer le contenu, puis le retoucher à la main si nécessaire.",
-      "Une bonne réponse doit expliquer cette logique très simplement : brief, génération, retouche éventuelle, action finale.",
-    ].join("\n"),
-  },
-  {
-    id: "editable-result",
-    title: "Résultat modifiable",
-    tags: ["modifier", "editer", "contenu", "resultat"],
-    body: [
-      "Le résultat dans Pierre Use peut être modifié manuellement via un mode Modifier / Enregistrer / Annuler.",
-      "Une fois la version modifiée enregistrée, elle devient la version active pour les actions suivantes.",
-      "Cela veut dire que Copier, Envoyer email, Exporter PDF, Voir PDF, Télécharger PDF et Envoyer PDF en pièce jointe doivent repartir de la version modifiée si elle a été sauvegardée.",
-    ].join("\n"),
-  },
-  {
-    id: "history-role",
-    title: "Historique Pierre",
-    tags: ["historique", "memoire", "versions"],
-    body: [
-      "L'historique sert à retrouver, réutiliser et organiser les générations précédentes.",
-      "L'utilisateur peut y restaurer un contenu, le relancer, le renommer, le taguer, le pinner ou le supprimer.",
-      "Les versions modifiées peuvent aussi être sauvegardées dans l'historique.",
-      "Une bonne réponse sur l'historique doit montrer qu'il s'agit d'un outil de production, pas d'un simple log passif.",
-    ].join("\n"),
-  },
-  {
-    id: "email-logic",
-    title: "Logique email dans Pierre",
-    tags: ["email", "envoyer", "destinataire", "objet"],
-    body: [
-      "L'email part du contenu actuellement affiché dans Pierre Use.",
-      "Si l'utilisateur a modifié le contenu et l'a enregistré, c'est cette version qui est envoyée.",
-      "L'objet peut être automatique ou surchargé via les options pro.",
-      "L'utilisateur renseigne le destinataire et Pierre s'occupe de l'envoi via la route d'action prévue pour cela.",
-    ].join("\n"),
-  },
-  {
-    id: "pdf-logic",
-    title: "Logique PDF dans Pierre",
-    tags: ["pdf", "export", "telecharger", "voir"],
-    body: [
-      "Le PDF part du contenu actuellement affiché dans Pierre Use.",
-      "Si le contenu a changé après une première génération de PDF, l'ancien PDF n'est plus la bonne version et il faut le régénérer.",
-      "Voir PDF, Télécharger PDF et Envoyer PDF en pièce jointe doivent idéalement utiliser un PDF frais, aligné avec le contenu actif.",
-      "Une bonne réponse doit l'expliquer simplement, sans jargon technique.",
-    ].join("\n"),
-  },
-  {
-    id: "pdf-email-joint-logic",
-    title: "Email avec PDF en pièce jointe",
-    tags: ["piece jointe", "email pdf", "pj"],
-    body: [
-      "Envoyer un PDF en pièce jointe signifie : partir du contenu affiché, s'assurer que le PDF correspond bien à cette version, puis envoyer l'email avec ce PDF attaché.",
-      "Si le contenu a été modifié, il faut considérer l'ancien PDF comme obsolète et régénérer avant envoi.",
-    ].join("\n"),
-  },
-  {
-    id: "sender-identity",
-    title: "Identité d'envoi et fallback CloneStore",
-    tags: ["dns", "fallback", "identite", "sender", "reply-to"],
-    body: [
-      "Par défaut, l'envoi peut utiliser une identité de fallback CloneStore, souvent clonestore@clonestore.pro.",
-      "L'entreprise peut demander une identité cible de type pierre@entreprise.com.",
-      "Tant que le domaine de l'entreprise n'est pas vérifié, le système peut rester en fallback CloneStore, avec éventuellement un reply-to vers l'entreprise si configuré.",
-      "Quand le domaine est vérifié et que l'identité demandée est bien configurée, on peut basculer vers l'identité client.",
-      "Il faut expliquer cela simplement : adresse voulue, vérification du domaine, puis bascule. Pas besoin de noyer l'utilisateur dans la technique DNS.",
-    ].join("\n"),
-  },
-  {
-    id: "sender-statuses",
-    title: "Statuts d'envoi et de domaine",
-    tags: ["sender status", "domain status", "verified", "pending"],
-    body: [
-      "sender_status décrit l'état de préparation de l'identité d'envoi.",
-      "domain_status décrit l'état du domaine de l'entreprise : not_started, pending, verified, failed par exemple.",
-      "Si domain_status n'est pas verified, il faut éviter de faire croire que l'envoi au nom du client est déjà pleinement opérationnel.",
-    ].join("\n"),
-  },
-  {
-    id: "pierre-capabilities",
+    id: "pierre-strengths",
     title: "Ce que Pierre fait bien",
-    tags: ["capacites", "ce que fait pierre", "rédaction"],
+    tags: [
+      "capacites",
+      "capacitÃ©s",
+      "ce que fait pierre",
+      "documents",
+      "emails",
+      "pdf",
+      "historique",
+      "mission libre",
+    ],
     body: [
-      "Pierre est surtout fort sur la rédaction RH et la structuration de documents : emails candidats, offres d'emploi, fiches de poste, comptes rendus, procédures, onboarding, scripts et contenus RH exploitables.",
-      "Pierre peut aussi transformer ce contenu en action via email et PDF, selon le setup disponible.",
-      "Il faut parler de Pierre comme d'un clone RH rédacteur concret, pas comme d'une IA vague qui fait tout et n'importe quoi.",
+      "Pierre est fort sur la rÃ©daction RH exploitable et sur la structuration opÃ©rationnelle.",
+      "Il couvre notamment convocations, refus, relances, onboarding, documents RH, emails, PDF, missions, historique et continuitÃ©.",
+      "Il peut fonctionner comme un vrai centre de missions RH contrÃ´lÃ©, pas seulement comme une zone de texte.",
+      "Pierre doit aider Ã  retirer de la charge mentale au client dÃ¨s la premiÃ¨re semaine.",
     ].join("\n"),
   },
   {
     id: "pierre-limits",
-    title: "Limites réelles de Pierre",
-    tags: ["limites", "ne fait pas", "ce que pierre ne fait pas"],
+    title: "Limites rÃ©elles de Pierre",
+    tags: [
+      "limites",
+      "ne fait pas",
+      "pas juridique",
+      "pas scoring cv",
+      "cv",
+      "juridique",
+      "risque",
+    ],
     body: [
-      "Pierre ne doit pas être présenté comme un outil d'analyse massive et de scoring CV : ce terrain relève plutôt de Clara, quand Clara sera réellement prête.",
-      "Pierre ne doit pas être présenté comme un conseiller juridique formel.",
-      "Pierre ne doit pas inventer des informations absentes. S'il manque des informations importantes, il doit demander ou signaler qu'il faut préciser.",
+      "Pierre ne doit pas Ãªtre prÃ©sentÃ© comme un conseiller juridique formel.",
+      "Pierre ne doit pas inventer des informations manquantes.",
+      "Pierre ne doit pas Ãªtre vendu comme un moteur de scoring massif de CV : cette logique relÃ¨ve plutÃ´t de Clara quand Clara sera rÃ©ellement prÃªte.",
+      "Pierre doit refuser, bloquer ou remonter les cas sensibles qui exigent une validation humaine.",
     ].join("\n"),
   },
   {
-    id: "other-agents-status",
-    title: "Statut des autres agents",
-    tags: ["clara", "alex", "emma", "noah", "statut"],
+    id: "post-payment-flow",
+    title: "Parcours aprÃ¨s paiement",
+    tags: [
+      "paiement",
+      "post paiement",
+      "post-payment",
+      "activation",
+      "acces",
+      "accÃ¨s",
+      "succes",
+      "succÃ¨s",
+    ],
     body: [
-      "Clara ne doit pas être vendue comme pleinement finalisée si ce n'est pas réellement confirmé dans le produit.",
-      "Alex, Emma et Noah doivent aussi rester dans un statut honnête : en construction tant qu'ils ne sont pas réellement prêts.",
-      "Quand l'utilisateur demande lequel choisir aujourd'hui, il faut lui éviter de perdre du temps. Si l'objectif est d'avoir quelque chose d'utilisable maintenant, Pierre reste la réponse honnête.",
+      "La logique simple aprÃ¨s paiement est : accÃ¨s actif -> onboarding utile -> cockpit d'usage.",
+      "Pour Pierre, le bon enchaÃ®nement est : activation, puis setup / Empreinte Entreprise, puis page Pierre Use.",
+      "Le produit ne doit jamais laisser une sensation de vide aprÃ¨s paiement.",
+      "Le support doit toujours rÃ©pondre avec le meilleur prochain pas concret.",
     ].join("\n"),
   },
   {
-    id: "tone-style",
-    title: "Style de réponse attendu",
-    tags: ["style", "ton", "reponse"],
+    id: "onboarding-role",
+    title: "RÃ´le du setup / onboarding Pierre",
+    tags: [
+      "onboarding",
+      "setup",
+      "formulaire",
+      "empreinte entreprise",
+      "cloneadn",
+      "memoire",
+      "mÃ©moire",
+    ],
     body: [
-      "Réponses en français, naturelles, premium, crédibles et directes.",
-      "Éviter les réponses scolaires en 5 parties.",
-      "Préférer des blocs courts, compréhensibles tout de suite.",
-      "Quand il faut choisir, choisir franchement.",
-      "Quand il faut prévenir d'une limite, le faire franchement aussi.",
+      "L'onboarding Pierre sert Ã  transmettre l'identitÃ© entreprise, le ton, les rÃ¨gles, les valideurs, la logique d'autonomie et l'identitÃ© d'envoi.",
+      "Ce n'est pas un simple formulaire dÃ©coratif.",
+      "C'est le socle CloneADN de Pierre pour cette entreprise.",
+      "Plus cette base est propre, plus Pierre agit de faÃ§on cohÃ©rente dÃ¨s le dÃ©part.",
     ].join("\n"),
   },
   {
-    id: "practical-next-step",
-    title: "Meilleur prochain pas",
-    tags: ["prochain pas", "quoi faire", "next step"],
+    id: "onboarding-priority",
+    title: "Blocs les plus importants du setup Pierre",
+    tags: [
+      "priorite",
+      "prioritÃ©",
+      "important",
+      "setup pierre",
+      "formulaire pierre",
+      "setup important",
+    ],
     body: [
-      "Quand l'utilisateur demande quoi faire maintenant, la réponse doit se terminer par un prochain pas concret et logique selon son état réel.",
-      "Si Pierre est actif mais l'onboarding non terminé : prochain pas = formulaire 1.",
-      "Si Pierre est actif et l'onboarding terminé : prochain pas = page Pierre Use.",
-      "Si Pierre n'est pas encore actif : prochain pas = activation / paiement, ou comprendre Pierre si l'utilisateur est encore au stade de décision.",
+      "Les blocs les plus critiques sont : identitÃ© entreprise, contexte RH, ton, valideurs, actions autorisÃ©es / interdites et identitÃ© email.",
+      "Ce sont eux qui influencent le plus directement la qualitÃ© rÃ©elle des sorties de Pierre.",
+      "Si le client veut aller vite, il faut commencer par ces zones-lÃ  au lieu de remplir au hasard.",
+    ].join("\n"),
+  },
+  {
+    id: "pierre-use-page",
+    title: "RÃ´le de la page Pierre Use",
+    tags: [
+      "use",
+      "page use",
+      "pierre use",
+      "mission center",
+      "centre de missions",
+      "studios",
+      "artifacts",
+      "history",
+      "memory",
+    ],
+    body: [
+      "La page Pierre Use est le cockpit opÃ©rationnel de Pierre.",
+      "Elle rÃ©unit mission libre, comprÃ©hension, tÃ¢ches, suivi, artefacts, historique et mÃ©moire.",
+      "Le client doit pouvoir parler Ã  Pierre comme Ã  un employÃ©, puis produire, suivre, corriger et exploiter les sorties.",
+      "Cette page n'est pas un simple chat : c'est un centre de commandement.",
+    ].join("\n"),
+  },
+  {
+    id: "email-pdf-logic",
+    title: "Logique email et PDF dans Pierre",
+    tags: [
+      "email",
+      "pdf",
+      "piece jointe",
+      "piÃ¨ce jointe",
+      "envoi",
+      "document",
+      "version active",
+      "artefact",
+    ],
+    body: [
+      "Les emails et PDF doivent partir de la version active du contenu.",
+      "Si le contenu a Ã©tÃ© modifiÃ© puis enregistrÃ©, c'est cette version qui devient la base pour l'envoi ou l'export.",
+      "Si un PDF a Ã©tÃ© gÃ©nÃ©rÃ© avant une modification importante, il doit Ãªtre rÃ©gÃ©nÃ©rÃ© pour rester alignÃ© avec le contenu actif.",
+      "Le support doit toujours expliquer cela simplement, sans jargon inutile.",
+    ].join("\n"),
+  },
+  {
+    id: "sender-identity",
+    title: "IdentitÃ© d'envoi et domaine entreprise",
+    tags: [
+      "sender",
+      "email identity",
+      "identite d'envoi",
+      "identitÃ© d'envoi",
+      "domaine",
+      "dns",
+      "reply-to",
+      "reply to",
+      "fallback",
+    ],
+    body: [
+      "L'objectif produit est de permettre Ã  Pierre d'envoyer au nom de l'entreprise via une vraie identitÃ© email.",
+      "Tant que le domaine n'est pas correctement vÃ©rifiÃ© / configurÃ©, le systÃ¨me peut rester sur une identitÃ© de fallback.",
+      "Une fois le domaine prÃªt, l'identitÃ© cible peut devenir l'identitÃ© active.",
+      "Le support doit l'expliquer comme une bascule contrÃ´lÃ©e, pas comme un dÃ©tail obscur de dÃ©veloppeur.",
+    ].join("\n"),
+  },
+  {
+    id: "profile-and-cockpit",
+    title: "DiffÃ©rence entre Mon espace, Mes employÃ©s et la boutique",
+    tags: [
+      "mon espace",
+      "mes employes",
+      "mes employÃ©s",
+      "boutique",
+      "navigation",
+      "difference",
+      "diffÃ©rence",
+      "cockpit",
+    ],
+    body: [
+      "Mon espace sert au pilotage global du compte, des accÃ¨s, de la structure et des grands rÃ©glages.",
+      "Mes employÃ©s sert Ã  voir et ouvrir les employÃ©s IA activÃ©s ou visibles dans l'univers CloneStore.",
+      "La boutique sert Ã  dÃ©couvrir l'offre publique et les employÃ©s proposÃ©s.",
+      "Le support doit orienter vite vers la bonne zone selon l'intention rÃ©elle de l'utilisateur.",
+    ].join("\n"),
+  },
+  {
+    id: "clonechat-role",
+    title: "RÃ´le de CloneChat",
+    tags: [
+      "clonechat",
+      "assistant",
+      "support",
+      "orientation",
+      "questions",
+      "help",
+      "aide",
+    ],
+    body: [
+      "CloneChat est censÃ© absorber l'immense majoritÃ© des questions de support simples, produit, parcours et comprÃ©hension.",
+      "Il doit expliquer, orienter, rassurer et donner le meilleur prochain pas.",
+      "Il fait partie du coeur de CloneStore et doit connaÃ®tre le produit en profondeur.",
+      "Il ne doit pas rÃ©pondre comme une FAQ molle mais comme un employÃ© poumon du systÃ¨me.",
+    ].join("\n"),
+  },
+  {
+    id: "future-visible-tech",
+    title: "Technologies visibles CloneStore",
+    tags: [
+      "cloneos",
+      "cloneadn",
+      "cloneguard",
+      "clonetrace",
+      "clonevoice",
+      "technologies",
+      "vision produit",
+    ],
+    body: [
+      "CloneOS est la couche d'orchestration des missions et des employÃ©s.",
+      "CloneADN reprÃ©sente la mÃ©moire et l'alignement entreprise.",
+      "CloneGuard couvre gouvernance, risque, validation et refus.",
+      "CloneTrace couvre traÃ§abilitÃ©, timeline et auditabilitÃ©.",
+      "CloneVoice est la couche de commande naturelle vocale prÃ©vue pour l'expÃ©rience premium future.",
+    ].join("\n"),
+  },
+  {
+    id: "pricing-truth",
+    title: "VÃ©ritÃ© tarifaire actuelle",
+    tags: [
+      "prix",
+      "pricing",
+      "tarif",
+      "combien",
+      "449",
+      "pierre prix",
+    ],
+    body: [
+      "Pierre est affichÃ© Ã  449â‚¬/mois dans le parcours actuel.",
+      "Le support ne doit pas inventer d'autres prix si rien d'autre n'est confirmÃ©.",
+      "Quand un utilisateur demande quel employÃ© choisir tout de suite, le support doit parler valeur rÃ©elle, pas seulement tarif.",
+    ].join("\n"),
+  },
+  {
+    id: "support-style",
+    title: "Style de rÃ©ponse attendu",
+    tags: [
+      "style",
+      "ton",
+      "reponse",
+      "rÃ©ponse",
+      "support premium",
+    ],
+    body: [
+      "Les rÃ©ponses doivent Ãªtre directes, propres, crÃ©dibles et orientÃ©es action.",
+      "Quand il faut choisir, il faut choisir franchement.",
+      "Quand il faut dire qu'un employÃ© n'est pas encore prÃªt, il faut le dire franchement aussi.",
+      "Le meilleur prochain pas doit Ãªtre concret.",
     ].join("\n"),
   },
 ];
 
-function clean(text: string) {
-  return text
+function clean(value: string): string {
+  return value
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
-function includesOne(text: string, terms: string[]) {
-  return terms.some((term) => text.includes(term));
+function includesOne(text: string, terms: string[]): boolean {
+  return terms.some((term) => text.includes(clean(term)));
 }
 
-function scoreArticle(query: string, intent: AssistantIntent, article: KnowledgeArticle) {
-  const q = clean(query);
+function scoreArticle(
+  rawQuery: string,
+  intent: AssistantIntent,
+  article: KnowledgeArticle
+): number {
+  const query = clean(rawQuery);
+  if (!query) return 0;
+
   let score = 0;
 
   for (const tag of article.tags) {
-    if (q.includes(clean(tag))) score += 3;
+    if (query.includes(clean(tag))) score += 4;
   }
 
-  const titleWords = clean(article.title).split(/\s+/).filter(Boolean);
+  const titleWords = clean(article.title).split(" ").filter(Boolean);
   for (const word of titleWords) {
-    if (q.includes(word)) score += 2;
+    if (word.length >= 4 && query.includes(word)) score += 2;
   }
 
-  if (intent === "onboarding" && article.tags.includes("onboarding")) score += 6;
-  if (intent === "use_page" && article.tags.includes("use page")) score += 6;
-  if (intent === "email_identity" && article.tags.includes("dns")) score += 6;
-  if (intent === "email_pdf_action" && (article.tags.includes("pdf") || article.tags.includes("email"))) score += 5;
-  if (intent === "clone_choice" && article.tags.includes("clone")) score += 5;
-  if (intent === "limits" && article.tags.includes("limites")) score += 5;
-  if (intent === "status_other_agents" && article.tags.includes("statut")) score += 5;
-  if (intent === "post_payment" && article.tags.includes("paiement")) score += 6;
+  if (intent === "clone_choice" && article.id === "current-public-truth") score += 8;
+  if (intent === "clone_choice" && article.id === "pierre-positioning") score += 6;
+
+  if (intent === "post_payment" && article.id === "post-payment-flow") score += 10;
+
+  if (intent === "onboarding" && article.id === "onboarding-role") score += 10;
+  if (intent === "onboarding" && article.id === "onboarding-priority") score += 6;
+
+  if (intent === "use_page" && article.id === "pierre-use-page") score += 10;
+  if (intent === "email_pdf_action" && article.id === "email-pdf-logic") score += 10;
+  if (intent === "email_identity" && article.id === "sender-identity") score += 10;
+
+  if (intent === "limits" && article.id === "pierre-limits") score += 10;
+  if (intent === "pricing" && article.id === "pricing-truth") score += 10;
+
+  if (intent === "navigation" && article.id === "profile-and-cockpit") score += 10;
+  if (intent === "support" && article.id === "clonechat-role") score += 10;
+  if (intent === "product_vision" && article.id === "future-visible-tech") score += 8;
+
+  if (intent === "general" && article.id === "support-style") score += 2;
 
   return score;
 }
 
-export function buildKnowledgeContext() {
-  return KNOWLEDGE_ARTICLES.map((article) => `## ${article.title}\n${article.body}`).join("\n\n");
+function buildKnowledgeArticleBlock(article: KnowledgeArticle): string {
+  return `## ${article.title}\n${article.body}`;
 }
 
-export function buildKnowledgeDigest(query: string) {
-  const top = [...KNOWLEDGE_ARTICLES]
-    .map((article) => ({ article, score: scoreArticle(query, "general", article) }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 4)
-    .map(({ article }) => `## ${article.title}\n${article.body}`)
-    .join("\n\n");
+export function classifyIntent(question: string): AssistantIntent {
+  const q = clean(question);
 
-  return top || buildKnowledgeContext();
+  if (!q) return "general";
+
+  if (
+    includesOne(q, [
+      "quel employe",
+      "quel employÃ©",
+      "lequel choisir",
+      "tu me conseilles lequel",
+      "tu me conseilles quoi",
+      "entre pierre et",
+      "quel clone",
+      "qui prendre",
+    ])
+  ) {
+    return "clone_choice";
+  }
+
+  if (
+    includesOne(q, [
+      "apres paiement",
+      "apres avoir paye",
+      "apres avoir payÃ©",
+      "je viens de payer",
+      "activation",
+      "paiement succes",
+      "paiement succes",
+      "paiement annulÃ©",
+      "paiement annule",
+      "post paiement",
+    ])
+  ) {
+    return "post_payment";
+  }
+
+  if (
+    includesOne(q, [
+      "onboarding",
+      "setup",
+      "empreinte entreprise",
+      "formulaire",
+      "configuration pierre",
+      "configurer pierre",
+      "remplir pierre",
+    ])
+  ) {
+    return "onboarding";
+  }
+
+  if (
+    includesOne(q, [
+      "page use",
+      "utiliser pierre",
+      "centre de missions",
+      "mission libre",
+      "studios",
+      "artifacts",
+      "artefacts",
+      "historique pierre",
+      "memoire pierre",
+      "mÃ©moire pierre",
+    ])
+  ) {
+    return "use_page";
+  }
+
+  if (
+    includesOne(q, [
+      "sender",
+      "identite d'envoi",
+      "identitÃ© d'envoi",
+      "reply-to",
+      "reply to",
+      "domaine",
+      "dns",
+      "fallback",
+      "email entreprise",
+      "adresse d'envoi",
+    ])
+  ) {
+    return "email_identity";
+  }
+
+  if (
+    includesOne(q, [
+      "pdf",
+      "piece jointe",
+      "piÃ¨ce jointe",
+      "envoyer le mail",
+      "envoyer un mail",
+      "document actif",
+      "version active",
+      "brouillon",
+      "email",
+    ])
+  ) {
+    return "email_pdf_action";
+  }
+
+  if (
+    includesOne(q, [
+      "limites",
+      "ce que pierre ne fait pas",
+      "ne fait pas",
+      "hors perimetre",
+      "hors pÃ©rimÃ¨tre",
+      "risque",
+      "juridique",
+    ])
+  ) {
+    return "limits";
+  }
+
+  if (
+    includesOne(q, [
+      "clara",
+      "emma",
+      "alex",
+      "noah",
+      "sophie",
+      "lucas",
+      "autres employes",
+      "autres employÃ©s",
+    ])
+  ) {
+    return "status_other_employees";
+  }
+
+  if (
+    includesOne(q, [
+      "prix",
+      "tarif",
+      "combien",
+      "449",
+      "combien coute",
+      "combien coÃ»te",
+      "abonnement",
+    ])
+  ) {
+    return "pricing";
+  }
+
+  if (
+    includesOne(q, [
+      "mon espace",
+      "mes employes",
+      "mes employÃ©s",
+      "boutique",
+      "ou aller",
+      "oÃ¹ aller",
+      "navigation",
+      "cockpit",
+      "difference",
+      "diffÃ©rence",
+    ])
+  ) {
+    return "navigation";
+  }
+
+  if (
+    includesOne(q, [
+      "clonechat",
+      "support",
+      "question",
+      "aide",
+      "bug",
+      "probleme",
+      "problÃ¨me",
+    ])
+  ) {
+    return "support";
+  }
+
+  if (
+    includesOne(q, [
+      "cloneos",
+      "cloneadn",
+      "cloneguard",
+      "clonetrace",
+      "clonevoice",
+      "vision",
+      "architecture",
+      "technologies",
+    ])
+  ) {
+    return "product_vision";
+  }
+
+  return "general";
 }
 
-export function buildRelevantKnowledge(
-  query: string,
-  intent: AssistantIntent,
-  context: AssistantAccountContext
-) {
-  const top = [...KNOWLEDGE_ARTICLES]
-    .map((article) => ({ article, score: scoreArticle(query, intent, article) }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 5)
-    .map(({ article }) => `## ${article.title}\n${article.body}`)
-    .join("\n\n");
-
-  const snapshot = buildAccountSnapshot(context);
-
-  return [
-    "## Snapshot compte",
-    snapshot,
-    top || buildKnowledgeContext(),
-  ].join("\n\n");
-}
-
-export function buildAccountSnapshot(context: AssistantAccountContext) {
+export function buildAccountSnapshot(context: AssistantAccountContext): string {
   return [
     `isAuthenticated: ${context.isAuthenticated ? "yes" : "no"}`,
     `hasPierreAccess: ${context.hasPierreAccess ? "yes" : "no"}`,
@@ -339,13 +617,57 @@ export function buildAccountSnapshot(context: AssistantAccountContext) {
   ].join("\n");
 }
 
+export function findRelevantKnowledgeMatches(
+  question: string,
+  intent: AssistantIntent,
+  limit = 5
+): AssistantKnowledgeMatch[] {
+  return KNOWLEDGE_ARTICLES.map((article) => ({
+    id: article.id,
+    title: article.title,
+    score: scoreArticle(question, intent, article),
+  }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+export function buildKnowledgeContext(): string {
+  return KNOWLEDGE_ARTICLES.map(buildKnowledgeArticleBlock).join("\n\n");
+}
+
+export function buildKnowledgeDigest(question: string, intent: AssistantIntent): string {
+  const matches = findRelevantKnowledgeMatches(question, intent, 4);
+
+  if (matches.length === 0) {
+    return buildKnowledgeContext();
+  }
+
+  const selectedArticles = matches
+    .map((match) => KNOWLEDGE_ARTICLES.find((article) => article.id === match.id))
+    .filter((article): article is KnowledgeArticle => Boolean(article));
+
+  return selectedArticles.map(buildKnowledgeArticleBlock).join("\n\n");
+}
+
+export function buildRelevantKnowledge(
+  question: string,
+  intent: AssistantIntent,
+  context: AssistantAccountContext
+): string {
+  const snapshot = buildAccountSnapshot(context);
+  const digest = buildKnowledgeDigest(question, intent);
+
+  return [`## Snapshot compte`, snapshot, digest].join("\n\n");
+}
+
 export function buildSuggestedStatusCards(
   context: AssistantAccountContext
 ): AssistantStatusCard[] {
   return [
     {
       label: "Compte",
-      value: context.isAuthenticated ? "Connecté" : "Visiteur",
+      value: context.isAuthenticated ? "ConnectÃ©" : "Visiteur",
       tone: context.isAuthenticated ? "success" : "default",
     },
     {
@@ -354,239 +676,201 @@ export function buildSuggestedStatusCards(
       tone: context.hasPierreAccess ? "success" : "warn",
     },
     {
-      label: "Formulaire 1",
-      value: context.onboardingCompleted ? "Terminé" : context.hasPierreAccess ? "À faire" : "—",
+      label: "Onboarding",
+      value: context.hasPierreAccess
+        ? context.onboardingCompleted
+          ? "TerminÃ©"
+          : "Ã€ complÃ©ter"
+        : "â€”",
       tone: context.onboardingCompleted ? "success" : context.hasPierreAccess ? "warn" : "default",
     },
     {
-      label: "Identité d'envoi",
-      value: context.senderEmailRequested || context.senderEmailEffective || "Non configurée",
-      tone: context.senderEmailRequested ? "violet" : "default",
+      label: "Entreprise",
+      value: context.companyName || "Non renseignÃ©e",
+      tone: context.companyName ? "violet" : "default",
+    },
+    {
+      label: "Email d'envoi",
+      value:
+        context.senderEmailEffective ||
+        context.senderEmailRequested ||
+        "Non configurÃ©",
+      tone:
+        context.senderEmailEffective || context.senderEmailRequested
+          ? "violet"
+          : "default",
     },
     {
       label: "Domaine",
-      value: context.domainStatus || "Non commencé",
+      value: context.domainStatus || "Non commencÃ©",
       tone: context.domainStatus === "verified" ? "success" : context.domainStatus ? "warn" : "default",
-    },
-    {
-      label: "Ton habituel",
-      value: context.usualTone || "Non renseigné",
-      tone: context.usualTone ? "violet" : "default",
     },
   ];
 }
 
-export function buildSuggestedLinks(context: AssistantAccountContext): AssistantLinkCard[] {
+export function buildSuggestedLinks(
+  context: AssistantAccountContext,
+  intent?: AssistantIntent
+): AssistantLinkCard[] {
   const links: AssistantLinkCard[] = [];
-
-  if (!context.hasPierreAccess) {
-    links.push({
-      label: "Activer Pierre",
-      href: "/paiement?agent=pierre",
-      description: "Si tu veux un clone utile aujourd'hui, c'est le meilleur point de départ.",
-    });
-  }
 
   if (context.hasPierreAccess && !context.onboardingCompleted) {
     links.push({
-      label: "Ouvrir le formulaire 1",
+      label: "Configurer Pierre",
       href: "/agents/pierre/setup",
-      description: "Le vrai prochain pas pour rendre Pierre cohérent et utile.",
+      description: "ComplÃ©ter l'Empreinte Entreprise avant usage intensif.",
     });
   }
 
   if (context.hasPierreAccess) {
     links.push({
-      label: "Ouvrir Pierre Use",
+      label: "Ouvrir Pierre",
       href: "/agents/pierre/use",
-      description: "Générer, modifier, envoyer et exporter les contenus RH.",
+      description: "Entrer dans le centre de missions RH de Pierre.",
     });
   }
 
-  links.push({
-    label: "Voir la fiche Pierre",
-    href: "/agents/pierre",
-    description: "Pour revoir son positionnement, ses usages et ses limites réelles.",
-  });
+  if (!context.hasPierreAccess) {
+    links.push({
+      label: "DÃ©couvrir Pierre",
+      href: "/agents/pierre",
+      description: "Voir l'employÃ© le plus concret actuellement.",
+    });
 
-  links.push({
-    label: "Retour boutique",
-    href: "/agents",
-    description: "Pour comparer proprement les clones sans perdre de temps.",
-  });
+    links.push({
+      label: "Aller au paiement",
+      href: "/paiement",
+      description: "Commencer le parcours d'activation CloneStore.",
+    });
+  }
 
-  return links.slice(0, 4);
+  if (intent === "navigation" || intent === "general") {
+    links.push({
+      label: "Mon espace",
+      href: "/profile",
+      description: "Pilotage global du compte, des accÃ¨s et des rÃ©glages.",
+    });
+
+    links.push({
+      label: "Mes employÃ©s",
+      href: "/profile/agents",
+      description: "AccÃ¨s direct aux employÃ©s visibles et actifs.",
+    });
+  }
+
+  if (intent === "support" || intent === "general") {
+    links.push({
+      label: "Questions / Support",
+      href: "/questions",
+      description: "Zone d'orientation et de support public.",
+    });
+  }
+
+  if (
+    intent === "email_identity" ||
+    intent === "onboarding" ||
+    intent === "use_page"
+  ) {
+    links.push({
+      label: "Voir la fiche Pierre",
+      href: "/agents/pierre",
+      description: "Revoir le rÃ´le, le pÃ©rimÃ¨tre et les usages de Pierre.",
+    });
+  }
+
+  const seen = new Set<string>();
+  return links.filter((link) => {
+    if (seen.has(link.href)) return false;
+    seen.add(link.href);
+    return true;
+  }).slice(0, 4);
 }
 
-export function getAssistantWelcome(context: AssistantAccountContext) {
+export function getAssistantWelcome(context: AssistantAccountContext): string {
   if (!context.isAuthenticated) {
-    return "Je peux t'aider à comprendre CloneStore, choisir le bon clone, et surtout t'expliquer comment fonctionne Pierre concrètement. Si ton objectif est d'avoir quelque chose d'utile maintenant, je te le dis d'avance : Pierre est le meilleur choix aujourd'hui.";
+    return "Bonjour. Je suis CloneChat. Je peux t'expliquer CloneStore proprement, te dire quel employÃ© choisir maintenant, et surtout te donner le bon prochain pas sans te faire perdre du temps.";
   }
 
   if (context.hasPierreAccess && !context.onboardingCompleted) {
-    return `Tu as déjà accès à Pierre${context.companyName ? ` pour ${context.companyName}` : ""}. Le vrai bon prochain pas, c'est de terminer le formulaire 1. Après ça, Pierre devient beaucoup plus cohérent dans ses textes et ses actions.`;
+    return `Bonjour. Pierre est dÃ©jÃ  accessible${context.companyName ? ` pour ${context.companyName}` : ""}. Le bon prochain mouvement, c'est de terminer l'Empreinte Entreprise pour qu'il travaille comme ton entreprise et non comme un modÃ¨le gÃ©nÃ©rique.`;
   }
 
   if (context.hasPierreAccess && context.onboardingCompleted) {
-    return `Tu as déjà Pierre actif${context.companyName ? ` pour ${context.companyName}` : ""}. Maintenant, je peux surtout t'aider à t'en servir comme il faut : page use, modifications, email, PDF, historique et identité d'envoi.`;
+    return `Bonjour. Pierre est dÃ©jÃ  actif${context.companyName ? ` pour ${context.companyName}` : ""}. Je peux maintenant surtout t'aider Ã  l'utiliser correctement : missions, usage quotidien, email, PDF, historique et logique d'envoi.`;
   }
 
-  return "Tu es connecté, mais Pierre n'est pas encore actif sur ce compte. Si tu veux un clone utile maintenant, Pierre reste le choix le plus concret. Et si tu veux juste comprendre comment il marche avant de décider, je peux te le poser clairement.";
+  return "Bonjour. Tu es dans CloneStore. Je peux t'aider Ã  comprendre le systÃ¨me, te guider dans le site et te dire franchement quel employÃ© a le plus de valeur tout de suite.";
 }
 
-export function getAssistantQuickAsks(context: AssistantAccountContext) {
+export function getAssistantQuickAsks(context: AssistantAccountContext): string[] {
   if (!context.isAuthenticated) {
     return [
-      "Je veux le clone le plus utile aujourd'hui. Tu me conseilles lequel ?",
-      "Comment fonctionne Pierre concrètement ?",
-      "À quoi sert le formulaire 1 ?",
-      "Comment se passe l'accès après paiement ?",
-      "Clara est-elle vraiment prête ?",
-      "Pierre peut faire quoi exactement ?",
+      "Quel employÃ© choisir maintenant ?",
+      "Explique CloneStore simplement",
+      "Ã€ quoi sert Pierre exactement ?",
+      "Comment se passe l'accÃ¨s aprÃ¨s paiement ?",
+      "Quelle est la diffÃ©rence entre Mon espace, Mes employÃ©s et la boutique ?",
+      "Est-ce que Clara est vraiment prÃªte aujourd'hui ?",
     ];
   }
 
   if (context.hasPierreAccess && !context.onboardingCompleted) {
     return [
-      "Je viens d'activer Pierre. Qu'est-ce que je fais maintenant ?",
-      "Explique-moi le formulaire 1 simplement.",
-      "Quelles parties du formulaire 1 sont les plus importantes ?",
-      "Comment remplir le bloc email sans me tromper ?",
-      "Une fois le formulaire 1 fini, je vais où ?",
-      "Le fallback CloneStore, ça veut dire quoi pour moi ?",
+      "Quelles parties du setup Pierre sont les plus importantes ?",
+      "Explique-moi l'Empreinte Entreprise simplement",
+      "Que dois-je faire aprÃ¨s avoir activÃ© Pierre ?",
+      "Comment fonctionne l'identitÃ© email de Pierre ?",
+      "Quand est-ce que je vais sur Pierre Use ?",
+      "Quels champs ont le plus d'impact sur la qualitÃ© ?",
     ];
   }
 
   if (context.hasPierreAccess && context.onboardingCompleted) {
     return [
       "Comment utiliser Pierre au quotidien ?",
-      "Comment modifier puis envoyer un email depuis Pierre ?",
-      "Comment fonctionne le PDF si j'ai modifié le contenu ?",
-      "Explique-moi le fallback CloneStore et le domaine vérifié.",
-      "À quoi sert l'historique dans Pierre ?",
-      "Pierre peut faire quoi exactement, et ne pas faire quoi ?",
+      "Comment fonctionne la page Pierre Use ?",
+      "Quelle est la logique email / PDF ?",
+      "Comment marche l'identitÃ© d'envoi ?",
+      "Que fait Pierre vraiment, et oÃ¹ sont ses limites ?",
+      "Quelle est la diffÃ©rence entre le cockpit et Pierre Use ?",
     ];
   }
 
   return [
-    "Je veux le clone le plus utile aujourd'hui. Tu me conseilles lequel ?",
-    "Comment marche Pierre au quotidien ?",
-    "À quoi sert le formulaire 1 ?",
-    "Comment se passe l'accès après paiement ?",
-    "Clara est-elle prête ou pas ?",
-    "Pourquoi tu recommandes Pierre aujourd'hui ?",
+    "Quel employÃ© choisir aujourd'hui ?",
+    "Explique le produit CloneStore simplement",
+    "Pourquoi Pierre est l'entrÃ©e la plus forte ?",
+    "Comment fonctionne le cockpit ?",
+    "Ã€ quoi sert CloneChat ?",
+    "OÃ¹ aller dans le site selon mon besoin ?",
   ];
 }
 
-export function classifyIntent(question: string): AssistantIntent {
-  const q = clean(question);
-
-  if (
-    includesOne(q, [
-      "quel clone",
-      "lequel prendre",
-      "lequel tu me conseilles",
-      "tu me conseilles quoi",
-      "quel agent",
-      "entre pierre et clara",
-      "entre clara et pierre",
-      "quel assistant",
-    ])
-  ) {
-    return "clone_choice";
+function buildConcreteNextStep(
+  context: AssistantAccountContext,
+  intent: AssistantIntent
+): string {
+  if (context.hasPierreAccess && !context.onboardingCompleted) {
+    return "Le prochain pas concret : ouvre /agents/pierre/setup et complÃ¨te d'abord l'Empreinte Entreprise.";
   }
 
-  if (
-    includesOne(q, [
-      "apres paiement",
-      "apres avoir paye",
-      "apres avoir payé",
-      "je viens de payer",
-      "j'ai paye",
-      "jai paye",
-      "paiement",
-      "activation",
-      "acces",
-    ])
-  ) {
-    return "post_payment";
+  if (context.hasPierreAccess && context.onboardingCompleted) {
+    if (intent === "onboarding") {
+      return "Le prochain pas concret : une fois le setup validÃ©, ouvre /agents/pierre/use et commence par une vraie mission RH simple.";
+    }
+
+    return "Le prochain pas concret : ouvre /agents/pierre/use et travaille directement depuis le centre de missions.";
   }
 
-  if (
-    includesOne(q, [
-      "formulaire 1",
-      "onboarding",
-      "setup",
-      "remplir",
-      "memoire de base",
-      "mémoire de base",
-    ])
-  ) {
-    return "onboarding";
+  if (!context.hasPierreAccess && intent === "clone_choice") {
+    return "Le prochain pas concret : ouvre /agents/pierre pour vÃ©rifier le pÃ©rimÃ¨tre, puis /paiement si tu veux l'activer.";
   }
 
-  if (
-    includesOne(q, [
-      "page use",
-      "utiliser pierre",
-      "au quotidien",
-      "brief",
-      "historique",
-      "modifier le contenu",
-      "editer le contenu",
-      "éditer le contenu",
-    ])
-  ) {
-    return "use_page";
+  if (!context.hasPierreAccess) {
+    return "Le prochain pas concret : ouvre /agents/pierre si tu veux voir l'employÃ© le plus concret aujourd'hui.";
   }
 
-  if (
-    includesOne(q, [
-      "dns",
-      "fallback",
-      "sender",
-      "reply-to",
-      "reply to",
-      "domaine verifie",
-      "domaine vérifié",
-      "identite d'envoi",
-      "identité d'envoi",
-      "expediteur",
-      "expéditeur",
-    ])
-  ) {
-    return "email_identity";
-  }
-
-  if (
-    includesOne(q, [
-      "pdf",
-      "piece jointe",
-      "pièce jointe",
-      "envoyer un mail",
-      "envoyer email",
-      "email",
-      "telecharger",
-      "télécharger",
-      "voir pdf",
-    ])
-  ) {
-    return "email_pdf_action";
-  }
-
-  if (includesOne(q, ["limites", "ne fait pas", "ce qu'il ne fait pas", "ce que pierre ne fait pas"])) {
-    return "limits";
-  }
-
-  if (includesOne(q, ["clara", "alex", "emma", "noah"])) {
-    return "status_other_agents";
-  }
-
-  if (includesOne(q, ["prix", "tarif", "299", "combien", "mois"])) {
-    return "pricing";
-  }
-
-  return "general";
+  return "Le prochain pas concret : utilise Mon espace ou Mes employÃ©s pour aller vers la bonne zone.";
 }
 
 export function buildDeterministicAnswer(
@@ -597,79 +881,167 @@ export function buildDeterministicAnswer(
   const q = clean(question);
 
   if (intent === "clone_choice") {
-    return "Aujourd'hui, je te conseille Pierre. C'est le clone le plus concret et le plus exploitable maintenant. Tu peux déjà le configurer, l'utiliser sur la page use, modifier le contenu, envoyer des emails, générer des PDF et travailler proprement avec l'historique. Clara et les autres ne sont pas à ce niveau de maturité produit aujourd'hui, donc je ne vais pas te vendre du flou : si tu veux quelque chose d'utile maintenant, prends Pierre.";
+    return [
+      "Aujourd'hui, je te conseille Pierre.",
+      "C'est l'employÃ© le plus concret, le plus cohÃ©rent et le plus exploitable immÃ©diatement dans CloneStore.",
+      "Il a dÃ©jÃ  une logique claire : setup entreprise, cockpit d'usage, missions, documents, emails, PDF, suivi et historique.",
+      "Je prÃ©fÃ¨re te le dire franchement : je ne vais pas te faire perdre du temps Ã  te vendre plus mÃ»r qu'il ne l'est un autre employÃ© encore en construction.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
   }
 
-  if (intent === "status_other_agents") {
-    if (includesOne(q, ["pret", "prete", "prête", "fini", "finalise", "finalisé", "disponible"])) {
-      return "Non, je ne te les présenterais pas comme prêts aujourd'hui. La réponse honnête, c'est que Pierre est le clone le plus concret maintenant. Pour Clara, Alex, Emma et Noah, il faut rester propre : tant qu'ils ne sont pas réellement finalisés dans le produit, je les considère en construction.";
-    }
-
-    return "Je préfère être propre là-dessus : Pierre est le clone le plus concret aujourd'hui. Pour Clara, Alex, Emma et Noah, il faut garder un statut honnête et ne pas les vendre comme finalisés tant que ce n'est pas réellement le cas.";
+  if (intent === "status_other_employees") {
+    return [
+      "Je reste propre lÃ -dessus : Pierre est aujourd'hui l'employÃ© le plus concret.",
+      "Les autres employÃ©s visibles existent dans la vision CloneStore, mais ils ne doivent pas Ãªtre prÃ©sentÃ©s comme totalement prÃªts tant que leur niveau de finition rÃ©el n'est pas au mÃªme standard.",
+      "Donc si ta question est opÃ©rationnelle et immÃ©diate, la rÃ©ponse honnÃªte reste Pierre.",
+      buildConcreteNextStep(context, "clone_choice"),
+    ].join(" ");
   }
 
   if (intent === "post_payment") {
     if (context.hasPierreAccess && !context.onboardingCompleted) {
-      return "Tu as déjà Pierre actif. Le meilleur prochain pas, c'est d'ouvrir le formulaire 1 sur /agents/pierre/setup et de le remplir proprement. C'est ce qui donne à Pierre sa mémoire de base, son ton, sa signature et ses règles. Une fois ça fait, tu pourras passer sur /agents/pierre/use pour produire des contenus propres sans bricolage.";
+      return [
+        "Ton paiement ou ton accÃ¨s a dÃ©jÃ  ouvert Pierre, mais le vrai prochain pas n'est pas encore l'usage brut.",
+        "Le bon mouvement maintenant, c'est le setup / l'Empreinte Entreprise.",
+        "C'est ce qui donne Ã  Pierre ton identitÃ©, ton ton, tes rÃ¨gles et ta logique email.",
+        buildConcreteNextStep(context, intent),
+      ].join(" ");
     }
 
     if (context.hasPierreAccess && context.onboardingCompleted) {
-      return "Ton accès Pierre est déjà prêt. Le meilleur prochain pas, c'est d'aller sur /agents/pierre/use. C'est là que tu rédiges, modifies, copies, envoies et exportes tes contenus. À ce stade, le plus important n'est plus l'activation : c'est l'usage propre et régulier.";
+      return [
+        "Ton accÃ¨s est dÃ©jÃ  exploitable.",
+        "Ã€ ce stade, le bon prochain pas n'est plus la configuration de base mais l'usage rÃ©el.",
+        "Le cockpit Pierre Use est l'endroit oÃ¹ tu lances des missions, suis les tÃ¢ches et exploites les sorties.",
+        buildConcreteNextStep(context, intent),
+      ].join(" ");
     }
 
-    return "Après paiement, la logique simple c'est : accès Pierre, puis formulaire 1, puis page Pierre Use. En clair : d'abord tu donnes à Pierre son cadre, ensuite tu t'en sers au quotidien. Si tu veux le meilleur enchaînement sans te perdre, pense-le comme ça : configuration d'abord, production ensuite.";
+    return [
+      "Le parcours propre aprÃ¨s paiement est simple : accÃ¨s actif, onboarding utile, puis cockpit d'usage.",
+      "Pour Pierre, Ã§a donne : activation, setup entreprise, puis Pierre Use.",
+      "Le produit doit toujours te reprendre avec une Ã©tape claire, pas te laisser dans le vide.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
   }
 
   if (intent === "onboarding") {
-    if (includesOne(q, ["a quoi sert", "ça sert à quoi", "sert a quoi", "pourquoi"])) {
-      return "Le formulaire 1 sert à donner à Pierre sa mémoire de base sur ton entreprise. C'est là qu'il récupère ton identité, ton ton, ta signature, tes besoins RH, ta logique email et tes règles internes. Plus il est bien rempli, plus Pierre écrit juste dès le départ. Donc non, ce n'est pas un formulaire administratif pour faire joli : c'est le socle de qualité du produit.";
+    if (
+      includesOne(q, [
+        "a quoi sert",
+        "Ã  quoi sert",
+        "pourquoi",
+        "c'est quoi",
+        "cest quoi",
+      ])
+    ) {
+      return [
+        "L'onboarding Pierre sert Ã  transmettre Ã  Pierre la rÃ©alitÃ© de ton entreprise.",
+        "Ce n'est pas un formulaire administratif dÃ©coratif.",
+        "C'est la base CloneADN : identitÃ©, ton, contexte RH, valideurs, actions autorisÃ©es, interdits et identitÃ© email.",
+        "Plus cette base est propre, plus Pierre agit juste dÃ¨s le dÃ©part.",
+        buildConcreteNextStep(context, intent),
+      ].join(" ");
     }
 
-    if (includesOne(q, ["quelles parties", "plus importantes", "important", "priorite", "priorité"])) {
-      return "Si tu veux aller vite sans mal faire, commence par l'identité de l'entreprise, le contact principal, le contexte RH, la signature et les règles internes. C'est ça qui influence le plus la qualité réelle des textes. Le bloc email devient important dès que tu veux une vraie identité d'envoi au nom de l'entreprise.";
+    if (
+      includesOne(q, [
+        "plus important",
+        "priorite",
+        "prioritÃ©",
+        "quelles parties",
+        "quels champs",
+      ])
+    ) {
+      return [
+        "Les blocs les plus importants sont : identitÃ© entreprise, contexte RH, ton, valideurs, rÃ¨gles d'action et identitÃ© email.",
+        "Ce sont eux qui changent le plus directement la qualitÃ© rÃ©elle de Pierre.",
+        "Si tu veux aller vite sans mal faire, commence par ces zones-lÃ .",
+        buildConcreteNextStep(context, intent),
+      ].join(" ");
     }
 
-    if (includesOne(q, ["comment remplir", "remplir le bloc email", "bloc email"])) {
-      return "Pour le bloc email, reste simple : tu indiques l'adresse cible souhaitée si tu veux une identité de type pierre@entreprise.com, tu renseignes le reply-to si besoin, et tu assumes qu'au début l'envoi peut rester en fallback CloneStore tant que le domaine n'est pas vérifié. Le plus important, c'est d'être cohérent et de ne pas prétendre que l'identité client est déjà active si elle ne l'est pas.";
-    }
-
-    return "Le formulaire 1, c'est la mémoire de base de Pierre. Tu le remplis une première fois, tu peux l'enregistrer en brouillon, puis le valider quand il est propre. Ensuite tu peux le modifier à tout moment, mais l'idée c'est de donner à Pierre un vrai cadre stable dès le départ.";
+    return [
+      "Le setup Pierre sert Ã  le transformer en employÃ© alignÃ© sur ton entreprise.",
+      "Il doit rÃ©cupÃ©rer qui vous Ãªtes, comment vous Ã©crivez, ce qu'il a le droit de faire et comment il doit se comporter.",
+      "Sans cette base, Pierre reste plus gÃ©nÃ©rique. Avec elle, il devient beaucoup plus cohÃ©rent.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
   }
 
   if (intent === "use_page") {
-    if (includesOne(q, ["modifier", "editer", "éditer"])) {
-      return "Oui, tu peux modifier le contenu directement dans Pierre Use. Tu passes en mode Modifier, tu ajustes le texte, puis tu fais Enregistrer. À partir de là, c'est cette version enregistrée qui devient la base pour le copier, l'email et le PDF. C'est justement ce qui rend la page vraiment exploitable côté client.";
-    }
-
-    if (includesOne(q, ["historique"])) {
-      return "L'historique n'est pas juste un log. Il sert à retrouver un bon document, le restaurer dans la page, le relancer, le taguer, le pinner ou repartir d'une ancienne version sans tout refaire. Si tu veux travailler proprement dans le temps, il devient vite très utile.";
-    }
-
-    return "Le plus simple pour utiliser Pierre au quotidien, c'est : tu vas sur la page use, tu écris ton brief, tu génères, tu ajustes si besoin, puis tu transformes le résultat en action. En pratique, la séquence saine c'est : brief → génération → retouche éventuelle → email ou PDF. Il ne faut pas le voir comme une simple zone de texte, mais comme une vraie page de production.";
-  }
-
-  if (intent === "email_pdf_action") {
-    if (includesOne(q, ["pdf", "piece jointe", "pièce jointe"])) {
-      return "Le PDF repart du contenu affiché dans Pierre Use. Donc si tu modifies le texte, l'ancien PDF n'est plus la bonne version et il faut le régénérer. La logique propre, c'est : je modifie, j'enregistre, je régénère mon PDF, puis je l'ouvre, je le télécharge ou je l'envoie en pièce jointe. Comme ça, tu évites d'envoyer une version obsolète.";
-    }
-
-    return "L'email part lui aussi du contenu affiché dans Pierre Use. Si tu as retouché le texte et enregistré la nouvelle version, c'est cette version qui doit partir. En pratique, tu vérifies le contenu, tu renseignes le destinataire et l'objet si besoin, puis tu envoies. L'idée, c'est vraiment que la version active devienne ta source de vérité.";
+    return [
+      "La page Pierre Use est le cockpit opÃ©rationnel de Pierre.",
+      "Tu n'y fais pas juste du chat : tu y lances une mission, Pierre la comprend, la structure, produit des sorties, suit les tÃ¢ches, centralise les artefacts et garde l'historique.",
+      "Il faut la voir comme un centre de commandement RH, pas comme une simple zone de prompt.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
   }
 
   if (intent === "email_identity") {
-    if (context.domainStatus === "verified" && context.senderEmailRequested) {
-      return `Dans ton état actuel, la logique simple est la suivante : le domaine est marqué comme vérifié et l'identité visée est ${context.senderEmailRequested}. Donc Pierre peut tendre vers cette identité client. Là où il faut rester propre, c'est sur ce qui est effectivement en production côté envoi réel, mais sur le principe, tu n'es plus dans le simple fallback.`;
-    }
+    return [
+      "La logique d'identitÃ© d'envoi est simple sur le fond : Pierre doit pouvoir envoyer au nom de l'entreprise quand le domaine et la configuration sont rÃ©ellement prÃªts.",
+      "Tant que ce n'est pas proprement vÃ©rifiÃ©, le systÃ¨me peut rester sur une identitÃ© de fallback.",
+      "Une fois le domaine prÃªt, l'identitÃ© cible peut devenir l'identitÃ© active.",
+      "Le point important n'est pas la technique DNS en elle-mÃªme, mais de rester honnÃªte sur ce qui est dÃ©jÃ  actif et ce qui ne l'est pas encore.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
+  }
 
-    return "Le fallback CloneStore veut juste dire que tant que le domaine de l'entreprise n'est pas vérifié, l'envoi peut partir depuis une identité CloneStore au lieu d'une adresse du type pierre@entreprise.com. Le reply-to peut quand même pointer vers l'entreprise si c'est configuré. Une fois le domaine vérifié, on peut basculer vers l'identité client. Donc la logique à retenir, c'est : adresse cible, vérification du domaine, puis bascule propre.";
+  if (intent === "email_pdf_action") {
+    return [
+      "La rÃ¨gle saine est la suivante : email et PDF doivent repartir de la version active du contenu.",
+      "Si tu as modifiÃ© puis enregistrÃ© un texte, c'est cette version qui doit servir de source.",
+      "Et si un PDF a Ã©tÃ© gÃ©nÃ©rÃ© avant une modification importante, il faut le rÃ©gÃ©nÃ©rer pour Ã©viter un dÃ©calage.",
+      "Le support doit toujours garder cette logique simple : une version active, des artefacts alignÃ©s dessus.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
   }
 
   if (intent === "limits") {
-    return "Pierre est très utile pour rédiger et structurer, mais il ne faut pas lui faire jouer un rôle qu'il n'a pas. Il n'est pas là pour scorer massivement des CV, il n'est pas un conseiller juridique formel, et il ne doit pas inventer des informations absentes. Là où il est fort, c'est quand tu veux un contenu RH propre, cohérent et directement exploitable.";
+    return [
+      "Pierre est fort, mais il a un pÃ©rimÃ¨tre clair.",
+      "Il ne doit pas Ãªtre vendu comme juriste formel, ni comme moteur massif de scoring CV, ni comme systÃ¨me qui invente des informations absentes.",
+      "Sa force rÃ©elle est la production RH opÃ©rationnelle propre, contrÃ´lÃ©e et exploitable.",
+      buildConcreteNextStep(context, "use_page"),
+    ].join(" ");
   }
 
   if (intent === "pricing") {
-    return "Pour Pierre, la référence visible aujourd'hui, c'est 299€/mois sur sa fiche d'accès. Et si ta vraie question derrière le prix, c'est de savoir s'il vaut le coup maintenant, ma réponse reste la même : oui, c'est le clone le plus concret aujourd'hui si tu veux quelque chose d'utile tout de suite.";
+    return [
+      "La rÃ©fÃ©rence tarifaire actuelle Ã  retenir pour Pierre est 449â‚¬/mois.",
+      "Mais le vrai sujet n'est pas seulement le prix : c'est la valeur immÃ©diate.",
+      "Aujourd'hui, Pierre est l'employÃ© qui a le plus de crÃ©dibilitÃ© opÃ©rationnelle Ã  ce tarif dans CloneStore.",
+      buildConcreteNextStep(context, "clone_choice"),
+    ].join(" ");
+  }
+
+  if (intent === "navigation") {
+    return [
+      "Mon espace sert au pilotage global du compte et des grands rÃ©glages.",
+      "Mes employÃ©s sert Ã  ouvrir les employÃ©s visibles ou actifs.",
+      "La boutique sert Ã  dÃ©couvrir l'offre publique.",
+      "Donc si tu veux agir dans le produit, il faut surtout distinguer pilotage global, accÃ¨s employÃ©s et dÃ©couverte commerciale.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
+  }
+
+  if (intent === "support") {
+    return [
+      "CloneChat doit servir d'employÃ© poumon du support CloneStore.",
+      "Son rÃ´le est d'expliquer, orienter, rassurer et donner un prochain pas concret.",
+      "Il ne doit pas rÃ©pondre comme une FAQ fragile, mais comme un support premium intÃ©grÃ© au coeur du produit.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
+  }
+
+  if (intent === "product_vision") {
+    return [
+      "La vision CloneStore repose sur un systÃ¨me coordonnÃ© : CloneOS pour l'orchestration, CloneADN pour l'alignement entreprise, CloneGuard pour gouvernance et risque, CloneTrace pour la traÃ§abilitÃ©, et CloneVoice comme couche vocale premium future.",
+      "Le produit doit toujours rester lisible cÃ´tÃ© client, mais profond cÃ´tÃ© systÃ¨me.",
+      buildConcreteNextStep(context, "navigation"),
+    ].join(" ");
   }
 
   return null;
@@ -679,17 +1051,29 @@ export function buildFallbackAnswer(
   question: string,
   context: AssistantAccountContext,
   intent: AssistantIntent
-) {
-  const base = buildDeterministicAnswer(question, context, intent);
-  if (base) return base;
+): string {
+  const deterministic = buildDeterministicAnswer(question, context, intent);
+  if (deterministic) return deterministic;
 
   if (context.hasPierreAccess && !context.onboardingCompleted) {
-    return "Je vais te répondre simplement : dans ton état actuel, le vrai prochain pas reste le formulaire 1. C'est ce qui va rendre Pierre cohérent et réellement utile. Si ta question portait sur autre chose, reformule-la de façon directe et je te répondrai plus précisément.";
+    return [
+      "Dans ton Ã©tat actuel, le plus important reste de rendre Pierre correctement alignÃ© Ã  ton entreprise.",
+      "Donc mÃªme si ta question est plus large, le meilleur prochain pas reste de complÃ©ter le setup Pierre.",
+      buildConcreteNextStep(context, "onboarding"),
+    ].join(" ");
   }
 
   if (context.hasPierreAccess && context.onboardingCompleted) {
-    return "Je peux t'aider sur Pierre de façon très concrète : page use, modification du contenu, email, PDF, historique ou identité d'envoi. Pose-moi la question de façon plus directe, et je te répondrai sans tourner autour.";
+    return [
+      "Tu as dÃ©jÃ  assez de base pour utiliser Pierre rÃ©ellement.",
+      "Je peux t'aider Ã  naviguer dans le cockpit, comprendre la logique d'usage ou clarifier une Ã©tape produit.",
+      buildConcreteNextStep(context, "use_page"),
+    ].join(" ");
   }
 
-  return "Je peux t'aider à choisir le bon clone, comprendre Pierre et te dire quoi faire ensuite. Si ton but est d'avoir un clone utile maintenant, la réponse la plus honnête reste Pierre. Si tu veux aller plus loin, pose-moi la question exacte qui te bloque.";
+  return [
+    "Je peux t'aider Ã  comprendre CloneStore, choisir le bon employÃ© et aller au bon endroit sans perdre de temps.",
+    "Aujourd'hui, l'entrÃ©e la plus solide reste Pierre.",
+    buildConcreteNextStep(context, intent),
+  ].join(" ");
 }

@@ -1,0 +1,5285 @@
+﻿===== FILE: src/lib/pierre/mission/classify.ts =====
+
+export type PierreMissionClassification =
+  | "recrutement"
+  | "candidature"
+  | "offre_emploi"
+  | "convocation_entretien"
+  | "refus_candidat"
+  | "relance_candidat"
+  | "onboarding"
+  | "communication_interne_rh"
+  | "rappel_procedure"
+  | "note_rh"
+  | "compte_rendu"
+  | "courrier_rh"
+  | "mission_suivi"
+  | "demande_sensible"
+  | "hors_perimetre"
+  | "mission_rh_generale";
+
+export type PierreClassifyInput = {
+  input: string;
+  context?: string | null;
+};
+
+export type PierreClassifyResult = {
+  classification: PierreMissionClassification;
+  confidence: number;
+  reasons: string[];
+  matchedSignals: string[];
+};
+
+type WeightedRule = {
+  classification: PierreMissionClassification;
+  signals: string[];
+  weight: number;
+  reason: string;
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function buildCorpus(input: PierreClassifyInput): string {
+  return normalizeText([input.input, input.context || ""].filter(Boolean).join("\n"));
+}
+
+const RULES: WeightedRule[] = [
+  {
+    classification: "offre_emploi",
+    signals: ["offre d'emploi", "job offer", "fiche de poste", "poste a pourvoir", "annonce"],
+    weight: 12,
+    reason: "Le texte Ã©voque une crÃ©ation ou rÃ©daction dâ€™offre de poste.",
+  },
+  {
+    classification: "convocation_entretien",
+    signals: ["convocation", "entretien", "rdv candidat", "invite a un entretien", "invitation entretien"],
+    weight: 12,
+    reason: "Le texte porte sur un entretien ou une convocation.",
+  },
+  {
+    classification: "refus_candidat",
+    signals: ["refus", "rejet candidature", "candidature non retenue", "candidate rejected"],
+    weight: 12,
+    reason: "Le texte porte sur un refus candidat.",
+  },
+  {
+    classification: "relance_candidat",
+    signals: ["relance", "follow up", "pas de reponse", "aucune reponse", "recontacter le candidat"],
+    weight: 10,
+    reason: "Le texte dÃ©crit une logique de relance ou de suivi candidat.",
+  },
+  {
+    classification: "onboarding",
+    signals: ["onboarding", "integration", "bienvenue", "arrivee du collaborateur", "parcours d'integration"],
+    weight: 11,
+    reason: "Le texte traite de lâ€™intÃ©gration dâ€™un salariÃ©.",
+  },
+  {
+    classification: "note_rh",
+    signals: ["note rh", "note interne", "note au personnel", "memo rh", "memo interne"],
+    weight: 10,
+    reason: "Le texte vise une note RH ou interne.",
+  },
+  {
+    classification: "rappel_procedure",
+    signals: ["procedure", "rappel de procedure", "consigne", "respect du processus", "processus interne"],
+    weight: 10,
+    reason: "Le texte vise un rappel de procÃ©dure.",
+  },
+  {
+    classification: "compte_rendu",
+    signals: ["compte rendu", "compte-rendu", "synthese d'entretien", "resume entretien", "minutes"],
+    weight: 10,
+    reason: "Le texte demande un compte rendu ou une synthÃ¨se.",
+  },
+  {
+    classification: "courrier_rh",
+    signals: ["courrier", "lettre", "notification", "document officiel", "courrier salarie"],
+    weight: 9,
+    reason: "Le texte demande un courrier RH.",
+  },
+  {
+    classification: "communication_interne_rh",
+    signals: ["communication interne", "message equipe", "annonce interne", "communication rh"],
+    weight: 8,
+    reason: "Le texte vise une communication RH interne.",
+  },
+  {
+    classification: "mission_suivi",
+    signals: ["suivi", "timeline", "rappel", "faire le point", "pilotage", "monitoring"],
+    weight: 8,
+    reason: "Le texte est orientÃ© suivi opÃ©rationnel.",
+  },
+  {
+    classification: "demande_sensible",
+    signals: [
+      "avertissement",
+      "mise a pied",
+      "conflit",
+      "harcelement",
+      "sanction disciplinaire",
+      "absence injustifiee",
+      "contentieux",
+      "plainte",
+    ],
+    weight: 14,
+    reason: "Le texte contient des signaux RH sensibles.",
+  },
+  {
+    classification: "recrutement",
+    signals: ["recrutement", "recruter", "candidat", "pipeline candidat", "shortlist", "sourcing"],
+    weight: 7,
+    reason: "Le texte se situe dans un cadre recrutement.",
+  },
+  {
+    classification: "candidature",
+    signals: ["candidature", "cv", "profil candidat", "postulation", "dossier candidat"],
+    weight: 7,
+    reason: "Le texte est centrÃ© sur une candidature.",
+  },
+  {
+    classification: "hors_perimetre",
+    signals: ["prospection commerciale", "cold email", "vente", "marketing massif", "campagne publicitaire"],
+    weight: 16,
+    reason: "Le texte sort du pÃ©rimÃ¨tre RH contrÃ´lÃ© de Pierre.",
+  },
+];
+
+export function classifyMission(
+  input: PierreClassifyInput,
+): PierreClassifyResult {
+  const corpus = buildCorpus(input);
+
+  const scoreMap = new Map<PierreMissionClassification, number>();
+  const reasonsMap = new Map<PierreMissionClassification, string[]>();
+  const signalsMap = new Map<PierreMissionClassification, string[]>();
+
+  for (const rule of RULES) {
+    const matchedSignals = rule.signals.filter((signal) =>
+      corpus.includes(normalizeText(signal)),
+    );
+
+    if (matchedSignals.length === 0) continue;
+
+    const signalScore = rule.weight * matchedSignals.length;
+    scoreMap.set(
+      rule.classification,
+      (scoreMap.get(rule.classification) || 0) + signalScore,
+    );
+
+    reasonsMap.set(rule.classification, [
+      ...(reasonsMap.get(rule.classification) || []),
+      rule.reason,
+    ]);
+
+    signalsMap.set(rule.classification, [
+      ...(signalsMap.get(rule.classification) || []),
+      ...matchedSignals,
+    ]);
+  }
+
+  if (scoreMap.size === 0) {
+    return {
+      classification: "mission_rh_generale",
+      confidence: 0.42,
+      reasons: [
+        "Aucun signal mÃ©tier fort nâ€™a dominÃ©. La mission reste dans un cadre RH gÃ©nÃ©rique.",
+      ],
+      matchedSignals: [],
+    };
+  }
+
+  const ranked = [...scoreMap.entries()].sort((a, b) => b[1] - a[1]);
+  const [bestClassification, bestScore] = ranked[0];
+  const secondScore = ranked[1]?.[1] || 0;
+
+  let confidence = 0.55 + Math.min(0.4, (bestScore - secondScore) / 30);
+  confidence = Math.max(0.5, Math.min(0.97, confidence));
+
+  return {
+    classification: bestClassification,
+    confidence: Number(confidence.toFixed(2)),
+    reasons: [...new Set(reasonsMap.get(bestClassification) || [])],
+    matchedSignals: [...new Set(signalsMap.get(bestClassification) || [])],
+  };
+}
+
+===== FILE: src/lib/pierre/mission/interpret.ts =====
+
+import {
+  classifyMission,
+  type PierreMissionClassification,
+} from "./classify";
+
+export type PierreMissionRiskLevel = "normal" | "sensitive" | "critical";
+export type PierreMissionTaskStatus =
+  | "pending"
+  | "queued"
+  | "scheduled"
+  | "awaiting_info"
+  | "awaiting_approval"
+  | "blocked";
+
+export type PierreMissionTaskDraft = {
+  type: string;
+  title: string;
+  description: string;
+  status: PierreMissionTaskStatus;
+  approval_required: boolean;
+  risk_level: PierreMissionRiskLevel;
+  scheduled_for: string | null;
+  payload: Record<string, unknown>;
+};
+
+export type PierreMissionInterpretInput = {
+  input: string;
+  context?: string | null;
+};
+
+export type PierreMissionInterpretation = {
+  intent: string;
+  classification: PierreMissionClassification;
+  summary: string;
+  language: string;
+  tone: string;
+  risk_level: PierreMissionRiskLevel;
+  approval_required: boolean;
+  missing_info: string[];
+  missing_info_questions: string[];
+  refusals: string[];
+  tasks: PierreMissionTaskDraft[];
+  confidence: number;
+  explainability: {
+    classification_reasons: string[];
+    matched_signals: string[];
+  };
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function corpus(input: PierreMissionInterpretInput): string {
+  return normalizeText([input.input, input.context || ""].filter(Boolean).join("\n"));
+}
+
+function detectLanguage(value: string): string {
+  const lower = value.toLowerCase();
+  const englishSignals = [
+    "candidate",
+    "interview",
+    "job offer",
+    "follow up",
+    "please",
+    "draft",
+    "recruitment",
+    "hiring",
+  ];
+
+  const hits = englishSignals.filter((signal) => lower.includes(signal)).length;
+  return hits >= 2 ? "en" : "fr";
+}
+
+function detectTone(value: string): string {
+  const lower = value.toLowerCase();
+
+  if (
+    lower.includes("ferme") ||
+    lower.includes("strict") ||
+    lower.includes("recadr") ||
+    lower.includes("formal warning")
+  ) {
+    return "ferme";
+  }
+
+  if (
+    lower.includes("humain") ||
+    lower.includes("bienveillant") ||
+    lower.includes("chaleureux")
+  ) {
+    return "humain";
+  }
+
+  if (
+    lower.includes("direct") ||
+    lower.includes("court") ||
+    lower.includes("concis")
+  ) {
+    return "direct";
+  }
+
+  return "professionnel";
+}
+
+function detectIntent(value: string): string {
+  const lower = value.toLowerCase();
+
+  if (
+    lower.includes("envoie") ||
+    lower.includes("envoyer") ||
+    lower.includes("send")
+  ) {
+    return "execute_rh_action";
+  }
+
+  if (
+    lower.includes("prepare") ||
+    lower.includes("prÃ©pare") ||
+    lower.includes("redige") ||
+    lower.includes("rÃ©dige") ||
+    lower.includes("draft")
+  ) {
+    return "prepare_rh_deliverable";
+  }
+
+  if (
+    lower.includes("programme") ||
+    lower.includes("planifie") ||
+    lower.includes("schedule")
+  ) {
+    return "schedule_rh_action";
+  }
+
+  if (lower.includes("relance") || lower.includes("follow up")) {
+    return "follow_up_rh_action";
+  }
+
+  return "structure_rh_mission";
+}
+
+function detectRisk(
+  text: string,
+  classification: PierreMissionClassification,
+): PierreMissionRiskLevel {
+  const lower = text.toLowerCase();
+
+  const criticalSignals = [
+    "licenciement",
+    "harcelement",
+    "harcÃ¨lement",
+    "contentieux",
+    "prud'hommes",
+    "discrimination",
+    "sanction disciplinaire",
+  ];
+
+  const sensitiveSignals = [
+    "avertissement",
+    "mise a pied",
+    "mise Ã  pied",
+    "conflit",
+    "absence injustifiee",
+    "absence injustifiÃ©e",
+    "salaire",
+    "confidentiel",
+    "plainte",
+  ];
+
+  if (criticalSignals.some((signal) => lower.includes(signal))) return "critical";
+  if (sensitiveSignals.some((signal) => lower.includes(signal))) return "sensitive";
+  if (classification === "demande_sensible") return "sensitive";
+
+  return "normal";
+}
+
+function needsApproval(
+  value: string,
+  risk: PierreMissionRiskLevel,
+  classification: PierreMissionClassification,
+): boolean {
+  const lower = value.toLowerCase();
+
+  if (risk === "critical") return true;
+  if (classification === "demande_sensible") return true;
+
+  const approvalSignals = [
+    "apres validation",
+    "aprÃ¨s validation",
+    "avant envoi",
+    "a valider",
+    "Ã  valider",
+    "validation manager",
+    "validation humaine",
+  ];
+
+  return approvalSignals.some((signal) => lower.includes(signal)) || risk === "sensitive";
+}
+
+function detectScheduling(value: string): string | null {
+  const lower = value.toLowerCase();
+  const now = new Date();
+
+  if (lower.includes("demain")) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + 1);
+    date.setHours(9, 0, 0, 0);
+    return date.toISOString();
+  }
+
+  const hourMatch = lower.match(/\b(\d{1,2})h(\d{2})?\b/);
+  if (hourMatch) {
+    const date = new Date(now);
+    const hours = Number(hourMatch[1]);
+    const minutes = hourMatch[2] ? Number(hourMatch[2]) : 0;
+
+    if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+      date.setHours(hours, minutes, 0, 0);
+      if (date.getTime() < now.getTime()) {
+        date.setDate(date.getDate() + 1);
+      }
+      return date.toISOString();
+    }
+  }
+
+  return null;
+}
+
+function detectMissingInfo(
+  rawInput: string,
+  classification: PierreMissionClassification,
+): { missing: string[]; questions: string[] } {
+  const lower = rawInput.toLowerCase();
+  const missing: string[] = [];
+  const questions: string[] = [];
+
+  const hasPersonName =
+    /\b[A-ZÃ‰ÃˆÃ€Ã‚ÃŠÃŽÃ”Ã›Ã„Ã‹ÃÃ–Ãœ][a-zÃ©Ã¨Ã Ã¢ÃªÃ®Ã´Ã»Ã¤Ã«Ã¯Ã¶Ã¼'-]+\s+[A-ZÃ‰ÃˆÃ€Ã‚ÃŠÃŽÃ”Ã›Ã„Ã‹ÃÃ–Ãœ][a-zÃ©Ã¨Ã Ã¢ÃªÃ®Ã´Ã»Ã¤Ã«Ã¯Ã¶Ã¼'-]+\b/.test(
+      rawInput,
+    );
+  const hasEmail = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(rawInput);
+  const hasDate = /\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\b/.test(rawInput);
+  const hasHour = /\b\d{1,2}h(\d{2})?\b/i.test(rawInput);
+
+  if (classification === "convocation_entretien" && !hasDate) {
+    missing.push("Date dâ€™entretien manquante");
+    questions.push("Quelle est la date exacte de lâ€™entretien ?");
+  }
+
+  if (classification === "convocation_entretien" && !hasHour) {
+    missing.push("Horaire dâ€™entretien manquant");
+    questions.push("Ã€ quelle heure doit avoir lieu lâ€™entretien ?");
+  }
+
+  if (
+    (
+      classification === "refus_candidat" ||
+      classification === "relance_candidat" ||
+      classification === "onboarding" ||
+      classification === "convocation_entretien" ||
+      classification === "candidature"
+    ) &&
+    !hasPersonName
+  ) {
+    missing.push("Nom complet de la personne concernÃ©e manquant");
+    questions.push("Quel est le nom complet de la personne concernÃ©e ?");
+  }
+
+  if (
+    (
+      classification === "refus_candidat" ||
+      classification === "relance_candidat" ||
+      classification === "convocation_entretien"
+    ) &&
+    !hasEmail
+  ) {
+    missing.push("Adresse email destinataire manquante");
+    questions.push("Quelle est lâ€™adresse email du destinataire ?");
+  }
+
+  if (classification === "offre_emploi" && !lower.includes("poste")) {
+    missing.push("IntitulÃ© du poste absent ou insuffisant");
+    questions.push("Quel est lâ€™intitulÃ© exact du poste ?");
+  }
+
+  return { missing, questions };
+}
+
+function detectRefusals(
+  classification: PierreMissionClassification,
+  risk: PierreMissionRiskLevel,
+  value: string,
+): string[] {
+  const lower = value.toLowerCase();
+  const refusals: string[] = [];
+
+  if (classification === "hors_perimetre") {
+    refusals.push(
+      "Demande hors pÃ©rimÃ¨tre RH contrÃ´lÃ© de Pierre : prospection commerciale, marketing massif ou usage non RH.",
+    );
+  }
+
+  if (
+    risk === "critical" &&
+    (
+      lower.includes("decide seul") ||
+      lower.includes("sans validation") ||
+      lower.includes("envoie directement")
+    )
+  ) {
+    refusals.push(
+      "Pierre ne peut pas exÃ©cuter seul une action critique RH sans validation humaine explicite.",
+    );
+  }
+
+  if (
+    lower.includes("sanctionne") ||
+    lower.includes("licencie directement") ||
+    lower.includes("prends la decision juridique")
+  ) {
+    refusals.push(
+      "Pierre ne prend pas seul de dÃ©cision disciplinaire ou juridique.",
+    );
+  }
+
+  return refusals;
+}
+
+function buildSummary(
+  rawInput: string,
+  classification: PierreMissionClassification,
+  risk: PierreMissionRiskLevel,
+): string {
+  const cleaned = rawInput.trim().replace(/\s+/g, " ");
+  const clipped = cleaned.length > 260 ? `${cleaned.slice(0, 257)}â€¦` : cleaned;
+  return `Mission RH classÃ©e "${classification}" avec niveau de risque "${risk}". Demande structurÃ©e Ã  partir de : ${clipped}`;
+}
+
+function buildTasks(params: {
+  rawInput: string;
+  interpretationBase: Omit<PierreMissionInterpretation, "tasks">;
+}): PierreMissionTaskDraft[] {
+  const { rawInput, interpretationBase } = params;
+  const lower = rawInput.toLowerCase();
+  const scheduledFor = detectScheduling(rawInput);
+  const tasks: PierreMissionTaskDraft[] = [];
+
+  const requiresDraftDocument =
+    interpretationBase.classification === "offre_emploi" ||
+    interpretationBase.classification === "convocation_entretien" ||
+    interpretationBase.classification === "refus_candidat" ||
+    interpretationBase.classification === "onboarding" ||
+    interpretationBase.classification === "note_rh" ||
+    interpretationBase.classification === "courrier_rh" ||
+    interpretationBase.classification === "compte_rendu" ||
+    interpretationBase.classification === "rappel_procedure";
+
+  if (requiresDraftDocument) {
+    tasks.push({
+      type: "generate_document",
+      title: "Produire le document RH",
+      description:
+        "RÃ©diger un livrable RH premium cohÃ©rent avec la demande, la langue, le ton et le niveau de risque dÃ©tectÃ©s.",
+      status:
+        interpretationBase.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretationBase.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretationBase.approval_required,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        classification: interpretationBase.classification,
+        language: interpretationBase.language,
+        tone: interpretationBase.tone,
+      },
+    });
+  }
+
+  if (
+    lower.includes("mail") ||
+    lower.includes("email") ||
+    lower.includes("envoyer") ||
+    lower.includes("send") ||
+    interpretationBase.classification === "refus_candidat" ||
+    interpretationBase.classification === "convocation_entretien" ||
+    interpretationBase.classification === "relance_candidat" ||
+    interpretationBase.classification === "onboarding"
+  ) {
+    tasks.push({
+      type: "prepare_email",
+      title: "PrÃ©parer lâ€™email RH",
+      description:
+        "PrÃ©parer un email traÃ§able, clair et conforme au cadre RH de lâ€™entreprise.",
+      status:
+        interpretationBase.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretationBase.approval_required
+            ? "awaiting_approval"
+            : scheduledFor
+              ? "scheduled"
+              : "queued",
+      approval_required: interpretationBase.approval_required,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        language: interpretationBase.language,
+        tone: interpretationBase.tone,
+        scheduled_for: scheduledFor,
+      },
+    });
+  }
+
+  if (
+    lower.includes("pdf") ||
+    lower.includes("piece jointe") ||
+    lower.includes("piÃ¨ce jointe") ||
+    lower.includes("export")
+  ) {
+    tasks.push({
+      type: "generate_pdf",
+      title: "PrÃ©parer lâ€™export PDF",
+      description:
+        "GÃ©nÃ©rer un PDF propre Ã  partir du document ou du contenu RH finalisÃ©.",
+      status:
+        interpretationBase.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretationBase.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretationBase.approval_required,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+      },
+    });
+  }
+
+  if (
+    lower.includes("relance") ||
+    lower.includes("si pas de reponse") ||
+    lower.includes("si pas de rÃ©ponse")
+  ) {
+    tasks.push({
+      type: "schedule_follow_up",
+      title: "PrÃ©parer une relance RH",
+      description:
+        "Programmer une relance propre et traÃ§able si aucune rÃ©ponse nâ€™est obtenue.",
+      status:
+        interpretationBase.approval_required || interpretationBase.missing_info.length > 0
+          ? "awaiting_approval"
+          : "scheduled",
+      approval_required: true,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        conditional: true,
+      },
+    });
+  }
+
+  if (interpretationBase.missing_info.length > 0) {
+    tasks.push({
+      type: "request_missing_info",
+      title: "Demander les informations manquantes",
+      description:
+        "Bloquer lâ€™exÃ©cution complÃ¨te tant que les Ã©lÃ©ments indispensables ne sont pas fournis.",
+      status: "awaiting_info",
+      approval_required: false,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        missing_info: interpretationBase.missing_info,
+        questions: interpretationBase.missing_info_questions,
+      },
+    });
+  }
+
+  if (interpretationBase.refusals.length > 0) {
+    tasks.push({
+      type: "block_mission",
+      title: "Bloquer lâ€™exÃ©cution",
+      description:
+        "Bloquer la mission car la demande sort du cadre autorisÃ© ou requiert un arbitrage humain prÃ©alable.",
+      status: "blocked",
+      approval_required: true,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        refusals: interpretationBase.refusals,
+      },
+    });
+  }
+
+  if (tasks.length === 0) {
+    tasks.push({
+      type: "structure_mission",
+      title: "Structurer la mission RH",
+      description:
+        "CrÃ©er un cadre dâ€™exÃ©cution RH exploitable Ã  partir de la demande libre.",
+      status:
+        interpretationBase.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretationBase.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretationBase.approval_required,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+      },
+    });
+  }
+
+  return tasks;
+}
+
+export function interpretMission(
+  input: PierreMissionInterpretInput,
+): PierreMissionInterpretation {
+  const rawInput = input.input.trim();
+  const fullCorpus = corpus(input);
+
+  const classificationResult = classifyMission({
+    input: rawInput,
+    context: input.context || null,
+  });
+
+  const language = detectLanguage(fullCorpus);
+  const tone = detectTone(fullCorpus);
+  const riskLevel = detectRisk(fullCorpus, classificationResult.classification);
+  const approvalRequired = needsApproval(
+    fullCorpus,
+    riskLevel,
+    classificationResult.classification,
+  );
+  const missingInfo = detectMissingInfo(rawInput, classificationResult.classification);
+  const refusals = detectRefusals(
+    classificationResult.classification,
+    riskLevel,
+    fullCorpus,
+  );
+  const summary = buildSummary(
+    rawInput,
+    classificationResult.classification,
+    riskLevel,
+  );
+  const intent = detectIntent(fullCorpus);
+
+  const interpretationBase: Omit<PierreMissionInterpretation, "tasks"> = {
+    intent,
+    classification: classificationResult.classification,
+    summary,
+    language,
+    tone,
+    risk_level: riskLevel,
+    approval_required: approvalRequired,
+    missing_info: missingInfo.missing,
+    missing_info_questions: missingInfo.questions,
+    refusals,
+    confidence: classificationResult.confidence,
+    explainability: {
+      classification_reasons: classificationResult.reasons,
+      matched_signals: classificationResult.matchedSignals,
+    },
+  };
+
+  return {
+    ...interpretationBase,
+    tasks: buildTasks({
+      rawInput,
+      interpretationBase,
+    }),
+  };
+}
+
+===== FILE: src/lib/pierre/mission/missing-info.ts =====
+
+export type PierreMissingInfoInput = {
+  input: string;
+  classification?: string | null;
+  context?: string | null;
+};
+
+export type PierreMissingInfoResult = {
+  missing_info: string[];
+  missing_info_questions: string[];
+  can_produce_draft: boolean;
+  should_block_execution: boolean;
+  completeness_score: number;
+};
+
+type MissingFieldRule = {
+  key: string;
+  appliesTo: string[];
+  requiredWhen: (corpus: string, rawInput: string) => boolean;
+  isPresent: (corpus: string, rawInput: string) => boolean;
+  missingLabel: string;
+  question: string;
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function buildCorpus(input: PierreMissingInfoInput): string {
+  return normalizeText(
+    [input.input, input.context || "", input.classification || ""]
+      .filter(Boolean)
+      .join("\n"),
+  );
+}
+
+function hasEmail(value: string): boolean {
+  return /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(value);
+}
+
+function hasDate(value: string): boolean {
+  return /\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\b/.test(value);
+}
+
+function hasHour(value: string): boolean {
+  return /\b\d{1,2}h(\d{2})?\b/i.test(value);
+}
+
+function hasFullName(value: string): boolean {
+  return /\b[A-ZÃ‰ÃˆÃ€Ã‚ÃŠÃŽÃ”Ã›Ã„Ã‹ÃÃ–Ãœ][a-zÃ©Ã¨Ã Ã¢ÃªÃ®Ã´Ã»Ã¤Ã«Ã¯Ã¶Ã¼'-]+\s+[A-ZÃ‰ÃˆÃ€Ã‚ÃŠÃŽÃ”Ã›Ã„Ã‹ÃÃ–Ãœ][a-zÃ©Ã¨Ã Ã¢ÃªÃ®Ã´Ã»Ã¤Ã«Ã¯Ã¶Ã¼'-]+\b/.test(
+    value,
+  );
+}
+
+function hasJobTitle(corpus: string): boolean {
+  return (
+    corpus.includes("poste ") ||
+    corpus.includes("intitule du poste") ||
+    corpus.includes("intitulÃ© du poste") ||
+    corpus.includes("job title") ||
+    corpus.includes("role ")
+  );
+}
+
+function hasLocation(corpus: string): boolean {
+  return (
+    corpus.includes("site ") ||
+    corpus.includes("lieu ") ||
+    corpus.includes("localisation") ||
+    corpus.includes("location ")
+  );
+}
+
+function hasManager(corpus: string): boolean {
+  return (
+    corpus.includes("manager") ||
+    corpus.includes("responsable") ||
+    corpus.includes("superviseur") ||
+    corpus.includes("reporting to")
+  );
+}
+
+const RULES: MissingFieldRule[] = [
+  {
+    key: "person_name",
+    appliesTo: [
+      "convocation_entretien",
+      "refus_candidat",
+      "relance_candidat",
+      "onboarding",
+      "candidature",
+    ],
+    requiredWhen: () => true,
+    isPresent: (_corpus, rawInput) => hasFullName(rawInput),
+    missingLabel: "Nom complet de la personne concernÃ©e manquant",
+    question: "Quel est le nom complet de la personne concernÃ©e ?",
+  },
+  {
+    key: "recipient_email",
+    appliesTo: [
+      "convocation_entretien",
+      "refus_candidat",
+      "relance_candidat",
+      "onboarding",
+    ],
+    requiredWhen: () => true,
+    isPresent: (_corpus, rawInput) => hasEmail(rawInput),
+    missingLabel: "Adresse email destinataire manquante",
+    question: "Quelle est lâ€™adresse email du destinataire ?",
+  },
+  {
+    key: "interview_date",
+    appliesTo: ["convocation_entretien"],
+    requiredWhen: () => true,
+    isPresent: (_corpus, rawInput) => hasDate(rawInput),
+    missingLabel: "Date dâ€™entretien manquante",
+    question: "Quelle est la date exacte de lâ€™entretien ?",
+  },
+  {
+    key: "interview_hour",
+    appliesTo: ["convocation_entretien"],
+    requiredWhen: () => true,
+    isPresent: (_corpus, rawInput) => hasHour(rawInput),
+    missingLabel: "Horaire dâ€™entretien manquant",
+    question: "Ã€ quelle heure doit avoir lieu lâ€™entretien ?",
+  },
+  {
+    key: "job_title",
+    appliesTo: ["offre_emploi", "onboarding"],
+    requiredWhen: () => true,
+    isPresent: (corpus) => hasJobTitle(corpus),
+    missingLabel: "IntitulÃ© du poste absent ou insuffisant",
+    question: "Quel est lâ€™intitulÃ© exact du poste ?",
+  },
+  {
+    key: "location",
+    appliesTo: ["offre_emploi", "convocation_entretien", "onboarding"],
+    requiredWhen: () => true,
+    isPresent: (corpus) => hasLocation(corpus),
+    missingLabel: "Lieu ou localisation manquants",
+    question: "Quel est le lieu ou la localisation Ã  indiquer ?",
+  },
+  {
+    key: "manager",
+    appliesTo: ["onboarding"],
+    requiredWhen: () => true,
+    isPresent: (corpus) => hasManager(corpus),
+    missingLabel: "Responsable ou rÃ©fÃ©rent hiÃ©rarchique manquant",
+    question: "Quel est le nom du responsable ou du rÃ©fÃ©rent Ã  mentionner ?",
+  },
+];
+
+function isExecutionSensitive(classification: string): boolean {
+  return [
+    "convocation_entretien",
+    "refus_candidat",
+    "relance_candidat",
+    "onboarding",
+    "courrier_rh",
+    "demande_sensible",
+  ].includes(classification);
+}
+
+function canStillProduceDraft(
+  classification: string,
+  missingInfoCount: number,
+): boolean {
+  if (missingInfoCount === 0) return true;
+
+  if (classification === "offre_emploi") return true;
+  if (classification === "note_rh") return true;
+  if (classification === "rappel_procedure") return true;
+  if (classification === "compte_rendu") return true;
+
+  return missingInfoCount <= 1;
+}
+
+export function detectMissingMissionInfo(
+  input: PierreMissingInfoInput,
+): PierreMissingInfoResult {
+  const classification = normalizeText(input.classification || "mission_rh_generale");
+  const corpus = buildCorpus(input);
+  const rawInput = input.input || "";
+
+  const applicableRules = RULES.filter((rule) =>
+    rule.appliesTo.includes(classification),
+  );
+
+  const missing_info: string[] = [];
+  const missing_info_questions: string[] = [];
+
+  for (const rule of applicableRules) {
+    const required = rule.requiredWhen(corpus, rawInput);
+    if (!required) continue;
+
+    const present = rule.isPresent(corpus, rawInput);
+    if (present) continue;
+
+    missing_info.push(rule.missingLabel);
+    missing_info_questions.push(rule.question);
+  }
+
+  const uniqueMissing = [...new Set(missing_info)];
+  const uniqueQuestions = [...new Set(missing_info_questions)];
+
+  const can_produce_draft = canStillProduceDraft(
+    classification,
+    uniqueMissing.length,
+  );
+
+  const should_block_execution =
+    uniqueMissing.length > 0 &&
+    isExecutionSensitive(classification) &&
+    !can_produce_draft;
+
+  const denominator = Math.max(applicableRules.length, 1);
+  const completeness_score = Number(
+    Math.max(0, 1 - uniqueMissing.length / denominator).toFixed(2),
+  );
+
+  return {
+    missing_info: uniqueMissing,
+    missing_info_questions: uniqueQuestions,
+    can_produce_draft,
+    should_block_execution,
+    completeness_score,
+  };
+}
+
+===== FILE: src/lib/pierre/mission/risk.ts =====
+
+export type PierreMissionRiskLevel = "normal" | "sensitive" | "critical";
+
+export type PierreRiskInput = {
+  input: string;
+  classification?: string | null;
+  context?: string | null;
+};
+
+export type PierreRiskResult = {
+  risk_level: PierreMissionRiskLevel;
+  approval_required: boolean;
+  blocked: boolean;
+  reasons: string[];
+  matched_signals: string[];
+  warnings: string[];
+};
+
+type RiskRule = {
+  level: PierreMissionRiskLevel;
+  signals: string[];
+  reason: string;
+  approval_required?: boolean;
+  blocked?: boolean;
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function buildCorpus(input: PierreRiskInput): string {
+  return normalizeText(
+    [input.input, input.context || "", input.classification || ""]
+      .filter(Boolean)
+      .join("\n"),
+  );
+}
+
+const CRITICAL_RULES: RiskRule[] = [
+  {
+    level: "critical",
+    signals: [
+      "licenciement",
+      "harcelement",
+      "harcÃ¨lement",
+      "discrimination",
+      "prud'hommes",
+      "contentieux",
+      "sanction disciplinaire",
+      "rupture forcee",
+      "rupture forcÃ©e",
+    ],
+    reason:
+      "La demande contient un signal RH critique impliquant un risque juridique, disciplinaire ou rÃ©putationnel Ã©levÃ©.",
+    approval_required: true,
+    blocked: false,
+  },
+  {
+    level: "critical",
+    signals: [
+      "decide seul",
+      "dÃ©cide seul",
+      "sans validation",
+      "envoie directement sans validation",
+      "prends la decision juridique",
+      "prend la decision disciplinaire",
+    ],
+    reason:
+      "La demande cherche Ã  contourner la validation humaine sur un sujet sensible ou critique.",
+    approval_required: true,
+    blocked: true,
+  },
+];
+
+const SENSITIVE_RULES: RiskRule[] = [
+  {
+    level: "sensitive",
+    signals: [
+      "avertissement",
+      "mise a pied",
+      "mise Ã  pied",
+      "conflit",
+      "absence injustifiee",
+      "absence injustifiÃ©e",
+      "salaire",
+      "confidentiel",
+      "plainte",
+      "recadrage",
+    ],
+    reason:
+      "La demande contient un signal RH sensible nÃ©cessitant prudence, traÃ§abilitÃ© et contrÃ´le.",
+    approval_required: true,
+    blocked: false,
+  },
+  {
+    level: "sensitive",
+    signals: [
+      "refus candidat",
+      "refus de candidature",
+      "convocation entretien",
+      "onboarding",
+      "offre emploi",
+      "courrier rh",
+    ],
+    reason:
+      "La mission relÃ¨ve dâ€™un usage RH encadrÃ©, gÃ©nÃ©ralement autorisÃ© mais nÃ©cessitant une formulation soignÃ©e.",
+    approval_required: false,
+    blocked: false,
+  },
+];
+
+const CLASSIFICATION_DEFAULTS: Partial<Record<string, PierreMissionRiskLevel>> = {
+  offre_emploi: "normal",
+  convocation_entretien: "normal",
+  refus_candidat: "normal",
+  relance_candidat: "normal",
+  onboarding: "normal",
+  note_rh: "normal",
+  rappel_procedure: "normal",
+  compte_rendu: "normal",
+  courrier_rh: "sensitive",
+  demande_sensible: "sensitive",
+  hors_perimetre: "critical",
+};
+
+function scoreRuleMatches(
+  corpus: string,
+  rules: RiskRule[],
+): Array<{
+  rule: RiskRule;
+  matchedSignals: string[];
+}> {
+  return rules
+    .map((rule) => ({
+      rule,
+      matchedSignals: rule.signals.filter((signal) =>
+        corpus.includes(normalizeText(signal)),
+      ),
+    }))
+    .filter((entry) => entry.matchedSignals.length > 0);
+}
+
+export function assessMissionRisk(input: PierreRiskInput): PierreRiskResult {
+  const corpus = buildCorpus(input);
+  const classificationKey = normalizeText(input.classification || "");
+
+  const criticalMatches = scoreRuleMatches(corpus, CRITICAL_RULES);
+  const sensitiveMatches = scoreRuleMatches(corpus, SENSITIVE_RULES);
+
+  const reasons: string[] = [];
+  const matched_signals: string[] = [];
+  const warnings: string[] = [];
+
+  let risk_level: PierreMissionRiskLevel =
+    CLASSIFICATION_DEFAULTS[classificationKey] || "normal";
+  let approval_required = risk_level !== "normal";
+  let blocked = classificationKey === "hors_perimetre";
+
+  if (classificationKey === "hors_perimetre") {
+    reasons.push(
+      "La mission est classÃ©e hors pÃ©rimÃ¨tre de Pierre et doit Ãªtre bloquÃ©e ou reroutÃ©e.",
+    );
+    warnings.push(
+      "Pierre ne doit pas exÃ©cuter une demande hors pÃ©rimÃ¨tre RH contrÃ´lÃ©.",
+    );
+  }
+
+  if (sensitiveMatches.length > 0 && risk_level === "normal") {
+    risk_level = "sensitive";
+  }
+
+  if (criticalMatches.length > 0) {
+    risk_level = "critical";
+  }
+
+  for (const match of [...sensitiveMatches, ...criticalMatches]) {
+    reasons.push(match.rule.reason);
+    matched_signals.push(...match.matchedSignals);
+
+    if (match.rule.approval_required) {
+      approval_required = true;
+    }
+
+    if (match.rule.blocked) {
+      blocked = true;
+    }
+  }
+
+  if (risk_level === "critical") {
+    warnings.push(
+      "Validation humaine obligatoire avant toute action sortante ou document sensible.",
+    );
+  } else if (risk_level === "sensitive") {
+    warnings.push(
+      "Mission sensible : garder une traÃ§abilitÃ© propre et un niveau de contrÃ´le humain adaptÃ©.",
+    );
+  }
+
+  if (
+    corpus.includes("juridique") ||
+    corpus.includes("avocat") ||
+    corpus.includes("contentieux")
+  ) {
+    warnings.push(
+      "Pierre ne remplace pas un avis juridique et ne doit pas trancher seul un sujet lÃ©gal.",
+    );
+    approval_required = true;
+  }
+
+  return {
+    risk_level,
+    approval_required,
+    blocked,
+    reasons: [...new Set(reasons)],
+    matched_signals: [...new Set(matched_signals)],
+    warnings: [...new Set(warnings)],
+  };
+}
+
+===== FILE: src/lib/pierre/mission/schedule.ts =====
+
+export type PierreMissionScheduleKind =
+  | "immediate"
+  | "scheduled_today"
+  | "scheduled_specific_time"
+  | "scheduled_tomorrow"
+  | "after_validation"
+  | "conditional_follow_up"
+  | "unspecified";
+
+export type PierreMissionScheduleInput = {
+  input: string;
+  approval_required?: boolean;
+};
+
+export type PierreMissionScheduleResult = {
+  kind: PierreMissionScheduleKind;
+  scheduled_for: string | null;
+  follow_up_delay_hours: number | null;
+  requires_validation_before_execution: boolean;
+  conditional_trigger: string | null;
+  reasons: string[];
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function clampToFuture(date: Date, now: Date): Date {
+  if (date.getTime() <= now.getTime()) {
+    date.setDate(date.getDate() + 1);
+  }
+  return date;
+}
+
+function setTime(base: Date, hours: number, minutes: number): Date {
+  const next = new Date(base);
+  next.setHours(hours, minutes, 0, 0);
+  return next;
+}
+
+function parseExplicitHour(lower: string, now: Date): Date | null {
+  const hourMatch = lower.match(/\b(\d{1,2})h(\d{2})?\b/);
+  if (!hourMatch) return null;
+
+  const hours = Number(hourMatch[1]);
+  const minutes = hourMatch[2] ? Number(hourMatch[2]) : 0;
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+
+  return clampToFuture(setTime(now, hours, minutes), now);
+}
+
+function parseTomorrow(lower: string, now: Date): Date | null {
+  if (!lower.includes("demain")) return null;
+
+  const next = new Date(now);
+  next.setDate(next.getDate() + 1);
+
+  const explicitHour = parseExplicitHour(lower, next);
+  if (explicitHour) return explicitHour;
+
+  next.setHours(9, 0, 0, 0);
+  return next;
+}
+
+function parseTodayLater(lower: string, now: Date): Date | null {
+  if (
+    !lower.includes("plus tard aujourd'hui") &&
+    !lower.includes("plus tard aujourd hui") &&
+    !lower.includes("cet apres midi") &&
+    !lower.includes("cet aprÃ¨s midi") &&
+    !lower.includes("ce soir")
+  ) {
+    return null;
+  }
+
+  if (lower.includes("ce soir")) {
+    const date = new Date(now);
+    date.setHours(18, 0, 0, 0);
+    return clampToFuture(date, now);
+  }
+
+  if (lower.includes("cet apres midi") || lower.includes("cet aprÃ¨s midi")) {
+    const date = new Date(now);
+    date.setHours(15, 0, 0, 0);
+    return clampToFuture(date, now);
+  }
+
+  const date = new Date(now);
+  date.setHours(Math.max(now.getHours() + 2, 16), 0, 0, 0);
+  return clampToFuture(date, now);
+}
+
+function parseRelativeDelay(lower: string, now: Date): Date | null {
+  const minuteMatch = lower.match(/\bdans\s+(\d{1,3})\s+minutes?\b/);
+  if (minuteMatch) {
+    const minutes = Number(minuteMatch[1]);
+    if (Number.isFinite(minutes) && minutes > 0) {
+      return new Date(now.getTime() + minutes * 60_000);
+    }
+  }
+
+  const hourMatch = lower.match(/\bdans\s+(\d{1,2})\s+heures?\b/);
+  if (hourMatch) {
+    const hours = Number(hourMatch[1]);
+    if (Number.isFinite(hours) && hours > 0) {
+      return new Date(now.getTime() + hours * 3_600_000);
+    }
+  }
+
+  return null;
+}
+
+export function detectMissionSchedule(
+  input: PierreMissionScheduleInput,
+): PierreMissionScheduleResult {
+  const lower = normalizeText(input.input);
+  const now = new Date();
+  const reasons: string[] = [];
+  const requires_validation_before_execution = Boolean(input.approval_required);
+
+  const explicitTomorrow = parseTomorrow(lower, now);
+  if (explicitTomorrow) {
+    reasons.push("La demande mentionne une exÃ©cution demain.");
+    return {
+      kind: "scheduled_tomorrow",
+      scheduled_for: explicitTomorrow.toISOString(),
+      follow_up_delay_hours: null,
+      requires_validation_before_execution,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  const explicitRelative = parseRelativeDelay(lower, now);
+  if (explicitRelative) {
+    reasons.push("La demande contient un dÃ©lai relatif explicite.");
+    return {
+      kind: "scheduled_specific_time",
+      scheduled_for: explicitRelative.toISOString(),
+      follow_up_delay_hours: null,
+      requires_validation_before_execution,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  const explicitHour = parseExplicitHour(lower, now);
+  if (explicitHour) {
+    reasons.push("La demande contient un horaire explicite.");
+    return {
+      kind: "scheduled_specific_time",
+      scheduled_for: explicitHour.toISOString(),
+      follow_up_delay_hours: null,
+      requires_validation_before_execution,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  const explicitToday = parseTodayLater(lower, now);
+  if (explicitToday) {
+    reasons.push("La demande implique une exÃ©cution plus tard aujourdâ€™hui.");
+    return {
+      kind: "scheduled_today",
+      scheduled_for: explicitToday.toISOString(),
+      follow_up_delay_hours: null,
+      requires_validation_before_execution,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  if (
+    lower.includes("apres validation") ||
+    lower.includes("aprÃ¨s validation") ||
+    lower.includes("une fois valide") ||
+    lower.includes("une fois validÃ©") ||
+    lower.includes("une fois validee") ||
+    lower.includes("une fois validÃ©e")
+  ) {
+    reasons.push("La demande impose une validation prÃ©alable avant exÃ©cution.");
+    return {
+      kind: "after_validation",
+      scheduled_for: null,
+      follow_up_delay_hours: null,
+      requires_validation_before_execution: true,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  if (
+    lower.includes("si pas de reponse") ||
+    lower.includes("si pas de rÃ©ponse") ||
+    lower.includes("en l'absence de reponse") ||
+    lower.includes("en l'absence de rÃ©ponse")
+  ) {
+    let follow_up_delay_hours: number | null = 48;
+
+    const daysMatch = lower.match(/\b(\d{1,2})\s+jours?\b/);
+    if (daysMatch) {
+      const days = Number(daysMatch[1]);
+      if (Number.isFinite(days) && days > 0) {
+        follow_up_delay_hours = days * 24;
+      }
+    } else {
+      const hoursMatch = lower.match(/\b(\d{1,2})\s+heures?\b/);
+      if (hoursMatch) {
+        const hours = Number(hoursMatch[1]);
+        if (Number.isFinite(hours) && hours > 0) {
+          follow_up_delay_hours = hours;
+        }
+      }
+    }
+
+    reasons.push("La demande contient une logique conditionnelle de relance.");
+    return {
+      kind: "conditional_follow_up",
+      scheduled_for: null,
+      follow_up_delay_hours,
+      requires_validation_before_execution,
+      conditional_trigger: "no_reply_detected",
+      reasons,
+    };
+  }
+
+  if (requires_validation_before_execution) {
+    reasons.push("Aucune heure explicite, mais la validation humaine bloque lâ€™exÃ©cution immÃ©diate.");
+    return {
+      kind: "after_validation",
+      scheduled_for: null,
+      follow_up_delay_hours: null,
+      requires_validation_before_execution: true,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  reasons.push("Aucune contrainte temporelle explicite dÃ©tectÃ©e.");
+  return {
+    kind: "immediate",
+    scheduled_for: null,
+    follow_up_delay_hours: null,
+    requires_validation_before_execution: false,
+    conditional_trigger: null,
+    reasons,
+  };
+}
+
+===== FILE: src/lib/pierre/pdf/filename.ts =====
+
+import { safeString } from "@/lib/pierre/utils";
+
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+}
+
+export function buildPierrePdfFilename(input: {
+  title?: string | null;
+  fallback?: string | null;
+}) {
+  const base =
+    safeString(input.title) ||
+    safeString(input.fallback) ||
+    "document-pierre";
+
+  const slug = slugify(base) || "document-pierre";
+
+  return `${slug}.pdf`;
+}
+
+===== FILE: src/lib/pierre/pdf/generate.ts =====
+
+import type { PierreRunnableTask } from "@/lib/pierre/tasks/executors";
+import { safeString } from "@/lib/pierre/utils";
+import { buildPierrePdfFilename } from "@/lib/pierre/pdf/filename";
+import { uploadPierrePdfFile } from "@/lib/pierre/pdf/upload";
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+export async function generatePierrePdf(input: {
+  task: PierreRunnableTask;
+}) {
+  const payload = input.task.payload_json || {};
+
+  const title =
+    safeString(payload.title) ||
+    safeString(payload.document_title) ||
+    "Document Pierre";
+
+  const bodyHtml =
+    safeString(payload.body_html) ||
+    safeString(payload.document_html) ||
+    safeString(payload.generated_document_html);
+
+  const bodyText =
+    safeString(payload.body_text) ||
+    safeString(payload.document_text) ||
+    safeString(payload.generated_document_text);
+
+  if (!bodyHtml && !bodyText) {
+    throw new Error(
+      "Aucun contenu document nâ€™est disponible pour gÃ©nÃ©rer le PDF Pierre."
+    );
+  }
+
+  const rendererUrl = getEnv("PIERRE_PDF_RENDERER_URL");
+
+  if (!rendererUrl) {
+    throw new Error(
+      "PIERRE_PDF_RENDERER_URL est manquant. Le moteur PDF Pierre nâ€™est pas configurÃ©."
+    );
+  }
+
+  const filename = buildPierrePdfFilename({
+    title,
+    fallback: "document-pierre",
+  });
+
+  const response = await fetch(rendererUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(getEnv("PIERRE_PDF_RENDERER_SECRET")
+        ? {
+            "x-pierre-pdf-secret": getEnv("PIERRE_PDF_RENDERER_SECRET"),
+          }
+        : {}),
+    },
+    body: JSON.stringify({
+      title,
+      filename,
+      body_html: bodyHtml || null,
+      body_text: bodyText || null,
+    }),
+  });
+
+  const raw = await response.text();
+  const parsed = (() => {
+    try {
+      return JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      return { raw };
+    }
+  })();
+
+  if (!response.ok) {
+    throw new Error(
+      typeof parsed.error === "string"
+        ? parsed.error
+        : "Le renderer PDF Pierre a Ã©chouÃ©."
+    );
+  }
+
+  const pdfBase64 =
+    safeString(parsed.pdf_base64) ||
+    safeString(parsed.base64);
+
+  const directUrl =
+    safeString(parsed.pdf_url) ||
+    safeString(parsed.file_url) ||
+    safeString(parsed.url);
+
+  if (directUrl) {
+    return {
+      filename,
+      file_url: directUrl,
+      uploaded: true,
+      renderer_response_json: parsed,
+    };
+  }
+
+  if (!pdfBase64) {
+    throw new Error(
+      "Le renderer PDF Pierre nâ€™a renvoyÃ© ni URL, ni contenu base64."
+    );
+  }
+
+  const uploadResult = await uploadPierrePdfFile({
+    filename,
+    content_base64: pdfBase64,
+    content_type: "application/pdf",
+  });
+
+  return {
+    filename,
+    file_url: uploadResult.file_url,
+    uploaded: uploadResult.uploaded,
+    renderer_response_json: parsed,
+    upload_response_json: uploadResult.response_json,
+  };
+}
+
+===== FILE: src/lib/pierre/pdf/upload.ts =====
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+export async function uploadPierrePdfFile(input: {
+  filename: string;
+  content_base64: string;
+  content_type?: string | null;
+}) {
+  const uploadUrl = getEnv("PIERRE_FILE_UPLOAD_URL");
+
+  if (!uploadUrl) {
+    return {
+      uploaded: false,
+      file_url: null as string | null,
+      response_json: {},
+    };
+  }
+
+  const response = await fetch(uploadUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(getEnv("PIERRE_FILE_UPLOAD_SECRET")
+        ? { "x-pierre-upload-secret": getEnv("PIERRE_FILE_UPLOAD_SECRET") }
+        : {}),
+    },
+    body: JSON.stringify({
+      filename: input.filename,
+      content_base64: input.content_base64,
+      content_type: input.content_type || "application/pdf",
+    }),
+  });
+
+  const raw = await response.text();
+  const parsed = (() => {
+    try {
+      return JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      return { raw };
+    }
+  })();
+
+  if (!response.ok) {
+    throw new Error(
+      typeof parsed.error === "string"
+        ? parsed.error
+        : "Upload PDF Pierre impossible."
+    );
+  }
+
+  return {
+    uploaded: true,
+    file_url:
+      typeof parsed.file_url === "string"
+        ? parsed.file_url
+        : typeof parsed.url === "string"
+        ? parsed.url
+        : null,
+    response_json: parsed,
+  };
+}
+
+===== FILE: src/lib/pierre/queue/cron-run.ts =====
+
+import type { PierreQueuePersistenceAdapter } from "./process-task";
+import type { PierreQueueSourceAdapter } from "./process-next";
+import { runPierreWorkerBatch } from "./worker";
+
+export type PierreCronRunConfig = {
+  workerCount?: number;
+  batchSizePerWorker?: number;
+  lockMinutes?: number;
+  stopOnFirstFailure?: boolean;
+  workerIdPrefix?: string;
+};
+
+export type PierreCronRunAdapters = {
+  queueSource: PierreQueueSourceAdapter;
+  persistence: PierreQueuePersistenceAdapter;
+};
+
+export type PierreCronRunResult = {
+  startedAt: string;
+  endedAt: string;
+  workers: Array<{
+    workerId: string;
+    attempted: number;
+    completed: number;
+    failed: number;
+    idle: boolean;
+  }>;
+  totals: {
+    attempted: number;
+    completed: number;
+    failed: number;
+    idleWorkers: number;
+  };
+};
+
+function sanitizeWorkerCount(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return 1;
+  }
+  return Math.max(1, Math.min(50, Math.floor(value)));
+}
+
+export async function runPierreCronBatch(
+  config: PierreCronRunConfig,
+  adapters: PierreCronRunAdapters,
+): Promise<PierreCronRunResult> {
+  const startedAt = new Date();
+  const workerCount = sanitizeWorkerCount(config.workerCount);
+  const prefix = config.workerIdPrefix || "pierre-worker";
+  const workers: PierreCronRunResult["workers"] = [];
+
+  let attempted = 0;
+  let completed = 0;
+  let failed = 0;
+  let idleWorkers = 0;
+
+  for (let index = 0; index < workerCount; index += 1) {
+    const workerId = `${prefix}-${index + 1}`;
+
+    const result = await runPierreWorkerBatch(
+      {
+        workerId,
+        batchSize: config.batchSizePerWorker,
+        lockMinutes: config.lockMinutes,
+        stopOnFirstFailure: config.stopOnFirstFailure,
+      },
+      adapters,
+    );
+
+    workers.push({
+      workerId: result.workerId,
+      attempted: result.attempted,
+      completed: result.completed,
+      failed: result.failed,
+      idle: result.idle,
+    });
+
+    attempted += result.attempted;
+    completed += result.completed;
+    failed += result.failed;
+    if (result.idle) idleWorkers += 1;
+  }
+
+  const endedAt = new Date();
+
+  return {
+    startedAt: startedAt.toISOString(),
+    endedAt: endedAt.toISOString(),
+    workers,
+    totals: {
+      attempted,
+      completed,
+      failed,
+      idleWorkers,
+    },
+  };
+}
+
+===== FILE: src/lib/pierre/queue/process-next.ts =====
+
+import { buildPierreTaskClaimPatch, decidePierreTaskClaim } from "../tasks/claim";
+import { processPierreTask, type PierreQueuePersistenceAdapter, type PierreQueueTaskRecord } from "./process-task";
+
+export type PierreQueueSourceAdapter = {
+  fetchNextRunnableTask: (params: {
+    now: Date;
+  }) => Promise<PierreQueueTaskRecord | null>;
+};
+
+export type PierreProcessNextInput = {
+  workerId: string;
+  queueSource: PierreQueueSourceAdapter;
+  persistence: PierreQueuePersistenceAdapter;
+  now?: Date;
+  lockMinutes?: number;
+};
+
+export type PierreProcessNextResult =
+  | {
+      ok: true;
+      phase: "completed";
+      processed: true;
+      taskId: string;
+      missionId: string | null;
+      finalStatus: string;
+    }
+  | {
+      ok: false;
+      phase: "idle" | "claim_rejected" | "processing_failed";
+      processed: false;
+      taskId?: string;
+      missionId?: string | null;
+      finalStatus?: string;
+      reason: string;
+    };
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+export async function processNextPierreTask(
+  input: PierreProcessNextInput,
+): Promise<PierreProcessNextResult> {
+  const now = input.now ?? new Date();
+  const nextTask = await input.queueSource.fetchNextRunnableTask({ now });
+
+  if (!nextTask) {
+    return {
+      ok: false,
+      phase: "idle",
+      processed: false,
+      reason: "Aucune tÃ¢che exÃ©cutable nâ€™est disponible.",
+    };
+  }
+
+  const missionId = asString(nextTask.mission_id);
+
+  const claimDecision = decidePierreTaskClaim({
+    task: nextTask,
+    workerId: input.workerId,
+    now,
+    lockMinutes: input.lockMinutes,
+  });
+
+  if (!claimDecision.allowed) {
+    await input.persistence.insertTaskLog({
+      mission_id: missionId,
+      task_id: nextTask.id,
+      level: "warning",
+      event: "task_claim_rejected",
+      message: claimDecision.reason,
+      payload: {
+        conflict_code: claimDecision.conflict_code,
+      },
+    });
+
+    return {
+      ok: false,
+      phase: "claim_rejected",
+      processed: false,
+      taskId: nextTask.id,
+      missionId,
+      finalStatus: claimDecision.next_status,
+      reason: claimDecision.reason,
+    };
+  }
+
+  const claimPatch = buildPierreTaskClaimPatch({
+    task: nextTask,
+    workerId: input.workerId,
+    now,
+    lockMinutes: input.lockMinutes,
+  });
+
+  await input.persistence.updateTask(nextTask.id, claimPatch.patch);
+
+  await input.persistence.insertTaskLog({
+    mission_id: missionId,
+    task_id: nextTask.id,
+    level: "info",
+    event: "task_claimed",
+    message: claimPatch.reason,
+    payload: {
+      worker_id: input.workerId,
+    },
+  });
+
+  const processed = await processPierreTask({
+    task: {
+      ...nextTask,
+      ...claimPatch.patch,
+    },
+    workerId: input.workerId,
+    persistence: input.persistence,
+    now,
+  });
+
+  if (processed.ok) {
+    return {
+      ok: true,
+      phase: "completed",
+      processed: true,
+      taskId: processed.taskId,
+      missionId: processed.missionId,
+      finalStatus: processed.finalStatus,
+    };
+  }
+
+  return {
+    ok: false,
+    phase: "processing_failed",
+    processed: false,
+    taskId: processed.taskId,
+    missionId: processed.missionId,
+    finalStatus: processed.finalStatus,
+    reason: processed.reason,
+  };
+}
+
+===== FILE: src/lib/pierre/queue/process-task.ts =====
+
+import { buildPierreTaskRunPatch, decidePierreTaskRun } from "../tasks/run";
+import { executePierreTask, type PierreExecutorTask } from "../tasks/executors";
+import { buildPierreTaskReleasePatch } from "../tasks/release";
+import { buildPierreTaskRetryPatch } from "../tasks/retry";
+
+export type PierreQueueTaskRecord = {
+  id: string;
+  mission_id?: string | null;
+  type?: string | null;
+  title?: string | null;
+  description?: string | null;
+  status?: string | null;
+  payload?: unknown;
+  result?: unknown;
+  claimed_by?: string | null;
+  claimed_at?: string | null;
+  locked_until?: string | null;
+  scheduled_for?: string | null;
+  approval_required?: boolean | null;
+  retry_count?: number | null;
+  max_retries?: number | null;
+  error_message?: string | null;
+  blocked_reason?: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  updated_at?: string | null;
+  created_at?: string | null;
+  [key: string]: unknown;
+};
+
+export type PierreQueuePersistenceAdapter = {
+  updateTask: (
+    taskId: string,
+    patch: Record<string, unknown>,
+  ) => Promise<void>;
+  insertTaskLog: (entry: {
+    mission_id?: string | null;
+    task_id?: string | null;
+    level: "info" | "warning" | "error";
+    event: string;
+    message: string;
+    payload?: Record<string, unknown> | null;
+  }) => Promise<void>;
+};
+
+export type PierreProcessTaskInput = {
+  task: PierreQueueTaskRecord;
+  workerId: string;
+  persistence: PierreQueuePersistenceAdapter;
+  now?: Date;
+};
+
+export type PierreProcessTaskResult =
+  | {
+      ok: true;
+      phase: "completed";
+      taskId: string;
+      missionId: string | null;
+      finalStatus: "completed";
+      result: Record<string, unknown>;
+    }
+  | {
+      ok: false;
+      phase:
+        | "run_rejected"
+        | "executor_failed"
+        | "retry_scheduled"
+        | "released"
+        | "process_error";
+      taskId: string;
+      missionId: string | null;
+      finalStatus: string;
+      reason: string;
+      errorCode?: string;
+    };
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+async function safeInsertLog(
+  persistence: PierreQueuePersistenceAdapter,
+  entry: {
+    mission_id?: string | null;
+    task_id?: string | null;
+    level: "info" | "warning" | "error";
+    event: string;
+    message: string;
+    payload?: Record<string, unknown> | null;
+  },
+) {
+  await persistence.insertTaskLog(entry);
+}
+
+export async function processPierreTask(
+  input: PierreProcessTaskInput,
+): Promise<PierreProcessTaskResult> {
+  const now = input.now ?? new Date();
+  const task = input.task;
+  const taskId = task.id;
+  const missionId = asString(task.mission_id);
+
+  try {
+    const runDecision = decidePierreTaskRun({
+      task,
+      now,
+    });
+
+    if (!runDecision.allowed) {
+      await safeInsertLog(input.persistence, {
+        mission_id: missionId,
+        task_id: taskId,
+        level:
+          runDecision.run_code === "TERMINAL_STATUS" ? "info" : "warning",
+        event: "task_run_rejected",
+        message: runDecision.reason,
+        payload: {
+          run_code: runDecision.run_code,
+          next_status: runDecision.next_status,
+        },
+      });
+
+      return {
+        ok: false,
+        phase: "run_rejected",
+        taskId,
+        missionId,
+        finalStatus: runDecision.next_status,
+        reason: runDecision.reason,
+        errorCode: runDecision.run_code,
+      };
+    }
+
+    const runPatch = buildPierreTaskRunPatch({
+      task,
+      now,
+    });
+
+    await input.persistence.updateTask(taskId, runPatch.patch);
+
+    await safeInsertLog(input.persistence, {
+      mission_id: missionId,
+      task_id: taskId,
+      level: "info",
+      event: "task_run_started",
+      message: runPatch.reason,
+      payload: {
+        worker_id: input.workerId,
+      },
+    });
+
+    const executorTask: PierreExecutorTask = {
+      ...task,
+      status: "running",
+      started_at: now.toISOString(),
+      claimed_by: input.workerId,
+    };
+
+    const outcome = await executePierreTask(executorTask, { now });
+
+    if (outcome.ok) {
+      await input.persistence.updateTask(taskId, {
+        status: "completed",
+        result: outcome.result,
+        error_message: null,
+        blocked_reason: null,
+        locked_until: null,
+        claimed_at: null,
+        claimed_by: null,
+        completed_at: now.toISOString(),
+        updated_at: now.toISOString(),
+      });
+
+      await safeInsertLog(input.persistence, {
+        mission_id: missionId,
+        task_id: taskId,
+        level: outcome.log.level,
+        event: outcome.log.event,
+        message: outcome.log.message,
+        payload: outcome.log.payload || null,
+      });
+
+      return {
+        ok: true,
+        phase: "completed",
+        taskId,
+        missionId,
+        finalStatus: "completed",
+        result: outcome.result,
+      };
+    }
+
+    await safeInsertLog(input.persistence, {
+      mission_id: missionId,
+      task_id: taskId,
+      level: outcome.log.level,
+      event: outcome.log.event,
+      message: outcome.log.message,
+      payload: outcome.log.payload || null,
+    });
+
+    if (
+      outcome.status === "awaiting_info" ||
+      outcome.status === "awaiting_approval" ||
+      outcome.status === "blocked"
+    ) {
+      const releasePatch = buildPierreTaskReleasePatch({
+        task: {
+          ...task,
+          status: "running",
+          claimed_by: input.workerId,
+          claimed_at: now.toISOString(),
+        },
+        workerId: input.workerId,
+        now,
+        mode: "unlock_only",
+        force: true,
+      });
+
+      await input.persistence.updateTask(taskId, {
+        ...releasePatch.patch,
+        status: outcome.status,
+        error_message:
+          outcome.status === "blocked" ? outcome.message : null,
+        blocked_reason:
+          outcome.status === "blocked" ? outcome.message : null,
+        updated_at: now.toISOString(),
+      });
+
+      return {
+        ok: false,
+        phase: "released",
+        taskId,
+        missionId,
+        finalStatus: outcome.status,
+        reason: outcome.message,
+        errorCode: outcome.error_code,
+      };
+    }
+
+    const retryPatch = buildPierreTaskRetryPatch({
+      task: {
+        ...task,
+        status: "failed",
+      },
+      now,
+    });
+
+    if (!retryPatch.allowed) {
+      await input.persistence.updateTask(taskId, {
+        status: "failed",
+        error_message: outcome.message,
+        locked_until: null,
+        claimed_at: null,
+        claimed_by: null,
+        updated_at: now.toISOString(),
+      });
+
+      return {
+        ok: false,
+        phase: "executor_failed",
+        taskId,
+        missionId,
+        finalStatus: "failed",
+        reason: outcome.message,
+        errorCode: outcome.error_code,
+      };
+    }
+
+    await input.persistence.updateTask(taskId, {
+      ...retryPatch.patch,
+      error_message: outcome.message,
+      updated_at: now.toISOString(),
+    });
+
+    await safeInsertLog(input.persistence, {
+      mission_id: missionId,
+      task_id: taskId,
+      level: "warning",
+      event: "task_retry_scheduled",
+      message: retryPatch.reason,
+      payload: {
+        error_code: outcome.error_code,
+        failure_message: outcome.message,
+      },
+    });
+
+    return {
+      ok: false,
+      phase: "retry_scheduled",
+      taskId,
+      missionId,
+      finalStatus: "scheduled",
+      reason: retryPatch.reason,
+      errorCode: outcome.error_code,
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Task processing failed.";
+
+    await safeInsertLog(input.persistence, {
+      mission_id: missionId,
+      task_id: taskId,
+      level: "error",
+      event: "task_process_error",
+      message,
+      payload: null,
+    });
+
+    await input.persistence.updateTask(taskId, {
+      status: "failed",
+      error_message: message,
+      locked_until: null,
+      claimed_at: null,
+      claimed_by: null,
+      updated_at: now.toISOString(),
+    });
+
+    return {
+      ok: false,
+      phase: "process_error",
+      taskId,
+      missionId,
+      finalStatus: "failed",
+      reason: message,
+      errorCode: "PROCESS_TASK_ERROR",
+    };
+  }
+}
+
+===== FILE: src/lib/pierre/queue/worker.ts =====
+
+import type { PierreQueuePersistenceAdapter, PierreQueueTaskRecord } from "./process-task";
+import type { PierreQueueSourceAdapter } from "./process-next";
+import { processNextPierreTask } from "./process-next";
+
+export type PierreWorkerConfig = {
+  workerId: string;
+  lockMinutes?: number;
+  batchSize?: number;
+  stopOnFirstFailure?: boolean;
+};
+
+export type PierreWorkerAdapters = {
+  queueSource: PierreQueueSourceAdapter;
+  persistence: PierreQueuePersistenceAdapter;
+};
+
+export type PierreWorkerRunResult = {
+  workerId: string;
+  startedAt: string;
+  endedAt: string;
+  attempted: number;
+  completed: number;
+  failed: number;
+  idle: boolean;
+  items: Array<{
+    ok: boolean;
+    taskId?: string;
+    missionId?: string | null;
+    phase: string;
+    finalStatus?: string;
+    reason?: string;
+  }>;
+};
+
+function sanitizeBatchSize(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return 5;
+  }
+  return Math.max(1, Math.min(100, Math.floor(value)));
+}
+
+export async function runPierreWorkerBatch(
+  config: PierreWorkerConfig,
+  adapters: PierreWorkerAdapters,
+): Promise<PierreWorkerRunResult> {
+  const startedAt = new Date();
+  const batchSize = sanitizeBatchSize(config.batchSize);
+  const items: PierreWorkerRunResult["items"] = [];
+
+  let attempted = 0;
+  let completed = 0;
+  let failed = 0;
+  let idle = false;
+
+  for (let index = 0; index < batchSize; index += 1) {
+    attempted += 1;
+
+    const result = await processNextPierreTask({
+      workerId: config.workerId,
+      queueSource: adapters.queueSource,
+      persistence: adapters.persistence,
+      now: new Date(),
+      lockMinutes: config.lockMinutes,
+    });
+
+    items.push({
+      ok: result.ok,
+      taskId: result.taskId,
+      missionId: result.missionId,
+      phase: result.phase,
+      finalStatus: result.finalStatus,
+      reason: "reason" in result ? result.reason : undefined,
+    });
+
+    if (result.phase === "idle") {
+      idle = true;
+      break;
+    }
+
+    if (result.ok) {
+      completed += 1;
+    } else {
+      failed += 1;
+      if (config.stopOnFirstFailure) {
+        break;
+      }
+    }
+  }
+
+  const endedAt = new Date();
+
+  return {
+    workerId: config.workerId,
+    startedAt: startedAt.toISOString(),
+    endedAt: endedAt.toISOString(),
+    attempted,
+    completed,
+    failed,
+    idle,
+    items,
+  };
+}
+
+===== FILE: src/lib/pierre/requiredFields.ts =====
+
+import { PierreDocType } from "./docTypes";
+
+export const requiredFieldsByDocType = {
+  [PierreDocType.CANDIDATE_EMAIL_REJECTION]: [
+    "candidate_name",
+    "job_title"
+  ],
+  [PierreDocType.CANDIDATE_EMAIL_INVITE]: [
+    "candidate_name",
+    "job_title",
+    "interview_date",
+    "interview_time",
+    "interview_location"
+  ],
+  [PierreDocType.CANDIDATE_EMAIL_FOLLOWUP]: [
+    "candidate_name",
+    "job_title"
+  ],
+  [PierreDocType.CANDIDATE_EMAIL_ONBOARDING]: [
+    "candidate_name",
+    "job_title",
+    "start_date"
+  ],
+};
+
+===== FILE: src/lib/pierre/schema.ts =====
+
+// src/lib/pierre/schema.ts
+
+import { z } from "zod";
+import {
+  PierreDocType,
+  PierreTone,
+  PIERRE_SCHEMA_VERSION,
+  PIERRE_DEFAULT_LANGUAGE,
+} from "./docTypes";
+
+/**
+ * Questions manquantes (format stable, exploitable UI + logique)
+ */
+export const MissingInfoQuestionSchema = z
+  .object({
+    id: z.string().min(1),
+    question: z.string().min(1),
+    priority: z.enum(["high", "medium", "low"]),
+    expected_format: z.enum(["text", "number", "date", "email", "phone", "choice"]),
+    choices: z.array(z.string().min(1)).optional(),
+  })
+  .strict();
+
+export type MissingInfoQuestion = z.infer<typeof MissingInfoQuestionSchema>;
+
+/**
+ * Flags sÃ©curitÃ©
+ */
+export const SafetyFlagsSchema = z
+  .object({
+    legal_risk: z.boolean(),
+    discrimination_risk: z.boolean(),
+    pii_risk: z.boolean(),
+  })
+  .strict();
+
+export type SafetyFlags = z.infer<typeof SafetyFlagsSchema>;
+
+/**
+ * Action (pour Make). IMPORTANT : pas de z.record ici.
+ * On accepte un objet libre avec n'importe quelles clÃ©s, valeurs unknown.
+ */
+const LooseObjectSchema = z.object({}).catchall(z.unknown());
+
+export const PierreActionSchema = z
+  .object({
+    type: z.enum(["doc.generate", "email.send"]),
+    payload: LooseObjectSchema.optional(),
+  })
+  .strict();
+
+export type PierreAction = z.infer<typeof PierreActionSchema>;
+
+/**
+ * RÃ©ponse finale du Brain (contrat produit)
+ */
+export const PierreBrainResponseSchema = z
+  .object({
+    schema_version: z.literal(PIERRE_SCHEMA_VERSION),
+
+    doc_type: z.nativeEnum(PierreDocType),
+    doc_title: z.string().min(1),
+
+    tone_used: z.nativeEnum(PierreTone),
+    language: z.string().min(2).default(PIERRE_DEFAULT_LANGUAGE),
+
+    // HTML final copiable
+    final_text_html: z.string(),
+
+    // Questions si infos manquantes
+    missing_info_questions: z.array(MissingInfoQuestionSchema),
+
+    // 0..1
+    confidence_score: z.number().min(0).max(1),
+
+    safety_flags: SafetyFlagsSchema,
+
+    // Actions recommandÃ©es (Make)
+    actions: z.array(PierreActionSchema).default([]),
+  })
+  .strict();
+
+export type PierreBrainResponse = z.infer<typeof PierreBrainResponseSchema>;
+
+
+===== FILE: src/lib/pierre/tasks/claim.ts =====
+
+import {
+  canPierreTaskRunNow,
+  normalizePierreTaskStatus,
+  type PierreTaskStatus,
+} from "./status";
+
+export type PierreClaimableTask = {
+  id: string;
+  status?: string | null;
+  scheduled_for?: string | null;
+  claimed_at?: string | null;
+  claimed_by?: string | null;
+  locked_until?: string | null;
+  approval_required?: boolean | null;
+  retry_count?: number | null;
+  mission_id?: string | null;
+  task_group_key?: string | null;
+  [key: string]: unknown;
+};
+
+export type PierreTaskClaimInput = {
+  task: PierreClaimableTask;
+  workerId: string;
+  now?: Date;
+  lockMinutes?: number;
+  force?: boolean;
+};
+
+export type PierreTaskClaimDecision = {
+  allowed: boolean;
+  next_status: PierreTaskStatus;
+  claimed_at: string | null;
+  claimed_by: string | null;
+  locked_until: string | null;
+  reason: string;
+  conflict_code:
+    | "NONE"
+    | "MISSING_WORKER_ID"
+    | "ALREADY_LOCKED"
+    | "AWAITING_APPROVAL"
+    | "SCHEDULED_FUTURE"
+    | "INVALID_STATUS";
+};
+
+function asBoolean(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
+}
+
+function asNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+function toDate(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function isFutureDate(value: string | null | undefined, now: Date): boolean {
+  const date = toDate(value);
+  return Boolean(date && date.getTime() > now.getTime());
+}
+
+function sanitizeLockMinutes(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return 10;
+  }
+  return Math.max(1, Math.min(60, Math.floor(value)));
+}
+
+function buildLockUntil(now: Date, lockMinutes: number): string {
+  return new Date(now.getTime() + lockMinutes * 60_000).toISOString();
+}
+
+function isSameWorker(current: string | null, candidate: string): boolean {
+  return Boolean(current && current === candidate);
+}
+
+function isLockStillActive(task: PierreClaimableTask, now: Date): boolean {
+  return isFutureDate(asString(task.locked_until), now);
+}
+
+function hasOpenLockFromAnotherWorker(
+  task: PierreClaimableTask,
+  workerId: string,
+  now: Date,
+): boolean {
+  const claimedBy = asString(task.claimed_by);
+  if (!claimedBy) return false;
+  if (isSameWorker(claimedBy, workerId)) return false;
+  return isLockStillActive(task, now);
+}
+
+export function decidePierreTaskClaim(
+  input: PierreTaskClaimInput,
+): PierreTaskClaimDecision {
+  const now = input.now ?? new Date();
+  const task = input.task;
+  const normalizedStatus = normalizePierreTaskStatus(task.status);
+  const workerId = input.workerId.trim();
+  const claimedAt = asString(task.claimed_at);
+  const claimedBy = asString(task.claimed_by);
+  const lockedUntil = asString(task.locked_until);
+  const scheduledFor = asString(task.scheduled_for);
+  const lockMinutes = sanitizeLockMinutes(input.lockMinutes);
+
+  if (!workerId) {
+    return {
+      allowed: false,
+      next_status: normalizedStatus,
+      claimed_at: claimedAt,
+      claimed_by: claimedBy,
+      locked_until: lockedUntil,
+      reason: "Le workerId est requis pour claim une tÃ¢che.",
+      conflict_code: "MISSING_WORKER_ID",
+    };
+  }
+
+  if (!input.force && hasOpenLockFromAnotherWorker(task, workerId, now)) {
+    return {
+      allowed: false,
+      next_status: normalizedStatus,
+      claimed_at: claimedAt,
+      claimed_by: claimedBy,
+      locked_until: lockedUntil,
+      reason: "La tÃ¢che est dÃ©jÃ  verrouillÃ©e par un autre worker.",
+      conflict_code: "ALREADY_LOCKED",
+    };
+  }
+
+  if (!input.force && asBoolean(task.approval_required) === true) {
+    return {
+      allowed: false,
+      next_status: "awaiting_approval",
+      claimed_at: claimedAt,
+      claimed_by: claimedBy,
+      locked_until: lockedUntil,
+      reason: "La tÃ¢che nÃ©cessite une validation humaine avant claim/exÃ©cution.",
+      conflict_code: "AWAITING_APPROVAL",
+    };
+  }
+
+  if (!input.force && isFutureDate(scheduledFor, now)) {
+    return {
+      allowed: false,
+      next_status: "scheduled",
+      claimed_at: claimedAt,
+      claimed_by: claimedBy,
+      locked_until: lockedUntil,
+      reason: "La tÃ¢che est planifiÃ©e dans le futur et ne doit pas Ãªtre claimÃ©e maintenant.",
+      conflict_code: "SCHEDULED_FUTURE",
+    };
+  }
+
+  const retryCount = asNumber(task.retry_count) ?? 0;
+  const canRunNow = canPierreTaskRunNow(task.status);
+
+  if (
+    !input.force &&
+    !canRunNow &&
+    normalizedStatus !== "scheduled" &&
+    normalizedStatus !== "running"
+  ) {
+    return {
+      allowed: false,
+      next_status: normalizedStatus,
+      claimed_at: claimedAt,
+      claimed_by: claimedBy,
+      locked_until: lockedUntil,
+      reason: `Le statut courant (${normalizedStatus}) nâ€™autorise pas un claim immÃ©diat.`,
+      conflict_code: "INVALID_STATUS",
+    };
+  }
+
+  const nextClaimedAt = now.toISOString();
+  const nextLockedUntil = buildLockUntil(now, lockMinutes);
+
+  return {
+    allowed: true,
+    next_status: "running",
+    claimed_at: nextClaimedAt,
+    claimed_by: workerId,
+    locked_until: nextLockedUntil,
+    reason:
+      retryCount > 0
+        ? `La tÃ¢che a Ã©tÃ© reclaimÃ©e pour exÃ©cution (tentative ${retryCount + 1}).`
+        : "La tÃ¢che a Ã©tÃ© claimÃ©e avec succÃ¨s pour exÃ©cution.",
+    conflict_code: "NONE",
+  };
+}
+
+export function buildPierreTaskClaimPatch(
+  input: PierreTaskClaimInput,
+): {
+  allowed: boolean;
+  patch: Record<string, unknown>;
+  reason: string;
+  conflict_code: PierreTaskClaimDecision["conflict_code"];
+} {
+  const now = input.now ?? new Date();
+  const decision = decidePierreTaskClaim(input);
+
+  if (!decision.allowed) {
+    return {
+      allowed: false,
+      patch: {
+        status: decision.next_status,
+      },
+      reason: decision.reason,
+      conflict_code: decision.conflict_code,
+    };
+  }
+
+  return {
+    allowed: true,
+    patch: {
+      status: decision.next_status,
+      claimed_at: decision.claimed_at,
+      claimed_by: decision.claimed_by,
+      locked_until: decision.locked_until,
+      started_at: now.toISOString(),
+      updated_at: now.toISOString(),
+    },
+    reason: decision.reason,
+    conflict_code: decision.conflict_code,
+  };
+}
+
+export function shouldPierreTaskBeReclaimed(
+  task: PierreClaimableTask,
+  now: Date = new Date(),
+): boolean {
+  const status = normalizePierreTaskStatus(task.status);
+  if (status !== "running") return false;
+
+  const lockedUntil = toDate(asString(task.locked_until));
+  if (!lockedUntil) return true;
+
+  return lockedUntil.getTime() <= now.getTime();
+}
+
+===== FILE: src/lib/pierre/tasks/create.ts =====
+
+export type PierreTaskCreateInput = {
+  missionId: string;
+  type: string;
+  title: string;
+  description: string;
+  status?:
+    | "pending"
+    | "queued"
+    | "scheduled"
+    | "awaiting_info"
+    | "awaiting_approval"
+    | "blocked";
+  riskLevel?: "normal" | "sensitive" | "critical";
+  approvalRequired?: boolean;
+  scheduledFor?: string | null;
+  payload?: Record<string, unknown> | null;
+  maxRetries?: number;
+  taskGroupKey?: string | null;
+};
+
+export type PierreTaskInsertRow = {
+  mission_id: string;
+  type: string;
+  title: string;
+  description: string;
+  status: string;
+  risk_level: string;
+  approval_required: boolean;
+  scheduled_for: string | null;
+  payload: Record<string, unknown> | null;
+  retry_count: number;
+  max_retries: number;
+  task_group_key: string | null;
+};
+
+function sanitizeStatus(
+  value: PierreTaskCreateInput["status"] | undefined,
+): PierreTaskInsertRow["status"] {
+  return value || "queued";
+}
+
+function sanitizeRiskLevel(
+  value: PierreTaskCreateInput["riskLevel"] | undefined,
+): PierreTaskInsertRow["risk_level"] {
+  return value || "normal";
+}
+
+function sanitizeMaxRetries(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return 3;
+  }
+  return Math.max(0, Math.min(20, Math.floor(value)));
+}
+
+export function buildPierreTaskInsertRow(
+  input: PierreTaskCreateInput,
+): PierreTaskInsertRow {
+  return {
+    mission_id: input.missionId,
+    type: input.type,
+    title: input.title,
+    description: input.description,
+    status: sanitizeStatus(input.status),
+    risk_level: sanitizeRiskLevel(input.riskLevel),
+    approval_required: Boolean(input.approvalRequired),
+    scheduled_for: input.scheduledFor || null,
+    payload: input.payload || null,
+    retry_count: 0,
+    max_retries: sanitizeMaxRetries(input.maxRetries),
+    task_group_key: input.taskGroupKey || null,
+  };
+}
+
+export function buildPierreTaskInsertRows(
+  inputs: PierreTaskCreateInput[],
+): PierreTaskInsertRow[] {
+  return inputs.map(buildPierreTaskInsertRow);
+}
+
+===== FILE: src/lib/pierre/tasks/executors.ts =====
+
+import { normalizePierreTaskStatus } from "./status";
+
+export type PierreExecutorTask = {
+  id: string;
+  type?: string | null;
+  title?: string | null;
+  description?: string | null;
+  status?: string | null;
+  mission_id?: string | null;
+  payload?: unknown;
+  result?: unknown;
+  [key: string]: unknown;
+};
+
+export type PierreExecutorContext = {
+  now?: Date;
+};
+
+export type PierreExecutorSuccess = {
+  ok: true;
+  status: "completed";
+  result: Record<string, unknown>;
+  log: {
+    level: "info";
+    event: string;
+    message: string;
+    payload?: Record<string, unknown>;
+  };
+};
+
+export type PierreExecutorFailure = {
+  ok: false;
+  status: "failed" | "blocked" | "awaiting_info" | "awaiting_approval";
+  error_code:
+    | "UNSUPPORTED_TASK"
+    | "MISSING_PAYLOAD"
+    | "MISSING_INFO"
+    | "APPROVAL_REQUIRED"
+    | "EXECUTION_ERROR";
+  message: string;
+  log: {
+    level: "error" | "warning";
+    event: string;
+    message: string;
+    payload?: Record<string, unknown>;
+  };
+};
+
+export type PierreExecutorOutcome =
+  | PierreExecutorSuccess
+  | PierreExecutorFailure;
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+function missingInfoFromPayload(payload: unknown): string[] {
+  if (!isObject(payload)) return [];
+  const missingInfo = payload.missing_info;
+  if (!Array.isArray(missingInfo)) return [];
+  return missingInfo.filter(
+    (item): item is string => typeof item === "string" && item.trim().length > 0,
+  );
+}
+
+function hasApprovalRequired(payload: unknown): boolean {
+  if (!isObject(payload)) return false;
+  return payload.approval_required === true;
+}
+
+function buildSuccess(
+  event: string,
+  message: string,
+  result: Record<string, unknown>,
+): PierreExecutorSuccess {
+  return {
+    ok: true,
+    status: "completed",
+    result,
+    log: {
+      level: "info",
+      event,
+      message,
+      payload: result,
+    },
+  };
+}
+
+function buildFailure(params: {
+  status: PierreExecutorFailure["status"];
+  error_code: PierreExecutorFailure["error_code"];
+  event: string;
+  level: PierreExecutorFailure["log"]["level"];
+  message: string;
+  payload?: Record<string, unknown>;
+}): PierreExecutorFailure {
+  return {
+    ok: false,
+    status: params.status,
+    error_code: params.error_code,
+    message: params.message,
+    log: {
+      level: params.level,
+      event: params.event,
+      message: params.message,
+      payload: params.payload,
+    },
+  };
+}
+
+function executeGenerateDocument(
+  task: PierreExecutorTask,
+  context: PierreExecutorContext,
+): PierreExecutorOutcome {
+  const payload = isObject(task.payload) ? task.payload : null;
+  const missingInfo = missingInfoFromPayload(payload);
+
+  if (missingInfo.length > 0) {
+    return buildFailure({
+      status: "awaiting_info",
+      error_code: "MISSING_INFO",
+      event: "document_generation_waiting_info",
+      level: "warning",
+      message: "Impossible de gÃ©nÃ©rer le document sans les informations manquantes.",
+      payload: { missing_info: missingInfo },
+    });
+  }
+
+  return buildSuccess(
+    "document_generated",
+    "Le document RH a Ã©tÃ© gÃ©nÃ©rÃ© avec succÃ¨s.",
+    {
+      generated_document: true,
+      task_id: task.id,
+      generated_at: (context.now ?? new Date()).toISOString(),
+    },
+  );
+}
+
+function executePrepareEmail(
+  task: PierreExecutorTask,
+  context: PierreExecutorContext,
+): PierreExecutorOutcome {
+  const payload = isObject(task.payload) ? task.payload : null;
+  const missingInfo = missingInfoFromPayload(payload);
+
+  if (missingInfo.length > 0) {
+    return buildFailure({
+      status: "awaiting_info",
+      error_code: "MISSING_INFO",
+      event: "email_preparation_waiting_info",
+      level: "warning",
+      message: "Impossible de prÃ©parer lâ€™email tant que certaines informations manquent.",
+      payload: { missing_info: missingInfo },
+    });
+  }
+
+  if (hasApprovalRequired(payload)) {
+    return buildFailure({
+      status: "awaiting_approval",
+      error_code: "APPROVAL_REQUIRED",
+      event: "email_preparation_waiting_approval",
+      level: "warning",
+      message: "La prÃ©paration de lâ€™email exige une validation humaine prÃ©alable.",
+    });
+  }
+
+  return buildSuccess(
+    "email_prepared",
+    "Lâ€™email RH a Ã©tÃ© prÃ©parÃ© avec succÃ¨s.",
+    {
+      prepared_email: true,
+      task_id: task.id,
+      generated_at: (context.now ?? new Date()).toISOString(),
+    },
+  );
+}
+
+function executeGeneratePdf(
+  task: PierreExecutorTask,
+  context: PierreExecutorContext,
+): PierreExecutorOutcome {
+  const payload = isObject(task.payload) ? task.payload : null;
+  const missingInfo = missingInfoFromPayload(payload);
+
+  if (missingInfo.length > 0) {
+    return buildFailure({
+      status: "awaiting_info",
+      error_code: "MISSING_INFO",
+      event: "pdf_generation_waiting_info",
+      level: "warning",
+      message: "Impossible de gÃ©nÃ©rer le PDF sans les informations nÃ©cessaires.",
+      payload: { missing_info: missingInfo },
+    });
+  }
+
+  return buildSuccess(
+    "pdf_generated",
+    "Le PDF a Ã©tÃ© gÃ©nÃ©rÃ© avec succÃ¨s.",
+    {
+      generated_pdf: true,
+      task_id: task.id,
+      generated_at: (context.now ?? new Date()).toISOString(),
+    },
+  );
+}
+
+function executeScheduleFollowUp(
+  task: PierreExecutorTask,
+  context: PierreExecutorContext,
+): PierreExecutorOutcome {
+  return buildSuccess(
+    "follow_up_scheduled",
+    "La relance a Ã©tÃ© planifiÃ©e avec succÃ¨s.",
+    {
+      scheduled_follow_up: true,
+      task_id: task.id,
+      generated_at: (context.now ?? new Date()).toISOString(),
+      scheduled_for: asString(task.scheduled_for),
+    },
+  );
+}
+
+function executeRequestMissingInfo(task: PierreExecutorTask): PierreExecutorOutcome {
+  const payload = isObject(task.payload) ? task.payload : null;
+  const missingInfo = missingInfoFromPayload(payload);
+
+  return buildFailure({
+    status: "awaiting_info",
+    error_code: "MISSING_INFO",
+    event: "request_missing_info",
+    level: "warning",
+    message:
+      missingInfo.length > 0
+        ? "La tÃ¢che reste en attente des informations manquantes."
+        : "La tÃ¢che attend des clarifications supplÃ©mentaires.",
+    payload: {
+      missing_info: missingInfo,
+    },
+  });
+}
+
+function executeBlockMission(task: PierreExecutorTask): PierreExecutorOutcome {
+  return buildFailure({
+    status: "blocked",
+    error_code: "EXECUTION_ERROR",
+    event: "mission_blocked",
+    level: "warning",
+    message: "La mission est bloquÃ©e et nÃ©cessite un arbitrage humain.",
+    payload: {
+      task_id: task.id,
+    },
+  });
+}
+
+function executeStructureMission(
+  task: PierreExecutorTask,
+  context: PierreExecutorContext,
+): PierreExecutorOutcome {
+  return buildSuccess(
+    "mission_structured",
+    "La mission RH a Ã©tÃ© structurÃ©e avec succÃ¨s.",
+    {
+      structured_mission: true,
+      task_id: task.id,
+      generated_at: (context.now ?? new Date()).toISOString(),
+    },
+  );
+}
+
+export async function executePierreTask(
+  task: PierreExecutorTask,
+  context: PierreExecutorContext = {},
+): Promise<PierreExecutorOutcome> {
+  const normalizedStatus = normalizePierreTaskStatus(task.status);
+
+  if (normalizedStatus !== "running" && normalizedStatus !== "queued" && normalizedStatus !== "pending") {
+    return buildFailure({
+      status: "blocked",
+      error_code: "EXECUTION_ERROR",
+      event: "executor_invalid_status",
+      level: "warning",
+      message: `La tÃ¢che ne peut pas Ãªtre exÃ©cutÃ©e depuis le statut ${normalizedStatus}.`,
+      payload: {
+        status: normalizedStatus,
+      },
+    });
+  }
+
+  if (!task.type) {
+    return buildFailure({
+      status: "failed",
+      error_code: "UNSUPPORTED_TASK",
+      event: "executor_missing_task_type",
+      level: "error",
+      message: "Le type de tÃ¢che est manquant.",
+    });
+  }
+
+  switch (task.type) {
+    case "generate_document":
+      return executeGenerateDocument(task, context);
+
+    case "prepare_email":
+      return executePrepareEmail(task, context);
+
+    case "generate_pdf":
+      return executeGeneratePdf(task, context);
+
+    case "schedule_follow_up":
+      return executeScheduleFollowUp(task, context);
+
+    case "request_missing_info":
+      return executeRequestMissingInfo(task);
+
+    case "block_mission":
+      return executeBlockMission(task);
+
+    case "structure_mission":
+      return executeStructureMission(task, context);
+
+    default:
+      return buildFailure({
+        status: "failed",
+        error_code: "UNSUPPORTED_TASK",
+        event: "executor_unsupported_task",
+        level: "error",
+        message: `Type de tÃ¢che non supportÃ© : ${task.type}`,
+        payload: {
+          task_type: task.type,
+        },
+      });
+  }
+}
+
+===== FILE: src/lib/pierre/tasks/release.ts =====
+
+import { normalizePierreTaskStatus, type PierreTaskStatus } from "./status";
+
+export type PierreReleasableTask = {
+  id: string;
+  status?: string | null;
+  claimed_at?: string | null;
+  claimed_by?: string | null;
+  locked_until?: string | null;
+  scheduled_for?: string | null;
+  retry_count?: number | null;
+  [key: string]: unknown;
+};
+
+export type PierreTaskReleaseInput = {
+  task: PierreReleasableTask;
+  workerId?: string | null;
+  now?: Date;
+  mode?: "unlock_only" | "requeue" | "reschedule";
+  delayMinutes?: number;
+  force?: boolean;
+};
+
+export type PierreTaskReleaseDecision = {
+  allowed: boolean;
+  next_status: PierreTaskStatus;
+  claimed_at: null;
+  claimed_by: null;
+  locked_until: null;
+  scheduled_for: string | null;
+  reason: string;
+  release_code:
+    | "NONE"
+    | "NOT_CLAIMED"
+    | "WORKER_MISMATCH"
+    | "TERMINAL_STATUS";
+};
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+function sanitizeDelayMinutes(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return 15;
+  }
+  return Math.max(1, Math.min(24 * 60, Math.floor(value)));
+}
+
+function buildFutureIso(now: Date, delayMinutes: number): string {
+  return new Date(now.getTime() + delayMinutes * 60_000).toISOString();
+}
+
+export function decidePierreTaskRelease(
+  input: PierreTaskReleaseInput,
+): PierreTaskReleaseDecision {
+  const now = input.now ?? new Date();
+  const task = input.task;
+  const normalizedStatus = normalizePierreTaskStatus(task.status);
+  const claimedBy = asString(task.claimed_by);
+  const mode = input.mode || "requeue";
+
+  if (
+    normalizedStatus === "completed" ||
+    normalizedStatus === "cancelled" ||
+    normalizedStatus === "failed"
+  ) {
+    return {
+      allowed: false,
+      next_status: normalizedStatus,
+      claimed_at: null,
+      claimed_by: null,
+      locked_until: null,
+      scheduled_for: asString(task.scheduled_for),
+      reason: "La tÃ¢che est terminale, aucun release opÃ©rationnel nâ€™est nÃ©cessaire.",
+      release_code: "TERMINAL_STATUS",
+    };
+  }
+
+  if (!input.force && !claimedBy) {
+    return {
+      allowed: false,
+      next_status: normalizedStatus,
+      claimed_at: null,
+      claimed_by: null,
+      locked_until: null,
+      scheduled_for: asString(task.scheduled_for),
+      reason: "La tÃ¢che nâ€™est pas claimÃ©e, aucun release nâ€™est nÃ©cessaire.",
+      release_code: "NOT_CLAIMED",
+    };
+  }
+
+  if (!input.force && claimedBy && input.workerId && claimedBy !== input.workerId) {
+    return {
+      allowed: false,
+      next_status: normalizedStatus,
+      claimed_at: null,
+      claimed_by: null,
+      locked_until: null,
+      scheduled_for: asString(task.scheduled_for),
+      reason: "Le worker demandÃ© nâ€™est pas propriÃ©taire du lock actuel.",
+      release_code: "WORKER_MISMATCH",
+    };
+  }
+
+  if (mode === "unlock_only") {
+    return {
+      allowed: true,
+      next_status: normalizedStatus,
+      claimed_at: null,
+      claimed_by: null,
+      locked_until: null,
+      scheduled_for: asString(task.scheduled_for),
+      reason: "Le verrou a Ã©tÃ© supprimÃ© sans modifier le statut de la tÃ¢che.",
+      release_code: "NONE",
+    };
+  }
+
+  if (mode === "reschedule") {
+    const delayMinutes = sanitizeDelayMinutes(input.delayMinutes);
+
+    return {
+      allowed: true,
+      next_status: "scheduled",
+      claimed_at: null,
+      claimed_by: null,
+      locked_until: null,
+      scheduled_for: buildFutureIso(now, delayMinutes),
+      reason: `La tÃ¢che a Ã©tÃ© libÃ©rÃ©e et replanifiÃ©e dans ${delayMinutes} minute(s).`,
+      release_code: "NONE",
+    };
+  }
+
+  return {
+    allowed: true,
+    next_status: "queued",
+    claimed_at: null,
+    claimed_by: null,
+    locked_until: null,
+    scheduled_for: null,
+    reason: "La tÃ¢che a Ã©tÃ© libÃ©rÃ©e et replacÃ©e en file dâ€™attente.",
+    release_code: "NONE",
+  };
+}
+
+export function buildPierreTaskReleasePatch(
+  input: PierreTaskReleaseInput,
+): {
+  allowed: boolean;
+  patch: Record<string, unknown>;
+  reason: string;
+  release_code: PierreTaskReleaseDecision["release_code"];
+} {
+  const now = input.now ?? new Date();
+  const decision = decidePierreTaskRelease(input);
+
+  if (!decision.allowed) {
+    return {
+      allowed: false,
+      patch: {
+        status: decision.next_status,
+      },
+      reason: decision.reason,
+      release_code: decision.release_code,
+    };
+  }
+
+  return {
+    allowed: true,
+    patch: {
+      status: decision.next_status,
+      claimed_at: decision.claimed_at,
+      claimed_by: decision.claimed_by,
+      locked_until: decision.locked_until,
+      scheduled_for: decision.scheduled_for,
+      updated_at: now.toISOString(),
+    },
+    reason: decision.reason,
+    release_code: decision.release_code,
+  };
+}
+
+===== FILE: src/lib/pierre/tasks/retry.ts =====
+
+import {
+  canPierreTaskBeRetried,
+  normalizePierreTaskStatus,
+  type PierreTaskStatus,
+} from "./status";
+
+export type PierreRetryableTask = {
+  id: string;
+  status?: string | null;
+  retry_count?: number | null;
+  max_retries?: number | null;
+  scheduled_for?: string | null;
+  blocked_reason?: string | null;
+  error_message?: string | null;
+  payload?: unknown;
+  result?: unknown;
+  claimed_at?: string | null;
+  claimed_by?: string | null;
+  locked_until?: string | null;
+  [key: string]: unknown;
+};
+
+export type PierreTaskRetryInput = {
+  task: PierreRetryableTask;
+  now?: Date;
+  delayMinutes?: number;
+  force?: boolean;
+};
+
+export type PierreTaskRetryDecision = {
+  allowed: boolean;
+  next_status: PierreTaskStatus;
+  retry_count: number;
+  scheduled_for: string | null;
+  reason: string;
+  retry_code:
+    | "NONE"
+    | "INVALID_STATUS"
+    | "MAX_RETRIES_REACHED";
+};
+
+function asNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+function computeRetryDelayMinutes(
+  retryCount: number,
+  explicitDelayMinutes?: number,
+): number {
+  if (
+    typeof explicitDelayMinutes === "number" &&
+    Number.isFinite(explicitDelayMinutes) &&
+    explicitDelayMinutes > 0
+  ) {
+    return Math.max(1, Math.min(24 * 60, Math.floor(explicitDelayMinutes)));
+  }
+
+  if (retryCount <= 1) return 5;
+  if (retryCount === 2) return 15;
+  if (retryCount === 3) return 30;
+  if (retryCount === 4) return 60;
+  return 180;
+}
+
+function buildFutureIso(now: Date, delayMinutes: number): string {
+  return new Date(now.getTime() + delayMinutes * 60_000).toISOString();
+}
+
+export function decidePierreTaskRetry(
+  input: PierreTaskRetryInput,
+): PierreTaskRetryDecision {
+  const now = input.now ?? new Date();
+  const task = input.task;
+  const normalizedStatus = normalizePierreTaskStatus(task.status);
+  const currentRetryCount = asNumber(task.retry_count) ?? 0;
+  const maxRetries = asNumber(task.max_retries) ?? 3;
+  const nextRetryCount = currentRetryCount + 1;
+
+  if (!input.force && !canPierreTaskBeRetried(task.status)) {
+    return {
+      allowed: false,
+      next_status: normalizedStatus,
+      retry_count: currentRetryCount,
+      scheduled_for: asString(task.scheduled_for),
+      reason: "Le statut actuel nâ€™autorise pas de relance automatique.",
+      retry_code: "INVALID_STATUS",
+    };
+  }
+
+  if (!input.force && nextRetryCount > maxRetries) {
+    return {
+      allowed: false,
+      next_status: "blocked",
+      retry_count: currentRetryCount,
+      scheduled_for: null,
+      reason:
+        "Le nombre maximal de tentatives a Ã©tÃ© atteint. La tÃ¢che doit Ãªtre revue humainement.",
+      retry_code: "MAX_RETRIES_REACHED",
+    };
+  }
+
+  const delayMinutes = computeRetryDelayMinutes(
+    nextRetryCount,
+    input.delayMinutes,
+  );
+  const scheduledFor = buildFutureIso(now, delayMinutes);
+
+  return {
+    allowed: true,
+    next_status: "scheduled",
+    retry_count: nextRetryCount,
+    scheduled_for: scheduledFor,
+    reason: `Nouvelle tentative planifiÃ©e dans ${delayMinutes} minute(s).`,
+    retry_code: "NONE",
+  };
+}
+
+export function buildPierreTaskRetryPatch(
+  input: PierreTaskRetryInput,
+): {
+  allowed: boolean;
+  patch: Record<string, unknown>;
+  reason: string;
+  retry_code: PierreTaskRetryDecision["retry_code"];
+} {
+  const now = input.now ?? new Date();
+  const decision = decidePierreTaskRetry(input);
+
+  if (!decision.allowed) {
+    return {
+      allowed: false,
+      patch: {
+        status: decision.next_status,
+      },
+      reason: decision.reason,
+      retry_code: decision.retry_code,
+    };
+  }
+
+  return {
+    allowed: true,
+    patch: {
+      status: decision.next_status,
+      retry_count: decision.retry_count,
+      scheduled_for: decision.scheduled_for,
+      blocked_reason: null,
+      claimed_at: null,
+      claimed_by: null,
+      locked_until: null,
+      updated_at: now.toISOString(),
+    },
+    reason: decision.reason,
+    retry_code: decision.retry_code,
+  };
+}
+
+===== FILE: src/lib/pierre/tasks/run.ts =====
+
+import {
+  canPierreTaskRunNow,
+  normalizePierreTaskStatus,
+  type PierreTaskStatus,
+} from "./status";
+
+export type PierreRunnableTask = {
+  id: string;
+  type?: string | null;
+  title?: string | null;
+  description?: string | null;
+  status?: string | null;
+  approval_required?: boolean | null;
+  scheduled_for?: string | null;
+  payload?: unknown;
+  result?: unknown;
+  mission_id?: string | null;
+  claimed_at?: string | null;
+  claimed_by?: string | null;
+  locked_until?: string | null;
+  [key: string]: unknown;
+};
+
+export type PierreTaskRunInput = {
+  task: PierreRunnableTask;
+  now?: Date;
+};
+
+export type PierreTaskRunDecision = {
+  allowed: boolean;
+  next_status: PierreTaskStatus;
+  reason: string;
+  run_code:
+    | "NONE"
+    | "TERMINAL_STATUS"
+    | "ALREADY_RUNNING"
+    | "AWAITING_APPROVAL"
+    | "AWAITING_INFO"
+    | "BLOCKED"
+    | "SCHEDULED_FUTURE"
+    | "INVALID_STATUS";
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asBoolean(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
+function hasBlockingMissingInfo(payload: unknown): boolean {
+  if (!isObject(payload)) return false;
+
+  const missingInfo = payload.missing_info;
+  if (Array.isArray(missingInfo) && missingInfo.length > 0) return true;
+
+  const questions = payload.questions;
+  if (Array.isArray(questions) && questions.length > 0) return true;
+
+  return false;
+}
+
+function isScheduledInFuture(
+  scheduledFor: string | null | undefined,
+  now: Date,
+): boolean {
+  if (!scheduledFor) return false;
+
+  const date = new Date(scheduledFor);
+  if (Number.isNaN(date.getTime())) return false;
+
+  return date.getTime() > now.getTime();
+}
+
+export function decidePierreTaskRun(
+  input: PierreTaskRunInput,
+): PierreTaskRunDecision {
+  const now = input.now ?? new Date();
+  const task = input.task;
+  const normalizedStatus = normalizePierreTaskStatus(task.status);
+
+  if (
+    normalizedStatus === "completed" ||
+    normalizedStatus === "cancelled" ||
+    normalizedStatus === "failed"
+  ) {
+    return {
+      allowed: false,
+      next_status: normalizedStatus,
+      reason: "La tÃ¢che est dÃ©jÃ  dans un Ã©tat terminal.",
+      run_code: "TERMINAL_STATUS",
+    };
+  }
+
+  if (normalizedStatus === "running") {
+    return {
+      allowed: false,
+      next_status: "running",
+      reason: "La tÃ¢che est dÃ©jÃ  en cours dâ€™exÃ©cution.",
+      run_code: "ALREADY_RUNNING",
+    };
+  }
+
+  if (normalizedStatus === "awaiting_approval") {
+    return {
+      allowed: false,
+      next_status: "awaiting_approval",
+      reason: "La tÃ¢che attend une validation humaine explicite.",
+      run_code: "AWAITING_APPROVAL",
+    };
+  }
+
+  if (normalizedStatus === "awaiting_info") {
+    return {
+      allowed: false,
+      next_status: "awaiting_info",
+      reason: "La tÃ¢che attend encore des informations essentielles.",
+      run_code: "AWAITING_INFO",
+    };
+  }
+
+  if (normalizedStatus === "blocked") {
+    return {
+      allowed: false,
+      next_status: "blocked",
+      reason: "La tÃ¢che est bloquÃ©e et doit Ãªtre dÃ©bloquÃ©e avant exÃ©cution.",
+      run_code: "BLOCKED",
+    };
+  }
+
+  if (isScheduledInFuture(asString(task.scheduled_for), now)) {
+    return {
+      allowed: false,
+      next_status: "scheduled",
+      reason: "La tÃ¢che est planifiÃ©e pour plus tard et ne doit pas encore dÃ©marrer.",
+      run_code: "SCHEDULED_FUTURE",
+    };
+  }
+
+  if (asBoolean(task.approval_required) === true) {
+    return {
+      allowed: false,
+      next_status: "awaiting_approval",
+      reason: "La tÃ¢che requiert une validation humaine avant exÃ©cution.",
+      run_code: "AWAITING_APPROVAL",
+    };
+  }
+
+  if (hasBlockingMissingInfo(task.payload)) {
+    return {
+      allowed: false,
+      next_status: "awaiting_info",
+      reason: "Le payload de la tÃ¢che signale des informations manquantes.",
+      run_code: "AWAITING_INFO",
+    };
+  }
+
+  if (!canPierreTaskRunNow(task.status) && normalizedStatus !== "scheduled") {
+    return {
+      allowed: false,
+      next_status: normalizedStatus,
+      reason: "Le statut actuel nâ€™autorise pas un lancement immÃ©diat.",
+      run_code: "INVALID_STATUS",
+    };
+  }
+
+  return {
+    allowed: true,
+    next_status: "running",
+    reason: "La tÃ¢che est autorisÃ©e Ã  dÃ©marrer maintenant.",
+    run_code: "NONE",
+  };
+}
+
+export function buildPierreTaskRunPatch(
+  input: PierreTaskRunInput,
+): {
+  allowed: boolean;
+  patch: Record<string, unknown>;
+  reason: string;
+  run_code: PierreTaskRunDecision["run_code"];
+} {
+  const now = input.now ?? new Date();
+  const decision = decidePierreTaskRun(input);
+
+  if (!decision.allowed) {
+    return {
+      allowed: false,
+      patch: {
+        status: decision.next_status,
+      },
+      reason: decision.reason,
+      run_code: decision.run_code,
+    };
+  }
+
+  return {
+    allowed: true,
+    patch: {
+      status: "running",
+      started_at: now.toISOString(),
+      updated_at: now.toISOString(),
+    },
+    reason: decision.reason,
+    run_code: decision.run_code,
+  };
+}
+
+===== FILE: src/lib/pierre/tasks/status.ts =====
+
+export type PierreTaskStatus =
+  | "pending"
+  | "queued"
+  | "running"
+  | "awaiting_info"
+  | "awaiting_approval"
+  | "scheduled"
+  | "blocked"
+  | "completed"
+  | "cancelled"
+  | "failed"
+  | "unknown";
+
+export type PierreTaskStatusSummary = {
+  normalized: PierreTaskStatus;
+  is_terminal: boolean;
+  is_actionable_now: boolean;
+  is_waiting_human: boolean;
+  is_waiting_time: boolean;
+  is_blocking_progress: boolean;
+};
+
+export function normalizePierreTaskStatus(value: unknown): PierreTaskStatus {
+  if (typeof value !== "string") return "unknown";
+
+  const status = value.trim().toLowerCase();
+
+  if (
+    status === "pending" ||
+    status === "queued" ||
+    status === "running" ||
+    status === "awaiting_info" ||
+    status === "awaiting_approval" ||
+    status === "scheduled" ||
+    status === "blocked" ||
+    status === "completed" ||
+    status === "cancelled" ||
+    status === "failed"
+  ) {
+    return status;
+  }
+
+  if (status === "done" || status === "success") return "completed";
+  if (status === "error") return "failed";
+  if (status === "pending_approval" || status === "needs_approval") {
+    return "awaiting_approval";
+  }
+  if (status === "in_progress") return "running";
+
+  return "unknown";
+}
+
+export function summarizePierreTaskStatus(
+  value: unknown,
+): PierreTaskStatusSummary {
+  const normalized = normalizePierreTaskStatus(value);
+
+  const is_terminal =
+    normalized === "completed" ||
+    normalized === "cancelled" ||
+    normalized === "failed";
+
+  const is_waiting_human =
+    normalized === "awaiting_info" ||
+    normalized === "awaiting_approval";
+
+  const is_waiting_time = normalized === "scheduled";
+
+  const is_actionable_now =
+    normalized === "pending" ||
+    normalized === "queued";
+
+  const is_blocking_progress =
+    normalized === "blocked" ||
+    normalized === "failed" ||
+    normalized === "awaiting_info" ||
+    normalized === "awaiting_approval";
+
+  return {
+    normalized,
+    is_terminal,
+    is_actionable_now,
+    is_waiting_human,
+    is_waiting_time,
+    is_blocking_progress,
+  };
+}
+
+export function canPierreTaskRunNow(
+  value: unknown,
+): boolean {
+  const summary = summarizePierreTaskStatus(value);
+  return summary.is_actionable_now;
+}
+
+export function canPierreTaskBeRetried(
+  value: unknown,
+): boolean {
+  const normalized = normalizePierreTaskStatus(value);
+  return normalized === "failed" || normalized === "blocked";
+}
+
+export function canPierreTaskBeApproved(
+  value: unknown,
+): boolean {
+  return normalizePierreTaskStatus(value) === "awaiting_approval";
+}
+
+export function canPierreTaskBeCancelled(
+  value: unknown,
+): boolean {
+  const normalized = normalizePierreTaskStatus(value);
+  return !(
+    normalized === "completed" ||
+    normalized === "cancelled" ||
+    normalized === "failed"
+  );
+}
+
+export function canPierreTaskBeRescheduled(
+  value: unknown,
+): boolean {
+  const normalized = normalizePierreTaskStatus(value);
+  return (
+    normalized === "scheduled" ||
+    normalized === "queued" ||
+    normalized === "pending" ||
+    normalized === "awaiting_approval"
+  );
+}
+
+===== FILE: src/lib/pierre/templates/emails.ts =====
+
+// src/lib/pierre/templates/emails.ts
+
+type Tone = "pro" | "convivial";
+
+function greeting(tone: Tone, candidateName?: string) {
+  const name = candidateName?.trim() ? ` ${candidateName.trim()}` : "";
+  return tone === "convivial" ? `Bonjour${name},` : `Bonjour${name},`;
+}
+
+function signature(companyName?: string) {
+  return `${companyName || "Lâ€™Ã©quipe RH"}`;
+}
+
+export function rejectionEmailHTML(params: {
+  candidateName?: string;
+  jobTitle?: string;
+  tone: Tone;
+  companyName?: string;
+  reason?: string;
+}) {
+  const reasonLine = params.reason?.trim()
+    ? `<p>${params.reason.trim()}</p>`
+    : `<p>AprÃ¨s Ã©tude attentive de votre candidature, nous avons dÃ©cidÃ© de poursuivre avec un autre profil.</p>`;
+
+  return `
+<p>${greeting(params.tone, params.candidateName)}</p>
+
+<p>Merci pour lâ€™intÃ©rÃªt portÃ© au poste de <strong>${params.jobTitle || "ce poste"}</strong>.</p>
+
+${reasonLine}
+
+<p>Nous vous remercions pour le temps consacrÃ© Ã  votre candidature et vous souhaitons une excellente continuation.</p>
+
+<p>Bien cordialement,<br/>${signature(params.companyName)}</p>
+`.trim();
+}
+
+export function inviteEmailHTML(params: {
+  candidateName?: string;
+  jobTitle?: string;
+  tone: Tone;
+  companyName?: string;
+  interviewDate?: string;
+  interviewTime?: string;
+  interviewLocation?: string; // "visio" ou adresse
+  durationMinutes?: number;
+  interviewers?: string; // "Responsable maintenance + RH"
+}) {
+  const duration =
+    params.durationMinutes && params.durationMinutes > 0
+      ? `${params.durationMinutes} min`
+      : "45 min";
+
+  const location = params.interviewLocation || "en visioconfÃ©rence / sur site (Ã  confirmer)";
+  const date = params.interviewDate || "date Ã  confirmer";
+  const time = params.interviewTime || "heure Ã  confirmer";
+
+  return `
+<p>${greeting(params.tone, params.candidateName)}</p>
+
+<p>Merci pour votre candidature au poste de <strong>${params.jobTitle || "ce poste"}</strong>.</p>
+
+<p>Nous souhaiterions vous proposer un entretien le <strong>${date}</strong> Ã  <strong>${time}</strong> (${duration}).</p>
+
+<p><strong>Lieu / format :</strong> ${location}<br/>
+${params.interviewers ? `<strong>Interlocuteurs :</strong> ${params.interviewers}<br/>` : ""}
+</p>
+
+<p>Merci de nous confirmer votre disponibilitÃ©, ou de proposer un autre crÃ©neau si besoin.</p>
+
+<p>Bien cordialement,<br/>${signature(params.companyName)}</p>
+`.trim();
+}
+
+export function followupEmailHTML(params: {
+  candidateName?: string;
+  jobTitle?: string;
+  tone: Tone;
+  companyName?: string;
+  proposedSlots?: string[]; // ["Mardi 10h", "Jeudi 15h"]
+}) {
+  const slots =
+    params.proposedSlots && params.proposedSlots.length
+      ? `<ul>${params.proposedSlots.map((s) => `<li>${s}</li>`).join("")}</ul>`
+      : `<p>Voici deux crÃ©neaux possibles cette semaine (Ã  confirmer) :<br/>â€¢ Mardi 10h<br/>â€¢ Jeudi 15h</p>`;
+
+  return `
+<p>${greeting(params.tone, params.candidateName)}</p>
+
+<p>Je me permets de revenir vers vous concernant votre candidature au poste de <strong>${params.jobTitle || "ce poste"}</strong>.</p>
+
+<p>Seriez-vous disponible sur lâ€™un des crÃ©neaux suivants ?</p>
+${slots}
+
+<p>Si aucun ne convient, dites-nous vos disponibilitÃ©s et nous nous adapterons.</p>
+
+<p>Bien cordialement,<br/>${signature(params.companyName)}</p>
+`.trim();
+}
+
+export function onboardingEmailHTML(params: {
+  candidateName?: string;
+  jobTitle?: string;
+  tone: Tone;
+  companyName?: string;
+  startDate?: string;
+  startTime?: string;
+  location?: string;
+  contactName?: string;
+  documentsToBring?: string[];
+}) {
+  const docs =
+    params.documentsToBring && params.documentsToBring.length
+      ? `<ul>${params.documentsToBring.map((d) => `<li>${d}</li>`).join("")}</ul>`
+      : `<ul>
+<li>PiÃ¨ce dâ€™identitÃ©</li>
+<li>RIB</li>
+<li>Carte Vitale</li>
+<li>Justificatif de domicile</li>
+</ul>`;
+
+  return `
+<p>${greeting(params.tone, params.candidateName)}</p>
+
+<p>Bienvenue ! Nous sommes ravis de vous accueillir au poste de <strong>${params.jobTitle || "ce poste"}</strong>.</p>
+
+<p><strong>Date dâ€™arrivÃ©e :</strong> ${params.startDate || "Ã  confirmer"}${
+    params.startTime ? ` Ã  ${params.startTime}` : ""
+  }<br/>
+<strong>Lieu :</strong> ${params.location || "Ã  confirmer"}<br/>
+${params.contactName ? `<strong>Contact :</strong> ${params.contactName}<br/>` : ""}
+</p>
+
+<p>Pour prÃ©parer votre arrivÃ©e, merci de prÃ©voir :</p>
+${docs}
+
+<p>Si vous avez la moindre question dâ€™ici lÃ , vous pouvez rÃ©pondre Ã  ce message.</p>
+
+<p>Bien cordialement,<br/>${signature(params.companyName)}</p>
+`.trim();
+}
+
+===== FILE: src/lib/pierre/types.ts =====
+
+export type PierreLanguage = "fr" | "en" | "unknown";
+
+export type PierreTone =
+  | "neutral"
+  | "professional"
+  | "human"
+  | "warm"
+  | "direct"
+  | "firm"
+  | "formal"
+  | "unknown";
+
+export type PierreRiskLevel = "normal" | "sensitive" | "critical";
+
+export type PierreApprovalMode =
+  | "none"
+  | "recommended"
+  | "required"
+  | "blocked";
+
+export type PierreMissionStatus =
+  | "draft"
+  | "planned"
+  | "queued"
+  | "awaiting_info"
+  | "awaiting_validation"
+  | "in_progress"
+  | "completed"
+  | "blocked"
+  | "failed"
+  | "retry";
+
+export type PierreTaskStatus =
+  | "draft"
+  | "planned"
+  | "pending"
+  | "queued"
+  | "awaiting_info"
+  | "awaiting_validation"
+  | "ready"
+  | "in_progress"
+  | "done"
+  | "blocked"
+  | "failed"
+  | "retry"
+  | "cancelled";
+
+export type PierreTaskType =
+  | "write_document"
+  | "rewrite_document"
+  | "prepare_email"
+  | "send_email"
+  | "generate_pdf"
+  | "ask_missing_info"
+  | "follow_up_candidate"
+  | "follow_up_internal"
+  | "wait_validation"
+  | "plan_action"
+  | "summarize_request"
+  | "organize_work"
+  | "close_mission"
+  | "block_mission"
+  | "other";
+
+export type PierreClassification =
+  | "recruitment"
+  | "application"
+  | "convocation"
+  | "candidate_refusal"
+  | "candidate_followup"
+  | "onboarding"
+  | "internal_hr_communication"
+  | "procedure_reminder"
+  | "hr_note"
+  | "interview_summary"
+  | "simple_hr_letter"
+  | "document_request"
+  | "planning"
+  | "followup_mission"
+  | "internal_followup"
+  | "external_followup"
+  | "sensitive_request"
+  | "out_of_scope"
+  | "unknown";
+
+export type PierreEntityHints = {
+  recipient_name?: string | null;
+  recipient_email?: string | null;
+  candidate_name?: string | null;
+  manager_name?: string | null;
+  position_title?: string | null;
+  document_title?: string | null;
+  company_name?: string | null;
+  date?: string | null;
+  time?: string | null;
+  location?: string | null;
+};
+
+export type PierreMissingFieldCode =
+  | "recipient_name"
+  | "recipient_email"
+  | "candidate_name"
+  | "position_title"
+  | "document_title"
+  | "date"
+  | "time"
+  | "location"
+  | "context"
+  | "validation_target"
+  | "document_source"
+  | "company_name";
+
+export type PierreMissingInfoItem = {
+  code: PierreMissingFieldCode;
+  label: string;
+  required: boolean;
+  reason: string;
+  question: string;
+};
+
+export type PierreTaskDraft = {
+  client_id?: string | null;
+  title: string;
+  type: PierreTaskType;
+  status: PierreTaskStatus;
+  priority: number;
+  approval_required: boolean;
+  risk_level: PierreRiskLevel;
+  scheduled_for: string | null;
+  due_at: string | null;
+  depends_on_indexes: number[];
+  blocking_reason: string | null;
+  notes: string | null;
+  output_kind: "document" | "email" | "pdf" | "followup" | "plan" | "none";
+};
+
+export type PierreInterpretation = {
+  request_text: string;
+  normalized_text: string;
+  language: PierreLanguage;
+  tone: PierreTone;
+  classification: PierreClassification;
+  secondary_classifications: PierreClassification[];
+  intent: string;
+  risk_level: PierreRiskLevel;
+  approval_mode: PierreApprovalMode;
+  approval_required: boolean;
+  out_of_scope: boolean;
+  blocked: boolean;
+  blocked_reason: string | null;
+  mission_title: string;
+  summary: string;
+  immediate: boolean;
+  planifiable: boolean;
+  multi_action: boolean;
+  missing_info: PierreMissingInfoItem[];
+  entities: PierreEntityHints;
+  tasks: PierreTaskDraft[];
+  suggested_reply: string | null;
+};
+
+export type PierreCompanyMemoryLike = {
+  company_name?: string | null;
+  sender_name?: string | null;
+  sender_email?: string | null;
+  tone?: string | null;
+  language?: string | null;
+  rules?: string[] | null;
+  preferences?: Record<string, unknown> | null;
+  email_identity?: {
+    sender_name?: string | null;
+    sender_email?: string | null;
+    reply_to?: string | null;
+    provider?: string | null;
+    domain_verified?: boolean | null;
+    [key: string]: unknown;
+  } | null;
+  metadata?: Record<string, unknown> | null;
+  [key: string]: unknown;
+};
+
+export type PierreInterpretInput = {
+  text: string;
+  companyMemory?: PierreCompanyMemoryLike | null;
+  now?: Date;
+};
+
+===== FILE: src/lib/pierre/utils.ts =====
+
+export function safeString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export function normalizeSpaces(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+export function clampNumber(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+export function detectEmailInText(input: string) {
+  const match = input.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi);
+  return match?.[0] || "";
+}
+
+export function containsAny(text: string, needles: string[]) {
+  const lower = text.toLowerCase();
+  return needles.some((needle) => lower.includes(needle.toLowerCase()));
+}
+
+export function buildJsonResponse<T extends Record<string, unknown>>(status: number, body: T) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+===== FILE: src/lib/pierre-email-identity.ts =====
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export type PierreOnboardingRow = {
+  id?: string;
+  user_id: string;
+  agent_slug: "pierre" | string;
+
+  company_name: string;
+  legal_company_name: string;
+  company_email_domain: string;
+  company_website: string;
+  company_phone: string;
+  company_address: string;
+  company_city: string;
+  company_postal_code: string;
+  company_country: string;
+  company_siren: string;
+  company_size: string;
+  company_industry: string;
+  company_description: string;
+
+  contact_first_name: string;
+  contact_last_name: string;
+  contact_job_title: string;
+  contact_email: string;
+  contact_phone: string;
+
+  hr_team_size: string;
+  recruitment_volume: string;
+  main_hr_needs: string;
+  typical_document_types: string;
+  usual_tone: string;
+  preferred_language: string;
+  signature_name: string;
+  signature_job_title: string;
+  signature_email: string;
+  signature_phone: string;
+  default_email_footer: string;
+
+  sender_mode: string;
+  sender_email_requested: string;
+  sender_email_effective: string;
+  reply_to_email: string;
+  sender_status: string;
+  domain_status: string;
+  domain_name: string;
+  postmark_domain_id: string;
+  postmark_signature_id: string;
+
+  legal_mentions: string;
+  confidentiality_notes: string;
+  forbidden_words: string;
+  mandatory_words: string;
+  internal_policy_notes: string;
+
+  onboarding_completed: boolean;
+  onboarding_completed_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type PierreResolvedEmailIdentity = {
+  from: string;
+  replyTo: string;
+  senderMode: "client_verified" | "clonestore_fallback";
+  senderStatus: string;
+  domainStatus: string;
+  requestedFrom: string;
+  effectiveFrom: string;
+  domainName: string;
+  onboardingCompleted: boolean;
+  companyName: string;
+  contactEmail: string;
+};
+
+const CLONESTORE_FALLBACK_FROM = "clonestore@clonestore.pro";
+
+function safeString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeDomain(value: string): string {
+  return safeString(value)
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split("/")[0]
+    .trim();
+}
+
+function domainFromEmail(email: string): string {
+  const normalized = safeString(email).toLowerCase();
+  if (!normalized.includes("@")) return "";
+  return normalized.split("@")[1].trim();
+}
+
+function isVerifiedDomain(row: Partial<PierreOnboardingRow> | null | undefined): boolean {
+  return safeString(row?.domain_status).toLowerCase() === "verified";
+}
+
+function hasRequestedSender(row: Partial<PierreOnboardingRow> | null | undefined): boolean {
+  return safeString(row?.sender_email_requested).includes("@");
+}
+
+function buildReplyTo(row: Partial<PierreOnboardingRow> | null | undefined): string {
+  return (
+    safeString(row?.reply_to_email) ||
+    safeString(row?.contact_email) ||
+    safeString(row?.signature_email) ||
+    ""
+  );
+}
+
+function buildDomainName(row: Partial<PierreOnboardingRow> | null | undefined): string {
+  return (
+    normalizeDomain(safeString(row?.domain_name)) ||
+    domainFromEmail(safeString(row?.sender_email_requested)) ||
+    normalizeDomain(safeString(row?.company_email_domain)) ||
+    normalizeDomain(safeString(row?.company_website)) ||
+    ""
+  );
+}
+
+export function resolvePierreEmailIdentity(
+  row: Partial<PierreOnboardingRow> | null | undefined
+): PierreResolvedEmailIdentity {
+  const requestedFrom = safeString(row?.sender_email_requested).toLowerCase();
+  const explicitEffective = safeString(row?.sender_email_effective).toLowerCase();
+  const replyTo = buildReplyTo(row);
+  const domainName = buildDomainName(row);
+  const onboardingCompleted = row?.onboarding_completed === true;
+  const companyName = safeString(row?.company_name);
+  const contactEmail = safeString(row?.contact_email);
+  const senderStatus = safeString(row?.sender_status) || "draft";
+  const domainStatus = safeString(row?.domain_status) || "not_started";
+
+  if (isVerifiedDomain(row) && hasRequestedSender(row)) {
+    return {
+      from: requestedFrom,
+      replyTo,
+      senderMode: "client_verified",
+      senderStatus,
+      domainStatus,
+      requestedFrom,
+      effectiveFrom: requestedFrom,
+      domainName,
+      onboardingCompleted,
+      companyName,
+      contactEmail,
+    };
+  }
+
+  return {
+    from: explicitEffective || CLONESTORE_FALLBACK_FROM,
+    replyTo,
+    senderMode: "clonestore_fallback",
+    senderStatus,
+    domainStatus,
+    requestedFrom,
+    effectiveFrom: explicitEffective || CLONESTORE_FALLBACK_FROM,
+    domainName,
+    onboardingCompleted,
+    companyName,
+    contactEmail,
+  };
+}
+
+export async function getPierreOnboardingByUserId(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{
+  row: PierreOnboardingRow | null;
+  error: string | null;
+}> {
+  const { data, error } = await supabase
+    .from("agent_onboarding_pierre")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .maybeSingle();
+
+  if (error) {
+    return {
+      row: null,
+      error: error.message,
+    };
+  }
+
+  return {
+    row: (data as PierreOnboardingRow | null) || null,
+    error: null,
+  };
+}
+
+export async function getResolvedPierreEmailIdentity(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{
+  identity: PierreResolvedEmailIdentity;
+  onboarding: PierreOnboardingRow | null;
+  error: string | null;
+}> {
+  const { row, error } = await getPierreOnboardingByUserId(supabase, userId);
+
+  if (error) {
+    return {
+      identity: resolvePierreEmailIdentity(null),
+      onboarding: null,
+      error,
+    };
+  }
+
+  return {
+    identity: resolvePierreEmailIdentity(row),
+    onboarding: row,
+    error: null,
+  };
+}
+
+export function buildPierreEmailMetadata(
+  identity: PierreResolvedEmailIdentity
+): Record<string, unknown> {
+  return {
+    sender_mode: identity.senderMode,
+    sender_status: identity.senderStatus,
+    domain_status: identity.domainStatus,
+    requested_from: identity.requestedFrom,
+    effective_from: identity.effectiveFrom,
+    reply_to: identity.replyTo,
+    domain_name: identity.domainName,
+    onboarding_completed: identity.onboardingCompleted,
+    company_name: identity.companyName,
+    contact_email: identity.contactEmail,
+  };
+}
+
+===== FILE: src/lib/stripe.ts =====
+
+import Stripe from "stripe";
+
+export function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
+  return new Stripe(key, { apiVersion: "2025-11-17.clover" as Stripe.LatestApiVersion });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+===== FILE: src/lib/supabase.ts =====
+
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __clonestore_supabase_browser__: SupabaseClient | undefined;
+}
+
+type PublicSupabaseEnv = {
+  url: string;
+  anon: string;
+};
+
+function readPublicSupabaseEnv(): PublicSupabaseEnv | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anon) {
+    return null;
+  }
+
+  return { url, anon };
+}
+
+export function supabaseBrowser(): SupabaseClient | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  if (globalThis.__clonestore_supabase_browser__) {
+    return globalThis.__clonestore_supabase_browser__;
+  }
+
+  const env = readPublicSupabaseEnv();
+  if (!env) {
+    return null;
+  }
+
+  globalThis.__clonestore_supabase_browser__ = createClient(env.url, env.anon, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+
+  return globalThis.__clonestore_supabase_browser__;
+}
+
+export function getSupabase(): SupabaseClient | null {
+  return supabaseBrowser();
+}
+
+export function isSupabaseConfigured(): boolean {
+  return readPublicSupabaseEnv() !== null;
+}
+
+===== FILE: src/lib/supabase-browser.ts =====
+
+// src/lib/supabase-browser.ts
+"use client";
+
+import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+let browserClient: SupabaseClient | null = null;
+
+export function supabaseBrowser() {
+  if (browserClient) return browserClient;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+  if (!url || !anon) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  browserClient = createBrowserClient(url, anon);
+
+  return browserClient;
+}
+
+===== FILE: src/lib/supabase-server.ts =====
+
+// src/lib/supabase-server.ts
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+
+export function supabaseServer() {
+  const cookieStore = cookies() as any;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anon) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  return createServerClient(url, anon, {
+    cookies: {
+      getAll() {
+        // Next cookies() a bien getAll(), mais TS peut rÃ¢ler -> any
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet: any[]) {
+        // En Server Components, set peut Ã©chouer selon le contexte -> try/catch
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // ok
+        }
+      },
+    },
+  });
+}
+
+===== FILE: src/lib/utils.ts =====
+
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+
+===== FILE: src/middleware.ts =====
+
+// src/middleware.ts
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({ request });
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anon) return response;
+
+  const supabase = createServerClient(url, anon, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet: any[]) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
+      },
+    },
+  });
+
+  // refresh session if needed
+  await supabase.auth.getUser();
+
+  return response;
+}
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};
+
+===== FILE: supabase/migrations/2026-02-03__pierre_queue_updated_at.sql =====
+
+-- Fix: pierre_queue trigger expects updated_at
+ALTER TABLE public.pierre_queue
+ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
+
+-- Backfill (safety)
+UPDATE public.pierre_queue
+SET updated_at = now()
+WHERE updated_at IS NULL;
+
+
+===== FILE: supabase/migrations/README.md =====
+
+\# Supabase migrations (manual)
+
+
+
+Chaque fichier .sql ici correspond Ã  une modification faite dans Supabase.
+
+RÃ¨gle : dÃ¨s qu'on fait une modif SQL dans Supabase, on crÃ©e un fichier ici.
+
+
+
+\## Appliquer une migration (manual)
+
+\- Aller dans Supabase > SQL Editor
+
+\- Coller le contenu du fichier .sql
+
+\- Run
+
+
+
+\## Ordre
+
+Les migrations sont nommÃ©es avec la date, donc elles s'appliquent dans l'ordre chronologique.
+
+
+
+
+
+===== FILE: supabase/sql/pierre_indexes_v1.sql =====
+
+-- =========================================================
+-- Pierre / Indexes v1
+-- Objectif: requÃªtes frÃ©quentes, queue, historique, lecture ciblÃ©e
+-- Compatible montÃ©e en charge / Ã©viter full scans inutiles
+-- =========================================================
+
+-- -------------------------
+-- pierre_missions
+-- -------------------------
+create index if not exists idx_pierre_missions_user_agent_created_desc
+on public.pierre_missions (user_id, agent_slug, created_at desc);
+
+create index if not exists idx_pierre_missions_user_agent_status_created_desc
+on public.pierre_missions (user_id, agent_slug, status, created_at desc);
+
+create index if not exists idx_pierre_missions_user_agent_source_created_desc
+on public.pierre_missions (user_id, agent_slug, source, created_at desc);
+
+create index if not exists idx_pierre_missions_agent_created_desc
+on public.pierre_missions (agent_slug, created_at desc);
+
+-- -------------------------
+-- pierre_tasks
+-- -------------------------
+create index if not exists idx_pierre_tasks_mission_created_asc
+on public.pierre_tasks (mission_id, created_at asc);
+
+create index if not exists idx_pierre_tasks_user_agent_created_desc
+on public.pierre_tasks (user_id, agent_slug, created_at desc);
+
+create index if not exists idx_pierre_tasks_user_agent_status_created_desc
+on public.pierre_tasks (user_id, agent_slug, status, created_at desc);
+
+create index if not exists idx_pierre_tasks_agent_status_priority_created
+on public.pierre_tasks (agent_slug, status, priority desc, created_at asc);
+
+create index if not exists idx_pierre_tasks_agent_scheduled_due
+on public.pierre_tasks (agent_slug, status, execute_at asc, priority desc)
+where status = 'scheduled';
+
+create index if not exists idx_pierre_tasks_agent_ready_retry
+on public.pierre_tasks (agent_slug, status, priority desc, created_at asc)
+where status in ('ready', 'retry');
+
+create index if not exists idx_pierre_tasks_agent_running_updated
+on public.pierre_tasks (agent_slug, status, updated_at asc)
+where status = 'running';
+
+create index if not exists idx_pierre_tasks_user_agent_mission_status
+on public.pierre_tasks (user_id, agent_slug, mission_id, status);
+
+-- -------------------------
+-- pierre_task_logs
+-- -------------------------
+create index if not exists idx_pierre_task_logs_mission_created_asc
+on public.pierre_task_logs (mission_id, created_at asc);
+
+create index if not exists idx_pierre_task_logs_task_created_asc
+on public.pierre_task_logs (task_id, created_at asc);
+
+create index if not exists idx_pierre_task_logs_user_agent_created_desc
+on public.pierre_task_logs (user_id, agent_slug, created_at desc);
+
+-- -------------------------
+-- pierre_documents
+-- -------------------------
+create index if not exists idx_pierre_documents_user_agent_created_desc
+on public.pierre_documents (user_id, agent_slug, created_at desc);
+
+create index if not exists idx_pierre_documents_mission_created_desc
+on public.pierre_documents (mission_id, created_at desc);
+
+create index if not exists idx_pierre_documents_task_created_desc
+on public.pierre_documents (task_id, created_at desc);
+
+-- -------------------------
+-- pierre_outbound_emails
+-- -------------------------
+create index if not exists idx_pierre_outbound_emails_user_agent_created_desc
+on public.pierre_outbound_emails (user_id, agent_slug, created_at desc);
+
+create index if not exists idx_pierre_outbound_emails_task_created_desc
+on public.pierre_outbound_emails (task_id, created_at desc);
+
+create index if not exists idx_pierre_outbound_emails_status_created_desc
+on public.pierre_outbound_emails (status, created_at desc);
+
+create index if not exists idx_pierre_outbound_emails_provider_message_id
+on public.pierre_outbound_emails (provider_message_id);
+
+-- -------------------------
+-- pierre_company_memory
+-- -------------------------
+create unique index if not exists idx_pierre_company_memory_user_agent_unique
+on public.pierre_company_memory (user_id, agent_slug);
+
+create index if not exists idx_pierre_company_memory_agent_updated_desc
+on public.pierre_company_memory (agent_slug, updated_at desc);
+
+===== FILE: supabase/sql/pierre_rls_v1.sql =====
+
+-- =========================================================
+-- Pierre / RLS v1
+-- Objectif: accÃ¨s user strict Ã  ses propres donnÃ©es
+-- Service role garde son bypass natif Supabase
+-- =========================================================
+
+-- -------------------------
+-- Enable RLS
+-- -------------------------
+alter table if exists public.pierre_company_memory enable row level security;
+alter table if exists public.pierre_missions enable row level security;
+alter table if exists public.pierre_tasks enable row level security;
+alter table if exists public.pierre_task_logs enable row level security;
+alter table if exists public.pierre_documents enable row level security;
+alter table if exists public.pierre_outbound_emails enable row level security;
+
+-- -------------------------
+-- Drop existing Pierre policies to keep script idempotent
+-- -------------------------
+drop policy if exists "pierre_company_memory_select_own" on public.pierre_company_memory;
+drop policy if exists "pierre_company_memory_insert_own" on public.pierre_company_memory;
+drop policy if exists "pierre_company_memory_update_own" on public.pierre_company_memory;
+drop policy if exists "pierre_company_memory_delete_own" on public.pierre_company_memory;
+
+drop policy if exists "pierre_missions_select_own" on public.pierre_missions;
+drop policy if exists "pierre_missions_insert_own" on public.pierre_missions;
+drop policy if exists "pierre_missions_update_own" on public.pierre_missions;
+drop policy if exists "pierre_missions_delete_own" on public.pierre_missions;
+
+drop policy if exists "pierre_tasks_select_own" on public.pierre_tasks;
+drop policy if exists "pierre_tasks_insert_own" on public.pierre_tasks;
+drop policy if exists "pierre_tasks_update_own" on public.pierre_tasks;
+drop policy if exists "pierre_tasks_delete_own" on public.pierre_tasks;
+
+drop policy if exists "pierre_task_logs_select_own" on public.pierre_task_logs;
+drop policy if exists "pierre_task_logs_insert_own" on public.pierre_task_logs;
+drop policy if exists "pierre_task_logs_update_own" on public.pierre_task_logs;
+drop policy if exists "pierre_task_logs_delete_own" on public.pierre_task_logs;
+
+drop policy if exists "pierre_documents_select_own" on public.pierre_documents;
+drop policy if exists "pierre_documents_insert_own" on public.pierre_documents;
+drop policy if exists "pierre_documents_update_own" on public.pierre_documents;
+drop policy if exists "pierre_documents_delete_own" on public.pierre_documents;
+
+drop policy if exists "pierre_outbound_emails_select_own" on public.pierre_outbound_emails;
+drop policy if exists "pierre_outbound_emails_insert_own" on public.pierre_outbound_emails;
+drop policy if exists "pierre_outbound_emails_update_own" on public.pierre_outbound_emails;
+drop policy if exists "pierre_outbound_emails_delete_own" on public.pierre_outbound_emails;
+
+-- -------------------------
+-- pierre_company_memory
+-- -------------------------
+create policy "pierre_company_memory_select_own"
+on public.pierre_company_memory
+for select
+to authenticated
+using (auth.uid() = user_id);
+
+create policy "pierre_company_memory_insert_own"
+on public.pierre_company_memory
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+create policy "pierre_company_memory_update_own"
+on public.pierre_company_memory
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "pierre_company_memory_delete_own"
+on public.pierre_company_memory
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+-- -------------------------
+-- pierre_missions
+-- -------------------------
+create policy "pierre_missions_select_own"
+on public.pierre_missions
+for select
+to authenticated
+using (auth.uid() = user_id);
+
+create policy "pierre_missions_insert_own"
+on public.pierre_missions
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+create policy "pierre_missions_update_own"
+on public.pierre_missions
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "pierre_missions_delete_own"
+on public.pierre_missions
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+-- -------------------------
+-- pierre_tasks
+-- -------------------------
+create policy "pierre_tasks_select_own"
+on public.pierre_tasks
+for select
+to authenticated
+using (auth.uid() = user_id);
+
+create policy "pierre_tasks_insert_own"
+on public.pierre_tasks
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+create policy "pierre_tasks_update_own"
+on public.pierre_tasks
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "pierre_tasks_delete_own"
+on public.pierre_tasks
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+-- -------------------------
+-- pierre_task_logs
+-- -------------------------
+create policy "pierre_task_logs_select_own"
+on public.pierre_task_logs
+for select
+to authenticated
+using (auth.uid() = user_id);
+
+create policy "pierre_task_logs_insert_own"
+on public.pierre_task_logs
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+create policy "pierre_task_logs_update_own"
+on public.pierre_task_logs
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "pierre_task_logs_delete_own"
+on public.pierre_task_logs
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+-- -------------------------
+-- pierre_documents
+-- -------------------------
+create policy "pierre_documents_select_own"
+on public.pierre_documents
+for select
+to authenticated
+using (auth.uid() = user_id);
+
+create policy "pierre_documents_insert_own"
+on public.pierre_documents
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+create policy "pierre_documents_update_own"
+on public.pierre_documents
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "pierre_documents_delete_own"
+on public.pierre_documents
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+-- -------------------------
+-- pierre_outbound_emails
+-- -------------------------
+create policy "pierre_outbound_emails_select_own"
+on public.pierre_outbound_emails
+for select
+to authenticated
+using (auth.uid() = user_id);
+
+create policy "pierre_outbound_emails_insert_own"
+on public.pierre_outbound_emails
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+create policy "pierre_outbound_emails_update_own"
+on public.pierre_outbound_emails
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "pierre_outbound_emails_delete_own"
+on public.pierre_outbound_emails
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+===== FILE: test-brain.js =====
+
+fetch("http://localhost:3000/api/pierre/brain", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    input: "Besoin dâ€™un mail de refus pour un candidat junior, ton humain.",
+    tone: "convivial",
+    company_name: "CloneStore",
+  }),
+})
+  .then((r) => r.json())
+  .then(console.log)
+  .catch(console.error);
+
+
+===== FILE: test-email.js =====
+
+import crypto from "crypto";
+import fetch from "node-fetch";
+
+const clientId = "clonestore";
+const timestamp = Date.now();
+const secret = process.env.ROUTER_HMAC_SECRET;
+
+const body = {
+  client_id: clientId,
+  action: "email.send",
+  payload: {
+    request_id: "email_test_001",
+    to: ["tonemail@exemple.com"],
+    subject: "Test Pierre",
+    body_html: "<p>Email envoyÃ© par Pierre.</p>",
+    reply_to: "contact@clonestore.pro"
+  }
+};
+
+const raw = JSON.stringify(body);
+
+const signature = crypto
+  .createHmac("sha256", secret)
+  .update(`${clientId}.${timestamp}.${raw}`)
+  .digest("hex");
+
+const res = await fetch("http://localhost:3000/api/pierre/execute", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-client-id": clientId,
+    "x-timestamp": String(timestamp),
+    "x-signature": signature
+  },
+  body: raw
+});
+
+console.log(await res.json());
+
+
+===== FILE: test-execute-email.mjs =====
+
+import crypto from "crypto";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
+
+const url = "http://localhost:3000/api/pierre/execute";
+const clientId = "clonestore";
+const timestamp = Date.now();
+
+// Mets TON email Ã  toi pour tester la rÃ©ception
+const TO_EMAIL = "clonestore@clonestore.pro";
+
+const body = {
+  client_id: clientId,
+  action: "email.send",
+  payload: {
+    request_id: "email_test_001",
+    to: [TO_EMAIL],
+    subject: "Test Pierre (Router -> Execute -> Make)",
+    body_html: "<p>Salut, ceci est un test d'envoi email depuis Pierre via Make.</p>",
+    reply_to: "contact@clonestore.pro"
+  }
+};
+
+const rawBody = JSON.stringify(body);
+
+const secret = process.env.ROUTER_HMAC_SECRET;
+if (!secret) {
+  console.error("ROUTER_HMAC_SECRET manquant dans .env.local");
+  process.exit(1);
+}
+
+const signature = crypto
+  .createHmac("sha256", secret)
+  .update(`${clientId}.${timestamp}.${rawBody}`)
+  .digest("hex");
+
+const res = await fetch(url, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-client-id": clientId,
+    "x-timestamp": String(timestamp),
+    "x-signature": signature
+  },
+  body: rawBody
+});
+
+const text = await res.text();
+let parsed = null;
+try { parsed = JSON.parse(text); } catch { parsed = null; }
+
+console.log("Status:", res.status);
+console.log(parsed ? JSON.stringify(parsed, null, 2) : text);
+
+
+===== FILE: test-generate.mjs =====
+
+import crypto from "crypto";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
+
+const url = "http://localhost:3000/api/pierre/generate";
+const clientId = "clonestore";
+const timestamp = Date.now();
+
+const body = {
+  client_id: clientId,
+  agent_key: "pierre",
+  input: "Ã‰cris un email pro pour demander un rendez-vous de 15 minutes Ã  un candidat.",
+  context: { language: "fr" },
+  request_id: "gen_test_001"
+};
+
+const rawBody = JSON.stringify(body);
+
+const secret = process.env.ROUTER_HMAC_SECRET;
+if (!secret) {
+  console.error('ROUTER_HMAC_SECRET manquant dans .env.local');
+  process.exit(1);
+}
+
+const signature = crypto
+  .createHmac("sha256", secret)
+  .update(`${clientId}.${timestamp}.${rawBody}`)
+  .digest("hex");
+
+const res = await fetch(url, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-client-id": clientId,
+    "x-timestamp": String(timestamp),
+    "x-signature": signature
+  },
+  body: rawBody
+});
+
+const text = await res.text();
+let parsed = null;
+try { parsed = JSON.parse(text); } catch { parsed = null; }
+
+console.log("Status:", res.status);
+console.log(parsed ? JSON.stringify(parsed, null, 2) : text);
+
+
+===== FILE: tsconfig.json =====
+
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+
+
+

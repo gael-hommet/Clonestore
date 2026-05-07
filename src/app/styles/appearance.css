@@ -1,0 +1,545 @@
+/* =========================================================
+   CLONESTORE — APPARENCE GLOBALE SAFE
+
+   Objectif :
+   - thèmes, accents, densité, animations fonctionnent ;
+   - la homepage ne casse plus ;
+   - le rail gauche de la homepage garde son Liquid Glass ;
+   - les boutons du layout restent visibles ;
+   - aucune grosse plaque opaque ne revient.
+
+   Piloté par :
+   html[data-clone-appearance]
+   html[data-clone-accent]
+   html[data-clone-density]
+   html[data-clone-motion]
+========================================================= */
+
+html {
+  --clone-page-bg:
+    radial-gradient(circle at 12% 8%, rgba(126, 151, 255, 0.1), transparent 30%),
+    radial-gradient(circle at 88% 18%, rgba(232, 215, 189, 0.24), transparent 34%),
+    radial-gradient(circle at 50% 85%, rgba(255, 255, 255, 0.68), transparent 42%),
+    linear-gradient(135deg, #fbf7ef 0%, #f8f2e8 42%, #f4efe5 100%);
+
+  --clone-glass-bg:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.64),
+      rgba(255, 255, 255, 0.34)
+    );
+
+  --clone-glass-bg-soft:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.42),
+      rgba(255, 255, 255, 0.18)
+    );
+
+  --clone-glass-bg-strong:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.78),
+      rgba(255, 255, 255, 0.44)
+    );
+
+  --clone-glass-border: rgba(255, 255, 255, 0.58);
+  --clone-glass-border-strong: rgba(255, 255, 255, 0.78);
+
+  --clone-glass-shadow:
+    0 24px 70px rgba(32, 36, 45, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.74);
+
+  --clone-accent: #667cff;
+  --clone-accent-2: #4f63d5;
+  --clone-accent-soft: rgba(102, 124, 255, 0.11);
+  --clone-accent-border: rgba(102, 124, 255, 0.24);
+
+  --clone-button-light:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.82),
+      rgba(255, 250, 244, 0.56)
+    );
+
+  --clone-button-dark:
+    linear-gradient(
+      135deg,
+      #171b25 0%,
+      #273044 54%,
+      var(--clone-accent) 100%
+    );
+
+  --clone-density-page-y: clamp(1.6rem, 3vw, 2.8rem);
+  --clone-density-panel-pad: 1;
+  --clone-motion-fast: 180ms;
+  --clone-motion-slow: 420ms;
+
+  --cs-page-bg: var(--clone-page-bg);
+}
+
+/* =========================================================
+   THÈMES
+========================================================= */
+
+html[data-clone-appearance="signature"] {
+  color-scheme: light;
+
+  --clone-page-bg:
+    radial-gradient(circle at 12% 8%, rgba(126, 151, 255, 0.1), transparent 30%),
+    radial-gradient(circle at 88% 18%, rgba(232, 215, 189, 0.24), transparent 34%),
+    radial-gradient(circle at 50% 85%, rgba(255, 255, 255, 0.68), transparent 42%),
+    linear-gradient(135deg, #fbf7ef 0%, #f8f2e8 42%, #f4efe5 100%);
+
+  --cs-bg: #fbf7ef;
+  --cs-surface: rgba(255, 255, 255, 0.56);
+  --cs-surface-2: rgba(255, 250, 244, 0.52);
+
+  --cs-ink-1: #171b25;
+  --cs-ink-2: #303747;
+  --cs-ink-3: #667084;
+  --cs-ink-4: #8d98aa;
+
+  --cs-line-soft: rgba(39, 45, 58, 0.09);
+  --cs-line: rgba(39, 45, 58, 0.14);
+
+  --cs-violet: var(--clone-accent);
+  --cs-violet-2: var(--clone-accent-2);
+}
+
+html[data-clone-appearance="graphite"] {
+  color-scheme: dark;
+
+  --clone-page-bg:
+    radial-gradient(circle at 12% 10%, rgba(102, 124, 255, 0.18), transparent 30%),
+    radial-gradient(circle at 86% 20%, rgba(155, 171, 255, 0.1), transparent 34%),
+    radial-gradient(circle at 52% 95%, rgba(255, 255, 255, 0.05), transparent 42%),
+    linear-gradient(135deg, #151923 0%, #1c2230 46%, #11141c 100%);
+
+  --clone-glass-bg:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.13),
+      rgba(255, 255, 255, 0.055)
+    );
+
+  --clone-glass-bg-soft:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.095),
+      rgba(255, 255, 255, 0.035)
+    );
+
+  --clone-glass-bg-strong:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.18),
+      rgba(255, 255, 255, 0.075)
+    );
+
+  --clone-glass-border: rgba(255, 255, 255, 0.14);
+  --clone-glass-border-strong: rgba(255, 255, 255, 0.22);
+
+  --clone-glass-shadow:
+    0 28px 86px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+
+  --clone-button-light:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.14),
+      rgba(255, 255, 255, 0.07)
+    );
+
+  --clone-button-dark:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.94),
+      rgba(220, 226, 255, 0.86)
+    );
+
+  --cs-bg: #151923;
+  --cs-surface: rgba(255, 255, 255, 0.09);
+  --cs-surface-2: rgba(255, 255, 255, 0.06);
+
+  --cs-ink-1: #f7f8fb;
+  --cs-ink-2: #dce2ef;
+  --cs-ink-3: #a8b1c3;
+  --cs-ink-4: #7e8799;
+
+  --cs-line-soft: rgba(255, 255, 255, 0.1);
+  --cs-line: rgba(255, 255, 255, 0.16);
+
+  --cs-violet: var(--clone-accent);
+  --cs-violet-2: var(--clone-accent-2);
+}
+
+html[data-clone-appearance="aura"] {
+  color-scheme: light;
+
+  --clone-page-bg:
+    radial-gradient(circle at 10% 10%, rgba(225, 194, 145, 0.24), transparent 30%),
+    radial-gradient(circle at 86% 20%, rgba(102, 124, 255, 0.1), transparent 34%),
+    radial-gradient(circle at 52% 92%, rgba(255, 255, 255, 0.78), transparent 42%),
+    linear-gradient(135deg, #fff8eb 0%, #f5ead7 45%, #efe0c5 100%);
+
+  --clone-glass-bg:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.72),
+      rgba(255, 248, 235, 0.38)
+    );
+
+  --clone-glass-bg-soft:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.46),
+      rgba(255, 248, 235, 0.2)
+    );
+
+  --clone-glass-bg-strong:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.82),
+      rgba(255, 248, 235, 0.48)
+    );
+
+  --clone-glass-border: rgba(255, 255, 255, 0.62);
+  --clone-glass-border-strong: rgba(255, 255, 255, 0.8);
+
+  --clone-glass-shadow:
+    0 26px 78px rgba(84, 58, 25, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.76);
+
+  --cs-bg: #fff8eb;
+  --cs-surface: rgba(255, 255, 255, 0.58);
+  --cs-surface-2: rgba(255, 248, 235, 0.55);
+
+  --cs-ink-1: #1b1d24;
+  --cs-ink-2: #383b46;
+  --cs-ink-3: #6f7483;
+  --cs-ink-4: #969baa;
+
+  --cs-line-soft: rgba(72, 52, 28, 0.1);
+  --cs-line: rgba(72, 52, 28, 0.16);
+
+  --cs-violet: var(--clone-accent);
+  --cs-violet-2: var(--clone-accent-2);
+}
+
+/* =========================================================
+   ACCENTS
+========================================================= */
+
+html[data-clone-accent="blue-graphite"] {
+  --clone-accent: #667cff;
+  --clone-accent-2: #303b67;
+  --clone-accent-soft: rgba(102, 124, 255, 0.11);
+  --clone-accent-border: rgba(102, 124, 255, 0.24);
+
+  --cs-violet: #667cff;
+  --cs-violet-2: #303b67;
+}
+
+html[data-clone-accent="cold-blue"] {
+  --clone-accent: #4f8cff;
+  --clone-accent-2: #2f63c7;
+  --clone-accent-soft: rgba(79, 140, 255, 0.12);
+  --clone-accent-border: rgba(79, 140, 255, 0.25);
+
+  --cs-violet: #4f8cff;
+  --cs-violet-2: #2f63c7;
+}
+
+html[data-clone-accent="champagne"] {
+  --clone-accent: #c99a4d;
+  --clone-accent-2: #8f682d;
+  --clone-accent-soft: rgba(201, 154, 77, 0.13);
+  --clone-accent-border: rgba(201, 154, 77, 0.28);
+
+  --cs-violet: #c99a4d;
+  --cs-violet-2: #8f682d;
+}
+
+html[data-clone-accent="soft-violet"] {
+  --clone-accent: #806fff;
+  --clone-accent-2: #5c4ad3;
+  --clone-accent-soft: rgba(128, 111, 255, 0.12);
+  --clone-accent-border: rgba(128, 111, 255, 0.26);
+
+  --cs-violet: #806fff;
+  --cs-violet-2: #5c4ad3;
+}
+
+/* =========================================================
+   BASE GLOBALE SAFE
+========================================================= */
+
+html,
+body {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--clone-page-bg);
+  color: var(--cs-ink-1);
+  overflow-y: auto;
+}
+
+.cs-page {
+  background: transparent;
+}
+
+.cs-backdrop {
+  background: var(--clone-page-bg);
+}
+
+.cs-backdrop__film {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.18), transparent 58%);
+}
+
+html[data-clone-appearance="graphite"] .cs-backdrop__film {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 34%),
+    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.045), transparent 58%);
+}
+
+/* Cartes générales : oui.
+   Homepage rail et boutons : traités séparément plus bas. */
+
+.cs-card,
+.cs-panel,
+.cs-command-surface {
+  background: var(--clone-glass-bg);
+  border-color: var(--clone-glass-border);
+  box-shadow: var(--clone-glass-shadow);
+}
+
+/* =========================================================
+   BOUTONS — RESTAURATION FORTE DU LAYOUT
+========================================================= */
+
+.clone-liquid-button {
+  background: var(--clone-button-light) !important;
+  border: 1px solid var(--clone-glass-border-strong) !important;
+  color: var(--cs-ink-1) !important;
+  box-shadow:
+    0 16px 38px rgba(26, 28, 36, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(18px) saturate(1.22) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.22) !important;
+}
+
+.clone-liquid-button:hover {
+  transform: translateY(-1px);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.92),
+      rgba(255, 250, 244, 0.66)
+    ) !important;
+}
+
+.clone-liquid-button--dark {
+  background: var(--clone-button-dark) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 18px 42px rgba(22, 26, 36, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+}
+
+html[data-clone-appearance="graphite"] .clone-liquid-button--dark {
+  color: #151923 !important;
+  border-color: rgba(255, 255, 255, 0.32) !important;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+/* =========================================================
+   HEADER / NAV — NE PLUS LE RENDRE INVISIBLE
+========================================================= */
+
+.cs-nav-rail {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.7),
+      rgba(255, 255, 255, 0.46)
+    ) !important;
+  border-color: rgba(255, 255, 255, 0.7) !important;
+  box-shadow:
+    0 18px 52px rgba(25, 28, 38, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(20px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.2) !important;
+}
+
+html[data-clone-appearance="graphite"] .cs-nav-rail {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.055)
+    ) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+.cs-nav-link--active {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.88),
+      rgba(255, 255, 255, 0.54)
+    ) !important;
+  color: var(--cs-ink-1) !important;
+  box-shadow:
+    0 12px 28px rgba(25, 28, 38, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+}
+
+/* =========================================================
+   HOME RAIL — VERROUILLÉ EN LIQUID GLASS TRANSPARENT
+   Cette zone ne doit plus être déformée par l’apparence.
+========================================================= */
+
+.clone-home-rail {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.clone-home-rail .clone-rail-item {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.34),
+      rgba(255, 255, 255, 0.12)
+    ) !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  color: var(--cs-ink-1) !important;
+  box-shadow:
+    0 16px 44px rgba(32, 36, 45, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68) !important;
+  backdrop-filter: blur(18px) saturate(1.18) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.18) !important;
+}
+
+.clone-home-rail .clone-rail-item:hover,
+.clone-home-rail .clone-rail-item[data-active="true"],
+.clone-home-rail .clone-rail-item.clone-rail-item--active {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.52),
+      rgba(255, 255, 255, 0.18)
+    ) !important;
+  border-color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.clone-home-rail .clone-rail-icon,
+.clone-home-rail svg {
+  color: var(--clone-accent) !important;
+}
+
+/* =========================================================
+   PILLS / CHIPS / TEXTE GRADIENT
+========================================================= */
+
+.cs-pill,
+.clone-core-caption,
+.clone-tech-legend,
+.clone-status-chip,
+.clone-mini-chip {
+  background: var(--clone-glass-bg-soft);
+  border-color: var(--clone-glass-border);
+  box-shadow:
+    0 12px 34px rgba(32, 36, 45, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(16px) saturate(1.18);
+  -webkit-backdrop-filter: blur(16px) saturate(1.18);
+}
+
+.cs-gradient-text,
+.clone-hero-title span:last-child,
+.clone-liquid-script-title span:last-child {
+  background: linear-gradient(120deg, var(--cs-ink-1) 0%, var(--clone-accent) 88%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.cs-pill svg,
+.clone-tech-icon,
+.clone-core-sun-inner,
+.clone-orbit-point {
+  color: var(--clone-accent);
+}
+
+/* =========================================================
+   DENSITÉ
+========================================================= */
+
+html[data-clone-density="compact"] {
+  --clone-density-page-y: clamp(1rem, 2vw, 1.6rem);
+  --clone-density-panel-pad: 0.92;
+}
+
+html[data-clone-density="comfortable"] {
+  --clone-density-page-y: clamp(1.6rem, 3vw, 2.8rem);
+  --clone-density-panel-pad: 1;
+}
+
+html[data-clone-density="airy"] {
+  --clone-density-page-y: clamp(2.2rem, 4vw, 4rem);
+  --clone-density-panel-pad: 1.1;
+}
+
+html[data-clone-density="compact"] .cs-page-shell {
+  padding-top: var(--clone-density-page-y);
+  padding-bottom: var(--clone-density-page-y);
+}
+
+html[data-clone-density="comfortable"] .cs-page-shell {
+  padding-top: var(--clone-density-page-y);
+  padding-bottom: var(--clone-density-page-y);
+}
+
+html[data-clone-density="airy"] .cs-page-shell {
+  padding-top: var(--clone-density-page-y);
+  padding-bottom: var(--clone-density-page-y);
+}
+
+/* Ne jamais compacter brutalement le rail homepage */
+html[data-clone-density="compact"] .clone-home-rail,
+html[data-clone-density="airy"] .clone-home-rail {
+  transform: none !important;
+}
+
+/* =========================================================
+   MOTION
+========================================================= */
+
+html[data-clone-motion="subtle"] {
+  scroll-behavior: smooth;
+}
+
+html[data-clone-motion="reduced"] *,
+html[data-clone-motion="none"] * {
+  transition-duration: 0.01ms !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-clone-motion="none"] .clone-orbit-ring,
+html[data-clone-motion="none"] .clone-core-orbit,
+html[data-clone-motion="none"] .clone-core-aura {
+  animation: none !important;
+}

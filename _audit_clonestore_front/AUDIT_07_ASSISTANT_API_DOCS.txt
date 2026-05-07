@@ -1,0 +1,6437 @@
+﻿
+
+
+============================================================
+FILE: src\app\assistant\page.tsx
+============================================================
+
+"use client";
+
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  BrainCircuit,
+  CornerDownLeft,
+  Loader2,
+  MessagesSquare,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+  WandSparkles,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+type MessageItem = {
+  id: string;
+  role: "assistant" | "user";
+  content: string;
+};
+
+const QUICK_PROMPTS = [
+  "Explique CloneStore simplement",
+  "Quelle est la différence entre Boutique, Mes employés et Mon espace ?",
+  "À quoi sert CloneChat ?",
+  "Comment fonctionne CloneStore concrètement ?",
+  "Par quoi commencer si je veux utiliser Pierre ?",
+  "Où aller si j’ai déjà payé ?",
+];
+
+function extractAssistantText(data: unknown): string {
+  if (!data || typeof data !== "object") {
+    return "Je n’ai pas pu produire de réponse exploitable pour le moment.";
+  }
+
+  const record = data as Record<string, unknown>;
+
+  for (const key of ["answer", "response", "content", "message", "text"]) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  const choices = record.choices;
+  if (Array.isArray(choices) && choices.length > 0) {
+    const first = choices[0] as Record<string, unknown>;
+    const message = first.message as Record<string, unknown> | undefined;
+    const content = message?.content;
+    if (typeof content === "string" && content.trim()) {
+      return content.trim();
+    }
+  }
+
+  return "Je n’ai pas pu produire de réponse exploitable pour le moment.";
+}
+
+function MessageBubble({ item }: { item: MessageItem }) {
+  const isAssistant = item.role === "assistant";
+
+  return (
+    <div
+      className={[
+        "max-w-[88%] rounded-[1.25rem] px-4 py-3 text-[0.9rem] leading-7",
+        isAssistant
+          ? "border border-[var(--cs-line-soft)] bg-white/72 text-[var(--cs-ink-2)]"
+          : "ml-auto border border-[rgba(111,99,246,0.12)] bg-[rgba(111,99,246,0.08)] text-[var(--cs-ink-1)]",
+      ].join(" ")}
+    >
+      {item.content}
+    </div>
+  );
+}
+
+export default function AssistantPage() {
+  const [messages, setMessages] = useState<MessageItem[]>([
+    {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content:
+        "Bonjour. Je suis CloneChat. Je sers à expliquer CloneStore, orienter vers la bonne zone du produit et réduire les frictions dans l’usage.",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!scrollerRef.current) return;
+    scrollerRef.current.scrollTop = scrollerRef.current.scrollHeight;
+  }, [messages, loading]);
+
+  const canSend = useMemo(() => input.trim().length > 0 && !loading, [input, loading]);
+
+  async function sendMessage(rawText: string) {
+    const clean = rawText.trim();
+    if (!clean || loading) return;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: clean,
+      },
+    ]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/assistant", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: clean,
+          input: clean,
+          query: clean,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+      const answer = extractAssistantText(data);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: answer,
+        },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content:
+            "Je n’ai pas pu répondre correctement pour le moment. Tu peux continuer via la Boutique, Mes employés ou Mon espace.",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-5">
+          <section className="cs-command-surface">
+            <div className="cs-system-halo" />
+
+            <div className="relative grid gap-5 xl:grid-cols-[1.02fr_0.98fr] xl:items-center">
+              <div className="space-y-5">
+                <span className="cs-pill">
+                  <Bot className="h-4 w-4 text-[var(--cs-violet)]" />
+                  CloneChat
+                </span>
+
+                <div className="space-y-3">
+                  <h1 className="cs-display text-[clamp(2rem,3vw,3.25rem)] leading-[0.98]">
+                    Comprendre, orienter,
+                    <br />
+                    <span className="cs-gradient-text">débloquer</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
+                    CloneChat est le point d’entrée naturel de CloneStore. Il aide à comprendre
+                    le produit, à aller au bon endroit et à réduire les questions inutiles dans le parcours.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    asChild
+                    className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    <Link href="/profile/agents">
+                      Mes employés
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    <Link href="/agents">Voir la boutique</Link>
+                  </Button>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <MiniPoint
+                    icon={<MessagesSquare className="h-4 w-4" />}
+                    title="Explication"
+                    text="rend le produit lisible"
+                  />
+                  <MiniPoint
+                    icon={<Waypoints className="h-4 w-4" />}
+                    title="Orientation"
+                    text="envoie vers la bonne zone"
+                  />
+                  <MiniPoint
+                    icon={<ShieldCheck className="h-4 w-4" />}
+                    title="Support"
+                    text="réduit les frictions"
+                  />
+                </div>
+              </div>
+
+              <div className="cs-panel p-5">
+                <div className="space-y-4">
+                  <p className="cs-eyebrow">Prompts rapides</p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {QUICK_PROMPTS.map((prompt) => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        onClick={() => void sendMessage(prompt)}
+                        className="inline-flex h-10 items-center rounded-full border border-[var(--cs-line-soft)] bg-white/44 px-4 text-[0.84rem] font-medium text-[var(--cs-ink-2)] transition hover:bg-white/58"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="rounded-[1.25rem] border border-[var(--cs-line-soft)] bg-white/34 p-4">
+                    <p className="text-[0.9rem] font-semibold text-[var(--cs-ink-1)]">
+                      Rôle dans l’expérience
+                    </p>
+                    <p className="mt-2 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+                      CloneChat ne remplace pas le cockpit. Il sert à comprendre,
+                      orienter, clarifier et accélérer l’accès au bon endroit dans CloneStore.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <MiniInfoCard
+                      icon={<BrainCircuit className="h-4 w-4" />}
+                      title="Connaissance produit"
+                      text="Explique les parcours, les zones et les usages visibles."
+                    />
+                    <MiniInfoCard
+                      icon={<WandSparkles className="h-4 w-4" />}
+                      title="Orientation utile"
+                      text="Évite au client de se perdre entre support, boutique et cockpit."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr]">
+            <div className="cs-panel p-5">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="cs-eyebrow">Conversation</p>
+                    <h2 className="mt-2 text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                      Parler à CloneChat
+                    </h2>
+                  </div>
+
+                  <span className="cs-status cs-status--info">Interface active</span>
+                </div>
+
+                <div className="rounded-[1.35rem] border border-[var(--cs-line-soft)] bg-white/30 p-4">
+                  <div
+                    ref={scrollerRef}
+                    className="flex max-h-[520px] min-h-[360px] flex-col gap-3 overflow-y-auto pr-1"
+                  >
+                    {messages.map((message) => (
+                      <MessageBubble key={message.id} item={message} />
+                    ))}
+
+                    {loading ? (
+                      <div className="inline-flex max-w-[88%] items-center gap-2 rounded-[1.1rem] border border-[var(--cs-line-soft)] bg-white/64 px-4 py-3 text-[0.84rem] text-[var(--cs-ink-3)]">
+                        <Loader2 className="h-4 w-4 animate-spin text-[var(--cs-violet)]" />
+                        <span>CloneChat réfléchit…</span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void sendMessage(input);
+                  }}
+                  className="flex flex-col gap-3 sm:flex-row"
+                >
+                  <div className="relative flex-1">
+                    <input
+                      value={input}
+                      onChange={(event) => setInput(event.target.value)}
+                      placeholder="Pose une question sur CloneStore…"
+                      className="h-11 w-full rounded-full border border-[var(--cs-line-soft)] bg-white/44 px-5 pr-12 text-[0.88rem] text-[var(--cs-ink-1)] outline-none transition placeholder:text-[var(--cs-ink-4)] focus:border-[rgba(95,92,230,0.16)] focus:bg-white/58"
+                    />
+                    <CornerDownLeft className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--cs-ink-4)]" />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={!canSend}
+                    className="h-11 rounded-full px-5 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    Envoyer
+                  </Button>
+                </form>
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              <section className="cs-panel p-5">
+                <div className="space-y-4">
+                  <p className="cs-eyebrow">À quoi sert cette page</p>
+                  <div className="grid gap-3">
+                    <FeatureCard
+                      title="Comprendre CloneStore"
+                      text="Répondre aux questions fréquentes sans renvoyer le client dans le flou."
+                    />
+                    <FeatureCard
+                      title="Orienter vite"
+                      text="Envoyer vers Pierre, la boutique, le cockpit ou la configuration selon le besoin."
+                    />
+                    <FeatureCard
+                      title="Réduire le support inutile"
+                      text="Absorber une grande part des questions simples et répétitives."
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="cs-panel p-5">
+                <div className="space-y-4">
+                  <p className="cs-eyebrow">Accès rapides</p>
+                  <div className="grid gap-3">
+                    <QuickLink
+                      href="/profile"
+                      title="Mon espace"
+                      text="Le cockpit compte et pilotage global."
+                    />
+                    <QuickLink
+                      href="/profile/agents"
+                      title="Mes employés"
+                      text="Accéder aux employés IA actifs."
+                    />
+                    <QuickLink
+                      href="/agents/pierre"
+                      title="Pierre"
+                      text="Voir la fiche du poste RH automatisé."
+                    />
+                    <QuickLink
+                      href="/questions"
+                      title="Support / FAQ"
+                      text="Page de questions structurée."
+                    />
+                  </div>
+                </div>
+              </section>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniPoint({
+  icon,
+  title,
+  text,
+}: {
+  icon: ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+        <div>
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">{title}</p>
+          <p className="mt-1 text-[0.84rem] text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniInfoCard({
+  icon,
+  title,
+  text,
+}: {
+  icon: ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+        <div className="space-y-1">
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">{title}</p>
+          <p className="text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureCard({
+  title,
+  text,
+}: {
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="space-y-1">
+        <p className="text-[0.9rem] font-semibold text-[var(--cs-ink-1)]">{title}</p>
+        <p className="text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function QuickLink({
+  href,
+  title,
+  text,
+}: {
+  href: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <Link href={href} className="cs-card cs-card-tight cs-hover-lift block">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-[0.9rem] font-semibold text-[var(--cs-ink-1)]">{title}</p>
+          <p className="text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+        <ArrowRight className="mt-0.5 h-4 w-4 text-[var(--cs-ink-4)]" />
+      </div>
+    </Link>
+  );
+}
+
+
+============================================================
+FILE: src\app\api\assistant\route.ts
+============================================================
+
+import { NextResponse } from "next/server";
+import {
+  DEFAULT_ASSISTANT_CONTEXT,
+  buildFallbackAnswer,
+  buildSuggestedLinks,
+  buildSuggestedStatusCards,
+  classifyIntent,
+  getAssistantQuickAsks,
+} from "@/lib/assistant/knowledge";
+import type {
+  AssistantAccountContext,
+  AssistantRequestBody,
+  AssistantResponseBody,
+} from "@/lib/assistant/types";
+
+function normalizeContext(
+  partial?: Partial<AssistantAccountContext> | null
+): AssistantAccountContext {
+  return {
+    ...DEFAULT_ASSISTANT_CONTEXT,
+    ...(partial ?? {}),
+  };
+}
+
+function extractQuestion(body: AssistantRequestBody | null | undefined) {
+  const raw =
+    body?.message ??
+    body?.input ??
+    body?.query ??
+    "";
+
+  return typeof raw === "string" ? raw.trim() : "";
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = (await request.json().catch(() => null)) as AssistantRequestBody | null;
+    const question = extractQuestion(body);
+
+    if (!question) {
+      return NextResponse.json<AssistantResponseBody>(
+        {
+          ok: false,
+          answer: "Je n’ai reçu aucune question exploitable.",
+          intent: "general",
+          quickAsks: getAssistantQuickAsks(DEFAULT_ASSISTANT_CONTEXT),
+          statusCards: buildSuggestedStatusCards(DEFAULT_ASSISTANT_CONTEXT),
+          links: buildSuggestedLinks(DEFAULT_ASSISTANT_CONTEXT),
+          supportScope:
+            "CloneChat couvre déjà le support de compréhension et d’orientation produit. La couche screenshots/fichiers/bugs live viendra plus tard.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const context = normalizeContext(body?.context);
+    const intent = classifyIntent(question);
+    const answer = buildFallbackAnswer(question, context, intent);
+
+    return NextResponse.json<AssistantResponseBody>({
+      ok: true,
+      answer,
+      intent,
+      quickAsks: getAssistantQuickAsks(context),
+      statusCards: buildSuggestedStatusCards(context),
+      links: buildSuggestedLinks(context),
+      supportScope:
+        "CloneChat connaît l’état produit actuel, les parcours, les pages, les rôles, les prix visibles, les limites et les usages déjà validés. La couche de diagnostic par captures/fichiers/bugs live sera ajoutée après stabilisation produit.",
+    });
+  } catch (error) {
+    return NextResponse.json<AssistantResponseBody>(
+      {
+        ok: false,
+        answer:
+          error instanceof Error
+            ? error.message
+            : "Impossible de traiter la demande CloneChat pour le moment.",
+        intent: "general",
+        quickAsks: getAssistantQuickAsks(DEFAULT_ASSISTANT_CONTEXT),
+        statusCards: buildSuggestedStatusCards(DEFAULT_ASSISTANT_CONTEXT),
+        links: buildSuggestedLinks(DEFAULT_ASSISTANT_CONTEXT),
+        supportScope:
+          "CloneChat couvre déjà le support de compréhension et d’orientation produit. La couche screenshots/fichiers/bugs live viendra plus tard.",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    name: "CloneChat assistant route",
+    status: "ready",
+  });
+}
+
+
+============================================================
+FILE: src\lib\assistant\knowledge.ts
+============================================================
+
+import type {
+  AssistantAccountContext,
+  AssistantIntent,
+  AssistantKnowledgeMatch,
+  AssistantLinkCard,
+  AssistantStatusCard,
+} from "./types";
+
+type KnowledgeArticle = {
+  id: string;
+  title: string;
+  tags: string[];
+  body: string;
+};
+
+export const DEFAULT_ASSISTANT_CONTEXT: AssistantAccountContext = {
+  isAuthenticated: false,
+  hasPierreAccess: false,
+  onboardingCompleted: false,
+  companyName: "",
+  contactFirstName: "",
+  contactJobTitle: "",
+  usualTone: "",
+  preferredLanguage: "fr",
+  senderMode: "",
+  senderStatus: "",
+  domainStatus: "",
+  senderEmailRequested: "",
+  senderEmailEffective: "",
+  replyToEmail: "",
+};
+
+const KNOWLEDGE_ARTICLES: KnowledgeArticle[] = [
+  {
+    id: "clonestore-positioning",
+    title: "Positionnement central de CloneStore",
+    tags: [
+      "clonestore",
+      "vision",
+      "positionnement",
+      "produit",
+      "systeme",
+      "os",
+      "employes ia",
+      "employés ia",
+    ],
+    body: [
+      "CloneStore n'est pas censé être présenté comme une collection de petits outils IA.",
+      "CloneStore est un système d'exploitation d'employés IA pour entreprises, avec logique premium, cockpit, gouvernance, mémoire et traçabilité.",
+      "Le vocabulaire à privilégier est employés IA, pas gadgets ni agents bricolés.",
+      "Le produit doit toujours être perçu comme sérieux, pilotable, haut de gamme et orienté exécution réelle.",
+    ].join("\n"),
+  },
+  {
+    id: "current-public-truth",
+    title: "Vérité produit actuelle côté public",
+    tags: [
+      "verite",
+      "vérité",
+      "etat",
+      "état",
+      "pret",
+      "prêt",
+      "public",
+      "disponible",
+      "construction",
+    ],
+    body: [
+      "L'employé le plus concret aujourd'hui est Pierre.",
+      "Pierre est l'entrée la plus crédible pour un utilisateur qui veut une valeur réelle maintenant.",
+      "Les autres employés visibles peuvent exister dans l'univers produit, mais ils ne doivent pas être vendus comme totalement prêts si ce n'est pas réellement le cas.",
+      "Quand l'utilisateur demande quoi choisir aujourd'hui, il faut répondre franchement : Pierre est le meilleur choix immédiat.",
+    ].join("\n"),
+  },
+  {
+    id: "pierre-positioning",
+    title: "Positionnement réel de Pierre",
+    tags: [
+      "pierre",
+      "rh",
+      "poste rh",
+      "assistant rh",
+      "employe rh",
+      "employé rh",
+      "documents",
+      "emails",
+      "relances",
+    ],
+    body: [
+      "Pierre est un poste RH opérationnel automatisé.",
+      "Il sert à comprendre une demande RH libre, produire des documents RH, préparer des emails, relancer, suivre une mission et garder une trace claire.",
+      "Il ne doit pas être réduit à un simple générateur de texte.",
+      "La logique produit de Pierre repose sur mission -> tâches -> validations éventuelles -> exécution -> suivi -> historique.",
+    ].join("\n"),
+  },
+  {
+    id: "pierre-strengths",
+    title: "Ce que Pierre fait bien",
+    tags: [
+      "capacites",
+      "capacités",
+      "ce que fait pierre",
+      "documents",
+      "emails",
+      "pdf",
+      "historique",
+      "mission libre",
+    ],
+    body: [
+      "Pierre est fort sur la rédaction RH exploitable et sur la structuration opérationnelle.",
+      "Il couvre notamment convocations, refus, relances, onboarding, documents RH, emails, PDF, missions, historique et continuité.",
+      "Il peut fonctionner comme un vrai centre de missions RH contrôlé, pas seulement comme une zone de texte.",
+      "Pierre doit aider à retirer de la charge mentale au client dès la première semaine.",
+    ].join("\n"),
+  },
+  {
+    id: "pierre-limits",
+    title: "Limites réelles de Pierre",
+    tags: [
+      "limites",
+      "ne fait pas",
+      "pas juridique",
+      "pas scoring cv",
+      "cv",
+      "juridique",
+      "risque",
+    ],
+    body: [
+      "Pierre ne doit pas être présenté comme un conseiller juridique formel.",
+      "Pierre ne doit pas inventer des informations manquantes.",
+      "Pierre ne doit pas être vendu comme un moteur de scoring massif de CV : cette logique relève plutôt de Clara quand Clara sera réellement prête.",
+      "Pierre doit refuser, bloquer ou remonter les cas sensibles qui exigent une validation humaine.",
+    ].join("\n"),
+  },
+  {
+    id: "post-payment-flow",
+    title: "Parcours après paiement",
+    tags: [
+      "paiement",
+      "post paiement",
+      "post-payment",
+      "activation",
+      "acces",
+      "accès",
+      "succes",
+      "succès",
+    ],
+    body: [
+      "La logique simple après paiement est : accès actif -> onboarding utile -> cockpit d'usage.",
+      "Pour Pierre, le bon enchaînement est : activation, puis setup / Empreinte Entreprise, puis page Pierre Use.",
+      "Le produit ne doit jamais laisser une sensation de vide après paiement.",
+      "Le support doit toujours répondre avec le meilleur prochain pas concret.",
+    ].join("\n"),
+  },
+  {
+    id: "onboarding-role",
+    title: "Rôle du setup / onboarding Pierre",
+    tags: [
+      "onboarding",
+      "setup",
+      "formulaire",
+      "empreinte entreprise",
+      "cloneadn",
+      "memoire",
+      "mémoire",
+    ],
+    body: [
+      "L'onboarding Pierre sert à transmettre l'identité entreprise, le ton, les règles, les valideurs, la logique d'autonomie et l'identité d'envoi.",
+      "Ce n'est pas un simple formulaire décoratif.",
+      "C'est le socle CloneADN de Pierre pour cette entreprise.",
+      "Plus cette base est propre, plus Pierre agit de façon cohérente dès le départ.",
+    ].join("\n"),
+  },
+  {
+    id: "onboarding-priority",
+    title: "Blocs les plus importants du setup Pierre",
+    tags: [
+      "priorite",
+      "priorité",
+      "important",
+      "setup pierre",
+      "formulaire pierre",
+      "setup important",
+    ],
+    body: [
+      "Les blocs les plus critiques sont : identité entreprise, contexte RH, ton, valideurs, actions autorisées / interdites et identité email.",
+      "Ce sont eux qui influencent le plus directement la qualité réelle des sorties de Pierre.",
+      "Si le client veut aller vite, il faut commencer par ces zones-là au lieu de remplir au hasard.",
+    ].join("\n"),
+  },
+  {
+    id: "pierre-use-page",
+    title: "Rôle de la page Pierre Use",
+    tags: [
+      "use",
+      "page use",
+      "pierre use",
+      "mission center",
+      "centre de missions",
+      "studios",
+      "artifacts",
+      "history",
+      "memory",
+    ],
+    body: [
+      "La page Pierre Use est le cockpit opérationnel de Pierre.",
+      "Elle réunit mission libre, compréhension, tâches, suivi, artefacts, historique et mémoire.",
+      "Le client doit pouvoir parler à Pierre comme à un employé, puis produire, suivre, corriger et exploiter les sorties.",
+      "Cette page n'est pas un simple chat : c'est un centre de commandement.",
+    ].join("\n"),
+  },
+  {
+    id: "email-pdf-logic",
+    title: "Logique email et PDF dans Pierre",
+    tags: [
+      "email",
+      "pdf",
+      "piece jointe",
+      "pièce jointe",
+      "envoi",
+      "document",
+      "version active",
+      "artefact",
+    ],
+    body: [
+      "Les emails et PDF doivent partir de la version active du contenu.",
+      "Si le contenu a été modifié puis enregistré, c'est cette version qui devient la base pour l'envoi ou l'export.",
+      "Si un PDF a été généré avant une modification importante, il doit être régénéré pour rester aligné avec le contenu actif.",
+      "Le support doit toujours expliquer cela simplement, sans jargon inutile.",
+    ].join("\n"),
+  },
+  {
+    id: "sender-identity",
+    title: "Identité d'envoi et domaine entreprise",
+    tags: [
+      "sender",
+      "email identity",
+      "identite d'envoi",
+      "identité d'envoi",
+      "domaine",
+      "dns",
+      "reply-to",
+      "reply to",
+      "fallback",
+    ],
+    body: [
+      "L'objectif produit est de permettre à Pierre d'envoyer au nom de l'entreprise via une vraie identité email.",
+      "Tant que le domaine n'est pas correctement vérifié / configuré, le système peut rester sur une identité de fallback.",
+      "Une fois le domaine prêt, l'identité cible peut devenir l'identité active.",
+      "Le support doit l'expliquer comme une bascule contrôlée, pas comme un détail obscur de développeur.",
+    ].join("\n"),
+  },
+  {
+    id: "profile-and-cockpit",
+    title: "Différence entre Mon espace, Mes employés et la boutique",
+    tags: [
+      "mon espace",
+      "mes employes",
+      "mes employés",
+      "boutique",
+      "navigation",
+      "difference",
+      "différence",
+      "cockpit",
+    ],
+    body: [
+      "Mon espace sert au pilotage global du compte, des accès, de la structure et des grands réglages.",
+      "Mes employés sert à voir et ouvrir les employés IA activés ou visibles dans l'univers CloneStore.",
+      "La boutique sert à découvrir l'offre publique et les employés proposés.",
+      "Le support doit orienter vite vers la bonne zone selon l'intention réelle de l'utilisateur.",
+    ].join("\n"),
+  },
+  {
+    id: "clonechat-role",
+    title: "Rôle de CloneChat",
+    tags: [
+      "clonechat",
+      "assistant",
+      "support",
+      "orientation",
+      "questions",
+      "help",
+      "aide",
+    ],
+    body: [
+      "CloneChat est censé absorber l'immense majorité des questions de support simples, produit, parcours et compréhension.",
+      "Il doit expliquer, orienter, rassurer et donner le meilleur prochain pas.",
+      "Il fait partie du coeur de CloneStore et doit connaître le produit en profondeur.",
+      "Il ne doit pas répondre comme une FAQ molle mais comme un employé poumon du système.",
+    ].join("\n"),
+  },
+  {
+    id: "future-visible-tech",
+    title: "Technologies visibles CloneStore",
+    tags: [
+      "cloneos",
+      "cloneadn",
+      "cloneguard",
+      "clonetrace",
+      "clonevoice",
+      "technologies",
+      "vision produit",
+    ],
+    body: [
+      "CloneOS est la couche d'orchestration des missions et des employés.",
+      "CloneADN représente la mémoire et l'alignement entreprise.",
+      "CloneGuard couvre gouvernance, risque, validation et refus.",
+      "CloneTrace couvre traçabilité, timeline et auditabilité.",
+      "CloneVoice est la couche de commande naturelle vocale prévue pour l'expérience premium future.",
+    ].join("\n"),
+  },
+  {
+    id: "pricing-truth",
+    title: "Vérité tarifaire actuelle",
+    tags: [
+      "prix",
+      "pricing",
+      "tarif",
+      "combien",
+      "449",
+      "pierre prix",
+    ],
+    body: [
+      "Pierre est affiché à 449€/mois dans le parcours actuel.",
+      "Le support ne doit pas inventer d'autres prix si rien d'autre n'est confirmé.",
+      "Quand un utilisateur demande quel employé choisir tout de suite, le support doit parler valeur réelle, pas seulement tarif.",
+    ].join("\n"),
+  },
+  {
+    id: "support-style",
+    title: "Style de réponse attendu",
+    tags: [
+      "style",
+      "ton",
+      "reponse",
+      "réponse",
+      "support premium",
+    ],
+    body: [
+      "Les réponses doivent être directes, propres, crédibles et orientées action.",
+      "Quand il faut choisir, il faut choisir franchement.",
+      "Quand il faut dire qu'un employé n'est pas encore prêt, il faut le dire franchement aussi.",
+      "Le meilleur prochain pas doit être concret.",
+    ].join("\n"),
+  },
+];
+
+function clean(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function includesOne(text: string, terms: string[]): boolean {
+  return terms.some((term) => text.includes(clean(term)));
+}
+
+function scoreArticle(
+  rawQuery: string,
+  intent: AssistantIntent,
+  article: KnowledgeArticle
+): number {
+  const query = clean(rawQuery);
+  if (!query) return 0;
+
+  let score = 0;
+
+  for (const tag of article.tags) {
+    if (query.includes(clean(tag))) score += 4;
+  }
+
+  const titleWords = clean(article.title).split(" ").filter(Boolean);
+  for (const word of titleWords) {
+    if (word.length >= 4 && query.includes(word)) score += 2;
+  }
+
+  if (intent === "clone_choice" && article.id === "current-public-truth") score += 8;
+  if (intent === "clone_choice" && article.id === "pierre-positioning") score += 6;
+
+  if (intent === "post_payment" && article.id === "post-payment-flow") score += 10;
+
+  if (intent === "onboarding" && article.id === "onboarding-role") score += 10;
+  if (intent === "onboarding" && article.id === "onboarding-priority") score += 6;
+
+  if (intent === "use_page" && article.id === "pierre-use-page") score += 10;
+  if (intent === "email_pdf_action" && article.id === "email-pdf-logic") score += 10;
+  if (intent === "email_identity" && article.id === "sender-identity") score += 10;
+
+  if (intent === "limits" && article.id === "pierre-limits") score += 10;
+  if (intent === "pricing" && article.id === "pricing-truth") score += 10;
+
+  if (intent === "navigation" && article.id === "profile-and-cockpit") score += 10;
+  if (intent === "support" && article.id === "clonechat-role") score += 10;
+  if (intent === "product_vision" && article.id === "future-visible-tech") score += 8;
+
+  if (intent === "general" && article.id === "support-style") score += 2;
+
+  return score;
+}
+
+function buildKnowledgeArticleBlock(article: KnowledgeArticle): string {
+  return `## ${article.title}\n${article.body}`;
+}
+
+export function classifyIntent(question: string): AssistantIntent {
+  const q = clean(question);
+
+  if (!q) return "general";
+
+  if (
+    includesOne(q, [
+      "quel employe",
+      "quel employé",
+      "lequel choisir",
+      "tu me conseilles lequel",
+      "tu me conseilles quoi",
+      "entre pierre et",
+      "quel clone",
+      "qui prendre",
+    ])
+  ) {
+    return "clone_choice";
+  }
+
+  if (
+    includesOne(q, [
+      "apres paiement",
+      "apres avoir paye",
+      "apres avoir payé",
+      "je viens de payer",
+      "activation",
+      "paiement succes",
+      "paiement succes",
+      "paiement annulé",
+      "paiement annule",
+      "post paiement",
+    ])
+  ) {
+    return "post_payment";
+  }
+
+  if (
+    includesOne(q, [
+      "onboarding",
+      "setup",
+      "empreinte entreprise",
+      "formulaire",
+      "configuration pierre",
+      "configurer pierre",
+      "remplir pierre",
+    ])
+  ) {
+    return "onboarding";
+  }
+
+  if (
+    includesOne(q, [
+      "page use",
+      "utiliser pierre",
+      "centre de missions",
+      "mission libre",
+      "studios",
+      "artifacts",
+      "artefacts",
+      "historique pierre",
+      "memoire pierre",
+      "mémoire pierre",
+    ])
+  ) {
+    return "use_page";
+  }
+
+  if (
+    includesOne(q, [
+      "sender",
+      "identite d'envoi",
+      "identité d'envoi",
+      "reply-to",
+      "reply to",
+      "domaine",
+      "dns",
+      "fallback",
+      "email entreprise",
+      "adresse d'envoi",
+    ])
+  ) {
+    return "email_identity";
+  }
+
+  if (
+    includesOne(q, [
+      "pdf",
+      "piece jointe",
+      "pièce jointe",
+      "envoyer le mail",
+      "envoyer un mail",
+      "document actif",
+      "version active",
+      "brouillon",
+      "email",
+    ])
+  ) {
+    return "email_pdf_action";
+  }
+
+  if (
+    includesOne(q, [
+      "limites",
+      "ce que pierre ne fait pas",
+      "ne fait pas",
+      "hors perimetre",
+      "hors périmètre",
+      "risque",
+      "juridique",
+    ])
+  ) {
+    return "limits";
+  }
+
+  if (
+    includesOne(q, [
+      "clara",
+      "emma",
+      "alex",
+      "noah",
+      "sophie",
+      "lucas",
+      "autres employes",
+      "autres employés",
+    ])
+  ) {
+    return "status_other_employees";
+  }
+
+  if (
+    includesOne(q, [
+      "prix",
+      "tarif",
+      "combien",
+      "449",
+      "combien coute",
+      "combien coûte",
+      "abonnement",
+    ])
+  ) {
+    return "pricing";
+  }
+
+  if (
+    includesOne(q, [
+      "mon espace",
+      "mes employes",
+      "mes employés",
+      "boutique",
+      "ou aller",
+      "où aller",
+      "navigation",
+      "cockpit",
+      "difference",
+      "différence",
+    ])
+  ) {
+    return "navigation";
+  }
+
+  if (
+    includesOne(q, [
+      "clonechat",
+      "support",
+      "question",
+      "aide",
+      "bug",
+      "probleme",
+      "problème",
+    ])
+  ) {
+    return "support";
+  }
+
+  if (
+    includesOne(q, [
+      "cloneos",
+      "cloneadn",
+      "cloneguard",
+      "clonetrace",
+      "clonevoice",
+      "vision",
+      "architecture",
+      "technologies",
+    ])
+  ) {
+    return "product_vision";
+  }
+
+  return "general";
+}
+
+export function buildAccountSnapshot(context: AssistantAccountContext): string {
+  return [
+    `isAuthenticated: ${context.isAuthenticated ? "yes" : "no"}`,
+    `hasPierreAccess: ${context.hasPierreAccess ? "yes" : "no"}`,
+    `onboardingCompleted: ${context.onboardingCompleted ? "yes" : "no"}`,
+    `companyName: ${context.companyName || "non renseigne"}`,
+    `contactFirstName: ${context.contactFirstName || "non renseigne"}`,
+    `contactJobTitle: ${context.contactJobTitle || "non renseigne"}`,
+    `usualTone: ${context.usualTone || "non renseigne"}`,
+    `preferredLanguage: ${context.preferredLanguage || "fr"}`,
+    `senderMode: ${context.senderMode || "non renseigne"}`,
+    `senderStatus: ${context.senderStatus || "non renseigne"}`,
+    `domainStatus: ${context.domainStatus || "non renseigne"}`,
+    `senderEmailRequested: ${context.senderEmailRequested || "non renseigne"}`,
+    `senderEmailEffective: ${context.senderEmailEffective || "non renseigne"}`,
+    `replyToEmail: ${context.replyToEmail || "non renseigne"}`,
+  ].join("\n");
+}
+
+export function findRelevantKnowledgeMatches(
+  question: string,
+  intent: AssistantIntent,
+  limit = 5
+): AssistantKnowledgeMatch[] {
+  return KNOWLEDGE_ARTICLES.map((article) => ({
+    id: article.id,
+    title: article.title,
+    score: scoreArticle(question, intent, article),
+  }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+export function buildKnowledgeContext(): string {
+  return KNOWLEDGE_ARTICLES.map(buildKnowledgeArticleBlock).join("\n\n");
+}
+
+export function buildKnowledgeDigest(question: string, intent: AssistantIntent): string {
+  const matches = findRelevantKnowledgeMatches(question, intent, 4);
+
+  if (matches.length === 0) {
+    return buildKnowledgeContext();
+  }
+
+  const selectedArticles = matches
+    .map((match) => KNOWLEDGE_ARTICLES.find((article) => article.id === match.id))
+    .filter((article): article is KnowledgeArticle => Boolean(article));
+
+  return selectedArticles.map(buildKnowledgeArticleBlock).join("\n\n");
+}
+
+export function buildRelevantKnowledge(
+  question: string,
+  intent: AssistantIntent,
+  context: AssistantAccountContext
+): string {
+  const snapshot = buildAccountSnapshot(context);
+  const digest = buildKnowledgeDigest(question, intent);
+
+  return [`## Snapshot compte`, snapshot, digest].join("\n\n");
+}
+
+export function buildSuggestedStatusCards(
+  context: AssistantAccountContext
+): AssistantStatusCard[] {
+  return [
+    {
+      label: "Compte",
+      value: context.isAuthenticated ? "Connecté" : "Visiteur",
+      tone: context.isAuthenticated ? "success" : "default",
+    },
+    {
+      label: "Pierre",
+      value: context.hasPierreAccess ? "Actif" : "Non actif",
+      tone: context.hasPierreAccess ? "success" : "warn",
+    },
+    {
+      label: "Onboarding",
+      value: context.hasPierreAccess
+        ? context.onboardingCompleted
+          ? "Terminé"
+          : "À compléter"
+        : "—",
+      tone: context.onboardingCompleted ? "success" : context.hasPierreAccess ? "warn" : "default",
+    },
+    {
+      label: "Entreprise",
+      value: context.companyName || "Non renseignée",
+      tone: context.companyName ? "violet" : "default",
+    },
+    {
+      label: "Email d'envoi",
+      value:
+        context.senderEmailEffective ||
+        context.senderEmailRequested ||
+        "Non configuré",
+      tone:
+        context.senderEmailEffective || context.senderEmailRequested
+          ? "violet"
+          : "default",
+    },
+    {
+      label: "Domaine",
+      value: context.domainStatus || "Non commencé",
+      tone: context.domainStatus === "verified" ? "success" : context.domainStatus ? "warn" : "default",
+    },
+  ];
+}
+
+export function buildSuggestedLinks(
+  context: AssistantAccountContext,
+  intent?: AssistantIntent
+): AssistantLinkCard[] {
+  const links: AssistantLinkCard[] = [];
+
+  if (context.hasPierreAccess && !context.onboardingCompleted) {
+    links.push({
+      label: "Configurer Pierre",
+      href: "/agents/pierre/setup",
+      description: "Compléter l'Empreinte Entreprise avant usage intensif.",
+    });
+  }
+
+  if (context.hasPierreAccess) {
+    links.push({
+      label: "Ouvrir Pierre",
+      href: "/agents/pierre/use",
+      description: "Entrer dans le centre de missions RH de Pierre.",
+    });
+  }
+
+  if (!context.hasPierreAccess) {
+    links.push({
+      label: "Découvrir Pierre",
+      href: "/agents/pierre",
+      description: "Voir l'employé le plus concret actuellement.",
+    });
+
+    links.push({
+      label: "Aller au paiement",
+      href: "/paiement",
+      description: "Commencer le parcours d'activation CloneStore.",
+    });
+  }
+
+  if (intent === "navigation" || intent === "general") {
+    links.push({
+      label: "Mon espace",
+      href: "/profile",
+      description: "Pilotage global du compte, des accès et des réglages.",
+    });
+
+    links.push({
+      label: "Mes employés",
+      href: "/profile/agents",
+      description: "Accès direct aux employés visibles et actifs.",
+    });
+  }
+
+  if (intent === "support" || intent === "general") {
+    links.push({
+      label: "Questions / Support",
+      href: "/questions",
+      description: "Zone d'orientation et de support public.",
+    });
+  }
+
+  if (
+    intent === "email_identity" ||
+    intent === "onboarding" ||
+    intent === "use_page"
+  ) {
+    links.push({
+      label: "Voir la fiche Pierre",
+      href: "/agents/pierre",
+      description: "Revoir le rôle, le périmètre et les usages de Pierre.",
+    });
+  }
+
+  const seen = new Set<string>();
+  return links.filter((link) => {
+    if (seen.has(link.href)) return false;
+    seen.add(link.href);
+    return true;
+  }).slice(0, 4);
+}
+
+export function getAssistantWelcome(context: AssistantAccountContext): string {
+  if (!context.isAuthenticated) {
+    return "Bonjour. Je suis CloneChat. Je peux t'expliquer CloneStore proprement, te dire quel employé choisir maintenant, et surtout te donner le bon prochain pas sans te faire perdre du temps.";
+  }
+
+  if (context.hasPierreAccess && !context.onboardingCompleted) {
+    return `Bonjour. Pierre est déjà accessible${context.companyName ? ` pour ${context.companyName}` : ""}. Le bon prochain mouvement, c'est de terminer l'Empreinte Entreprise pour qu'il travaille comme ton entreprise et non comme un modèle générique.`;
+  }
+
+  if (context.hasPierreAccess && context.onboardingCompleted) {
+    return `Bonjour. Pierre est déjà actif${context.companyName ? ` pour ${context.companyName}` : ""}. Je peux maintenant surtout t'aider à l'utiliser correctement : missions, usage quotidien, email, PDF, historique et logique d'envoi.`;
+  }
+
+  return "Bonjour. Tu es dans CloneStore. Je peux t'aider à comprendre le système, te guider dans le site et te dire franchement quel employé a le plus de valeur tout de suite.";
+}
+
+export function getAssistantQuickAsks(context: AssistantAccountContext): string[] {
+  if (!context.isAuthenticated) {
+    return [
+      "Quel employé choisir maintenant ?",
+      "Explique CloneStore simplement",
+      "À quoi sert Pierre exactement ?",
+      "Comment se passe l'accès après paiement ?",
+      "Quelle est la différence entre Mon espace, Mes employés et la boutique ?",
+      "Est-ce que Clara est vraiment prête aujourd'hui ?",
+    ];
+  }
+
+  if (context.hasPierreAccess && !context.onboardingCompleted) {
+    return [
+      "Quelles parties du setup Pierre sont les plus importantes ?",
+      "Explique-moi l'Empreinte Entreprise simplement",
+      "Que dois-je faire après avoir activé Pierre ?",
+      "Comment fonctionne l'identité email de Pierre ?",
+      "Quand est-ce que je vais sur Pierre Use ?",
+      "Quels champs ont le plus d'impact sur la qualité ?",
+    ];
+  }
+
+  if (context.hasPierreAccess && context.onboardingCompleted) {
+    return [
+      "Comment utiliser Pierre au quotidien ?",
+      "Comment fonctionne la page Pierre Use ?",
+      "Quelle est la logique email / PDF ?",
+      "Comment marche l'identité d'envoi ?",
+      "Que fait Pierre vraiment, et où sont ses limites ?",
+      "Quelle est la différence entre le cockpit et Pierre Use ?",
+    ];
+  }
+
+  return [
+    "Quel employé choisir aujourd'hui ?",
+    "Explique le produit CloneStore simplement",
+    "Pourquoi Pierre est l'entrée la plus forte ?",
+    "Comment fonctionne le cockpit ?",
+    "À quoi sert CloneChat ?",
+    "Où aller dans le site selon mon besoin ?",
+  ];
+}
+
+function buildConcreteNextStep(
+  context: AssistantAccountContext,
+  intent: AssistantIntent
+): string {
+  if (context.hasPierreAccess && !context.onboardingCompleted) {
+    return "Le prochain pas concret : ouvre /agents/pierre/setup et complète d'abord l'Empreinte Entreprise.";
+  }
+
+  if (context.hasPierreAccess && context.onboardingCompleted) {
+    if (intent === "onboarding") {
+      return "Le prochain pas concret : une fois le setup validé, ouvre /agents/pierre/use et commence par une vraie mission RH simple.";
+    }
+
+    return "Le prochain pas concret : ouvre /agents/pierre/use et travaille directement depuis le centre de missions.";
+  }
+
+  if (!context.hasPierreAccess && intent === "clone_choice") {
+    return "Le prochain pas concret : ouvre /agents/pierre pour vérifier le périmètre, puis /paiement si tu veux l'activer.";
+  }
+
+  if (!context.hasPierreAccess) {
+    return "Le prochain pas concret : ouvre /agents/pierre si tu veux voir l'employé le plus concret aujourd'hui.";
+  }
+
+  return "Le prochain pas concret : utilise Mon espace ou Mes employés pour aller vers la bonne zone.";
+}
+
+export function buildDeterministicAnswer(
+  question: string,
+  context: AssistantAccountContext,
+  intent: AssistantIntent
+): string | null {
+  const q = clean(question);
+
+  if (intent === "clone_choice") {
+    return [
+      "Aujourd'hui, je te conseille Pierre.",
+      "C'est l'employé le plus concret, le plus cohérent et le plus exploitable immédiatement dans CloneStore.",
+      "Il a déjà une logique claire : setup entreprise, cockpit d'usage, missions, documents, emails, PDF, suivi et historique.",
+      "Je préfère te le dire franchement : je ne vais pas te faire perdre du temps à te vendre plus mûr qu'il ne l'est un autre employé encore en construction.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
+  }
+
+  if (intent === "status_other_employees") {
+    return [
+      "Je reste propre là-dessus : Pierre est aujourd'hui l'employé le plus concret.",
+      "Les autres employés visibles existent dans la vision CloneStore, mais ils ne doivent pas être présentés comme totalement prêts tant que leur niveau de finition réel n'est pas au même standard.",
+      "Donc si ta question est opérationnelle et immédiate, la réponse honnête reste Pierre.",
+      buildConcreteNextStep(context, "clone_choice"),
+    ].join(" ");
+  }
+
+  if (intent === "post_payment") {
+    if (context.hasPierreAccess && !context.onboardingCompleted) {
+      return [
+        "Ton paiement ou ton accès a déjà ouvert Pierre, mais le vrai prochain pas n'est pas encore l'usage brut.",
+        "Le bon mouvement maintenant, c'est le setup / l'Empreinte Entreprise.",
+        "C'est ce qui donne à Pierre ton identité, ton ton, tes règles et ta logique email.",
+        buildConcreteNextStep(context, intent),
+      ].join(" ");
+    }
+
+    if (context.hasPierreAccess && context.onboardingCompleted) {
+      return [
+        "Ton accès est déjà exploitable.",
+        "À ce stade, le bon prochain pas n'est plus la configuration de base mais l'usage réel.",
+        "Le cockpit Pierre Use est l'endroit où tu lances des missions, suis les tâches et exploites les sorties.",
+        buildConcreteNextStep(context, intent),
+      ].join(" ");
+    }
+
+    return [
+      "Le parcours propre après paiement est simple : accès actif, onboarding utile, puis cockpit d'usage.",
+      "Pour Pierre, ça donne : activation, setup entreprise, puis Pierre Use.",
+      "Le produit doit toujours te reprendre avec une étape claire, pas te laisser dans le vide.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
+  }
+
+  if (intent === "onboarding") {
+    if (
+      includesOne(q, [
+        "a quoi sert",
+        "à quoi sert",
+        "pourquoi",
+        "c'est quoi",
+        "cest quoi",
+      ])
+    ) {
+      return [
+        "L'onboarding Pierre sert à transmettre à Pierre la réalité de ton entreprise.",
+        "Ce n'est pas un formulaire administratif décoratif.",
+        "C'est la base CloneADN : identité, ton, contexte RH, valideurs, actions autorisées, interdits et identité email.",
+        "Plus cette base est propre, plus Pierre agit juste dès le départ.",
+        buildConcreteNextStep(context, intent),
+      ].join(" ");
+    }
+
+    if (
+      includesOne(q, [
+        "plus important",
+        "priorite",
+        "priorité",
+        "quelles parties",
+        "quels champs",
+      ])
+    ) {
+      return [
+        "Les blocs les plus importants sont : identité entreprise, contexte RH, ton, valideurs, règles d'action et identité email.",
+        "Ce sont eux qui changent le plus directement la qualité réelle de Pierre.",
+        "Si tu veux aller vite sans mal faire, commence par ces zones-là.",
+        buildConcreteNextStep(context, intent),
+      ].join(" ");
+    }
+
+    return [
+      "Le setup Pierre sert à le transformer en employé aligné sur ton entreprise.",
+      "Il doit récupérer qui vous êtes, comment vous écrivez, ce qu'il a le droit de faire et comment il doit se comporter.",
+      "Sans cette base, Pierre reste plus générique. Avec elle, il devient beaucoup plus cohérent.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
+  }
+
+  if (intent === "use_page") {
+    return [
+      "La page Pierre Use est le cockpit opérationnel de Pierre.",
+      "Tu n'y fais pas juste du chat : tu y lances une mission, Pierre la comprend, la structure, produit des sorties, suit les tâches, centralise les artefacts et garde l'historique.",
+      "Il faut la voir comme un centre de commandement RH, pas comme une simple zone de prompt.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
+  }
+
+  if (intent === "email_identity") {
+    return [
+      "La logique d'identité d'envoi est simple sur le fond : Pierre doit pouvoir envoyer au nom de l'entreprise quand le domaine et la configuration sont réellement prêts.",
+      "Tant que ce n'est pas proprement vérifié, le système peut rester sur une identité de fallback.",
+      "Une fois le domaine prêt, l'identité cible peut devenir l'identité active.",
+      "Le point important n'est pas la technique DNS en elle-même, mais de rester honnête sur ce qui est déjà actif et ce qui ne l'est pas encore.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
+  }
+
+  if (intent === "email_pdf_action") {
+    return [
+      "La règle saine est la suivante : email et PDF doivent repartir de la version active du contenu.",
+      "Si tu as modifié puis enregistré un texte, c'est cette version qui doit servir de source.",
+      "Et si un PDF a été généré avant une modification importante, il faut le régénérer pour éviter un décalage.",
+      "Le support doit toujours garder cette logique simple : une version active, des artefacts alignés dessus.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
+  }
+
+  if (intent === "limits") {
+    return [
+      "Pierre est fort, mais il a un périmètre clair.",
+      "Il ne doit pas être vendu comme juriste formel, ni comme moteur massif de scoring CV, ni comme système qui invente des informations absentes.",
+      "Sa force réelle est la production RH opérationnelle propre, contrôlée et exploitable.",
+      buildConcreteNextStep(context, "use_page"),
+    ].join(" ");
+  }
+
+  if (intent === "pricing") {
+    return [
+      "La référence tarifaire actuelle à retenir pour Pierre est 449€/mois.",
+      "Mais le vrai sujet n'est pas seulement le prix : c'est la valeur immédiate.",
+      "Aujourd'hui, Pierre est l'employé qui a le plus de crédibilité opérationnelle à ce tarif dans CloneStore.",
+      buildConcreteNextStep(context, "clone_choice"),
+    ].join(" ");
+  }
+
+  if (intent === "navigation") {
+    return [
+      "Mon espace sert au pilotage global du compte et des grands réglages.",
+      "Mes employés sert à ouvrir les employés visibles ou actifs.",
+      "La boutique sert à découvrir l'offre publique.",
+      "Donc si tu veux agir dans le produit, il faut surtout distinguer pilotage global, accès employés et découverte commerciale.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
+  }
+
+  if (intent === "support") {
+    return [
+      "CloneChat doit servir d'employé poumon du support CloneStore.",
+      "Son rôle est d'expliquer, orienter, rassurer et donner un prochain pas concret.",
+      "Il ne doit pas répondre comme une FAQ fragile, mais comme un support premium intégré au coeur du produit.",
+      buildConcreteNextStep(context, intent),
+    ].join(" ");
+  }
+
+  if (intent === "product_vision") {
+    return [
+      "La vision CloneStore repose sur un système coordonné : CloneOS pour l'orchestration, CloneADN pour l'alignement entreprise, CloneGuard pour gouvernance et risque, CloneTrace pour la traçabilité, et CloneVoice comme couche vocale premium future.",
+      "Le produit doit toujours rester lisible côté client, mais profond côté système.",
+      buildConcreteNextStep(context, "navigation"),
+    ].join(" ");
+  }
+
+  return null;
+}
+
+export function buildFallbackAnswer(
+  question: string,
+  context: AssistantAccountContext,
+  intent: AssistantIntent
+): string {
+  const deterministic = buildDeterministicAnswer(question, context, intent);
+  if (deterministic) return deterministic;
+
+  if (context.hasPierreAccess && !context.onboardingCompleted) {
+    return [
+      "Dans ton état actuel, le plus important reste de rendre Pierre correctement aligné à ton entreprise.",
+      "Donc même si ta question est plus large, le meilleur prochain pas reste de compléter le setup Pierre.",
+      buildConcreteNextStep(context, "onboarding"),
+    ].join(" ");
+  }
+
+  if (context.hasPierreAccess && context.onboardingCompleted) {
+    return [
+      "Tu as déjà assez de base pour utiliser Pierre réellement.",
+      "Je peux t'aider à naviguer dans le cockpit, comprendre la logique d'usage ou clarifier une étape produit.",
+      buildConcreteNextStep(context, "use_page"),
+    ].join(" ");
+  }
+
+  return [
+    "Je peux t'aider à comprendre CloneStore, choisir le bon employé et aller au bon endroit sans perdre de temps.",
+    "Aujourd'hui, l'entrée la plus solide reste Pierre.",
+    buildConcreteNextStep(context, intent),
+  ].join(" ");
+}
+
+
+============================================================
+FILE: src\lib\assistant\reply.ts
+============================================================
+
+import {
+  DEFAULT_ASSISTANT_CONTEXT,
+  buildDeterministicAnswer,
+  buildFallbackAnswer,
+  buildRelevantKnowledge,
+  buildSuggestedLinks,
+  buildSuggestedStatusCards,
+  classifyIntent,
+  findRelevantKnowledgeMatches,
+  getAssistantQuickAsks,
+  getAssistantWelcome,
+} from "@/lib/assistant/knowledge";
+
+import type {
+  AssistantAccountContext,
+  AssistantConversationItem,
+  AssistantIntent,
+  AssistantLinkCard,
+  AssistantResponsePayload,
+  AssistantRouteBody,
+  AssistantStatusCard,
+} from "@/lib/assistant/types";
+
+export type {
+  AssistantAccountContext,
+  AssistantConversationItem,
+  AssistantIntent,
+  AssistantLinkCard,
+  AssistantResponsePayload,
+  AssistantRouteBody,
+  AssistantStatusCard,
+} from "@/lib/assistant/types";
+
+function cleanText(value: string | null | undefined): string {
+  return (value ?? "").trim();
+}
+
+function mergeContext(
+  partial?: Partial<AssistantAccountContext> | null
+): AssistantAccountContext {
+  return {
+    ...DEFAULT_ASSISTANT_CONTEXT,
+    ...(partial ?? {}),
+    companyName: cleanText(partial?.companyName ?? DEFAULT_ASSISTANT_CONTEXT.companyName),
+    contactFirstName: cleanText(
+      partial?.contactFirstName ?? DEFAULT_ASSISTANT_CONTEXT.contactFirstName
+    ),
+    contactJobTitle: cleanText(
+      partial?.contactJobTitle ?? DEFAULT_ASSISTANT_CONTEXT.contactJobTitle
+    ),
+    usualTone: cleanText(partial?.usualTone ?? DEFAULT_ASSISTANT_CONTEXT.usualTone),
+    preferredLanguage: cleanText(
+      partial?.preferredLanguage ?? DEFAULT_ASSISTANT_CONTEXT.preferredLanguage
+    ),
+    senderMode: cleanText(partial?.senderMode ?? DEFAULT_ASSISTANT_CONTEXT.senderMode),
+    senderStatus: cleanText(partial?.senderStatus ?? DEFAULT_ASSISTANT_CONTEXT.senderStatus),
+    domainStatus: cleanText(partial?.domainStatus ?? DEFAULT_ASSISTANT_CONTEXT.domainStatus),
+    senderEmailRequested: cleanText(
+      partial?.senderEmailRequested ?? DEFAULT_ASSISTANT_CONTEXT.senderEmailRequested
+    ),
+    senderEmailEffective: cleanText(
+      partial?.senderEmailEffective ?? DEFAULT_ASSISTANT_CONTEXT.senderEmailEffective
+    ),
+    replyToEmail: cleanText(partial?.replyToEmail ?? DEFAULT_ASSISTANT_CONTEXT.replyToEmail),
+  };
+}
+
+function lastUserMessage(conversation?: AssistantConversationItem[]): string {
+  if (!Array.isArray(conversation) || conversation.length === 0) return "";
+
+  for (let i = conversation.length - 1; i >= 0; i -= 1) {
+    const item = conversation[i];
+    if (item?.role === "user" && cleanText(item.content)) {
+      return cleanText(item.content);
+    }
+  }
+
+  return "";
+}
+
+export function resolveAssistantQuestion(body: AssistantRouteBody | string): string {
+  if (typeof body === "string") {
+    return cleanText(body);
+  }
+
+  return (
+    cleanText(body.message) ||
+    cleanText(body.input) ||
+    cleanText(body.query) ||
+    lastUserMessage(body.conversation)
+  );
+}
+
+function buildAnswer(
+  question: string,
+  context: AssistantAccountContext,
+  intent: AssistantIntent
+): string {
+  const deterministic = buildDeterministicAnswer(question, context, intent);
+  if (deterministic) return deterministic;
+  return buildFallbackAnswer(question, context, intent);
+}
+
+function buildEmptyQuestionResponse(
+  context: AssistantAccountContext
+): AssistantResponsePayload {
+  const welcome = getAssistantWelcome(context);
+  const quickAsks = getAssistantQuickAsks(context);
+  const statusCards = buildSuggestedStatusCards(context);
+  const links = buildSuggestedLinks(context, "general");
+  const knowledgeDigest = buildRelevantKnowledge("", "general", context);
+
+  return {
+    ok: true,
+    answer: welcome,
+    response: welcome,
+    message: welcome,
+    text: welcome,
+    intent: "general",
+    quickAsks,
+    statusCards,
+    links,
+    contextSnapshot: context,
+    usedKnowledge: findRelevantKnowledgeMatches("", "general", 5),
+    knowledgeDigest,
+  };
+}
+
+export function generateAssistantResponse(
+  input: AssistantRouteBody | string,
+  maybeContext?: Partial<AssistantAccountContext>
+): AssistantResponsePayload {
+  const body: AssistantRouteBody =
+    typeof input === "string"
+      ? { message: input, context: maybeContext }
+      : input;
+
+  const context = mergeContext({
+    ...(body.context ?? {}),
+    ...(maybeContext ?? {}),
+  });
+
+  const question = resolveAssistantQuestion(body);
+
+  if (!question) {
+    return buildEmptyQuestionResponse(context);
+  }
+
+  const intent = classifyIntent(question);
+  const answer = buildAnswer(question, context, intent);
+  const quickAsks = getAssistantQuickAsks(context);
+  const statusCards: AssistantStatusCard[] = buildSuggestedStatusCards(context);
+  const links: AssistantLinkCard[] = buildSuggestedLinks(context, intent);
+  const usedKnowledge = findRelevantKnowledgeMatches(question, intent, 5);
+  const knowledgeDigest = buildRelevantKnowledge(question, intent, context);
+
+  return {
+    ok: true,
+    answer,
+    response: answer,
+    message: answer,
+    text: answer,
+    intent,
+    quickAsks,
+    statusCards,
+    links,
+    contextSnapshot: context,
+    usedKnowledge,
+    knowledgeDigest,
+  };
+}
+
+export function generateAssistantText(
+  input: AssistantRouteBody | string,
+  maybeContext?: Partial<AssistantAccountContext>
+): string {
+  return generateAssistantResponse(input, maybeContext).answer;
+}
+
+
+============================================================
+FILE: src\lib\assistant\types.ts
+============================================================
+
+export type AssistantAccountContext = {
+  isAuthenticated: boolean;
+  hasPierreAccess: boolean;
+  onboardingCompleted: boolean;
+  companyName: string;
+  contactFirstName: string;
+  contactJobTitle: string;
+  usualTone: string;
+  preferredLanguage: string;
+  senderMode: string;
+  senderStatus: string;
+  domainStatus: string;
+  senderEmailRequested: string;
+  senderEmailEffective: string;
+  replyToEmail: string;
+};
+
+export type AssistantIntent =
+  | "clone_choice"
+  | "post_payment"
+  | "onboarding"
+  | "use_page"
+  | "email_identity"
+  | "email_pdf_action"
+  | "limits"
+  | "status_other_employees"
+  | "pricing"
+  | "navigation"
+  | "support"
+  | "product_vision"
+  | "general";
+
+export type AssistantStatusTone = "default" | "success" | "warn" | "violet";
+
+export type AssistantStatusCard = {
+  label: string;
+  value: string;
+  tone?: AssistantStatusTone;
+};
+
+export type AssistantLinkCard = {
+  label: string;
+  href: string;
+  description: string;
+};
+
+export type AssistantConversationItem = {
+  role: "assistant" | "user" | "system";
+  content: string;
+};
+
+export type AssistantKnowledgeMatch = {
+  id: string;
+  title: string;
+  score: number;
+};
+
+export type AssistantRouteBody = {
+  message?: string;
+  input?: string;
+  query?: string;
+  conversation?: AssistantConversationItem[];
+  context?: Partial<AssistantAccountContext>;
+};
+
+export type AssistantResponsePayload = {
+  ok: true;
+  answer: string;
+  response: string;
+  message: string;
+  text: string;
+  intent: AssistantIntent;
+  quickAsks: string[];
+  statusCards: AssistantStatusCard[];
+  links: AssistantLinkCard[];
+  contextSnapshot: AssistantAccountContext;
+  usedKnowledge: AssistantKnowledgeMatch[];
+  knowledgeDigest: string;
+};
+
+
+============================================================
+FILE: src\app\api\router\route.ts
+============================================================
+
+import { NextRequest, NextResponse } from "next/server";
+import { getSupabase } from "@/lib/supabase";
+
+// ⚠️ Mets ici l'URL EXACTE de ton webhook Make
+const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/u8nkxlkauyxlygy1r6p59rhmdk35ta4r";
+
+// =============================
+// TYPES
+// =============================
+type RouterRequestBody = {
+  client_id?: string; // ignoré côté front, on utilise le token
+  token?: string;
+  agent?: string;
+  payload?: any;
+};
+
+type RouterStatus = "OK" | "UNAUTHORIZED" | "FORBIDDEN" | "ERROR";
+
+type RouterResponse = {
+  status: RouterStatus;
+  agent: string | null;
+  data: any | null;
+  error: string | null;
+};
+
+// =============================
+// RÉPONSE STANDARD
+// =============================
+function buildResponse(
+  status: RouterStatus,
+  agent: string | null,
+  data: any = null,
+  error: string | null = null
+) {
+  const body: RouterResponse = { status, agent, data, error };
+  return NextResponse.json(body);
+}
+
+// =============================
+// HANDLER PRINCIPAL : POST /api/router
+// =============================
+export async function POST(req: NextRequest) {
+  try {
+    const body = (await req.json()) as RouterRequestBody;
+    const { token, agent, payload } = body;
+
+    // 1) Vérif des champs obligatoires (token + agent)
+    if (!token || !agent) {
+      return buildResponse(
+        "ERROR",
+        agent ?? null,
+        null,
+        "Missing token or agent"
+      );
+    }
+
+    const supabase = getSupabase();
+
+    // 2) Récupérer le client_id à partir du token
+    const clientId = await getClientIdFromToken(supabase, token);
+    if (!clientId) {
+      return buildResponse("UNAUTHORIZED", agent, null, "Invalid credentials");
+    }
+
+    // 3) Vérifier que ce client possède bien cet agent
+    const allowed = await checkAgentPermission(supabase, clientId, agent);
+    if (!allowed) {
+      return buildResponse(
+        "FORBIDDEN",
+        agent,
+        null,
+        "Agent not owned by this client"
+      );
+    }
+
+    // 4) Appel à Make : on envoie agent + payload
+    try {
+      const makeResponse = await fetch(MAKE_WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          agent: agent,
+          payload: payload,
+        }),
+      });
+
+      const rawText = await makeResponse.text();
+      let parsed: any = null;
+
+      if (rawText && rawText.trim().length > 0) {
+        // On essaie de récupérer tout ce qu'il y a entre le 1er { et le dernier }
+        const match = rawText.match(/{[\s\S]*}/);
+        if (match) {
+          const jsonSlice = match[0];
+          try {
+            parsed = JSON.parse(jsonSlice);
+          } catch (e) {
+            console.error("JSON.parse failed on slice, keeping rawText:", e);
+            parsed = rawText;
+          }
+        } else {
+          // pas de {} trouvés, on garde le texte brut
+          parsed = rawText;
+        }
+      } else {
+        parsed = null;
+      }
+
+      return buildResponse("OK", agent, parsed, null);
+    } catch (err) {
+      console.error("Make call error:", err);
+      return buildResponse("ERROR", agent, null, "Make error");
+    }
+  } catch (err) {
+    console.error("Router error:", err);
+    return buildResponse("ERROR", null, null, "Unexpected server error");
+  }
+}
+
+// =============================
+// Récupérer le client_id à partir du token
+// =============================
+async function getClientIdFromToken(
+  supabase: any,
+  token: string
+): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from("api_tokens")
+      .select("client_id, active")
+      .eq("token", token)
+      .eq("active", true)
+      .maybeSingle();
+
+    console.log("getClientIdFromToken result:", { data, error });
+
+    if (error) {
+      console.error("getClientIdFromToken error:", error);
+      return null;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return data.client_id as string;
+  } catch (err) {
+    console.error("getClientIdFromToken exception:", err);
+    return null;
+  }
+}
+
+// =============================
+// Vérifier si ce client possède cet agent
+// =============================
+async function checkAgentPermission(
+  supabase: any,
+  clientId: string,
+  agent: string
+): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from("agents_owned")
+      .select("id")
+      .eq("client_id", clientId)
+      .eq("agent_name", agent)
+      .maybeSingle();
+
+    console.log("checkAgentPermission result:", { data, error });
+
+    if (error) {
+      console.error("checkAgentPermission error:", error);
+      return false;
+    }
+
+    if (!data) {
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error("checkAgentPermission exception:", err);
+    return false;
+  }
+}
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+============================================================
+FILE: src\app\api\pierre\route.ts
+============================================================
+
+import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+
+/**
+ * Endpoint "index" pour /api/pierre
+ * (évite que Next/TS plante si le dossier a une route racine vide)
+ */
+export async function GET() {
+  return NextResponse.json(
+    {
+      ok: true,
+      service: "pierre",
+      endpoints: [
+        "/api/pierre/execute",
+        "/api/pierre/run",
+        "/api/pierre/tick",
+        "/api/pierre/enqueue",
+        "/api/pierre/generate",
+      ],
+    },
+    { status: 200 }
+  );
+}
+
+// Optionnel : POST sur /api/pierre → 404 propre
+export async function POST() {
+  return NextResponse.json(
+    { ok: false, error: { code: "NOT_FOUND", message: "Use /api/pierre/execute" } },
+    { status: 404 }
+  );
+}
+
+
+
+============================================================
+FILE: src\app\api\pierre\brain\route.ts
+============================================================
+
+// src/app/api/pierre/brain/route.ts
+
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
+import { z } from "zod";
+import {
+  PierreDocType,
+  PierreTone,
+  PIERRE_SCHEMA_VERSION,
+  PIERRE_DEFAULT_LANGUAGE,
+  PIERRE_CONFIDENCE_THRESHOLD,
+} from "@/lib/pierre/docTypes";
+import { PierreBrainResponseSchema } from "@/lib/pierre/schema";
+
+/* ============================== */
+/* OPENAI CLIENT                  */
+/* ============================== */
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
+
+/* ============================== */
+/* INPUT VALIDATION               */
+/* ============================== */
+
+const BrainInputSchema = z.object({
+  input: z.string().min(3),
+  tone: z.nativeEnum(PierreTone).optional(),
+  language: z.string().optional(),
+  company_name: z.string().optional(),
+});
+
+/* ============================== */
+/* ROUTE                          */
+/* ============================== */
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const parsed = BrainInputSchema.parse(body);
+
+    const prompt = `
+Tu es Pierre, assistant RH routeur.
+
+Tu dois répondre STRICTEMENT en JSON valide.
+Aucun texte autour.
+
+Format exact :
+
+{
+  "doc_type": "STRING",
+  "confidence_score": 0.0,
+  "tone_used": "pro",
+  "missing_info_questions": []
+}
+
+Doc types autorisés :
+${Object.values(PierreDocType).join(", ")}
+
+Si ambigu -> doc_type = UNKNOWN
+
+Brief:
+${parsed.input}
+
+Ton demandé:
+${parsed.tone || "pro"}
+
+Entreprise:
+${parsed.company_name || "non précisée"}
+`;
+
+    const response = await openai.responses.create({
+      model: process.env.PIERRE_BRAIN_MODEL || "gpt-4.1",
+      input: prompt,
+      max_output_tokens: 500,
+    });
+
+    const raw = response.output_text;
+
+    if (!raw) {
+      console.log("RAW FULL RESPONSE:", response);
+      throw new Error("Model returned no output_text");
+    }
+
+    let routing;
+    try {
+      routing = JSON.parse(raw);
+    } catch {
+      console.log("MODEL RAW OUTPUT:", raw);
+      throw new Error("Model did not return valid JSON");
+    }
+
+    const mustAsk =
+      routing.doc_type === PierreDocType.UNKNOWN ||
+      routing.confidence_score < PIERRE_CONFIDENCE_THRESHOLD ||
+      (routing.missing_info_questions &&
+        routing.missing_info_questions.length > 0);
+
+    const final = PierreBrainResponseSchema.parse({
+      schema_version: PIERRE_SCHEMA_VERSION,
+      doc_type: routing.doc_type,
+      doc_title:
+        routing.doc_type === PierreDocType.UNKNOWN
+          ? "Clarification nécessaire"
+          : "Document RH — Pierre",
+      tone_used: routing.tone_used || parsed.tone || PierreTone.PRO,
+      language: parsed.language || PIERRE_DEFAULT_LANGUAGE,
+      final_text_html: mustAsk
+        ? ""
+        : "<p>Routing OK. Generation premium arrive.</p>",
+      missing_info_questions: routing.missing_info_questions || [],
+      confidence_score: routing.confidence_score || 0.5,
+      safety_flags: {
+        legal_risk: false,
+        discrimination_risk: false,
+        pii_risk: false,
+      },
+      actions: [],
+    });
+
+    return NextResponse.json(final);
+  } catch (err: any) {
+    return NextResponse.json(
+      { ok: false, error: err.message },
+      { status: 400 }
+    );
+  }
+}
+
+
+
+
+============================================================
+FILE: src\app\api\pierre\generate\route.ts
+============================================================
+
+import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type JsonObject = Record<string, unknown>;
+
+type DocumentGenerateBody = {
+  title?: string;
+  instructions?: string;
+  context?: string;
+  tone?: string;
+  language?: string;
+};
+
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
+function isPlainObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function trimOrNull(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value.trim();
+  return clean ? clean : null;
+}
+
+function trimOrEmpty(value: unknown): string {
+  return trimOrNull(value) ?? "";
+}
+
+function getSupabaseAdmin(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRole =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase admin env is missing.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+function getOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY missing.");
+  }
+  return new OpenAI({ apiKey });
+}
+
+function tryParseJsonString(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function extractTokenFromCookieValue(raw: string): string | null {
+  const clean = raw.trim();
+  if (!clean) return null;
+
+  if (clean.startsWith("eyJ") && clean.split(".").length >= 3) return clean;
+
+  const parsed = tryParseJsonString(clean);
+
+  if (Array.isArray(parsed)) {
+    for (const item of parsed) {
+      if (typeof item === "string" && item.startsWith("eyJ") && item.split(".").length >= 3) {
+        return item;
+      }
+    }
+  }
+
+  if (isPlainObject(parsed)) {
+    const candidates = [
+      parsed.access_token,
+      parsed.accessToken,
+      parsed.token,
+      parsed.currentSession && isPlainObject(parsed.currentSession)
+        ? parsed.currentSession.access_token
+        : null,
+      parsed.session && isPlainObject(parsed.session)
+        ? parsed.session.access_token
+        : null,
+    ];
+
+    for (const candidate of candidates) {
+      if (
+        typeof candidate === "string" &&
+        candidate.startsWith("eyJ") &&
+        candidate.split(".").length >= 3
+      ) {
+        return candidate;
+      }
+    }
+  }
+
+  return null;
+}
+
+function extractBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) return token;
+  }
+
+  for (const cookie of request.cookies.getAll()) {
+    const name = cookie.name.toLowerCase();
+    if (name.includes("auth-token") || name.includes("access-token") || name.startsWith("sb-")) {
+      const token = extractTokenFromCookieValue(cookie.value);
+      if (token) return token;
+    }
+  }
+
+  return null;
+}
+
+async function resolveUser(supabase: SupabaseClient, request: NextRequest): Promise<User | null> {
+  const token = extractBearerToken(request);
+  if (!token) return null;
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) return null;
+
+  return data.user;
+}
+
+async function getCompanyMemory(supabase: SupabaseClient, user: User | null) {
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("pierre_company_memory")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+function inferDocumentType(text: string): string {
+  const lower = text.toLowerCase();
+
+  if (lower.includes("convocation")) return "convocation";
+  if (lower.includes("refus")) return "refus_candidat";
+  if (lower.includes("onboarding") || lower.includes("accueil")) return "onboarding";
+  if (lower.includes("offre d'emploi") || lower.includes("offre emploi")) return "offre_emploi";
+  if (lower.includes("compte rendu")) return "compte_rendu";
+  if (lower.includes("relance")) return "relance";
+  if (lower.includes("note interne")) return "note_interne";
+  if (lower.includes("procédure")) return "rappel_procedure";
+
+  return "document_rh";
+}
+
+function buildDocumentPrompt(input: {
+  instructions: string;
+  context: string;
+  tone: string;
+  language: string;
+  companyMemory: Record<string, unknown> | null;
+}) {
+  const companyName =
+    trimOrNull(input.companyMemory?.company_name) ?? "l’entreprise cliente";
+
+  return `
+Tu es Pierre, employé IA RH premium de CloneStore.
+
+Ta mission :
+produire un document RH propre, exploitable, professionnel, crédible et directement utilisable.
+
+Contraintes absolues :
+- ne jamais inventer des faits précis qui ne sont pas donnés ;
+- si une information manque, rester générique et propre sans inventer de détails sensibles ;
+- ton demandé : ${input.tone};
+- langue demandée : ${input.language};
+- entreprise concernée : ${companyName};
+- produire un résultat premium, lisible, clair, humain et professionnel ;
+- éviter tout ton juridique excessif ;
+- rester dans un périmètre RH / administratif raisonnable.
+
+Contexte entreprise :
+${input.context || "Aucun contexte complémentaire fourni."}
+
+Mémoire entreprise utile :
+${JSON.stringify(input.companyMemory ?? {}, null, 2)}
+
+Instructions utilisateur :
+${input.instructions}
+
+Réponds en JSON strict au format :
+{
+  "title": "titre du document",
+  "type": "type_document",
+  "text": "version texte finale",
+  "html": "version HTML propre avec paragraphes et listes si utile",
+  "summary": "résumé très court",
+  "missing_variables": ["..."]
+}
+`.trim();
+}
+
+function safeJsonParse<T>(value: string): T | null {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
+function escapeHtml(input: string): string {
+  return input
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function textToHtml(text: string): string {
+  const paragraphs = text
+    .split(/\n{2,}/g)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  if (paragraphs.length === 0) return "<p></p>";
+
+  return paragraphs
+    .map((paragraph) => {
+      const lines = paragraph
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      const bulletLines = lines.filter((line) => /^[-•]/.test(line));
+
+      if (bulletLines.length === lines.length && lines.length > 0) {
+        const items = lines
+          .map((line) => line.replace(/^[-•]\s*/, "").trim())
+          .map((line) => `<li>${escapeHtml(line)}</li>`)
+          .join("");
+        return `<ul>${items}</ul>`;
+      }
+
+      return `<p>${escapeHtml(lines.join(" "))}</p>`;
+    })
+    .join("");
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = (await request.json().catch(() => null)) as DocumentGenerateBody | null;
+    const instructions = trimOrEmpty(body?.instructions);
+    const context = trimOrEmpty(body?.context);
+    const tone = trimOrNull(body?.tone) ?? "professionnel";
+    const language = trimOrNull(body?.language) ?? "fr";
+    const requestedTitle = trimOrNull(body?.title);
+
+    if (!instructions) {
+      return json(
+        {
+          ok: false,
+          error: "Instructions manquantes pour générer le document.",
+        },
+        400
+      );
+    }
+
+    const supabase = getSupabaseAdmin();
+    const user = await resolveUser(supabase, request);
+    const memory = await getCompanyMemory(supabase, user);
+
+    const openai = getOpenAIClient();
+    const response = await openai.responses.create({
+      model: "gpt-5",
+      input: buildDocumentPrompt({
+        instructions,
+        context,
+        tone,
+        language,
+        companyMemory: isPlainObject(memory) ? memory : null,
+      }),
+    });
+
+    const rawText = response.output_text?.trim() ?? "";
+    const parsed = safeJsonParse<{
+      title?: string;
+      type?: string;
+      text?: string;
+      html?: string;
+      summary?: string;
+      missing_variables?: string[];
+    }>(rawText);
+
+    const finalText =
+      trimOrNull(parsed?.text) ??
+      rawText ??
+      "Document généré sans contenu texte exploitable.";
+    const finalHtml = trimOrNull(parsed?.html) ?? textToHtml(finalText);
+    const finalTitle =
+      requestedTitle ??
+      trimOrNull(parsed?.title) ??
+      "Document Pierre";
+    const finalType =
+      trimOrNull(parsed?.type) ?? inferDocumentType(`${instructions}\n${context}`);
+
+    const insertPayload = {
+      user_id: user?.id ?? null,
+      mission_id: null,
+      task_id: null,
+      title: finalTitle,
+      type: finalType,
+      status: "ready",
+      text: finalText,
+      html: finalHtml,
+      metadata: {
+        source: "direct_studio",
+        summary: trimOrNull(parsed?.summary),
+        missing_variables: Array.isArray(parsed?.missing_variables)
+          ? parsed?.missing_variables.map(String)
+          : [],
+        tone,
+        language,
+      },
+    };
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("pierre_documents")
+      .insert(insertPayload)
+      .select("*")
+      .maybeSingle();
+
+    if (insertError) throw insertError;
+
+    return json({
+      ok: true,
+      document: inserted,
+    });
+  } catch (error) {
+    console.error("[pierre/doc/generate][POST]", error);
+    return json(
+      {
+        ok: false,
+        error: "Impossible de générer le document Pierre.",
+      },
+      500
+    );
+  }
+}
+
+
+============================================================
+FILE: src\app\api\pierre\execute\route.ts
+============================================================
+
+// src/app/api/pierre/execute/route.ts
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import crypto from "crypto";
+import { createClient, PostgrestError } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+
+/**
+ * =========================================
+ * 0) ENV
+ * =========================================
+ */
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const ROUTER_HMAC_SECRET = process.env.ROUTER_HMAC_SECRET!;
+
+const MAKE_EMAIL_WEBHOOK_URL = process.env.MAKE_EMAIL_WEBHOOK_URL!;
+const MAKE_DOC_WEBHOOK_URL = process.env.MAKE_DOC_WEBHOOK_URL!;
+const MAKE_INTEGRATIONS_WEBHOOK_URL = process.env.MAKE_INTEGRATIONS_WEBHOOK_URL!;
+
+function assertEnv() {
+  const missing: string[] = [];
+  if (!SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!SUPABASE_SERVICE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (!ROUTER_HMAC_SECRET) missing.push("ROUTER_HMAC_SECRET");
+  if (!MAKE_EMAIL_WEBHOOK_URL) missing.push("MAKE_EMAIL_WEBHOOK_URL");
+  if (!MAKE_DOC_WEBHOOK_URL) missing.push("MAKE_DOC_WEBHOOK_URL");
+  if (!MAKE_INTEGRATIONS_WEBHOOK_URL) missing.push("MAKE_INTEGRATIONS_WEBHOOK_URL");
+  if (missing.length) throw new Error(`Missing env vars: ${missing.join(", ")}`);
+}
+assertEnv();
+
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+  auth: { persistSession: false },
+});
+
+/**
+ * =========================================
+ * 1) Helpers
+ * =========================================
+ */
+type ApiErrorCode =
+  | "UNAUTHORIZED"
+  | "CLIENT_ID_MISMATCH"
+  | "BAD_REQUEST"
+  | "UNKNOWN_ACTION"
+  | "FORBIDDEN"
+  | "MAKE_ERROR"
+  | "DB_ERROR"
+  | "INTERNAL_ERROR";
+
+function jsonOk(action: string, result: any) {
+  return NextResponse.json({ ok: true, action, result }, { status: 200 });
+}
+
+function jsonFail(code: ApiErrorCode, message: string, details?: any, status = 400) {
+  return NextResponse.json(
+    { ok: false, error: { code, message, ...(details ? { details } : {}) } },
+    { status }
+  );
+}
+
+function isPostgrestError(e: any): e is PostgrestError {
+  return e && typeof e === "object" && typeof e.message === "string" && typeof e.details === "string";
+}
+
+function timingSafeEqualHex(aHex: string, bHex: string) {
+  const a = Buffer.from(aHex, "hex");
+  const b = Buffer.from(bHex, "hex");
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+/**
+ * =========================================
+ * 2) Router Auth (HMAC + anti-replay)
+ * =========================================
+ * headers requis :
+ * - x-client-id
+ * - x-timestamp (ms)
+ * - x-signature = HMAC_SHA256(secret, `${clientId}.${timestamp}.${rawBody}`) hex
+ */
+function assertRouterAuth(req: Request, rawBody: string) {
+  const clientId = req.headers.get("x-client-id") || "";
+  const timestamp = req.headers.get("x-timestamp") || "";
+  const signature = req.headers.get("x-signature") || "";
+
+  if (!clientId || !timestamp || !signature) throw new Error("UNAUTHORIZED");
+
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts)) throw new Error("UNAUTHORIZED");
+
+  const now = Date.now();
+  if (Math.abs(now - ts) > 5 * 60 * 1000) throw new Error("UNAUTHORIZED");
+
+  const expected = crypto
+    .createHmac("sha256", ROUTER_HMAC_SECRET)
+    .update(`${clientId}.${timestamp}.${rawBody}`)
+    .digest("hex");
+
+  if (!timingSafeEqualHex(expected, signature)) throw new Error("UNAUTHORIZED");
+  return clientId;
+}
+
+/**
+ * =========================================
+ * 3) Audit (best-effort)
+ * =========================================
+ */
+async function auditLog(params: {
+  client_id: string;
+  action: string;
+  payload: any;
+  ok: boolean;
+  result: any;
+  actor?: string;
+}) {
+  const { client_id, action, payload, ok, result, actor } = params;
+  try {
+    await supabaseAdmin.from("audit_log").insert({
+      client_id,
+      action,
+      payload: payload ?? {},
+      ok,
+      result: result ?? {},
+      actor: actor ?? "system",
+    });
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * =========================================
+ * 4) Idempotency (optional)
+ * =========================================
+ */
+async function maybeReturnIdempotentResult(client_id: string, action: string, payload: any) {
+  const request_id = typeof payload?.request_id === "string" ? payload.request_id.trim() : "";
+  if (!request_id) return null;
+
+  const { data, error } = await supabaseAdmin
+    .from("audit_log")
+    .select("ok,result,created_at")
+    .eq("client_id", client_id)
+    .eq("action", action)
+    .contains("payload", { request_id })
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (error || !data?.length) return null;
+  const row: any = data[0];
+  if (row?.ok === true) return row.result ?? {};
+  return null;
+}
+
+/**
+ * =========================================
+ * 5) Access check
+ * =========================================
+ */
+async function assertPierreAccess(client_id: string) {
+  const { data: cfg, error: cfgErr } = await supabaseAdmin
+    .from("agent_configs")
+    .select("client_id,agent_key")
+    .eq("client_id", client_id)
+    .eq("agent_key", "pierre")
+    .maybeSingle();
+
+  if (cfgErr) throw cfgErr;
+  if (!cfg) throw new Error("FORBIDDEN");
+}
+
+/**
+ * =========================================
+ * 6) Make call (ROBUST)
+ * =========================================
+ */
+async function callMake(url: string, payload: any) {
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const text = await res.text();
+
+    let parsed: any = null;
+    try {
+      parsed = text ? JSON.parse(text) : null;
+    } catch {
+      parsed = text;
+    }
+
+    if (!res.ok) {
+      return { ok: false, error: "MAKE_HTTP_ERROR", status: res.status, body: parsed };
+    }
+
+    if (parsed && typeof parsed === "object") return parsed;
+    return { ok: true, data: parsed };
+  } catch (e: any) {
+    return { ok: false, error: "MAKE_FETCH_ERROR", message: e?.message ?? "unknown" };
+  }
+}
+
+/**
+ * =========================================
+ * 7) Schemas
+ * =========================================
+ */
+const ExecuteSchema = z.object({
+  client_id: z.string().min(3),
+  action: z.string().min(3),
+  payload: z.object({}).passthrough().default({}),
+});
+
+function withRequestId<T extends z.ZodTypeAny>(schema: T) {
+  return schema.and(z.object({ request_id: z.string().min(6).optional() }));
+}
+
+/**
+ * email.send
+ */
+const EmailSendSchema = withRequestId(
+  z.object({
+    to: z.array(z.string().min(3)).min(1),
+    subject: z.string().min(1),
+    body_html: z.string().min(1),
+    reply_to: z.string().email().optional(),
+  })
+);
+
+/**
+ * doc.generate
+ * - Format A (pro) : doc_type/template_id/data
+ * - Format B (simple) : html/filename direct
+ */
+const DocGenerateSchema = withRequestId(
+  z.union([
+    z.object({
+      employee_id: z.string().uuid().optional(),
+      doc_type: z.string().min(2),
+      template_id: z.string().min(2),
+      title: z.string().optional(),
+      data: z.object({}).passthrough().default({}),
+    }),
+    z.object({
+      title: z.string().optional(),
+      html: z.string().min(1),
+      filename: z.string().optional(),
+      doc_type: z.string().optional(),
+    }),
+  ])
+);
+
+/**
+ * hris.sync
+ * ✅ On supporte 2 formats :
+ * - ancien : payload objet
+ * - nouveau (depuis generate strict) : payload_json string (JSON.stringify)
+ */
+const HrisSyncSchema = withRequestId(
+  z.object({
+    vendor: z.string().optional(),
+    mode: z.enum(["import", "api", "both"]).optional(),
+    payload: z.object({}).passthrough().optional(),
+    payload_json: z.string().optional(),
+  })
+);
+
+/**
+ * Best-effort : enregistrer doc_url dans documents si la table existe
+ */
+async function tryInsertDocument(params: {
+  client_id: string;
+  doc_url: string;
+  title?: string | null;
+  doc_type?: string | null;
+  employee_id?: string | null;
+  metadata?: any;
+}) {
+  try {
+    await supabaseAdmin.from("documents").insert({
+      client_id: params.client_id,
+      doc_url: params.doc_url,
+      title: params.title ?? null,
+      doc_type: params.doc_type ?? null,
+      employee_id: params.employee_id ?? null,
+      status: "final",
+      version: 1,
+      metadata: params.metadata ?? {},
+    });
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Helper: parse payload_json safely
+ */
+function safeParseJsonString(s: any) {
+  if (typeof s !== "string") return null;
+  try {
+    const parsed = JSON.parse(s);
+    if (parsed && typeof parsed === "object") return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * =========================================
+ * 8) Handler
+ * =========================================
+ */
+export async function POST(req: Request) {
+  const raw = await req.text();
+
+  // 1) HMAC auth
+  let client_id_from_header = "";
+  try {
+    client_id_from_header = assertRouterAuth(req, raw);
+  } catch {
+    return jsonFail("UNAUTHORIZED", "Router signature invalid or missing", undefined, 401);
+  }
+
+  // 2) Parse JSON body
+  let body: any;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return jsonFail("BAD_REQUEST", "Invalid JSON body");
+  }
+
+  // 3) Validate envelope
+  let envelope: { client_id: string; action: string; payload: any };
+  try {
+    envelope = ExecuteSchema.parse(body);
+  } catch (e: any) {
+    return jsonFail("BAD_REQUEST", "Invalid request format", { zod: e?.errors ?? e }, 400);
+  }
+
+  const { client_id, action, payload } = envelope;
+
+  // 4) client_id must match signed header
+  if (client_id !== client_id_from_header) {
+    await auditLog({
+      client_id,
+      action,
+      payload,
+      ok: false,
+      result: { error: "CLIENT_ID_MISMATCH" },
+    });
+    return jsonFail("CLIENT_ID_MISMATCH", "client_id mismatch", undefined, 403);
+  }
+
+  // 5) Access
+  try {
+    await assertPierreAccess(client_id);
+  } catch {
+    await auditLog({ client_id, action, payload, ok: false, result: { error: "FORBIDDEN" } });
+    return jsonFail("FORBIDDEN", "Pierre access denied or not configured", undefined, 403);
+  }
+
+  // 6) Idempotency
+  try {
+    const prev = await maybeReturnIdempotentResult(client_id, action, payload);
+    if (prev) return jsonOk(action, { idempotent: true, ...prev });
+  } catch {
+    // ignore
+  }
+
+  // 7) Execute
+  try {
+    /**
+     * =========================
+     * email.send
+     * =========================
+     */
+    if (action === "email.send") {
+      const p = EmailSendSchema.parse(payload);
+
+      const { data: cfg, error: cfgErr } = await supabaseAdmin
+        .from("agent_configs")
+        .select("sender_email,sender_name,email_signature,legal_footer,email_provider")
+        .eq("client_id", client_id)
+        .eq("agent_key", "pierre")
+        .maybeSingle();
+
+      if (cfgErr) throw cfgErr;
+
+      const signature = cfg?.email_signature ? `<br><br>${cfg.email_signature}` : "";
+      const footer = cfg?.legal_footer ? `<br><br><small>${cfg.legal_footer}</small>` : "";
+
+      const makePayload = {
+        client_id,
+        from: cfg?.sender_email,
+        from_name: cfg?.sender_name ?? "Pierre",
+        to: p.to,
+        subject: p.subject,
+        body_html: p.body_html + signature + footer,
+        reply_to: p.reply_to,
+        request_id: (p as any).request_id,
+      };
+
+      const makeRes = await callMake(MAKE_EMAIL_WEBHOOK_URL, makePayload);
+
+      if (makeRes?.ok === false) {
+        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes } });
+        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
+      }
+
+      await auditLog({ client_id, action, payload, ok: true, result: makeRes });
+      return jsonOk(action, makeRes);
+    }
+
+    /**
+     * =========================
+     * doc.generate
+     * =========================
+     */
+    if (action === "doc.generate") {
+      const p = DocGenerateSchema.parse(payload) as any;
+
+      const isSimple = typeof p?.html === "string" && p.html.length > 0;
+
+      const makePayload = isSimple
+        ? {
+            client_id,
+            request_id: p.request_id,
+            title: p.title ?? "Document",
+            html: p.html,
+            filename: p.filename ?? "document.pdf",
+            doc_type: p.doc_type ?? "document",
+          }
+        : {
+            client_id,
+            employee_id: p.employee_id,
+            doc_type: p.doc_type,
+            template_id: p.template_id,
+            title: p.title,
+            data: p.data ?? {},
+            request_id: p.request_id,
+          };
+
+      const makeRes = await callMake(MAKE_DOC_WEBHOOK_URL, makePayload);
+      if (makeRes?.ok === false) {
+        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes } });
+        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
+      }
+
+      const doc_url = makeRes?.doc_url ?? makeRes?.data?.doc_url;
+      if (typeof doc_url === "string" && doc_url.startsWith("http")) {
+        await tryInsertDocument({
+          client_id,
+          doc_url,
+          title: makePayload?.title ?? null,
+          doc_type: makePayload?.doc_type ?? null,
+          employee_id: makePayload?.employee_id ?? null,
+          metadata: { make: makeRes },
+        });
+      }
+
+      await auditLog({ client_id, action, payload, ok: true, result: makeRes });
+      return jsonOk(action, makeRes);
+    }
+
+    /**
+     * =========================
+     * hris.sync
+     * =========================
+     */
+    if (action === "hris.sync") {
+      const p = HrisSyncSchema.parse(payload) as any;
+
+      // ✅ NOUVEAU: si payload_json string existe, on le parse
+      const parsedFromString = safeParseJsonString(p?.payload_json);
+      const payloadObj =
+        parsedFromString ??
+        (p?.payload && typeof p.payload === "object" ? p.payload : {}) ??
+        {};
+
+      const makePayload = {
+        client_id,
+        vendor: p.vendor,
+        mode: p.mode,
+        payload: payloadObj,
+        request_id: p.request_id,
+      };
+
+      const makeRes = await callMake(MAKE_INTEGRATIONS_WEBHOOK_URL, makePayload);
+      if (makeRes?.ok === false) {
+        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes } });
+        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
+      }
+
+      await auditLog({ client_id, action, payload, ok: true, result: makeRes });
+      return jsonOk(action, makeRes);
+    }
+
+    /**
+     * =========================
+     * Unknown action
+     * =========================
+     */
+    await auditLog({ client_id, action, payload, ok: false, result: { error: "UNKNOWN_ACTION" } });
+    return jsonFail("UNKNOWN_ACTION", "Unknown action", { action }, 400);
+  } catch (e: any) {
+    let code: ApiErrorCode = "INTERNAL_ERROR";
+    let message = "Unexpected error";
+    let details: any = undefined;
+    let status = 500;
+
+    if (isPostgrestError(e)) {
+      code = "DB_ERROR";
+      message = "Database error";
+      details = { db: e.message, hint: e.hint, details: e.details };
+      status = 500;
+    } else if (e?.name === "ZodError") {
+      code = "BAD_REQUEST";
+      message = "Validation error";
+      details = { zod: e.errors };
+      status = 400;
+    } else if (e?.message === "FORBIDDEN") {
+      code = "FORBIDDEN";
+      message = "Forbidden";
+      status = 403;
+    } else if (e?.message) {
+      code = "INTERNAL_ERROR";
+      message = String(e.message);
+      status = 500;
+    }
+
+    await auditLog({
+      client_id: (body?.client_id ?? "unknown") as string,
+      action: (body?.action ?? "unknown") as string,
+      payload: body?.payload ?? {},
+      ok: false,
+      result: { error: { code, message, details } },
+    });
+
+    return jsonFail(code, message, details, status);
+  }
+}
+
+
+
+
+============================================================
+FILE: src\app\api\pierre\action\route.ts
+============================================================
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import {
+  buildPierreEmailMetadata,
+  getResolvedPierreEmailIdentity,
+} from "@/lib/pierre-email-identity";
+
+type AllowedActionType = "email.send" | "doc.generate";
+
+type ActionAttachmentInput = {
+  filename?: string;
+  url?: string;
+  content_type?: string;
+};
+
+type PierreActionBody = {
+  action_type?: AllowedActionType;
+
+  // email
+  to?: string;
+  subject?: string;
+  cc?: string | string[];
+  bcc?: string | string[];
+
+  // shared content
+  html?: string;
+  text?: string;
+
+  // doc
+  filename?: string;
+  title?: string;
+
+  // premium email attachment support
+  attachments?: ActionAttachmentInput[];
+  pdf_url?: string;
+  pdf_filename?: string;
+
+  metadata?: Record<string, unknown>;
+};
+
+type EmailAttachmentValidated = {
+  filename: string;
+  url: string;
+  content_type?: string;
+};
+
+type EmailActionValidated = {
+  action_type: "email.send";
+  to: string[];
+  subject: string;
+  cc: string[];
+  bcc: string[];
+  html: string;
+  text: string;
+  attachments: EmailAttachmentValidated[];
+  metadata: Record<string, unknown>;
+};
+
+type DocActionValidated = {
+  action_type: "doc.generate";
+  html: string;
+  text: string;
+  title: string;
+  filename: string;
+  metadata: Record<string, unknown>;
+};
+
+type ValidatedAction = EmailActionValidated | DocActionValidated;
+
+type ValidateBodyResult =
+  | { ok: true; value: ValidatedAction }
+  | { ok: false; error: string };
+
+type MakePayloadAttachment = {
+  filename: string;
+  url: string;
+  content_type?: string;
+};
+
+type MakePayload = {
+  action_type: AllowedActionType;
+  agent_slug: "pierre";
+  user_id: string;
+  user_email: string | null;
+  ts: string;
+  request_id: string;
+  environment: string;
+
+  from?: string;
+  reply_to?: string;
+
+  to?: string;
+  to_list?: string[];
+  subject?: string;
+  cc?: string;
+  cc_list?: string[];
+  bcc?: string;
+  bcc_list?: string[];
+
+  html?: string;
+  text?: string;
+
+  filename?: string;
+  title?: string;
+
+  pdf_url?: string;
+  pdf_filename?: string;
+
+  attachments?: MakePayloadAttachment[];
+  has_attachments?: boolean;
+
+  metadata?: Record<string, unknown>;
+};
+
+type NormalizedMakeResponse = {
+  raw: unknown;
+  parsed: Record<string, unknown> | null;
+  pdf_url?: string;
+  file_url?: string;
+  output_url?: string;
+  link?: string;
+  message?: string;
+  ok?: boolean;
+};
+
+type WebhookResolution = {
+  url: string;
+  mode: "unified" | "split-email" | "split-doc";
+};
+
+type PierreAccessResult = {
+  ok: boolean;
+  error: string | null;
+  orderId?: string | null;
+};
+
+type LogPierreActionAttemptInput = {
+  userId: string;
+  actionType: AllowedActionType;
+  ok: boolean;
+  error?: string;
+  payload: Record<string, unknown>;
+  response?: Record<string, unknown> | null;
+  requestId: string;
+  durationMs?: number;
+};
+
+function json(status: number, body: Record<string, unknown>) {
+  return NextResponse.json(body, { status });
+}
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function getBearerToken(req: NextRequest) {
+  const auth =
+    req.headers.get("authorization") ||
+    req.headers.get("Authorization") ||
+    "";
+
+  if (!auth.startsWith("Bearer ")) return "";
+  return auth.slice("Bearer ".length).trim();
+}
+
+function buildRequestId() {
+  return `pierre_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function isAllowedActionType(value: unknown): value is AllowedActionType {
+  return value === "email.send" || value === "doc.generate";
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isValidHttpUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function safeString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function safeMetadata(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function clampString(value: string, max: number) {
+  return value.length > max ? value.slice(0, max) : value;
+}
+
+function toJsonSafe(value: unknown) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return JSON.stringify({ error: "serialization_failed" });
+  }
+}
+
+function truncateForLog(value: string, max: number) {
+  return value.length > max ? `${value.slice(0, max)}…` : value;
+}
+
+function buildFilename(raw: string) {
+  const base = raw
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9\-_. ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return base || "document-pierre";
+}
+
+function ensurePdfExtension(raw: string) {
+  const base = buildFilename(raw);
+  return /\.pdf$/i.test(base) ? base : `${base}.pdf`;
+}
+
+function buildSafeAttachmentFilename(raw: string) {
+  const base = buildFilename(raw);
+  return clampString(base, 180);
+}
+
+function safeRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function parseUnknownJsonString(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+
+  const trimmed = value.trim();
+  if (!trimmed) return value;
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return value;
+  }
+}
+
+function parseNestedJson(value: unknown, maxDepth = 3): unknown {
+  let current = value;
+  for (let i = 0; i < maxDepth; i += 1) {
+    const parsed = parseUnknownJsonString(current);
+    if (parsed === current) return current;
+    current = parsed;
+  }
+  return current;
+}
+
+function resolveWebhook(actionType: AllowedActionType): WebhookResolution | null {
+  const generic = getEnv("MAKE_PIERRE_ACTION_WEBHOOK_URL");
+  const email = getEnv("MAKE_PIERRE_EMAIL_WEBHOOK_URL");
+  const doc = getEnv("MAKE_PIERRE_DOC_WEBHOOK_URL");
+
+  if (generic) {
+    return {
+      url: generic,
+      mode: "unified",
+    };
+  }
+
+  if (actionType === "email.send" && email) {
+    return {
+      url: email,
+      mode: "split-email",
+    };
+  }
+
+  if (actionType === "doc.generate" && doc) {
+    return {
+      url: doc,
+      mode: "split-doc",
+    };
+  }
+
+  return null;
+}
+
+function makeServerSupabase(): SupabaseClient {
+  const url = getEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRole = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase serveur non configuré.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+async function getAuthenticatedUser(
+  req: NextRequest,
+  supabase: SupabaseClient
+): Promise<{ error: string | null; user: User | null }> {
+  const token = getBearerToken(req);
+
+  if (!token) {
+    return { error: "Token manquant.", user: null };
+  }
+
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error || !data.user) {
+    return {
+      error: error?.message || "Utilisateur non authentifié.",
+      user: null,
+    };
+  }
+
+  return { error: null, user: data.user };
+}
+
+async function hasPierreAccess(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<PierreAccessResult> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id,status")
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false, error: error.message, orderId: null };
+  }
+
+  return {
+    ok: Boolean(data),
+    error: null,
+    orderId: data?.id ?? null,
+  };
+}
+
+function normalizeEmailList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => safeString(item).toLowerCase())
+      .filter(Boolean);
+  }
+
+  const single = safeString(value);
+  if (!single) return [];
+
+  return single
+    .split(/[;,]/g)
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function uniqueEmailList(list: string[]) {
+  return Array.from(new Set(list));
+}
+
+function validateEmailList(
+  list: string[],
+  fieldLabel: string
+): { ok: true; value: string[] } | { ok: false; error: string } {
+  const unique = uniqueEmailList(list);
+
+  if (unique.length > 50) {
+    return {
+      ok: false,
+      error: `${fieldLabel} contient trop d’adresses email.`,
+    };
+  }
+
+  for (const email of unique) {
+    if (!isValidEmail(email)) {
+      return {
+        ok: false,
+        error: `${fieldLabel} contient une adresse invalide : ${email}`,
+      };
+    }
+  }
+
+  return { ok: true, value: unique };
+}
+
+function normalizeAttachmentArray(
+  rawAttachments: ActionAttachmentInput[] | undefined,
+  rawPdfUrl: string,
+  rawPdfFilename: string
+): EmailAttachmentValidated[] {
+  const clean: EmailAttachmentValidated[] = [];
+  const seen = new Set<string>();
+
+  if (Array.isArray(rawAttachments)) {
+    for (const item of rawAttachments) {
+      const filename = buildSafeAttachmentFilename(
+        safeString(item?.filename) || "piece-jointe-pierre"
+      );
+      const url = safeString(item?.url);
+      const contentType = safeString(item?.content_type);
+
+      if (!url) continue;
+      if (!isValidHttpUrl(url)) continue;
+
+      const dedupeKey = `${filename}__${url}`;
+      if (seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+
+      clean.push({
+        filename,
+        url,
+        content_type: contentType || undefined,
+      });
+    }
+  }
+
+  const pdfUrl = safeString(rawPdfUrl);
+  if (pdfUrl && isValidHttpUrl(pdfUrl)) {
+    const pdfFilename = buildSafeAttachmentFilename(
+      safeString(rawPdfFilename) || "document-pierre.pdf"
+    );
+    const dedupeKey = `${pdfFilename}__${pdfUrl}`;
+
+    if (!seen.has(dedupeKey)) {
+      seen.add(dedupeKey);
+      clean.push({
+        filename: pdfFilename,
+        url: pdfUrl,
+        content_type: "application/pdf",
+      });
+    }
+  }
+
+  return clean.slice(0, 10);
+}
+
+function validateBody(raw: PierreActionBody): ValidateBodyResult {
+  if (!isAllowedActionType(raw.action_type)) {
+    return { ok: false, error: "action_type invalide." };
+  }
+
+  if (raw.action_type === "email.send") {
+    const toListValidation = validateEmailList(normalizeEmailList(raw.to), "to");
+    if (!toListValidation.ok) {
+      return { ok: false, error: toListValidation.error };
+    }
+
+    const ccListValidation = validateEmailList(normalizeEmailList(raw.cc), "cc");
+    if (!ccListValidation.ok) {
+      return { ok: false, error: ccListValidation.error };
+    }
+
+    const bccListValidation = validateEmailList(normalizeEmailList(raw.bcc), "bcc");
+    if (!bccListValidation.ok) {
+      return { ok: false, error: bccListValidation.error };
+    }
+
+    const to = toListValidation.value;
+    const cc = ccListValidation.value;
+    const bcc = bccListValidation.value;
+
+    const subject = clampString(safeString(raw.subject), 240);
+    const html = clampString(safeString(raw.html), 400000);
+    const text = clampString(safeString(raw.text), 180000);
+
+    if (!to.length) {
+      return { ok: false, error: "Destinataire email manquant." };
+    }
+
+    if (!subject) {
+      return { ok: false, error: "Objet email manquant." };
+    }
+
+    if (!html && !text) {
+      return { ok: false, error: "Contenu email manquant." };
+    }
+
+    const attachments = normalizeAttachmentArray(
+      Array.isArray(raw.attachments) ? raw.attachments : [],
+      safeString(raw.pdf_url),
+      safeString(raw.pdf_filename)
+    );
+
+    return {
+      ok: true,
+      value: {
+        action_type: "email.send",
+        to,
+        subject,
+        cc,
+        bcc,
+        html,
+        text,
+        attachments,
+        metadata: safeMetadata(raw.metadata),
+      },
+    };
+  }
+
+  const html = clampString(safeString(raw.html), 400000);
+  const text = clampString(safeString(raw.text), 180000);
+  const title = clampString(safeString(raw.title), 240) || "Document Pierre";
+  const filename = clampString(
+    ensurePdfExtension(safeString(raw.filename || raw.title || "document-pierre")),
+    180
+  );
+
+  if (!html && !text) {
+    return { ok: false, error: "Contenu document manquant." };
+  }
+
+  return {
+    ok: true,
+    value: {
+      action_type: "doc.generate",
+      html,
+      text,
+      title,
+      filename,
+      metadata: safeMetadata(raw.metadata),
+    },
+  };
+}
+
+function mergeMetadata(
+  base: Record<string, unknown>,
+  extra: Record<string, unknown>
+): Record<string, unknown> {
+  return {
+    ...base,
+    ...extra,
+  };
+}
+
+function extractBestUrl(record: Record<string, unknown> | null) {
+  if (!record) return "";
+
+  const direct =
+    safeString(record.url) ||
+    safeString(record.pdf_url) ||
+    safeString(record.file_url) ||
+    safeString(record.output_url) ||
+    safeString(record.output) ||
+    safeString(record.link) ||
+    safeString(record.download_url) ||
+    safeString(record.public_url);
+
+  if (direct && isValidHttpUrl(direct)) return direct;
+
+  const data = safeRecord(record.data);
+  if (data) {
+    const nested =
+      safeString(data.url) ||
+      safeString(data.pdf_url) ||
+      safeString(data.file_url) ||
+      safeString(data.output_url) ||
+      safeString(data.output) ||
+      safeString(data.link) ||
+      safeString(data.download_url) ||
+      safeString(data.public_url);
+
+    if (nested && isValidHttpUrl(nested)) return nested;
+  }
+
+  return "";
+}
+
+function normalizeMakeResponse(input: unknown): NormalizedMakeResponse {
+  const raw = input;
+  const deeplyParsed = parseNestedJson(input, 4);
+  const parsed = safeRecord(deeplyParsed);
+
+  const pdfUrl = extractBestUrl(parsed);
+  const fileUrl =
+    safeString(parsed?.file_url) ||
+    safeString(safeRecord(parsed?.data)?.file_url) ||
+    undefined;
+
+  const outputUrl =
+    safeString(parsed?.output_url) ||
+    safeString(safeRecord(parsed?.data)?.output_url) ||
+    safeString(parsed?.output) ||
+    safeString(safeRecord(parsed?.data)?.output) ||
+    undefined;
+
+  const link =
+    safeString(parsed?.link) ||
+    safeString(safeRecord(parsed?.data)?.link) ||
+    undefined;
+
+  const message =
+    safeString(parsed?.message) ||
+    safeString(safeRecord(parsed?.data)?.message) ||
+    undefined;
+
+  const ok =
+    typeof parsed?.ok === "boolean"
+      ? parsed.ok
+      : typeof safeRecord(parsed?.data)?.ok === "boolean"
+      ? (safeRecord(parsed?.data)?.ok as boolean)
+      : undefined;
+
+  return {
+    raw,
+    parsed,
+    pdf_url: pdfUrl || undefined,
+    file_url: fileUrl,
+    output_url: outputUrl,
+    link,
+    message,
+    ok,
+  };
+}
+
+async function logPierreActionAttempt(
+  supabase: SupabaseClient,
+  input: LogPierreActionAttemptInput
+) {
+  try {
+    const payloadForLog = {
+      ...input.payload,
+      html:
+        typeof input.payload.html === "string"
+          ? truncateForLog(input.payload.html, 4000)
+          : input.payload.html,
+      text:
+        typeof input.payload.text === "string"
+          ? truncateForLog(input.payload.text, 3000)
+          : input.payload.text,
+    };
+
+    const responseForLog = input.response
+      ? {
+          ...input.response,
+          make_response_raw:
+            typeof input.response.make_response_raw === "string"
+              ? truncateForLog(input.response.make_response_raw, 4000)
+              : input.response.make_response_raw,
+        }
+      : null;
+
+    await supabase.from("agent_history").insert({
+      user_id: input.userId,
+      agent_slug: "pierre",
+      created_at: new Date().toISOString(),
+      input: toJsonSafe({
+        kind: "action",
+        request_id: input.requestId,
+        action_type: input.actionType,
+        duration_ms: input.durationMs ?? null,
+        payload: payloadForLog,
+      }),
+      preset: "free",
+      tone: "pro",
+      language: "fr",
+      title:
+        input.actionType === "email.send"
+          ? "Action email Pierre"
+          : "Action document Pierre",
+      doc_type: input.actionType,
+      ok: input.ok,
+      error: input.error || null,
+      favorite: false,
+      pinned: false,
+      tags: toJsonSafe([
+        "action",
+        input.actionType,
+        input.ok ? "ok" : "err",
+      ]),
+      note: null,
+      response: responseForLog ? toJsonSafe(responseForLog) : null,
+    });
+  } catch {
+    // best effort
+  }
+}
+
+export async function GET(req: NextRequest) {
+  let supabase: SupabaseClient;
+
+  try {
+    supabase = makeServerSupabase();
+  } catch (e: unknown) {
+    return json(500, {
+      ok: false,
+      error: e instanceof Error ? e.message : "Configuration serveur invalide.",
+    });
+  }
+
+  const { error: authError, user } = await getAuthenticatedUser(req, supabase);
+
+  if (authError || !user) {
+    return json(401, {
+      ok: false,
+      error: authError || "Non authentifié.",
+    });
+  }
+
+  const access = await hasPierreAccess(supabase, user.id);
+
+  if (access.error) {
+    return json(500, { ok: false, error: access.error });
+  }
+
+  if (!access.ok) {
+    return json(403, {
+      ok: false,
+      error: "Pierre n’est pas actif sur ce compte.",
+    });
+  }
+
+  const { identity, onboarding, error } = await getResolvedPierreEmailIdentity(
+    supabase,
+    user.id
+  );
+
+  if (error) {
+    return json(500, { ok: false, error });
+  }
+
+  const unifiedWebhook = getEnv("MAKE_PIERRE_ACTION_WEBHOOK_URL");
+  const emailWebhook = getEnv("MAKE_PIERRE_EMAIL_WEBHOOK_URL");
+  const docWebhook = getEnv("MAKE_PIERRE_DOC_WEBHOOK_URL");
+
+  return json(200, {
+    ok: true,
+    identity,
+    onboarding_exists: Boolean(onboarding),
+    available_actions: ["email.send", "doc.generate"],
+    attachment_support: true,
+    webhook_mode: unifiedWebhook
+      ? "unified"
+      : emailWebhook || docWebhook
+      ? "split"
+      : "missing",
+    webhook_config: {
+      unified: Boolean(unifiedWebhook),
+      email: Boolean(emailWebhook),
+      doc: Boolean(docWebhook),
+    },
+  });
+}
+
+export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
+  const requestId = buildRequestId();
+
+  let supabase: SupabaseClient;
+
+  try {
+    supabase = makeServerSupabase();
+  } catch (e: unknown) {
+    return json(500, {
+      ok: false,
+      error: e instanceof Error ? e.message : "Configuration serveur invalide.",
+      request_id: requestId,
+    });
+  }
+
+  const { error: authError, user } = await getAuthenticatedUser(req, supabase);
+
+  if (authError || !user) {
+    return json(401, {
+      ok: false,
+      error: authError || "Non authentifié.",
+      request_id: requestId,
+    });
+  }
+
+  const access = await hasPierreAccess(supabase, user.id);
+
+  if (access.error) {
+    return json(500, {
+      ok: false,
+      error: access.error,
+      request_id: requestId,
+    });
+  }
+
+  if (!access.ok) {
+    return json(403, {
+      ok: false,
+      error: "Pierre n’est pas actif sur ce compte.",
+      request_id: requestId,
+    });
+  }
+
+  let body: PierreActionBody;
+
+  try {
+    body = (await req.json()) as PierreActionBody;
+  } catch {
+    return json(400, {
+      ok: false,
+      error: "Body JSON invalide.",
+      request_id: requestId,
+    });
+  }
+
+  const validated = validateBody(body);
+
+  if (!validated.ok) {
+    return json(400, {
+      ok: false,
+      error: validated.error,
+      request_id: requestId,
+    });
+  }
+
+  const action = validated.value;
+  const webhook = resolveWebhook(action.action_type);
+
+  if (!webhook?.url) {
+    return json(500, {
+      ok: false,
+      error:
+        action.action_type === "email.send"
+          ? "Webhook Make email non configuré."
+          : "Webhook Make document non configuré.",
+      request_id: requestId,
+    });
+  }
+
+  const { identity, onboarding, error: identityError } =
+    await getResolvedPierreEmailIdentity(supabase, user.id);
+
+  if (identityError) {
+    return json(500, {
+      ok: false,
+      error: identityError,
+      request_id: requestId,
+    });
+  }
+
+  const metadataBase = buildPierreEmailMetadata(identity);
+  const metadata = mergeMetadata(metadataBase, action.metadata || {});
+
+  const payload: MakePayload = {
+    action_type: action.action_type,
+    agent_slug: "pierre",
+    user_id: user.id,
+    user_email: user.email ?? null,
+    ts: new Date().toISOString(),
+    request_id: requestId,
+    environment: getEnv("NODE_ENV") || "production",
+    from: identity.from,
+    reply_to: identity.replyTo || undefined,
+    metadata,
+  };
+
+  if (action.action_type === "email.send") {
+    payload.to = action.to.join(", ");
+    payload.to_list = action.to;
+    payload.subject = action.subject;
+
+    if (action.cc.length) {
+      payload.cc = action.cc.join(", ");
+      payload.cc_list = action.cc;
+    }
+
+    if (action.bcc.length) {
+      payload.bcc = action.bcc.join(", ");
+      payload.bcc_list = action.bcc;
+    }
+
+    payload.html = action.html;
+    payload.text = action.text;
+    payload.attachments = action.attachments;
+    payload.has_attachments = action.attachments.length > 0;
+
+    const pdfAttachment = action.attachments.find(
+      (item) => item.content_type === "application/pdf" || /\.pdf$/i.test(item.filename)
+    );
+
+    if (pdfAttachment) {
+      payload.pdf_url = pdfAttachment.url;
+      payload.pdf_filename = pdfAttachment.filename;
+    }
+  } else {
+    payload.html = action.html;
+    payload.text = action.text;
+    payload.title = action.title;
+    payload.filename = action.filename;
+  }
+
+  const makeSecret = getEnv("MAKE_PIERRE_ACTION_SECRET");
+
+  try {
+    const makeRes = await fetch(webhook.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(makeSecret ? { "x-clonestore-secret": makeSecret } : {}),
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
+
+    const contentType = makeRes.headers.get("content-type") || "";
+    let makeData: unknown = null;
+
+    if (contentType.includes("application/json")) {
+      makeData = await makeRes.json().catch(() => null);
+    } else {
+      const text = await makeRes.text().catch(() => "");
+      makeData = text || null;
+    }
+
+    const normalizedMake = normalizeMakeResponse(makeData);
+    const durationMs = Date.now() - startedAt;
+
+    if (!makeRes.ok) {
+      await logPierreActionAttempt(supabase, {
+        userId: user.id,
+        actionType: action.action_type,
+        ok: false,
+        error: "Make a refusé l’action.",
+        payload,
+        response: {
+          make_status: makeRes.status,
+          webhook_mode: webhook.mode,
+          make_response_raw:
+            typeof normalizedMake.raw === "string"
+              ? normalizedMake.raw
+              : toJsonSafe(normalizedMake.raw),
+          make_response_parsed: normalizedMake.parsed,
+          pdf_url: normalizedMake.pdf_url || null,
+          file_url: normalizedMake.file_url || null,
+          output_url: normalizedMake.output_url || null,
+          link: normalizedMake.link || null,
+          message: normalizedMake.message || null,
+        },
+        requestId,
+        durationMs,
+      });
+
+      return json(502, {
+        ok: false,
+        error: "Make a refusé l’action.",
+        request_id: requestId,
+        action_type: action.action_type,
+        make_status: makeRes.status,
+        webhook_mode: webhook.mode,
+        make_response: normalizedMake.raw,
+        make_response_parsed: normalizedMake.parsed,
+        pdf_url: normalizedMake.pdf_url || null,
+        file_url: normalizedMake.file_url || null,
+        output_url: normalizedMake.output_url || null,
+        link: normalizedMake.link || null,
+        make_message: normalizedMake.message || null,
+        identity,
+        onboarding_exists: Boolean(onboarding),
+        duration_ms: durationMs,
+      });
+    }
+
+    await logPierreActionAttempt(supabase, {
+      userId: user.id,
+      actionType: action.action_type,
+      ok: true,
+      payload,
+      response: {
+        make_status: makeRes.status,
+        webhook_mode: webhook.mode,
+        make_response_raw:
+          typeof normalizedMake.raw === "string"
+            ? normalizedMake.raw
+            : toJsonSafe(normalizedMake.raw),
+        make_response_parsed: normalizedMake.parsed,
+        pdf_url: normalizedMake.pdf_url || null,
+        file_url: normalizedMake.file_url || null,
+        output_url: normalizedMake.output_url || null,
+        link: normalizedMake.link || null,
+        message: normalizedMake.message || null,
+      },
+      requestId,
+      durationMs,
+    });
+
+    return json(200, {
+      ok: true,
+      request_id: requestId,
+      action_type: action.action_type,
+      make_status: makeRes.status,
+      webhook_mode: webhook.mode,
+      make_response: normalizedMake.raw,
+      make_response_parsed: normalizedMake.parsed,
+      pdf_url: normalizedMake.pdf_url || null,
+      file_url: normalizedMake.file_url || null,
+      output_url: normalizedMake.output_url || null,
+      link: normalizedMake.link || null,
+      make_message: normalizedMake.message || null,
+      attachments_count:
+        action.action_type === "email.send" ? action.attachments.length : 0,
+      identity,
+      onboarding_exists: Boolean(onboarding),
+      duration_ms: durationMs,
+    });
+  } catch (e: unknown) {
+    const durationMs = Date.now() - startedAt;
+
+    await logPierreActionAttempt(supabase, {
+      userId: user.id,
+      actionType: action.action_type,
+      ok: false,
+      error: e instanceof Error ? e.message : "Erreur lors de l’appel Make.",
+      payload,
+      response: null,
+      requestId,
+      durationMs,
+    });
+
+    return json(500, {
+      ok: false,
+      error: e instanceof Error ? e.message : "Erreur lors de l’appel Make.",
+      request_id: requestId,
+      action_type: action.action_type,
+      webhook_mode: webhook.mode,
+      identity,
+      onboarding_exists: Boolean(onboarding),
+      duration_ms: durationMs,
+    });
+  }
+}
+
+
+============================================================
+FILE: src\app\api\pierre\company-memory\route.ts
+============================================================
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type JsonObject = Record<string, unknown>;
+
+type PierreCompanyMemoryRow = {
+  id?: string;
+  user_id?: string | null;
+  company_id?: string | null;
+  company_name?: string | null;
+  sender_name?: string | null;
+  sender_email?: string | null;
+  tone?: string | null;
+  language?: string | null;
+  rules?: string[] | null;
+  preferences?: Record<string, unknown> | null;
+  email_identity?: {
+    sender_name?: string | null;
+    sender_email?: string | null;
+    reply_to?: string | null;
+    provider?: string | null;
+    domain_verified?: boolean | null;
+    [key: string]: unknown;
+  } | null;
+  metadata?: Record<string, unknown> | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+};
+
+type SenderIdentityResolved = {
+  sender_name: string | null;
+  sender_email: string | null;
+  reply_to?: string | null;
+  provider?: string | null;
+  domain_verified?: boolean | null;
+  source: "memory.email_identity" | "memory.root" | "fallback.env" | "none";
+};
+
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
+function isPlainObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function trimOrNull(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value.trim();
+  return clean ? clean : null;
+}
+
+function getSupabaseAdmin(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRole =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase admin env is missing.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryParseJsonString(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function extractTokenFromCookieValue(raw: string): string | null {
+  const clean = raw.trim();
+  if (!clean) return null;
+
+  if (clean.startsWith("eyJ") && clean.split(".").length >= 3) {
+    return clean;
+  }
+
+  const parsed = tryParseJsonString(clean);
+
+  if (Array.isArray(parsed)) {
+    for (const item of parsed) {
+      if (typeof item === "string" && item.startsWith("eyJ") && item.split(".").length >= 3) {
+        return item;
+      }
+    }
+  }
+
+  if (isPlainObject(parsed)) {
+    const candidates = [
+      parsed.access_token,
+      parsed.accessToken,
+      parsed.token,
+      parsed.currentSession && isPlainObject(parsed.currentSession)
+        ? parsed.currentSession.access_token
+        : null,
+      parsed.session && isPlainObject(parsed.session)
+        ? parsed.session.access_token
+        : null,
+    ];
+
+    for (const candidate of candidates) {
+      if (
+        typeof candidate === "string" &&
+        candidate.startsWith("eyJ") &&
+        candidate.split(".").length >= 3
+      ) {
+        return candidate;
+      }
+    }
+  }
+
+  return null;
+}
+
+function extractBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) return token;
+  }
+
+  const cookieCandidates = request.cookies.getAll();
+
+  for (const cookie of cookieCandidates) {
+    const name = cookie.name.toLowerCase();
+
+    if (
+      name.includes("auth-token") ||
+      name.includes("access-token") ||
+      name.startsWith("sb-")
+    ) {
+      const token = extractTokenFromCookieValue(cookie.value);
+      if (token) return token;
+    }
+  }
+
+  return null;
+}
+
+async function resolveUser(
+  supabase: SupabaseClient,
+  request: NextRequest
+): Promise<User | null> {
+  const token = extractBearerToken(request);
+  if (!token) return null;
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) return null;
+
+  return data.user;
+}
+
+function normalizeMemoryRow(raw: unknown): PierreCompanyMemoryRow | null {
+  if (!isPlainObject(raw)) return null;
+
+  return {
+    ...raw,
+    sender_name: trimOrNull(raw.sender_name),
+    sender_email: trimOrNull(raw.sender_email),
+    tone: trimOrNull(raw.tone),
+    language: trimOrNull(raw.language),
+    rules: Array.isArray(raw.rules) ? raw.rules.map(String) : null,
+    preferences: isPlainObject(raw.preferences)
+      ? (raw.preferences as Record<string, unknown>)
+      : null,
+    metadata: isPlainObject(raw.metadata)
+      ? (raw.metadata as Record<string, unknown>)
+      : null,
+    email_identity: isPlainObject(raw.email_identity)
+      ? {
+          ...raw.email_identity,
+          sender_name: trimOrNull(raw.email_identity.sender_name),
+          sender_email: trimOrNull(raw.email_identity.sender_email),
+          reply_to: trimOrNull(raw.email_identity.reply_to),
+          provider: trimOrNull(raw.email_identity.provider),
+          domain_verified:
+            typeof raw.email_identity.domain_verified === "boolean"
+              ? raw.email_identity.domain_verified
+              : null,
+        }
+      : null,
+  };
+}
+
+function resolveSenderIdentity(memory: PierreCompanyMemoryRow | null): SenderIdentityResolved {
+  const envSenderName = trimOrNull(process.env.PIERRE_DEFAULT_SENDER_NAME);
+  const envSenderEmail = trimOrNull(process.env.PIERRE_DEFAULT_SENDER_EMAIL);
+  const envReplyTo = trimOrNull(process.env.PIERRE_DEFAULT_REPLY_TO);
+
+  const nestedSenderName = trimOrNull(memory?.email_identity?.sender_name);
+  const nestedSenderEmail = trimOrNull(memory?.email_identity?.sender_email);
+  const nestedReplyTo = trimOrNull(memory?.email_identity?.reply_to);
+  const nestedProvider = trimOrNull(memory?.email_identity?.provider);
+
+  if (nestedSenderName || nestedSenderEmail || nestedReplyTo) {
+    return {
+      sender_name: nestedSenderName,
+      sender_email: nestedSenderEmail,
+      reply_to: nestedReplyTo ?? undefined,
+      provider: nestedProvider ?? undefined,
+      domain_verified:
+        typeof memory?.email_identity?.domain_verified === "boolean"
+          ? memory.email_identity.domain_verified
+          : undefined,
+      source: "memory.email_identity",
+    };
+  }
+
+  const rootSenderName = trimOrNull(memory?.sender_name);
+  const rootSenderEmail = trimOrNull(memory?.sender_email);
+
+  if (rootSenderName || rootSenderEmail) {
+    return {
+      sender_name: rootSenderName,
+      sender_email: rootSenderEmail,
+      source: "memory.root",
+    };
+  }
+
+  if (envSenderName || envSenderEmail || envReplyTo) {
+    return {
+      sender_name: envSenderName,
+      sender_email: envSenderEmail,
+      reply_to: envReplyTo ?? undefined,
+      source: "fallback.env",
+    };
+  }
+
+  return {
+    sender_name: null,
+    sender_email: null,
+    source: "none",
+  };
+}
+
+function sanitizePatchBody(raw: unknown): Partial<PierreCompanyMemoryRow> {
+  if (!isPlainObject(raw)) return {};
+
+  const output: Partial<PierreCompanyMemoryRow> = {};
+
+  if ("company_id" in raw) output.company_id = trimOrNull(raw.company_id);
+  if ("company_name" in raw) output.company_name = trimOrNull(raw.company_name);
+  if ("sender_name" in raw) output.sender_name = trimOrNull(raw.sender_name);
+  if ("sender_email" in raw) output.sender_email = trimOrNull(raw.sender_email);
+  if ("tone" in raw) output.tone = trimOrNull(raw.tone);
+  if ("language" in raw) output.language = trimOrNull(raw.language);
+
+  if ("rules" in raw) {
+    output.rules = Array.isArray(raw.rules)
+      ? raw.rules.map(String)
+      : raw.rules == null
+      ? null
+      : [String(raw.rules)];
+  }
+
+  if ("preferences" in raw) {
+    output.preferences = isPlainObject(raw.preferences)
+      ? (raw.preferences as Record<string, unknown>)
+      : null;
+  }
+
+  if ("metadata" in raw) {
+    output.metadata = isPlainObject(raw.metadata)
+      ? (raw.metadata as Record<string, unknown>)
+      : null;
+  }
+
+  if ("email_identity" in raw) {
+    output.email_identity = isPlainObject(raw.email_identity)
+      ? {
+          sender_name: trimOrNull(raw.email_identity.sender_name),
+          sender_email: trimOrNull(raw.email_identity.sender_email),
+          reply_to: trimOrNull(raw.email_identity.reply_to),
+          provider: trimOrNull(raw.email_identity.provider),
+          domain_verified:
+            typeof raw.email_identity.domain_verified === "boolean"
+              ? raw.email_identity.domain_verified
+              : null,
+        }
+      : null;
+  }
+
+  return output;
+}
+
+async function getMemoryForUser(
+  supabase: SupabaseClient,
+  user: User | null
+): Promise<PierreCompanyMemoryRow | null> {
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("pierre_company_memory")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return normalizeMemoryRow(data);
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const user = await resolveUser(supabase, request);
+    const memory = await getMemoryForUser(supabase, user);
+    const senderIdentity = resolveSenderIdentity(memory);
+
+    return json({
+      ok: true,
+      memory,
+      sender_identity: senderIdentity,
+      auth: user ? "resolved" : "missing",
+    });
+  } catch (error) {
+    console.error("[pierre/company-memory][GET]", error);
+
+    return json(
+      {
+        ok: false,
+        error: "Impossible de charger la mémoire entreprise Pierre.",
+      },
+      500
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const user = await resolveUser(supabase, request);
+
+    if (!user) {
+      return json(
+        {
+          ok: false,
+          error: "Non autorisé pour modifier la mémoire entreprise.",
+        },
+        401
+      );
+    }
+
+    const body = sanitizePatchBody(await request.json());
+    const existing = await getMemoryForUser(supabase, user);
+
+    let savedRow: PierreCompanyMemoryRow | null = null;
+
+    if (existing?.id) {
+      const nextPayload = {
+        ...body,
+        user_id: user.id,
+      };
+
+      const { data, error } = await supabase
+        .from("pierre_company_memory")
+        .update(nextPayload)
+        .eq("id", existing.id)
+        .select("*")
+        .maybeSingle();
+
+      if (error) throw error;
+      savedRow = normalizeMemoryRow(data);
+    } else {
+      const insertPayload: Partial<PierreCompanyMemoryRow> = {
+        user_id: user.id,
+        ...body,
+      };
+
+      const { data, error } = await supabase
+        .from("pierre_company_memory")
+        .insert(insertPayload)
+        .select("*")
+        .maybeSingle();
+
+      if (error) throw error;
+      savedRow = normalizeMemoryRow(data);
+    }
+
+    return json({
+      ok: true,
+      memory: savedRow,
+      sender_identity: resolveSenderIdentity(savedRow),
+    });
+  } catch (error) {
+    console.error("[pierre/company-memory][PATCH]", error);
+
+    return json(
+      {
+        ok: false,
+        error: "Impossible d’enregistrer la mémoire entreprise Pierre.",
+      },
+      500
+    );
+  }
+}
+
+
+============================================================
+FILE: src\app\api\pierre\history\route.ts
+============================================================
+
+
+
+============================================================
+FILE: src\app\api\pierre\history\list\route.ts
+============================================================
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type JsonObject = Record<string, unknown>;
+
+type HistoryItem = {
+  id: string;
+  title?: string | null;
+  subtitle?: string | null;
+  kind?: string | null;
+  status?: string | null;
+  mission_id?: string | null;
+  task_id?: string | null;
+  document_id?: string | null;
+  email_id?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+};
+
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
+function isPlainObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function trimOrNull(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value.trim();
+  return clean ? clean : null;
+}
+
+function getSupabaseAdmin(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRole =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase admin env is missing.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryParseJsonString(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function extractTokenFromCookieValue(raw: string): string | null {
+  const clean = raw.trim();
+  if (!clean) return null;
+
+  if (clean.startsWith("eyJ") && clean.split(".").length >= 3) {
+    return clean;
+  }
+
+  const parsed = tryParseJsonString(clean);
+
+  if (Array.isArray(parsed)) {
+    for (const item of parsed) {
+      if (typeof item === "string" && item.startsWith("eyJ") && item.split(".").length >= 3) {
+        return item;
+      }
+    }
+  }
+
+  if (isPlainObject(parsed)) {
+    const candidates = [
+      parsed.access_token,
+      parsed.accessToken,
+      parsed.token,
+      parsed.currentSession && isPlainObject(parsed.currentSession)
+        ? parsed.currentSession.access_token
+        : null,
+      parsed.session && isPlainObject(parsed.session)
+        ? parsed.session.access_token
+        : null,
+    ];
+
+    for (const candidate of candidates) {
+      if (
+        typeof candidate === "string" &&
+        candidate.startsWith("eyJ") &&
+        candidate.split(".").length >= 3
+      ) {
+        return candidate;
+      }
+    }
+  }
+
+  return null;
+}
+
+function extractBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) return token;
+  }
+
+  for (const cookie of request.cookies.getAll()) {
+    const name = cookie.name.toLowerCase();
+
+    if (
+      name.includes("auth-token") ||
+      name.includes("access-token") ||
+      name.startsWith("sb-")
+    ) {
+      const token = extractTokenFromCookieValue(cookie.value);
+      if (token) return token;
+    }
+  }
+
+  return null;
+}
+
+async function resolveUser(
+  supabase: SupabaseClient,
+  request: NextRequest
+): Promise<User | null> {
+  const token = extractBearerToken(request);
+  if (!token) return null;
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) return null;
+
+  return data.user;
+}
+
+function asIso(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return value;
+}
+
+function sortDesc<T extends { updated_at?: string | null; created_at?: string | null }>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => {
+    const da = new Date(a.updated_at ?? a.created_at ?? 0).getTime();
+    const db = new Date(b.updated_at ?? b.created_at ?? 0).getTime();
+    return db - da;
+  });
+}
+
+function buildMissionItem(row: Record<string, unknown>): HistoryItem | null {
+  const id = trimOrNull(row.id);
+  if (!id) return null;
+
+  return {
+    id: `mission:${id}`,
+    title: trimOrNull(row.title) ?? "Mission Pierre",
+    subtitle: trimOrNull(row.request_text) ?? trimOrNull(row.summary),
+    kind: "mission",
+    status: trimOrNull(row.status),
+    mission_id: id,
+    created_at: asIso(row.created_at),
+    updated_at: asIso(row.updated_at),
+  };
+}
+
+function buildTaskItem(row: Record<string, unknown>): HistoryItem | null {
+  const id = trimOrNull(row.id);
+  if (!id) return null;
+
+  return {
+    id: `task:${id}`,
+    title: trimOrNull(row.title) ?? "Tâche Pierre",
+    subtitle: trimOrNull(row.type),
+    kind: "task",
+    status: trimOrNull(row.status),
+    mission_id: trimOrNull(row.mission_id),
+    task_id: id,
+    created_at: asIso(row.created_at),
+    updated_at: asIso(row.updated_at),
+  };
+}
+
+function buildDocumentItem(row: Record<string, unknown>): HistoryItem | null {
+  const id = trimOrNull(row.id);
+  if (!id) return null;
+
+  return {
+    id: `document:${id}`,
+    title: trimOrNull(row.title) ?? "Document Pierre",
+    subtitle: trimOrNull(row.type),
+    kind: "document",
+    status: trimOrNull(row.status),
+    mission_id: trimOrNull(row.mission_id),
+    task_id: trimOrNull(row.task_id),
+    document_id: id,
+    created_at: asIso(row.created_at),
+    updated_at: asIso(row.updated_at),
+  };
+}
+
+function buildEmailItem(row: Record<string, unknown>): HistoryItem | null {
+  const id = trimOrNull(row.id);
+  if (!id) return null;
+
+  return {
+    id: `email:${id}`,
+    title: trimOrNull(row.subject) ?? "Email Pierre",
+    subtitle: trimOrNull(row.sender_email),
+    kind: "email",
+    status: trimOrNull(row.status),
+    mission_id: trimOrNull(row.mission_id),
+    task_id: trimOrNull(row.task_id),
+    email_id: id,
+    created_at: asIso(row.created_at),
+    updated_at: asIso(row.updated_at),
+  };
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const user = await resolveUser(supabase, request);
+
+    if (!user) {
+      return json({
+        ok: true,
+        items: [],
+        next_cursor: null,
+        auth: "missing",
+      });
+    }
+
+    const url = new URL(request.url);
+    const includeTasks = url.searchParams.get("includeTasks") === "true";
+    const limitRaw = Number(url.searchParams.get("limit") ?? "20");
+    const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 100) : 20;
+    const cursor = trimOrNull(url.searchParams.get("cursor"));
+
+    let missionQuery = supabase
+      .from("pierre_missions")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(limit + 1);
+
+    if (cursor) {
+      missionQuery = missionQuery.lt("updated_at", cursor);
+    }
+
+    const { data: missionRows, error: missionError } = await missionQuery;
+    if (missionError) throw missionError;
+
+    const missions = Array.isArray(missionRows) ? missionRows : [];
+    const hasMore = missions.length > limit;
+    const visibleMissions = missions.slice(0, limit);
+    const missionIds = visibleMissions
+      .map((row) => trimOrNull((row as Record<string, unknown>).id))
+      .filter((value): value is string => Boolean(value));
+
+    const items: HistoryItem[] = [];
+
+    for (const row of visibleMissions) {
+      const item = buildMissionItem(row as Record<string, unknown>);
+      if (item) items.push(item);
+    }
+
+    if (includeTasks && missionIds.length > 0) {
+      const [{ data: taskRows, error: taskError }, { data: docRows, error: docError }, { data: emailRows, error: emailError }] =
+        await Promise.all([
+          supabase
+            .from("pierre_tasks")
+            .select("*")
+            .in("mission_id", missionIds)
+            .order("updated_at", { ascending: false })
+            .limit(limit * 2),
+          supabase
+            .from("pierre_documents")
+            .select("*")
+            .in("mission_id", missionIds)
+            .order("updated_at", { ascending: false })
+            .limit(limit * 2),
+          supabase
+            .from("pierre_outbound_emails")
+            .select("*")
+            .in("mission_id", missionIds)
+            .order("updated_at", { ascending: false })
+            .limit(limit * 2),
+        ]);
+
+      if (taskError) throw taskError;
+      if (docError) throw docError;
+      if (emailError) throw emailError;
+
+      for (const row of Array.isArray(taskRows) ? taskRows : []) {
+        const item = buildTaskItem(row as Record<string, unknown>);
+        if (item) items.push(item);
+      }
+
+      for (const row of Array.isArray(docRows) ? docRows : []) {
+        const item = buildDocumentItem(row as Record<string, unknown>);
+        if (item) items.push(item);
+      }
+
+      for (const row of Array.isArray(emailRows) ? emailRows : []) {
+        const item = buildEmailItem(row as Record<string, unknown>);
+        if (item) items.push(item);
+      }
+    }
+
+    const sortedItems = sortDesc(items).slice(0, limit * (includeTasks ? 4 : 1));
+    const nextCursor =
+      hasMore && visibleMissions.length > 0
+        ? trimOrNull(
+            (visibleMissions[visibleMissions.length - 1] as Record<string, unknown>).updated_at
+          )
+        : null;
+
+    return json({
+      ok: true,
+      items: sortedItems,
+      next_cursor: nextCursor,
+      auth: "resolved",
+    });
+  } catch (error) {
+    console.error("[pierre/history/list][GET]", error);
+
+    return json(
+      {
+        ok: false,
+        error: "Impossible de charger l’historique Pierre.",
+      },
+      500
+    );
+  }
+}
+
+
+============================================================
+FILE: src\app\api\pierre\use\submit\route.ts
+============================================================
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+type DbRow = Record<string, unknown>;
+
+type AuthenticatedContext = {
+  userId: string;
+  accessToken: string | null;
+};
+
+type SubmitBody = {
+  input: string;
+  missionId?: string | null;
+  context?: unknown;
+};
+
+type MissionRiskLevel = "normal" | "sensitive" | "critical";
+
+type TaskLifecycleStatus =
+  | "pending"
+  | "queued"
+  | "scheduled"
+  | "awaiting_info"
+  | "awaiting_approval"
+  | "blocked";
+
+type MissionTaskDraft = {
+  type: string;
+  title: string;
+  description: string;
+  status: TaskLifecycleStatus;
+  approval_required: boolean;
+  risk_level: MissionRiskLevel;
+  scheduled_for: string | null;
+  payload: Record<string, unknown>;
+};
+
+type MissionInterpretationBase = {
+  intent: string;
+  classification: string;
+  summary: string;
+  language: string;
+  tone: string;
+  risk_level: MissionRiskLevel;
+  approval_required: boolean;
+  missing_info: string[];
+  missing_info_questions: string[];
+};
+
+type MissionInterpretation = MissionInterpretationBase & {
+  tasks: MissionTaskDraft[];
+};
+
+type JsonErrorExtra = {
+  code?: string | null;
+  details?: unknown;
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
+function getNestedObject(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  if (!source) return null;
+  const value = source[key];
+  return isObject(value) ? value : null;
+}
+
+function getNestedString(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!source) return null;
+  return asString(source[key]);
+}
+
+function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: message,
+      ...(extra ?? {}),
+    },
+    { status },
+  );
+}
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase environment is not configured.");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+
+  return token.trim() || null;
+}
+
+function tryReadSupabaseCookieToken(request: NextRequest): string | null {
+  const cookies = request.cookies.getAll();
+
+  const directCandidates = [
+    "sb-access-token",
+    "supabase-access-token",
+    "access-token",
+  ];
+
+  for (const key of directCandidates) {
+    const found = request.cookies.get(key)?.value;
+    if (found) return found;
+  }
+
+  for (const cookie of cookies) {
+    if (!cookie.name.includes("auth-token")) continue;
+
+    const raw = cookie.value;
+    if (!raw) continue;
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        const candidate = parsed.find(
+          (item): item is string =>
+            typeof item === "string" && item.split(".").length === 3,
+        );
+        if (typeof candidate === "string") return candidate;
+      }
+
+      if (isObject(parsed)) {
+        const currentSession = getNestedObject(parsed, "currentSession");
+
+        const candidate =
+          getNestedString(parsed, "access_token") ||
+          getNestedString(currentSession, "access_token");
+
+        if (candidate) return candidate;
+      }
+    } catch {
+      if (raw.split(".").length === 3) return raw;
+    }
+  }
+
+  return null;
+}
+
+async function authenticateRequest(
+  request: NextRequest,
+  supabaseAdmin: SupabaseClient,
+): Promise<AuthenticatedContext> {
+  const accessToken =
+    tryReadBearerToken(request) || tryReadSupabaseCookieToken(request);
+
+  if (!accessToken) {
+    throw {
+      status: 401,
+      message: "Auth session missing.",
+      code: "AUTH_SESSION_MISSING",
+    };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (error || !data.user) {
+    throw {
+      status: 401,
+      message: "Unable to authenticate request.",
+      code: "AUTH_INVALID",
+      details: error?.message || null,
+    };
+  }
+
+  return {
+    userId: data.user.id,
+    accessToken,
+  };
+}
+
+function mapDbError(error: unknown) {
+  if (isObject(error)) {
+    return {
+      message:
+        asString(error.message) ||
+        asString(error.error_description) ||
+        "Unexpected database error.",
+      code: asString(error.code),
+      details: error,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      code: null,
+      details: null,
+    };
+  }
+
+  return {
+    message: "Unexpected database error.",
+    code: null,
+    details: null,
+  };
+}
+
+function normalizeBody(raw: unknown): SubmitBody {
+  if (!isObject(raw)) {
+    return {
+      input: "",
+      missionId: null,
+      context: null,
+    };
+  }
+
+  return {
+    input: asString(raw.input) || "",
+    missionId: asString(raw.missionId),
+    context: raw.context ?? null,
+  };
+}
+
+function detectLanguage(input: string): string {
+  const lower = input.toLowerCase();
+
+  const englishSignals = [
+    "candidate",
+    "interview",
+    "job offer",
+    "follow up",
+    "meeting",
+    "please",
+    "draft",
+    "recruitment",
+    "hiring",
+  ];
+
+  const englishHits = englishSignals.filter((signal) =>
+    lower.includes(signal),
+  ).length;
+
+  return englishHits >= 2 ? "en" : "fr";
+}
+
+function detectTone(input: string): string {
+  const lower = input.toLowerCase();
+
+  if (
+    lower.includes("ferme") ||
+    lower.includes("strict") ||
+    lower.includes("recadr") ||
+    lower.includes("formal warning")
+  ) {
+    return "ferme";
+  }
+
+  if (
+    lower.includes("humain") ||
+    lower.includes("bienveillant") ||
+    lower.includes("chaleureux")
+  ) {
+    return "humain";
+  }
+
+  if (
+    lower.includes("professionnel") ||
+    lower.includes("corporate") ||
+    lower.includes("pro")
+  ) {
+    return "professionnel";
+  }
+
+  return "professionnel";
+}
+
+function detectClassification(input: string): string {
+  const lower = input.toLowerCase();
+
+  if (lower.includes("offre d'emploi") || lower.includes("job offer")) {
+    return "offre_emploi";
+  }
+  if (lower.includes("convocation") || lower.includes("entretien")) {
+    return "convocation_entretien";
+  }
+  if (lower.includes("refus") || lower.includes("rejet candidature")) {
+    return "refus_candidat";
+  }
+  if (lower.includes("relance") || lower.includes("follow up")) {
+    return "relance_rh";
+  }
+  if (lower.includes("onboarding") || lower.includes("intégration")) {
+    return "onboarding";
+  }
+  if (lower.includes("note rh")) {
+    return "note_rh";
+  }
+  if (lower.includes("procédure") || lower.includes("procedure")) {
+    return "rappel_procedure";
+  }
+  if (lower.includes("compte rendu") || lower.includes("compte-rendu")) {
+    return "compte_rendu";
+  }
+  if (lower.includes("courrier")) {
+    return "courrier_rh";
+  }
+  if (lower.includes("candidat") || lower.includes("recrut")) {
+    return "recrutement";
+  }
+
+  return "mission_rh_generale";
+}
+
+function detectIntent(input: string): string {
+  const lower = input.toLowerCase();
+
+  if (
+    lower.includes("envoie") ||
+    lower.includes("envoyer") ||
+    lower.includes("send")
+  ) {
+    return "execute_rh_action";
+  }
+  if (
+    lower.includes("prépare") ||
+    lower.includes("prepare") ||
+    lower.includes("rédige") ||
+    lower.includes("redige") ||
+    lower.includes("draft")
+  ) {
+    return "prepare_rh_deliverable";
+  }
+  if (lower.includes("relance")) {
+    return "follow_up_rh_action";
+  }
+  if (lower.includes("programme") || lower.includes("planifie")) {
+    return "schedule_rh_action";
+  }
+
+  return "structure_rh_mission";
+}
+
+function detectRisk(
+  input: string,
+  classification: string,
+): MissionRiskLevel {
+  const lower = input.toLowerCase();
+
+  const criticalSignals = [
+    "licenciement",
+    "sanction disciplinaire",
+    "harcèlement",
+    "harcelement",
+    "plainte",
+    "contentieux",
+    "prud'hommes",
+    "discrimination",
+    "rupture conventionnelle forcée",
+  ];
+
+  const sensitiveSignals = [
+    "avertissement",
+    "mise à pied",
+    "mise a pied",
+    "conflit",
+    "problème salarié",
+    "probleme salarie",
+    "absence injustifiée",
+    "absence injustifiee",
+    "salaire",
+    "confidentiel",
+    "dossier sensible",
+  ];
+
+  if (criticalSignals.some((signal) => lower.includes(signal))) {
+    return "critical";
+  }
+
+  if (sensitiveSignals.some((signal) => lower.includes(signal))) {
+    return "sensitive";
+  }
+
+  if (
+    classification === "refus_candidat" ||
+    classification === "convocation_entretien" ||
+    classification === "onboarding" ||
+    classification === "offre_emploi"
+  ) {
+    return "normal";
+  }
+
+  return "normal";
+}
+
+function needsApproval(
+  input: string,
+  risk: MissionRiskLevel,
+): boolean {
+  const lower = input.toLowerCase();
+
+  if (risk === "critical") return true;
+
+  const approvalSignals = [
+    "après validation",
+    "apres validation",
+    "soumets moi avant envoi",
+    "avant d'envoyer",
+    "avant envoi",
+    "à valider",
+    "a valider",
+    "validation manager",
+    "validation humaine",
+  ];
+
+  if (approvalSignals.some((signal) => lower.includes(signal))) return true;
+  if (risk === "sensitive") return true;
+
+  return false;
+}
+
+function detectScheduling(input: string): string | null {
+  const lower = input.toLowerCase();
+  const now = new Date();
+
+  if (lower.includes("demain")) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + 1);
+    date.setHours(9, 0, 0, 0);
+    return date.toISOString();
+  }
+
+  const hourMatch = lower.match(/\b(\d{1,2})h(\d{2})?\b/);
+  if (hourMatch) {
+    const date = new Date(now);
+    const hours = Number(hourMatch[1]);
+    const minutes = hourMatch[2] ? Number(hourMatch[2]) : 0;
+
+    if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+      date.setHours(hours, minutes, 0, 0);
+
+      if (date.getTime() < now.getTime()) {
+        date.setDate(date.getDate() + 1);
+      }
+
+      return date.toISOString();
+    }
+  }
+
+  if (
+    lower.includes("plus tard aujourd'hui") ||
+    lower.includes("plus tard aujourd hui")
+  ) {
+    const date = new Date(now);
+    date.setHours(Math.max(now.getHours() + 2, 16), 0, 0, 0);
+    return date.toISOString();
+  }
+
+  return null;
+}
+
+function detectMissingInfo(
+  input: string,
+  classification: string,
+): { missing: string[]; questions: string[] } {
+  const lower = input.toLowerCase();
+  const missing: string[] = [];
+  const questions: string[] = [];
+
+  const hasPersonName =
+    /\b[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\s+[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\b/.test(
+      input,
+    );
+
+  const hasEmail = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(input);
+  const hasDate = /\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\b/.test(input);
+  const hasHour = /\b\d{1,2}h(\d{2})?\b/i.test(input);
+
+  if (classification === "convocation_entretien" && !hasDate) {
+    missing.push("Date d’entretien manquante");
+    questions.push("Quelle est la date exacte de l’entretien ?");
+  }
+
+  if (classification === "convocation_entretien" && !hasHour) {
+    missing.push("Horaire d’entretien manquant");
+    questions.push("À quelle heure doit avoir lieu l’entretien ?");
+  }
+
+  if (
+    (
+      classification === "refus_candidat" ||
+      classification === "relance_rh" ||
+      classification === "onboarding" ||
+      classification === "convocation_entretien"
+    ) &&
+    !hasPersonName
+  ) {
+    missing.push("Identité de la personne concernée manquante");
+    questions.push("Quel est le nom complet de la personne concernée ?");
+  }
+
+  if (
+    (
+      classification === "refus_candidat" ||
+      classification === "relance_rh" ||
+      classification === "convocation_entretien"
+    ) &&
+    !hasEmail
+  ) {
+    missing.push("Adresse email destinataire manquante");
+    questions.push("Quelle est l’adresse email du destinataire ?");
+  }
+
+  if (classification === "offre_emploi" && !lower.includes("poste")) {
+    missing.push("Intitulé du poste absent ou insuffisant");
+    questions.push("Quel est l’intitulé exact du poste ?");
+  }
+
+  return {
+    missing,
+    questions,
+  };
+}
+
+function buildMissionSummary(
+  input: string,
+  classification: string,
+  risk: MissionRiskLevel,
+): string {
+  const base = input.trim().replace(/\s+/g, " ");
+  const clipped = base.length > 260 ? `${base.slice(0, 257)}…` : base;
+
+  return `Mission RH classée "${classification}" avec niveau de risque "${risk}". Demande structurée à partir de : ${clipped}`;
+}
+
+function buildTasks(
+  input: string,
+  interpretation: MissionInterpretationBase,
+): MissionTaskDraft[] {
+  const lower = input.toLowerCase();
+  const scheduledFor = detectScheduling(input);
+
+  const tasks: MissionTaskDraft[] = [];
+
+  const requiresDraftDocument =
+    interpretation.classification === "offre_emploi" ||
+    interpretation.classification === "convocation_entretien" ||
+    interpretation.classification === "refus_candidat" ||
+    interpretation.classification === "onboarding" ||
+    interpretation.classification === "note_rh" ||
+    interpretation.classification === "courrier_rh" ||
+    interpretation.classification === "compte_rendu" ||
+    interpretation.classification === "rappel_procedure";
+
+  if (requiresDraftDocument) {
+    tasks.push({
+      type: "generate_document",
+      title: "Produire le document RH",
+      description:
+        "Rédiger un livrable RH premium cohérent avec la demande, le ton voulu, la langue détectée et les contraintes de risque.",
+      status:
+        interpretation.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretation.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretation.approval_required,
+      risk_level: interpretation.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        classification: interpretation.classification,
+        language: interpretation.language,
+        tone: interpretation.tone,
+      },
+    });
+  }
+
+  if (
+    lower.includes("mail") ||
+    lower.includes("email") ||
+    lower.includes("envoyer") ||
+    lower.includes("send") ||
+    interpretation.classification === "refus_candidat" ||
+    interpretation.classification === "convocation_entretien" ||
+    interpretation.classification === "relance_rh" ||
+    interpretation.classification === "onboarding"
+  ) {
+    tasks.push({
+      type: "prepare_email",
+      title: "Préparer l’email RH",
+      description:
+        "Préparer un email clair, traçable et cohérent avec la mission, prêt à être validé ou envoyé selon le niveau de risque.",
+      status:
+        interpretation.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretation.approval_required
+            ? "awaiting_approval"
+            : scheduledFor
+              ? "scheduled"
+              : "queued",
+      approval_required: interpretation.approval_required,
+      risk_level: interpretation.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        language: interpretation.language,
+        tone: interpretation.tone,
+        scheduled_for: scheduledFor,
+      },
+    });
+  }
+
+  if (
+    lower.includes("pdf") ||
+    lower.includes("export") ||
+    lower.includes("document à joindre") ||
+    lower.includes("document a joindre") ||
+    lower.includes("piece jointe") ||
+    lower.includes("pièce jointe")
+  ) {
+    tasks.push({
+      type: "generate_pdf",
+      title: "Préparer l’export PDF",
+      description:
+        "Générer un PDF propre à partir du document ou du contenu RH finalisé.",
+      status:
+        interpretation.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretation.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretation.approval_required,
+      risk_level: interpretation.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+      },
+    });
+  }
+
+  if (
+    lower.includes("relance") ||
+    lower.includes("si pas de réponse") ||
+    lower.includes("si pas de reponse")
+  ) {
+    tasks.push({
+      type: "schedule_follow_up",
+      title: "Préparer une relance RH",
+      description:
+        "Programmer une relance propre et traçable si aucune réponse n’est obtenue.",
+      status:
+        interpretation.approval_required || interpretation.missing_info.length > 0
+          ? "awaiting_approval"
+          : "scheduled",
+      approval_required: true,
+      risk_level: interpretation.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        conditional: true,
+      },
+    });
+  }
+
+  if (interpretation.missing_info.length > 0) {
+    tasks.push({
+      type: "request_missing_info",
+      title: "Demander les informations manquantes",
+      description:
+        "Bloquer l’exécution complète tant que les éléments indispensables à une action RH propre ne sont pas fournis.",
+      status: "awaiting_info",
+      approval_required: false,
+      risk_level: interpretation.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        missing_info: interpretation.missing_info,
+        questions: interpretation.missing_info_questions,
+      },
+    });
+  }
+
+  if (tasks.length === 0) {
+    tasks.push({
+      type: "structure_mission",
+      title: "Structurer la mission RH",
+      description:
+        "Créer un cadre d’exécution RH exploitable à partir de la demande libre.",
+      status:
+        interpretation.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretation.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretation.approval_required,
+      risk_level: interpretation.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+      },
+    });
+  }
+
+  return tasks;
+}
+
+function interpretMission(input: string): MissionInterpretation {
+  const classification = detectClassification(input);
+  const language = detectLanguage(input);
+  const tone = detectTone(input);
+  const risk_level = detectRisk(input, classification);
+  const approval_required = needsApproval(input, risk_level);
+  const intent = detectIntent(input);
+  const missingInfo = detectMissingInfo(input, classification);
+  const summary = buildMissionSummary(input, classification, risk_level);
+
+  const baseInterpretation: MissionInterpretationBase = {
+    intent,
+    classification,
+    summary,
+    language,
+    tone,
+    risk_level,
+    approval_required,
+    missing_info: missingInfo.missing,
+    missing_info_questions: missingInfo.questions,
+  };
+
+  return {
+    ...baseInterpretation,
+    tasks: buildTasks(input, baseInterpretation),
+  };
+}
+
+async function insertMission(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+  body: SubmitBody,
+  interpretation: MissionInterpretation,
+): Promise<DbRow> {
+  const title =
+    body.input.length > 120
+      ? `${body.input.slice(0, 117).trim()}…`
+      : body.input || "Mission RH";
+
+  const insertPayload = {
+    user_id: userId,
+    title,
+    summary: interpretation.summary,
+    description: body.input,
+    classification: interpretation.classification,
+    status:
+      interpretation.missing_info.length > 0
+        ? "awaiting_info"
+        : interpretation.approval_required
+          ? "awaiting_approval"
+          : "queued",
+    risk_level: interpretation.risk_level,
+    approval_required: interpretation.approval_required,
+    language: interpretation.language,
+    tone: interpretation.tone,
+    missing_info: interpretation.missing_info,
+    interpretation,
+    context: body.context ?? null,
+  };
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_missions")
+    .insert(insertPayload)
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    throw {
+      status: 500,
+      message: "Unable to create mission.",
+      code: "MISSION_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return data satisfies DbRow;
+}
+
+async function insertTasks(
+  supabaseAdmin: SupabaseClient,
+  missionId: string,
+  interpretation: MissionInterpretation,
+): Promise<DbRow[]> {
+  const taskRows = interpretation.tasks.map((task) => ({
+    mission_id: missionId,
+    type: task.type,
+    title: task.title,
+    description: task.description,
+    status: task.status,
+    risk_level: task.risk_level,
+    approval_required: task.approval_required,
+    scheduled_for: task.scheduled_for,
+    payload: task.payload,
+  }));
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_tasks")
+    .insert(taskRows)
+    .select("*");
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to create mission tasks.",
+      code: "TASKS_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return (data ?? []) as DbRow[];
+}
+
+async function insertLogs(
+  supabaseAdmin: SupabaseClient,
+  missionId: string,
+  tasks: DbRow[],
+  interpretation: MissionInterpretation,
+): Promise<DbRow[]> {
+  const logs: Array<Record<string, unknown>> = [
+    {
+      mission_id: missionId,
+      level: "info",
+      event: "mission_created",
+      message: "Mission créée et structurée par Pierre.",
+      payload: {
+        classification: interpretation.classification,
+        risk_level: interpretation.risk_level,
+        approval_required: interpretation.approval_required,
+      },
+    },
+    {
+      mission_id: missionId,
+      level:
+        interpretation.risk_level === "critical"
+          ? "warning"
+          : interpretation.missing_info.length > 0
+            ? "warning"
+            : "info",
+      event: "mission_interpreted",
+      message:
+        interpretation.missing_info.length > 0
+          ? "Mission interprétée avec informations manquantes."
+          : interpretation.approval_required
+            ? "Mission interprétée avec validation requise."
+            : "Mission interprétée et prête pour exécution contrôlée.",
+      payload: interpretation,
+    },
+  ];
+
+  for (const task of tasks) {
+    logs.push({
+      mission_id: missionId,
+      task_id: task.id,
+      level: "info",
+      event: "task_created",
+      message: `Tâche créée : ${asString(task.title) || asString(task.type) || "task"}`,
+      payload: {
+        task_type: asString(task.type),
+        task_status: asString(task.status),
+      },
+    });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_task_logs")
+    .insert(logs)
+    .select("*");
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to create mission logs.",
+      code: "LOGS_CREATE_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  return (data ?? []) as DbRow[];
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = normalizeBody(await request.json());
+
+    if (!body.input || !body.input.trim()) {
+      return jsonError("Mission input is required.", 400, {
+        code: "MISSION_INPUT_REQUIRED",
+      });
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const auth = await authenticateRequest(request, supabaseAdmin);
+
+    const interpretation = interpretMission(body.input);
+    const mission = await insertMission(
+      supabaseAdmin,
+      auth.userId,
+      body,
+      interpretation,
+    );
+
+    const tasks = await insertTasks(
+      supabaseAdmin,
+      mission.id as string,
+      interpretation,
+    );
+
+    const logs = await insertLogs(
+      supabaseAdmin,
+      mission.id as string,
+      tasks,
+      interpretation,
+    );
+
+    return NextResponse.json({
+      ok: true,
+      mission,
+      interpretation,
+      tasks,
+      logs,
+      threadEntries: [
+        {
+          id: `assistant-${mission.id as string}`,
+          role: "assistant",
+          content:
+            interpretation.missing_info.length > 0
+              ? "Mission comprise partiellement. Pierre a structuré la demande mais a détecté des informations manquantes avant exécution complète."
+              : interpretation.approval_required
+                ? "Mission comprise. Pierre a structuré l’action et positionné une validation humaine avant exécution sensible."
+                : "Mission comprise et structurée. Pierre a créé les tâches nécessaires pour lancer le traitement RH.",
+          created_at: new Date().toISOString(),
+        },
+      ],
+      meta: {
+        missionId: mission.id,
+        userId: auth.userId,
+        fetchedAt: new Date().toISOString(),
+        counts: {
+          tasks: tasks.length,
+          logs: logs.length,
+        },
+      },
+    });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(
+        asString(error.message) || "Request failed.",
+        error.status,
+        {
+          code: asString(error.code),
+          details: error.details ?? null,
+        },
+      );
+    }
+
+    const mapped = mapDbError(error);
+
+    return jsonError(mapped.message, 500, {
+      code: mapped.code,
+      details: mapped.details,
+    });
+  }
+}
+
+
+============================================================
+MISSING FILE: src\app\api\pierre\use\mission\[missionId]\route.ts
+============================================================
+
+
+
+============================================================
+MISSING FILE: src\app\api\pierre\use\task\[taskId]\route.ts
+============================================================
+
+
+
+============================================================
+MISSING FILE: src\app\api\pierre\use\task\[taskId]\approve\route.ts
+============================================================
+
+
+
+============================================================
+MISSING FILE: src\app\api\pierre\use\task\[taskId]\cancel\route.ts
+============================================================
+
+
+
+============================================================
+MISSING FILE: src\app\api\pierre\use\task\[taskId]\reschedule\route.ts
+============================================================
+
+
+
+============================================================
+MISSING FILE: src\app\api\pierre\use\task\[taskId]\run\route.ts
+============================================================
+
+
+
+============================================================
+FILE: src\app\api\pierre\tick\route.ts
+============================================================
+
+// src/app/api/pierre/tick/route.ts
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import crypto from "crypto";
+import { createClient, PostgrestError } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+
+/**
+ * ========= ENV (NE JAMAIS THROW AU TOP-LEVEL) =========
+ */
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const ROUTER_HMAC_SECRET = process.env.ROUTER_HMAC_SECRET || "";
+const CRON_SECRET = process.env.CRON_SECRET || "";
+
+function jsonFail(code: string, message: string, details?: any, status = 400) {
+  return NextResponse.json({ ok: false, error: { code, message, ...(details ? { details } : {}) } }, { status });
+}
+function jsonOk(result: any) {
+  return NextResponse.json({ ok: true, result }, { status: 200 });
+}
+
+function isPostgrestError(e: any): e is PostgrestError {
+  return e && typeof e === "object" && typeof e.message === "string";
+}
+
+function getOrigin(req: Request) {
+  const proto = req.headers.get("x-forwarded-proto") || "https";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  if (!host) return null;
+  return `${proto}://${host}`;
+}
+
+function signHmac(clientId: string, rawBody: string) {
+  const timestamp = String(Date.now());
+  const signature = crypto
+    .createHmac("sha256", ROUTER_HMAC_SECRET)
+    .update(`${clientId}.${timestamp}.${rawBody}`)
+    .digest("hex");
+  return { timestamp, signature };
+}
+
+const TickQuerySchema = z.object({
+  secret: z.string().min(10),
+  limit: z.coerce.number().int().min(1).max(25).default(5),
+});
+
+function nextRunAt(attempts: number) {
+  const mins = Math.min(15, Math.max(1, Math.pow(2, attempts)));
+  return new Date(Date.now() + mins * 60 * 1000).toISOString();
+}
+
+export async function GET(req: Request) {
+  // ✅ Validation env au runtime (pas au build)
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    return jsonFail("ENV_ERROR", "Missing Supabase env vars", { need: ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"] }, 500);
+  }
+  if (!ROUTER_HMAC_SECRET) {
+    return jsonFail("ENV_ERROR", "Missing ROUTER_HMAC_SECRET", undefined, 500);
+  }
+  if (!CRON_SECRET) {
+    return jsonFail("ENV_ERROR", "Missing CRON_SECRET", undefined, 500);
+  }
+
+  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: { persistSession: false },
+  });
+
+  try {
+    const url = new URL(req.url);
+    const parsed = TickQuerySchema.safeParse({
+      secret: url.searchParams.get("secret"),
+      limit: url.searchParams.get("limit") ?? "5",
+    });
+
+    if (!parsed.success) {
+      return jsonFail("BAD_REQUEST", "Invalid query", parsed.error.issues, 400);
+    }
+
+    if (parsed.data.secret !== CRON_SECRET) {
+      return jsonFail("UNAUTHORIZED", "Invalid cron secret", undefined, 401);
+    }
+
+    const origin = getOrigin(req);
+    if (!origin) {
+      return jsonFail("INTERNAL_ERROR", "Cannot determine origin (host/proto)", undefined, 500);
+    }
+
+    const limit = parsed.data.limit;
+
+    // 1) pick tasks
+    const { data: candidates, error: pickErr } = await supabaseAdmin
+      .from("pierre_queue")
+      .select("id, client_id, action, payload, attempts, run_at, status")
+      .eq("status", "queued")
+      .lte("run_at", new Date().toISOString())
+      .order("run_at", { ascending: true })
+      .limit(limit);
+
+    if (pickErr) throw pickErr;
+
+    let processed = 0;
+    let done = 0;
+    let failed = 0;
+
+    for (const c of candidates ?? []) {
+      // 2) lock task
+      const lockToken = crypto.randomBytes(16).toString("hex");
+
+      const { data: locked, error: lockErr } = await supabaseAdmin
+        .from("pierre_queue")
+        .update({
+          status: "processing",
+          locked_at: new Date().toISOString(),
+          lock_token: lockToken,
+        })
+        .eq("id", c.id)
+        .eq("status", "queued")
+        .is("lock_token", null)
+        .select("id, client_id, action, payload, attempts, lock_token")
+        .maybeSingle();
+
+      if (lockErr) throw lockErr;
+      if (!locked) continue;
+
+      processed++;
+
+      // 3) call execute
+      try {
+        const bodyObj = { client_id: locked.client_id, action: locked.action, payload: locked.payload ?? {} };
+        const raw = JSON.stringify(bodyObj);
+        const { timestamp, signature } = signHmac(locked.client_id, raw);
+
+        const res = await fetch(`${origin}/api/pierre/execute`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-client-id": locked.client_id,
+            "x-timestamp": timestamp,
+            "x-signature": signature,
+          },
+          body: raw,
+        });
+
+        const text = await res.text();
+        let json: any;
+        try {
+          json = text ? JSON.parse(text) : null;
+        } catch {
+          json = text;
+        }
+
+        if (!res.ok || !json?.ok) {
+          const reason = typeof json === "string" ? json : JSON.stringify(json);
+          throw new Error(`execute_failed: ${res.status} ${reason}`);
+        }
+
+        // 4) done
+        const { error: doneErr } = await supabaseAdmin
+          .from("pierre_queue")
+          .update({
+            status: "done",
+            processed_at: new Date().toISOString(),
+            last_error: null,
+          })
+          .eq("id", locked.id)
+          .eq("lock_token", locked.lock_token);
+
+        if (doneErr) throw doneErr;
+
+        done++;
+      } catch (e: any) {
+        const attempts = Number(locked.attempts ?? 0);
+        const msg = String(e?.message ?? "unknown_error");
+
+        const isDead = attempts + 1 >= 6;
+        const runAt = isDead ? new Date().toISOString() : nextRunAt(attempts + 1);
+
+        const { error: failErr } = await supabaseAdmin
+          .from("pierre_queue")
+          .update({
+            status: isDead ? "dead" : "queued",
+            attempts: attempts + 1,
+            last_error: msg,
+            run_at: runAt,
+            locked_at: null,
+            lock_token: null,
+          })
+          .eq("id", locked.id)
+          .eq("lock_token", locked.lock_token);
+
+        if (failErr) throw failErr;
+
+        failed++;
+      }
+    }
+
+    return jsonOk({ processed, done, failed });
+  } catch (e: any) {
+    if (isPostgrestError(e)) {
+      return jsonFail("DB_ERROR", "Database error", e, 500);
+    }
+    return jsonFail("INTERNAL_ERROR", String(e?.message ?? "Internal error"), undefined, 500);
+  }
+}
+
+
+
+
+
+
+
+============================================================
+FILE: src\app\api\cron\pierre\route.ts
+============================================================
+
+// src/app/api/cron/pierre/route.ts
+import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+
+const CRON_SECRET = process.env.CRON_SECRET || "";
+
+function getOrigin(req: Request) {
+  const proto = req.headers.get("x-forwarded-proto") || "https";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  if (!host) return null;
+  return `${proto}://${host}`;
+}
+
+export async function GET(req: Request) {
+  try {
+    if (!CRON_SECRET) {
+      return NextResponse.json({ ok: false, error: "Missing CRON_SECRET" }, { status: 500 });
+    }
+
+    const origin = getOrigin(req);
+    if (!origin) {
+      return NextResponse.json({ ok: false, error: "Cannot determine origin" }, { status: 500 });
+    }
+
+    // Appelle tick sur la même instance (prod)
+    const url = `${origin}/api/pierre/tick?secret=${encodeURIComponent(CRON_SECRET)}&limit=5`;
+    const res = await fetch(url, { method: "GET" });
+    const text = await res.text();
+
+    return new NextResponse(text, {
+      status: res.status,
+      headers: { "content-type": "application/json" },
+    });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: String(e?.message ?? "cron_failed") }, { status: 500 });
+  }
+}
+
+
+
+
+============================================================
+FILE: docs\OPS_AUTONOMIE_PIERRE.md
+============================================================
+
+# OPS — Autonomie Pierre (Queue + Tick + Execute)
+
+## Objectif
+- enqueue -> insère une tâche dans `pierre_queue`
+- tick -> prend les tâches `queued` arrivées à échéance, lock, appelle `/api/pierre/execute`
+- execute -> fait l’action (Make / doc / email / hris)
+- la tâche passe `done` ou repart `queued` avec retry
+
+---
+
+## Pré-requis (DB)
+Table: public.pierre_queue
+Champs attendus (minimum):
+- id uuid
+- client_id text
+- action text NOT NULL
+- payload jsonb
+- status text (queued|processing|done|dead)
+- run_at timestamptz
+- attempts int
+- locked_at timestamptz
+- lock_token text
+- last_error text
+- created_at timestamptz
+- updated_at timestamptz
+
+Table: public.agent_configs
+- doit contenir une ligne (client_id, agent_key='pierre')
+- company_name est NOT NULL => toujours remplir company_name
+
+Contrainte unique obligatoire:
+- UNIQUE(client_id, agent_key)
+
+---
+
+## ENV (local + vercel)
+NEXT_PUBLIC_SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+ROUTER_HMAC_SECRET
+CRON_SECRET
+MAKE_EMAIL_WEBHOOK_URL
+MAKE_DOC_WEBHOOK_URL
+MAKE_INTEGRATIONS_WEBHOOK_URL
+
+---
+
+## Tests rapides (local)
+1) npm run dev
+2) enqueue doc
+   node --env-file .env.local scripts/pierre-enqueue.mjs doc
+3) tick
+   node --env-file .env.local scripts/pierre-tick.mjs
+
+Attendu:
+- done > 0
+- failed = 0
+
+---
+
+## Tests rapides (prod)
+Enqueue depuis ton PC:
+node --env-file .env.local scripts/pierre-enqueue.mjs doc --prod
+
+Tick:
+https://clonestore.pro/api/pierre/tick?secret=CRON_SECRET&limit=5
+
+---
+
+## Si ça casse
+- 403 FORBIDDEN => agent_configs n’a pas la ligne pierre pour ce client
+- 500 DB_ERROR => colonnes manquantes / trigger cassé / schema cache supabase
+- 405 sur tick => mauvaise méthode (tick est en GET)
+

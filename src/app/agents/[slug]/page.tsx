@@ -1,383 +1,335 @@
-"use client";
+import { notFound } from "next/navigation";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+import { AGENTS, type AgentSpec } from "@/lib/agent-catalog";
+import {
+  ActionButton,
+  BulletList,
+  InfoCard,
+  SectionTitle,
+} from "@/components/site/public-primitives";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState, useCallback } from "react";
-import type { ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { getSupabase } from "@/lib/supabase";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { Check, Clock, ShieldCheck, Layers, Activity, CreditCard } from "lucide-react";
-
-type OrdersMe = { active: string[]; past_due: string[]; cancelled: string[] };
-type OrderRow = { agent_slug: string; status: string };
-
-type Clone = {
-  slug: string;
-  name: string;
-  role: string;
-  price: string;
-  bullets: string[];
-  workload: string; // “équivalence charge de travail”
-};
-
-const CLONES: Clone[] = [
-  {
-    slug: "pierre",
-    name: "Pierre",
-    role: "Assistant RH rédacteur",
-    price: "299€/mois",
-    bullets: [
-      "Rédige vos documents RH (mails, courriers, notes, process)",
-      "Standardise vos modèles et vos réponses en interne",
-      "Produit des textes prêts à envoyer, au bon ton",
-    ],
-    workload: "≈ 4 à 8 h / semaine économisées (rédaction & administratif RH)",
-  },
-  {
-    slug: "clara",
-    name: "Clara",
-    role: "Recruteuse IA",
-    price: "549€/mois",
-    bullets: [
-      "Analyse les candidatures et structure les profils",
-      "Score les candidats selon vos critères",
-      "Prépare une shortlist exploitable",
-    ],
-    workload: "≈ 6 à 12 h / semaine économisées (tri & présélection)",
-  },
-  {
-    slug: "alex",
-    name: "Alex",
-    role: "Assistant Ops",
-    price: "399€/mois",
-    bullets: [
-      "Prépare des procédures et checklists opérationnelles",
-      "Synthétise, structure, formalise vos infos",
-      "Aide à standardiser les process d’équipe",
-    ],
-    workload: "≈ 3 à 7 h / semaine économisées (structuration & ops)",
-  },
-  {
-    slug: "emma",
-    name: "Emma",
-    role: "Support & mails",
-    price: "449€/mois",
-    bullets: [
-      "Prépare des réponses support claires et cohérentes",
-      "Classe les demandes et résume les échanges",
-      "Aide à maintenir un ton client constant",
-    ],
-    workload: "≈ 5 à 10 h / semaine économisées (support & email)",
-  },
-  {
-    slug: "noah",
-    name: "Noah",
-    role: "Assistant direction",
-    price: "499€/mois",
-    bullets: [
-      "Prépare des synthèses et décisions (notes, résumés, plans)",
-      "Rédige des mails et documents de pilotage",
-      "Aide à cadrer et prioriser des actions",
-    ],
-    workload: "≈ 3 à 8 h / semaine économisées (pilotage & administratif)",
-  },
-];
-
-const UNDER_CONSTRUCTION = new Set(["alex", "noah", "clara", "emma"]);
-
-if (process.env.NEXT_PUBLIC_DEPLOY_BLOCK_PIERRE === "1") {
-  UNDER_CONSTRUCTION.add("pierre");
+function isAvailableNow(slug: string) {
+  return slug === "pierre";
 }
 
-function normalizeOrders(rows: OrderRow[]): OrdersMe {
-  const active: string[] = [];
-  const past_due: string[] = [];
-  const cancelled: string[] = [];
-
-  for (const r of rows) {
-    const slug = r.agent_slug;
-    const st = (r.status || "").toLowerCase();
-    if (!slug) continue;
-
-    if (st === "active") active.push(slug);
-    else if (st === "past_due") past_due.push(slug);
-    else if (st === "cancelled") cancelled.push(slug);
-  }
-
-  return { active, past_due, cancelled };
+function findAgent(slug: string): AgentSpec | null {
+  return AGENTS.find((agent) => agent.slug === slug) ?? null;
 }
 
-function badgeFor(slug: string, orders: OrdersMe) {
-  if (UNDER_CONSTRUCTION.has(slug)) {
-    return { label: "En construction", className: "bg-muted text-foreground" };
-  }
-  if (orders.active.includes(slug)) {
-    return { label: "Accès actif", className: "bg-foreground text-background" };
-  }
-  if (orders.past_due.includes(slug)) {
-    return { label: "Paiement en attente", className: "bg-muted text-foreground" };
-  }
-  if (orders.cancelled.includes(slug)) {
-    return { label: "Résilié", className: "bg-muted text-foreground" };
-  }
-  return { label: "Non embauché", className: "bg-muted text-foreground" };
+export function generateStaticParams() {
+  return AGENTS.map((agent) => ({
+    slug: agent.slug,
+  }));
 }
 
-export default function ClonesPage() {
-  // ✅ garde ton choix : getSupabase() (qui doit être un singleton)
-  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
-
-  const [loading, setLoading] = useState(true);
-  const [orders, setOrders] = useState<OrdersMe>({ active: [], past_due: [], cancelled: [] });
-  const [filter, setFilter] = useState<"all" | "mine">("all");
-
-  const activeSet = useMemo(() => new Set(orders.active), [orders.active]);
-
-  const refreshAccess = useCallback(async () => {
-    setLoading(true);
-
-    try {
-      if (!supabase) {
-        setOrders({ active: [], past_due: [], cancelled: [] });
-        return;
-      }
-
-      const { data: userRes, error: userErr } = await supabase.auth.getUser();
-
-      if (userErr || !userRes?.user) {
-        setOrders({ active: [], past_due: [], cancelled: [] });
-        return;
-      }
-
-      const user = userRes.user;
-
-      const { data, error } = await supabase
-        .from("orders")
-        .select("agent_slug,status")
-        .eq("user_id", user.id);
-
-      if (error) {
-        setOrders({ active: [], past_due: [], cancelled: [] });
-        return;
-      }
-
-      setOrders(normalizeOrders((data || []) as OrderRow[]));
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
-
-  useEffect(() => {
-    refreshAccess();
-
-    const onFocus = () => refreshAccess();
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onFocus);
-
-    const sub = supabase?.auth.onAuthStateChange(() => {
-      refreshAccess();
-    });
-
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onFocus);
-      sub?.data.subscription.unsubscribe();
-    };
-  }, [refreshAccess, supabase]);
-
-  const visibleClones = useMemo(() => {
-    if (filter === "mine") {
-      return CLONES.filter((a) => activeSet.has(a.slug));
-    }
-    return CLONES;
-  }, [filter, activeSet]);
-
-  return (
-    <main className="mx-auto max-w-5xl px-4 py-12 space-y-10">
-      {/* Header */}
-      <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">Boutique de clones</h1>
-        <p className="text-muted-foreground text-sm">
-          {loading ? "Chargement des accès…" : "Choisis un clone. Accès instantané après paiement."}
-        </p>
-
-        {/* Mini proof / positioning */}
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1">
-            <Clock size={14} /> Mise en place &lt; 24h
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1">
-            <ShieldCheck size={14} /> Données isolées + logs
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1">
-            <Layers size={14} /> Clones spécialisés (pas des prompts)
-          </span>
-        </div>
-      </header>
-
-      {/* How it works (simple) */}
-      <section className="grid gap-4 md:grid-cols-3">
-        <HowCard
-          title="1. Choisis un clone"
-          text="Un clone = un métier. Objectif clair, livrables concrets."
-          icon={<Check />}
-        />
-        <HowCard
-          title="2. Configuration entreprise"
-          text="Tu le règles à ton contexte : règles, formats, données autorisées."
-          icon={<Activity />}
-        />
-        <HowCard
-          title="3. Il exécute"
-          text="Il travaille seul ou avec d’autres clones via le Router."
-          icon={<Layers />}
-        />
-      </section>
-
-      {/* Filter */}
-      <section className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-1">
-          <h2 className="text-xl font-semibold">Clones disponibles</h2>
-          <p className="text-sm text-muted-foreground">
-            Chaque clone est conçu pour réduire une vraie charge de travail.
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <Button
-            variant={filter === "all" ? "default" : "outline"}
-            onClick={() => setFilter("all")}
-          >
-            Tous
-          </Button>
-          <Button
-            variant={filter === "mine" ? "default" : "outline"}
-            onClick={() => setFilter("mine")}
-            disabled={loading}
-            title={loading ? "Chargement…" : "Afficher uniquement tes clones actifs"}
-          >
-            Mes clones
-          </Button>
-        </div>
-      </section>
-
-      {/* Cards */}
-      <section className="grid gap-4 sm:grid-cols-2">
-        {visibleClones.map((a) => {
-          const has = activeSet.has(a.slug);
-          const badge = badgeFor(a.slug, orders);
-          const isUC = UNDER_CONSTRUCTION.has(a.slug);
-
-          return (
-            <div key={a.slug} className="rounded-2xl border p-6 space-y-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1 min-w-0">
-                  <h3 className="text-lg font-medium truncate">{a.name}</h3>
-                  <p className="text-sm text-muted-foreground">{a.role}</p>
-                </div>
-
-                <span className={`shrink-0 rounded-full px-3 py-1 text-xs ${badge.className}`}>
-                  {badge.label}
-                </span>
-              </div>
-
-              <div className="rounded-xl border p-4 space-y-3">
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  {a.bullets.slice(0, 3).map((b, idx) => (
-                    <li key={idx} className="flex gap-2">
-                      <span className="mt-0.5">•</span>
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <p className="text-xs text-muted-foreground">
-                  <span className="font-medium">Équivalence :</span> {a.workload}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <p className="text-sm">
-                  <span className="text-muted-foreground">Prix :</span>{" "}
-                  <span className="font-medium">{a.price}</span>
-                </p>
-
-                {!has ? (
-                  <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-                    <CreditCard size={14} /> Accès après paiement
-                  </span>
-                ) : (
-                  <span className="text-xs text-muted-foreground">Utilisable maintenant</span>
-                )}
-              </div>
-
-              <div className="flex gap-3">
-                <Button asChild variant="outline">
-                  <Link href={`/agents/${a.slug}`}>Voir</Link>
-                </Button>
-
-                {isUC ? (
-                  <Button disabled>En construction</Button>
-                ) : has ? (
-                  <Button asChild>
-                    <Link href={`/agents/${a.slug}/use`}>Utiliser</Link>
-                  </Button>
-                ) : (
-                  <Button asChild>
-                    <Link href={`/paiement?agent=${a.slug}`}>Embaucher</Link>
-                  </Button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </section>
-
-      {/* Trust / Security (short, no overtalk) */}
-      <section className="rounded-2xl border p-6 space-y-3">
-        <h2 className="text-lg font-medium">Sécurité & confiance</h2>
-        <ul className="text-sm text-muted-foreground space-y-2">
-          <li>• Données cloisonnées par entreprise</li>
-          <li>• Historique / logs des actions (traçabilité)</li>
-          <li>• Aucune donnée utilisée pour l’entraînement</li>
-          <li>• Support : chatbot + humain si besoin</li>
-        </ul>
-      </section>
-
-      {/* CTA final */}
-      <section className="text-center space-y-4">
-        <h2 className="text-2xl font-semibold">Tu hésites ?</h2>
-        <p className="text-sm text-muted-foreground">
-          Parle au chatbot : il te dit quel clone correspond à ta charge de travail.
-        </p>
-        <div className="flex flex-wrap justify-center gap-2">
-          <Button asChild>
-            <Link href="/assistant">Parler au chatbot</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/profile">Mon compte</Link>
-          </Button>
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function HowCard({
-  title,
-  text,
-  icon,
+function AgentStatCard({
+  label,
+  value,
+  helper,
 }: {
-  title: string;
-  text: string;
-  icon: ReactNode;
+  label: string;
+  value: string;
+  helper: string;
 }) {
   return (
-    <div className="rounded-2xl border p-6 space-y-3">
-      <div className="w-10 h-10 rounded-lg border flex items-center justify-center">{icon}</div>
-      <h3 className="font-medium">{title}</h3>
-      <p className="text-sm text-muted-foreground">{text}</p>
+    <div className="cs-card">
+      <div className="relative space-y-2">
+        <p className="text-xs uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
+          {label}
+        </p>
+        <p className="text-2xl font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+          {value}
+        </p>
+        <p className="text-xs text-[var(--cs-ink-4)]">{helper}</p>
+      </div>
     </div>
   );
 }
 
+export default async function AgentDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const agent = findAgent(slug);
+
+  if (!agent) {
+    notFound();
+  }
+
+  const available = isAvailableNow(agent.slug);
+
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.06fr_0.94fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <BriefcaseBusiness className="h-3.5 w-3.5 text-[var(--cs-violet)]" />
+                  <span>{agent.name}</span>
+                </span>
+                <span className={available ? "cs-status cs-status--success" : "cs-status"}>
+                  {available ? "Disponible maintenant" : "En construction"}
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  {agent.name}
+                  <br />
+                  <span className="cs-gradient-text">{agent.role}</span>
+                </h1>
+
+                <p className="max-w-3xl text-sm leading-8 text-[var(--cs-ink-4)] md:text-base">
+                  {available
+                    ? `${agent.name} est aujourdâ€™hui lâ€™employÃ© CloneStore le plus concret pour un usage rÃ©el immÃ©diat. La page doit inspirer confiance, clarifier le pÃ©rimÃ¨tre mÃ©tier, montrer la valeur, poser les limites, puis emmener proprement vers le checkout et lâ€™activation.`
+                    : `${agent.name} existe dÃ©jÃ  dans la vision CloneStore et dans lâ€™architecture produit. En revanche, cette fiche doit rester honnÃªte : lâ€™employÃ© peut Ãªtre visible, comprÃ©hensible et dÃ©sirable, sans Ãªtre survendu comme totalement prÃªt si ce nâ€™est pas encore le cas.`}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {available ? (
+                  <>
+                    <ActionButton
+                      href="/checkout?agent=pierre"
+                      label={`Activer ${agent.name}`}
+                      primary
+                      icon={<ArrowRight className="h-4 w-4" />}
+                    />
+                    <ActionButton
+                      href="/paiement"
+                      label="Voir le parcours de paiement"
+                      icon={<Sparkles className="h-4 w-4" />}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <ActionButton
+                      href="/questions"
+                      label="Poser une question"
+                      primary
+                      icon={<Bot className="h-4 w-4" />}
+                    />
+                    <ActionButton
+                      href="/agents"
+                      label="Retour boutique"
+                      icon={<Waypoints className="h-4 w-4" />}
+                    />
+                  </>
+                )}
+
+                <ActionButton
+                  href="/profile"
+                  label="Voir Mon espace"
+                  icon={<ShieldCheck className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <div className="cs-card">
+                <div className="relative space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                        Lecture rapide
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
+                        Ce quâ€™il faut comprendre immÃ©diatement.
+                      </p>
+                    </div>
+                    <span className={available ? "cs-status cs-status--success" : "cs-status"}>
+                      {available ? "Ouvert" : "PrÃ©paration"}
+                    </span>
+                  </div>
+
+                  <BulletList
+                    items={[
+                      agent.does[0] ?? "PÃ©rimÃ¨tre mÃ©tier en cours de finalisation.",
+                      agent.does[1] ?? "EmployÃ© visible dans lâ€™Ã©cosystÃ¨me CloneStore.",
+                      available
+                        ? "Parcours commercial et usage dÃ©jÃ  cohÃ©rents."
+                        : "VisibilitÃ© produit assumÃ©e, maturitÃ© encore en construction.",
+                      available
+                        ? "EntrÃ©e recommandÃ©e aujourdâ€™hui."
+                        : "Ã€ suivre au fur et Ã  mesure de lâ€™avancement produit.",
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <AgentStatCard
+                  label="PÃ©rimÃ¨tre"
+                  value={available ? "Concret" : "Ã‰volutif"}
+                  helper={available ? "Usage rÃ©el maintenant" : "MaturitÃ© encore en progression"}
+                />
+                <AgentStatCard
+                  label="Tarif"
+                  value={agent.pricingNote?.replace("Tarif dÃ©fini sur la page de paiement CloneStore.", "Voir paiement") ?? "BientÃ´t"}
+                  helper="RÃ©fÃ©rence affichÃ©e cÃ´tÃ© parcours"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Pour qui"
+              title="Qui doit regarder cette fiche ?"
+              text="La lecture doit tout de suite faire comprendre Ã  quel type dâ€™entreprise ou de rÃ´le cet employÃ© peut apporter de la valeur."
+            />
+
+            <div className="mt-6">
+              <BulletList items={agent.forWho} />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Ce quâ€™il fait"
+              title="CapacitÃ©s principales"
+              text="On montre ici le vrai bloc de travail que lâ€™employÃ© est censÃ© absorber."
+            />
+
+            <div className="mt-6">
+              <BulletList items={agent.does} />
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Ce quâ€™il ne fait pas"
+              title="Limites et honnÃªtetÃ© produit"
+              text="Cette partie est essentielle pour la crÃ©dibilitÃ© CloneStore. Un pÃ©rimÃ¨tre clair vaut mieux quâ€™une promesse floue."
+            />
+
+            <div className="mt-6">
+              <BulletList items={agent.doesNot} />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Exemples"
+              title="Ce que lâ€™utilisateur peut lui demander"
+              text="Les exemples doivent aider Ã  se projeter vite dans un usage rÃ©el."
+            />
+
+            <div className="mt-6">
+              <BulletList items={agent.examples} />
+            </div>
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Ce que cette fiche doit transmettre"
+            title="CloneStore vend de la capacitÃ© opÃ©rationnelle, pas un effet waouh vide."
+            text="La fiche doit aider le client Ã  comprendre trois choses : le pÃ©rimÃ¨tre mÃ©tier, la valeur concrÃ¨te et le niveau de maturitÃ© rÃ©el de lâ€™employÃ©."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard
+              title="LisibilitÃ©"
+              text="Un rÃ´le clair, comprÃ©hensible en quelques secondes."
+              icon={<Waypoints className="h-4 w-4" />}
+              tone="violet"
+            />
+            <InfoCard
+              title="CrÃ©dibilitÃ©"
+              text="Une promesse alignÃ©e avec la rÃ©alitÃ© produit."
+              icon={<ShieldCheck className="h-4 w-4" />}
+              tone="green"
+            />
+            <InfoCard
+              title="Projection"
+              text="Des exemples concrets pour sentir lâ€™usage rÃ©el."
+              icon={<Sparkles className="h-4 w-4" />}
+              tone="blue"
+            />
+            <InfoCard
+              title="DÃ©cision"
+              text="Un chemin Ã©vident vers la question, la dÃ©couverte ou lâ€™activation."
+              icon={<ArrowRight className="h-4 w-4" />}
+              tone="rose"
+            />
+          </div>
+        </section>
+
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-violet)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--cs-violet)]" />
+                <span>{available ? "PrÃªt Ã  entrer ?" : "Besoin de clarifier ?"}</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              {available
+                ? `Active ${agent.name}, puis entre dans CloneStore.`
+                : `Comprends ${agent.name}, puis reviens au bon moment.`}
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--cs-ink-4)] md:text-base">
+              {available
+                ? "Le bon parcours est simple : comprendre, activer, configurer, utiliser."
+                : "Cette fiche doit nourrir la vision produit sans mentir sur lâ€™Ã©tat rÃ©el dâ€™ouverture publique."}
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              {available ? (
+                <>
+                  <ActionButton
+                    href="/checkout?agent=pierre"
+                    label={`Activer ${agent.name}`}
+                    primary
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/questions"
+                    label="Parler Ã  CloneChat"
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                </>
+              ) : (
+                <>
+                  <ActionButton
+                    href="/questions"
+                    label="Poser une question"
+                    primary
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/agents"
+                    label="Retour boutique"
+                    icon={<Waypoints className="h-4 w-4" />}
+                  />
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

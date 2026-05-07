@@ -1,0 +1,890 @@
+===== FILE: src/app/paiement/page.tsx =====
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  CheckCircle2,
+  CreditCard,
+  FileCheck2,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+  UserCheck,
+  Waypoints,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+  right,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="max-w-3xl space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+          {kicker}
+        </p>
+        <h2 className="cs-heading text-2xl md:text-4xl">{title}</h2>
+        <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+      </div>
+      {right ? <div className="shrink-0">{right}</div> : null}
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-account-accent)]" />
+          <span className="text-sm text-[var(--cs-ink-4)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function PaymentCard({
+  title,
+  price,
+  helper,
+  href,
+  primary = false,
+}: {
+  title: string;
+  price: string;
+  helper: string;
+  href: string;
+  primary?: boolean;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-lg font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                {title}
+              </p>
+              <p className="mt-1 text-sm text-[var(--cs-ink-4)]">{helper}</p>
+            </div>
+            <span className="cs-status cs-status--success">Disponible</span>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-3xl font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+              {price}
+            </p>
+            <p className="text-xs text-[var(--cs-ink-4)]">
+              Prix fondateur affiché actuellement
+            </p>
+          </div>
+        </div>
+
+        <ActionButton
+          href={href}
+          label="Continuer"
+          primary={primary}
+          icon={<ArrowRight className="h-4 w-4" />}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function PaiementPage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        {/* HERO */}
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.03fr_0.97fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <CreditCard className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Paiement CloneStore</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Simple, clair, premium</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Une entrée propre dans CloneStore,
+                  <br />
+                  <span className="cs-gradient-text">
+                    sans friction ni confusion.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Cette page doit rassurer immédiatement : on comprend ce qu’on
+                  achète, le cadre est clair, la suite logique aussi. Le paiement
+                  n’est pas une rupture d’expérience, c’est la continuité d’un
+                  produit sérieux.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/checkout?agent=pierre"
+                  label="Commencer avec Pierre"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents/pierre"
+                  label="Voir la fiche Pierre"
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <InfoCard
+                  title="Clarté"
+                  text="Le client doit comprendre immédiatement quelle est l’offre active."
+                  icon={<UserCheck className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Confiance"
+                  text="Le ton, la structure et le calme visuel doivent supprimer le doute inutile."
+                  icon={<Lock className="h-4 w-4" />}
+                  tone="blue"
+                />
+                <InfoCard
+                  title="Suite logique"
+                  text="Paiement, succès, activation, cockpit : tout doit s’enchaîner proprement."
+                  icon={<Waypoints className="h-4 w-4" />}
+                  tone="green"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <PaymentCard
+                title="Pierre"
+                price="449€/mois"
+                helper="Poste RH opérationnel automatisé"
+                href="/checkout?agent=pierre"
+                primary
+              />
+
+              <div className="cs-card">
+                <div className="relative space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                        Ce que vous activez réellement
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
+                        Un poste RH automatisé avec mission libre, documents,
+                        emails, relances, continuité, validations et trace.
+                      </p>
+                    </div>
+                    <span className="cs-status cs-status--info">CloneStore</span>
+                  </div>
+
+                  <BulletList
+                    items={[
+                      "Entrée dans le cockpit privé après activation",
+                      "Configuration de l’entreprise et des règles",
+                      "Utilisation réelle de Pierre depuis le site",
+                      "Historique, gouvernance, aide et continuité",
+                    ]}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* PAYMENT LOGIC */}
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Ce que cette étape doit transmettre"
+            title="Le paiement doit prolonger la crédibilité produit."
+            text="On ne vend pas un simple abonnement logiciel. On active un poste automatisé dans un système d’entreprise plus grand."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard
+              title="Poste activé"
+              text="Le client active Pierre, pas une simple fonctionnalité."
+              icon={<BriefcaseBusiness className="h-4 w-4" />}
+              tone="violet"
+            />
+            <InfoCard
+              title="Système derrière"
+              text="CloneOS, CloneTrace, gouvernance et cockpit soutiennent l’expérience."
+              icon={<FileCheck2 className="h-4 w-4" />}
+              tone="blue"
+            />
+            <InfoCard
+              title="Prix lisible"
+              text="Un seul prix visible au lancement, sans usine compliquée."
+              icon={<CreditCard className="h-4 w-4" />}
+              tone="green"
+            />
+            <InfoCard
+              title="Aide immédiate"
+              text="Si un doute subsiste, l’assistant CloneStore reste accessible."
+              icon={<Bot className="h-4 w-4" />}
+              tone="rose"
+            />
+          </div>
+        </section>
+
+        {/* BEFORE / AFTER */}
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Avant paiement"
+              title="Le client doit être rassuré et comprendre ce qu’il obtient."
+              text="Pas de précipitation visuelle, pas de flou, pas de bruit inutile. Juste la bonne information."
+            />
+
+            <div className="mt-6">
+              <BulletList
+                items={[
+                  "Quel employé est activé",
+                  "Quel prix est affiché",
+                  "Quelle valeur réelle est achetée",
+                  "Quelle est la suite logique après achat",
+                  "Où poser une question si nécessaire",
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Après paiement"
+              title="Le client doit être repris immédiatement par le bon parcours."
+              text="La transition idéale : confirmation, activation, onboarding utile, puis cockpit CloneStore."
+            />
+
+            <div className="mt-6">
+              <BulletList
+                items={[
+                  "Page succès claire et premium",
+                  "Activation propre de l’accès",
+                  "Orientation vers l’onboarding ou le cockpit",
+                  "Aucune sensation de vide après achat",
+                  "Assistant toujours disponible",
+                ]}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* FINAL CTA */}
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-account-accent)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                <span>Prêt à entrer dans le système ?</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Activez Pierre.
+              <br />
+              Entrez ensuite dans le cockpit CloneStore.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--cs-ink-4)] md:text-base">
+              Le paiement ne doit pas être une parenthèse. Il doit être une
+              continuité naturelle de l’expérience premium CloneStore.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/checkout?agent=pierre"
+                label="Continuer vers le checkout"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/questions"
+                label="Parler à l’assistant"
+                icon={<Bot className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+===== FILE: src/app/paiement/success/page.tsx =====
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  CheckCircle2,
+  FileCheck2,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-3xl space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+        {kicker}
+      </p>
+      <h2 className="cs-heading text-2xl md:text-4xl">{title}</h2>
+      <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-success)]" />
+          <span className="text-sm text-[var(--cs-ink-4)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function PaiementSuccessPage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Paiement confirmé</span>
+                </span>
+                <span className="cs-pill">
+                  <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Bienvenue dans CloneStore</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  C’est bon.
+                  <br />
+                  <span className="cs-gradient-text">
+                    Vous entrez maintenant dans le système.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Le paiement a bien été validé. La suite doit être limpide :
+                  activation, accès, configuration utile, puis cockpit CloneStore.
+                  Aucun vide, aucune confusion, aucune rupture.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/profile"
+                  label="Entrer dans le cockpit"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents/pierre/setup"
+                  label="Configurer Pierre"
+                  icon={<Waypoints className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Ouvrir l’assistant"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <div className="cs-card">
+                <div className="relative space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                        Étape validée
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
+                        Votre entrée dans CloneStore est confirmée.
+                      </p>
+                    </div>
+                    <span className="cs-status cs-status--success">Succès</span>
+                  </div>
+
+                  <BulletList
+                    items={[
+                      "Paiement accepté",
+                      "Accès prêt à être utilisé",
+                      "Suite logique vers activation et cockpit",
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard
+                  title="Cockpit"
+                  text="Le bon prochain écran doit être votre espace principal de pilotage."
+                  icon={<Waypoints className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Configuration"
+                  text="L’onboarding doit immédiatement servir à rendre Pierre utile, pas à perdre du temps."
+                  icon={<FileCheck2 className="h-4 w-4" />}
+                  tone="blue"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Ce qui doit arriver maintenant"
+              title="Le client doit être repris sans friction."
+              text="Après un paiement réussi, il faut une transition premium vers l’usage réel."
+            />
+
+            <div className="mt-6">
+              <BulletList
+                items={[
+                  "Accès immédiat au cockpit",
+                  "Configuration utile de Pierre",
+                  "Assistant disponible si besoin",
+                  "Aucune sensation de vide ou de flottement",
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Rassurance"
+              title="Le produit doit confirmer sa crédibilité juste après l’achat."
+              text="Cette page existe pour garder un niveau de confiance élevé même après la transaction."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Clarté"
+                text="Le client comprend immédiatement que tout s’est bien passé."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+              <InfoCard
+                title="Suite logique"
+                text="Le bon prochain clic est évident."
+                icon={<ArrowRight className="h-4 w-4" />}
+                tone="violet"
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+===== FILE: src/app/paiement/cancel/page.tsx =====
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  CreditCard,
+  ShieldCheck,
+  Sparkles,
+  Undo2,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+export default function PaiementCancelPage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <Undo2 className="h-3.5 w-3.5 text-[var(--cs-danger)]" />
+                  <span>Paiement interrompu</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Rien n’est perdu</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Le paiement n’a pas été finalisé.
+                  <br />
+                  <span className="cs-gradient-text">
+                    Vous pouvez reprendre proprement.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Cette page ne doit jamais culpabiliser ni créer de stress.
+                  Elle doit simplement rassurer, expliquer que rien n’est cassé,
+                  et proposer les bons prochains choix.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/checkout?agent=pierre"
+                  label="Reprendre le paiement"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents/pierre"
+                  label="Retour à Pierre"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <InfoCard
+                title="Aucune perte"
+                text="L’interruption de paiement ne doit pas donner l’impression que quelque chose est cassé."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+              <InfoCard
+                title="Reprise claire"
+                text="Le bon prochain clic doit être évident et rassurant."
+                icon={<ArrowRight className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Contexte conservé"
+                text="Le client reste dans le parcours CloneStore, sans rupture brutale."
+                icon={<CreditCard className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Aide disponible"
+                text="L’assistant reste accessible immédiatement si un doute subsiste."
+                icon={<Bot className="h-4 w-4" />}
+                tone="rose"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-account-accent)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                <span>Vous pouvez reprendre quand vous voulez</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Retournez sur Pierre,
+              <br />
+              ou reprenez directement le checkout.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--cs-ink-4)] md:text-base">
+              Cette étape doit rester calme, propre et premium. Pas de panique,
+              pas de confusion, juste une reprise claire.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/checkout?agent=pierre"
+                label="Reprendre le checkout"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/questions"
+                label="Ouvrir l’assistant"
+                icon={<Bot className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

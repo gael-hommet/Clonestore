@@ -1,0 +1,892 @@
+===== FILE: src/app/agents/pierre/use/page.tsx =====
+"use client";
+
+import * as React from "react";
+import {
+  AlertCircle,
+  Archive,
+  Bot,
+  Brain,
+  ChevronDown,
+  Clock3,
+  FileText,
+  FileType2,
+  History,
+  LayoutDashboard,
+  Loader2,
+  Mail,
+  Menu,
+  Mic,
+  MicOff,
+  PanelLeft,
+  RefreshCw,
+  ScrollText,
+  Search,
+  Send,
+  Settings2,
+  Shield,
+  Sparkles,
+  Wand2,
+  Workflow,
+  X,
+} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import {
+  usePierreMissionCenter,
+  type PierreDocument,
+  type PierreOutboundEmail,
+  type PierreTask,
+} from "@/hooks/pierre/usePierreMissionCenter";
+import { usePierreHistory } from "@/hooks/pierre/usePierreHistory";
+import { usePierreCompanyMemory } from "@/hooks/pierre/usePierreCompanyMemory";
+
+import { PierreStatusBadge } from "@/components/pierre/PierreStatusBadge";
+import { PierreMissionComposer } from "@/components/pierre/PierreMissionComposer";
+import { PierreMissionUnderstanding } from "@/components/pierre/PierreMissionUnderstanding";
+import { PierreExecutionBoard } from "@/components/pierre/PierreExecutionBoard";
+import { PierreTaskList } from "@/components/pierre/PierreTaskList";
+import { PierreHistoryPanel } from "@/components/pierre/PierreHistoryPanel";
+import { PierreMemoryPanel } from "@/components/pierre/PierreMemoryPanel";
+import { PierreDocumentPanel } from "@/components/pierre/PierreDocumentPanel";
+import { PierreMissionTimeline } from "@/components/pierre/PierreMissionTimeline";
+
+type MainSection =
+  | "cockpit"
+  | "missions"
+  | "studios"
+  | "followup"
+  | "artifacts"
+  | "history"
+  | "memory";
+
+type StudioMode = "employee" | "email" | "document" | "pdf";
+type ArtifactTab = "documents" | "emails" | "pdfs";
+type VoiceTarget =
+  | "employeeDraft"
+  | "emailSubject"
+  | "emailBody"
+  | "documentInstructions"
+  | "documentContext"
+  | "pdfText"
+  | null;
+
+type BusyAction =
+  | null
+  | "submit-mission"
+  | "generate-document"
+  | "draft-email"
+  | "send-email"
+  | "generate-pdf"
+  | "refresh";
+
+type ThreadEntry = {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  createdAt: string;
+};
+
+type EmailComposerState = {
+  to: string;
+  cc: string;
+  bcc: string;
+  subject: string;
+  body: string;
+};
+
+type DocumentComposerState = {
+  title: string;
+  instructions: string;
+  context: string;
+  tone: string;
+  language: string;
+};
+
+type PdfComposerState = {
+  title: string;
+  text: string;
+};
+
+type LocalSnapshot = {
+  mainSection: MainSection;
+  studioMode: StudioMode;
+  artifactTab: ArtifactTab;
+  employeeDraft: string;
+  threadEntries: ThreadEntry[];
+  emailComposer: EmailComposerState;
+  documentComposer: DocumentComposerState;
+  pdfComposer: PdfComposerState;
+  focusedMissionId: string | null;
+  selectedDocumentId: string | null;
+  selectedEmailId: string | null;
+  selectedPdfId: string | null;
+  leftCollapsed: boolean;
+};
+
+const STORAGE_KEY = "clonestore:pierre:use-page:v5";
+
+const StatusBadgeAny = PierreStatusBadge as React.ComponentType<any>;
+const MissionComposerAny = PierreMissionComposer as React.ComponentType<any>;
+const TaskListAny = PierreTaskList as React.ComponentType<any>;
+const HistoryPanelAny = PierreHistoryPanel as React.ComponentType<any>;
+const MemoryPanelAny = PierreMemoryPanel as React.ComponentType<any>;
+const DocumentPanelAny = PierreDocumentPanel as React.ComponentType<any>;
+const MissionUnderstandingAny = PierreMissionUnderstanding as React.ComponentType<any>;
+const ExecutionBoardAny = PierreExecutionBoard as React.ComponentType<any>;
+const TimelineAny = PierreMissionTimeline as React.ComponentType<any>;
+
+const fieldClass =
+  "w-full rounded-[18px] border border-[#e7d9c8] bg-white px-4 py-3 text-sm text-[#2a2118] outline-none transition placeholder:text-[#a18c77] focus:border-[#d8bd9d] focus:ring-4 focus:ring-[#f3e6d6]";
+
+function parseJson<T>(raw: string | null): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+function formatDateTime(value?: string | null): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function splitEmails(value: string): string[] {
+  return value
+    .split(/[,\n;]/g)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function getStatusCount(tasks: PierreTask[], statuses: string[]): number {
+  const set = new Set(statuses.map((s) => s.toLowerCase()));
+  return tasks.filter((task) => set.has(String(task.status ?? "").toLowerCase())).length;
+}
+
+function relatedDocumentForTask(task: PierreTask, documents: PierreDocument[]) {
+  return (
+    documents.find((doc) => doc.task_id && doc.task_id === task.id) ??
+    documents.find((doc) => doc.mission_id && doc.mission_id === task.mission_id) ??
+    null
+  );
+}
+
+function relatedEmailForTask(task: PierreTask, emails: PierreOutboundEmail[]) {
+  return (
+    emails.find((mail) => mail.task_id && mail.task_id === task.id) ??
+    emails.find((mail) => mail.mission_id && mail.mission_id === task.mission_id) ??
+    null
+  );
+}
+
+function shellPanel() {
+  return "rounded-[28px] border border-[#e9dfd2] bg-[#fffaf3] shadow-[0_14px_50px_rgba(94,78,56,0.08)]";
+}
+
+function softPanel() {
+  return "rounded-[24px] border border-[#eadfce] bg-[#fffdf9]";
+}
+
+export default function PierreUsePage() {
+  const missionCenter = usePierreMissionCenter();
+  const history = usePierreHistory();
+  const memory = usePierreCompanyMemory();
+
+  const [mainSection, setMainSection] = React.useState<MainSection>("missions");
+  const [studioMode, setStudioMode] = React.useState<StudioMode>("employee");
+  const [artifactTab, setArtifactTab] = React.useState<ArtifactTab>("documents");
+
+  const [employeeDraft, setEmployeeDraft] = React.useState("");
+  const [threadEntries, setThreadEntries] = React.useState<ThreadEntry[]>([]);
+
+  const [emailComposer, setEmailComposer] = React.useState<EmailComposerState>({
+    to: "",
+    cc: "",
+    bcc: "",
+    subject: "",
+    body: "",
+  });
+
+  const [documentComposer, setDocumentComposer] = React.useState<DocumentComposerState>({
+    title: "",
+    instructions: "",
+    context: "",
+    tone: "professionnel",
+    language: "fr",
+  });
+
+  const [pdfComposer, setPdfComposer] = React.useState<PdfComposerState>({
+    title: "",
+    text: "",
+  });
+
+  const [directDocuments, setDirectDocuments] = React.useState<PierreDocument[]>([]);
+  const [directEmails, setDirectEmails] = React.useState<PierreOutboundEmail[]>([]);
+  const [directPdfs, setDirectPdfs] = React.useState<Record<string, unknown>[]>([]);
+
+  const [selectedDocumentId, setSelectedDocumentId] = React.useState<string | null>(null);
+  const [selectedEmailId, setSelectedEmailId] = React.useState<string | null>(null);
+  const [selectedPdfId, setSelectedPdfId] = React.useState<string | null>(null);
+
+  const [busyAction, setBusyAction] = React.useState<BusyAction>(null);
+  const [leftCollapsed, setLeftCollapsed] = React.useState(false);
+  const [topMenuOpen, setTopMenuOpen] = React.useState(false);
+  const [commandOpen, setCommandOpen] = React.useState(false);
+  const [commandSearch, setCommandSearch] = React.useState("");
+
+  const [voiceSupported, setVoiceSupported] = React.useState(false);
+  const [isListening, setIsListening] = React.useState(false);
+  const [voiceTarget, setVoiceTarget] = React.useState<VoiceTarget>(null);
+  const [voiceInterim, setVoiceInterim] = React.useState("");
+  const [voiceError, setVoiceError] = React.useState<string | null>(null);
+
+  const recognitionRef = React.useRef<any>(null);
+
+  React.useEffect(() => {
+    const saved = parseJson<LocalSnapshot>(window.localStorage.getItem(STORAGE_KEY));
+    if (!saved) return;
+
+    setMainSection(saved.mainSection ?? "missions");
+    setStudioMode(saved.studioMode ?? "employee");
+    setArtifactTab(saved.artifactTab ?? "documents");
+    setEmployeeDraft(saved.employeeDraft ?? "");
+    setThreadEntries(saved.threadEntries ?? []);
+    setEmailComposer(
+      saved.emailComposer ?? {
+        to: "",
+        cc: "",
+        bcc: "",
+        subject: "",
+        body: "",
+      }
+    );
+    setDocumentComposer(
+      saved.documentComposer ?? {
+        title: "",
+        instructions: "",
+        context: "",
+        tone: "professionnel",
+        language: "fr",
+      }
+    );
+    setPdfComposer(saved.pdfComposer ?? { title: "", text: "" });
+    missionCenter.setFocusedMissionId(saved.focusedMissionId ?? null);
+    setSelectedDocumentId(saved.selectedDocumentId ?? null);
+    setSelectedEmailId(saved.selectedEmailId ?? null);
+    setSelectedPdfId(saved.selectedPdfId ?? null);
+    setLeftCollapsed(Boolean(saved.leftCollapsed));
+  }, [missionCenter]);
+
+  React.useEffect(() => {
+    const snapshot: LocalSnapshot = {
+      mainSection,
+      studioMode,
+      artifactTab,
+      employeeDraft,
+      threadEntries,
+      emailComposer,
+      documentComposer,
+      pdfComposer,
+      focusedMissionId: missionCenter.focusedMissionId,
+      selectedDocumentId,
+      selectedEmailId,
+      selectedPdfId,
+      leftCollapsed,
+    };
+
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+  }, [
+    mainSection,
+    studioMode,
+    artifactTab,
+    employeeDraft,
+    threadEntries,
+    emailComposer,
+    documentComposer,
+    pdfComposer,
+    missionCenter.focusedMissionId,
+    selectedDocumentId,
+    selectedEmailId,
+    selectedPdfId,
+    leftCollapsed,
+  ]);
+
+  React.useEffect(() => {
+    void history.refresh({ includeTasks: true });
+    void memory.refresh();
+  }, [history, memory]);
+
+  React.useEffect(() => {
+    if (!missionCenter.focusedMissionId) return;
+    void missionCenter.refreshMission(missionCenter.focusedMissionId);
+  }, [missionCenter.focusedMissionId]);
+
+  React.useEffect(() => {
+    const SpeechRecognitionCtor =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
+    setVoiceSupported(Boolean(SpeechRecognitionCtor));
+
+    if (!SpeechRecognitionCtor) return;
+
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = "fr-FR";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setVoiceError(null);
+      setVoiceInterim("");
+    };
+
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      let finalText = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const transcript = event.results[i][0]?.transcript ?? "";
+        if (event.results[i].isFinal) finalText += transcript;
+        else interim += transcript;
+      }
+
+      setVoiceInterim(interim);
+
+      if (finalText.trim()) {
+        const clean = finalText.trim();
+
+        switch (voiceTarget) {
+          case "employeeDraft":
+            setEmployeeDraft((prev) => [prev, clean].filter(Boolean).join(" ").trim());
+            break;
+          case "emailSubject":
+            setEmailComposer((prev) => ({
+              ...prev,
+              subject: [prev.subject, clean].filter(Boolean).join(" ").trim(),
+            }));
+            break;
+          case "emailBody":
+            setEmailComposer((prev) => ({
+              ...prev,
+              body: [prev.body, clean].filter(Boolean).join("\n\n").trim(),
+            }));
+            break;
+          case "documentInstructions":
+            setDocumentComposer((prev) => ({
+              ...prev,
+              instructions: [prev.instructions, clean].filter(Boolean).join(" ").trim(),
+            }));
+            break;
+          case "documentContext":
+            setDocumentComposer((prev) => ({
+              ...prev,
+              context: [prev.context, clean].filter(Boolean).join(" ").trim(),
+            }));
+            break;
+          case "pdfText":
+            setPdfComposer((prev) => ({
+              ...prev,
+              text: [prev.text, clean].filter(Boolean).join("\n\n").trim(),
+            }));
+            break;
+          default:
+            break;
+        }
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      setVoiceError(
+        event?.error === "not-allowed"
+          ? "Accès micro refusé."
+          : "La saisie vocale a rencontré une erreur."
+      );
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      setVoiceInterim("");
+      setVoiceTarget(null);
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      try {
+        recognition.stop();
+      } catch {
+        //
+      }
+      recognitionRef.current = null;
+    };
+  }, [voiceTarget]);
+
+  React.useEffect(() => {
+    if (!missionCenter.hasActiveTask || !missionCenter.focusedMissionId) return;
+
+    const timer = window.setInterval(() => {
+      void missionCenter.refreshMission(missionCenter.focusedMissionId);
+    }, 12000);
+
+    return () => window.clearInterval(timer);
+  }, [missionCenter.hasActiveTask, missionCenter.focusedMissionId, missionCenter.refreshMission]);
+
+  const mergedDocuments = React.useMemo(() => {
+    const map = new Map<string, PierreDocument>();
+    [...directDocuments, ...missionCenter.documents].forEach((doc) => map.set(doc.id, doc));
+    return Array.from(map.values()).sort((a, b) => {
+      const da = new Date(a.updated_at ?? a.created_at ?? 0).getTime();
+      const db = new Date(b.updated_at ?? b.created_at ?? 0).getTime();
+      return db - da;
+    });
+  }, [directDocuments, missionCenter.documents]);
+
+  const mergedEmails = React.useMemo(() => {
+    const map = new Map<string, PierreOutboundEmail>();
+    [...directEmails, ...missionCenter.outboundEmails].forEach((mail) => map.set(mail.id, mail));
+    return Array.from(map.values()).sort((a, b) => {
+      const da = new Date(a.updated_at ?? a.created_at ?? 0).getTime();
+      const db = new Date(b.updated_at ?? b.created_at ?? 0).getTime();
+      return db - da;
+    });
+  }, [directEmails, missionCenter.outboundEmails]);
+
+  const activeMissionTasks = missionCenter.tasks;
+  const runningCount = getStatusCount(activeMissionTasks, ["running", "in_progress"]);
+  const queuedCount = getStatusCount(activeMissionTasks, ["queued", "ready", "planned", "retry"]);
+  const approvalCount = getStatusCount(activeMissionTasks, [
+    "awaiting_validation",
+    "awaiting_approval",
+  ]);
+  const awaitingInfoCount = getStatusCount(activeMissionTasks, ["awaiting_info"]);
+  const completedCount = getStatusCount(activeMissionTasks, ["completed", "done"]);
+  const blockedCount = getStatusCount(activeMissionTasks, ["blocked", "failed", "cancelled"]);
+  const missionArtifactsCount = mergedDocuments.length + mergedEmails.length + directPdfs.length;
+
+  const selectedDocument = React.useMemo(
+    () => mergedDocuments.find((doc) => doc.id === selectedDocumentId) ?? null,
+    [mergedDocuments, selectedDocumentId]
+  );
+
+  const selectedEmail = React.useMemo(
+    () => mergedEmails.find((mail) => mail.id === selectedEmailId) ?? null,
+    [mergedEmails, selectedEmailId]
+  );
+
+  const selectedPdf = React.useMemo(
+    () => directPdfs.find((pdf) => String(pdf.id ?? "") === selectedPdfId) ?? null,
+    [directPdfs, selectedPdfId]
+  );
+
+  const filteredHistory = React.useMemo(() => {
+    const q = commandSearch.trim().toLowerCase();
+    if (!q) return history.items.slice(0, 10);
+    return history.items
+      .filter((item: any) => {
+        const hay = [item.title, item.subtitle, item.status, item.kind, item.mission_id]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return hay.includes(q);
+      })
+      .slice(0, 10);
+  }, [commandSearch, history.items]);
+
+  const pushThread = React.useCallback((entry: ThreadEntry) => {
+    setThreadEntries((prev) => [entry, ...prev].slice(0, 40));
+  }, []);
+
+  const startVoice = React.useCallback(
+    (target: VoiceTarget) => {
+      if (!voiceSupported || !recognitionRef.current) return;
+      setVoiceError(null);
+      setVoiceTarget(target);
+      try {
+        recognitionRef.current.start();
+      } catch {
+        setVoiceError("Impossible de démarrer la saisie vocale.");
+        setVoiceTarget(null);
+      }
+    },
+    [voiceSupported]
+  );
+
+  const stopVoice = React.useCallback(() => {
+    try {
+      recognitionRef.current?.stop();
+    } catch {
+      //
+    }
+    setIsListening(false);
+    setVoiceTarget(null);
+    setVoiceInterim("");
+  }, []);
+
+  const handleRefreshAll = React.useCallback(async () => {
+    setBusyAction("refresh");
+    try {
+      await Promise.all([
+        history.refresh({ includeTasks: true }),
+        memory.refresh(),
+        missionCenter.refreshMission(),
+      ]);
+    } finally {
+      setBusyAction(null);
+    }
+  }, [history, memory, missionCenter]);
+
+  const handleSubmitMission = React.useCallback(async () => {
+    const text = employeeDraft.trim();
+    if (!text) return;
+
+    setBusyAction("submit-mission");
+
+    try {
+      pushThread({
+        id: crypto.randomUUID(),
+        role: "user",
+        content: text,
+        createdAt: new Date().toISOString(),
+      });
+
+      const payload = await missionCenter.submitMission({
+        text,
+        mode: "employee",
+      });
+
+      const summary =
+        payload.interpretation?.suggested_reply ??
+        payload.interpretation?.summary ??
+        payload.mission?.title ??
+        "Mission reçue et structurée par Pierre.";
+
+      pushThread({
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: summary,
+        createdAt: new Date().toISOString(),
+      });
+
+      setEmployeeDraft("");
+      setMainSection("followup");
+    } finally {
+      setBusyAction(null);
+    }
+  }, [employeeDraft, missionCenter, pushThread]);
+
+  const handleQuickMission = React.useCallback((text: string) => {
+    setMainSection("missions");
+    setStudioMode("employee");
+    setEmployeeDraft(text);
+    setTopMenuOpen(false);
+    setCommandOpen(false);
+  }, []);
+
+  const handleGenerateDocument = React.useCallback(async () => {
+    if (!documentComposer.instructions.trim()) return;
+
+    setBusyAction("generate-document");
+
+    try {
+      const document = await missionCenter.generateDirectDocument({
+        title: documentComposer.title,
+        instructions: documentComposer.instructions,
+        context: documentComposer.context,
+        tone: documentComposer.tone,
+        language: documentComposer.language,
+      });
+
+      if (document) {
+        setDirectDocuments((prev) => [document, ...prev.filter((item) => item.id !== document.id)]);
+        setSelectedDocumentId(document.id);
+        setArtifactTab("documents");
+        setMainSection("artifacts");
+      }
+    } finally {
+      setBusyAction(null);
+    }
+  }, [documentComposer, missionCenter]);
+
+  const handleDraftEmail = React.useCallback(async () => {
+    if (!emailComposer.subject.trim() || !emailComposer.body.trim() || !emailComposer.to.trim()) {
+      return;
+    }
+
+    setBusyAction("draft-email");
+
+    try {
+      const email = await missionCenter.draftDirectEmail({
+        to: splitEmails(emailComposer.to),
+        cc: splitEmails(emailComposer.cc),
+        bcc: splitEmails(emailComposer.bcc),
+        subject: emailComposer.subject,
+        body: emailComposer.body,
+        sender_name: memory.senderIdentityResolved.sender_name ?? undefined,
+        sender_email: memory.senderIdentityResolved.sender_email ?? undefined,
+        reply_to: memory.senderIdentityResolved.reply_to ?? undefined,
+      });
+
+      if (email) {
+        setDirectEmails((prev) => [email, ...prev.filter((item) => item.id !== email.id)]);
+        setSelectedEmailId(email.id);
+        setArtifactTab("emails");
+        setMainSection("artifacts");
+      }
+    } finally {
+      setBusyAction(null);
+    }
+  }, [emailComposer, memory.senderIdentityResolved, missionCenter]);
+
+  const handleSendEmail = React.useCallback(async () => {
+    if (!emailComposer.subject.trim() || !emailComposer.body.trim() || !emailComposer.to.trim()) {
+      return;
+    }
+
+    setBusyAction("send-email");
+
+    try {
+      const email = await missionCenter.sendDirectEmail({
+        to: splitEmails(emailComposer.to),
+        cc: splitEmails(emailComposer.cc),
+        bcc: splitEmails(emailComposer.bcc),
+        subject: emailComposer.subject,
+        body: emailComposer.body,
+        sender_name: memory.senderIdentityResolved.sender_name ?? undefined,
+        sender_email: memory.senderIdentityResolved.sender_email ?? undefined,
+        reply_to: memory.senderIdentityResolved.reply_to ?? undefined,
+      });
+
+      if (email) {
+        setDirectEmails((prev) => [email, ...prev.filter((item) => item.id !== email.id)]);
+        setSelectedEmailId(email.id);
+        setArtifactTab("emails");
+        setMainSection("artifacts");
+      }
+    } finally {
+      setBusyAction(null);
+    }
+  }, [emailComposer, memory.senderIdentityResolved, missionCenter]);
+
+  const handleGeneratePdf = React.useCallback(async () => {
+    if (!pdfComposer.text.trim()) return;
+
+    setBusyAction("generate-pdf");
+
+    try {
+      const pdf = await missionCenter.generateDirectPdf({
+        title: pdfComposer.title,
+        text: pdfComposer.text,
+      });
+
+      if (pdf) {
+        const enriched = {
+          id: crypto.randomUUID(),
+          title: pdfComposer.title || "PDF Pierre",
+          text: pdfComposer.text,
+          ...pdf,
+          created_at: new Date().toISOString(),
+        };
+        setDirectPdfs((prev) => [enriched, ...prev]);
+        setSelectedPdfId(String(enriched.id));
+        setArtifactTab("pdfs");
+        setMainSection("artifacts");
+      }
+    } finally {
+      setBusyAction(null);
+    }
+  }, [missionCenter, pdfComposer]);
+
+  const sideItems = [
+    { key: "cockpit" as const, label: "Cockpit", icon: LayoutDashboard, hint: "Vue globale" },
+    { key: "missions" as const, label: "Missions", icon: Brain, hint: "Commandement" },
+    { key: "studios" as const, label: "Studios", icon: Wand2, hint: "Email / Doc / PDF" },
+    { key: "followup" as const, label: "Suivi", icon: Workflow, hint: "Tâches / timeline" },
+    { key: "artifacts" as const, label: "Artefacts", icon: Archive, hint: "Documents / emails" },
+    { key: "history" as const, label: "Historique", icon: History, hint: "Trace complète" },
+    { key: "memory" as const, label: "Mémoire", icon: Settings2, hint: "Entreprise / identité" },
+  ];
+
+  const quickMissionCards = [
+    {
+      title: "Préparer une convocation",
+      text: "Prépare une convocation à entretien pour demain matin, ton professionnel, puis attends ma validation avant envoi.",
+    },
+    {
+      title: "Relancer un candidat",
+      text: "Relance le candidat pour savoir s’il confirme sa disponibilité cette semaine, ton humain et professionnel.",
+    },
+    {
+      title: "Organiser ma journée RH",
+      text: "Organise ma journée RH, priorise les urgences, liste les tâches, et propose un plan d’exécution clair.",
+    },
+    {
+      title: "Créer plusieurs actions",
+      text: "Prépare 3 convocations, puis un email interne récapitulatif, puis attends ma validation avant tout envoi.",
+    },
+    {
+      title: "Préparer un refus candidat",
+      text: "Rédige un mail de refus candidat poli, humain, professionnel, avec ouverture pour opportunités futures.",
+    },
+    {
+      title: "Préparer onboarding",
+      text: "Prépare un message d’accueil onboarding pour un nouveau collaborateur avec ton chaleureux et structuré.",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#f6efe6] text-[#2a2118]">
+      <div className="flex min-h-screen">
+        <aside
+          className={cn(
+            "border-r border-[#eadfce] bg-[#fbf5ee] transition-all duration-300",
+            leftCollapsed ? "w-[92px]" : "w-[290px]"
+          )}
+        >
+          <div className="flex h-full flex-col">
+            <div className="border-b border-[#eadfce] px-4 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className={cn("min-w-0", leftCollapsed && "hidden")}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a856f]">
+                    CloneStore
+                  </p>
+                  <h1 className="mt-1 text-xl font-semibold text-[#21180f]">Pierre</h1>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setLeftCollapsed((prev) => !prev)}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#e7dac8] bg-white text-[#6a5845]"
+                >
+                  <PanelLeft className="h-4.5 w-4.5" />
+                </button>
+              </div>
+
+              {!leftCollapsed && (
+                <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white px-4 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f3e4d0] text-[#5c452c]">
+                      <Bot className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#2a2017]">Assistant RH Automatisé</p>
+                      <p className="mt-1 text-xs leading-5 text-[#7b6956]">
+                        Centre de missions, exécution, suivi, mémoire et artefacts.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 overflow-auto px-3 py-4">
+              <nav className="space-y-2">
+                {sideItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = mainSection === item.key;
+
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setMainSection(item.key)}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-[20px] border px-3 py-3 text-left transition",
+                        active
+                          ? "border-[#d9c1a4] bg-[#fff2e3] text-[#4f3c27]"
+                          : "border-transparent bg-transparent text-[#685848] hover:border-[#eadfce] hover:bg-[#fffaf3]"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "inline-flex h-10 w-10 items-center justify-center rounded-2xl",
+                          active ? "bg-[#f0dcc2]" : "bg-[#f5ede4]"
+                        )}
+                      >
+                        <Icon className="h-4.5 w-4.5" />
+                      </div>
+
+                      {!leftCollapsed && (
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold">{item.label}</p>
+                          <p className="mt-0.5 text-xs text-[#857362]">{item.hint}</p>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {!leftCollapsed && (
+                <div className="mt-6 rounded-[24px] border border-[#eadfce] bg-[#fffdf8] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9a856f]">
+                    état rapide
+                  </p>
+                  <div className="mt-3 space-y-3 text-sm text-[#5e5143]">
+                    <div className="flex items-center justify-between">
+                      <span>Mission active</span>
+                      <span className="font-semibold text-[#2c231a]">
+                        {missionCenter.mission ? "Oui" : "Non"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Tâches</span>
+                      <span className="font-semibold text-[#2c231a]">
+                        {activeMissionTasks.length}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Artefacts</span>
+                      <span className="font-semibold text-[#2c231a]">{missionArtifactsCount}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Mémoire</span>
+                      <span className="font-semibold text-[#2c231a]">
+                        {memory.memory ? "OK" : "À faire"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </aside>
+
+        <main className="min-w-0 flex-1">
+          <div className="mx-auto flex w-full max-w-[1880px] flex-col gap-6 px-5 pb-10 pt-5 lg:px-8">
+            <header className={cn(shellPanel(), "px-5 py-4 lg:px-6")}>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[#e8dccf] bg-white px-3 py-1.5 text-xs font-medium text-[#6d5a48]">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Cockpit premium Pierre
+                  </div>
+
+                  <div className="mt-3">
+                    <h2 className="text-3xl font-semibold tracking-[-0.02em] text-[#20170f]">
+                      {mainSection === "cockpit" && "Cockpit global"}
+                      {mainSection === "missions" && "Centre de missions"}
+                      {mainSection === "studios" && "Studios directs"}
+                      {mainSection === "followup" && "Suivi d’exécution"}
+                      {mainSection === "artifacts" && "Artefacts produits"}
+                      {mainSection === "history" && "Historique complet"}
+                      {mainSection === "memory" && "Mémoire entreprise"}
+                    </h2>
+                    <p className="mt-2 max-w-4xl text-sm leading-7 text-[#665648]">
+                      {mainSection === "cockpit" &&
+                        "Vue d’ensemble de Pierre : mission active, exécution, artefacts, mémoire et accès direct aux actions clés."}
+                      {mainSection === "missions" &&
+                        "Donne à Pierre une mission libre comme à un employé en télétravail : il structure, planifie, demande validation si nécessaire, détecte les infos manquantes et prépare l’exécution."}
+                      {mainSection === "studios" &&
+                        "Production directe sans passer par une mission libre : email, document RH ou PDF."}
+                      {mainSection === "followup" &&
+                        "Pilotage opérationnel des tâches, validations, blocages, timeline et logs de mission."}
+                      {mainSection === "artifacts" &&
+                        "Visualise les documents, emails et PDFs générés par Pierre, qu’ils viennent des missions ou des studios directs."}
+         

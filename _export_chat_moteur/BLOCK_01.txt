@@ -1,0 +1,390 @@
+﻿===== FILE: .gitignore =====
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+
+===== FILE: AGENTS.md =====
+
+# CloneStore / Pierre â€” Instructions projet pour Codex
+
+## RÃ¨gle absolue
+Tu ne prends AUCUNE initiative produit seul.
+Tu n'inventes pas de direction.
+Tu n'Ã©largis jamais le scope.
+Tu n'ajoutes jamais de fonctionnalitÃ©s non demandÃ©es.
+
+## Comportement attendu
+- Tu exÃ©cutes uniquement la tÃ¢che demandÃ©e.
+- Tu respectes strictement l'architecture existante et les instructions donnÃ©es.
+- Tu ne supprimes rien sans demande explicite.
+- Tu ne renommes rien sans demande explicite.
+- Tu ne fais aucun refactor large sans demande explicite.
+- Tu ne modifies jamais plusieurs zones non liÃ©es "pour amÃ©liorer".
+- Tu ne changes jamais le style global sans demande explicite.
+- Tu ne touches jamais aux fichiers hors scope si ce n'est pas nÃ©cessaire Ã  la compilation.
+
+## PrioritÃ© produit
+Le projet concerne CloneStore Pro et l'agent Pierre.
+Pierre est un employÃ© IA RH premium, pas un simple outil.
+La page Use doit Ã©voluer vers un centre de missions RH.
+La requÃªte libre doit Ãªtre pensÃ©e comme un chat de commandement :
+le client parle Ã  Pierre comme Ã  un employÃ© en tÃ©lÃ©travail.
+
+## Architecture retenue
+- Pas de Make pour Pierre.
+- Pierre est pilotÃ© 100% par le code.
+- Stack principale : Next.js / React / Tailwind / shadcn / Supabase.
+- Le coeur de Pierre repose sur :
+  - missions
+  - tasks
+  - logs
+  - mÃ©moire
+  - exÃ©cution en code
+  - email en code
+  - PDF en code
+
+## RÃ¨gles de code
+- Toujours produire du code directement exploitable.
+- Toujours privilÃ©gier la version premium/finale si elle reste rÃ©aliste et stable.
+- Ne jamais livrer une version brouillonne visible client.
+- Ne jamais ajouter de panneau debug visible client.
+- Garder une UI propre, premium, cohÃ©rente CloneStore.
+- Quand un fichier doit Ãªtre refait, le rÃ©Ã©crire entiÃ¨rement si demandÃ©.
+- Ne pas simplifier en retirant des capacitÃ©s utiles.
+
+## SÃ©curitÃ© d'exÃ©cution
+- Demander confirmation avant toute action destructive ou trÃ¨s large.
+- Demander confirmation avant suppression de fichiers.
+- Demander confirmation avant migration risquÃ©e.
+- Ne jamais lancer d'action hors du repo sans demande explicite.
+
+## ManiÃ¨re de rÃ©pondre
+- ÃŠtre concret.
+- ÃŠtre prÃ©cis.
+- Ne pas faire de longs discours.
+- Expliquer ce qui a Ã©tÃ© modifiÃ©.
+- Signaler clairement les hypothÃ¨ses.
+- S'arrÃªter strictement au scope demandÃ©.
+
+===== FILE: components.json =====
+
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/app/globals.css",
+    "baseColor": "zinc",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "registries": {}
+}
+
+
+===== FILE: docs/OPS_AUTONOMIE_PIERRE.md =====
+
+# OPS â€” Autonomie Pierre (Queue + Tick + Execute)
+
+## Objectif
+- enqueue -> insÃ¨re une tÃ¢che dans `pierre_queue`
+- tick -> prend les tÃ¢ches `queued` arrivÃ©es Ã  Ã©chÃ©ance, lock, appelle `/api/pierre/execute`
+- execute -> fait lâ€™action (Make / doc / email / hris)
+- la tÃ¢che passe `done` ou repart `queued` avec retry
+
+---
+
+## PrÃ©-requis (DB)
+Table: public.pierre_queue
+Champs attendus (minimum):
+- id uuid
+- client_id text
+- action text NOT NULL
+- payload jsonb
+- status text (queued|processing|done|dead)
+- run_at timestamptz
+- attempts int
+- locked_at timestamptz
+- lock_token text
+- last_error text
+- created_at timestamptz
+- updated_at timestamptz
+
+Table: public.agent_configs
+- doit contenir une ligne (client_id, agent_key='pierre')
+- company_name est NOT NULL => toujours remplir company_name
+
+Contrainte unique obligatoire:
+- UNIQUE(client_id, agent_key)
+
+---
+
+## ENV (local + vercel)
+NEXT_PUBLIC_SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+ROUTER_HMAC_SECRET
+CRON_SECRET
+MAKE_EMAIL_WEBHOOK_URL
+MAKE_DOC_WEBHOOK_URL
+MAKE_INTEGRATIONS_WEBHOOK_URL
+
+---
+
+## Tests rapides (local)
+1) npm run dev
+2) enqueue doc
+   node --env-file .env.local scripts/pierre-enqueue.mjs doc
+3) tick
+   node --env-file .env.local scripts/pierre-tick.mjs
+
+Attendu:
+- done > 0
+- failed = 0
+
+---
+
+## Tests rapides (prod)
+Enqueue depuis ton PC:
+node --env-file .env.local scripts/pierre-enqueue.mjs doc --prod
+
+Tick:
+https://clonestore.pro/api/pierre/tick?secret=CRON_SECRET&limit=5
+
+---
+
+## Si Ã§a casse
+- 403 FORBIDDEN => agent_configs nâ€™a pas la ligne pierre pour ce client
+- 500 DB_ERROR => colonnes manquantes / trigger cassÃ© / schema cache supabase
+- 405 sur tick => mauvaise mÃ©thode (tick est en GET)
+
+
+===== FILE: eslint.config.mjs =====
+
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import reactHooks from "eslint-plugin-react-hooks";
+import next from "@next/eslint-plugin-next";
+
+export default [
+  { ignores: [".next/**", "node_modules/**", "dist/**", "out/**"] },
+
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+
+  {
+    files: ["**/*.{js,jsx,ts,tsx}"],
+    plugins: {
+      "react-hooks": reactHooks,
+      "@next/next": next,
+    },
+    rules: {
+      ...next.configs.recommended.rules,
+
+      // âœ… Hooks OK
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+
+      // âœ… STOP les blocages build
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+
+  // configs node
+  {
+    files: ["**/*.config.{js,cjs,mjs}", "next.config.{js,cjs,mjs}"],
+    rules: { "no-undef": "off" },
+  },
+];
+
+
+
+
+===== FILE: next.config.ts =====
+
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+};
+
+export default nextConfig;
+
+
+
+===== FILE: next-env.d.ts =====
+
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+/// <reference path="./.next/types/routes.d.ts" />
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+
+===== FILE: on =====
+
+[1mdiff --git a/public/brand/clonestore.png b/public/brand/clonestore.png[m
+[1mindex e69de29..7f2ca69 100644[m
+[1m--- a/public/brand/clonestore.png[m
+[1m+++ b/public/brand/clonestore.png[m
+[36m@@ -0,0 +1 @@[m
+[32m+[m[32mc:\Users\homme\Pictures\clonestore.png.png[m
+[1mdiff --git a/src/app/loading.tsx b/src/app/loading.tsx[m
+[1mindex 1f67835..8a3faf6 100644[m
+[1m--- a/src/app/loading.tsx[m
+[1m+++ b/src/app/loading.tsx[m
+[36m@@ -5,3 +5,4 @@[m [mexport default function Loading() {[m
+     </div>[m
+   );[m
+ }[m
+[41m+[m
+[1mdiff --git a/src/components/ui/Header.tsx b/src/components/ui/Header.tsx[m
+[1mindex e69de29..292e415 100644[m
+[1m--- a/src/components/ui/Header.tsx[m
+[1m+++ b/src/components/ui/Header.tsx[m
+[36m@@ -0,0 +1,14 @@[m
+[32m+[m[32mimport Mark from "./Mark";[m
+[32m+[m
+[32m+[m[32mexport default function Header() {[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <header className="w-full border-b">[m
+[32m+[m[32m      <div className="mx-auto max-w-6xl h-14 px-4 flex items-center justify-between">[m
+[32m+[m[32m        <Mark />[m
+[32m+[m[32m        <a href="/shop" className="px-4 py-2 rounded-xl bg-black text-white">[m
+[32m+[m[32m          Boutique[m
+[32m+[m[32m        </a>[m
+[32m+[m[32m      </div>[m
+[32m+[m[32m    </header>[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+[1mdiff --git a/src/components/ui/Mark.tsx b/src/components/ui/Mark.tsx[m
+[1mindex b3c1efb..e119852 100644[m
+[1m--- a/src/components/ui/Mark.tsx[m
+[1m+++ b/src/components/ui/Mark.tsx[m
+[36m@@ -1,11 +1,19 @@[m
+ import Image from "next/image";[m
+ import Link from "next/link";[m
+ [m
+[31m-export default function Logo() {[m
+[32m+[m[32mexport default function Mark() {[m
+   return ([m
+     <Link href="/" className="flex items-center gap-2">[m
+[31m-      <Image src="/brand/icon_master_1024.png" alt="CloneStore" width={28} height={28} priority />[m
+[32m+[m[32m      <Image[m
+[32m+[m[32m        src="/brand/icon_master_1024.png"[m
+[32m+[m[32m        alt="CloneStore"[m
+[32m+[m[32m        width={28}[m
+[32m+[m[32m        height={28}[m
+[32m+[m[32m        priority[m
+[32m+[m[32m      />[m
+       <span className="hidden sm:block font-semibold">CloneStore</span>[m
+     </Link>[m
+   );[m
+ }[m
+[41m+[m
+[41m+[m
+
+
+===== FILE: package.json =====
+
+{
+  "name": "clonestore",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.76.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dotenv": "^17.2.3",
+    "framer-motion": "^12.35.2",
+    "lucide-react": "^0.546.0",
+    "next": "15.5.9",
+    "openai": "^6.22.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "stripe": "^20.0.0",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.6",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "tailwindcss": "^4",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^5",
+    "typescript-eslint": "^8.52.0",
+    "vitest": "^4.1.0"
+  }
+}
+
+
+

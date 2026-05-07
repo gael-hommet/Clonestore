@@ -1,0 +1,233 @@
+ck: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-[22px] border border-[#eadfce] bg-[#fffdf8] p-4 text-left transition hover:bg-white"
+    >
+      <p className="text-sm font-semibold text-[#2d2319]">{title}</p>
+      <p className="mt-2 line-clamp-4 text-sm leading-6 text-[#746352]">{text}</p>
+      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#9a856f]">
+        Utiliser ce brief
+      </p>
+    </button>
+  );
+}
+
+function StudioSwitcher({
+  active,
+  icon: Icon,
+  title,
+  description,
+  onClick,
+}: {
+  active: boolean;
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-start gap-3 rounded-[22px] border px-4 py-4 text-left transition",
+        active
+          ? "border-[#d9c1a4] bg-[#fff2e3]"
+          : "border-[#eadfce] bg-[#fffdf9] hover:bg-white"
+      )}
+    >
+      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f4ebdf] text-[#6d573d]">
+        <Icon className="h-4.5 w-4.5" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-[#2b2118]">{title}</p>
+        <p className="mt-1 text-xs leading-5 text-[#7b6956]">{description}</p>
+      </div>
+    </button>
+  );
+}
+
+function MenuAction({
+  title,
+  description,
+  onClick,
+}: {
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-[18px] border border-[#eadfce] bg-white px-4 py-3 text-left transition hover:bg-[#fffaf3]"
+    >
+      <p className="text-sm font-semibold text-[#2d2319]">{title}</p>
+      <p className="mt-1 text-xs text-[#7b6956]">{description}</p>
+    </button>
+  );
+}
+
+function TopTab({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition",
+        active
+          ? "border-[#d9c1a4] bg-[#fff4e6] text-[#5a4427]"
+          : "border-[#eadfce] bg-[#fffdf9] text-[#6b5a49] hover:bg-white"
+      )}
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </button>
+  );
+}
+
+function ArtifactRow({
+  active,
+  title,
+  subtitle,
+  status,
+  onClick,
+}: {
+  active?: boolean;
+  title: string;
+  subtitle: string;
+  status: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-start justify-between gap-3 rounded-[18px] border px-4 py-3 text-left transition",
+        active
+          ? "border-[#d9c1a4] bg-[#fff5e8]"
+          : "border-[#eadfce] bg-[#fffdf9] hover:bg-white"
+      )}
+    >
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold text-[#2b2118]">{title}</p>
+        <p className="mt-1 truncate text-xs text-[#84715e]">{subtitle}</p>
+      </div>
+      <div className="flex-none">
+        <span className="rounded-full border border-[#eadbc9] bg-white px-2.5 py-1 text-[11px] font-medium text-[#735f4b]">
+          {status}
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function EmptyState({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-[20px] border border-dashed border-[#e6dacb] bg-[#fffdf9] px-4 py-8 text-center">
+      <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f4ebdf] text-[#6d573d]">
+        <Icon className="h-5 w-5" />
+      </div>
+      <p className="mt-4 text-sm font-semibold text-[#2e241a]">{title}</p>
+      <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#7a6957]">{description}</p>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  children,
+  action,
+}: {
+  label: string;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className="text-sm font-medium text-[#382d22]">{label}</span>
+        {action}
+      </div>
+      {children}
+    </label>
+  );
+}
+
+function VoiceButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-2 rounded-full border border-[#e7dac8] bg-white px-3 py-1.5 text-xs font-medium text-[#5c4d40]"
+    >
+      <Mic className="h-3.5 w-3.5" />
+      Dictée
+    </button>
+  );
+}
+
+function InfoCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[18px] border border-[#eadfce] bg-white px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a856f]">{label}</p>
+      <p className="mt-1 text-sm leading-6 text-[#2d2319]">{value}</p>
+    </div>
+  );
+}
+
+function CommandBlock({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-[22px] border border-[#eadfce] bg-[#fffaf3] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9a856f]">{title}</p>
+      <div className="mt-3 space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function CommandRow({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center justify-between gap-3 rounded-[16px] border border-[#eadfce] bg-white px-4 py-3 text-left text-sm font-medium text-[#2d2319] transition hover:bg-[#fffdf8]"
+    >
+      <span>{label}</span>
+      <ChevronDown className="h-4 w-4 rotate-[-90deg] text-[#8c7966]" />
+    </button>
+  );
+}

@@ -1,0 +1,589 @@
+===== FILE: src/app/checkout/page.tsx =====
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  CheckCircle2,
+  CreditCard,
+  FileCheck2,
+  Loader2,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+
+type CheckoutAgent = {
+  slug: string;
+  name: string;
+  role: string;
+  price?: string;
+  available: boolean;
+  description: string;
+  bullets: string[];
+};
+
+const AGENTS: Record<string, CheckoutAgent> = {
+  pierre: {
+    slug: "pierre",
+    name: "Pierre",
+    role: "Poste RH opérationnel automatisé",
+    price: "449€/mois",
+    available: true,
+    description:
+      "Pierre absorbe une part massive du travail RH opérationnel : documents, emails, relances, onboarding, continuité, validations et traçabilité.",
+    bullets: [
+      "Mission libre RH",
+      "Documents et emails premium",
+      "Relances et continuité",
+      "Contrôle humain sur le sensible",
+    ],
+  },
+  clara: {
+    slug: "clara",
+    name: "Clara",
+    role: "Recrutement automatisé",
+    available: false,
+    description:
+      "Pipeline candidats, coordination recrutement, shortlists et continuité de suivi.",
+    bullets: ["Bientôt disponible"],
+  },
+  emma: {
+    slug: "emma",
+    name: "Emma",
+    role: "Support & communication",
+    available: false,
+    description:
+      "Réponses, suivi, communication et continuité relationnelle.",
+    bullets: ["Bientôt disponible"],
+  },
+  adrien: {
+    slug: "adrien",
+    name: "Adrien",
+    role: "Commandes & opérations",
+    available: false,
+    description:
+      "Traitement, suivi et continuité des commandes et opérations.",
+    bullets: ["Bientôt disponible"],
+  },
+};
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-3xl space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+        {kicker}
+      </p>
+      <h2 className="cs-heading text-2xl md:text-3xl">{title}</h2>
+      <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-account-accent)]" />
+          <span className="text-sm text-[var(--cs-ink-4)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function CheckoutPage() {
+  const searchParams = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const agentSlug = searchParams.get("agent")?.toLowerCase() || "pierre";
+
+  const agent = useMemo(() => {
+    return AGENTS[agentSlug] ?? AGENTS.pierre;
+  }, [agentSlug]);
+
+  async function handleCheckout() {
+    if (!agent.available || isLoading) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          agent_slug: agent.slug,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            data?.message ||
+            "Impossible de démarrer le paiement pour le moment.",
+        );
+      }
+
+      const checkoutUrl =
+        data?.url || data?.checkout_url || data?.sessionUrl || null;
+
+      if (!checkoutUrl) {
+        throw new Error("Aucune URL de paiement n’a été renvoyée.");
+      }
+
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible de démarrer le paiement pour le moment.",
+      );
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        {/* HERO */}
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.03fr_0.97fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <CreditCard className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Checkout CloneStore</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Entrée propre vers l’activation</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Finaliser l’entrée dans CloneStore
+                  <br />
+                  <span className="cs-gradient-text">
+                    avec une expérience simple et premium.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Cette étape doit être claire, rassurante et sans friction.
+                  On confirme le bon employé, on comprend ce qu’on achète, puis
+                  on bascule proprement vers l’activation et le cockpit.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href={`/agents/${agent.slug === "pierre" ? "pierre" : ""}`.replace(/\/$/, "")}
+                  label={`Retour à ${agent.name}`}
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents"
+                  label="Retour boutique"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <InfoCard
+                  title="Choix clair"
+                  text="Le client doit voir immédiatement quel employé il est en train d’activer."
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Confiance"
+                  text="Le ton, la clarté et la structure doivent rassurer avant l’achat."
+                  icon={<Lock className="h-4 w-4" />}
+                  tone="blue"
+                />
+                <InfoCard
+                  title="Suite logique"
+                  text="Après paiement, l’entrée doit continuer vers l’activation puis le cockpit."
+                  icon={<Waypoints className="h-4 w-4" />}
+                  tone="green"
+                />
+              </div>
+            </div>
+
+            {/* SUMMARY */}
+            <div className="cs-panel">
+              <div className="relative space-y-6">
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--cs-ink-4)]">
+                    Résumé de l’activation
+                  </p>
+                  <h2 className="cs-heading text-2xl">{agent.name}</h2>
+                  <p className="text-sm text-[var(--cs-ink-4)]">{agent.role}</p>
+                </div>
+
+                <div className="cs-card">
+                  <div className="relative space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                          Employé sélectionné
+                        </p>
+                        <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
+                          {agent.description}
+                        </p>
+                      </div>
+
+                      <span
+                        className={
+                          agent.available
+                            ? "cs-status cs-status--success"
+                            : "cs-status cs-status--warn"
+                        }
+                      >
+                        {agent.available ? "Disponible" : "En construction"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="cs-card">
+                  <div className="relative space-y-3">
+                    <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                      Prix
+                    </p>
+
+                    {agent.price ? (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                          {agent.price}
+                        </span>
+                        <span className="text-xs text-[var(--cs-ink-4)]">
+                          prix fondateur actuel
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-[var(--cs-ink-4)]">
+                        Prix non affiché pour le moment.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="cs-card">
+                  <div className="relative space-y-3">
+                    <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                      Inclus
+                    </p>
+                    <BulletList items={agent.bullets} />
+                  </div>
+                </div>
+
+                {error ? (
+                  <div className="rounded-[1.2rem] border border-[color:rgba(161,75,83,0.22)] bg-[rgba(161,75,83,0.08)] px-4 py-3 text-sm text-[var(--cs-danger)]">
+                    {error}
+                  </div>
+                ) : null}
+
+                {agent.available ? (
+                  <button
+                    type="button"
+                    onClick={handleCheckout}
+                    disabled={isLoading}
+                    className={[
+                      "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+                      "border",
+                      isLoading
+                        ? "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.62),rgba(255,249,242,0.42))] text-[var(--cs-ink-4)] opacity-80"
+                        : "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))] text-white shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)] hover:-translate-y-0.5",
+                    ].join(" ")}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Redirection vers le paiement…</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Continuer vers le paiement</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <div className="cs-card">
+                    <div className="relative space-y-3">
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                        Employé pas encore ouvert au lancement
+                      </p>
+                      <p className="text-sm text-[var(--cs-ink-4)]">
+                        Cet employé est visible pour montrer la profondeur de
+                        CloneStore, mais l’activation publique n’est pas encore
+                        ouverte.
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        <ActionButton
+                          href="/agents/pierre"
+                          label="Commencer par Pierre"
+                          primary
+                          icon={<ArrowRight className="h-4 w-4" />}
+                        />
+                        <ActionButton
+                          href="/questions"
+                          label="Demander conseil"
+                          icon={<Bot className="h-4 w-4" />}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-xs text-[var(--cs-ink-4)]">
+                  Si ton API checkout attend un autre nom de champ que
+                  <span className="font-mono text-[var(--cs-ink-3)]"> agent_slug</span>,
+                  ajuste uniquement la ligne du body JSON.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* WHY THIS PAGE MATTERS */}
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Pourquoi cette page compte"
+              title="Le paiement ne doit jamais ressembler à une transition bricolée."
+              text="Même cette étape doit rester CloneStore : claire, calme, contrôlée, premium et compréhensible pour quelqu’un qui n’aime pas l’informatique."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Résumé net"
+                text="Le client doit voir ce qu’il active, ce qu’il paie et pourquoi."
+                icon={<CreditCard className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Projection"
+                text="Il doit déjà sentir la suite : activation, cockpit, personnalisation, usage."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Réassurance"
+                text="Le ton, la structure et l’assistant doivent supprimer le doute inutile."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Après paiement"
+              title="Le client ne doit pas tomber dans le vide."
+              text="Une fois le paiement terminé, on doit l’emmener vers une vraie suite logique : succès, activation, puis cockpit."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Activation"
+                text="Le compte et l’accès doivent être cadrés proprement après achat."
+                icon={<Sparkles className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Onboarding"
+                text="Empreinte Entreprise et premières étapes doivent être limpides."
+                icon={<BriefcaseBusiness className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Cockpit"
+                text="L’arrivée finale doit se faire dans l’espace où le client agit réellement."
+                icon={<FileCheck2 className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+===== FILE: src/app/clonestore/[slug]/page.tsx =====
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
+import {
+  CLONESTORE_SECTIONS,
+  getCloneStoreSectionById,
+  type CloneStoreSection,
+} from "@/components/site/clonestore-sections";
+
+export function generateStaticParams() {
+  return CLONESTORE_SECTIONS.map((section: CloneStoreSection) => ({
+    slug: section.id,
+  }));
+}
+
+export default async function CloneStoreDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const section = getCloneStoreSectionById(slug);
+
+  if (!section) {
+    notFound();
+  }
+
+  return (
+    <div className="cs-page">
+      <div className="cs-shell-narrow">
+        <div className="space-y-5">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-[0.84rem] font-medium text-[var(--cs-ink-2)] cs-glass"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Retour à l’accueil
+          </Link>
+
+          <section className="cs-command-surface">
+            <div className="space-y-4">
+              <p className="cs-eyebrow">{section.label}</p>
+
+              <h1 className="cs-display text-[clamp(1.95rem,3.1vw,3.5rem)] leading-[0.98]">
+                {section.title}
+              </h1>
+
+              <p className="max-w-4xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
+                {section.intro}
+              </p>
+            </div>
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {section.blocks.map((block) => (
+              <article key={block.title} className="cs-card">
+                <div className="space-y-3">
+                  <h2 className="text-[1rem] font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                    {block.title}
+                  </h2>
+                  <p className="text-[0.88rem] leading-7 text-[var(--cs-ink-3)]">
+                    {block.text}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}

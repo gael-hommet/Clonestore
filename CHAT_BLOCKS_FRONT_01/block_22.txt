@@ -1,0 +1,498 @@
+===== FILE: src/app/profile/_ui/BillingCard.tsx =====
+import Link from "next/link";
+import { CreditCard } from "lucide-react";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+type BillingLineObject = {
+  label?: ReactNode;
+  value?: ReactNode;
+};
+
+type BillingLine = ReactNode | BillingLineObject;
+
+export type BillingCardProps = {
+  title?: ReactNode;
+  description?: ReactNode;
+  price?: ReactNode;
+  icon?: ReactNode;
+  lines?: BillingLine[];
+  ctaLabel?: ReactNode;
+  ctaHref?: string;
+  footer?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+  [key: string]: unknown;
+};
+
+function isBillingLineObject(line: BillingLine): line is BillingLineObject {
+  return typeof line === "object" && line !== null && !Array.isArray(line) && ("label" in line || "value" in line);
+}
+
+function renderLine(line: BillingLine, index: number) {
+  if (isBillingLineObject(line)) {
+    return (
+      <div
+        key={index}
+        className="flex items-center justify-between gap-3 rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3"
+      >
+        <span className="text-sm text-[var(--cs-ink-4)]">{line.label}</span>
+        <span className="text-sm font-medium text-[var(--cs-ink-2)]">{line.value}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      key={index}
+      className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3 text-sm text-[var(--cs-ink-4)]"
+    >
+      {line}
+    </div>
+  );
+}
+
+export default function BillingCard({
+  title = "Facturation",
+  description = "Informations de facturation et d’abonnement.",
+  price,
+  icon,
+  lines,
+  ctaLabel,
+  ctaHref,
+  footer,
+  children,
+  className,
+}: BillingCardProps) {
+  return (
+    <section className={cn("cs-card h-full", className)}>
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-[var(--cs-success)]">
+            {icon ?? <CreditCard className="h-4 w-4" />}
+            <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+              {title}
+            </span>
+          </div>
+
+          {price ? (
+            <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+              {price}
+            </p>
+          ) : null}
+
+          <p className="text-sm text-[var(--cs-ink-4)]">{description}</p>
+
+          {lines && lines.length > 0 ? (
+            <div className="grid gap-3">{lines.map(renderLine)}</div>
+          ) : null}
+
+          {children ? <div>{children}</div> : null}
+        </div>
+
+        {ctaHref && ctaLabel ? (
+          <Link
+            href={ctaHref}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/72 px-4 text-sm font-medium text-[var(--cs-ink-2)] transition hover:-translate-y-0.5 hover:bg-white/92"
+          >
+            {ctaLabel}
+          </Link>
+        ) : footer ? (
+          <div>{footer}</div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+===== FILE: src/app/questions/page.tsx =====
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  BrainCircuit,
+  BriefcaseBusiness,
+  FileCheck2,
+  LifeBuoy,
+  MessageSquareMore,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)] border",
+        primary
+          ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))] text-white shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)] hover:-translate-y-0.5"
+          : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))] text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/92",
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+  right,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="max-w-3xl space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+          {kicker}
+        </p>
+        <h2 className="cs-heading text-2xl md:text-4xl">{title}</h2>
+        <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+      </div>
+      {right ? <div className="shrink-0">{right}</div> : null}
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function QuestionCard({
+  question,
+  answer,
+}: {
+  question: string;
+  answer: string;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative space-y-3">
+        <p className="text-sm font-semibold text-[var(--cs-ink-1)]">{question}</p>
+        <p className="text-sm text-[var(--cs-ink-4)]">{answer}</p>
+      </div>
+    </div>
+  );
+}
+
+const faq = [
+  {
+    question: "À quoi sert cette page ?",
+    answer:
+      "Elle sert à orienter rapidement le client, expliquer le rôle de l’assistant CloneStore, et éviter qu’il se perde entre support, cockpit, boutique et configuration.",
+  },
+  {
+    question: "Le chatbot CloneStore sert à quoi exactement ?",
+    answer:
+      "Il sert à répondre aux questions sur CloneStore, orienter vers le bon espace, clarifier le fonctionnement des employés IA et aider à débloquer un parcours.",
+  },
+  {
+    question: "Est-ce que je dois toujours passer par le support humain ?",
+    answer:
+      "Non. Le but est justement que l’assistant couvre une grande partie des questions simples, récurrentes et de navigation, pour éviter au client de perdre du temps.",
+  },
+  {
+    question: "Où aller si je veux utiliser Pierre ?",
+    answer:
+      "Le chemin logique est : Mon compte ou Mes employés IA, puis Pierre, puis son cockpit d’usage ou sa configuration selon le besoin.",
+  },
+  {
+    question: "Où aller si je veux acheter un employé IA ?",
+    answer:
+      "La boutique reste le bon point d’entrée public. Elle doit ensuite rediriger proprement vers le checkout, puis vers le cockpit après activation.",
+  },
+  {
+    question: "Cette page remplace-t-elle le cockpit ?",
+    answer:
+      "Non. Cette page oriente, rassure et débloque. Le cockpit reste le cœur du travail réel et du pilotage du système.",
+  },
+];
+
+export default function QuestionsPage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.03fr_0.97fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <LifeBuoy className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Questions & orientation</span>
+                </span>
+                <span className="cs-pill">
+                  <Bot className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Assistant CloneStore</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Une page pour comprendre,
+                  <br />
+                  <span className="cs-gradient-text">
+                    être orienté et débloquer rapidement.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Cette page ne doit pas être un simple “contact”. Elle doit
+                  servir à guider le client, expliquer le rôle du chatbot
+                  CloneStore, et éviter qu’il perde du temps à chercher où aller
+                  ou comment avancer.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/profile"
+                  label="Aller au cockpit"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents"
+                  label="Voir la boutique"
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents/pierre"
+                  label="Voir Pierre"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <InfoCard
+                title="Orientation"
+                text="Le client doit comprendre immédiatement où aller selon son besoin."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Assistant"
+                text="Le chatbot doit résoudre un grand volume de questions simples et récurrentes."
+                icon={<Bot className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Confiance"
+                text="Le support doit rassurer sans créer une sensation de produit fragile."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+              <InfoCard
+                title="Cohérence"
+                text="Cette page doit renvoyer vers le bon espace sans casser le parcours."
+                icon={<BrainCircuit className="h-4 w-4" />}
+                tone="rose"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Le rôle du chatbot CloneStore"
+            title="Un assistant d’orientation, d’explication et de déblocage"
+            text="Le chatbot CloneStore n’est pas un gadget. Il doit aider à comprendre le système, répondre aux questions fréquentes et envoyer rapidement le client vers la bonne action."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard
+              title="Comprendre CloneStore"
+              text="Expliquer les employés IA, la logique du système et la valeur du produit."
+              icon={<BrainCircuit className="h-4 w-4" />}
+              tone="violet"
+            />
+            <InfoCard
+              title="Orienter"
+              text="Envoyer le client vers la boutique, le cockpit, Pierre ou la configuration."
+              icon={<Waypoints className="h-4 w-4" />}
+              tone="blue"
+            />
+            <InfoCard
+              title="Débloquer"
+              text="Répondre aux hésitations simples sans forcer un support humain immédiat."
+              icon={<MessageSquareMore className="h-4 w-4" />}
+              tone="green"
+            />
+            <InfoCard
+              title="Rassurer"
+              text="Donner une impression de produit structuré, pas de SaaS fragile."
+              icon={<ShieldCheck className="h-4 w-4" />}
+              tone="rose"
+            />
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Questions fréquentes"
+            title="Ce que le client doit pouvoir comprendre très vite"
+            text="Cette page doit absorber beaucoup de questions naturelles sans devenir confuse."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {faq.map((item) => (
+              <QuestionCard
+                key={item.question}
+                question={item.question}
+                answer={item.answer}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Quand utiliser cette page"
+              title="Le bon usage de Questions / Support"
+              text="Elle doit servir avant, pendant et après l’entrée dans CloneStore."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Avant achat"
+                text="Comprendre ce que fait Pierre, comment fonctionne CloneStore, et quel espace visiter."
+                icon={<BriefcaseBusiness className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Pendant l’activation"
+                text="Débloquer une hésitation ou clarifier une étape sans sortir du parcours."
+                icon={<Sparkles className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Après entrée"
+                text="Aider à retrouver rapidement le cockpit, Pierre, la configuration ou la boutique."
+                icon={<FileCheck2 className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Direction produit"
+              title="Cette page doit réduire la friction, pas créer un tunnel support"
+              text="L’objectif n’est pas de faire attendre le client, mais de l’aider à avancer immédiatement."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Rapidité"
+                text="Le bon prochain clic doit être évident."
+                icon={<ArrowRight className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Lisibilité"
+                text="Même quelqu’un qui déteste l’informatique doit comprendre où aller."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Calme"
+                text="Le support CloneStore doit inspirer maîtrise, fluidité et confiance."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-account-accent)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                <span>CloneStore doit toujours rester compréhensible</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Besoin d’être orienté ?
+              <br />
+              Reprends le bon chemin immédiatement.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--cs-ink-4)] md:text-base">
+              Boutique, Pierre, cockpit, configuration ou assistant : cette page
+              doit toujours te renvoyer rapidement au bon endroit.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/profile"
+                label="Aller au cockpit"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/agents"
+                label="Voir la boutique"
+                icon={<BriefcaseBusiness className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

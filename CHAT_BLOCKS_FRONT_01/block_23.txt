@@ -1,0 +1,844 @@
+===== FILE: src/app/signup/page.tsx =====
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  Building2,
+  Loader2,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+  Waypoints,
+} from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-3xl space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+        {kicker}
+      </p>
+      <h2 className="cs-heading text-2xl md:text-3xl">{title}</h2>
+      <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  icon,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  autoComplete,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  type?: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  autoComplete?: string;
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-sm font-medium text-[var(--cs-ink-2)]">{label}</span>
+      <div className="flex items-center gap-3 rounded-[1.2rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.78),rgba(255,250,244,0.52))] px-4 py-3 shadow-[var(--cs-shadow-soft)]">
+        <span className="text-[var(--cs-account-accent)]">{icon}</span>
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          className="w-full border-0 bg-transparent text-sm text-[var(--cs-ink-2)] outline-none placeholder:text-[var(--cs-ink-4)]"
+        />
+      </div>
+    </label>
+  );
+}
+
+export default function SignupPage() {
+  const router = useRouter();
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const passwordChecks = useMemo(
+    () => ({
+      length: password.length >= 8,
+      upper: /[A-ZÀ-ÖØ-Ý]/.test(password),
+      lower: /[a-zà-öø-ÿ]/.test(password),
+      number: /\d/.test(password),
+      match: password.length > 0 && password === confirmPassword,
+    }),
+    [password, confirmPassword],
+  );
+
+  const canSubmit = useMemo(() => {
+    return (
+      fullName.trim().length > 0 &&
+      email.trim().length > 0 &&
+      passwordChecks.length &&
+      passwordChecks.upper &&
+      passwordChecks.lower &&
+      passwordChecks.number &&
+      passwordChecks.match &&
+      !isLoading
+    );
+  }, [fullName, email, passwordChecks, isLoading]);
+
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+
+    if (!supabase) {
+      setError(
+        "Configuration Supabase manquante. Vérifie tes variables d’environnement puis redémarre le projet.",
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const redirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/profile`
+          : undefined;
+
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: redirectTo,
+          data: {
+            full_name: fullName.trim(),
+            company_name: companyName.trim() || null,
+          },
+        },
+      });
+
+      if (signUpError) {
+        throw signUpError;
+      }
+
+      if (data.session) {
+        router.push("/profile");
+        router.refresh();
+        return;
+      }
+
+      setSuccess(
+        "Compte créé. Vérifie maintenant ton email pour confirmer ton accès puis entre dans CloneStore.",
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible de créer le compte pour le moment.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function CheckItem({
+    ok,
+    text,
+  }: {
+    ok: boolean;
+    text: string;
+  }) {
+    return (
+      <div className="flex items-center gap-2 text-xs">
+        <span
+          className={[
+            "h-2.5 w-2.5 rounded-full",
+            ok ? "bg-[var(--cs-success)]" : "bg-[rgba(20,20,22,0.16)]",
+          ].join(" ")}
+        />
+        <span className={ok ? "text-[var(--cs-ink-2)]" : "text-[var(--cs-ink-4)]"}>
+          {text}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Création de compte CloneStore</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Première entrée dans le système</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Créez votre compte
+                  <br />
+                  <span className="cs-gradient-text">
+                    et entrez dans votre futur cockpit.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  L’inscription doit rester simple, propre et rassurante. On entre
+                  ensuite dans CloneStore pour configurer l’entreprise, activer les
+                  bons employés IA et piloter le système depuis un seul endroit.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/login"
+                  label="Déjà un compte ? Se connecter"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents"
+                  label="Voir la boutique"
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard
+                  title="Entrée propre"
+                  text="Créer un compte doit être fluide, rapide et sans intimidation."
+                  icon={<UserRound className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Suite logique"
+                  text="Après création, le client entre dans un cockpit clair plutôt que dans un espace vide."
+                  icon={<Waypoints className="h-4 w-4" />}
+                  tone="blue"
+                />
+                <InfoCard
+                  title="Sécurité"
+                  text="La confiance se construit aussi dans la qualité perçue de l’accès et du cadre produit."
+                  icon={<Lock className="h-4 w-4" />}
+                  tone="green"
+                />
+                <InfoCard
+                  title="Assistance"
+                  text="L’assistant CloneStore reste disponible si quelque chose bloque ou si une question subsiste."
+                  icon={<Bot className="h-4 w-4" />}
+                  tone="rose"
+                />
+              </div>
+            </div>
+
+            <div className="cs-panel">
+              <div className="relative space-y-6">
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--cs-ink-4)]">
+                    Nouveau compte
+                  </p>
+                  <h2 className="cs-heading text-2xl">Créer un compte</h2>
+                  <p className="text-sm text-[var(--cs-ink-4)]">
+                    Quelques informations simples pour démarrer proprement.
+                  </p>
+                </div>
+
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <Field
+                    label="Nom complet"
+                    icon={<UserRound className="h-4 w-4" />}
+                    value={fullName}
+                    onChange={setFullName}
+                    placeholder="Prénom Nom"
+                    autoComplete="name"
+                  />
+
+                  <Field
+                    label="Entreprise (optionnel)"
+                    icon={<Building2 className="h-4 w-4" />}
+                    value={companyName}
+                    onChange={setCompanyName}
+                    placeholder="Nom de votre entreprise"
+                    autoComplete="organization"
+                  />
+
+                  <Field
+                    label="Adresse email"
+                    icon={<Mail className="h-4 w-4" />}
+                    value={email}
+                    onChange={setEmail}
+                    placeholder="vous@entreprise.com"
+                    autoComplete="email"
+                    type="email"
+                  />
+
+                  <Field
+                    label="Mot de passe"
+                    icon={<Lock className="h-4 w-4" />}
+                    value={password}
+                    onChange={setPassword}
+                    placeholder="Choisissez un mot de passe"
+                    autoComplete="new-password"
+                    type="password"
+                  />
+
+                  <Field
+                    label="Confirmer le mot de passe"
+                    icon={<Lock className="h-4 w-4" />}
+                    value={confirmPassword}
+                    onChange={setConfirmPassword}
+                    placeholder="Retapez le mot de passe"
+                    autoComplete="new-password"
+                    type="password"
+                  />
+
+                  <div className="cs-card">
+                    <div className="relative space-y-3">
+                      <p className="text-sm font-medium text-[var(--cs-ink-2)]">
+                        Vérifications mot de passe
+                      </p>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <CheckItem ok={passwordChecks.length} text="Au moins 8 caractères" />
+                        <CheckItem ok={passwordChecks.upper} text="Une majuscule" />
+                        <CheckItem ok={passwordChecks.lower} text="Une minuscule" />
+                        <CheckItem ok={passwordChecks.number} text="Un chiffre" />
+                        <CheckItem ok={passwordChecks.match} text="Confirmation identique" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {error ? (
+                    <div className="rounded-[1.2rem] border border-[color:rgba(161,75,83,0.22)] bg-[rgba(161,75,83,0.08)] px-4 py-3 text-sm text-[var(--cs-danger)]">
+                      {error}
+                    </div>
+                  ) : null}
+
+                  {success ? (
+                    <div className="rounded-[1.2rem] border border-[color:rgba(35,122,82,0.22)] bg-[rgba(35,122,82,0.08)] px-4 py-3 text-sm text-[var(--cs-success)]">
+                      {success}
+                    </div>
+                  ) : null}
+
+                  <button
+                    type="submit"
+                    disabled={!canSubmit}
+                    className={[
+                      "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+                      "border",
+                      canSubmit
+                        ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))] text-white shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)] hover:-translate-y-0.5"
+                        : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.62),rgba(255,249,242,0.42))] text-[var(--cs-ink-4)] opacity-70",
+                    ].join(" ")}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Création du compte…</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Créer mon compte CloneStore</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--cs-line-soft)] pt-4">
+                  <p className="text-sm text-[var(--cs-ink-4)]">
+                    Vous avez déjà un compte ?
+                  </p>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-[var(--cs-ink-2)] transition hover:text-[var(--cs-ink-1)]"
+                  >
+                    Se connecter
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Pourquoi cette page compte"
+              title="L’inscription prépare la suite de l’expérience."
+              text="Créer un compte ne doit pas être une formalité froide. C’est la première vraie entrée dans le système CloneStore."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Clarté"
+                text="Chaque champ doit être simple, compréhensible et utile."
+                icon={<Sparkles className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Confiance"
+                text="Le produit doit paraître maîtrisé dès la première interaction personnelle."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Projection"
+                text="Le client doit déjà comprendre qu’il va entrer dans un cockpit d’entreprise premium."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Ce qui vient ensuite"
+              title="Le compte est créé. Puis le vrai parcours commence."
+              text="Après l’accès, la logique CloneStore prend le relais : cockpit, employés IA, personnalisation, missions, aide et contrôle."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Cockpit"
+                text="Le point d’entrée principal pour piloter le système."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Employés IA"
+                text="Pierre et les autres postes visibles dans une logique cohérente."
+                icon={<BriefcaseBusiness className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Assistant"
+                text="Toujours disponible pour guider, expliquer et débloquer."
+                icon={<Bot className="h-4 w-4" />}
+                tone="rose"
+              />
+            </div>
+
+            <div className="mt-6">
+              <ActionButton
+                href="/questions"
+                label="Ouvrir l’assistant"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+===== FILE: src/components/site/clonestore-sections.ts =====
+export type CloneStoreSectionId =
+  | "vision"
+  | "technologies"
+  | "fonctionnement"
+  | "controle"
+  | "memoire"
+  | "securite"
+  | "deploiement";
+
+export type CloneStoreSection = {
+  id: CloneStoreSectionId;
+  label: string;
+  title: string;
+  summary: string;
+  intro: string;
+  blocks: Array<{
+    title: string;
+    text: string;
+  }>;
+};
+
+export const CLONESTORE_SECTIONS: CloneStoreSection[] = [
+  {
+    id: "vision",
+    label: "Vision",
+    title: "CloneStore est un système d’exploitation d’employés IA.",
+    summary:
+      "CloneStore ne vend pas des gadgets IA. CloneStore vend de la capacité opérationnelle, du temps rendu, de la continuité et du contrôle.",
+    intro:
+      "La logique centrale de CloneStore est simple : permettre à une entreprise de déléguer une part réelle de son travail opérationnel à des employés IA spécialisés, gouvernés et pilotables depuis une interface claire.",
+    blocks: [
+      {
+        title: "Postes automatisés",
+        text:
+          "Chaque employé CloneStore correspond à un vrai périmètre métier. L’objectif n’est pas d’ajouter un outil de plus, mais d’absorber un bloc de travail réel.",
+      },
+      {
+        title: "Temps et argent",
+        text:
+          "La promesse publique est volontairement directe : faire gagner du temps et de l’argent grâce à une exécution plus rapide, plus disciplinée et mieux suivie.",
+      },
+      {
+        title: "Produit entreprise",
+        text:
+          "CloneStore doit être perçu comme une infrastructure sérieuse, haut de gamme, conçue pour des usages concrets et pas pour des démos impressionnantes mais fragiles.",
+      },
+    ],
+  },
+  {
+    id: "technologies",
+    label: "Technologies",
+    title: "Un socle technologique lisible, visible et cohérent.",
+    summary:
+      "CloneStore repose sur des technologies nommées, compréhensibles, qui expliquent la puissance du système sans noyer le client.",
+    intro:
+      "Le produit doit rester simple à lire, mais la profondeur technologique doit être réelle. Les grandes briques visibles structurent la confiance et la compréhension.",
+    blocks: [
+      {
+        title: "CloneOS",
+        text:
+          "Le noyau opératoire invisible. Il transforme les demandes en missions, répartit les tâches, coordonne les employés et centralise les résultats.",
+      },
+      {
+        title: "CloneChat",
+        text:
+          "Le point d’entrée naturel. Il sert à demander, orienter, débloquer, comprendre et lancer des actions sans friction inutile.",
+      },
+      {
+        title: "CloneGuard, CloneTrace, CloneADN",
+        text:
+          "CloneGuard encadre, CloneTrace rend visible et CloneADN aligne le système avec l’entreprise. Ensemble, ils rendent CloneStore puissant mais gouvernable.",
+      },
+    ],
+  },
+  {
+    id: "fonctionnement",
+    label: "Comment ça marche",
+    title: "Une demande simple, un travail structuré, un résultat pilotable.",
+    summary:
+      "Le fonctionnement de CloneStore doit sembler naturel côté client, mais extrêmement structuré côté système.",
+    intro:
+      "Le client ne doit pas sentir une machinerie compliquée. Il doit juste comprendre qu’il demande, que le système agit, et que tout reste clair.",
+    blocks: [
+      {
+        title: "Entrée",
+        text:
+          "Le client passe par CloneChat, le cockpit ou un employé spécialisé. La demande peut être simple, libre et naturelle.",
+      },
+      {
+        title: "Transformation",
+        text:
+          "CloneStore comprend la demande, la transforme en mission, découpe les actions et attribue les bonnes responsabilités aux bons employés.",
+      },
+      {
+        title: "Exécution",
+        text:
+          "Les employés produisent des actions réelles : documents, emails, relances, suivis, validations, coordination et continuité.",
+      },
+    ],
+  },
+  {
+    id: "controle",
+    label: "Contrôle",
+    title: "Déléguer beaucoup, sans perdre la main.",
+    summary:
+      "CloneStore est conçu pour permettre une délégation forte tout en gardant un niveau de contrôle élevé sur les cas sensibles.",
+    intro:
+      "Le produit doit rassurer : plus d’exécution, oui, mais jamais au prix de la lisibilité ou de la gouvernance.",
+    blocks: [
+      {
+        title: "Cockpit central",
+        text:
+          "Le cockpit réunit les missions, les validations, l’historique et les accès clés. C’est le centre de pilotage du client.",
+      },
+      {
+        title: "Validations",
+        text:
+          "Les cas sensibles, ambigus ou plus risqués doivent remonter proprement. Le produit ne doit jamais donner une impression de roue libre.",
+      },
+      {
+        title: "Règles",
+        text:
+          "L’entreprise définit ses règles, ses circuits humains, ses validations et ses permissions. Le système doit les appliquer réellement.",
+      },
+    ],
+  },
+  {
+    id: "memoire",
+    label: "Mémoire & personnalisation",
+    title: "Un système qui s’aligne sur l’entreprise.",
+    summary:
+      "CloneStore doit progressivement ressembler à la manière de travailler de l’entreprise, pas à une IA générique.",
+    intro:
+      "La personnalisation n’est pas cosmétique. Elle concerne le ton, les règles, les habitudes, les circuits de validation et la logique métier.",
+    blocks: [
+      {
+        title: "CloneADN",
+        text:
+          "CloneADN contient l’identité opérationnelle de l’entreprise : ton, style, niveaux de formalité, habitudes, formulations et comportements attendus.",
+      },
+      {
+        title: "Empreinte Entreprise",
+        text:
+          "Le setup maître structure les règles, les permissions, les valideurs, les documents de référence et les préférences d’exécution.",
+      },
+      {
+        title: "Apprentissage progressif",
+        text:
+          "Plus CloneStore travaille dans l’entreprise, plus il doit devenir précis, cohérent et naturel, sans cesser d’être gouverné.",
+      },
+    ],
+  },
+  {
+    id: "securite",
+    label: "Sécurité & traçabilité",
+    title: "Un système puissant doit rester traçable.",
+    summary:
+      "La confiance vient de la lisibilité : savoir ce qui s’est passé, pourquoi, quand, et dans quel cadre.",
+    intro:
+      "CloneStore ne doit pas être perçu comme une boîte noire. Il doit produire une exécution claire, vérifiable et auditabile.",
+    blocks: [
+      {
+        title: "CloneTrace",
+        text:
+          "CloneTrace conserve les missions, tâches, validations, blocages, documents, emails et changements d’état dans un historique propre.",
+      },
+      {
+        title: "Isolation et gouvernance",
+        text:
+          "Les données, règles et actions doivent rester strictement rattachées à l’entreprise, avec des permissions et des niveaux d’accès cohérents.",
+      },
+      {
+        title: "Lisibilité",
+        text:
+          "Le client doit pouvoir reprendre une mission, comprendre une décision, retrouver un livrable et revoir les actions sans confusion.",
+      },
+    ],
+  },
+  {
+    id: "deploiement",
+    label: "Déploiement & usage",
+    title: "Un produit conçu pour être réellement utilisé.",
+    summary:
+      "Le déploiement CloneStore doit être simple côté client, tout en préparant un système puissant et évolutif.",
+    intro:
+      "Le produit doit être facile à adopter, simple à comprendre et immédiatement utile, sans dépendre d’un parcours compliqué.",
+    blocks: [
+      {
+        title: "Boutique",
+        text:
+          "La boutique présente les employés IA disponibles ou en construction, avec une lecture claire de la gamme et des périmètres.",
+      },
+      {
+        title: "Mes employés",
+        text:
+          "Cette zone correspond au cockpit d’usage réel. C’est là que l’entreprise fait travailler CloneStore et suit les actions.",
+      },
+      {
+        title: "Mon espace",
+        text:
+          "Mon espace réunit le compte, l’empreinte, les statistiques, les abonnements, la personnalisation et les réglages globaux.",
+      },
+    ],
+  },
+];
+
+export function getCloneStoreSectionById(id: string) {
+  return CLONESTORE_SECTIONS.find((section) => section.id === id);
+}
+===== FILE: src/components/site/site-header.tsx =====
+import Link from "next/link";
+import TopbarAuthSlot from "./topbar-auth-slot";
+
+const navItems = [
+  { href: "/", label: "Accueil" },
+  { href: "/agents", label: "Boutique" },
+  { href: "/profile/agents", label: "Mes employés" },
+  { href: "/profile", label: "Mon espace" },
+];
+
+export default function SiteHeader() {
+  return (
+    <header className="cs-header">
+      <div className="cs-shell">
+        <div className="flex min-h-[84px] items-center justify-between gap-4">
+          <Link href="/" className="cs-mark-wrap shrink-0">
+            <span className="cs-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 56" className="h-[54px] w-[22px]" fill="none">
+                <rect
+                  x="3"
+                  y="3"
+                  width="18"
+                  height="50"
+                  rx="9"
+                  stroke="url(#markGradient)"
+                  strokeWidth="3.5"
+                />
+                <defs>
+                  <linearGradient id="markGradient" x1="3" y1="3" x2="21" y2="53">
+                    <stop stopColor="color-mix(in srgb, var(--cs-violet) 84%, white 16%)" />
+                    <stop
+                      offset="1"
+                      stopColor="color-mix(in srgb, var(--cs-violet-2) 88%, white 12%)"
+                    />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
+
+            <span className="cs-brand-text">CloneStore</span>
+          </Link>
+
+          <nav className="hidden lg:flex items-center justify-center flex-1">
+            <div className="cs-nav-rail">
+              {navItems.map((item) => (
+                <Link key={item.href} href={item.href} className="cs-nav-link">
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href="/assistant"
+              className="hidden sm:inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-medium text-[var(--cs-ink-1)] cs-glass hover:opacity-95"
+            >
+              CloneChat
+            </Link>
+
+            <TopbarAuthSlot />
+          </div>
+        </div>
+
+        <div className="pb-3 lg:hidden">
+          <div className="cs-nav-rail flex w-full overflow-x-auto">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="cs-nav-link whitespace-nowrap"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}

@@ -1,10 +1,15 @@
 import "./globals.css";
-import Link from "next/link";
+import "@/styles/liquid-glass.css";
+
 import type { Metadata } from "next";
+import Link from "next/link";
+import SiteHeader from "../components/site/site-header";
+import { LiquidGlassFilters } from "@/components/ui/LiquidGlassFilters";
 
 export const metadata: Metadata = {
   title: "CloneStore",
-  description: "Vos employés IA, clé en main.",
+  description:
+    "CloneStore â€” gagnez du temps et de lâ€™argent avec des employÃ©s IA premium pour entreprises.",
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
@@ -17,70 +22,90 @@ const ORG_JSON_LD = {
   name: "CloneStore",
   url: "https://clonestore.pro",
   logo: "https://clonestore.pro/icon-512.png",
+  description:
+    "CloneStore aide les entreprises Ã  gagner du temps et de lâ€™argent avec des employÃ©s IA premium.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
-        {/* Favicon + iOS */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-
-        {/* Logo “officiel” pour Google */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
         />
       </head>
 
-      <body className="min-h-screen bg-background text-foreground antialiased">
-        {/* Backdrop global subtil */}
-        <div className="cs-bg" aria-hidden="true" />
+      <body>
+        <LiquidGlassFilters />
 
-        {/* HEADER */}
-        <header className="sticky top-0 z-50 border-b bg-background/75 backdrop-blur">
-          <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-            <Link
-              href="/"
-              className="group inline-flex items-center gap-3 text-base font-semibold tracking-tight hover:opacity-90"
-            >
-              <span className="cs-mark" aria-hidden="true" />
-              <span>CloneStore</span>
-            </Link>
+        <div className="cs-backdrop" aria-hidden="true">
+          <div className="cs-backdrop__halo cs-backdrop__halo--a" />
+          <div className="cs-backdrop__halo cs-backdrop__halo--b" />
+          <div className="cs-backdrop__halo cs-backdrop__halo--c" />
+          <div className="cs-backdrop__arc" />
+          <div className="cs-backdrop__film" />
+        </div>
 
-            <div className="flex items-center gap-6 text-sm">
-              <Link href="/agents" className="hover:opacity-80">
-                Boutique
-              </Link>
-              <Link href="/profile/agents" className="hover:opacity-80">
-                Mes clones
-              </Link>
-              <Link href="/profile" className="hover:opacity-80">
-                Mon compte
-              </Link>
+        <div className="cs-vignette" aria-hidden="true" />
 
-              <Link
-                href="/assistant"
-                className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full border bg-card text-xs font-semibold shadow-soft hover:bg-muted transition"
-                aria-label="Questions"
-                title="Questions"
-              >
-                ?
-              </Link>
-            </div>
-          </nav>
-        </header>
+        <SiteHeader />
 
-        <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
+        <div className="cs-main">{children}</div>
 
-        <footer className="border-t py-8 text-xs">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 opacity-70">
-            <span>© {new Date().getFullYear()} CloneStore</span>
-            <div className="flex items-center gap-4">
-              <Link href="/legal/confidentialite" className="hover:opacity-80">
-                Politique de confidentialité
-              </Link>
+        <footer className="cs-footer">
+          <div className="cs-shell">
+            <div className="flex flex-col gap-3 py-6 text-sm text-[var(--cs-ink-3)] md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-3">
+                <span className="cs-mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 56" className="h-[38px] w-[16px]" fill="none">
+                    <rect
+                      x="3"
+                      y="3"
+                      width="18"
+                      height="50"
+                      rx="9"
+                      stroke="url(#footerMarkGradient)"
+                      strokeWidth="3.5"
+                    />
+                    <defs>
+                      <linearGradient
+                        id="footerMarkGradient"
+                        x1="3"
+                        y1="3"
+                        x2="21"
+                        y2="53"
+                      >
+                        <stop stopColor="#7E97FF" />
+                        <stop offset="1" stopColor="#8E7AFF" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </span>
+
+                <p>
+                  Â© {new Date().getFullYear()} CloneStore â€” gagnez du temps et de
+                  l&apos;argent.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-5">
+                <Link
+                  href="/legal/confidentialite"
+                  className="hover:text-[var(--cs-ink-1)]"
+                >
+                  ConfidentialitÃ©
+                </Link>
+                <Link href="/questions" className="hover:text-[var(--cs-ink-1)]">
+                  Support
+                </Link>
+              </div>
             </div>
           </div>
         </footer>
@@ -88,14 +113,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
-
-
-
-
-
-
-
-
-
-

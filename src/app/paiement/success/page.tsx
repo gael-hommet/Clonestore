@@ -1,224 +1,170 @@
-"use client";
-
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { CheckCircle, Loader2 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabase";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  ArrowRight,
+  Bot,
+  CheckCircle2,
+  FileCheck2,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
 
-// -------- helpers --------
-function titleCaseSlug(slug: string) {
-  return slug
-    .split(/[-_]/g)
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
+import { LiquidGlass } from "@/components/ui/LiquidGlass";
+import { cn } from "@/lib/utils";
 
-type ActivateResponse =
-  | { ok: true; agent_slug?: string }
-  | { ok: false; error?: string };
-
-// on s’attend à ça côté DB
-type OrderRow = {
-  agent_slug: string;
-  status: "active" | "cancelled" | "past_due" | string;
-};
-
-export default function PaiementSuccessPage() {
-  const params = useSearchParams();
-  const router = useRouter();
-
-  const agentFromUrl = useMemo(() => {
-    const a = (params.get("agent") || "").trim().toLowerCase();
-    return a || null;
-  }, [params]);
-
-  const [activating, setActivating] = useState(false);
-  const [checking, setChecking] = useState(true);
-  const [activatedAgent, setActivatedAgent] = useState<string | null>(agentFromUrl);
-  const [error, setError] = useState<string | null>(null);
-
-  const didRun = useRef(false);
-
-  // 1) TENTE l’activation via session_id
-  useEffect(() => {
-    const sessionId = params.get("session_id");
-    if (!sessionId) return;
-    if (didRun.current) return;
-    didRun.current = true;
-
-    let cancelled = false;
-
-    async function activate() {
-      setActivating(true);
-      setError(null);
-
-      try {
-        const res = await fetch("/api/orders/activate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ session_id: sessionId }),
-        });
-
-        const payload: ActivateResponse = await res.json().catch(() => ({ ok: false }));
-
-        if (!cancelled && payload && "ok" in payload && payload.ok) {
-          if (payload.agent_slug) setActivatedAgent(payload.agent_slug);
-        }
-
-        // même si ça échoue, on continue (polling DB)
-        if (!cancelled && !res.ok) {
-          setError(
-            (payload && "error" in payload && typeof payload.error === "string"
-              ? payload.error
-              : null) || "Activation en cours…"
-          );
-        }
-      } catch {
-        if (!cancelled) setError("Activation en cours…");
-      } finally {
-        if (!cancelled) setActivating(false);
-      }
-    }
-
-    activate();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [params]);
-
-  // 2) POLLING Supabase : dès que l’order est "active" => redirection
-  useEffect(() => {
-    let stopped = false;
-
-    async function pollOrders() {
-      try {
-        const supabase: SupabaseClient = supabaseBrowser();
-
-        // user obligatoire
-        const { data: userRes, error: userErr } = await supabase.auth.getUser();
-        const user = userRes?.user;
-
-        if (userErr || !user) {
-          setChecking(false);
-          router.replace("/login");
-          return;
-        }
-
-        const startedAt = Date.now();
-        const timeoutMs = 20000; // 20s max
-        const intervalMs = 1200; // 1.2s
-
-        while (!stopped) {
-          const { data, error: sbErr } = await supabase
-            .from("orders")
-            .select("agent_slug,status")
-            .eq("user_id", user.id);
-
-          if (sbErr) {
-            setError(sbErr.message);
-            break;
-          }
-
-          const rows = (data || []) as OrderRow[];
-
-          const target = activatedAgent || agentFromUrl;
-
-          const isActive = target
-            ? rows.some((r) => r.agent_slug === target && r.status === "active")
-            : rows.some((r) => r.status === "active");
-
-          if (isActive) {
-            setChecking(false);
-            router.replace("/profile/agents");
-            return;
-          }
-
-          if (Date.now() - startedAt > timeoutMs) {
-            setChecking(false);
-            return;
-          }
-
-          await new Promise((r) => setTimeout(r, intervalMs));
-        }
-
-        setChecking(false);
-      } catch (e: unknown) {
-        setChecking(false);
-        setError(e instanceof Error ? e.message : "Erreur vérification activation.");
-      }
-    }
-
-    pollOrders();
-
-    return () => {
-      stopped = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router, activatedAgent, agentFromUrl]);
-
-  const displayAgent = activatedAgent ? titleCaseSlug(activatedAgent) : "ton agent";
-  const primaryHref = activatedAgent ? `/agents/${activatedAgent}` : "/profile/agents";
-  const primaryLabel = activatedAgent ? `Accéder à ${displayAgent}` : "Voir mes agents";
-
-  const showSpinner = activating || checking;
-
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
-      <section className="w-full max-w-md rounded-2xl border bg-background p-6 text-center space-y-6 shadow-sm">
-        <div className="flex justify-center">
-          <CheckCircle className="h-12 w-12 text-green-600" />
-        </div>
-
-        <h1 className="text-2xl font-semibold tracking-tight">Paiement confirmé</h1>
-
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Merci pour ton achat.
-          <br />
-          {activatedAgent ? (
-            <>
-              Ton accès à <strong>{displayAgent}</strong> est en cours d’activation.
-            </>
-          ) : (
-            <>Ton accès est en cours d’activation.</>
-          )}
-        </p>
-
-        <div className="text-xs text-muted-foreground flex items-center justify-center gap-2">
-          {showSpinner ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          <span>
-            {showSpinner
-              ? "Activation en cours… (ça peut prendre quelques secondes)"
-              : "Si rien ne s’affiche, clique sur “Voir mes agents”."
-            }
-          </span>
-        </div>
-
-        {error ? <p className="text-xs text-red-600">{error}</p> : null}
-
-        <div className="flex flex-col gap-3 pt-2">
-          <Button asChild className="w-full">
-            <Link href={primaryHref}>{primaryLabel}</Link>
-          </Button>
-
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/profile">Aller à mon compte</Link>
-          </Button>
-        </div>
-
-        <p className="text-xs text-muted-foreground pt-4">
-          Si l’activation tarde, c’est normal : Stripe → webhook → Supabase. La page se mettra à jour toute seule.
-        </p>
-      </section>
-    </main>
+    <Link
+      href={href}
+      className={cn("clone-liquid-button", primary && "clone-liquid-button--dark")}
+    >
+      <span>{label}</span>
+      {icon}
+    </Link>
   );
 }
 
+function StepCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <LiquidGlass
+      variant="clear"
+      intensity="soft"
+      interactive
+      className="rounded-[2rem] p-5"
+    >
+      <div className="flex items-start gap-3">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/60 bg-white/35 text-[#6f83ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+          {icon}
+        </div>
 
+        <div>
+          <p className="text-sm font-semibold text-[var(--cs-ink-1)]">{title}</p>
+          <p className="mt-1 text-sm leading-6 text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+      </div>
+    </LiquidGlass>
+  );
+}
 
+export default function PaiementSuccessPage() {
+  return (
+    <main className="cs-page">
+      <div className="cs-page-shell">
+        <section className="grid min-h-[calc(100vh-170px)] items-center">
+          <LiquidGlass
+            variant="panel"
+            intensity="strong"
+            refractive
+            className="overflow-hidden rounded-[2.6rem] p-6 md:p-8 xl:p-10"
+          >
+            <div className="grid gap-8 xl:grid-cols-[1fr_430px] xl:items-center">
+              <div className="space-y-7">
+                <div className="flex flex-wrap gap-2">
+                  <span className="cs-pill">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                    Paiement confirmÃ©
+                  </span>
+                  <span className="cs-pill">
+                    <Sparkles className="h-3.5 w-3.5 text-[#6f83ff]" />
+                    Bienvenue dans CloneStore
+                  </span>
+                </div>
 
+                <div className="max-w-4xl space-y-5">
+                  <h1 className="cs-heading text-[clamp(2.4rem,5vw,5.5rem)] leading-[0.94] tracking-[-0.065em]">
+                    Activation confirmÃ©e.
+                    <br />
+                    <span className="bg-[linear-gradient(135deg,#151922_0%,#2d3446_46%,#667cff_100%)] bg-clip-text text-transparent">
+                      Votre espace peut Ãªtre configurÃ©.
+                    </span>
+                  </h1>
 
+                  <p className="max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
+                    Lâ€™accÃ¨s est validÃ©. La suite logique : configurer votre espace,
+                    retrouver vos employÃ©s IA, puis entrer dans le cockpit.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <ActionButton
+                    href="/cockpit"
+                    label="Entrer dans le cockpit"
+                    primary
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/agents/pierre/setup"
+                    label="Configurer Pierre"
+                    icon={<Waypoints className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/assistant"
+                    label="Demander Ã  CloneStore"
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+
+              <LiquidGlass
+                variant="clear"
+                intensity="strong"
+                refractive
+                className="rounded-[2.35rem] p-5 md:p-6"
+              >
+                <div className="space-y-4">
+                  <StepCard
+                    title="Paiement acceptÃ©"
+                    text="Votre activation CloneStore est confirmÃ©e."
+                    icon={<CheckCircle2 className="h-4 w-4" />}
+                  />
+                  <StepCard
+                    title="Configuration"
+                    text="Pierre peut maintenant Ãªtre prÃ©parÃ© avec vos rÃ¨gles, votre entreprise et vos usages."
+                    icon={<FileCheck2 className="h-4 w-4" />}
+                  />
+                  <StepCard
+                    title="Cockpit"
+                    text="Votre espace central vous permettra de piloter vos employÃ©s IA."
+                    icon={<Waypoints className="h-4 w-4" />}
+                  />
+                  <StepCard
+                    title="ContrÃ´le"
+                    text="Les actions sensibles restent encadrÃ©es, visibles et validables."
+                    icon={<ShieldCheck className="h-4 w-4" />}
+                  />
+
+                  <div className="pt-2">
+                    <ActionButton
+                      href="/cockpit"
+                      label="Continuer"
+                      primary
+                      icon={<ArrowRight className="h-4 w-4" />}
+                    />
+                  </div>
+                </div>
+              </LiquidGlass>
+            </div>
+          </LiquidGlass>
+        </section>
+      </div>
+    </main>
+  );
+}

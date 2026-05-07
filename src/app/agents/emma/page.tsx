@@ -56,7 +56,7 @@ function Card({
 }
 
 export default function EmmaPage() {
-  // ✅ singleton Supabase
+  // âœ… singleton Supabase
   const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
 
   const [loading, setLoading] = useState(true);
@@ -80,7 +80,7 @@ export default function EmmaPage() {
       setHasEmma(false);
       setLoading(false);
       setError(
-        "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY (local + Vercel)."
+        "Supabase non configurÃ© : vÃ©rifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY (local + Vercel)."
       );
       return { ok: false, has: false };
     }
@@ -120,7 +120,7 @@ export default function EmmaPage() {
       setLoading(false);
       return { ok: true, has };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Erreur accès";
+      const msg = e instanceof Error ? e.message : "Erreur accÃ¨s";
       setError(msg);
       setLoading(false);
       return { ok: false, has: false };
@@ -174,13 +174,13 @@ export default function EmmaPage() {
           <Pill>
             <span className="inline-flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5" />
-              Clone CloneStore • Support
+              Clone CloneStore â€¢ Support
             </span>
           </Pill>
           <Pill>
             <span className="inline-flex items-center gap-2">
               <LifeBuoy className="h-3.5 w-3.5" />
-              SAV + emails + réponses
+              SAV + emails + rÃ©ponses
             </span>
           </Pill>
           <Pill>
@@ -200,14 +200,14 @@ export default function EmmaPage() {
 
         <div className="space-y-3">
           <h1 className="text-4xl font-semibold tracking-tight">
-            Emma — l’agent support autonome qui gère ton SAV, structure les demandes, et prépare des réponses prêtes à envoyer
+            Emma â€” lâ€™agent support autonome qui gÃ¨re ton SAV, structure les demandes, et prÃ©pare des rÃ©ponses prÃªtes Ã  envoyer
           </h1>
           <p className="text-muted-foreground leading-relaxed max-w-3xl">
-            Emma transforme un flux “bordel” (emails, messages, tickets) en support carré :
-            catégorisation, priorités, réponses cohérentes, et suivi.
+            Emma transforme un flux â€œbordelâ€ (emails, messages, tickets) en support carrÃ© :
+            catÃ©gorisation, prioritÃ©s, rÃ©ponses cohÃ©rentes, et suivi.
             <span className="block mt-2">
-              En mode autonome, Emma peut traiter les demandes récurrentes via CloneOS/Router : elle classe, prépare la
-              réponse, et peut déclencher des actions autorisées (ex : créer un ticket, générer un résumé, demander une
+              En mode autonome, Emma peut traiter les demandes rÃ©currentes via CloneOS/Router : elle classe, prÃ©pare la
+              rÃ©ponse, et peut dÃ©clencher des actions autorisÃ©es (ex : crÃ©er un ticket, gÃ©nÃ©rer un rÃ©sumÃ©, demander une
               info manquante).
             </span>
           </p>
@@ -216,7 +216,7 @@ export default function EmmaPage() {
         <div className="flex flex-col sm:flex-row gap-3">
           <Button asChild>
             <Link href="#acces">
-              Accéder à Emma <ArrowRight className="ml-2 h-4 w-4" />
+              AccÃ©der Ã  Emma <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline">
@@ -227,18 +227,18 @@ export default function EmmaPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card
             icon={<Timer className="h-4 w-4" />}
-            title="Réponses rapides"
-            desc="Emma prépare des réponses propres en quelques secondes, même sur des cas répétitifs."
+            title="RÃ©ponses rapides"
+            desc="Emma prÃ©pare des rÃ©ponses propres en quelques secondes, mÃªme sur des cas rÃ©pÃ©titifs."
           />
           <Card
             icon={<Wand2 className="h-4 w-4" />}
             title="Ton de marque"
-            desc="Même style, même politesse, même clarté. Tu arrêtes les réponses “à l’arrache”."
+            desc="MÃªme style, mÃªme politesse, mÃªme clartÃ©. Tu arrÃªtes les rÃ©ponses â€œÃ  lâ€™arracheâ€."
           />
           <Card
             icon={<ShieldCheck className="h-4 w-4" />}
             title="Garde-fous"
-            desc="Emma ne promet pas n’importe quoi : hors règles, elle te demande, ou elle escalade."
+            desc="Emma ne promet pas nâ€™importe quoi : hors rÃ¨gles, elle te demande, ou elle escalade."
           />
         </div>
       </header>
@@ -251,24 +251,24 @@ export default function EmmaPage() {
           <Card
             icon={<Bot className="h-4 w-4" />}
             title="Support autonome"
-            desc="Elle peut traiter les demandes récurrentes selon tes règles : réponses, relances, demandes d’infos manquantes."
+            desc="Elle peut traiter les demandes rÃ©currentes selon tes rÃ¨gles : rÃ©ponses, relances, demandes dâ€™infos manquantes."
           />
           <Card
             icon={<Workflow className="h-4 w-4" />}
-            title="Coopération inter-clones"
-            desc="Emma peut déclencher un autre clone si besoin (ex : Pierre pour une réponse RH structurée), via Router."
+            title="CoopÃ©ration inter-clones"
+            desc="Emma peut dÃ©clencher un autre clone si besoin (ex : Pierre pour une rÃ©ponse RH structurÃ©e), via Router."
           />
           <Card
             icon={<ShieldCheck className="h-4 w-4" />}
-            title="Traçabilité"
-            desc="Historique/log possible : demandes reçues, catégories, brouillons de réponses, actions réalisées."
+            title="TraÃ§abilitÃ©"
+            desc="Historique/log possible : demandes reÃ§ues, catÃ©gories, brouillons de rÃ©ponses, actions rÃ©alisÃ©es."
           />
         </div>
 
         <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Objectif</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Réduire drastiquement le temps support, sans dégrader la qualité. Emma ne remplace pas ton produit — elle
+            RÃ©duire drastiquement le temps support, sans dÃ©grader la qualitÃ©. Emma ne remplace pas ton produit â€” elle
             fait tourner ton support proprement.
           </p>
         </div>
@@ -276,25 +276,25 @@ export default function EmmaPage() {
 
       {/* EMAIL ENTREPRISE (DNS) */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Email entreprise (option) : Emma au nom de ta boîte</h2>
+        <h2 className="text-xl font-semibold">Email entreprise (option) : Emma au nom de ta boÃ®te</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           <Card
             icon={<Building2 className="h-4 w-4" />}
-            title="Adresse pro dédiée"
-            desc="Connexion possible à une adresse du domaine (ex : support@tonentreprise.com / emma@tonentreprise.com) via DNS."
+            title="Adresse pro dÃ©diÃ©e"
+            desc="Connexion possible Ã  une adresse du domaine (ex : support@tonentreprise.com / emma@tonentreprise.com) via DNS."
           />
           <Card
             icon={<Mail className="h-4 w-4" />}
-            title="Réponses prêtes à envoyer"
-            desc="Emma prépare l’objet, la réponse, les étapes suivantes. Envoi automatique uniquement si tu l’autorises."
+            title="RÃ©ponses prÃªtes Ã  envoyer"
+            desc="Emma prÃ©pare lâ€™objet, la rÃ©ponse, les Ã©tapes suivantes. Envoi automatique uniquement si tu lâ€™autorises."
           />
         </div>
 
         <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
-          <p className="text-sm font-medium">Résultat</p>
+          <p className="text-sm font-medium">RÃ©sultat</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Un support pro, plus rapide, plus cohérent, avec moins d’oublis et moins de clients laissés “sans réponse”.
+            Un support pro, plus rapide, plus cohÃ©rent, avec moins dâ€™oublis et moins de clients laissÃ©s â€œsans rÃ©ponseâ€.
           </p>
         </div>
       </section>
@@ -307,63 +307,63 @@ export default function EmmaPage() {
           <Card
             icon={<Plug className="h-4 w-4" />}
             title="Outils support"
-            desc="Emma peut être reliée à un outil de support/tickets selon ton stack et tes autorisations."
+            desc="Emma peut Ãªtre reliÃ©e Ã  un outil de support/tickets selon ton stack et tes autorisations."
           />
           <Card
             icon={<Tag className="h-4 w-4" />}
-            title="Catégorisation & priorités"
-            desc="Elle classe (bug, facturation, livraison, accès, demande commerciale), et met des priorités."
+            title="CatÃ©gorisation & prioritÃ©s"
+            desc="Elle classe (bug, facturation, livraison, accÃ¨s, demande commerciale), et met des prioritÃ©s."
           />
           <Card
             icon={<ListChecks className="h-4 w-4" />}
             title="Routines & suivi"
-            desc="Relances, demandes d’infos manquantes, résumés d’échanges, prochaine action recommandée."
+            desc="Relances, demandes dâ€™infos manquantes, rÃ©sumÃ©s dâ€™Ã©changes, prochaine action recommandÃ©e."
           />
         </div>
 
         <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
           <p className="text-sm font-medium">Note</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Les intégrations dépendent de ton outil. Sans connecteur direct, on passe par Router/Make ou API quand c’est
+            Les intÃ©grations dÃ©pendent de ton outil. Sans connecteur direct, on passe par Router/Make ou API quand câ€™est
             possible.
           </p>
         </div>
       </section>
 
-      {/* CAPACITÉS */}
+      {/* CAPACITÃ‰S */}
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Ce que Emma fait</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           <Card
             icon={<MessageSquareText className="h-4 w-4" />}
-            title="Réponses support"
-            desc="Réponses claires, polies, structurées (avec étapes). Adaptation au ton de la marque."
+            title="RÃ©ponses support"
+            desc="RÃ©ponses claires, polies, structurÃ©es (avec Ã©tapes). Adaptation au ton de la marque."
           />
           <Card
             icon={<ClipboardList className="h-4 w-4" />}
-            title="Résumé & contexte"
-            desc="Résumé des échanges, points importants, ce qui manque, prochaine action recommandée."
+            title="RÃ©sumÃ© & contexte"
+            desc="RÃ©sumÃ© des Ã©changes, points importants, ce qui manque, prochaine action recommandÃ©e."
           />
           <Card
             icon={<Tag className="h-4 w-4" />}
-            title="Catégorisation"
-            desc="Classe la demande et propose un niveau d’urgence + routage interne si besoin."
+            title="CatÃ©gorisation"
+            desc="Classe la demande et propose un niveau dâ€™urgence + routage interne si besoin."
           />
           <Card
             icon={<BadgeCheck className="h-4 w-4" />}
-            title="Qualité constante"
-            desc="Réponses propres même quand tu es pressé : structure + formulation + clarté."
+            title="QualitÃ© constante"
+            desc="RÃ©ponses propres mÃªme quand tu es pressÃ© : structure + formulation + clartÃ©."
           />
           <Card
             icon={<Mail className="h-4 w-4" />}
             title="Emails (option)"
-            desc="Prépare l’email complet. Envoi automatique uniquement si tu actives et autorises."
+            desc="PrÃ©pare lâ€™email complet. Envoi automatique uniquement si tu actives et autorises."
           />
           <Card
             icon={<LifeBuoy className="h-4 w-4" />}
             title="Escalade intelligente"
-            desc="Si c’est hors règles ou sensible : elle demande validation, ou transfère au bon endroit."
+            desc="Si câ€™est hors rÃ¨gles ou sensible : elle demande validation, ou transfÃ¨re au bon endroit."
           />
         </div>
 
@@ -371,8 +371,8 @@ export default function EmmaPage() {
           <p className="text-sm">
             <span className="font-medium">Emma ne fait pas :</span>{" "}
             <span className="text-muted-foreground">
-              promettre un remboursement/engagement sans règle • “inventer” une réponse si l’info n’existe pas • gérer un
-              litige juridique • accéder à des données non autorisées.
+              promettre un remboursement/engagement sans rÃ¨gle â€¢ â€œinventerâ€ une rÃ©ponse si lâ€™info nâ€™existe pas â€¢ gÃ©rer un
+              litige juridique â€¢ accÃ©der Ã  des donnÃ©es non autorisÃ©es.
             </span>
           </p>
         </div>
@@ -386,42 +386,42 @@ export default function EmmaPage() {
           <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
-              “Client énervé : ‘je n’ai pas accès’, reste calme, demande les infos utiles.”
+              â€œClient Ã©nervÃ© : â€˜je nâ€™ai pas accÃ¨sâ€™, reste calme, demande les infos utiles.â€
             </p>
-            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm font-medium pt-2">RÃ©sultat</p>
             <p className="text-sm text-muted-foreground">
-              Réponse pro + empathie + questions ciblées + étapes de résolution.
+              RÃ©ponse pro + empathie + questions ciblÃ©es + Ã©tapes de rÃ©solution.
             </p>
           </div>
 
           <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
-              “Résume ce fil de 12 mails et dis la prochaine action.”
+              â€œRÃ©sume ce fil de 12 mails et dis la prochaine action.â€
             </p>
-            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm font-medium pt-2">RÃ©sultat</p>
             <p className="text-sm text-muted-foreground">
-              Résumé clair + points clés + action recommandée + brouillon de réponse.
+              RÃ©sumÃ© clair + points clÃ©s + action recommandÃ©e + brouillon de rÃ©ponse.
             </p>
           </div>
 
           <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
-              “Classe ces 30 demandes : bug / facturation / livraison / accès.”
+              â€œClasse ces 30 demandes : bug / facturation / livraison / accÃ¨s.â€
             </p>
-            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm font-medium pt-2">RÃ©sultat</p>
             <p className="text-sm text-muted-foreground">
-              Catégories + priorités + suggestions de réponses types.
+              CatÃ©gories + prioritÃ©s + suggestions de rÃ©ponses types.
             </p>
           </div>
 
           <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
-              “Mode autonome : nouvelle demande → réponse brouillon + tag + alerte si urgent.”
+              â€œMode autonome : nouvelle demande â†’ rÃ©ponse brouillon + tag + alerte si urgent.â€
             </p>
-            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm font-medium pt-2">RÃ©sultat</p>
             <p className="text-sm text-muted-foreground">
               Flux CloneOS/Router : classification + brouillon + escalade si besoin.
             </p>
@@ -431,11 +431,11 @@ export default function EmmaPage() {
 
       {/* COMMENT */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Comment ça marche</h2>
+        <h2 className="text-xl font-semibold">Comment Ã§a marche</h2>
 
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
-            <p className="text-sm font-medium">1) Tu définis les règles</p>
+            <p className="text-sm font-medium">1) Tu dÃ©finis les rÃ¨gles</p>
             <p className="text-sm text-muted-foreground">
               Ton, garanties, FAQ, ce que Emma peut dire / ne pas dire, et quand escalader.
             </p>
@@ -443,42 +443,42 @@ export default function EmmaPage() {
           <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">2) Emma traite</p>
             <p className="text-sm text-muted-foreground">
-              Classe, résume, propose une réponse, et demande ce qui manque.
+              Classe, rÃ©sume, propose une rÃ©ponse, et demande ce qui manque.
             </p>
           </div>
           <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
             <p className="text-sm font-medium">3) Automatisation (option)</p>
             <p className="text-sm text-muted-foreground">
-              Déclencheurs CloneOS/Router : mails, tickets, suivi, relances — avec logs.
+              DÃ©clencheurs CloneOS/Router : mails, tickets, suivi, relances â€” avec logs.
             </p>
           </div>
         </div>
       </section>
 
       <section className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
-        <h3 className="text-lg font-medium">3 modes d’utilisation</h3>
+        <h3 className="text-lg font-medium">3 modes dâ€™utilisation</h3>
 
         <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
           <li>
-            <span className="font-medium text-foreground">Mode simple :</span> tu colles une demande → Emma te donne la
-            réponse pro.
+            <span className="font-medium text-foreground">Mode simple :</span> tu colles une demande â†’ Emma te donne la
+            rÃ©ponse pro.
           </li>
           <li>
-            <span className="font-medium text-foreground">Mode support :</span> Emma classe + résume + prépare les réponses
+            <span className="font-medium text-foreground">Mode support :</span> Emma classe + rÃ©sume + prÃ©pare les rÃ©ponses
             selon ta base.
           </li>
           <li>
-            <span className="font-medium text-foreground">Mode CloneOS :</span> automatisation + coopération avec d’autres
+            <span className="font-medium text-foreground">Mode CloneOS :</span> automatisation + coopÃ©ration avec dâ€™autres
             clones via Router.
           </li>
         </ul>
       </section>
 
-      {/* ACCÈS / CTA */}
+      {/* ACCÃˆS / CTA */}
       <section id="acces" className="rounded-2xl border p-8 space-y-4 cs-card shadow-soft">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold">Accès à Emma</h2>
+            <h2 className="text-xl font-semibold">AccÃ¨s Ã  Emma</h2>
             <p className="text-sm text-muted-foreground">
               Statut actuel : <span className="font-medium text-foreground">en construction</span>.
             </p>
@@ -490,7 +490,7 @@ export default function EmmaPage() {
 
         {loading ? (
           <p className="text-sm text-muted-foreground">
-            Vérification en cours…
+            VÃ©rification en coursâ€¦
             {shouldPoll && <span> (post-paiement, attente activation...)</span>}
           </p>
         ) : hasEmma ? (
@@ -509,8 +509,8 @@ export default function EmmaPage() {
           <>
             <p className="text-sm text-muted-foreground">
               {isLogged
-                ? "Emma n’est pas encore disponible à l’achat. Tu peux déjà poser des questions via l’assistant."
-                : "Connecte-toi pour suivre l’arrivée d’Emma. En attendant, tu peux poser tes questions via l’assistant."}
+                ? "Emma nâ€™est pas encore disponible Ã  lâ€™achat. Tu peux dÃ©jÃ  poser des questions via lâ€™assistant."
+                : "Connecte-toi pour suivre lâ€™arrivÃ©e dâ€™Emma. En attendant, tu peux poser tes questions via lâ€™assistant."}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -525,7 +525,7 @@ export default function EmmaPage() {
               )}
 
               <Button variant="outline" onClick={() => checkAccess()}>
-                Rafraîchir l’accès
+                RafraÃ®chir lâ€™accÃ¨s
               </Button>
             </div>
           </>

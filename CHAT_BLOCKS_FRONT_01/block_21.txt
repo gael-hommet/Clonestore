@@ -1,0 +1,872 @@
+===== FILE: src/app/profile/agents/page.tsx =====
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  AlertCircle,
+  ArrowRight,
+  BadgeCheck,
+  BriefcaseBusiness,
+  FolderKanban,
+  LayoutDashboard,
+  Settings2,
+  Sparkles,
+  Wrench,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getSupabase } from "@/lib/supabase";
+
+type OrderRow = {
+  id: string;
+  agent_slug: string;
+  status: string;
+  started_at: string | null;
+  ended_at: string | null;
+};
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString("fr-FR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function titleCaseSlug(slug: string) {
+  return slug
+    .split(/[-_]/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function statusLabel(status: string) {
+  const normalized = (status || "").toLowerCase();
+
+  if (normalized === "active") return "Actif";
+  if (normalized === "cancelled") return "Résilié";
+  if (normalized === "past_due") return "Paiement en attente";
+  if (normalized === "trialing") return "Essai";
+  if (normalized === "incomplete") return "Incomplet";
+
+  return status || "—";
+}
+
+function statusClass(status: string) {
+  const normalized = (status || "").toLowerCase();
+
+  if (normalized === "active") {
+    return "cs-status cs-status--success";
+  }
+
+  if (normalized === "past_due" || normalized === "incomplete") {
+    return "cs-status cs-status--warn";
+  }
+
+  if (normalized === "trialing") {
+    return "cs-status cs-status--info";
+  }
+
+  return "cs-status";
+}
+
+function getAgentConfig(slug: string) {
+  const normalized = slug.toLowerCase();
+
+  if (normalized === "pierre") {
+    return {
+      role: "RH opérationnel automatisé",
+      description:
+        "Centre de missions RH, documents, emails, relances, continuité, historique et contrôle.",
+      primaryHref: "/agents/pierre/use",
+      primaryLabel: "Utiliser Pierre",
+      secondaryHref: "/agents/pierre/setup",
+      secondaryLabel: "Configurer",
+      tertiaryHref: "/agents/pierre",
+      tertiaryLabel: "Voir la fiche",
+      spotlight: true,
+    };
+  }
+
+  return {
+    role: "Employé IA en préparation",
+    description:
+      "Employé CloneStore en construction, rattaché à la gamme d’exploitation future.",
+    primaryHref: `/agents/${normalized}`,
+    primaryLabel: "Voir la fiche",
+    secondaryHref: "/agents",
+    secondaryLabel: "Voir la boutique",
+    tertiaryHref: "/profile",
+    tertiaryLabel: "Mon espace",
+    spotlight: false,
+  };
+}
+
+function StatCard({
+  title,
+  value,
+  helper,
+  icon,
+}: {
+  title: string;
+  value: string | number;
+  helper: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-[0.8rem] font-medium text-[var(--cs-ink-4)]">{title}</p>
+          <p className="text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+            {value}
+          </p>
+          <p className="text-[0.82rem] leading-6 text-[var(--cs-ink-3)]">{helper}</p>
+        </div>
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+      </div>
+    </div>
+  );
+}
+
+function MiniInfo({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+        <div>
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">{title}</p>
+          <p className="mt-2 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <div className="rounded-[1.2rem] border border-[rgba(200,70,70,0.18)] bg-[rgba(200,70,70,0.05)] px-4 py-3">
+      <div className="flex items-start gap-3">
+        <AlertCircle className="mt-0.5 h-4 w-4 text-[var(--cs-danger)]" />
+        <p className="text-[0.84rem] leading-6 text-[var(--cs-danger)]">{message}</p>
+      </div>
+    </div>
+  );
+}
+
+export default function ProfileAgentsPage() {
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [userId, setUserId] = useState<string | null>(null);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+
+  const load = useCallback(
+    async (silent = false) => {
+      if (silent) setRefreshing(true);
+      else setLoading(true);
+
+      setError(null);
+
+      if (!supabase) {
+        setError(
+          "Configuration Supabase manquante. Vérifie les variables publiques puis redémarre le serveur."
+        );
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      if (!authData.user) {
+        setUserId(null);
+        setOrders([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      setUserId(authData.user.id);
+
+      const { data, error: ordersError } = await supabase
+        .from("orders")
+        .select("id, agent_slug, status, started_at, ended_at")
+        .eq("user_id", authData.user.id)
+        .order("started_at", { ascending: false });
+
+      if (ordersError) {
+        setError(ordersError.message);
+        setOrders([]);
+      } else {
+        setOrders((data ?? []) as OrderRow[]);
+      }
+
+      setLoading(false);
+      setRefreshing(false);
+    },
+    [supabase]
+  );
+
+  useEffect(() => {
+    void load(false);
+  }, [load]);
+
+  const activeOrders = useMemo(
+    () => orders.filter((order) => (order.status || "").toLowerCase() === "active"),
+    [orders]
+  );
+
+  const inactiveOrders = useMemo(
+    () => orders.filter((order) => (order.status || "").toLowerCase() !== "active"),
+    [orders]
+  );
+
+  const pierreOrder = useMemo(
+    () => orders.find((order) => order.agent_slug.toLowerCase() === "pierre") ?? null,
+    [orders]
+  );
+
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-5">
+          <section className="cs-command-surface">
+            <div className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr] xl:items-center">
+              <div className="space-y-5">
+                <span className="cs-pill">
+                  <LayoutDashboard className="h-4 w-4 text-[var(--cs-violet)]" />
+                  Mes employés
+                </span>
+
+                <div className="space-y-3">
+                  <h1 className="cs-display text-[clamp(1.95rem,3vw,3.3rem)] leading-[0.98]">
+                    Faire travailler les{" "}
+                    <span className="cs-gradient-text">employés IA</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
+                    Cette zone regroupe les accès aux employés souscrits, leur
+                    état, leurs points d’entrée et les chemins les plus utiles
+                    pour travailler dans CloneStore côté entreprise.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    asChild
+                    className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    <Link href="/profile">Mon espace</Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    <Link href="/agents">Boutique</Link>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void load(true)}
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    {refreshing ? "Actualisation…" : "Actualiser"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="cs-panel p-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <StatCard
+                    title="Actifs"
+                    value={activeOrders.length}
+                    helper="Employés disponibles maintenant"
+                    icon={<BadgeCheck className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Historique"
+                    value={orders.length}
+                    helper="Employés liés au compte"
+                    icon={<FolderKanban className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Pierre"
+                    value={pierreOrder ? statusLabel(pierreOrder.status) : "Absent"}
+                    helper="État du poste RH opérationnel"
+                    icon={<Sparkles className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Compte"
+                    value={userId ? "Connecté" : "Invité"}
+                    helper="Session nécessaire pour piloter"
+                    icon={<BriefcaseBusiness className="h-5 w-5" />}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {error ? <ErrorBanner message={error} /> : null}
+
+          {!loading && !userId ? (
+            <section className="cs-panel p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-2">
+                  <p className="cs-eyebrow">Accès</p>
+                  <p className="text-[1.1rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                    Connecte-toi pour accéder aux employés
+                  </p>
+                  <p className="max-w-2xl text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                    Les employés IA, leurs zones d’usage et leurs statuts
+                    nécessitent une session active.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    <Link href="/login">Connexion</Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    <Link href="/signup">Créer un compte</Link>
+                  </Button>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {loading ? (
+            <section className="cs-panel p-5">
+              <p className="text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                Chargement des employés du compte…
+              </p>
+            </section>
+          ) : null}
+
+          {!loading && userId ? (
+            <>
+              <section className="grid gap-4 md:grid-cols-3">
+                <MiniInfo
+                  icon={<LayoutDashboard className="h-4 w-4" />}
+                  title="Zone de travail"
+                  text="Mes employés sert de point d’entrée vers les cockpits et usages réels."
+                />
+                <MiniInfo
+                  icon={<Settings2 className="h-4 w-4" />}
+                  title="Configuration"
+                  text="Chaque employé a vocation à posséder sa logique de setup et ses réglages."
+                />
+                <MiniInfo
+                  icon={<Wrench className="h-4 w-4" />}
+                  title="Exploitation"
+                  text="Le but n’est pas de discuter avec une IA, mais de faire tourner un vrai poste."
+                />
+              </section>
+
+              {orders.length === 0 ? (
+                <section className="cs-panel p-5">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <p className="cs-eyebrow">Employés</p>
+                      <p className="text-[1.15rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                        Aucun employé souscrit pour le moment
+                      </p>
+                      <p className="max-w-2xl text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                        La boutique permet de découvrir les postes automatisés
+                        disponibles ou en construction dans CloneStore.
+                      </p>
+                    </div>
+
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                    >
+                      <Link href="/agents">Voir la boutique</Link>
+                    </Button>
+                  </div>
+                </section>
+              ) : (
+                <section className="grid gap-4 md:grid-cols-2">
+                  {orders.map((order) => {
+                    const agent = getAgentConfig(order.agent_slug);
+
+                    return (
+                      <article key={order.id} className="cs-panel cs-hover-lift p-5">
+                        <div className="flex h-full flex-col justify-between gap-5">
+                          <div className="space-y-5">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className={statusClass(order.status)}>
+                                    {statusLabel(order.status)}
+                                  </span>
+                                  {agent.spotlight ? (
+                                    <span className="cs-status cs-status--info">
+                                      Employé clé
+                                    </span>
+                                  ) : (
+                                    <span className="cs-status">En construction</span>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <h2 className="text-[1.28rem] font-semibold tracking-[-0.045em] text-[var(--cs-ink-1)]">
+                                    {titleCaseSlug(order.agent_slug)}
+                                  </h2>
+                                  <p className="mt-1 text-[0.88rem] font-medium text-[var(--cs-ink-2)]">
+                                    {agent.role}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <p className="text-[0.9rem] leading-7 text-[var(--cs-ink-3)]">
+                              {agent.description}
+                            </p>
+
+                            <div className="grid gap-2">
+                              <p className="text-[0.82rem] text-[var(--cs-ink-4)]">
+                                Début : {formatDate(order.started_at)}
+                              </p>
+                              <p className="text-[0.82rem] text-[var(--cs-ink-4)]">
+                                Fin : {formatDate(order.ended_at)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              asChild
+                              className="h-10 rounded-full px-4 text-[0.84rem] font-medium text-white"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                                boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                              }}
+                            >
+                              <Link href={agent.primaryHref}>
+                                {agent.primaryLabel}
+                                <ArrowRight className="h-4 w-4" />
+                              </Link>
+                            </Button>
+
+                            <Button
+                              asChild
+                              variant="outline"
+                              className="h-10 rounded-full bg-white/45 px-4 text-[0.84rem] font-medium"
+                            >
+                              <Link href={agent.secondaryHref}>{agent.secondaryLabel}</Link>
+                            </Button>
+
+                            <Button
+                              asChild
+                              variant="outline"
+                              className="h-10 rounded-full bg-white/45 px-4 text-[0.84rem] font-medium"
+                            >
+                              <Link href={agent.tertiaryHref}>{agent.tertiaryLabel}</Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </section>
+              )}
+
+              <section className="grid gap-4 md:grid-cols-2">
+                <StatCard
+                  title="Actifs"
+                  value={activeOrders.length}
+                  helper="Employés actuellement utilisables"
+                  icon={<BadgeCheck className="h-5 w-5" />}
+                />
+                <StatCard
+                  title="Autres statuts"
+                  value={inactiveOrders.length}
+                  helper="Employés non actifs ou hors état standard"
+                  icon={<BriefcaseBusiness className="h-5 w-5" />}
+                />
+              </section>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+===== FILE: src/app/profile/_ui/AccountCard.tsx =====
+import Link from "next/link";
+import { UserRound } from "lucide-react";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+type AccountItemObject = {
+  label?: ReactNode;
+  value?: ReactNode;
+};
+
+type LooseItem = ReactNode | AccountItemObject;
+
+export type AccountCardProps = {
+  title?: ReactNode;
+  description?: ReactNode;
+  value?: ReactNode;
+  helper?: ReactNode;
+  badge?: ReactNode;
+  icon?: ReactNode;
+  items?: LooseItem[];
+  ctaLabel?: ReactNode;
+  ctaHref?: string;
+  footer?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+  [key: string]: unknown;
+};
+
+function isAccountItemObject(item: LooseItem): item is AccountItemObject {
+  return typeof item === "object" && item !== null && !Array.isArray(item) && ("label" in item || "value" in item);
+}
+
+function renderItem(item: LooseItem, index: number) {
+  if (isAccountItemObject(item)) {
+    return (
+      <div
+        key={index}
+        className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3"
+      >
+        <p className="text-xs uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
+          {item.label}
+        </p>
+        <p className="mt-1 text-sm font-medium text-[var(--cs-ink-2)]">
+          {item.value}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      key={index}
+      className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3 text-sm text-[var(--cs-ink-4)]"
+    >
+      {item}
+    </div>
+  );
+}
+
+export default function AccountCard({
+  title = "Compte",
+  description = "Résumé du compte CloneStore.",
+  value,
+  helper,
+  badge,
+  icon,
+  items,
+  ctaLabel,
+  ctaHref,
+  footer,
+  children,
+  className,
+}: AccountCardProps) {
+  return (
+    <section className={cn("cs-card h-full", className)}>
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-[var(--cs-account-accent)]">
+                {icon ?? <UserRound className="h-4 w-4" />}
+                <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+                  {title}
+                </span>
+              </div>
+
+              {value ? (
+                <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                  {value}
+                </p>
+              ) : null}
+
+              <p className="text-sm text-[var(--cs-ink-4)]">{description}</p>
+            </div>
+
+            {badge ? <div className="shrink-0">{badge}</div> : null}
+          </div>
+
+          {helper ? (
+            <p className="text-xs text-[var(--cs-ink-4)]">{helper}</p>
+          ) : null}
+
+          {items && items.length > 0 ? (
+            <div className="grid gap-3">{items.map(renderItem)}</div>
+          ) : null}
+
+          {children ? <div>{children}</div> : null}
+        </div>
+
+        {ctaHref && ctaLabel ? (
+          <div>
+            <Link
+              href={ctaHref}
+              className="inline-flex h-10 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/72 px-4 text-sm font-medium text-[var(--cs-ink-2)] transition hover:-translate-y-0.5 hover:bg-white/92"
+            >
+              {ctaLabel}
+            </Link>
+          </div>
+        ) : footer ? (
+          <div>{footer}</div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+===== FILE: src/app/profile/_ui/ActivityCard.tsx =====
+import Link from "next/link";
+import { Activity } from "lucide-react";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+type ActivityRowObject = {
+  title?: ReactNode;
+  text?: ReactNode;
+};
+
+type LooseRow = ReactNode | ActivityRowObject;
+
+export type ActivityCardProps = {
+  title?: ReactNode;
+  description?: ReactNode;
+  icon?: ReactNode;
+  rows?: LooseRow[];
+  ctaLabel?: ReactNode;
+  ctaHref?: string;
+  footer?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+  [key: string]: unknown;
+};
+
+function isActivityRowObject(row: LooseRow): row is ActivityRowObject {
+  return typeof row === "object" && row !== null && !Array.isArray(row) && ("title" in row || "text" in row);
+}
+
+function renderRow(row: LooseRow, index: number) {
+  if (isActivityRowObject(row)) {
+    return (
+      <div
+        key={index}
+        className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3"
+      >
+        <p className="text-sm font-medium text-[var(--cs-ink-2)]">{row.title}</p>
+        <p className="mt-1 text-sm text-[var(--cs-ink-4)]">{row.text}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      key={index}
+      className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3 text-sm text-[var(--cs-ink-4)]"
+    >
+      {row}
+    </div>
+  );
+}
+
+export default function ActivityCard({
+  title = "Activité",
+  description = "Lecture simple de l’activité récente.",
+  icon,
+  rows,
+  ctaLabel,
+  ctaHref,
+  footer,
+  children,
+  className,
+}: ActivityCardProps) {
+  return (
+    <section className={cn("cs-card h-full", className)}>
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-[var(--cs-info)]">
+            {icon ?? <Activity className="h-4 w-4" />}
+            <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+              {title}
+            </span>
+          </div>
+
+          <p className="text-sm text-[var(--cs-ink-4)]">{description}</p>
+
+          {rows && rows.length > 0 ? (
+            <div className="grid gap-3">{rows.map(renderRow)}</div>
+          ) : null}
+
+          {children ? <div>{children}</div> : null}
+        </div>
+
+        {ctaHref && ctaLabel ? (
+          <Link
+            href={ctaHref}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/72 px-4 text-sm font-medium text-[var(--cs-ink-2)] transition hover:-translate-y-0.5 hover:bg-white/92"
+          >
+            {ctaLabel}
+          </Link>
+        ) : footer ? (
+          <div>{footer}</div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+===== FILE: src/app/profile/_ui/AgentsCard.tsx =====
+import Link from "next/link";
+import { BriefcaseBusiness } from "lucide-react";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+type AgentRowObject = {
+  name?: ReactNode;
+  role?: ReactNode;
+  status?: ReactNode;
+};
+
+type AgentRow = ReactNode | AgentRowObject;
+
+export type AgentsCardProps = {
+  title?: ReactNode;
+  description?: ReactNode;
+  icon?: ReactNode;
+  rows?: AgentRow[];
+  ctaLabel?: ReactNode;
+  ctaHref?: string;
+  footer?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+  [key: string]: unknown;
+};
+
+function isAgentRowObject(row: AgentRow): row is AgentRowObject {
+  return typeof row === "object" && row !== null && !Array.isArray(row) && ("name" in row || "role" in row || "status" in row);
+}
+
+function renderRow(row: AgentRow, index: number) {
+  if (isAgentRowObject(row)) {
+    return (
+      <div
+        key={index}
+        className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-[var(--cs-ink-2)]">{row.name}</p>
+            <p className="mt-1 text-sm text-[var(--cs-ink-4)]">{row.role}</p>
+          </div>
+          {row.status ? <div className="shrink-0">{row.status}</div> : null}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      key={index}
+      className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3 text-sm text-[var(--cs-ink-4)]"
+    >
+      {row}
+    </div>
+  );
+}
+
+export default function AgentsCard({
+  title = "Employés IA",
+  description = "Vue condensée des employés liés au compte.",
+  icon,
+  rows,
+  ctaLabel,
+  ctaHref,
+  footer,
+  children,
+  className,
+}: AgentsCardProps) {
+  return (
+    <section className={cn("cs-card h-full", className)}>
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-[var(--cs-account-accent)]">
+            {icon ?? <BriefcaseBusiness className="h-4 w-4" />}
+            <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+              {title}
+            </span>
+          </div>
+
+          <p className="text-sm text-[var(--cs-ink-4)]">{description}</p>
+
+          {rows && rows.length > 0 ? (
+            <div className="grid gap-3">{rows.map(renderRow)}</div>
+          ) : null}
+
+          {children ? <div>{children}</div> : null}
+        </div>
+
+        {ctaHref && ctaLabel ? (
+          <Link
+            href={ctaHref}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/72 px-4 text-sm font-medium text-[var(--cs-ink-2)] transition hover:-translate-y-0.5 hover:bg-white/92"
+          >
+            {ctaLabel}
+          </Link>
+        ) : footer ? (
+          <div>{footer}</div>
+        ) : null}
+      </div>
+    </section>
+  );
+}

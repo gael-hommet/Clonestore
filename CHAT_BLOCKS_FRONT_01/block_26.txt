@@ -1,0 +1,6 @@
+ion de façon plus directe, et je te répondrai sans tourner autour.";
+  }
+
+  return "Je peux t'aider à choisir le bon clone, comprendre Pierre et te dire quoi faire ensuite. Si ton but est d'avoir un clone utile maintenant, la réponse la plus honnête reste Pierre. Si tu veux aller plus loin, pose-moi la question exacte qui te bloque.";
+}
+

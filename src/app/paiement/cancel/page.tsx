@@ -1,68 +1,164 @@
-"use client";
-
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { XCircle } from "lucide-react";
-import { useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import {
+  ArrowRight,
+  Bot,
+  CreditCard,
+  ShieldCheck,
+  Sparkles,
+  Undo2,
+} from "lucide-react";
 
-function titleCaseSlug(slug: string) {
-  return slug
-    .split(/[-_]/g)
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
+import { LiquidGlass } from "@/components/ui/LiquidGlass";
+import { cn } from "@/lib/utils";
 
-export default function PaiementCancelPage() {
-  const params = useSearchParams();
-
-  const agent = useMemo(() => {
-    const a = (params.get("agent") || "").trim().toLowerCase();
-    return a || null;
-  }, [params]);
-
-  const displayAgent = agent ? titleCaseSlug(agent) : null;
-
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
-      <section className="w-full max-w-md rounded-2xl border bg-background p-6 text-center space-y-6 shadow-sm">
-        <div className="flex justify-center">
-          <XCircle className="h-12 w-12 text-red-600" />
-        </div>
-
-        <h1 className="text-2xl font-semibold tracking-tight">Paiement annulé</h1>
-
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Aucun montant n’a été débité.
-          <br />
-          {displayAgent ? (
-            <>
-              Tu peux réessayer quand tu veux pour activer <strong>{displayAgent}</strong>.
-            </>
-          ) : (
-            <>Tu peux réessayer à tout moment si tu le souhaites.</>
-          )}
-        </p>
-
-        <div className="flex flex-col gap-3 pt-2">
-          <Button asChild className="w-full">
-            <Link href={agent ? `/paiement?agent=${agent}` : "/paiement"}>Revenir au paiement</Link>
-          </Button>
-
-          <Button asChild variant="outline" className="w-full">
-            <Link href={agent ? `/agents/${agent}` : "/agents"}>Retour</Link>
-          </Button>
-        </div>
-
-        <p className="text-xs text-muted-foreground pt-4">
-          Si tu as une question, contacte le support depuis ton espace compte.
-        </p>
-      </section>
-    </main>
+    <Link
+      href={href}
+      className={cn("clone-liquid-button", primary && "clone-liquid-button--dark")}
+    >
+      <span>{label}</span>
+      {icon}
+    </Link>
   );
 }
 
+function MiniCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <LiquidGlass
+      variant="clear"
+      intensity="soft"
+      interactive
+      className="rounded-[2rem] p-5"
+    >
+      <div className="flex items-start gap-3">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/60 bg-white/35 text-[#6f83ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+          {icon}
+        </div>
 
+        <div>
+          <p className="text-sm font-semibold text-[var(--cs-ink-1)]">{title}</p>
+          <p className="mt-1 text-sm leading-6 text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+      </div>
+    </LiquidGlass>
+  );
+}
 
+export default function PaiementCancelPage() {
+  return (
+    <main className="cs-page">
+      <div className="cs-page-shell">
+        <section className="grid min-h-[calc(100vh-170px)] items-center">
+          <LiquidGlass
+            variant="panel"
+            intensity="strong"
+            refractive
+            className="overflow-hidden rounded-[2.6rem] p-6 md:p-8 xl:p-10"
+          >
+            <div className="grid gap-8 xl:grid-cols-[1fr_430px] xl:items-center">
+              <div className="space-y-7">
+                <div className="flex flex-wrap gap-2">
+                  <span className="cs-pill">
+                    <Undo2 className="h-3.5 w-3.5 text-[var(--cs-danger)]" />
+                    Paiement annulÃ©
+                  </span>
+                  <span className="cs-pill">
+                    <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                    Aucune action facturÃ©e
+                  </span>
+                </div>
 
+                <div className="max-w-4xl space-y-5">
+                  <h1 className="cs-heading text-[clamp(2.4rem,5vw,5.5rem)] leading-[0.94] tracking-[-0.065em]">
+                    Paiement annulÃ©.
+                    <br />
+                    <span className="bg-[linear-gradient(135deg,#151922_0%,#2d3446_46%,#667cff_100%)] bg-clip-text text-transparent">
+                      Vous pouvez reprendre quand vous voulez.
+                    </span>
+                  </h1>
+
+                  <p className="max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
+                    Votre activation nâ€™a pas Ã©tÃ© finalisÃ©e. Vous pouvez revenir Ã  la
+                    boutique, reprendre le checkout ou demander de lâ€™aide Ã  CloneStore.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <ActionButton
+                    href="/checkout?agent=pierre"
+                    label="Reprendre le paiement"
+                    primary
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/agents"
+                    label="Retour boutique"
+                    icon={<Sparkles className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/assistant"
+                    label="Demander Ã  CloneStore"
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+
+              <LiquidGlass
+                variant="clear"
+                intensity="strong"
+                refractive
+                className="rounded-[2.35rem] p-5 md:p-6"
+              >
+                <div className="space-y-4">
+                  <MiniCard
+                    title="Rien nâ€™est perdu"
+                    text="Votre compte et votre navigation restent inchangÃ©s."
+                    icon={<ShieldCheck className="h-4 w-4" />}
+                  />
+                  <MiniCard
+                    title="Paiement non finalisÃ©"
+                    text="Aucune activation nâ€™est confirmÃ©e tant que le paiement nâ€™est pas validÃ©."
+                    icon={<CreditCard className="h-4 w-4" />}
+                  />
+                  <MiniCard
+                    title="Aide disponible"
+                    text="CloneStore peut vous orienter avant de reprendre le checkout."
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+
+                  <div className="pt-2">
+                    <ActionButton
+                      href="/checkout?agent=pierre"
+                      label="Reprendre maintenant"
+                      primary
+                      icon={<ArrowRight className="h-4 w-4" />}
+                    />
+                  </div>
+                </div>
+              </LiquidGlass>
+            </div>
+          </LiquidGlass>
+        </section>
+      </div>
+    </main>
+  );
+}

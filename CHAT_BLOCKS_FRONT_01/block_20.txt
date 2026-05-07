@@ -1,0 +1,613 @@
+===== FILE: src/app/profile/client.tsx =====
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  AlertCircle,
+  ArrowRight,
+  BadgeCheck,
+  Bot,
+  BriefcaseBusiness,
+  Clock3,
+  Loader2,
+  Settings2,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+
+type OrderRow = {
+  id: string;
+  agent_slug: string;
+  status: string;
+  started_at: string | null;
+  ended_at: string | null;
+};
+
+type AgentMeta = {
+  name: string;
+  role: string;
+  description: string;
+  statusLabelWhenMissing?: string;
+};
+
+const AGENT_META: Record<string, AgentMeta> = {
+  pierre: {
+    name: "Pierre",
+    role: "Poste RH opérationnel automatisé",
+    description:
+      "Documents, emails, relances, onboarding, continuité, validations et traçabilité RH.",
+    statusLabelWhenMissing: "Disponible à l’achat",
+  },
+  clara: {
+    name: "Clara",
+    role: "Recrutement automatisé",
+    description:
+      "Coordination recrutement, suivi candidats, shortlists et pipeline plus lisible.",
+    statusLabelWhenMissing: "En construction",
+  },
+  emma: {
+    name: "Emma",
+    role: "Support & communication",
+    description:
+      "Réponses, organisation relationnelle, continuité support et communication structurée.",
+    statusLabelWhenMissing: "En construction",
+  },
+  alex: {
+    name: "Alex",
+    role: "Opérations automatisées",
+    description:
+      "Coordination d’opérations structurées, suivi et exécution transverse.",
+    statusLabelWhenMissing: "En construction",
+  },
+  noah: {
+    name: "Noah",
+    role: "Support de flux internes",
+    description:
+      "Organisation, suivi et lisibilité de flux internes répétitifs.",
+    statusLabelWhenMissing: "En construction",
+  },
+  adrien: {
+    name: "Adrien",
+    role: "Commandes & opérations",
+    description:
+      "Traitement, suivi et continuité des commandes avec plus de rigueur.",
+    statusLabelWhenMissing: "En construction",
+  },
+  thomas: {
+    name: "Thomas",
+    role: "Prospection & LeadForge",
+    description:
+      "Organisation de prospection, suivi commercial et logique outbound structurée.",
+    statusLabelWhenMissing: "En construction",
+  },
+  lucas: {
+    name: "Lucas",
+    role: "Finance opérationnelle",
+    description:
+      "Suivi et structuration de flux finance opérationnels.",
+    statusLabelWhenMissing: "En construction",
+  },
+  sophie: {
+    name: "Sophie",
+    role: "Direction administrative automatisée",
+    description:
+      "Organisation administrative, coordination et continuité des opérations.",
+    statusLabelWhenMissing: "En construction",
+  },
+};
+
+const CATALOG_ORDER = [
+  "pierre",
+  "clara",
+  "emma",
+  "alex",
+  "noah",
+  "adrien",
+  "thomas",
+  "lucas",
+  "sophie",
+];
+
+function fmtDate(value: string | null | undefined) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("fr-FR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
+function statusClass(status: string) {
+  const st = status.toLowerCase();
+
+  if (st === "active") return "cs-status cs-status--success";
+  if (st === "trialing") return "cs-status cs-status--info";
+  if (st === "past_due") return "cs-status cs-status--warn";
+  if (st === "cancelled") return "cs-status";
+  return "cs-status";
+}
+
+function statusLabel(status: string) {
+  const st = status.toLowerCase();
+
+  if (st === "active") return "Actif";
+  if (st === "trialing") return "Essai";
+  if (st === "past_due") return "Paiement en attente";
+  if (st === "cancelled") return "Résilié";
+  return status || "Inconnu";
+}
+
+function getAgentMeta(slug: string): AgentMeta {
+  return (
+    AGENT_META[slug] ?? {
+      name: slug.charAt(0).toUpperCase() + slug.slice(1),
+      role: "Employé IA CloneStore",
+      description:
+        "Employé IA rattaché à l’écosystème CloneStore.",
+      statusLabelWhenMissing: "Bientôt",
+    }
+  );
+}
+
+function ActionLink({
+  href,
+  label,
+  primary = false,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)] border",
+        primary
+          ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))] text-white hover:-translate-y-0.5"
+          : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/70 text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/92",
+      ].join(" ")}
+    >
+      <span>{label}</span>
+      <ArrowRight className="h-4 w-4" />
+    </Link>
+  );
+}
+
+function AgentCard({
+  slug,
+  order,
+}: {
+  slug: string;
+  order: OrderRow | null;
+}) {
+  const meta = getAgentMeta(slug);
+  const isActive = order ? order.status.toLowerCase() === "active" : false;
+  const isPierre = slug === "pierre";
+
+  const primaryHref = order
+    ? isPierre
+      ? "/agents/pierre/use"
+      : `/agents/${slug}/use`
+    : isPierre
+      ? "/agents/pierre"
+      : `/agents/${slug}`;
+
+  const secondaryHref = order
+    ? isPierre
+      ? "/agents/pierre/setup"
+      : `/agents/${slug}`
+    : "/agents";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-lg font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                {meta.name}
+              </p>
+              <p className="text-sm font-medium text-[var(--cs-ink-3)]">
+                {meta.role}
+              </p>
+            </div>
+
+            {order ? (
+              <span className={statusClass(order.status)}>
+                {statusLabel(order.status)}
+              </span>
+            ) : (
+              <span className="cs-status">
+                {meta.statusLabelWhenMissing ?? "Bientôt"}
+              </span>
+            )}
+          </div>
+
+          <p className="text-sm text-[var(--cs-ink-4)]">{meta.description}</p>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-[1.1rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_65%,white)] bg-white/58 px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
+                Début
+              </p>
+              <p className="mt-1 text-sm font-medium text-[var(--cs-ink-2)]">
+                {order ? fmtDate(order.started_at) : "—"}
+              </p>
+            </div>
+
+            <div className="rounded-[1.1rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_65%,white)] bg-white/58 px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
+                Fin / état
+              </p>
+              <p className="mt-1 text-sm font-medium text-[var(--cs-ink-2)]">
+                {order ? fmtDate(order.ended_at) : "Non activé"}
+              </p>
+            </div>
+          </div>
+
+          {isActive ? (
+            <div className="rounded-[1.1rem] border border-[color:rgba(35,122,82,0.16)] bg-[rgba(35,122,82,0.06)] px-4 py-3">
+              <p className="text-sm font-medium text-[var(--cs-ink-2)]">
+                Employé actif
+              </p>
+              <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
+                Cet employé est disponible dans votre espace et doit être
+                accessible rapidement depuis cette page.
+              </p>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <ActionLink
+            href={primaryHref}
+            label={
+              order
+                ? isPierre
+                  ? "Utiliser"
+                  : "Ouvrir"
+                : isPierre
+                  ? "Découvrir"
+                  : "Voir"
+            }
+            primary
+          />
+
+          <ActionLink
+            href={secondaryHref}
+            label={
+              order
+                ? isPierre
+                  ? "Configurer"
+                  : "Fiche"
+                : isPierre
+                  ? "Recruter"
+                  : "Boutique"
+            }
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatTile({
+  label,
+  value,
+  helper,
+}: {
+  label: string;
+  value: string;
+  helper: string;
+}) {
+  return (
+    <div className="cs-card">
+      <div className="relative space-y-2">
+        <p className="text-xs uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
+          {label}
+        </p>
+        <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+          {value}
+        </p>
+        <p className="text-xs text-[var(--cs-ink-4)]">{helper}</p>
+      </div>
+    </div>
+  );
+}
+
+export default function Client() {
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "active" | "catalog">("all");
+
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      setLoading(true);
+      setError(null);
+
+      if (!supabase) {
+        if (!active) return;
+        setError(
+          "Configuration Supabase manquante. Vérifie les variables d’environnement et redémarre le projet.",
+        );
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: userRes, error: userErr } = await supabase.auth.getUser();
+
+        if (userErr) throw userErr;
+
+        const user = userRes.user;
+        if (!user) {
+          if (!active) return;
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
+
+        const { data, error: ordersErr } = await supabase
+          .from("orders")
+          .select("id, agent_slug, status, started_at, ended_at")
+          .eq("user_id", user.id)
+          .order("started_at", { ascending: false });
+
+        if (ordersErr) throw ordersErr;
+
+        if (!active) return;
+        setOrders((data ?? []) as OrderRow[]);
+        setLoading(false);
+      } catch (err) {
+        if (!active) return;
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Impossible de charger les employés pour le moment.",
+        );
+        setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
+
+  const ordersBySlug = useMemo(() => {
+    const map = new Map<string, OrderRow>();
+
+    for (const order of orders) {
+      if (!map.has(order.agent_slug)) {
+        map.set(order.agent_slug, order);
+      }
+    }
+
+    return map;
+  }, [orders]);
+
+  const activeOrders = useMemo(
+    () => orders.filter((o) => o.status.toLowerCase() === "active"),
+    [orders],
+  );
+
+  const visibleSlugs = useMemo(() => {
+    const set = new Set<string>(CATALOG_ORDER);
+
+    for (const order of orders) {
+      set.add(order.agent_slug);
+    }
+
+    const base = Array.from(set);
+
+    if (filter === "active") {
+      return base.filter((slug) => {
+        const order = ordersBySlug.get(slug);
+        return order?.status.toLowerCase() === "active";
+      });
+    }
+
+    if (filter === "catalog") {
+      return CATALOG_ORDER;
+    }
+
+    return base;
+  }, [filter, orders, ordersBySlug]);
+
+  return (
+    <div className="space-y-6">
+      <section className="grid gap-4 md:grid-cols-3">
+        <StatTile
+          label="Employés actifs"
+          value={String(activeOrders.length)}
+          helper="Accès réellement utilisables aujourd’hui."
+        />
+        <StatTile
+          label="Historique lié au compte"
+          value={String(orders.length)}
+          helper="Employés déjà activés ou passés par le compte."
+        />
+        <StatTile
+          label="Catalogue visible"
+          value={String(CATALOG_ORDER.length)}
+          helper="Présence produit globale CloneStore."
+        />
+      </section>
+
+      <section className="cs-card">
+        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+              Filtrer la vue
+            </p>
+            <p className="text-sm text-[var(--cs-ink-4)]">
+              Pour quelqu’un de non technique, la navigation doit rester simple
+              et instantanée.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setFilter("all")}
+              className={[
+                "rounded-full border px-4 py-2 text-sm font-medium transition",
+                filter === "all"
+                  ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_22%,white)] bg-[color:color-mix(in_srgb,var(--cs-account-accent)_12%,white)] text-[var(--cs-ink-1)]"
+                  : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/52 text-[var(--cs-ink-3)]",
+              ].join(" ")}
+            >
+              Tout voir
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilter("active")}
+              className={[
+                "rounded-full border px-4 py-2 text-sm font-medium transition",
+                filter === "active"
+                  ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_22%,white)] bg-[color:color-mix(in_srgb,var(--cs-account-accent)_12%,white)] text-[var(--cs-ink-1)]"
+                  : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/52 text-[var(--cs-ink-3)]",
+              ].join(" ")}
+            >
+              Actifs seulement
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilter("catalog")}
+              className={[
+                "rounded-full border px-4 py-2 text-sm font-medium transition",
+                filter === "catalog"
+                  ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_22%,white)] bg-[color:color-mix(in_srgb,var(--cs-account-accent)_12%,white)] text-[var(--cs-ink-1)]"
+                  : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/52 text-[var(--cs-ink-3)]",
+              ].join(" ")}
+            >
+              Catalogue CloneStore
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {loading ? (
+        <section className="cs-card">
+          <div className="relative flex items-center gap-3">
+            <Loader2 className="h-4 w-4 animate-spin text-[var(--cs-account-accent)]" />
+            <p className="text-sm text-[var(--cs-ink-4)]">
+              Chargement des employés…
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      {!loading && error ? (
+        <section className="cs-card">
+          <div className="relative flex items-start gap-3">
+            <AlertCircle className="mt-0.5 h-4 w-4 text-[var(--cs-danger)]" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                Chargement impossible
+              </p>
+              <p className="text-sm text-[var(--cs-ink-4)]">{error}</p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {!loading && !error && visibleSlugs.length === 0 ? (
+        <section className="cs-card">
+          <div className="relative space-y-4 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/60 text-[var(--cs-account-accent)] shadow-[var(--cs-shadow-soft)]">
+              <Sparkles className="h-5 w-5" />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-lg font-semibold text-[var(--cs-ink-1)]">
+                Aucun employé à afficher
+              </p>
+              <p className="mx-auto max-w-xl text-sm text-[var(--cs-ink-4)]">
+                Cette vue se remplira dès que des employés seront activés ou
+                visibles dans le catalogue retenu.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <ActionLink href="/agents" label="Voir la boutique" primary />
+              <ActionLink href="/questions" label="Ouvrir l’assistant" />
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {!loading && !error && visibleSlugs.length > 0 ? (
+        <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          {visibleSlugs.map((slug) => (
+            <AgentCard
+              key={slug}
+              slug={slug}
+              order={ordersBySlug.get(slug) ?? null}
+            />
+          ))}
+        </section>
+      ) : null}
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <div className="cs-card">
+          <div className="relative flex items-start gap-3">
+            <BadgeCheck className="mt-0.5 h-4 w-4 text-[var(--cs-success)]" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                Accès rapides
+              </p>
+              <p className="text-sm text-[var(--cs-ink-4)]">
+                Pierre actif doit être atteignable en un clic.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="cs-card">
+          <div className="relative flex items-start gap-3">
+            <Settings2 className="mt-0.5 h-4 w-4 text-[var(--cs-account-accent)]" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                Configuration
+              </p>
+              <p className="text-sm text-[var(--cs-ink-4)]">
+                L’utilisateur doit comprendre quoi régler et où aller.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="cs-card">
+          <div className="relative flex items-start gap-3">
+            <Clock3 className="mt-0.5 h-4 w-4 text-[var(--cs-info)]" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                Continuité
+              </p>
+              <p className="text-sm text-[var(--cs-ink-4)]">
+                Même les employés à venir doivent déjà exister proprement dans
+                l’univers CloneStore.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

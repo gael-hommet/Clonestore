@@ -1,390 +1,380 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { getSupabase } from "@/lib/supabase";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { Check, Clock, ShieldCheck, Layers, Activity, CreditCard } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Bot,
+  BriefcaseBusiness,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  X,
+} from "lucide-react";
 
-type OrdersMe = { active: string[]; past_due: string[]; cancelled: string[] };
-type OrderRow = { agent_slug: string; status: string };
+import { AGENTS, type AgentSpec } from "@/lib/agent-catalog";
+import { LiquidGlass } from "@/components/ui/LiquidGlass";
+import { cn } from "@/lib/utils";
 
-type Clone = {
-  slug: string;
-  name: string;
-  role: string;
-  price: string;
-  bullets: string[];
-  workload: string; // “équivalence charge de travail”
-};
-
-const CLONES: Clone[] = [
-  {
-    slug: "pierre",
-    name: "Pierre",
-    role: "Assistant RH rédacteur",
-    price: "299€/mois",
-    bullets: [
-      "Rédige vos documents RH (mails, courriers, notes, process)",
-      "Standardise vos modèles et vos réponses en interne",
-      "Produit des textes prêts à envoyer, au bon ton",
-    ],
-    workload: "≈ 4 à 8 h / semaine économisées (rédaction & administratif RH)",
-  },
-  {
-    slug: "clara",
-    name: "Clara",
-    role: "Recruteuse IA",
-    price: "549€/mois",
-    bullets: [
-      "Analyse les candidatures et structure les profils",
-      "Score les candidats selon vos critères",
-      "Prépare une shortlist exploitable",
-    ],
-    workload: "≈ 6 à 12 h / semaine économisées (tri & présélection)",
-  },
-  {
-    slug: "alex",
-    name: "Alex",
-    role: "Assistant Ops",
-    price: "399€/mois",
-    bullets: [
-      "Prépare des procédures et checklists opérationnelles",
-      "Synthétise, structure, formalise vos infos",
-      "Aide à standardiser les process d’équipe",
-    ],
-    workload: "≈ 3 à 7 h / semaine économisées (structuration & ops)",
-  },
-  {
-    slug: "emma",
-    name: "Emma",
-    role: "Support & mails",
-    price: "449€/mois",
-    bullets: [
-      "Prépare des réponses support claires et cohérentes",
-      "Classe les demandes et résume les échanges",
-      "Aide à maintenir un ton client constant",
-    ],
-    workload: "≈ 5 à 10 h / semaine économisées (support & email)",
-  },
-  {
-    slug: "noah",
-    name: "Noah",
-    role: "Assistant direction",
-    price: "499€/mois",
-    bullets: [
-      "Prépare des synthèses et décisions (notes, résumés, plans)",
-      "Rédige des mails et documents de pilotage",
-      "Aide à cadrer et prioriser des actions",
-    ],
-    workload: "≈ 3 à 8 h / semaine économisées (pilotage & administratif)",
-  },
-];
-
-const UNDER_CONSTRUCTION = new Set(["alex", "noah", "clara", "emma"]);
-
-if (process.env.NEXT_PUBLIC_DEPLOY_BLOCK_PIERRE === "1") {
-  UNDER_CONSTRUCTION.add("pierre");
+function isAvailableNow(slug: string) {
+  return slug === "pierre";
 }
 
-function normalizeOrders(rows: OrderRow[]): OrdersMe {
-  const active: string[] = [];
-  const past_due: string[] = [];
-  const cancelled: string[] = [];
-
-  for (const r of rows) {
-    const slug = r.agent_slug;
-    const st = (r.status || "").toLowerCase();
-    if (!slug) continue;
-
-    if (st === "active") active.push(slug);
-    else if (st === "past_due") past_due.push(slug);
-    else if (st === "cancelled") cancelled.push(slug);
-  }
-
-  return { active, past_due, cancelled };
+function getAgentPrice(agent: AgentSpec) {
+  if (agent.slug === "pierre") return "449 â‚¬/mois";
+  return "Ã€ venir";
 }
 
-function badgeFor(slug: string, orders: OrdersMe) {
-  if (UNDER_CONSTRUCTION.has(slug)) {
-    return { label: "En construction", className: "bg-muted text-foreground" };
-  }
-  if (orders.active.includes(slug)) {
-    return { label: "Accès actif", className: "bg-foreground text-background" };
-  }
-  if (orders.past_due.includes(slug)) {
-    return { label: "Paiement en attente", className: "bg-muted text-foreground" };
-  }
-  if (orders.cancelled.includes(slug)) {
-    return { label: "Résilié", className: "bg-muted text-foreground" };
-  }
-  return { label: "Non embauché", className: "bg-muted text-foreground" };
+function normalizeSearch(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
 }
 
-export default function ClonesPage() {
-  // ✅ seul changement technique : singleton Supabase
-  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+function getAgentSearchAliases(agent: AgentSpec) {
+  const aliasesBySlug: Record<string, string> = {
+    pierre:
+      "rh ressources humaines hr administratif documents courrier mail email recrutement onboarding salarie collaborateur convocation relance contrat note refus entretien employe ia rh operationnel",
+    clara:
+      "rh ressources humaines recrutement recruteuse candidats candidatures shortlist entretien pipeline talent sourcing embauche profil cv selection poste recruteur",
+    emma:
+      "support client relation client sav messages mails tickets reponse reclamation satisfaction suivi client service client",
+    noah:
+      "direction dirigeant assistant direction decision synthese priorites compte rendu pilotage reunion organisation executive",
+    alex:
+      "operations ops coordination process suivi operationnel production planning taches execution terrain",
+    adrien:
+      "commandes operations achat fournisseur livraison suivi commande logistique coordination fournisseur",
+    lucas:
+      "finance comptabilite facture relance paiement tresorerie depenses budget analyse financier",
+    sophie:
+      "administratif direction administrative gestion bureau documents procedures organisation coordination administrative",
+  };
 
-  const [loading, setLoading] = useState(true);
-  const [orders, setOrders] = useState<OrdersMe>({ active: [], past_due: [], cancelled: [] });
-  const [filter, setFilter] = useState<"all" | "mine">("all");
+  return aliasesBySlug[agent.slug] ?? "";
+}
 
-  const activeSet = useMemo(() => new Set(orders.active), [orders.active]);
+function buildAgentSearchText(agent: AgentSpec) {
+  return normalizeSearch(
+    [
+      agent.name,
+      agent.slug,
+      agent.role,
+      agent.pricingNote ?? "",
+      ...(agent.does ?? []),
+      getAgentSearchAliases(agent),
+    ].join(" ")
+  );
+}
 
-  const refreshAccess = useCallback(async () => {
-    setLoading(true);
+function sortAgentsForShop(agents: AgentSpec[]) {
+  return [...agents].sort((a, b) => {
+    const aAvailable = isAvailableNow(a.slug);
+    const bAvailable = isAvailableNow(b.slug);
 
-    try {
-      if (!supabase) {
-        setOrders({ active: [], past_due: [], cancelled: [] });
-        return;
-      }
+    if (aAvailable && !bAvailable) return -1;
+    if (!aAvailable && bAvailable) return 1;
 
-      const { data: userRes, error: userErr } = await supabase.auth.getUser();
+    return a.name.localeCompare(b.name);
+  });
+}
 
-      if (userErr || !userRes?.user) {
-        setOrders({ active: [], past_due: [], cancelled: [] });
-        return;
-      }
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "clone-liquid-button min-h-10 px-4 text-[0.82rem]",
+        primary && "clone-liquid-button--dark"
+      )}
+    >
+      <span>{label}</span>
+      {icon}
+    </Link>
+  );
+}
 
-      const user = userRes.user;
+function StatusChip({ available }: { available: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.72rem] font-bold backdrop-blur-xl",
+        available
+          ? "border-emerald-500/20 bg-white/42 text-emerald-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_10px_24px_rgba(20,120,80,0.07)]"
+          : "border-white/54 bg-white/34 text-[var(--cs-ink-4)] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_10px_24px_rgba(38,32,22,0.05)]"
+      )}
+    >
+      {available ? (
+        <BadgeCheck className="h-3.5 w-3.5" />
+      ) : (
+        <Sparkles className="h-3.5 w-3.5" />
+      )}
+      {available ? "Disponible" : "BientÃ´t"}
+    </span>
+  );
+}
 
-      const { data, error } = await supabase
-        .from("orders")
-        .select("agent_slug,status")
-        .eq("user_id", user.id);
-
-      if (error) {
-        setOrders({ active: [], past_due: [], cancelled: [] });
-        return;
-      }
-
-      setOrders(normalizeOrders((data || []) as OrderRow[]));
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
-
-  useEffect(() => {
-    refreshAccess();
-
-    const onFocus = () => refreshAccess();
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onFocus);
-
-    const sub = supabase?.auth.onAuthStateChange(() => {
-      refreshAccess();
-    });
-
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onFocus);
-      sub?.data.subscription.unsubscribe();
-    };
-  }, [refreshAccess, supabase]);
-
-  const visibleClones = useMemo(() => {
-    if (filter === "mine") {
-      return CLONES.filter((a) => activeSet.has(a.slug));
-    }
-    return CLONES;
-  }, [filter, activeSet]);
+function AgentShopCard({ agent }: { agent: AgentSpec }) {
+  const available = isAvailableNow(agent.slug);
+  const highlights = agent.does.slice(0, 3);
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-12 space-y-10">
-      {/* Header */}
-      <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">Boutique de clones</h1>
-        <p className="text-muted-foreground text-sm">
-          {loading ? "Chargement des accès…" : "Choisis un clone. Accès instantané après paiement."}
-        </p>
-
-        {/* Mini proof / positioning */}
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1">
-            <Clock size={14} /> Mise en place &lt; 24h
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1">
-            <ShieldCheck size={14} /> Données isolées + logs
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1">
-            <Layers size={14} /> Clones spécialisés (pas des prompts)
-          </span>
-        </div>
-      </header>
-
-      {/* How it works (simple) */}
-      <section className="grid gap-4 md:grid-cols-3">
-        <HowCard
-          title="1. Choisis un clone"
-          text="Un clone = un métier. Objectif clair, livrables concrets."
-          icon={<Check />}
-        />
-        <HowCard
-          title="2. Configuration entreprise"
-          text="Tu le règles à ton contexte : règles, formats, données autorisées."
-          icon={<Activity />}
-        />
-        <HowCard
-          title="3. Il exécute"
-          text="Il travaille seul ou avec d’autres clones via le Router."
-          icon={<Layers />}
-        />
-      </section>
-
-      {/* Filter */}
-      <section className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-1">
-          <h2 className="text-xl font-semibold">Clones disponibles</h2>
-          <p className="text-sm text-muted-foreground">
-            Chaque clone est conçu pour réduire une vraie charge de travail.
-          </p>
+    <LiquidGlass
+      variant="panel"
+      intensity="strong"
+      refractive
+      interactive
+      className="group h-full overflow-hidden rounded-[2.15rem] p-[1px]"
+    >
+      <article className="relative flex h-full min-h-[410px] flex-col justify-between overflow-hidden rounded-[2.08rem] border border-white/58 bg-[linear-gradient(145deg,rgba(255,255,255,0.52),rgba(255,255,255,0.20)_48%,rgba(250,247,239,0.22))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.78),0_22px_58px_rgba(38,32,22,0.075)] backdrop-blur-[28px] md:p-6">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-20 -top-24 h-52 w-52 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.86),transparent_70%)] blur-3xl" />
+          <div className="absolute -right-24 top-0 h-52 w-52 rounded-full bg-[radial-gradient(circle,rgba(111,131,255,0.12),transparent_70%)] blur-3xl" />
+          <div className="absolute bottom-[-110px] left-[18%] h-52 w-52 rounded-full bg-[radial-gradient(circle,rgba(216,193,152,0.13),transparent_70%)] blur-3xl" />
         </div>
 
-        <div className="flex gap-2">
-          <Button
-            variant={filter === "all" ? "default" : "outline"}
-            onClick={() => setFilter("all")}
-          >
-            Tous
-          </Button>
-          <Button
-            variant={filter === "mine" ? "default" : "outline"}
-            onClick={() => setFilter("mine")}
-            disabled={loading}
-            title={loading ? "Chargement…" : "Afficher uniquement tes clones actifs"}
-          >
-            Mes clones
-          </Button>
-        </div>
-      </section>
+        <div className="relative z-10">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 items-start gap-3.5">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.25rem] border border-white/60 bg-white/42 text-[#6f83ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_12px_28px_rgba(38,32,22,0.07)] backdrop-blur-xl">
+                <Sparkles className="h-4.5 w-4.5" />
+              </span>
 
-      {/* Cards */}
-      <section className="grid gap-4 sm:grid-cols-2">
-        {visibleClones.map((a) => {
-          const has = activeSet.has(a.slug);
-          const badge = badgeFor(a.slug, orders);
-          const isUC = UNDER_CONSTRUCTION.has(a.slug);
-
-          return (
-            <div key={a.slug} className="rounded-2xl border p-6 space-y-5 cs-card">
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1 min-w-0">
-                  <h3 className="text-lg font-medium truncate">{a.name}</h3>
-                  <p className="text-sm text-muted-foreground">{a.role}</p>
-                </div>
-
-                <span className={`shrink-0 rounded-full px-3 py-1 text-xs ${badge.className}`}>
-                  {badge.label}
-                </span>
-              </div>
-
-              <div className="rounded-xl border p-4 space-y-3 cs-card">
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  {a.bullets.slice(0, 3).map((b, idx) => (
-                    <li key={idx} className="flex gap-2">
-                      <span className="mt-0.5">•</span>
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <p className="text-xs text-muted-foreground">
-                  <span className="font-medium">Équivalence :</span> {a.workload}
+              <div className="min-w-0">
+                <h2 className="text-[1.45rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
+                  {agent.name}
+                </h2>
+                <p className="mt-1 text-sm font-medium leading-6 text-[var(--cs-ink-3)]">
+                  {agent.role}
                 </p>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <p className="text-sm">
-                  <span className="text-muted-foreground">Prix :</span>{" "}
-                  <span className="font-medium">{a.price}</span>
-                </p>
-
-                {!has ? (
-                  <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-                    <CreditCard size={14} /> Accès après paiement
-                  </span>
-                ) : (
-                  <span className="text-xs text-muted-foreground">Utilisable maintenant</span>
-                )}
-              </div>
-
-              <div className="flex gap-3">
-                <Button asChild variant="outline">
-                  <Link href={`/agents/${a.slug}`}>Voir</Link>
-                </Button>
-
-                {isUC ? (
-                  <Button disabled>En construction</Button>
-                ) : has ? (
-                  <Button asChild>
-                    <Link href={`/agents/${a.slug}/use`}>Utiliser</Link>
-                  </Button>
-                ) : (
-                  <Button asChild>
-                    <Link href={`/paiement?agent=${a.slug}`}>Embaucher</Link>
-                  </Button>
-                )}
               </div>
             </div>
-          );
-        })}
-      </section>
 
-      {/* Trust / Security (short, no overtalk) */}
-      <section className="rounded-2xl border p-6 space-y-3 cs-card">
-        <h2 className="text-lg font-medium">Sécurité & confiance</h2>
-        <ul className="text-sm text-muted-foreground space-y-2">
-          <li>• Données cloisonnées par entreprise</li>
-          <li>• Historique / logs des actions (traçabilité)</li>
-          <li>• Aucune donnée utilisée pour l’entraînement</li>
-          <li>• Support : chatbot + humain si besoin</li>
-        </ul>
-      </section>
+            <StatusChip available={available} />
+          </div>
 
-      {/* CTA final */}
-      <section className="text-center space-y-4">
-        <h2 className="text-2xl font-semibold">Tu hésites ?</h2>
-        <p className="text-sm text-muted-foreground">
-          Parle au chatbot : il te dit quel clone correspond à ta charge de travail.
-        </p>
-        <div className="flex flex-wrap justify-center gap-2">
-          <Button asChild>
-            <Link href="/assistant">Parler au chatbot</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/profile">Mon compte</Link>
-          </Button>
+          <div className="mt-6 rounded-[1.55rem] border border-white/46 bg-white/26 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl">
+            <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+              Tarif
+            </p>
+            <p className="mt-2 text-[1.55rem] font-semibold tracking-[-0.06em] text-[var(--cs-ink-1)]">
+              {getAgentPrice(agent)}
+            </p>
+          </div>
+
+          <div className="mt-5 space-y-2.5">
+            {highlights.map((item) => (
+              <div key={item} className="flex items-start gap-2.5">
+                <span className="mt-[0.52rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[#6f83ff] shadow-[0_0_12px_rgba(111,131,255,0.5)]" />
+                <p className="text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                  {item}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
-      </section>
+
+        <div className="relative z-10 mt-6 flex flex-wrap gap-2.5">
+          <ActionButton
+            href={`/agents/${agent.slug}`}
+            label="Voir"
+            primary={available}
+            icon={<ArrowRight className="h-3.5 w-3.5" />}
+          />
+
+          {available ? (
+            <ActionButton
+              href="/checkout?agent=pierre"
+              label="Activer"
+              icon={<Sparkles className="h-3.5 w-3.5" />}
+            />
+          ) : (
+            <ActionButton
+              href="/questions"
+              label="Question"
+              icon={<Bot className="h-3.5 w-3.5" />}
+            />
+          )}
+        </div>
+      </article>
+    </LiquidGlass>
+  );
+}
+
+export default function AgentsPage() {
+  const [query, setQuery] = useState("");
+
+  const sortedAgents = useMemo(() => sortAgentsForShop(AGENTS), []);
+
+  const normalizedQuery = useMemo(() => normalizeSearch(query), [query]);
+
+  const filteredAgents = useMemo(() => {
+    if (!normalizedQuery) return sortedAgents;
+
+    return sortedAgents.filter((agent) =>
+      buildAgentSearchText(agent).includes(normalizedQuery)
+    );
+  }, [normalizedQuery, sortedAgents]);
+
+  const readyAgents = useMemo(
+    () => sortedAgents.filter((agent) => isAvailableNow(agent.slug)),
+    [sortedAgents]
+  );
+
+  const upcomingAgents = useMemo(
+    () => sortedAgents.filter((agent) => !isAvailableNow(agent.slug)),
+    [sortedAgents]
+  );
+
+  return (
+    <main className="cs-page">
+      <div className="cs-page-shell py-8 md:py-10">
+        <div className="space-y-6">
+          <LiquidGlass
+            variant="panel"
+            intensity="strong"
+            refractive
+            className="relative overflow-hidden rounded-[2.6rem] p-6 md:p-8"
+          >
+            <div className="pointer-events-none absolute inset-0">
+              <div className="absolute left-[-180px] top-[-190px] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.88),transparent_70%)] blur-3xl" />
+              <div className="absolute right-[-160px] top-[-160px] h-[24rem] w-[24rem] rounded-full bg-[radial-gradient(circle,rgba(111,131,255,0.12),transparent_72%)] blur-3xl" />
+              <div className="absolute bottom-[-180px] right-[14%] h-[22rem] w-[22rem] rounded-full bg-[radial-gradient(circle,rgba(216,193,152,0.15),transparent_72%)] blur-3xl" />
+            </div>
+
+            <div className="relative z-10 grid gap-7 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.42fr)] xl:items-end">
+              <div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="cs-pill">
+                    <BriefcaseBusiness className="h-3.5 w-3.5 text-[#6f83ff]" />
+                    Boutique CloneStore
+                  </span>
+                  <span className="cs-pill">
+                    <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                    EmployÃ©s IA
+                  </span>
+                </div>
+
+                <h1 className="cs-heading mt-6 text-[clamp(2.6rem,5vw,5.1rem)] leading-[0.94]">
+                  Boutique
+                </h1>
+
+                <p className="mt-4 max-w-2xl text-[1rem] leading-8 text-[var(--cs-ink-3)] md:text-[1.06rem]">
+                  Choisissez les employÃ©s IA Ã  intÃ©grer dans votre entreprise.
+                </p>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <LiquidGlass
+                  variant="clear"
+                  intensity="soft"
+                  className="rounded-[1.7rem] px-5 py-4"
+                >
+                  <p className="text-[1.8rem] font-semibold tracking-[-0.07em] text-[var(--cs-ink-1)]">
+                    {readyAgents.length}
+                  </p>
+                  <p className="mt-1 text-xs text-[var(--cs-ink-4)]">
+                    disponible maintenant
+                  </p>
+                </LiquidGlass>
+
+                <LiquidGlass
+                  variant="clear"
+                  intensity="soft"
+                  className="rounded-[1.7rem] px-5 py-4"
+                >
+                  <p className="text-[1.8rem] font-semibold tracking-[-0.07em] text-[var(--cs-ink-1)]">
+                    {upcomingAgents.length}
+                  </p>
+                  <p className="mt-1 text-xs text-[var(--cs-ink-4)]">
+                    en construction
+                  </p>
+                </LiquidGlass>
+              </div>
+            </div>
+          </LiquidGlass>
+
+          <LiquidGlass
+            variant="panel"
+            intensity="strong"
+            refractive
+            className="rounded-[2.2rem] p-3 md:p-4"
+          >
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[var(--cs-ink-4)]" />
+
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Rechercher un employÃ©, un mÃ©tier, un besoinâ€¦ exemple : RH, recrutement, support, finance"
+                className="h-14 w-full rounded-full border border-white/56 bg-white/34 px-12 text-[0.95rem] font-medium text-[var(--cs-ink-1)] shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_14px_34px_rgba(38,32,22,0.06)] outline-none backdrop-blur-xl placeholder:text-[var(--cs-ink-4)] focus:border-white/80 focus:bg-white/48"
+              />
+
+              {query ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/56 bg-white/42 text-[var(--cs-ink-3)] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl transition hover:text-[var(--cs-ink-1)]"
+                  aria-label="Effacer la recherche"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : null}
+            </div>
+          </LiquidGlass>
+
+          <section>
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <p className="cs-eyebrow">Catalogue</p>
+                <h2 className="cs-heading mt-2 text-[clamp(1.7rem,2.6vw,2.8rem)]">
+                  {normalizedQuery
+                    ? `${filteredAgents.length} rÃ©sultat${
+                        filteredAgents.length > 1 ? "s" : ""
+                      }`
+                    : "Tous les employÃ©s IA"}
+                </h2>
+              </div>
+            </div>
+
+            {filteredAgents.length > 0 ? (
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                {filteredAgents.map((agent) => (
+                  <AgentShopCard key={agent.slug} agent={agent} />
+                ))}
+              </div>
+            ) : (
+              <LiquidGlass
+                variant="panel"
+                intensity="strong"
+                refractive
+                className="rounded-[2.2rem] p-8 text-center"
+              >
+                <p className="text-lg font-semibold text-[var(--cs-ink-1)]">
+                  Aucun employÃ© trouvÃ©.
+                </p>
+                <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-[var(--cs-ink-3)]">
+                  Essayez un autre besoin : RH, recrutement, support, finance,
+                  administratif, opÃ©rations ou direction.
+                </p>
+              </LiquidGlass>
+            )}
+          </section>
+        </div>
+      </div>
     </main>
   );
 }
-
-function HowCard({
-  title,
-  text,
-  icon,
-}: {
-  title: string;
-  text: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border p-6 space-y-3 cs-card">
-      <div className="w-10 h-10 rounded-lg border flex items-center justify-center">
-        {icon}
-      </div>
-      <h3 className="font-medium">{title}</h3>
-      <p className="text-sm text-muted-foreground">{text}</p>
-    </div>
-  );
-}
-
-
-
-
-
-
-

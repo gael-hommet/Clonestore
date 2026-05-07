@@ -1,0 +1,451 @@
+===== FILE: src/app/legal/confidentialite/page.tsx =====
+import Link from "next/link";
+import {
+  ArrowRight,
+  Database,
+  Eye,
+  FileCheck2,
+  Lock,
+  Mail,
+  Server,
+  ShieldCheck,
+  Sparkles,
+  UserCheck,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-3xl space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+        {kicker}
+      </p>
+      <h2 className="cs-heading text-2xl md:text-3xl">{title}</h2>
+      <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+      ? "text-[var(--cs-info)]"
+      : tone === "rose"
+      ? "text-[var(--cs-danger)]"
+      : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function LegalSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="cs-card">
+      <div className="relative space-y-4">
+        <h3 className="text-xl font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+          {title}
+        </h3>
+        <div className="space-y-3 text-sm leading-7 text-[var(--cs-ink-4)]">
+          {children}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-2">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <span className="mt-[10px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--cs-account-accent)]" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function ConfidentialitePage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        {/* HERO */}
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.05fr_0.95fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Politique de confidentialité</span>
+                </span>
+                <span className="cs-pill">
+                  <Lock className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Clarté, contrôle, transparence</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Une confidentialité claire,
+                  <br />
+                  <span className="cs-gradient-text">
+                    à la hauteur d’un produit entreprise.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  CloneStore doit inspirer confiance. Cette page explique
+                  simplement quelles données peuvent être traitées, dans quel
+                  cadre, pour quelles finalités, et avec quels droits pour
+                  l’utilisateur. Le fond juridique précis pourra être ajusté si
+                  nécessaire, mais la philosophie est claire : lisibilité,
+                  contrôle et sérieux.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/profile"
+                  label="Retour au cockpit"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <InfoCard
+                title="Transparence"
+                text="Le client doit comprendre ce qui est collecté, utilisé, conservé et affiché."
+                icon={<Eye className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Contrôle"
+                text="Le produit doit permettre de piloter, corriger, supprimer ou ajuster ce qui est nécessaire."
+                icon={<UserCheck className="h-4 w-4" />}
+                tone="green"
+              />
+              <InfoCard
+                title="Traçabilité"
+                text="CloneStore valorise la visibilité des actions, des missions, des validations et des historiques."
+                icon={<FileCheck2 className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Infrastructure"
+                text="La logique produit repose sur un système d’entreprise, pas sur une simple interface de chat."
+                icon={<Server className="h-4 w-4" />}
+                tone="rose"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* INTRO */}
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Vue d’ensemble"
+            title="Ce que cette politique doit expliquer clairement"
+            text="Le but n’est pas d’écraser le lecteur sous le jargon. Le but est d’expliquer honnêtement ce qui est traité dans CloneStore et pourquoi."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard
+              title="Qui traite"
+              text="L’entité CloneStore, ou l’entité d’exploitation associée, dans le cadre du service proposé."
+              icon={<ShieldCheck className="h-4 w-4" />}
+              tone="violet"
+            />
+            <InfoCard
+              title="Quelles données"
+              text="Compte, entreprise, usage, missions, documents, messages, paramètres, historique."
+              icon={<Database className="h-4 w-4" />}
+              tone="blue"
+            />
+            <InfoCard
+              title="Pourquoi"
+              text="Fournir le service, sécuriser l’usage, piloter le produit, améliorer l’expérience et assister le client."
+              icon={<Sparkles className="h-4 w-4" />}
+              tone="green"
+            />
+            <InfoCard
+              title="Quels droits"
+              text="Accès, rectification, suppression, limitation, opposition et demande d’information."
+              icon={<Mail className="h-4 w-4" />}
+              tone="rose"
+            />
+          </div>
+        </section>
+
+        {/* LEGAL BODY */}
+        <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="space-y-6">
+            <LegalSection title="1. Responsable du traitement">
+              <p>
+                CloneStore agit dans le cadre de la fourniture d’un service
+                logiciel destiné aux entreprises. Les coordonnées exactes du
+                responsable du traitement, de l’entité d’exploitation, de
+                l’adresse de contact et des éventuelles mentions légales
+                complémentaires devront être confirmées et mises à jour dans la
+                version juridique finale du site.
+              </p>
+              <p>
+                Pour toute question liée à la confidentialité, une adresse de
+                contact dédiée pourra être fournie, par exemple :
+                <span className="font-medium text-[var(--cs-ink-2)]">
+                  {" "}
+                  privacy@clonestore.pro
+                </span>
+                .
+              </p>
+            </LegalSection>
+
+            <LegalSection title="2. Données susceptibles d’être traitées">
+              <BulletList
+                items={[
+                  "Informations de compte : identité, email, informations d’accès, préférences utilisateur.",
+                  "Informations d’entreprise : nom, secteur, paramètres, identité de messagerie, configuration d’Empreinte Entreprise.",
+                  "Données d’usage : missions, tâches, validations, historiques, événements, journaux fonctionnels et éléments de traçabilité.",
+                  "Documents et contenus fournis dans le cadre du service : fichiers, textes, emails, éléments RH ou opérationnels selon les employés IA activés.",
+                  "Données techniques : informations de sécurité, logs applicatifs, données nécessaires au bon fonctionnement, à la maintenance et à la prévention des abus.",
+                ]}
+              />
+            </LegalSection>
+
+            <LegalSection title="3. Finalités principales">
+              <BulletList
+                items={[
+                  "Créer et gérer les comptes utilisateurs et les accès entreprise.",
+                  "Permettre l’utilisation des employés IA, des missions, des livrables, des messages et de la traçabilité produit.",
+                  "Configurer les règles, préférences, paramètres et éléments d’identité liés à l’entreprise cliente.",
+                  "Fournir l’assistance, l’onboarding, les réponses aux questions et les services liés au support.",
+                  "Renforcer la sécurité, prévenir les abus, maintenir la stabilité de l’infrastructure et tracer certains événements critiques.",
+                  "Améliorer le service, dans le respect du cadre contractuel et des engagements pris vis-à-vis des clients.",
+                ]}
+              />
+            </LegalSection>
+
+            <LegalSection title="4. Bases juridiques">
+              <p>
+                Selon les cas, le traitement peut reposer sur :
+              </p>
+              <BulletList
+                items={[
+                  "l’exécution du contrat ou des mesures précontractuelles liées au service CloneStore ;",
+                  "le respect d’obligations légales applicables ;",
+                  "l’intérêt légitime lié à la sécurité, à la fiabilité, à l’amélioration du service et à la prévention des abus ;",
+                  "le consentement lorsque celui-ci est requis dans certains cas spécifiques.",
+                ]}
+              />
+              <p>
+                La qualification précise des bases juridiques devra être
+                vérifiée dans la version juridique finale.
+              </p>
+            </LegalSection>
+          </div>
+
+          <div className="space-y-6">
+            <LegalSection title="5. Partage et sous-traitants">
+              <p>
+                CloneStore peut s’appuyer sur des prestataires techniques et
+                sous-traitants nécessaires à l’exploitation du service, par
+                exemple pour l’hébergement, la base de données, l’envoi d’emails
+                transactionnels, le paiement ou certaines briques
+                d’infrastructure.
+              </p>
+              <p>
+                L’objectif produit reste clair : limiter l’accès aux données à
+                ce qui est strictement nécessaire au fonctionnement, à la
+                sécurité et à l’exploitation du service.
+              </p>
+            </LegalSection>
+
+            <LegalSection title="6. Sécurité et gouvernance">
+              <BulletList
+                items={[
+                  "Isolation logique des comptes et des entreprises.",
+                  "Gestion des accès, authentification et contrôle des permissions.",
+                  "Historique, traçabilité et journalisation d’événements critiques lorsque cela est nécessaire au service.",
+                  "Mécanismes de validation, de blocage et de gouvernance dans la logique produit.",
+                  "Approche de sécurité conçue pour un usage entreprise, même si les détails d’implémentation internes ne sont pas tous exposés publiquement.",
+                ]}
+              />
+            </LegalSection>
+
+            <LegalSection title="7. Durée de conservation">
+              <p>
+                Les données sont conservées pendant une durée cohérente avec les
+                finalités du service, les obligations légales applicables, les
+                impératifs de sécurité et les besoins raisonnables de
+                traçabilité, d’historique, de support ou de continuité
+                opérationnelle.
+              </p>
+              <p>
+                Certaines données peuvent être supprimées ou anonymisées après
+                expiration de leur utilité, selon les règles internes retenues
+                pour le service.
+              </p>
+            </LegalSection>
+
+            <LegalSection title="8. Vos droits">
+              <BulletList
+                items={[
+                  "demander l’accès à certaines données vous concernant ;",
+                  "demander la rectification ou la mise à jour de données inexactes ;",
+                  "demander la suppression lorsque cela est juridiquement possible ;",
+                  "demander la limitation de certains traitements ;",
+                  "vous opposer à certains traitements lorsque le cadre le permet ;",
+                  "introduire une réclamation auprès de l’autorité compétente si nécessaire.",
+                ]}
+              />
+              <p>
+                Les modalités exactes d’exercice de ces droits devront être
+                précisées dans la version juridique finale avec les bons canaux
+                de contact.
+              </p>
+            </LegalSection>
+
+            <LegalSection title="9. Mise à jour de la politique">
+              <p>
+                Cette politique pourra évoluer pour refléter :
+              </p>
+              <BulletList
+                items={[
+                  "l’évolution du service CloneStore ;",
+                  "l’ajout de nouvelles fonctionnalités ou couches produit ;",
+                  "des exigences juridiques, techniques ou contractuelles nouvelles ;",
+                  "des ajustements liés à l’infrastructure, aux sous-traitants ou à la sécurité.",
+                ]}
+              />
+              <p>
+                La date de dernière mise à jour pourra être indiquée ici dans la
+                version finale publiée.
+              </p>
+            </LegalSection>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-account-accent)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                <span>Encore une question sur la confidentialité ?</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Demandez une réponse claire plutôt que de rester dans le doute.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--cs-ink-4)] md:text-base">
+              L’assistant et le support doivent faire gagner du temps, y compris
+              sur les sujets de confiance, d’usage et de cadre produit.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/questions"
+                label="Poser une question"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/profile"
+                label="Retour au cockpit"
+                icon={<Sparkles className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

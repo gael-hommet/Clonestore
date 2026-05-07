@@ -1,0 +1,632 @@
+             {mainSection === "history" &&
+                        "Retrouve les productions passées, navigue dans la continuité, relis l’activité et rouvre les éléments utiles."}
+                      {mainSection === "memory" &&
+                        "Configure la mémoire entreprise, l’identité d’envoi, le ton et les règles internes utilisées par Pierre."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  {voiceSupported && (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[#eadfce] bg-white px-3 py-2 text-sm text-[#6f5e4f]">
+                      {isListening ? (
+                        <>
+                          <Mic className="h-4 w-4 text-[#9b493c]" />
+                          Dictée active
+                        </>
+                      ) : (
+                        <>
+                          <MicOff className="h-4 w-4" />
+                          Voix prête
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setCommandOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-full border border-[#e7dac8] bg-white px-4 py-2.5 text-sm font-medium text-[#4f3f32]"
+                  >
+                    <Search className="h-4 w-4" />
+                    Rechercher / naviguer
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleRefreshAll}
+                    className="inline-flex items-center gap-2 rounded-full border border-[#e7dac8] bg-white px-4 py-2.5 text-sm font-medium text-[#4f3f32]"
+                  >
+                    {busyAction === "refresh" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                    Actualiser
+                  </button>
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setTopMenuOpen((prev) => !prev)}
+                      className="inline-flex items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white"
+                    >
+                      <Menu className="h-4 w-4" />
+                      Menu Pierre
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+
+                    {topMenuOpen && (
+                      <div className="absolute right-0 z-30 mt-3 w-[380px] rounded-[24px] border border-[#eadfce] bg-[#fffdf9] p-3 shadow-[0_18px_60px_rgba(84,67,49,0.18)]">
+                        <div className="grid gap-2">
+                          <MenuAction
+                            title="Nouvelle mission libre"
+                            description="Ouvre le centre de missions"
+                            onClick={() => {
+                              setMainSection("missions");
+                              setStudioMode("employee");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Studio email"
+                            description="Rédiger / brouillon / envoi"
+                            onClick={() => {
+                              setMainSection("studios");
+                              setStudioMode("email");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Studio document"
+                            description="Document RH direct"
+                            onClick={() => {
+                              setMainSection("studios");
+                              setStudioMode("document");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Studio PDF"
+                            description="Production PDF immédiate"
+                            onClick={() => {
+                              setMainSection("studios");
+                              setStudioMode("pdf");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Suivi des tâches"
+                            description="Validation, blocages, exécution"
+                            onClick={() => {
+                              setMainSection("followup");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Artefacts produits"
+                            description="Documents, emails, PDFs"
+                            onClick={() => {
+                              setMainSection("artifacts");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Historique"
+                            description="Recherche et continuité"
+                            onClick={() => {
+                              setMainSection("history");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Mémoire entreprise"
+                            description="Identité, ton, règles, configuration"
+                            onClick={() => {
+                              setMainSection("memory");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            {(missionCenter.error || history.error || memory.error || voiceError) && (
+              <section className="rounded-[24px] border border-[#e9c9c3] bg-[#fff4f2] px-5 py-4 text-[#7b342c] shadow-[0_10px_35px_rgba(123,52,44,0.08)]">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="mt-0.5 h-5 w-5 flex-none" />
+                  <div className="space-y-1 text-sm">
+                    {missionCenter.error && <p>{missionCenter.error}</p>}
+                    {history.error && <p>{history.error}</p>}
+                    {memory.error && <p>{memory.error}</p>}
+                    {voiceError && <p>{voiceError}</p>}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {mainSection === "cockpit" && (
+              <div className="grid gap-6 xl:grid-cols-[1.24fr_0.76fr]">
+                <section className={cn(shellPanel(), "p-5 lg:p-6")}>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <KpiCard
+                      icon={Brain}
+                      label="Mission active"
+                      value={missionCenter.mission ? "Oui" : "Non"}
+                      hint={missionCenter.mission?.title ?? "Aucune mission"}
+                      tone={missionCenter.mission ? "good" : "neutral"}
+                    />
+                    <KpiCard
+                      icon={Clock3}
+                      label="Tâches actives"
+                      value={String(queuedCount + runningCount + awaitingInfoCount + approvalCount)}
+                      hint={`${queuedCount} prêtes · ${runningCount} en cours`}
+                    />
+                    <KpiCard
+                      icon={Archive}
+                      label="Artefacts"
+                      value={String(missionArtifactsCount)}
+                      hint={`${mergedDocuments.length} docs · ${mergedEmails.length} emails · ${directPdfs.length} pdf`}
+                    />
+                    <KpiCard
+                      icon={Shield}
+                      label="Mémoire"
+                      value={memory.memory ? "Configurée" : "À compléter"}
+                      hint={memory.senderIdentityResolved.sender_email ?? "Identité d’envoi non définie"}
+                      tone={memory.memory ? "good" : "warn"}
+                    />
+                  </div>
+
+                  <div className="mt-6 grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
+                    <div className={cn(softPanel(), "p-4")}>
+                      <p className="text-sm font-semibold text-[#2f2418]">Mission en avant</p>
+                      <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-lg font-semibold text-[#221910]">
+                              {missionCenter.mission?.title ?? "Aucune mission focalisée"}
+                            </p>
+                            <p className="mt-1 text-sm text-[#7b6956]">
+                              {missionCenter.interpretation?.summary ??
+                                missionCenter.mission?.request_text ??
+                                "Sélectionne ou crée une mission pour afficher son contexte."}
+                            </p>
+                          </div>
+                          <StatusBadgeAny
+                            status={missionCenter.mission?.status ?? "idle"}
+                            riskLevel={missionCenter.mission?.risk_level ?? "normal"}
+                          />
+                        </div>
+
+                        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                          <MiniState label="Prêtes" value={String(queuedCount)} />
+                          <MiniState label="En cours" value={String(runningCount)} />
+                          <MiniState label="Validation" value={String(approvalCount)} />
+                          <MiniState label="Infos" value={String(awaitingInfoCount)} />
+                          <MiniState label="Terminées" value={String(completedCount)} />
+                          <MiniState label="Bloquées" value={String(blockedCount)} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={cn(softPanel(), "p-4")}>
+                      <p className="text-sm font-semibold text-[#2f2418]">Actions rapides</p>
+                      <div className="mt-4 grid gap-3">
+                        <QuickActionButton
+                          icon={Brain}
+                          title="Créer une nouvelle mission"
+                          description="Basculer vers le centre de missions"
+                          onClick={() => setMainSection("missions")}
+                        />
+                        <QuickActionButton
+                          icon={Mail}
+                          title="Créer un email direct"
+                          description="Ouvrir le studio email"
+                          onClick={() => {
+                            setMainSection("studios");
+                            setStudioMode("email");
+                          }}
+                        />
+                        <QuickActionButton
+                          icon={FileText}
+                          title="Créer un document RH"
+                          description="Ouvrir le studio document"
+                          onClick={() => {
+                            setMainSection("studios");
+                            setStudioMode("document");
+                          }}
+                        />
+                        <QuickActionButton
+                          icon={Workflow}
+                          title="Voir le suivi opérationnel"
+                          description="Tâches, timeline et validations"
+                          onClick={() => setMainSection("followup")}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <p className="text-sm font-semibold text-[#2f2418]">Identité d’envoi active</p>
+                    <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-4">
+                      <p className="text-sm text-[#4b3e31]">
+                        <span className="font-semibold text-[#281e15]">Nom :</span>{" "}
+                        {memory.senderIdentityResolved.sender_name ?? "Non défini"}
+                      </p>
+                      <p className="mt-2 text-sm text-[#4b3e31]">
+                        <span className="font-semibold text-[#281e15]">Email :</span>{" "}
+                        {memory.senderIdentityResolved.sender_email ?? "Non défini"}
+                      </p>
+                      <p className="mt-2 text-sm text-[#4b3e31]">
+                        <span className="font-semibold text-[#281e15]">Reply-to :</span>{" "}
+                        {memory.senderIdentityResolved.reply_to ?? "Non défini"}
+                      </p>
+                      <p className="mt-2 text-xs text-[#8a7764]">
+                        Source : {memory.senderIdentityResolved.source}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <p className="text-sm font-semibold text-[#2f2418]">Derniers échanges</p>
+                    <div className="mt-4 space-y-3">
+                      {threadEntries.length === 0 ? (
+                        <EmptyState
+                          icon={ScrollText}
+                          title="Aucun échange"
+                          description="Les derniers briefs et réponses Pierre apparaîtront ici."
+                        />
+                      ) : (
+                        threadEntries.slice(0, 4).map((entry) => (
+                          <div
+                            key={entry.id}
+                            className="rounded-[18px] border border-[#eadfce] bg-white px-4 py-3"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#98836f]">
+                                {entry.role === "user"
+                                  ? "vous"
+                                  : entry.role === "assistant"
+                                  ? "pierre"
+                                  : "système"}
+                              </span>
+                              <span className="text-xs text-[#998672]">
+                                {formatDateTime(entry.createdAt)}
+                              </span>
+                            </div>
+                            <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#372c22]">
+                              {entry.content}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {mainSection === "missions" && (
+              <div className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
+                <section className={cn(shellPanel(), "p-5 lg:p-6")}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a856f]">
+                        commandement
+                      </p>
+                      <h3 className="mt-2 text-2xl font-semibold text-[#221910]">
+                        Donne une mission à Pierre
+                      </h3>
+                      <p className="mt-2 max-w-3xl text-sm leading-7 text-[#665648]">
+                        Parle à Pierre comme à un employé : il comprend la demande,
+                        détecte les actions multiples, identifie les informations manquantes,
+                        évalue le risque, propose les validations utiles et structure la mission.
+                      </p>
+                    </div>
+
+                    {voiceSupported && (
+                      <button
+                        type="button"
+                        onClick={() => startVoice("employeeDraft")}
+                        className="inline-flex items-center gap-2 rounded-full border border-[#e7dac8] bg-white px-4 py-2 text-sm font-medium text-[#5c4d40]"
+                      >
+                        <Mic className="h-4 w-4" />
+                        Dictée mission
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mt-6 rounded-[24px] border border-[#eadfce] bg-white p-4">
+                    <MissionComposerAny
+                      value={employeeDraft}
+                      onChange={setEmployeeDraft}
+                      onSubmit={handleSubmitMission}
+                      loading={busyAction === "submit-mission" || missionCenter.submitting}
+                      placeholder="Exemple : prépare 3 convocations pour demain, relance le candidat si pas de réponse ce soir, puis attends ma validation avant tout envoi."
+                    />
+
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleSubmitMission}
+                        disabled={
+                          !employeeDraft.trim() ||
+                          busyAction === "submit-mission" ||
+                          missionCenter.submitting
+                        }
+                        className="inline-flex items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1d160f] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {busyAction === "submit-mission" || missionCenter.submitting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                        Lancer la mission
+                      </button>
+
+                      {isListening && voiceTarget === "employeeDraft" && (
+                        <button
+                          type="button"
+                          onClick={stopVoice}
+                          className="inline-flex items-center gap-2 rounded-full border border-[#e5c2be] bg-[#fff1ef] px-3 py-2 text-sm font-medium text-[#8b3d33]"
+                        >
+                          <MicOff className="h-4 w-4" />
+                          Arrêter la dictée
+                        </button>
+                      )}
+                    </div>
+
+                    {voiceInterim && voiceTarget === "employeeDraft" && (
+                      <p className="mt-3 text-sm italic text-[#8a7763]">{voiceInterim}</p>
+                    )}
+                  </div>
+
+                  <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {quickMissionCards.map((card) => (
+                      <QuickMissionCard
+                        key={card.title}
+                        title={card.title}
+                        text={card.text}
+                        onClick={() => handleQuickMission(card.text)}
+                      />
+                    ))}
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <p className="text-sm font-semibold text-[#2f2418]">Mission comprise</p>
+                    <div className="mt-4">
+                      <MissionUnderstandingAny
+                        mission={missionCenter.mission}
+                        interpretation={missionCenter.interpretation}
+                        tasks={missionCenter.tasks}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <p className="text-sm font-semibold text-[#2f2418]">Fil mission</p>
+                    <div className="mt-4 space-y-3">
+                      {threadEntries.length === 0 ? (
+                        <EmptyState
+                          icon={ScrollText}
+                          title="Aucun brief enregistré"
+                          description="Les échanges liés aux missions apparaîtront ici."
+                        />
+                      ) : (
+                        threadEntries.map((entry) => (
+                          <div
+                            key={entry.id}
+                            className={cn(
+                              "rounded-[20px] border px-4 py-3",
+                              entry.role === "user"
+                                ? "border-[#eadfce] bg-[#fcf7f0]"
+                                : "border-[#e3d6c8] bg-white"
+                            )}
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#917e6a]">
+                                {entry.role === "user"
+                                  ? "vous"
+                                  : entry.role === "assistant"
+                                  ? "pierre"
+                                  : "système"}
+                              </span>
+                              <span className="text-xs text-[#9b8975]">
+                                {formatDateTime(entry.createdAt)}
+                              </span>
+                            </div>
+                            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#33281d]">
+                              {entry.content}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {mainSection === "studios" && (
+              <div className="grid gap-6 xl:grid-cols-[0.88fr_1.12fr]">
+                <section className={cn(shellPanel(), "p-5")}>
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                    <StudioSwitcher
+                      active={studioMode === "employee"}
+                      icon={Bot}
+                      title="Mission libre"
+                      description="Retour au centre de missions"
+                      onClick={() => {
+                        setMainSection("missions");
+                        setStudioMode("employee");
+                      }}
+                    />
+                    <StudioSwitcher
+                      active={studioMode === "email"}
+                      icon={Mail}
+                      title="Studio email"
+                      description="Brouillon ou préparation d’envoi"
+                      onClick={() => setStudioMode("email")}
+                    />
+                    <StudioSwitcher
+                      active={studioMode === "document"}
+                      icon={FileText}
+                      title="Studio document"
+                      description="Production RH premium"
+                      onClick={() => setStudioMode("document")}
+                    />
+                    <StudioSwitcher
+                      active={studioMode === "pdf"}
+                      icon={FileType2}
+                      title="Studio PDF"
+                      description="Génération directe"
+                      onClick={() => setStudioMode("pdf")}
+                    />
+                  </div>
+                </section>
+
+                <section className={cn(shellPanel(), "p-5 lg:p-6")}>
+                  {studioMode === "email" && (
+                    <div className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
+                      <div className="space-y-4">
+                        <Field label="À">
+                          <textarea
+                            value={emailComposer.to}
+                            onChange={(e) =>
+                              setEmailComposer((prev) => ({ ...prev, to: e.target.value }))
+                            }
+                            rows={2}
+                            className={fieldClass}
+                            placeholder="prenom@entreprise.fr, candidat@gmail.com"
+                          />
+                        </Field>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <Field label="Cc">
+                            <input
+                              value={emailComposer.cc}
+                              onChange={(e) =>
+                                setEmailComposer((prev) => ({ ...prev, cc: e.target.value }))
+                              }
+                              className={fieldClass}
+                              placeholder="optionnel"
+                            />
+                          </Field>
+                          <Field label="Bcc">
+                            <input
+                              value={emailComposer.bcc}
+                              onChange={(e) =>
+                                setEmailComposer((prev) => ({ ...prev, bcc: e.target.value }))
+                              }
+                              className={fieldClass}
+                              placeholder="optionnel"
+                            />
+                          </Field>
+                        </div>
+
+                        <Field
+                          label="Objet"
+                          action={
+                            voiceSupported ? <VoiceButton onClick={() => startVoice("emailSubject")} /> : null
+                          }
+                        >
+                          <input
+                            value={emailComposer.subject}
+                            onChange={(e) =>
+                              setEmailComposer((prev) => ({ ...prev, subject: e.target.value }))
+                            }
+                            className={fieldClass}
+                            placeholder="Objet du message"
+                          />
+                        </Field>
+
+                        <Field
+                          label="Corps du message"
+                          action={
+                            voiceSupported ? <VoiceButton onClick={() => startVoice("emailBody")} /> : null
+                          }
+                        >
+                          <textarea
+                            value={emailComposer.body}
+                            onChange={(e) =>
+                              setEmailComposer((prev) => ({ ...prev, body: e.target.value }))
+                            }
+                            rows={14}
+                            className={fieldClass}
+                            placeholder="Rédige ici le message ou colle une base à améliorer."
+                          />
+                        </Field>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={handleDraftEmail}
+                            disabled={busyAction === "draft-email"}
+                            className="inline-flex items-center gap-2 rounded-full border border-[#e5d7c7] bg-white px-4 py-2.5 text-sm font-semibold text-[#4c4033] transition hover:bg-[#fffaf3] disabled:opacity-50"
+                          >
+                            {busyAction === "draft-email" ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Wand2 className="h-4 w-4" />
+                            )}
+                            Créer le brouillon
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleSendEmail}
+                            disabled={busyAction === "send-email"}
+                            className="inline-flex items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1d160f] disabled:opacity-50"
+                          >
+                            {busyAction === "send-email" ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Send className="h-4 w-4" />
+                            )}
+                            Préparer l’envoi
+                          </button>
+                        </div>
+
+                        {voiceInterim &&
+                          (voiceTarget === "emailSubject" || voiceTarget === "emailBody") && (
+                            <p className="text-sm italic text-[#8a7763]">{voiceInterim}</p>
+                          )}
+                      </div>
+
+                      <div className={cn(softPanel(), "p-4")}>
+                        <p className="text-sm font-semibold text-[#2f2418]">Prévisualisation</p>
+                        <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-5">
+                          <p className="text-xs uppercase tracking-[0.18em] text-[#99856f]">de</p>
+                          <p className="mt-1 text-sm text-[#3a2e22]">
+                            {memory.senderIdentityResolved.sender_name ?? "Nom d’envoi"}{" "}
+                            {memory.senderIdentityResolved.sender_email
+                              ? `<${memory.senderIdentityResolved.sender_email}>`
+                              : ""}
+                          </p>
+
+                          <p className="mt-4 text-xs uppercase tracking-[0.18em] text-[#99856f]">à</p>
+                          <p className="mt-1 text-sm text-[#3a2e22]">
+                            {emailComposer.to || "Destinataire(s)"}
+                          </p>
+
+                          <p className="mt-4 text-xs uppercase tracking-[0.18em] text-[#99856f]">
+                            objet
+                          </p>
+                          <p className="mt-1 text-base font-semibold text-[#21180f]">
+                            {emailComposer.subject || "Objet du message"}
+                          </p>
+
+                          <div className="mt-5 border-t border-[#eee4d8] pt-5">
+                            <p className="whitespace-pre-wrap text-sm leading-7 text-[#3f3326]">
+                              {emailComposer.body || "Le contenu du message apparaîtra ici."}
+                            </p>
+                          </div>
+       

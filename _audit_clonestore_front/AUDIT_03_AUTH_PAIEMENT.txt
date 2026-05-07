@@ -1,0 +1,2702 @@
+﻿
+
+
+============================================================
+FILE: src\app\login\page.tsx
+============================================================
+
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  ArrowRight,
+  Bot,
+  KeyRound,
+  Loader2,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+  Waypoints,
+} from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+
+function HeroLink({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease)]",
+        "border",
+        primary
+          ? "border-[rgba(111,99,246,0.16)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_88%,white))] text-white shadow-[0_12px_30px_rgba(95,92,230,0.18)] hover:-translate-y-0.5"
+          : "border-[var(--cs-line-soft)] bg-white/58 text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/74",
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-3">
+        <div className="flex items-center gap-2 text-[var(--cs-violet)]">
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">{title}</span>
+        </div>
+        <p className="text-sm leading-6 text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  icon,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  autoComplete,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  type?: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  autoComplete?: string;
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-sm font-medium text-[var(--cs-ink-2)]">{label}</span>
+      <div className="flex items-center gap-3 rounded-[1.2rem] border border-[var(--cs-line-soft)] bg-white/64 px-4 py-3 shadow-[var(--cs-shadow-soft)]">
+        <span className="text-[var(--cs-violet)]">{icon}</span>
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          className="w-full border-0 bg-transparent text-sm text-[var(--cs-ink-2)] outline-none placeholder:text-[var(--cs-ink-4)]"
+        />
+      </div>
+    </label>
+  );
+}
+
+export default function LoginPage() {
+  const router = useRouter();
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [mode, setMode] = useState<"password" | "magic">("password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const canSubmit = useMemo(() => {
+    if (!email.trim()) return false;
+    if (mode === "password" && !password.trim()) return false;
+    return !isLoading;
+  }, [email, password, mode, isLoading]);
+
+  async function handlePasswordLogin() {
+    if (!supabase) {
+      setError(
+        "Configuration Supabase manquante. Vérifie tes variables d’environnement puis redémarre le projet."
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) throw signInError;
+
+      router.push("/profile");
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Impossible de se connecter pour le moment."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleMagicLink() {
+    if (!supabase) {
+      setError(
+        "Configuration Supabase manquante. Vérifie tes variables d’environnement puis redémarre le projet."
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const redirectTo =
+        typeof window !== "undefined" ? `${window.location.origin}/profile` : undefined;
+
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: redirectTo,
+        },
+      });
+
+      if (otpError) throw otpError;
+
+      setSuccess(
+        "Lien magique envoyé. Ouvre ton email puis reviens dans CloneStore depuis le lien reçu."
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible d’envoyer le lien magique pour le moment."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+
+    if (mode === "password") {
+      await handlePasswordLogin();
+      return;
+    }
+
+    await handleMagicLink();
+  }
+
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-6">
+          <section className="cs-command-surface">
+            <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-start">
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="cs-pill">
+                    <UserRound className="h-4 w-4 text-[var(--cs-violet)]" />
+                    Connexion CloneStore
+                  </span>
+                  <span className="cs-pill">
+                    <ShieldCheck className="h-4 w-4 text-[var(--cs-success)]" />
+                    Accès cockpit
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <h1 className="cs-display text-[clamp(2.1rem,4vw,4.4rem)] leading-[0.96]">
+                    Entrer dans CloneStore
+                    <br />
+                    <span className="cs-gradient-text">sans friction ni confusion</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.94rem] leading-7 text-[var(--cs-ink-3)]">
+                    Une fois connecté, le client doit entrer immédiatement dans son espace
+                    privé : compte, employés IA, configuration, cockpit, support et pilotage.
+                    Cette page doit rester simple, propre et rassurante.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <HeroLink
+                    href="/signup"
+                    label="Créer un compte"
+                    primary
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <HeroLink
+                    href="/assistant"
+                    label="Ouvrir CloneChat"
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                  <HeroLink
+                    href="/agents"
+                    label="Voir la boutique"
+                    icon={<Sparkles className="h-4 w-4" />}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <InfoCard
+                    title="Entrée cockpit"
+                    text="Après connexion, le bon prochain écran doit être l’espace de pilotage du client."
+                    icon={<Waypoints className="h-4 w-4" />}
+                  />
+                  <InfoCard
+                    title="Simplicité"
+                    text="Même quelqu’un qui déteste l’informatique doit comprendre quoi faire en 5 secondes."
+                    icon={<Sparkles className="h-4 w-4" />}
+                  />
+                  <InfoCard
+                    title="Confiance"
+                    text="Le ton, la structure et la clarté doivent tout de suite rassurer."
+                    icon={<Lock className="h-4 w-4" />}
+                  />
+                  <InfoCard
+                    title="Assistance"
+                    text="CloneChat reste disponible si quelque chose bloque avant même l’entrée."
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+
+              <div className="cs-panel p-5 md:p-6">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <p className="cs-eyebrow">Accès sécurisé</p>
+                    <h2 className="text-[1.8rem] font-semibold tracking-[-0.05em] text-[var(--cs-ink-1)]">
+                      Se connecter
+                    </h2>
+                    <p className="text-sm text-[var(--cs-ink-4)]">
+                      Choisis la méthode la plus simple pour toi.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode("password");
+                        setError(null);
+                        setSuccess(null);
+                      }}
+                      className={[
+                        "rounded-full border px-4 py-2 text-sm font-medium transition",
+                        mode === "password"
+                          ? "border-[rgba(111,99,246,0.16)] bg-[rgba(111,99,246,0.10)] text-[var(--cs-violet)]"
+                          : "border-[var(--cs-line-soft)] bg-white/52 text-[var(--cs-ink-3)]",
+                      ].join(" ")}
+                    >
+                      Email + mot de passe
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode("magic");
+                        setError(null);
+                        setSuccess(null);
+                      }}
+                      className={[
+                        "rounded-full border px-4 py-2 text-sm font-medium transition",
+                        mode === "magic"
+                          ? "border-[rgba(111,99,246,0.16)] bg-[rgba(111,99,246,0.10)] text-[var(--cs-violet)]"
+                          : "border-[var(--cs-line-soft)] bg-white/52 text-[var(--cs-ink-3)]",
+                      ].join(" ")}
+                    >
+                      Lien magique
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <Field
+                      label="Adresse email"
+                      icon={<Mail className="h-4 w-4" />}
+                      value={email}
+                      onChange={setEmail}
+                      placeholder="vous@entreprise.com"
+                      autoComplete="email"
+                      type="email"
+                    />
+
+                    {mode === "password" ? (
+                      <Field
+                        label="Mot de passe"
+                        icon={<KeyRound className="h-4 w-4" />}
+                        value={password}
+                        onChange={setPassword}
+                        placeholder="Votre mot de passe"
+                        autoComplete="current-password"
+                        type="password"
+                      />
+                    ) : (
+                      <div className="cs-card">
+                        <div className="relative space-y-2">
+                          <p className="text-sm font-medium text-[var(--cs-ink-2)]">
+                            Connexion sans mot de passe
+                          </p>
+                          <p className="text-sm leading-6 text-[var(--cs-ink-4)]">
+                            On t’envoie un lien de connexion directement par email pour
+                            entrer dans CloneStore.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {error ? (
+                      <div className="rounded-[1.1rem] border border-[rgba(184,66,66,0.18)] bg-[rgba(184,66,66,0.06)] px-4 py-3 text-sm text-[var(--cs-danger)]">
+                        {error}
+                      </div>
+                    ) : null}
+
+                    {success ? (
+                      <div className="rounded-[1.1rem] border border-[rgba(18,128,92,0.16)] bg-[rgba(18,128,92,0.07)] px-4 py-3 text-sm text-[var(--cs-success)]">
+                        {success}
+                      </div>
+                    ) : null}
+
+                    <button
+                      type="submit"
+                      disabled={!canSubmit}
+                      className={[
+                        "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease)]",
+                        canSubmit
+                          ? "border-[rgba(111,99,246,0.16)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_88%,white))] text-white shadow-[0_12px_30px_rgba(95,92,230,0.18)] hover:-translate-y-0.5"
+                          : "border-[var(--cs-line-soft)] bg-white/42 text-[var(--cs-ink-4)] opacity-70",
+                      ].join(" ")}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Connexion…</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>
+                            {mode === "password"
+                              ? "Entrer dans CloneStore"
+                              : "Envoyer le lien magique"}
+                          </span>
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--cs-line-soft)] pt-4">
+                    <p className="text-sm text-[var(--cs-ink-4)]">Pas encore de compte ?</p>
+                    <Link
+                      href="/signup"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-[var(--cs-ink-2)] transition hover:text-[var(--cs-ink-1)]"
+                    >
+                      Créer un compte
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+            <div className="cs-panel p-5">
+              <div className="space-y-3">
+                <p className="cs-eyebrow">Pourquoi cette page compte</p>
+                <h2 className="cs-heading text-2xl md:text-3xl">
+                  La connexion ne doit jamais casser l’image premium.
+                </h2>
+                <p className="text-sm leading-7 text-[var(--cs-ink-3)]">
+                  Si l’entrée compte est banale ou confuse, on casse une partie de la
+                  promesse CloneStore. Cette page doit rester fluide, lisible et propre.
+                </p>
+              </div>
+            </div>
+
+            <div className="cs-panel p-5">
+              <div className="space-y-3">
+                <p className="cs-eyebrow">Support</p>
+                <h2 className="cs-heading text-2xl md:text-3xl">
+                  Même ici, l’assistant doit pouvoir aider.
+                </h2>
+                <p className="text-sm leading-7 text-[var(--cs-ink-3)]">
+                  Quelqu’un peut bloquer au moment de se connecter. CloneChat et les
+                  chemins d’orientation doivent déjà être accessibles à cette étape.
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+============================================================
+FILE: src\app\signup\page.tsx
+============================================================
+
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  Building2,
+  Loader2,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+  Waypoints,
+} from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+
+function HeroLink({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease)]",
+        "border",
+        primary
+          ? "border-[rgba(111,99,246,0.16)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_88%,white))] text-white shadow-[0_12px_30px_rgba(95,92,230,0.18)] hover:-translate-y-0.5"
+          : "border-[var(--cs-line-soft)] bg-white/58 text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/74",
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-3">
+        <div className="flex items-center gap-2 text-[var(--cs-violet)]">
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">{title}</span>
+        </div>
+        <p className="text-sm leading-6 text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  icon,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  autoComplete,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  type?: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  autoComplete?: string;
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-sm font-medium text-[var(--cs-ink-2)]">{label}</span>
+      <div className="flex items-center gap-3 rounded-[1.2rem] border border-[var(--cs-line-soft)] bg-white/64 px-4 py-3 shadow-[var(--cs-shadow-soft)]">
+        <span className="text-[var(--cs-violet)]">{icon}</span>
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          className="w-full border-0 bg-transparent text-sm text-[var(--cs-ink-2)] outline-none placeholder:text-[var(--cs-ink-4)]"
+        />
+      </div>
+    </label>
+  );
+}
+
+function CheckItem({ ok, text }: { ok: boolean; text: string }) {
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      <span
+        className={[
+          "h-2.5 w-2.5 rounded-full",
+          ok ? "bg-[var(--cs-success)]" : "bg-[rgba(17,24,39,0.16)]",
+        ].join(" ")}
+      />
+      <span className={ok ? "text-[var(--cs-ink-2)]" : "text-[var(--cs-ink-4)]"}>{text}</span>
+    </div>
+  );
+}
+
+export default function SignupPage() {
+  const router = useRouter();
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const passwordChecks = useMemo(
+    () => ({
+      length: password.length >= 8,
+      upper: /[A-ZÀ-ÖØ-Ý]/.test(password),
+      lower: /[a-zà-öø-ÿ]/.test(password),
+      number: /\d/.test(password),
+      match: password.length > 0 && password === confirmPassword,
+    }),
+    [password, confirmPassword]
+  );
+
+  const canSubmit = useMemo(() => {
+    return (
+      fullName.trim().length > 0 &&
+      email.trim().length > 0 &&
+      passwordChecks.length &&
+      passwordChecks.upper &&
+      passwordChecks.lower &&
+      passwordChecks.number &&
+      passwordChecks.match &&
+      !isLoading
+    );
+  }, [fullName, email, passwordChecks, isLoading]);
+
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+
+    if (!supabase) {
+      setError(
+        "Configuration Supabase manquante. Vérifie tes variables d’environnement puis redémarre le projet."
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const redirectTo =
+        typeof window !== "undefined" ? `${window.location.origin}/profile` : undefined;
+
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: redirectTo,
+          data: {
+            full_name: fullName.trim(),
+            company_name: companyName.trim() || null,
+          },
+        },
+      });
+
+      if (signUpError) throw signUpError;
+
+      if (data.session) {
+        router.push("/profile");
+        router.refresh();
+        return;
+      }
+
+      setSuccess(
+        "Compte créé. Vérifie maintenant ton email pour confirmer ton accès puis entre dans CloneStore."
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Impossible de créer le compte pour le moment."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-6">
+          <section className="cs-command-surface">
+            <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-start">
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="cs-pill">
+                    <Sparkles className="h-4 w-4 text-[var(--cs-violet)]" />
+                    Création de compte CloneStore
+                  </span>
+                  <span className="cs-pill">
+                    <ShieldCheck className="h-4 w-4 text-[var(--cs-success)]" />
+                    Première entrée dans le système
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <h1 className="cs-display text-[clamp(2.1rem,4vw,4.4rem)] leading-[0.96]">
+                    Créer un compte
+                    <br />
+                    <span className="cs-gradient-text">et entrer dans le cockpit</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.94rem] leading-7 text-[var(--cs-ink-3)]">
+                    L’inscription doit rester simple, propre et rassurante. On entre
+                    ensuite dans CloneStore pour configurer l’entreprise, activer les
+                    bons employés IA et piloter le système depuis un seul endroit.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <HeroLink
+                    href="/login"
+                    label="Déjà un compte ? Se connecter"
+                    primary
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <HeroLink
+                    href="/assistant"
+                    label="Ouvrir CloneChat"
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                  <HeroLink
+                    href="/agents"
+                    label="Voir la boutique"
+                    icon={<BriefcaseBusiness className="h-4 w-4" />}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <InfoCard
+                    title="Entrée propre"
+                    text="Créer un compte doit être fluide, rapide et compréhensible."
+                    icon={<UserRound className="h-4 w-4" />}
+                  />
+                  <InfoCard
+                    title="Suite logique"
+                    text="Après création, le client entre dans un cockpit clair plutôt que dans un espace vide."
+                    icon={<Waypoints className="h-4 w-4" />}
+                  />
+                  <InfoCard
+                    title="Sécurité"
+                    text="La confiance passe aussi par la qualité perçue de l’accès."
+                    icon={<Lock className="h-4 w-4" />}
+                  />
+                  <InfoCard
+                    title="Assistance"
+                    text="CloneChat reste disponible si quelque chose bloque ou si une question subsiste."
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+
+              <div className="cs-panel p-5 md:p-6">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <p className="cs-eyebrow">Nouveau compte</p>
+                    <h2 className="text-[1.8rem] font-semibold tracking-[-0.05em] text-[var(--cs-ink-1)]">
+                      Créer un compte
+                    </h2>
+                    <p className="text-sm text-[var(--cs-ink-4)]">
+                      Quelques informations simples pour démarrer proprement.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleSignup} className="space-y-4">
+                    <Field
+                      label="Nom complet"
+                      icon={<UserRound className="h-4 w-4" />}
+                      value={fullName}
+                      onChange={setFullName}
+                      placeholder="Prénom Nom"
+                      autoComplete="name"
+                    />
+
+                    <Field
+                      label="Entreprise (optionnel)"
+                      icon={<Building2 className="h-4 w-4" />}
+                      value={companyName}
+                      onChange={setCompanyName}
+                      placeholder="Nom de votre entreprise"
+                      autoComplete="organization"
+                    />
+
+                    <Field
+                      label="Adresse email"
+                      icon={<Mail className="h-4 w-4" />}
+                      value={email}
+                      onChange={setEmail}
+                      placeholder="vous@entreprise.com"
+                      autoComplete="email"
+                      type="email"
+                    />
+
+                    <Field
+                      label="Mot de passe"
+                      icon={<Lock className="h-4 w-4" />}
+                      value={password}
+                      onChange={setPassword}
+                      placeholder="Choisissez un mot de passe"
+                      autoComplete="new-password"
+                      type="password"
+                    />
+
+                    <Field
+                      label="Confirmer le mot de passe"
+                      icon={<Lock className="h-4 w-4" />}
+                      value={confirmPassword}
+                      onChange={setConfirmPassword}
+                      placeholder="Retapez le mot de passe"
+                      autoComplete="new-password"
+                      type="password"
+                    />
+
+                    <div className="cs-card">
+                      <div className="relative space-y-3">
+                        <p className="text-sm font-medium text-[var(--cs-ink-2)]">
+                          Vérifications mot de passe
+                        </p>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <CheckItem ok={passwordChecks.length} text="Au moins 8 caractères" />
+                          <CheckItem ok={passwordChecks.upper} text="Une majuscule" />
+                          <CheckItem ok={passwordChecks.lower} text="Une minuscule" />
+                          <CheckItem ok={passwordChecks.number} text="Un chiffre" />
+                          <CheckItem ok={passwordChecks.match} text="Confirmation identique" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {error ? (
+                      <div className="rounded-[1.1rem] border border-[rgba(184,66,66,0.18)] bg-[rgba(184,66,66,0.06)] px-4 py-3 text-sm text-[var(--cs-danger)]">
+                        {error}
+                      </div>
+                    ) : null}
+
+                    {success ? (
+                      <div className="rounded-[1.1rem] border border-[rgba(18,128,92,0.16)] bg-[rgba(18,128,92,0.07)] px-4 py-3 text-sm text-[var(--cs-success)]">
+                        {success}
+                      </div>
+                    ) : null}
+
+                    <button
+                      type="submit"
+                      disabled={!canSubmit}
+                      className={[
+                        "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease)]",
+                        canSubmit
+                          ? "border-[rgba(111,99,246,0.16)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_88%,white))] text-white shadow-[0_12px_30px_rgba(95,92,230,0.18)] hover:-translate-y-0.5"
+                          : "border-[var(--cs-line-soft)] bg-white/42 text-[var(--cs-ink-4)] opacity-70",
+                      ].join(" ")}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Création du compte…</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Créer mon compte CloneStore</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--cs-line-soft)] pt-4">
+                    <p className="text-sm text-[var(--cs-ink-4)]">Vous avez déjà un compte ?</p>
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-[var(--cs-ink-2)] transition hover:text-[var(--cs-ink-1)]"
+                    >
+                      Se connecter
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+            <div className="cs-panel p-5">
+              <div className="space-y-3">
+                <p className="cs-eyebrow">Pourquoi cette page compte</p>
+                <h2 className="cs-heading text-2xl md:text-3xl">
+                  L’inscription prépare la suite de l’expérience.
+                </h2>
+                <p className="text-sm leading-7 text-[var(--cs-ink-3)]">
+                  Créer un compte ne doit pas être une formalité froide. C’est la première
+                  vraie entrée dans le système CloneStore.
+                </p>
+              </div>
+            </div>
+
+            <div className="cs-panel p-5">
+              <div className="space-y-3">
+                <p className="cs-eyebrow">Ce qui vient ensuite</p>
+                <h2 className="cs-heading text-2xl md:text-3xl">
+                  Le compte est créé. Puis le vrai parcours commence.
+                </h2>
+                <p className="text-sm leading-7 text-[var(--cs-ink-3)]">
+                  Après l’accès, la logique CloneStore prend le relais : cockpit,
+                  employés IA, personnalisation, missions, aide et contrôle.
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+============================================================
+FILE: src\app\checkout\page.tsx
+============================================================
+
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  CheckCircle2,
+  CreditCard,
+  FileCheck2,
+  Loader2,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+
+type CheckoutAgent = {
+  slug: string;
+  name: string;
+  role: string;
+  price?: string;
+  available: boolean;
+  pageHref: string;
+  description: string;
+  bullets: string[];
+};
+
+const AGENTS: Record<string, CheckoutAgent> = {
+  pierre: {
+    slug: "pierre",
+    name: "Pierre",
+    role: "Poste RH opérationnel automatisé",
+    price: "449€/mois",
+    available: true,
+    pageHref: "/agents/pierre",
+    description:
+      "Pierre absorbe une part massive du travail RH opérationnel : documents, emails, relances, onboarding, continuité, validations et traçabilité.",
+    bullets: [
+      "Mission libre RH",
+      "Documents et emails premium",
+      "Relances et continuité",
+      "Contrôle humain sur le sensible",
+    ],
+  },
+  clara: {
+    slug: "clara",
+    name: "Clara",
+    role: "Recrutement automatisé",
+    available: false,
+    pageHref: "/agents/clara",
+    description:
+      "Pipeline candidats, coordination recrutement, shortlists et continuité de suivi.",
+    bullets: ["Bientôt disponible"],
+  },
+  emma: {
+    slug: "emma",
+    name: "Emma",
+    role: "Support & communication",
+    available: false,
+    pageHref: "/agents/emma",
+    description:
+      "Réponses, suivi, communication et continuité relationnelle.",
+    bullets: ["Bientôt disponible"],
+  },
+  adrien: {
+    slug: "adrien",
+    name: "Adrien",
+    role: "Commandes & opérations",
+    available: false,
+    pageHref: "/agents/adrien",
+    description:
+      "Traitement, suivi et continuité des commandes et opérations.",
+    bullets: ["Bientôt disponible"],
+  },
+};
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease)] border",
+        primary
+          ? "border-[rgba(111,99,246,0.16)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_88%,white))] text-white shadow-[0_12px_30px_rgba(95,92,230,0.18)] hover:-translate-y-0.5"
+          : "border-[var(--cs-line-soft)] bg-white/58 text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/74",
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-3">
+        <div className="flex items-center gap-2 text-[var(--cs-violet)]">
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">{title}</span>
+        </div>
+        <p className="text-sm leading-6 text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-violet)]" />
+          <span className="text-sm leading-6 text-[var(--cs-ink-4)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function CheckoutPage() {
+  const searchParams = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const agentSlug = searchParams.get("agent")?.toLowerCase() || "pierre";
+
+  const agent = useMemo(() => AGENTS[agentSlug] ?? AGENTS.pierre, [agentSlug]);
+
+  async function handleCheckout() {
+    if (!agent.available || isLoading) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          agent_slug: agent.slug,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            data?.message ||
+            "Impossible de démarrer le paiement pour le moment."
+        );
+      }
+
+      const checkoutUrl = data?.url || data?.checkout_url || data?.sessionUrl || null;
+
+      if (!checkoutUrl) {
+        throw new Error("Aucune URL de paiement n’a été renvoyée.");
+      }
+
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible de démarrer le paiement pour le moment."
+      );
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-6">
+          <section className="cs-command-surface">
+            <div className="grid gap-6 xl:grid-cols-[1.03fr_0.97fr] xl:items-start">
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="cs-pill">
+                    <CreditCard className="h-4 w-4 text-[var(--cs-violet)]" />
+                    Checkout CloneStore
+                  </span>
+                  <span className="cs-pill">
+                    <ShieldCheck className="h-4 w-4 text-[var(--cs-success)]" />
+                    Entrée propre vers l’activation
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <h1 className="cs-display text-[clamp(2.1rem,4vw,4.4rem)] leading-[0.96]">
+                    Finaliser l’entrée dans CloneStore
+                    <br />
+                    <span className="cs-gradient-text">avec une expérience simple et premium</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.94rem] leading-7 text-[var(--cs-ink-3)]">
+                    Cette étape doit être claire, rassurante et sans friction.
+                    On confirme le bon employé, on comprend ce qu’on achète,
+                    puis on bascule proprement vers l’activation et le cockpit.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <ActionButton
+                    href={agent.pageHref}
+                    label={`Retour à ${agent.name}`}
+                    primary
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/assistant"
+                    label="Ouvrir CloneChat"
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/agents"
+                    label="Retour boutique"
+                    icon={<Sparkles className="h-4 w-4" />}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <InfoCard
+                    title="Choix clair"
+                    text="Le client doit voir immédiatement quel employé il est en train d’activer."
+                    icon={<BriefcaseBusiness className="h-4 w-4" />}
+                  />
+                  <InfoCard
+                    title="Confiance"
+                    text="Le ton, la clarté et la structure doivent rassurer avant l’achat."
+                    icon={<Lock className="h-4 w-4" />}
+                  />
+                  <InfoCard
+                    title="Suite logique"
+                    text="Après paiement, l’entrée doit continuer vers l’activation puis le cockpit."
+                    icon={<Waypoints className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+
+              <div className="cs-panel p-5 md:p-6">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <p className="cs-eyebrow">Résumé de l’activation</p>
+                    <h2 className="text-[1.8rem] font-semibold tracking-[-0.05em] text-[var(--cs-ink-1)]">
+                      {agent.name}
+                    </h2>
+                    <p className="text-sm text-[var(--cs-ink-4)]">{agent.role}</p>
+                  </div>
+
+                  <div className="cs-card">
+                    <div className="relative space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                            Employé sélectionné
+                          </p>
+                          <p className="mt-1 text-sm leading-6 text-[var(--cs-ink-4)]">
+                            {agent.description}
+                          </p>
+                        </div>
+
+                        <span
+                          className={
+                            agent.available
+                              ? "cs-status cs-status--success"
+                              : "cs-status cs-status--warn"
+                          }
+                        >
+                          {agent.available ? "Disponible" : "En construction"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="cs-card">
+                    <div className="relative space-y-3">
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">Prix</p>
+
+                      {agent.price ? (
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-3xl font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                            {agent.price}
+                          </span>
+                          <span className="text-xs text-[var(--cs-ink-4)]">
+                            prix fondateur actuel
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-[var(--cs-ink-4)]">
+                          Prix non affiché pour le moment.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="cs-card">
+                    <div className="relative space-y-3">
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">Inclus</p>
+                      <BulletList items={agent.bullets} />
+                    </div>
+                  </div>
+
+                  {error ? (
+                    <div className="rounded-[1.1rem] border border-[rgba(184,66,66,0.18)] bg-[rgba(184,66,66,0.06)] px-4 py-3 text-sm text-[var(--cs-danger)]">
+                      {error}
+                    </div>
+                  ) : null}
+
+                  {agent.available ? (
+                    <button
+                      type="button"
+                      onClick={handleCheckout}
+                      disabled={isLoading}
+                      className={[
+                        "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease)]",
+                        isLoading
+                          ? "border-[var(--cs-line-soft)] bg-white/42 text-[var(--cs-ink-4)] opacity-80"
+                          : "border-[rgba(111,99,246,0.16)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_88%,white))] text-white shadow-[0_12px_30px_rgba(95,92,230,0.18)] hover:-translate-y-0.5",
+                      ].join(" ")}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Redirection vers le paiement…</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Continuer vers le paiement</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <div className="cs-card">
+                      <div className="relative space-y-3">
+                        <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                          Employé pas encore ouvert au lancement
+                        </p>
+                        <p className="text-sm leading-6 text-[var(--cs-ink-4)]">
+                          Cet employé est visible pour montrer la profondeur de CloneStore,
+                          mais l’activation publique n’est pas encore ouverte.
+                        </p>
+                        <div className="flex flex-wrap gap-3">
+                          <ActionButton
+                            href="/checkout?agent=pierre"
+                            label="Commencer par Pierre"
+                            primary
+                            icon={<ArrowRight className="h-4 w-4" />}
+                          />
+                          <ActionButton
+                            href="/assistant"
+                            label="Demander conseil"
+                            icon={<Bot className="h-4 w-4" />}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-[var(--cs-ink-4)]">
+                    Si ton API checkout attend un autre nom de champ que{" "}
+                    <span className="font-mono text-[var(--cs-ink-2)]">agent_slug</span>,
+                    ajuste uniquement le body JSON.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+            <div className="cs-panel p-5">
+              <div className="space-y-3">
+                <p className="cs-eyebrow">Pourquoi cette page compte</p>
+                <h2 className="cs-heading text-2xl md:text-3xl">
+                  Le paiement ne doit pas ressembler à une transition bricolée.
+                </h2>
+                <p className="text-sm leading-7 text-[var(--cs-ink-3)]">
+                  Même cette étape doit rester CloneStore : claire, calme, contrôlée,
+                  premium et compréhensible pour quelqu’un qui n’aime pas l’informatique.
+                </p>
+              </div>
+            </div>
+
+            <div className="cs-panel p-5">
+              <div className="space-y-3">
+                <p className="cs-eyebrow">Après paiement</p>
+                <h2 className="cs-heading text-2xl md:text-3xl">
+                  Le client ne doit pas tomber dans le vide.
+                </h2>
+                <p className="text-sm leading-7 text-[var(--cs-ink-3)]">
+                  Une fois le paiement terminé, on doit l’emmener vers une vraie suite logique :
+                  succès, activation, puis cockpit.
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+============================================================
+FILE: src\app\paiement\page.tsx
+============================================================
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  CheckCircle2,
+  CreditCard,
+  FileCheck2,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+  UserCheck,
+  Waypoints,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease)] border",
+        primary
+          ? "border-[rgba(111,99,246,0.16)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_88%,white))] text-white shadow-[0_12px_30px_rgba(95,92,230,0.18)] hover:-translate-y-0.5"
+          : "border-[var(--cs-line-soft)] bg-white/58 text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/74",
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-3">
+        <div className="flex items-center gap-2 text-[var(--cs-violet)]">
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">{title}</span>
+        </div>
+        <p className="text-sm leading-6 text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-violet)]" />
+          <span className="text-sm leading-6 text-[var(--cs-ink-4)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function PaymentCard({
+  title,
+  price,
+  helper,
+  href,
+  primary = false,
+}: {
+  title: string;
+  price: string;
+  helper: string;
+  href: string;
+  primary?: boolean;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-lg font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                {title}
+              </p>
+              <p className="mt-1 text-sm text-[var(--cs-ink-4)]">{helper}</p>
+            </div>
+            <span className="cs-status cs-status--success">Disponible</span>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-3xl font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+              {price}
+            </p>
+            <p className="text-xs text-[var(--cs-ink-4)]">Prix fondateur affiché actuellement</p>
+          </div>
+        </div>
+
+        <ActionButton
+          href={href}
+          label="Continuer"
+          primary={primary}
+          icon={<ArrowRight className="h-4 w-4" />}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function PaiementPage() {
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-6">
+          <section className="cs-command-surface">
+            <div className="grid gap-6 xl:grid-cols-[1.03fr_0.97fr] xl:items-start">
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="cs-pill">
+                    <CreditCard className="h-4 w-4 text-[var(--cs-violet)]" />
+                    Paiement CloneStore
+                  </span>
+                  <span className="cs-pill">
+                    <ShieldCheck className="h-4 w-4 text-[var(--cs-success)]" />
+                    Simple, clair, premium
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <h1 className="cs-display text-[clamp(2.1rem,4vw,4.4rem)] leading-[0.96]">
+                    Une entrée propre dans CloneStore,
+                    <br />
+                    <span className="cs-gradient-text">sans friction ni confusion</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.94rem] leading-7 text-[var(--cs-ink-3)]">
+                    Cette page doit rassurer immédiatement : on comprend ce qu’on
+                    achète, le cadre est clair, la suite logique aussi. Le paiement
+                    n’est pas une rupture d’expérience, c’est la continuité d’un
+                    produit sérieux.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <ActionButton
+                    href="/checkout?agent=pierre"
+                    label="Commencer avec Pierre"
+                    primary
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/agents/pierre"
+                    label="Voir Pierre"
+                    icon={<BriefcaseBusiness className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/assistant"
+                    label="Ouvrir CloneChat"
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <InfoCard
+                    title="Clarté"
+                    text="Le client doit comprendre immédiatement quelle offre est active."
+                    icon={<UserCheck className="h-4 w-4" />}
+                  />
+                  <InfoCard
+                    title="Confiance"
+                    text="Le ton, la structure et le calme visuel doivent supprimer le doute inutile."
+                    icon={<Lock className="h-4 w-4" />}
+                  />
+                  <InfoCard
+                    title="Suite logique"
+                    text="Paiement, succès, activation, cockpit : tout doit s’enchaîner proprement."
+                    icon={<Waypoints className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4">
+                <PaymentCard
+                  title="Pierre"
+                  price="449€/mois"
+                  helper="Poste RH opérationnel automatisé"
+                  href="/checkout?agent=pierre"
+                  primary
+                />
+
+                <div className="cs-card">
+                  <div className="relative space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                          Ce que vous activez réellement
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-[var(--cs-ink-4)]">
+                          Un poste RH automatisé avec mission libre, documents,
+                          emails, relances, continuité, validations et traçabilité.
+                        </p>
+                      </div>
+                      <span className="cs-status cs-status--info">CloneStore</span>
+                    </div>
+
+                    <BulletList
+                      items={[
+                        "Entrée dans le cockpit privé après activation",
+                        "Configuration de l’entreprise et des règles",
+                        "Utilisation réelle de Pierre depuis le site",
+                        "Historique, gouvernance, aide et continuité",
+                      ]}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="cs-panel p-5">
+            <div className="space-y-3">
+              <p className="cs-eyebrow">Ce que cette étape doit transmettre</p>
+              <h2 className="cs-heading text-2xl md:text-4xl">
+                Le paiement doit prolonger la crédibilité produit.
+              </h2>
+              <p className="text-sm leading-7 text-[var(--cs-ink-3)]">
+                On n’active pas une simple fonctionnalité logicielle. On active un employé IA
+                dans un système d’entreprise plus large.
+              </p>
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <InfoCard
+                title="Poste activé"
+                text="Le client active Pierre, pas une simple feature."
+                icon={<BriefcaseBusiness className="h-4 w-4" />}
+              />
+              <InfoCard
+                title="Système derrière"
+                text="CloneOS, CloneTrace, gouvernance et cockpit soutiennent l’expérience."
+                icon={<FileCheck2 className="h-4 w-4" />}
+              />
+              <InfoCard
+                title="Prix lisible"
+                text="Un prix visible, compréhensible, sans usine à gaz."
+                icon={<CreditCard className="h-4 w-4" />}
+              />
+              <InfoCard
+                title="Aide immédiate"
+                text="Si un doute subsiste, CloneChat reste accessible."
+                icon={<Bot className="h-4 w-4" />}
+              />
+            </div>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+            <div className="cs-panel p-5">
+              <div className="space-y-3">
+                <p className="cs-eyebrow">Avant paiement</p>
+                <h2 className="cs-heading text-2xl md:text-3xl">
+                  Le client doit être rassuré et comprendre ce qu’il obtient.
+                </h2>
+                <BulletList
+                  items={[
+                    "Quel employé est activé",
+                    "Quel prix est affiché",
+                    "Quelle valeur réelle est achetée",
+                    "Quelle est la suite logique après achat",
+                    "Où poser une question si nécessaire",
+                  ]}
+                />
+              </div>
+            </div>
+
+            <div className="cs-panel p-5">
+              <div className="space-y-3">
+                <p className="cs-eyebrow">Après paiement</p>
+                <h2 className="cs-heading text-2xl md:text-3xl">
+                  Le client doit être repris immédiatement par le bon parcours.
+                </h2>
+                <BulletList
+                  items={[
+                    "Page succès claire et premium",
+                    "Activation propre de l’accès",
+                    "Orientation vers l’onboarding ou le cockpit",
+                    "Aucune sensation de vide après achat",
+                    "Assistant toujours disponible",
+                  ]}
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+============================================================
+FILE: src\app\paiement\success\page.tsx
+============================================================
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  CheckCircle2,
+  FileCheck2,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease)] border",
+        primary
+          ? "border-[rgba(111,99,246,0.16)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_88%,white))] text-white shadow-[0_12px_30px_rgba(95,92,230,0.18)] hover:-translate-y-0.5"
+          : "border-[var(--cs-line-soft)] bg-white/58 text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/74",
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-3">
+        <div className="flex items-center gap-2 text-[var(--cs-violet)]">
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">{title}</span>
+        </div>
+        <p className="text-sm leading-6 text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-success)]" />
+          <span className="text-sm leading-6 text-[var(--cs-ink-4)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function PaiementSuccessPage() {
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-6">
+          <section className="cs-command-surface">
+            <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-start">
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="cs-pill">
+                    <CheckCircle2 className="h-4 w-4 text-[var(--cs-success)]" />
+                    Paiement confirmé
+                  </span>
+                  <span className="cs-pill">
+                    <Sparkles className="h-4 w-4 text-[var(--cs-violet)]" />
+                    Bienvenue dans CloneStore
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <h1 className="cs-display text-[clamp(2.1rem,4vw,4.4rem)] leading-[0.96]">
+                    C’est bon.
+                    <br />
+                    <span className="cs-gradient-text">Vous entrez maintenant dans le système</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.94rem] leading-7 text-[var(--cs-ink-3)]">
+                    Le paiement a bien été validé. La suite doit être limpide :
+                    activation, accès, configuration utile, puis cockpit CloneStore.
+                    Aucun vide, aucune confusion, aucune rupture.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <ActionButton
+                    href="/profile"
+                    label="Entrer dans le cockpit"
+                    primary
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/agents/pierre/setup"
+                    label="Configurer Pierre"
+                    icon={<Waypoints className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/assistant"
+                    label="Ouvrir CloneChat"
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4">
+                <div className="cs-card">
+                  <div className="relative space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                          Étape validée
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-[var(--cs-ink-4)]">
+                          Votre entrée dans CloneStore est confirmée.
+                        </p>
+                      </div>
+                      <span className="cs-status cs-status--success">Succès</span>
+                    </div>
+
+                    <BulletList
+                      items={[
+                        "Paiement accepté",
+                        "Accès prêt à être utilisé",
+                        "Suite logique vers activation et cockpit",
+                      ]}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <InfoCard
+                    title="Cockpit"
+                    text="Le bon prochain écran doit être l’espace principal de pilotage."
+                    icon={<Waypoints className="h-4 w-4" />}
+                  />
+                  <InfoCard
+                    title="Configuration"
+                    text="L’onboarding doit immédiatement servir à rendre Pierre utile."
+                    icon={<FileCheck2 className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+            <div className="cs-panel p-5">
+              <div className="space-y-3">
+                <p className="cs-eyebrow">Ce qui doit arriver maintenant</p>
+                <h2 className="cs-heading text-2xl md:text-3xl">
+                  Le client doit être repris sans friction.
+                </h2>
+                <BulletList
+                  items={[
+                    "Accès immédiat au cockpit",
+                    "Configuration utile de Pierre",
+                    "Assistant disponible si besoin",
+                    "Aucune sensation de vide ou de flottement",
+                  ]}
+                />
+              </div>
+            </div>
+
+            <div className="cs-panel p-5">
+              <div className="space-y-3">
+                <p className="cs-eyebrow">Rassurance</p>
+                <h2 className="cs-heading text-2xl md:text-3xl">
+                  Le produit doit confirmer sa crédibilité juste après l’achat.
+                </h2>
+                <p className="text-sm leading-7 text-[var(--cs-ink-3)]">
+                  Cette page existe pour garder un niveau de confiance élevé même après
+                  la transaction.
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+============================================================
+FILE: src\app\paiement\cancel\page.tsx
+============================================================
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  CreditCard,
+  ShieldCheck,
+  Sparkles,
+  Undo2,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease)] border",
+        primary
+          ? "border-[rgba(111,99,246,0.16)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_88%,white))] text-white shadow-[0_12px_30px_rgba(95,92,230,0.18)] hover:-translate-y-0.5"
+          : "border-[var(--cs-line-soft)] bg-white/58 text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/74",
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-3">
+        <div className="flex items-center gap-2 text-[var(--cs-violet)]">
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">{title}</span>
+        </div>
+        <p className="text-sm leading-6 text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+export default function PaiementCancelPage() {
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-6">
+          <section className="cs-command-surface">
+            <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-start">
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="cs-pill">
+                    <Undo2 className="h-4 w-4 text-[var(--cs-danger)]" />
+                    Paiement interrompu
+                  </span>
+                  <span className="cs-pill">
+                    <ShieldCheck className="h-4 w-4 text-[var(--cs-success)]" />
+                    Rien n’est perdu
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <h1 className="cs-display text-[clamp(2.1rem,4vw,4.4rem)] leading-[0.96]">
+                    Le paiement n’a pas été finalisé.
+                    <br />
+                    <span className="cs-gradient-text">Vous pouvez reprendre proprement</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.94rem] leading-7 text-[var(--cs-ink-3)]">
+                    Cette page ne doit jamais culpabiliser ni créer de stress.
+                    Elle doit simplement rassurer, expliquer que rien n’est cassé,
+                    et proposer les bons prochains choix.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <ActionButton
+                    href="/checkout?agent=pierre"
+                    label="Reprendre le paiement"
+                    primary
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/agents/pierre"
+                    label="Retour à Pierre"
+                    icon={<Sparkles className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/assistant"
+                    label="Ouvrir CloneChat"
+                    icon={<Bot className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard
+                  title="Aucune perte"
+                  text="L’interruption de paiement ne doit pas donner l’impression que quelque chose est cassé."
+                  icon={<ShieldCheck className="h-4 w-4" />}
+                />
+                <InfoCard
+                  title="Reprise claire"
+                  text="Le bon prochain clic doit être évident et rassurant."
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <InfoCard
+                  title="Contexte conservé"
+                  text="Le client reste dans le parcours CloneStore, sans rupture brutale."
+                  icon={<CreditCard className="h-4 w-4" />}
+                />
+                <InfoCard
+                  title="Aide disponible"
+                  text="CloneChat reste accessible immédiatement si un doute subsiste."
+                  icon={<Bot className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="cs-panel p-5">
+            <div className="mx-auto max-w-4xl text-center">
+              <div className="mx-auto w-fit">
+                <span className="cs-pill">
+                  <Sparkles className="h-4 w-4 text-[var(--cs-violet)]" />
+                  Vous pouvez reprendre quand vous voulez
+                </span>
+              </div>
+
+              <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+                Retournez sur Pierre,
+                <br />
+                ou reprenez directement le checkout.
+              </h2>
+
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--cs-ink-3)]">
+                Cette étape doit rester calme, propre et premium. Pas de panique,
+                pas de confusion, juste une reprise claire.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                <ActionButton
+                  href="/checkout?agent=pierre"
+                  label="Reprendre le checkout"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/assistant"
+                  label="Ouvrir CloneChat"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+============================================================
+FILE: src\app\api\checkout\route.ts
+============================================================
+
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { getBaseUrl } from "@/lib/base-url";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
+  return new Stripe(key, { apiVersion: "2025-11-17.clover" });
+}
+
+function json(status: number, data: unknown) {
+  return NextResponse.json(data, { status });
+}
+
+type Body = {
+  user_id: string;
+  agent_slug: string;
+};
+
+function getPriceId(agentSlug: string) {
+  // adapte si tu as plusieurs prix
+  if (agentSlug === "pierre") return process.env.STRIPE_PRICE_PIERRE;
+  if (agentSlug === "clara") return process.env.STRIPE_PRICE_CLARA;
+  return null;
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = (await req.json()) as Partial<Body>;
+    const user_id = typeof body.user_id === "string" ? body.user_id : null;
+    const agent_slug = typeof body.agent_slug === "string" ? body.agent_slug : null;
+
+    if (!user_id || !agent_slug) return json(400, { error: "Missing user_id/agent_slug" });
+
+    const priceId = getPriceId(agent_slug);
+    if (!priceId) return json(400, { error: "Missing Stripe price for agent" });
+
+    const stripe = getStripe();
+    const base = getBaseUrl();
+
+    const success_url = new URL("/paiement/success", base).toString();
+    const cancel_url = new URL("/paiement/cancel", base).toString();
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url,
+      cancel_url,
+      // IMPORTANT : metadata sur subscription (fiable pour webhooks)
+      subscription_data: {
+        metadata: { user_id, agent_slug },
+      },
+      metadata: { user_id, agent_slug },
+    });
+
+    if (!session.url) return json(500, { error: "No checkout url" });
+    return json(200, { url: session.url });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Checkout error";
+    return json(500, { error: msg });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+============================================================
+FILE: src\app\api\billing\activate\route.ts
+============================================================
+
+import { NextResponse } from "next/server";
+import { getStripe } from "@/lib/stripe";
+import { createClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+  if (!key) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+
+  return createClient(url, key, { auth: { persistSession: false } });
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+
+    const user_id = typeof body.user_id === "string" ? body.user_id : null;
+    const agent_slug = typeof body.agent_slug === "string" ? body.agent_slug : null;
+
+    if (!user_id || !agent_slug) {
+      return NextResponse.json({ error: "Missing user_id or agent_slug" }, { status: 400 });
+    }
+
+    // ✅ instanciation seulement à l’exécution (pas au build)
+    const stripe = getStripe();
+    const supabase = getSupabaseAdmin();
+
+    // ⚠️ Ici tu mets ta logique réelle d’activation.
+    // Exemple simple : activer dans orders (à adapter à ton schéma)
+    const { error } = await supabase
+      .from("orders")
+      .upsert({ user_id, agent_slug, status: "active", ended_at: null }, { onConflict: "user_id,agent_slug" });
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json({ ok: true });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
+
+
+
+
+============================================================
+FILE: src\app\api\orders\activate\route.ts
+============================================================
+
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { user_id, agent_slug, stripe_subscription_id } = body;
+
+    if (!user_id || !agent_slug || !stripe_subscription_id) {
+      return NextResponse.json(
+        { error: "Missing parameters" },
+        { status: 400 }
+      );
+    }
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !serviceKey) {
+      return NextResponse.json(
+        { error: "Supabase env missing" },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(url, serviceKey, {
+      auth: { persistSession: false },
+    });
+
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+      .from("orders")
+      .upsert(
+        {
+          user_id,
+          agent_slug,
+          status: "active",
+          started_at: now,
+          ended_at: null,
+          stripe_subscription_id,
+        },
+        { onConflict: "user_id,agent_slug" }
+      );
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Server error";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
+
+
+
+============================================================
+FILE: src\app\api\orders\cancel\route.ts
+============================================================
+
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function json(status: number, data: unknown) {
+  return NextResponse.json(data, { status });
+}
+
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
+  return new Stripe(key, { apiVersion: "2025-11-17.clover" as any });
+}
+
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+  if (!service) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+  return createClient(url, service, { auth: { persistSession: false } });
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = (await req.json().catch(() => ({}))) as { agent_slug?: string; access_token?: string };
+    const agent_slug = body.agent_slug;
+    const access_token = body.access_token;
+
+    if (!agent_slug) return json(400, { error: "Missing agent_slug" });
+    if (!access_token) return json(401, { error: "Missing access_token" });
+
+    const sb = getSupabaseAdmin();
+
+    // 1) qui est l'utilisateur ?
+    const { data: userRes, error: userErr } = await sb.auth.getUser(access_token);
+    if (userErr || !userRes?.user) return json(401, { error: "Auth session missing!" });
+
+    const user_id = userRes.user.id;
+
+    // 2) on récupère LA subId depuis orders
+    const { data: order, error: selErr } = await sb
+      .from("orders")
+      .select("stripe_subscription_id,status")
+      .eq("user_id", user_id)
+      .eq("agent_slug", agent_slug)
+      .maybeSingle();
+
+    if (selErr) return json(500, { error: selErr.message });
+    const subId = order?.stripe_subscription_id ?? null;
+
+    if (!subId) {
+      return json(400, {
+        error: "Missing subscription id (orders.stripe_subscription_id est vide). Corrige le webhook, puis ré-essaie.",
+      });
+    }
+
+    // 3) annulation côté Stripe (immédiate)
+    const stripe = getStripe();
+    await stripe.subscriptions.cancel(subId);
+
+    // 4) et on marque cancelled en DB (sécurité, même si webhook va le faire)
+    const now = new Date().toISOString();
+    await sb
+      .from("orders")
+      .update({ status: "cancelled", ended_at: now })
+      .eq("user_id", user_id)
+      .eq("agent_slug", agent_slug);
+
+    return json(200, { ok: true });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Cancel failed";
+    return json(500, { error: msg });
+  }
+}
+
+
+
+
+============================================================
+FILE: src\app\api\stripe\return\route.ts
+============================================================
+
+import { NextResponse } from "next/server";
+import { getBaseUrl } from "@/lib/base-url";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const base = getBaseUrl();
+  const url = new URL("/profile/agents", base);
+  return NextResponse.redirect(url);
+}
+
+
+
+
+============================================================
+FILE: src\app\api\webhooks\stripe\route.ts
+============================================================
+
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function json(status: number, data: unknown) {
+  return NextResponse.json(data, { status });
+}
+
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
+  return new Stripe(key);
+}
+
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+  if (!service) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+  return createClient(url, service, { auth: { persistSession: false } });
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
+function getString(obj: Record<string, unknown>, key: string): string | null {
+  const v = obj[key];
+  return typeof v === "string" ? v : null;
+}
+
+function getMetadata(obj: Record<string, unknown>): Record<string, unknown> | null {
+  const meta = obj["metadata"];
+  return isRecord(meta) ? meta : null;
+}
+
+async function upsertActive(args: {
+  user_id: string;
+  agent_slug: string;
+  subId: string;
+  customerId: string | null;
+}) {
+  const sb = getSupabaseAdmin();
+  const now = new Date().toISOString();
+
+  const { error } = await sb
+    .from("orders")
+    .upsert(
+      {
+        user_id: args.user_id,
+        agent_slug: args.agent_slug,
+        status: "active",
+        started_at: now,
+        ended_at: null,
+        stripe_subscription_id: args.subId,
+        stripe_customer_id: args.customerId,
+      },
+      { onConflict: "user_id,agent_slug" }
+    );
+
+  if (error) throw new Error(error.message);
+}
+
+async function setCancelledBySubId(subId: string) {
+  const sb = getSupabaseAdmin();
+  const now = new Date().toISOString();
+
+  const { error } = await sb
+    .from("orders")
+    .update({ status: "cancelled", ended_at: now })
+    .eq("stripe_subscription_id", subId);
+
+  if (error) throw new Error(error.message);
+}
+
+async function setPastDueBySubId(subId: string) {
+  const sb = getSupabaseAdmin();
+  const { error } = await sb
+    .from("orders")
+    .update({ status: "past_due" })
+    .eq("stripe_subscription_id", subId);
+
+  if (error) throw new Error(error.message);
+}
+
+export async function POST(req: Request) {
+  try {
+    const sig = req.headers.get("stripe-signature");
+    if (!sig) return json(400, { error: "Missing stripe-signature" });
+
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!secret) return json(500, { error: "Missing STRIPE_WEBHOOK_SECRET" });
+
+    const rawBody = await req.text();
+    const stripe = getStripe();
+
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(rawBody, sig, secret);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Webhook signature verification failed";
+      return json(400, { error: msg });
+    }
+
+    // ✅ 0) CHECKOUT COMPLETED = source de vérité
+    if (event.type === "checkout.session.completed") {
+      const obj: unknown = event.data.object;
+      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+
+      const mode = getString(obj, "mode"); // "subscription"
+      const payment_status = getString(obj, "payment_status"); // "paid"
+      const subId = getString(obj, "subscription");
+      const customerId = getString(obj, "customer");
+
+      const meta = getMetadata(obj);
+      const user_id = meta && typeof meta["user_id"] === "string" ? (meta["user_id"] as string) : null;
+      const agent_slug = meta && typeof meta["agent_slug"] === "string" ? (meta["agent_slug"] as string) : null;
+
+      // On active seulement si paiement OK + subscription id présent
+      if (mode === "subscription" && payment_status === "paid" && subId && user_id && agent_slug) {
+        await upsertActive({ user_id, agent_slug, subId, customerId });
+      }
+
+      return json(200, { received: true, type: event.type, subId, payment_status });
+    }
+
+    // ✅ 1) SUBSCRIPTION updated : utile pour past_due / etc.
+    if (event.type === "customer.subscription.updated") {
+      const obj: unknown = event.data.object;
+      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+
+      const subId = getString(obj, "id");
+      const status = getString(obj, "status");
+      if (!subId) return json(200, { received: true, note: "Missing subscription id" });
+
+      if (status === "past_due") {
+        await setPastDueBySubId(subId);
+      }
+
+      return json(200, { received: true, type: event.type, subId, status });
+    }
+
+    // ✅ 2) SUBSCRIPTION DELETED
+    if (event.type === "customer.subscription.deleted") {
+      const obj: unknown = event.data.object;
+      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+
+      const subId = getString(obj, "id");
+      if (subId) await setCancelledBySubId(subId);
+
+      return json(200, { received: true, type: event.type, subId });
+    }
+
+    // ✅ 3) PAYMENT FAILED => past_due
+    if (event.type === "invoice.payment_failed") {
+      const obj: unknown = event.data.object;
+      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+
+      const subId = getString(obj, "subscription");
+      if (subId) await setPastDueBySubId(subId);
+
+      return json(200, { received: true, type: event.type, subId });
+    }
+
+    return json(200, { received: true, type: event.type });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Webhook failed";
+    return json(500, { error: msg });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+============================================================
+FILE: src\lib\stripe.ts
+============================================================
+
+import Stripe from "stripe";
+
+export function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
+  return new Stripe(key, { apiVersion: "2025-11-17.clover" as Stripe.LatestApiVersion });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+============================================================
+FILE: src\lib\supabase.ts
+============================================================
+
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __clonestore_supabase_browser__: SupabaseClient | undefined;
+}
+
+type PublicSupabaseEnv = {
+  url: string;
+  anon: string;
+};
+
+function readPublicSupabaseEnv(): PublicSupabaseEnv | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anon) {
+    return null;
+  }
+
+  return { url, anon };
+}
+
+export function supabaseBrowser(): SupabaseClient | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  if (globalThis.__clonestore_supabase_browser__) {
+    return globalThis.__clonestore_supabase_browser__;
+  }
+
+  const env = readPublicSupabaseEnv();
+  if (!env) {
+    return null;
+  }
+
+  globalThis.__clonestore_supabase_browser__ = createClient(env.url, env.anon, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+
+  return globalThis.__clonestore_supabase_browser__;
+}
+
+export function getSupabase(): SupabaseClient | null {
+  return supabaseBrowser();
+}
+
+export function isSupabaseConfigured(): boolean {
+  return readPublicSupabaseEnv() !== null;
+}
+
+
+============================================================
+FILE: src\lib\supabase-browser.ts
+============================================================
+
+// src/lib/supabase-browser.ts
+"use client";
+
+import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+let browserClient: SupabaseClient | null = null;
+
+export function supabaseBrowser() {
+  if (browserClient) return browserClient;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+  if (!url || !anon) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  browserClient = createBrowserClient(url, anon);
+
+  return browserClient;
+}
+
+
+============================================================
+FILE: src\lib\supabase-server.ts
+============================================================
+
+// src/lib/supabase-server.ts
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+
+export function supabaseServer() {
+  const cookieStore = cookies() as any;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anon) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  return createServerClient(url, anon, {
+    cookies: {
+      getAll() {
+        // Next cookies() a bien getAll(), mais TS peut râler -> any
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet: any[]) {
+        // En Server Components, set peut échouer selon le contexte -> try/catch
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // ok
+        }
+      },
+    },
+  });
+}

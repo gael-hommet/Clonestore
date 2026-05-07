@@ -1,0 +1,5025 @@
+﻿===== FILE: src/app/agents/pierre/use/page.tsx =====
+
+"use client";
+
+import * as React from "react";
+import {
+  AlertCircle,
+  Archive,
+  Bot,
+  Brain,
+  ChevronDown,
+  Clock3,
+  FileText,
+  FileType2,
+  History,
+  LayoutDashboard,
+  Loader2,
+  Mail,
+  Menu,
+  Mic,
+  MicOff,
+  PanelLeft,
+  RefreshCw,
+  ScrollText,
+  Search,
+  Send,
+  Settings2,
+  Shield,
+  Sparkles,
+  Wand2,
+  Workflow,
+  X,
+} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import {
+  usePierreMissionCenter,
+  type PierreDocument,
+  type PierreOutboundEmail,
+  type PierreTask,
+} from "@/hooks/pierre/usePierreMissionCenter";
+import { usePierreHistory } from "@/hooks/pierre/usePierreHistory";
+import { usePierreCompanyMemory } from "@/hooks/pierre/usePierreCompanyMemory";
+
+import { PierreStatusBadge } from "@/components/pierre/PierreStatusBadge";
+import { PierreMissionComposer } from "@/components/pierre/PierreMissionComposer";
+import { PierreMissionUnderstanding } from "@/components/pierre/PierreMissionUnderstanding";
+import { PierreExecutionBoard } from "@/components/pierre/PierreExecutionBoard";
+import { PierreTaskList } from "@/components/pierre/PierreTaskList";
+import { PierreHistoryPanel } from "@/components/pierre/PierreHistoryPanel";
+import { PierreMemoryPanel } from "@/components/pierre/PierreMemoryPanel";
+import { PierreDocumentPanel } from "@/components/pierre/PierreDocumentPanel";
+import { PierreMissionTimeline } from "@/components/pierre/PierreMissionTimeline";
+
+type MainSection =
+  | "cockpit"
+  | "missions"
+  | "studios"
+  | "followup"
+  | "artifacts"
+  | "history"
+  | "memory";
+
+type StudioMode = "employee" | "email" | "document" | "pdf";
+type ArtifactTab = "documents" | "emails" | "pdfs";
+type VoiceTarget =
+  | "employeeDraft"
+  | "emailSubject"
+  | "emailBody"
+  | "documentInstructions"
+  | "documentContext"
+  | "pdfText"
+  | null;
+
+type BusyAction =
+  | null
+  | "submit-mission"
+  | "generate-document"
+  | "draft-email"
+  | "send-email"
+  | "generate-pdf"
+  | "refresh";
+
+type ThreadEntry = {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  createdAt: string;
+};
+
+type EmailComposerState = {
+  to: string;
+  cc: string;
+  bcc: string;
+  subject: string;
+  body: string;
+};
+
+type DocumentComposerState = {
+  title: string;
+  instructions: string;
+  context: string;
+  tone: string;
+  language: string;
+};
+
+type PdfComposerState = {
+  title: string;
+  text: string;
+};
+
+type LocalSnapshot = {
+  mainSection: MainSection;
+  studioMode: StudioMode;
+  artifactTab: ArtifactTab;
+  employeeDraft: string;
+  threadEntries: ThreadEntry[];
+  emailComposer: EmailComposerState;
+  documentComposer: DocumentComposerState;
+  pdfComposer: PdfComposerState;
+  focusedMissionId: string | null;
+  selectedDocumentId: string | null;
+  selectedEmailId: string | null;
+  selectedPdfId: string | null;
+  leftCollapsed: boolean;
+};
+
+const STORAGE_KEY = "clonestore:pierre:use-page:v5";
+
+const StatusBadgeAny = PierreStatusBadge as React.ComponentType<any>;
+const MissionComposerAny = PierreMissionComposer as React.ComponentType<any>;
+const TaskListAny = PierreTaskList as React.ComponentType<any>;
+const HistoryPanelAny = PierreHistoryPanel as React.ComponentType<any>;
+const MemoryPanelAny = PierreMemoryPanel as React.ComponentType<any>;
+const DocumentPanelAny = PierreDocumentPanel as React.ComponentType<any>;
+const MissionUnderstandingAny = PierreMissionUnderstanding as React.ComponentType<any>;
+const ExecutionBoardAny = PierreExecutionBoard as React.ComponentType<any>;
+const TimelineAny = PierreMissionTimeline as React.ComponentType<any>;
+
+const fieldClass =
+  "w-full rounded-[18px] border border-[#e7d9c8] bg-white px-4 py-3 text-sm text-[#2a2118] outline-none transition placeholder:text-[#a18c77] focus:border-[#d8bd9d] focus:ring-4 focus:ring-[#f3e6d6]";
+
+function parseJson<T>(raw: string | null): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+function formatDateTime(value?: string | null): string {
+  if (!value) return "â€”";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "â€”";
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function splitEmails(value: string): string[] {
+  return value
+    .split(/[,\n;]/g)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function getStatusCount(tasks: PierreTask[], statuses: string[]): number {
+  const set = new Set(statuses.map((s) => s.toLowerCase()));
+  return tasks.filter((task) => set.has(String(task.status ?? "").toLowerCase())).length;
+}
+
+function relatedDocumentForTask(task: PierreTask, documents: PierreDocument[]) {
+  return (
+    documents.find((doc) => doc.task_id && doc.task_id === task.id) ??
+    documents.find((doc) => doc.mission_id && doc.mission_id === task.mission_id) ??
+    null
+  );
+}
+
+function relatedEmailForTask(task: PierreTask, emails: PierreOutboundEmail[]) {
+  return (
+    emails.find((mail) => mail.task_id && mail.task_id === task.id) ??
+    emails.find((mail) => mail.mission_id && mail.mission_id === task.mission_id) ??
+    null
+  );
+}
+
+function shellPanel() {
+  return "rounded-[28px] border border-[#e9dfd2] bg-[#fffaf3] shadow-[0_14px_50px_rgba(94,78,56,0.08)]";
+}
+
+function softPanel() {
+  return "rounded-[24px] border border-[#eadfce] bg-[#fffdf9]";
+}
+
+export default function PierreUsePage() {
+  const missionCenter = usePierreMissionCenter();
+  const history = usePierreHistory();
+  const memory = usePierreCompanyMemory();
+
+  const [mainSection, setMainSection] = React.useState<MainSection>("missions");
+  const [studioMode, setStudioMode] = React.useState<StudioMode>("employee");
+  const [artifactTab, setArtifactTab] = React.useState<ArtifactTab>("documents");
+
+  const [employeeDraft, setEmployeeDraft] = React.useState("");
+  const [threadEntries, setThreadEntries] = React.useState<ThreadEntry[]>([]);
+
+  const [emailComposer, setEmailComposer] = React.useState<EmailComposerState>({
+    to: "",
+    cc: "",
+    bcc: "",
+    subject: "",
+    body: "",
+  });
+
+  const [documentComposer, setDocumentComposer] = React.useState<DocumentComposerState>({
+    title: "",
+    instructions: "",
+    context: "",
+    tone: "professionnel",
+    language: "fr",
+  });
+
+  const [pdfComposer, setPdfComposer] = React.useState<PdfComposerState>({
+    title: "",
+    text: "",
+  });
+
+  const [directDocuments, setDirectDocuments] = React.useState<PierreDocument[]>([]);
+  const [directEmails, setDirectEmails] = React.useState<PierreOutboundEmail[]>([]);
+  const [directPdfs, setDirectPdfs] = React.useState<Record<string, unknown>[]>([]);
+
+  const [selectedDocumentId, setSelectedDocumentId] = React.useState<string | null>(null);
+  const [selectedEmailId, setSelectedEmailId] = React.useState<string | null>(null);
+  const [selectedPdfId, setSelectedPdfId] = React.useState<string | null>(null);
+
+  const [busyAction, setBusyAction] = React.useState<BusyAction>(null);
+  const [leftCollapsed, setLeftCollapsed] = React.useState(false);
+  const [topMenuOpen, setTopMenuOpen] = React.useState(false);
+  const [commandOpen, setCommandOpen] = React.useState(false);
+  const [commandSearch, setCommandSearch] = React.useState("");
+
+  const [voiceSupported, setVoiceSupported] = React.useState(false);
+  const [isListening, setIsListening] = React.useState(false);
+  const [voiceTarget, setVoiceTarget] = React.useState<VoiceTarget>(null);
+  const [voiceInterim, setVoiceInterim] = React.useState("");
+  const [voiceError, setVoiceError] = React.useState<string | null>(null);
+
+  const recognitionRef = React.useRef<any>(null);
+
+  React.useEffect(() => {
+    const saved = parseJson<LocalSnapshot>(window.localStorage.getItem(STORAGE_KEY));
+    if (!saved) return;
+
+    setMainSection(saved.mainSection ?? "missions");
+    setStudioMode(saved.studioMode ?? "employee");
+    setArtifactTab(saved.artifactTab ?? "documents");
+    setEmployeeDraft(saved.employeeDraft ?? "");
+    setThreadEntries(saved.threadEntries ?? []);
+    setEmailComposer(
+      saved.emailComposer ?? {
+        to: "",
+        cc: "",
+        bcc: "",
+        subject: "",
+        body: "",
+      }
+    );
+    setDocumentComposer(
+      saved.documentComposer ?? {
+        title: "",
+        instructions: "",
+        context: "",
+        tone: "professionnel",
+        language: "fr",
+      }
+    );
+    setPdfComposer(saved.pdfComposer ?? { title: "", text: "" });
+    missionCenter.setFocusedMissionId(saved.focusedMissionId ?? null);
+    setSelectedDocumentId(saved.selectedDocumentId ?? null);
+    setSelectedEmailId(saved.selectedEmailId ?? null);
+    setSelectedPdfId(saved.selectedPdfId ?? null);
+    setLeftCollapsed(Boolean(saved.leftCollapsed));
+  }, [missionCenter]);
+
+  React.useEffect(() => {
+    const snapshot: LocalSnapshot = {
+      mainSection,
+      studioMode,
+      artifactTab,
+      employeeDraft,
+      threadEntries,
+      emailComposer,
+      documentComposer,
+      pdfComposer,
+      focusedMissionId: missionCenter.focusedMissionId,
+      selectedDocumentId,
+      selectedEmailId,
+      selectedPdfId,
+      leftCollapsed,
+    };
+
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+  }, [
+    mainSection,
+    studioMode,
+    artifactTab,
+    employeeDraft,
+    threadEntries,
+    emailComposer,
+    documentComposer,
+    pdfComposer,
+    missionCenter.focusedMissionId,
+    selectedDocumentId,
+    selectedEmailId,
+    selectedPdfId,
+    leftCollapsed,
+  ]);
+
+  React.useEffect(() => {
+    void history.refresh({ includeTasks: true });
+    void memory.refresh();
+  }, [history, memory]);
+
+  React.useEffect(() => {
+    if (!missionCenter.focusedMissionId) return;
+    void missionCenter.refreshMission(missionCenter.focusedMissionId);
+  }, [missionCenter.focusedMissionId]);
+
+  React.useEffect(() => {
+    const SpeechRecognitionCtor =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
+    setVoiceSupported(Boolean(SpeechRecognitionCtor));
+
+    if (!SpeechRecognitionCtor) return;
+
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = "fr-FR";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setVoiceError(null);
+      setVoiceInterim("");
+    };
+
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      let finalText = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const transcript = event.results[i][0]?.transcript ?? "";
+        if (event.results[i].isFinal) finalText += transcript;
+        else interim += transcript;
+      }
+
+      setVoiceInterim(interim);
+
+      if (finalText.trim()) {
+        const clean = finalText.trim();
+
+        switch (voiceTarget) {
+          case "employeeDraft":
+            setEmployeeDraft((prev) => [prev, clean].filter(Boolean).join(" ").trim());
+            break;
+          case "emailSubject":
+            setEmailComposer((prev) => ({
+              ...prev,
+              subject: [prev.subject, clean].filter(Boolean).join(" ").trim(),
+            }));
+            break;
+          case "emailBody":
+            setEmailComposer((prev) => ({
+              ...prev,
+              body: [prev.body, clean].filter(Boolean).join("\n\n").trim(),
+            }));
+            break;
+          case "documentInstructions":
+            setDocumentComposer((prev) => ({
+              ...prev,
+              instructions: [prev.instructions, clean].filter(Boolean).join(" ").trim(),
+            }));
+            break;
+          case "documentContext":
+            setDocumentComposer((prev) => ({
+              ...prev,
+              context: [prev.context, clean].filter(Boolean).join(" ").trim(),
+            }));
+            break;
+          case "pdfText":
+            setPdfComposer((prev) => ({
+              ...prev,
+              text: [prev.text, clean].filter(Boolean).join("\n\n").trim(),
+            }));
+            break;
+          default:
+            break;
+        }
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      setVoiceError(
+        event?.error === "not-allowed"
+          ? "AccÃ¨s micro refusÃ©."
+          : "La saisie vocale a rencontrÃ© une erreur."
+      );
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      setVoiceInterim("");
+      setVoiceTarget(null);
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      try {
+        recognition.stop();
+      } catch {
+        //
+      }
+      recognitionRef.current = null;
+    };
+  }, [voiceTarget]);
+
+  React.useEffect(() => {
+    if (!missionCenter.hasActiveTask || !missionCenter.focusedMissionId) return;
+
+    const timer = window.setInterval(() => {
+      void missionCenter.refreshMission(missionCenter.focusedMissionId);
+    }, 12000);
+
+    return () => window.clearInterval(timer);
+  }, [missionCenter.hasActiveTask, missionCenter.focusedMissionId, missionCenter.refreshMission]);
+
+  const mergedDocuments = React.useMemo(() => {
+    const map = new Map<string, PierreDocument>();
+    [...directDocuments, ...missionCenter.documents].forEach((doc) => map.set(doc.id, doc));
+    return Array.from(map.values()).sort((a, b) => {
+      const da = new Date(a.updated_at ?? a.created_at ?? 0).getTime();
+      const db = new Date(b.updated_at ?? b.created_at ?? 0).getTime();
+      return db - da;
+    });
+  }, [directDocuments, missionCenter.documents]);
+
+  const mergedEmails = React.useMemo(() => {
+    const map = new Map<string, PierreOutboundEmail>();
+    [...directEmails, ...missionCenter.outboundEmails].forEach((mail) => map.set(mail.id, mail));
+    return Array.from(map.values()).sort((a, b) => {
+      const da = new Date(a.updated_at ?? a.created_at ?? 0).getTime();
+      const db = new Date(b.updated_at ?? b.created_at ?? 0).getTime();
+      return db - da;
+    });
+  }, [directEmails, missionCenter.outboundEmails]);
+
+  const activeMissionTasks = missionCenter.tasks;
+  const runningCount = getStatusCount(activeMissionTasks, ["running", "in_progress"]);
+  const queuedCount = getStatusCount(activeMissionTasks, ["queued", "ready", "planned", "retry"]);
+  const approvalCount = getStatusCount(activeMissionTasks, [
+    "awaiting_validation",
+    "awaiting_approval",
+  ]);
+  const awaitingInfoCount = getStatusCount(activeMissionTasks, ["awaiting_info"]);
+  const completedCount = getStatusCount(activeMissionTasks, ["completed", "done"]);
+  const blockedCount = getStatusCount(activeMissionTasks, ["blocked", "failed", "cancelled"]);
+  const missionArtifactsCount = mergedDocuments.length + mergedEmails.length + directPdfs.length;
+
+  const selectedDocument = React.useMemo(
+    () => mergedDocuments.find((doc) => doc.id === selectedDocumentId) ?? null,
+    [mergedDocuments, selectedDocumentId]
+  );
+
+  const selectedEmail = React.useMemo(
+    () => mergedEmails.find((mail) => mail.id === selectedEmailId) ?? null,
+    [mergedEmails, selectedEmailId]
+  );
+
+  const selectedPdf = React.useMemo(
+    () => directPdfs.find((pdf) => String(pdf.id ?? "") === selectedPdfId) ?? null,
+    [directPdfs, selectedPdfId]
+  );
+
+  const filteredHistory = React.useMemo(() => {
+    const q = commandSearch.trim().toLowerCase();
+    if (!q) return history.items.slice(0, 10);
+    return history.items
+      .filter((item: any) => {
+        const hay = [item.title, item.subtitle, item.status, item.kind, item.mission_id]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return hay.includes(q);
+      })
+      .slice(0, 10);
+  }, [commandSearch, history.items]);
+
+  const pushThread = React.useCallback((entry: ThreadEntry) => {
+    setThreadEntries((prev) => [entry, ...prev].slice(0, 40));
+  }, []);
+
+  const startVoice = React.useCallback(
+    (target: VoiceTarget) => {
+      if (!voiceSupported || !recognitionRef.current) return;
+      setVoiceError(null);
+      setVoiceTarget(target);
+      try {
+        recognitionRef.current.start();
+      } catch {
+        setVoiceError("Impossible de dÃ©marrer la saisie vocale.");
+        setVoiceTarget(null);
+      }
+    },
+    [voiceSupported]
+  );
+
+  const stopVoice = React.useCallback(() => {
+    try {
+      recognitionRef.current?.stop();
+    } catch {
+      //
+    }
+    setIsListening(false);
+    setVoiceTarget(null);
+    setVoiceInterim("");
+  }, []);
+
+  const handleRefreshAll = React.useCallback(async () => {
+    setBusyAction("refresh");
+    try {
+      await Promise.all([
+        history.refresh({ includeTasks: true }),
+        memory.refresh(),
+        missionCenter.refreshMission(),
+      ]);
+    } finally {
+      setBusyAction(null);
+    }
+  }, [history, memory, missionCenter]);
+
+  const handleSubmitMission = React.useCallback(async () => {
+    const text = employeeDraft.trim();
+    if (!text) return;
+
+    setBusyAction("submit-mission");
+
+    try {
+      pushThread({
+        id: crypto.randomUUID(),
+        role: "user",
+        content: text,
+        createdAt: new Date().toISOString(),
+      });
+
+      const payload = await missionCenter.submitMission({
+        text,
+        mode: "employee",
+      });
+
+      const summary =
+        payload.interpretation?.suggested_reply ??
+        payload.interpretation?.summary ??
+        payload.mission?.title ??
+        "Mission reÃ§ue et structurÃ©e par Pierre.";
+
+      pushThread({
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: summary,
+        createdAt: new Date().toISOString(),
+      });
+
+      setEmployeeDraft("");
+      setMainSection("followup");
+    } finally {
+      setBusyAction(null);
+    }
+  }, [employeeDraft, missionCenter, pushThread]);
+
+  const handleQuickMission = React.useCallback((text: string) => {
+    setMainSection("missions");
+    setStudioMode("employee");
+    setEmployeeDraft(text);
+    setTopMenuOpen(false);
+    setCommandOpen(false);
+  }, []);
+
+  const handleGenerateDocument = React.useCallback(async () => {
+    if (!documentComposer.instructions.trim()) return;
+
+    setBusyAction("generate-document");
+
+    try {
+      const document = await missionCenter.generateDirectDocument({
+        title: documentComposer.title,
+        instructions: documentComposer.instructions,
+        context: documentComposer.context,
+        tone: documentComposer.tone,
+        language: documentComposer.language,
+      });
+
+      if (document) {
+        setDirectDocuments((prev) => [document, ...prev.filter((item) => item.id !== document.id)]);
+        setSelectedDocumentId(document.id);
+        setArtifactTab("documents");
+        setMainSection("artifacts");
+      }
+    } finally {
+      setBusyAction(null);
+    }
+  }, [documentComposer, missionCenter]);
+
+  const handleDraftEmail = React.useCallback(async () => {
+    if (!emailComposer.subject.trim() || !emailComposer.body.trim() || !emailComposer.to.trim()) {
+      return;
+    }
+
+    setBusyAction("draft-email");
+
+    try {
+      const email = await missionCenter.draftDirectEmail({
+        to: splitEmails(emailComposer.to),
+        cc: splitEmails(emailComposer.cc),
+        bcc: splitEmails(emailComposer.bcc),
+        subject: emailComposer.subject,
+        body: emailComposer.body,
+        sender_name: memory.senderIdentityResolved.sender_name ?? undefined,
+        sender_email: memory.senderIdentityResolved.sender_email ?? undefined,
+        reply_to: memory.senderIdentityResolved.reply_to ?? undefined,
+      });
+
+      if (email) {
+        setDirectEmails((prev) => [email, ...prev.filter((item) => item.id !== email.id)]);
+        setSelectedEmailId(email.id);
+        setArtifactTab("emails");
+        setMainSection("artifacts");
+      }
+    } finally {
+      setBusyAction(null);
+    }
+  }, [emailComposer, memory.senderIdentityResolved, missionCenter]);
+
+  const handleSendEmail = React.useCallback(async () => {
+    if (!emailComposer.subject.trim() || !emailComposer.body.trim() || !emailComposer.to.trim()) {
+      return;
+    }
+
+    setBusyAction("send-email");
+
+    try {
+      const email = await missionCenter.sendDirectEmail({
+        to: splitEmails(emailComposer.to),
+        cc: splitEmails(emailComposer.cc),
+        bcc: splitEmails(emailComposer.bcc),
+        subject: emailComposer.subject,
+        body: emailComposer.body,
+        sender_name: memory.senderIdentityResolved.sender_name ?? undefined,
+        sender_email: memory.senderIdentityResolved.sender_email ?? undefined,
+        reply_to: memory.senderIdentityResolved.reply_to ?? undefined,
+      });
+
+      if (email) {
+        setDirectEmails((prev) => [email, ...prev.filter((item) => item.id !== email.id)]);
+        setSelectedEmailId(email.id);
+        setArtifactTab("emails");
+        setMainSection("artifacts");
+      }
+    } finally {
+      setBusyAction(null);
+    }
+  }, [emailComposer, memory.senderIdentityResolved, missionCenter]);
+
+  const handleGeneratePdf = React.useCallback(async () => {
+    if (!pdfComposer.text.trim()) return;
+
+    setBusyAction("generate-pdf");
+
+    try {
+      const pdf = await missionCenter.generateDirectPdf({
+        title: pdfComposer.title,
+        text: pdfComposer.text,
+      });
+
+      if (pdf) {
+        const enriched = {
+          id: crypto.randomUUID(),
+          title: pdfComposer.title || "PDF Pierre",
+          text: pdfComposer.text,
+          ...pdf,
+          created_at: new Date().toISOString(),
+        };
+        setDirectPdfs((prev) => [enriched, ...prev]);
+        setSelectedPdfId(String(enriched.id));
+        setArtifactTab("pdfs");
+        setMainSection("artifacts");
+      }
+    } finally {
+      setBusyAction(null);
+    }
+  }, [missionCenter, pdfComposer]);
+
+  const sideItems = [
+    { key: "cockpit" as const, label: "Cockpit", icon: LayoutDashboard, hint: "Vue globale" },
+    { key: "missions" as const, label: "Missions", icon: Brain, hint: "Commandement" },
+    { key: "studios" as const, label: "Studios", icon: Wand2, hint: "Email / Doc / PDF" },
+    { key: "followup" as const, label: "Suivi", icon: Workflow, hint: "TÃ¢ches / timeline" },
+    { key: "artifacts" as const, label: "Artefacts", icon: Archive, hint: "Documents / emails" },
+    { key: "history" as const, label: "Historique", icon: History, hint: "Trace complÃ¨te" },
+    { key: "memory" as const, label: "MÃ©moire", icon: Settings2, hint: "Entreprise / identitÃ©" },
+  ];
+
+  const quickMissionCards = [
+    {
+      title: "PrÃ©parer une convocation",
+      text: "PrÃ©pare une convocation Ã  entretien pour demain matin, ton professionnel, puis attends ma validation avant envoi.",
+    },
+    {
+      title: "Relancer un candidat",
+      text: "Relance le candidat pour savoir sâ€™il confirme sa disponibilitÃ© cette semaine, ton humain et professionnel.",
+    },
+    {
+      title: "Organiser ma journÃ©e RH",
+      text: "Organise ma journÃ©e RH, priorise les urgences, liste les tÃ¢ches, et propose un plan dâ€™exÃ©cution clair.",
+    },
+    {
+      title: "CrÃ©er plusieurs actions",
+      text: "PrÃ©pare 3 convocations, puis un email interne rÃ©capitulatif, puis attends ma validation avant tout envoi.",
+    },
+    {
+      title: "PrÃ©parer un refus candidat",
+      text: "RÃ©dige un mail de refus candidat poli, humain, professionnel, avec ouverture pour opportunitÃ©s futures.",
+    },
+    {
+      title: "PrÃ©parer onboarding",
+      text: "PrÃ©pare un message dâ€™accueil onboarding pour un nouveau collaborateur avec ton chaleureux et structurÃ©.",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#f6efe6] text-[#2a2118]">
+      <div className="flex min-h-screen">
+        <aside
+          className={cn(
+            "border-r border-[#eadfce] bg-[#fbf5ee] transition-all duration-300",
+            leftCollapsed ? "w-[92px]" : "w-[290px]"
+          )}
+        >
+          <div className="flex h-full flex-col">
+            <div className="border-b border-[#eadfce] px-4 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className={cn("min-w-0", leftCollapsed && "hidden")}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a856f]">
+                    CloneStore
+                  </p>
+                  <h1 className="mt-1 text-xl font-semibold text-[#21180f]">Pierre</h1>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setLeftCollapsed((prev) => !prev)}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#e7dac8] bg-white text-[#6a5845]"
+                >
+                  <PanelLeft className="h-4.5 w-4.5" />
+                </button>
+              </div>
+
+              {!leftCollapsed && (
+                <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white px-4 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f3e4d0] text-[#5c452c]">
+                      <Bot className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#2a2017]">Assistant RH AutomatisÃ©</p>
+                      <p className="mt-1 text-xs leading-5 text-[#7b6956]">
+                        Centre de missions, exÃ©cution, suivi, mÃ©moire et artefacts.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 overflow-auto px-3 py-4">
+              <nav className="space-y-2">
+                {sideItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = mainSection === item.key;
+
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setMainSection(item.key)}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-[20px] border px-3 py-3 text-left transition",
+                        active
+                          ? "border-[#d9c1a4] bg-[#fff2e3] text-[#4f3c27]"
+                          : "border-transparent bg-transparent text-[#685848] hover:border-[#eadfce] hover:bg-[#fffaf3]"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "inline-flex h-10 w-10 items-center justify-center rounded-2xl",
+                          active ? "bg-[#f0dcc2]" : "bg-[#f5ede4]"
+                        )}
+                      >
+                        <Icon className="h-4.5 w-4.5" />
+                      </div>
+
+                      {!leftCollapsed && (
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold">{item.label}</p>
+                          <p className="mt-0.5 text-xs text-[#857362]">{item.hint}</p>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {!leftCollapsed && (
+                <div className="mt-6 rounded-[24px] border border-[#eadfce] bg-[#fffdf8] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9a856f]">
+                    Ã©tat rapide
+                  </p>
+                  <div className="mt-3 space-y-3 text-sm text-[#5e5143]">
+                    <div className="flex items-center justify-between">
+                      <span>Mission active</span>
+                      <span className="font-semibold text-[#2c231a]">
+                        {missionCenter.mission ? "Oui" : "Non"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>TÃ¢ches</span>
+                      <span className="font-semibold text-[#2c231a]">
+                        {activeMissionTasks.length}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Artefacts</span>
+                      <span className="font-semibold text-[#2c231a]">{missionArtifactsCount}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>MÃ©moire</span>
+                      <span className="font-semibold text-[#2c231a]">
+                        {memory.memory ? "OK" : "Ã€ faire"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </aside>
+
+        <main className="min-w-0 flex-1">
+          <div className="mx-auto flex w-full max-w-[1880px] flex-col gap-6 px-5 pb-10 pt-5 lg:px-8">
+            <header className={cn(shellPanel(), "px-5 py-4 lg:px-6")}>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[#e8dccf] bg-white px-3 py-1.5 text-xs font-medium text-[#6d5a48]">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Cockpit premium Pierre
+                  </div>
+
+                  <div className="mt-3">
+                    <h2 className="text-3xl font-semibold tracking-[-0.02em] text-[#20170f]">
+                      {mainSection === "cockpit" && "Cockpit global"}
+                      {mainSection === "missions" && "Centre de missions"}
+                      {mainSection === "studios" && "Studios directs"}
+                      {mainSection === "followup" && "Suivi dâ€™exÃ©cution"}
+                      {mainSection === "artifacts" && "Artefacts produits"}
+                      {mainSection === "history" && "Historique complet"}
+                      {mainSection === "memory" && "MÃ©moire entreprise"}
+                    </h2>
+                    <p className="mt-2 max-w-4xl text-sm leading-7 text-[#665648]">
+                      {mainSection === "cockpit" &&
+                        "Vue dâ€™ensemble de Pierre : mission active, exÃ©cution, artefacts, mÃ©moire et accÃ¨s direct aux actions clÃ©s."}
+                      {mainSection === "missions" &&
+                        "Donne Ã  Pierre une mission libre comme Ã  un employÃ© en tÃ©lÃ©travail : il structure, planifie, demande validation si nÃ©cessaire, dÃ©tecte les infos manquantes et prÃ©pare lâ€™exÃ©cution."}
+                      {mainSection === "studios" &&
+                        "Production directe sans passer par une mission libre : email, document RH ou PDF."}
+                      {mainSection === "followup" &&
+                        "Pilotage opÃ©rationnel des tÃ¢ches, validations, blocages, timeline et logs de mission."}
+                      {mainSection === "artifacts" &&
+                        "Visualise les documents, emails et PDFs gÃ©nÃ©rÃ©s par Pierre, quâ€™ils viennent des missions ou des studios directs."}
+                      {mainSection === "history" &&
+                        "Retrouve les productions passÃ©es, navigue dans la continuitÃ©, relis lâ€™activitÃ© et rouvre les Ã©lÃ©ments utiles."}
+                      {mainSection === "memory" &&
+                        "Configure la mÃ©moire entreprise, lâ€™identitÃ© dâ€™envoi, le ton et les rÃ¨gles internes utilisÃ©es par Pierre."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  {voiceSupported && (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[#eadfce] bg-white px-3 py-2 text-sm text-[#6f5e4f]">
+                      {isListening ? (
+                        <>
+                          <Mic className="h-4 w-4 text-[#9b493c]" />
+                          DictÃ©e active
+                        </>
+                      ) : (
+                        <>
+                          <MicOff className="h-4 w-4" />
+                          Voix prÃªte
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setCommandOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-full border border-[#e7dac8] bg-white px-4 py-2.5 text-sm font-medium text-[#4f3f32]"
+                  >
+                    <Search className="h-4 w-4" />
+                    Rechercher / naviguer
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleRefreshAll}
+                    className="inline-flex items-center gap-2 rounded-full border border-[#e7dac8] bg-white px-4 py-2.5 text-sm font-medium text-[#4f3f32]"
+                  >
+                    {busyAction === "refresh" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                    Actualiser
+                  </button>
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setTopMenuOpen((prev) => !prev)}
+                      className="inline-flex items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white"
+                    >
+                      <Menu className="h-4 w-4" />
+                      Menu Pierre
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+
+                    {topMenuOpen && (
+                      <div className="absolute right-0 z-30 mt-3 w-[380px] rounded-[24px] border border-[#eadfce] bg-[#fffdf9] p-3 shadow-[0_18px_60px_rgba(84,67,49,0.18)]">
+                        <div className="grid gap-2">
+                          <MenuAction
+                            title="Nouvelle mission libre"
+                            description="Ouvre le centre de missions"
+                            onClick={() => {
+                              setMainSection("missions");
+                              setStudioMode("employee");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Studio email"
+                            description="RÃ©diger / brouillon / envoi"
+                            onClick={() => {
+                              setMainSection("studios");
+                              setStudioMode("email");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Studio document"
+                            description="Document RH direct"
+                            onClick={() => {
+                              setMainSection("studios");
+                              setStudioMode("document");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Studio PDF"
+                            description="Production PDF immÃ©diate"
+                            onClick={() => {
+                              setMainSection("studios");
+                              setStudioMode("pdf");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Suivi des tÃ¢ches"
+                            description="Validation, blocages, exÃ©cution"
+                            onClick={() => {
+                              setMainSection("followup");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Artefacts produits"
+                            description="Documents, emails, PDFs"
+                            onClick={() => {
+                              setMainSection("artifacts");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="Historique"
+                            description="Recherche et continuitÃ©"
+                            onClick={() => {
+                              setMainSection("history");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                          <MenuAction
+                            title="MÃ©moire entreprise"
+                            description="IdentitÃ©, ton, rÃ¨gles, configuration"
+                            onClick={() => {
+                              setMainSection("memory");
+                              setTopMenuOpen(false);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            {(missionCenter.error || history.error || memory.error || voiceError) && (
+              <section className="rounded-[24px] border border-[#e9c9c3] bg-[#fff4f2] px-5 py-4 text-[#7b342c] shadow-[0_10px_35px_rgba(123,52,44,0.08)]">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="mt-0.5 h-5 w-5 flex-none" />
+                  <div className="space-y-1 text-sm">
+                    {missionCenter.error && <p>{missionCenter.error}</p>}
+                    {history.error && <p>{history.error}</p>}
+                    {memory.error && <p>{memory.error}</p>}
+                    {voiceError && <p>{voiceError}</p>}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {mainSection === "cockpit" && (
+              <div className="grid gap-6 xl:grid-cols-[1.24fr_0.76fr]">
+                <section className={cn(shellPanel(), "p-5 lg:p-6")}>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <KpiCard
+                      icon={Brain}
+                      label="Mission active"
+                      value={missionCenter.mission ? "Oui" : "Non"}
+                      hint={missionCenter.mission?.title ?? "Aucune mission"}
+                      tone={missionCenter.mission ? "good" : "neutral"}
+                    />
+                    <KpiCard
+                      icon={Clock3}
+                      label="TÃ¢ches actives"
+                      value={String(queuedCount + runningCount + awaitingInfoCount + approvalCount)}
+                      hint={`${queuedCount} prÃªtes Â· ${runningCount} en cours`}
+                    />
+                    <KpiCard
+                      icon={Archive}
+                      label="Artefacts"
+                      value={String(missionArtifactsCount)}
+                      hint={`${mergedDocuments.length} docs Â· ${mergedEmails.length} emails Â· ${directPdfs.length} pdf`}
+                    />
+                    <KpiCard
+                      icon={Shield}
+                      label="MÃ©moire"
+                      value={memory.memory ? "ConfigurÃ©e" : "Ã€ complÃ©ter"}
+                      hint={memory.senderIdentityResolved.sender_email ?? "IdentitÃ© dâ€™envoi non dÃ©finie"}
+                      tone={memory.memory ? "good" : "warn"}
+                    />
+                  </div>
+
+                  <div className="mt-6 grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
+                    <div className={cn(softPanel(), "p-4")}>
+                      <p className="text-sm font-semibold text-[#2f2418]">Mission en avant</p>
+                      <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-lg font-semibold text-[#221910]">
+                              {missionCenter.mission?.title ?? "Aucune mission focalisÃ©e"}
+                            </p>
+                            <p className="mt-1 text-sm text-[#7b6956]">
+                              {missionCenter.interpretation?.summary ??
+                                missionCenter.mission?.request_text ??
+                                "SÃ©lectionne ou crÃ©e une mission pour afficher son contexte."}
+                            </p>
+                          </div>
+                          <StatusBadgeAny
+                            status={missionCenter.mission?.status ?? "idle"}
+                            riskLevel={missionCenter.mission?.risk_level ?? "normal"}
+                          />
+                        </div>
+
+                        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                          <MiniState label="PrÃªtes" value={String(queuedCount)} />
+                          <MiniState label="En cours" value={String(runningCount)} />
+                          <MiniState label="Validation" value={String(approvalCount)} />
+                          <MiniState label="Infos" value={String(awaitingInfoCount)} />
+                          <MiniState label="TerminÃ©es" value={String(completedCount)} />
+                          <MiniState label="BloquÃ©es" value={String(blockedCount)} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={cn(softPanel(), "p-4")}>
+                      <p className="text-sm font-semibold text-[#2f2418]">Actions rapides</p>
+                      <div className="mt-4 grid gap-3">
+                        <QuickActionButton
+                          icon={Brain}
+                          title="CrÃ©er une nouvelle mission"
+                          description="Basculer vers le centre de missions"
+                          onClick={() => setMainSection("missions")}
+                        />
+                        <QuickActionButton
+                          icon={Mail}
+                          title="CrÃ©er un email direct"
+                          description="Ouvrir le studio email"
+                          onClick={() => {
+                            setMainSection("studios");
+                            setStudioMode("email");
+                          }}
+                        />
+                        <QuickActionButton
+                          icon={FileText}
+                          title="CrÃ©er un document RH"
+                          description="Ouvrir le studio document"
+                          onClick={() => {
+                            setMainSection("studios");
+                            setStudioMode("document");
+                          }}
+                        />
+                        <QuickActionButton
+                          icon={Workflow}
+                          title="Voir le suivi opÃ©rationnel"
+                          description="TÃ¢ches, timeline et validations"
+                          onClick={() => setMainSection("followup")}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <p className="text-sm font-semibold text-[#2f2418]">IdentitÃ© dâ€™envoi active</p>
+                    <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-4">
+                      <p className="text-sm text-[#4b3e31]">
+                        <span className="font-semibold text-[#281e15]">Nom :</span>{" "}
+                        {memory.senderIdentityResolved.sender_name ?? "Non dÃ©fini"}
+                      </p>
+                      <p className="mt-2 text-sm text-[#4b3e31]">
+                        <span className="font-semibold text-[#281e15]">Email :</span>{" "}
+                        {memory.senderIdentityResolved.sender_email ?? "Non dÃ©fini"}
+                      </p>
+                      <p className="mt-2 text-sm text-[#4b3e31]">
+                        <span className="font-semibold text-[#281e15]">Reply-to :</span>{" "}
+                        {memory.senderIdentityResolved.reply_to ?? "Non dÃ©fini"}
+                      </p>
+                      <p className="mt-2 text-xs text-[#8a7764]">
+                        Source : {memory.senderIdentityResolved.source}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <p className="text-sm font-semibold text-[#2f2418]">Derniers Ã©changes</p>
+                    <div className="mt-4 space-y-3">
+                      {threadEntries.length === 0 ? (
+                        <EmptyState
+                          icon={ScrollText}
+                          title="Aucun Ã©change"
+                          description="Les derniers briefs et rÃ©ponses Pierre apparaÃ®tront ici."
+                        />
+                      ) : (
+                        threadEntries.slice(0, 4).map((entry) => (
+                          <div
+                            key={entry.id}
+                            className="rounded-[18px] border border-[#eadfce] bg-white px-4 py-3"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#98836f]">
+                                {entry.role === "user"
+                                  ? "vous"
+                                  : entry.role === "assistant"
+                                  ? "pierre"
+                                  : "systÃ¨me"}
+                              </span>
+                              <span className="text-xs text-[#998672]">
+                                {formatDateTime(entry.createdAt)}
+                              </span>
+                            </div>
+                            <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#372c22]">
+                              {entry.content}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {mainSection === "missions" && (
+              <div className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
+                <section className={cn(shellPanel(), "p-5 lg:p-6")}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a856f]">
+                        commandement
+                      </p>
+                      <h3 className="mt-2 text-2xl font-semibold text-[#221910]">
+                        Donne une mission Ã  Pierre
+                      </h3>
+                      <p className="mt-2 max-w-3xl text-sm leading-7 text-[#665648]">
+                        Parle Ã  Pierre comme Ã  un employÃ© : il comprend la demande,
+                        dÃ©tecte les actions multiples, identifie les informations manquantes,
+                        Ã©value le risque, propose les validations utiles et structure la mission.
+                      </p>
+                    </div>
+
+                    {voiceSupported && (
+                      <button
+                        type="button"
+                        onClick={() => startVoice("employeeDraft")}
+                        className="inline-flex items-center gap-2 rounded-full border border-[#e7dac8] bg-white px-4 py-2 text-sm font-medium text-[#5c4d40]"
+                      >
+                        <Mic className="h-4 w-4" />
+                        DictÃ©e mission
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mt-6 rounded-[24px] border border-[#eadfce] bg-white p-4">
+                    <MissionComposerAny
+                      value={employeeDraft}
+                      onChange={setEmployeeDraft}
+                      onSubmit={handleSubmitMission}
+                      loading={busyAction === "submit-mission" || missionCenter.submitting}
+                      placeholder="Exemple : prÃ©pare 3 convocations pour demain, relance le candidat si pas de rÃ©ponse ce soir, puis attends ma validation avant tout envoi."
+                    />
+
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleSubmitMission}
+                        disabled={
+                          !employeeDraft.trim() ||
+                          busyAction === "submit-mission" ||
+                          missionCenter.submitting
+                        }
+                        className="inline-flex items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1d160f] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {busyAction === "submit-mission" || missionCenter.submitting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                        Lancer la mission
+                      </button>
+
+                      {isListening && voiceTarget === "employeeDraft" && (
+                        <button
+                          type="button"
+                          onClick={stopVoice}
+                          className="inline-flex items-center gap-2 rounded-full border border-[#e5c2be] bg-[#fff1ef] px-3 py-2 text-sm font-medium text-[#8b3d33]"
+                        >
+                          <MicOff className="h-4 w-4" />
+                          ArrÃªter la dictÃ©e
+                        </button>
+                      )}
+                    </div>
+
+                    {voiceInterim && voiceTarget === "employeeDraft" && (
+                      <p className="mt-3 text-sm italic text-[#8a7763]">{voiceInterim}</p>
+                    )}
+                  </div>
+
+                  <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {quickMissionCards.map((card) => (
+                      <QuickMissionCard
+                        key={card.title}
+                        title={card.title}
+                        text={card.text}
+                        onClick={() => handleQuickMission(card.text)}
+                      />
+                    ))}
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <p className="text-sm font-semibold text-[#2f2418]">Mission comprise</p>
+                    <div className="mt-4">
+                      <MissionUnderstandingAny
+                        mission={missionCenter.mission}
+                        interpretation={missionCenter.interpretation}
+                        tasks={missionCenter.tasks}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <p className="text-sm font-semibold text-[#2f2418]">Fil mission</p>
+                    <div className="mt-4 space-y-3">
+                      {threadEntries.length === 0 ? (
+                        <EmptyState
+                          icon={ScrollText}
+                          title="Aucun brief enregistrÃ©"
+                          description="Les Ã©changes liÃ©s aux missions apparaÃ®tront ici."
+                        />
+                      ) : (
+                        threadEntries.map((entry) => (
+                          <div
+                            key={entry.id}
+                            className={cn(
+                              "rounded-[20px] border px-4 py-3",
+                              entry.role === "user"
+                                ? "border-[#eadfce] bg-[#fcf7f0]"
+                                : "border-[#e3d6c8] bg-white"
+                            )}
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#917e6a]">
+                                {entry.role === "user"
+                                  ? "vous"
+                                  : entry.role === "assistant"
+                                  ? "pierre"
+                                  : "systÃ¨me"}
+                              </span>
+                              <span className="text-xs text-[#9b8975]">
+                                {formatDateTime(entry.createdAt)}
+                              </span>
+                            </div>
+                            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#33281d]">
+                              {entry.content}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {mainSection === "studios" && (
+              <div className="grid gap-6 xl:grid-cols-[0.88fr_1.12fr]">
+                <section className={cn(shellPanel(), "p-5")}>
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                    <StudioSwitcher
+                      active={studioMode === "employee"}
+                      icon={Bot}
+                      title="Mission libre"
+                      description="Retour au centre de missions"
+                      onClick={() => {
+                        setMainSection("missions");
+                        setStudioMode("employee");
+                      }}
+                    />
+                    <StudioSwitcher
+                      active={studioMode === "email"}
+                      icon={Mail}
+                      title="Studio email"
+                      description="Brouillon ou prÃ©paration dâ€™envoi"
+                      onClick={() => setStudioMode("email")}
+                    />
+                    <StudioSwitcher
+                      active={studioMode === "document"}
+                      icon={FileText}
+                      title="Studio document"
+                      description="Production RH premium"
+                      onClick={() => setStudioMode("document")}
+                    />
+                    <StudioSwitcher
+                      active={studioMode === "pdf"}
+                      icon={FileType2}
+                      title="Studio PDF"
+                      description="GÃ©nÃ©ration directe"
+                      onClick={() => setStudioMode("pdf")}
+                    />
+                  </div>
+                </section>
+
+                <section className={cn(shellPanel(), "p-5 lg:p-6")}>
+                  {studioMode === "email" && (
+                    <div className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
+                      <div className="space-y-4">
+                        <Field label="Ã€">
+                          <textarea
+                            value={emailComposer.to}
+                            onChange={(e) =>
+                              setEmailComposer((prev) => ({ ...prev, to: e.target.value }))
+                            }
+                            rows={2}
+                            className={fieldClass}
+                            placeholder="prenom@entreprise.fr, candidat@gmail.com"
+                          />
+                        </Field>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <Field label="Cc">
+                            <input
+                              value={emailComposer.cc}
+                              onChange={(e) =>
+                                setEmailComposer((prev) => ({ ...prev, cc: e.target.value }))
+                              }
+                              className={fieldClass}
+                              placeholder="optionnel"
+                            />
+                          </Field>
+                          <Field label="Bcc">
+                            <input
+                              value={emailComposer.bcc}
+                              onChange={(e) =>
+                                setEmailComposer((prev) => ({ ...prev, bcc: e.target.value }))
+                              }
+                              className={fieldClass}
+                              placeholder="optionnel"
+                            />
+                          </Field>
+                        </div>
+
+                        <Field
+                          label="Objet"
+                          action={
+                            voiceSupported ? <VoiceButton onClick={() => startVoice("emailSubject")} /> : null
+                          }
+                        >
+                          <input
+                            value={emailComposer.subject}
+                            onChange={(e) =>
+                              setEmailComposer((prev) => ({ ...prev, subject: e.target.value }))
+                            }
+                            className={fieldClass}
+                            placeholder="Objet du message"
+                          />
+                        </Field>
+
+                        <Field
+                          label="Corps du message"
+                          action={
+                            voiceSupported ? <VoiceButton onClick={() => startVoice("emailBody")} /> : null
+                          }
+                        >
+                          <textarea
+                            value={emailComposer.body}
+                            onChange={(e) =>
+                              setEmailComposer((prev) => ({ ...prev, body: e.target.value }))
+                            }
+                            rows={14}
+                            className={fieldClass}
+                            placeholder="RÃ©dige ici le message ou colle une base Ã  amÃ©liorer."
+                          />
+                        </Field>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={handleDraftEmail}
+                            disabled={busyAction === "draft-email"}
+                            className="inline-flex items-center gap-2 rounded-full border border-[#e5d7c7] bg-white px-4 py-2.5 text-sm font-semibold text-[#4c4033] transition hover:bg-[#fffaf3] disabled:opacity-50"
+                          >
+                            {busyAction === "draft-email" ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Wand2 className="h-4 w-4" />
+                            )}
+                            CrÃ©er le brouillon
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleSendEmail}
+                            disabled={busyAction === "send-email"}
+                            className="inline-flex items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1d160f] disabled:opacity-50"
+                          >
+                            {busyAction === "send-email" ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Send className="h-4 w-4" />
+                            )}
+                            PrÃ©parer lâ€™envoi
+                          </button>
+                        </div>
+
+                        {voiceInterim &&
+                          (voiceTarget === "emailSubject" || voiceTarget === "emailBody") && (
+                            <p className="text-sm italic text-[#8a7763]">{voiceInterim}</p>
+                          )}
+                      </div>
+
+                      <div className={cn(softPanel(), "p-4")}>
+                        <p className="text-sm font-semibold text-[#2f2418]">PrÃ©visualisation</p>
+                        <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-5">
+                          <p className="text-xs uppercase tracking-[0.18em] text-[#99856f]">de</p>
+                          <p className="mt-1 text-sm text-[#3a2e22]">
+                            {memory.senderIdentityResolved.sender_name ?? "Nom dâ€™envoi"}{" "}
+                            {memory.senderIdentityResolved.sender_email
+                              ? `<${memory.senderIdentityResolved.sender_email}>`
+                              : ""}
+                          </p>
+
+                          <p className="mt-4 text-xs uppercase tracking-[0.18em] text-[#99856f]">Ã </p>
+                          <p className="mt-1 text-sm text-[#3a2e22]">
+                            {emailComposer.to || "Destinataire(s)"}
+                          </p>
+
+                          <p className="mt-4 text-xs uppercase tracking-[0.18em] text-[#99856f]">
+                            objet
+                          </p>
+                          <p className="mt-1 text-base font-semibold text-[#21180f]">
+                            {emailComposer.subject || "Objet du message"}
+                          </p>
+
+                          <div className="mt-5 border-t border-[#eee4d8] pt-5">
+                            <p className="whitespace-pre-wrap text-sm leading-7 text-[#3f3326]">
+                              {emailComposer.body || "Le contenu du message apparaÃ®tra ici."}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {studioMode === "document" && (
+                    <div className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
+                      <div className="space-y-4">
+                        <Field label="Titre (optionnel)">
+                          <input
+                            value={documentComposer.title}
+                            onChange={(e) =>
+                              setDocumentComposer((prev) => ({ ...prev, title: e.target.value }))
+                            }
+                            className={fieldClass}
+                            placeholder="Exemple : Convocation entretien commercial"
+                          />
+                        </Field>
+
+                        <Field
+                          label="Instructions"
+                          action={
+                            voiceSupported ? (
+                              <VoiceButton onClick={() => startVoice("documentInstructions")} />
+                            ) : null
+                          }
+                        >
+                          <textarea
+                            value={documentComposer.instructions}
+                            onChange={(e) =>
+                              setDocumentComposer((prev) => ({
+                                ...prev,
+                                instructions: e.target.value,
+                              }))
+                            }
+                            rows={7}
+                            className={fieldClass}
+                            placeholder="Explique prÃ©cisÃ©ment ce que Pierre doit produire."
+                          />
+                        </Field>
+
+                        <Field
+                          label="Contexte"
+                          action={
+                            voiceSupported ? (
+                              <VoiceButton onClick={() => startVoice("documentContext")} />
+                            ) : null
+                          }
+                        >
+                          <textarea
+                            value={documentComposer.context}
+                            onChange={(e) =>
+                              setDocumentComposer((prev) => ({
+                                ...prev,
+                                context: e.target.value,
+                              }))
+                            }
+                            rows={7}
+                            className={fieldClass}
+                            placeholder="Contexte entreprise, ton, infos utiles, contraintes."
+                          />
+                        </Field>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <Field label="Ton">
+                            <input
+                              value={documentComposer.tone}
+                              onChange={(e) =>
+                                setDocumentComposer((prev) => ({
+                                  ...prev,
+                                  tone: e.target.value,
+                                }))
+                              }
+                              className={fieldClass}
+                              placeholder="professionnel"
+                            />
+                          </Field>
+                          <Field label="Langue">
+                            <input
+                              value={documentComposer.language}
+                              onChange={(e) =>
+                                setDocumentComposer((prev) => ({
+                                  ...prev,
+                                  language: e.target.value,
+                                }))
+                              }
+                              className={fieldClass}
+                              placeholder="fr"
+                            />
+                          </Field>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleGenerateDocument}
+                          disabled={busyAction === "generate-document"}
+                          className="inline-flex w-fit items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1d160f] disabled:opacity-50"
+                        >
+                          {busyAction === "generate-document" ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <FileText className="h-4 w-4" />
+                          )}
+                          GÃ©nÃ©rer le document
+                        </button>
+
+                        {voiceInterim &&
+                          (voiceTarget === "documentInstructions" ||
+                            voiceTarget === "documentContext") && (
+                            <p className="text-sm italic text-[#8a7763]">{voiceInterim}</p>
+                          )}
+                      </div>
+
+                      <div className={cn(softPanel(), "p-4")}>
+                        <p className="text-sm font-semibold text-[#2f2418]">AperÃ§u</p>
+                        <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-5">
+                          <p className="text-lg font-semibold text-[#221910]">
+                            {documentComposer.title || "Titre du document"}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                            <span className="rounded-full border border-[#e8dac7] bg-[#fcf7f0] px-2.5 py-1 text-[#715f4d]">
+                              Ton : {documentComposer.tone || "â€”"}
+                            </span>
+                            <span className="rounded-full border border-[#e8dac7] bg-[#fcf7f0] px-2.5 py-1 text-[#715f4d]">
+                              Langue : {documentComposer.language || "â€”"}
+                            </span>
+                          </div>
+                          <div className="mt-5 space-y-4 text-sm leading-7 text-[#3a2f24]">
+                            <div>
+                              <p className="font-medium text-[#251b12]">Instructions</p>
+                              <p className="mt-1 whitespace-pre-wrap text-[#5c5044]">
+                                {documentComposer.instructions || "Les instructions apparaÃ®tront ici."}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-[#251b12]">Contexte</p>
+                              <p className="mt-1 whitespace-pre-wrap text-[#5c5044]">
+                                {documentComposer.context || "Le contexte apparaÃ®tra ici."}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {studioMode === "pdf" && (
+                    <div className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
+                      <div className="space-y-4">
+                        <Field label="Titre">
+                          <input
+                            value={pdfComposer.title}
+                            onChange={(e) =>
+                              setPdfComposer((prev) => ({ ...prev, title: e.target.value }))
+                            }
+                            className={fieldClass}
+                            placeholder="Titre du PDF"
+                          />
+                        </Field>
+
+                        <Field
+                          label="Texte / contenu"
+                          action={
+                            voiceSupported ? <VoiceButton onClick={() => startVoice("pdfText")} /> : null
+                          }
+                        >
+                          <textarea
+                            value={pdfComposer.text}
+                            onChange={(e) =>
+                              setPdfComposer((prev) => ({ ...prev, text: e.target.value }))
+                            }
+                            rows={16}
+                            className={fieldClass}
+                            placeholder="Texte Ã  convertir en PDF."
+                          />
+                        </Field>
+
+                        <button
+                          type="button"
+                          onClick={handleGeneratePdf}
+                          disabled={busyAction === "generate-pdf"}
+                          className="inline-flex w-fit items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1d160f] disabled:opacity-50"
+                        >
+                          {busyAction === "generate-pdf" ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <ScrollText className="h-4 w-4" />
+                          )}
+                          GÃ©nÃ©rer le PDF
+                        </button>
+
+                        {voiceInterim && voiceTarget === "pdfText" && (
+                          <p className="text-sm italic text-[#8a7763]">{voiceInterim}</p>
+                        )}
+                      </div>
+
+                      <div className={cn(softPanel(), "p-4")}>
+                        <p className="text-sm font-semibold text-[#2f2418]">PrÃ©visualisation texte</p>
+                        <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-5">
+                          <p className="text-lg font-semibold text-[#221910]">
+                            {pdfComposer.title || "Titre PDF"}
+                          </p>
+                          <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-[#3c3025]">
+                            {pdfComposer.text || "Le contenu texte apparaÃ®tra ici."}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {studioMode === "employee" && (
+                    <div className={cn(softPanel(), "p-5")}>
+                      <p className="text-sm font-semibold text-[#2f2418]">Mission libre</p>
+                      <p className="mt-2 text-sm leading-7 text-[#665648]">
+                        Le centre de missions a maintenant son propre espace dÃ©diÃ©.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setMainSection("missions")}
+                        className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white"
+                      >
+                        <Brain className="h-4 w-4" />
+                        Aller au centre de missions
+                      </button>
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+
+            {mainSection === "followup" && (
+              <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+                <section className="space-y-6">
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <MissionUnderstandingAny
+                      mission={missionCenter.mission}
+                      interpretation={missionCenter.interpretation}
+                      tasks={missionCenter.tasks}
+                    />
+                  </div>
+
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <ExecutionBoardAny
+                      mission={missionCenter.mission}
+                      tasks={missionCenter.tasks}
+                      logs={missionCenter.logs}
+                    />
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <TaskListAny
+                      tasks={missionCenter.tasks}
+                      onRunTask={missionCenter.runTask}
+                      onApproveTask={missionCenter.approveTask}
+                      onCancelTask={missionCenter.cancelTask}
+                      onRescheduleTask={missionCenter.rescheduleTask}
+                      relatedDocumentForTask={(task: PierreTask) =>
+                        relatedDocumentForTask(task, mergedDocuments)
+                      }
+                      relatedEmailForTask={(task: PierreTask) =>
+                        relatedEmailForTask(task, mergedEmails)
+                      }
+                    />
+                  </div>
+
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <TimelineAny
+                      mission={missionCenter.mission}
+                      tasks={missionCenter.tasks}
+                      logs={missionCenter.logs}
+                      documents={mergedDocuments}
+                      emails={mergedEmails}
+                    />
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {mainSection === "artifacts" && (
+              <div className="grid gap-6 xl:grid-cols-[0.78fr_1.22fr]">
+                <section className={cn(shellPanel(), "p-5")}>
+                  <div className="flex flex-wrap gap-2">
+                    <TopTab
+                      active={artifactTab === "documents"}
+                      onClick={() => setArtifactTab("documents")}
+                      icon={FileText}
+                      label={`Documents (${mergedDocuments.length})`}
+                    />
+                    <TopTab
+                      active={artifactTab === "emails"}
+                      onClick={() => setArtifactTab("emails")}
+                      icon={Mail}
+                      label={`Emails (${mergedEmails.length})`}
+                    />
+                    <TopTab
+                      active={artifactTab === "pdfs"}
+                      onClick={() => setArtifactTab("pdfs")}
+                      icon={FileType2}
+                      label={`PDFs (${directPdfs.length})`}
+                    />
+                  </div>
+
+                  <div className="mt-5 max-h-[700px] space-y-3 overflow-auto pr-1">
+                    {artifactTab === "documents" &&
+                      (mergedDocuments.length === 0 ? (
+                        <EmptyState
+                          icon={FileText}
+                          title="Aucun document"
+                          description="Les documents gÃ©nÃ©rÃ©s apparaÃ®tront ici."
+                        />
+                      ) : (
+                        mergedDocuments.map((doc) => (
+                          <ArtifactRow
+                            key={doc.id}
+                            active={selectedDocumentId === doc.id}
+                            title={doc.title ?? "Document sans titre"}
+                            subtitle={`${doc.type ?? "document"} Â· ${formatDateTime(
+                              doc.updated_at ?? doc.created_at
+                            )}`}
+                            status={doc.status ?? "ready"}
+                            onClick={() => setSelectedDocumentId(doc.id)}
+                          />
+                        ))
+                      ))}
+
+                    {artifactTab === "emails" &&
+                      (mergedEmails.length === 0 ? (
+                        <EmptyState
+                          icon={Mail}
+                          title="Aucun email"
+                          description="Les brouillons et prÃ©parations dâ€™envoi apparaÃ®tront ici."
+                        />
+                      ) : (
+                        mergedEmails.map((mail) => (
+                          <ArtifactRow
+                            key={mail.id}
+                            active={selectedEmailId === mail.id}
+                            title={mail.subject ?? "Email sans objet"}
+                            subtitle={`${mail.status ?? "draft"} Â· ${formatDateTime(
+                              mail.updated_at ?? mail.created_at
+                            )}`}
+                            status={mail.status ?? "draft"}
+                            onClick={() => setSelectedEmailId(mail.id)}
+                          />
+                        ))
+                      ))}
+
+                    {artifactTab === "pdfs" &&
+                      (directPdfs.length === 0 ? (
+                        <EmptyState
+                          icon={FileType2}
+                          title="Aucun PDF"
+                          description="Les PDF gÃ©nÃ©rÃ©s apparaÃ®tront ici."
+                        />
+                      ) : (
+                        directPdfs.map((pdf) => (
+                          <ArtifactRow
+                            key={String(pdf.id ?? "")}
+                            active={selectedPdfId === String(pdf.id ?? "")}
+                            title={String(pdf.title ?? "PDF Pierre")}
+                            subtitle={formatDateTime(String(pdf.created_at ?? ""))}
+                            status="ready"
+                            onClick={() => setSelectedPdfId(String(pdf.id ?? ""))}
+                          />
+                        ))
+                      ))}
+                  </div>
+                </section>
+
+                <section className={cn(shellPanel(), "p-5")}>
+                  {artifactTab === "documents" && (
+                    <DocumentPanelAny
+                      document={selectedDocument}
+                      documents={mergedDocuments}
+                      selectedDocumentId={selectedDocumentId}
+                      onSelectDocument={setSelectedDocumentId}
+                    />
+                  )}
+
+                  {artifactTab === "emails" && (
+                    <>
+                      {selectedEmail ? (
+                        <div className="space-y-5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-2xl font-semibold text-[#241b12]">
+                                {selectedEmail.subject ?? "Email"}
+                              </p>
+                              <p className="mt-2 text-sm text-[#756555]">
+                                {selectedEmail.sender_name ?? "Pierre"}{" "}
+                                {selectedEmail.sender_email
+                                  ? `<${selectedEmail.sender_email}>`
+                                  : ""}
+                              </p>
+                            </div>
+                            <StatusBadgeAny status={selectedEmail.status ?? "draft"} />
+                          </div>
+
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <InfoCard
+                              label="Ã€"
+                              value={
+                                Array.isArray(selectedEmail.to)
+                                  ? selectedEmail.to.join(", ")
+                                  : (selectedEmail.to as string) ?? "â€”"
+                              }
+                            />
+                            <InfoCard label="Statut" value={selectedEmail.status ?? "â€”"} />
+                          </div>
+
+                          <div className="rounded-[22px] border border-[#eadfce] bg-white p-5">
+                            <p className="whitespace-pre-wrap text-sm leading-7 text-[#3d3025]">
+                              {selectedEmail.text ?? selectedEmail.html ?? "Contenu indisponible"}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <EmptyState
+                          icon={Mail}
+                          title="Aucun email sÃ©lectionnÃ©"
+                          description="SÃ©lectionne un email pour lâ€™afficher."
+                        />
+                      )}
+                    </>
+                  )}
+
+                  {artifactTab === "pdfs" && (
+                    <>
+                      {selectedPdf ? (
+                        <div className="space-y-5">
+                          <p className="text-2xl font-semibold text-[#241b12]">
+                            {String(selectedPdf.title ?? "PDF")}
+                          </p>
+                          <div className="rounded-[22px] border border-[#eadfce] bg-white p-5">
+                            <p className="whitespace-pre-wrap text-sm leading-7 text-[#3d3025]">
+                              {String(selectedPdf.text ?? selectedPdf.html ?? "PrÃ©visualisation indisponible")}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <EmptyState
+                          icon={FileType2}
+                          title="Aucun PDF sÃ©lectionnÃ©"
+                          description="SÃ©lectionne un PDF pour lâ€™afficher."
+                        />
+                      )}
+                    </>
+                  )}
+                </section>
+              </div>
+            )}
+
+            {mainSection === "history" && (
+              <section className={cn(shellPanel(), "p-5 lg:p-6")}>
+                <HistoryPanelAny
+                  items={history.items}
+                  loading={history.loading}
+                  onRefresh={() => history.refresh({ includeTasks: true })}
+                  onLoadMore={history.loadMore}
+                  onSelectMission={(missionId: string) => {
+                    missionCenter.setFocusedMissionId(missionId);
+                    setMainSection("followup");
+                  }}
+                />
+              </section>
+            )}
+
+            {mainSection === "memory" && (
+              <section className={cn(shellPanel(), "p-5 lg:p-6")}>
+                <MemoryPanelAny
+                  memory={memory.memory}
+                  loading={memory.loading}
+                  saving={memory.saving}
+                  onRefresh={memory.refresh}
+                  onSave={memory.updateMemory}
+                  senderIdentityResolved={memory.senderIdentityResolved}
+                />
+              </section>
+            )}
+          </div>
+        </main>
+      </div>
+
+      {commandOpen && (
+        <div className="fixed inset-0 z-50 bg-[rgba(31,24,15,0.38)] px-4 py-10 backdrop-blur-[3px]">
+          <div className="mx-auto w-full max-w-[920px] rounded-[30px] border border-[#eadfce] bg-[#fffdf9] shadow-[0_28px_90px_rgba(64,50,35,0.24)]">
+            <div className="flex items-center justify-between gap-3 border-b border-[#eadfce] px-5 py-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9a856f]">
+                  navigation rapide
+                </p>
+                <p className="mt-1 text-lg font-semibold text-[#241b12]">
+                  Rechercher une mission, une vue ou un historique
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCommandOpen(false)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#e7dac8] bg-white text-[#5e4f42]"
+              >
+                <X className="h-4.5 w-4.5" />
+              </button>
+            </div>
+
+            <div className="px-5 py-5">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9a856f]" />
+                <input
+                  value={commandSearch}
+                  onChange={(e) => setCommandSearch(e.target.value)}
+                  placeholder="Rechercher : convocation, historique, email, mÃ©moire..."
+                  className="w-full rounded-[20px] border border-[#e7dac8] bg-white py-3 pl-11 pr-4 text-sm outline-none transition placeholder:text-[#a28d78] focus:border-[#d8bd9d] focus:ring-4 focus:ring-[#f3e6d6]"
+                />
+              </div>
+
+              <div className="mt-5 grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
+                <div className="space-y-3">
+                  <CommandBlock title="Aller vers">
+                    <CommandRow label="Cockpit global" onClick={() => jumpSection(setCommandOpen, setMainSection, "cockpit")} />
+                    <CommandRow label="Centre de missions" onClick={() => jumpSection(setCommandOpen, setMainSection, "missions")} />
+                    <CommandRow label="Studios directs" onClick={() => jumpSection(setCommandOpen, setMainSection, "studios")} />
+                    <CommandRow label="Suivi dâ€™exÃ©cution" onClick={() => jumpSection(setCommandOpen, setMainSection, "followup")} />
+                    <CommandRow label="Artefacts produits" onClick={() => jumpSection(setCommandOpen, setMainSection, "artifacts")} />
+                    <CommandRow label="Historique" onClick={() => jumpSection(setCommandOpen, setMainSection, "history")} />
+                    <CommandRow label="MÃ©moire entreprise" onClick={() => jumpSection(setCommandOpen, setMainSection, "memory")} />
+                  </CommandBlock>
+
+                  <CommandBlock title="Actions rapides">
+                    <CommandRow
+                      label="Nouveau mail direct"
+                      onClick={() => {
+                        setMainSection("studios");
+                        setStudioMode("email");
+                        setCommandOpen(false);
+                      }}
+                    />
+                    <CommandRow
+                      label="Nouveau document direct"
+                      onClick={() => {
+                        setMainSection("studios");
+                        setStudioMode("document");
+                        setCommandOpen(false);
+                      }}
+                    />
+                    <CommandRow
+                      label="Nouveau PDF direct"
+                      onClick={() => {
+                        setMainSection("studios");
+                        setStudioMode("pdf");
+                        setCommandOpen(false);
+                      }}
+                    />
+                    <CommandRow
+                      label="Actualiser tout"
+                      onClick={() => {
+                        setCommandOpen(false);
+                        void handleRefreshAll();
+                      }}
+                    />
+                  </CommandBlock>
+                </div>
+
+                <div className="space-y-3">
+                  <CommandBlock title="Historique rÃ©cent">
+                    {filteredHistory.length === 0 ? (
+                      <p className="text-sm text-[#7d6b59]">Aucun rÃ©sultat.</p>
+                    ) : (
+                      filteredHistory.map((item: any) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            if (item.mission_id) {
+                              missionCenter.setFocusedMissionId(item.mission_id);
+                              setMainSection("followup");
+                            } else {
+                              setMainSection("history");
+                            }
+                            setCommandOpen(false);
+                          }}
+                          className="flex w-full items-start justify-between gap-3 rounded-[18px] border border-[#eadfce] bg-white px-4 py-3 text-left transition hover:bg-[#fffaf3]"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-[#2b2118]">
+                              {item.title ?? "Ã‰lÃ©ment"}
+                            </p>
+                            <p className="mt-1 truncate text-xs text-[#84715e]">
+                              {item.subtitle ?? item.kind ?? "historique"}
+                            </p>
+                          </div>
+                          <span className="flex-none rounded-full border border-[#eadbc9] bg-[#fcf7f0] px-2.5 py-1 text-[11px] font-medium text-[#735f4b]">
+                            {item.status ?? "â€”"}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </CommandBlock>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function jumpSection(
+  close: React.Dispatch<React.SetStateAction<boolean>>,
+  setSection: React.Dispatch<React.SetStateAction<MainSection>>,
+  section: MainSection
+) {
+  setSection(section);
+  close(false);
+}
+
+function KpiCard({
+  icon: Icon,
+  label,
+  value,
+  hint,
+  tone = "neutral",
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  hint?: string;
+  tone?: "neutral" | "good" | "warn";
+}) {
+  return (
+    <div className="rounded-[22px] border border-[#eadfce] bg-[#fffdf9] p-4">
+      <div className="flex items-center gap-3">
+        <div
+          className={cn(
+            "inline-flex h-11 w-11 items-center justify-center rounded-2xl",
+            tone === "good" && "bg-[#e7f4eb] text-[#2f6c43]",
+            tone === "warn" && "bg-[#fff1df] text-[#8a5b17]",
+            tone === "neutral" && "bg-[#f5ede4] text-[#745f48]"
+          )}
+        >
+          <Icon className="h-5 w-5" />
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9b8771]">
+            {label}
+          </p>
+          <p className="mt-1 text-lg font-semibold text-[#241b12]">{value}</p>
+          {hint ? <p className="mt-1 truncate text-xs text-[#83715f]">{hint}</p> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniState({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[18px] border border-[#eadfce] bg-white px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a856f]">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-[#241b12]">{value}</p>
+    </div>
+  );
+}
+
+function QuickActionButton({
+  icon: Icon,
+  title,
+  description,
+  onClick,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-start gap-3 rounded-[20px] border border-[#eadfce] bg-white px-4 py-4 text-left transition hover:bg-[#fffaf3]"
+    >
+      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f4ebdf] text-[#6d573d]">
+        <Icon className="h-4.5 w-4.5" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-[#2b2118]">{title}</p>
+        <p className="mt-1 text-xs leading-5 text-[#7b6956]">{description}</p>
+      </div>
+    </button>
+  );
+}
+
+function QuickMissionCard({
+  title,
+  text,
+  onClick,
+}: {
+  title: string;
+  text: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-[22px] border border-[#eadfce] bg-[#fffdf8] p-4 text-left transition hover:bg-white"
+    >
+      <p className="text-sm font-semibold text-[#2d2319]">{title}</p>
+      <p className="mt-2 line-clamp-4 text-sm leading-6 text-[#746352]">{text}</p>
+      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#9a856f]">
+        Utiliser ce brief
+      </p>
+    </button>
+  );
+}
+
+function StudioSwitcher({
+  active,
+  icon: Icon,
+  title,
+  description,
+  onClick,
+}: {
+  active: boolean;
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-start gap-3 rounded-[22px] border px-4 py-4 text-left transition",
+        active
+          ? "border-[#d9c1a4] bg-[#fff2e3]"
+          : "border-[#eadfce] bg-[#fffdf9] hover:bg-white"
+      )}
+    >
+      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f4ebdf] text-[#6d573d]">
+        <Icon className="h-4.5 w-4.5" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-[#2b2118]">{title}</p>
+        <p className="mt-1 text-xs leading-5 text-[#7b6956]">{description}</p>
+      </div>
+    </button>
+  );
+}
+
+function MenuAction({
+  title,
+  description,
+  onClick,
+}: {
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-[18px] border border-[#eadfce] bg-white px-4 py-3 text-left transition hover:bg-[#fffaf3]"
+    >
+      <p className="text-sm font-semibold text-[#2d2319]">{title}</p>
+      <p className="mt-1 text-xs text-[#7b6956]">{description}</p>
+    </button>
+  );
+}
+
+function TopTab({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition",
+        active
+          ? "border-[#d9c1a4] bg-[#fff4e6] text-[#5a4427]"
+          : "border-[#eadfce] bg-[#fffdf9] text-[#6b5a49] hover:bg-white"
+      )}
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </button>
+  );
+}
+
+function ArtifactRow({
+  active,
+  title,
+  subtitle,
+  status,
+  onClick,
+}: {
+  active?: boolean;
+  title: string;
+  subtitle: string;
+  status: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-start justify-between gap-3 rounded-[18px] border px-4 py-3 text-left transition",
+        active
+          ? "border-[#d9c1a4] bg-[#fff5e8]"
+          : "border-[#eadfce] bg-[#fffdf9] hover:bg-white"
+      )}
+    >
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold text-[#2b2118]">{title}</p>
+        <p className="mt-1 truncate text-xs text-[#84715e]">{subtitle}</p>
+      </div>
+      <div className="flex-none">
+        <span className="rounded-full border border-[#eadbc9] bg-white px-2.5 py-1 text-[11px] font-medium text-[#735f4b]">
+          {status}
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function EmptyState({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-[20px] border border-dashed border-[#e6dacb] bg-[#fffdf9] px-4 py-8 text-center">
+      <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f4ebdf] text-[#6d573d]">
+        <Icon className="h-5 w-5" />
+      </div>
+      <p className="mt-4 text-sm font-semibold text-[#2e241a]">{title}</p>
+      <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#7a6957]">{description}</p>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  children,
+  action,
+}: {
+  label: string;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className="text-sm font-medium text-[#382d22]">{label}</span>
+        {action}
+      </div>
+      {children}
+    </label>
+  );
+}
+
+function VoiceButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-2 rounded-full border border-[#e7dac8] bg-white px-3 py-1.5 text-xs font-medium text-[#5c4d40]"
+    >
+      <Mic className="h-3.5 w-3.5" />
+      DictÃ©e
+    </button>
+  );
+}
+
+function InfoCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[18px] border border-[#eadfce] bg-white px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a856f]">{label}</p>
+      <p className="mt-1 text-sm leading-6 text-[#2d2319]">{value}</p>
+    </div>
+  );
+}
+
+function CommandBlock({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-[22px] border border-[#eadfce] bg-[#fffaf3] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9a856f]">{title}</p>
+      <div className="mt-3 space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function CommandRow({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center justify-between gap-3 rounded-[16px] border border-[#eadfce] bg-white px-4 py-3 text-left text-sm font-medium text-[#2d2319] transition hover:bg-[#fffdf8]"
+    >
+      <span>{label}</span>
+      <ChevronDown className="h-4 w-4 rotate-[-90deg] text-[#8c7966]" />
+    </button>
+  );
+}
+
+===== FILE: src/app/agents/pierre/use/submit/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+
+type PierreUseSubmitBody = {
+  input?: string;
+  source?: string;
+};
+
+type PierreTaskType =
+  | "email.send"
+  | "email.draft"
+  | "doc.generate"
+  | "doc.rewrite"
+  | "pdf.generate"
+  | "reminder.create"
+  | "followup.schedule";
+
+type PierreTaskDraft = {
+  type: PierreTaskType;
+  title: string;
+  description: string;
+  status: "draft" | "ready" | "scheduled" | "awaiting_approval" | "blocked";
+  priority: number;
+  approval_required: boolean;
+  execute_at: string | null;
+  payload_json: Record<string, unknown>;
+  depends_on_json: string[];
+};
+
+type PierreInterpretation = {
+  intent: string;
+  mission_summary: string;
+  understanding_status:
+    | "understood"
+    | "partially_understood"
+    | "missing_info"
+    | "out_of_scope";
+  risk_level: "low" | "medium" | "high";
+  approval_required: boolean;
+  missing_info: Array<{
+    key: string;
+    question: string;
+    expected_format: "text" | "email" | "date" | "datetime" | "choice";
+    required: boolean;
+  }>;
+  tasks: PierreTaskDraft[];
+};
+
+function json(status: number, body: Record<string, unknown>) {
+  return NextResponse.json(body, { status });
+}
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function safeString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeSpaces(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function getBearerToken(req: NextRequest) {
+  const auth = req.headers.get("authorization") || req.headers.get("Authorization") || "";
+  if (!auth.startsWith("Bearer ")) return "";
+  return auth.slice("Bearer ".length).trim();
+}
+
+function makeServerSupabase(): SupabaseClient {
+  const url = getEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRole = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase serveur non configurÃ©.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+async function getAuthenticatedUser(
+  req: NextRequest,
+  supabase: SupabaseClient
+): Promise<{ error: string | null; user: User | null }> {
+  const token = getBearerToken(req);
+
+  if (!token) {
+    return { error: "Token manquant.", user: null };
+  }
+
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error || !data.user) {
+    return { error: error?.message || "Utilisateur non authentifiÃ©.", user: null };
+  }
+
+  return { error: null, user: data.user };
+}
+
+async function hasPierreAccess(supabase: SupabaseClient, userId: string) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id,status")
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  return { ok: Boolean(data), error: null as string | null };
+}
+
+function detectEmailInText(input: string) {
+  const match = input.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi);
+  return match?.[0] || "";
+}
+
+function detectRiskLevel(input: string): "low" | "medium" | "high" {
+  const text = input.toLowerCase();
+
+  if (
+    text.includes("licenciement") ||
+    text.includes("sanction") ||
+    text.includes("disciplinaire") ||
+    text.includes("avertissement") ||
+    text.includes("mise Ã  pied") ||
+    text.includes("juridique")
+  ) {
+    return "high";
+  }
+
+  if (
+    text.includes("refus") ||
+    text.includes("convocation") ||
+    text.includes("candidat") ||
+    text.includes("recrutement") ||
+    text.includes("relance")
+  ) {
+    return "medium";
+  }
+
+  return "low";
+}
+
+function detectApprovalRequired(input: string, risk: "low" | "medium" | "high") {
+  const text = input.toLowerCase();
+
+  if (risk === "high") return true;
+
+  if (
+    text.includes("aprÃ¨s validation") ||
+    text.includes("apres validation") ||
+    text.includes("soumets-moi") ||
+    text.includes("avant envoi") ||
+    text.includes("ne l'envoie pas tout de suite") ||
+    text.includes("ne lâ€™envoie pas tout de suite")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function detectScheduleText(input: string): string | null {
+  const text = input.toLowerCase();
+
+  const hourMatch = text.match(/\bÃ \s+(\d{1,2})h(?:(\d{2}))?\b/);
+  if (!hourMatch) return null;
+
+  const h = Number(hourMatch[1]);
+  const m = Number(hourMatch[2] || "0");
+
+  if (!Number.isFinite(h) || h < 0 || h > 23) return null;
+  if (!Number.isFinite(m) || m < 0 || m > 59) return null;
+
+  const now = new Date();
+  const scheduled = new Date(now);
+  scheduled.setHours(h, m, 0, 0);
+
+  if (scheduled.getTime() < now.getTime()) {
+    scheduled.setDate(scheduled.getDate() + 1);
+  }
+
+  return scheduled.toISOString();
+}
+
+function buildInterpretation(inputRaw: string): PierreInterpretation {
+  const input = normalizeSpaces(inputRaw);
+  const lower = input.toLowerCase();
+
+  const detectedEmail = detectEmailInText(input);
+  const riskLevel = detectRiskLevel(input);
+  const approvalRequired = detectApprovalRequired(input, riskLevel);
+  const executeAt = detectScheduleText(input);
+
+  const missingInfo: PierreInterpretation["missing_info"] = [];
+  const tasks: PierreTaskDraft[] = [];
+
+  const asksEmail =
+    lower.includes("mail") ||
+    lower.includes("email") ||
+    lower.includes("envoie") ||
+    lower.includes("envoyer");
+
+  const asksDoc =
+    lower.includes("convocation") ||
+    lower.includes("document") ||
+    lower.includes("courrier") ||
+    lower.includes("refus") ||
+    lower.includes("compte rendu") ||
+    lower.includes("compte-rendu") ||
+    lower.includes("onboarding") ||
+    lower.includes("offre d'emploi") ||
+    lower.includes("offre dâ€™emploi") ||
+    lower.includes("fiche de poste") ||
+    lower.includes("procÃ©dure") ||
+    lower.includes("procedure");
+
+  const asksReminder =
+    lower.includes("rappel") ||
+    lower.includes("relance") ||
+    lower.includes("si pas de rÃ©ponse") ||
+    lower.includes("si pas de reponse");
+
+  const outOfScope =
+    lower.includes("prospection de masse") ||
+    lower.includes("cold email") ||
+    lower.includes("cold emailing") ||
+    lower.includes("campagne massive");
+
+  if (outOfScope) {
+    return {
+      intent: "out_of_scope",
+      mission_summary: "Demande hors pÃ©rimÃ¨tre RH prÃ©vu pour Pierre.",
+      understanding_status: "out_of_scope",
+      risk_level: "high",
+      approval_required: true,
+      missing_info: [],
+      tasks: [],
+    };
+  }
+
+  if (asksEmail && !detectedEmail) {
+    missingInfo.push({
+      key: "recipient_email",
+      question: "Quel est lâ€™email exact du destinataire ?",
+      expected_format: "email",
+      required: true,
+    });
+  }
+
+  if (asksEmail) {
+    tasks.push({
+      type: detectedEmail ? "email.send" : "email.draft",
+      title: detectedEmail ? "Envoyer un email RH" : "PrÃ©parer un brouillon email RH",
+      description: detectedEmail
+        ? "Envoi email demandÃ© depuis la requÃªte libre."
+        : "La requÃªte demande un email mais lâ€™adresse du destinataire manque encore.",
+      status: approvalRequired
+        ? "awaiting_approval"
+        : executeAt
+        ? "scheduled"
+        : missingInfo.length
+        ? "blocked"
+        : "ready",
+      priority: 80,
+      approval_required: approvalRequired,
+      execute_at: executeAt,
+      payload_json: {
+        recipient_email: detectedEmail || null,
+        raw_input: input,
+      },
+      depends_on_json: [],
+    });
+  }
+
+  if (asksDoc || (!asksEmail && !asksReminder)) {
+    tasks.push({
+      type: "doc.generate",
+      title: "GÃ©nÃ©rer le document RH",
+      description: "Production du rendu RH demandÃ© par la mission.",
+      status: missingInfo.length ? "blocked" : "ready",
+      priority: 90,
+      approval_required: false,
+      execute_at: null,
+      payload_json: {
+        raw_input: input,
+      },
+      depends_on_json: [],
+    });
+  }
+
+  if (asksReminder) {
+    tasks.push({
+      type: "followup.schedule",
+      title: "CrÃ©er une relance / suivi",
+      description: "La mission contient une logique de rappel ou relance.",
+      status: missingInfo.length ? "blocked" : executeAt ? "scheduled" : "draft",
+      priority: 70,
+      approval_required: false,
+      execute_at: executeAt,
+      payload_json: {
+        raw_input: input,
+      },
+      depends_on_json: [],
+    });
+  }
+
+  const understandingStatus: PierreInterpretation["understanding_status"] = missingInfo.length
+    ? "missing_info"
+    : "understood";
+
+  let intent = "general_rh_request";
+  if (asksEmail && asksDoc) intent = "rh_doc_plus_email";
+  else if (asksEmail) intent = "rh_email";
+  else if (asksDoc) intent = "rh_document";
+  else if (asksReminder) intent = "rh_followup";
+
+  const missionSummary =
+    tasks.length > 0
+      ? `Mission interprÃ©tÃ©e : ${tasks.map((t) => t.title).join(" + ")}.`
+      : "Mission reÃ§ue, mais aucune action exploitable nâ€™a Ã©tÃ© dÃ©tectÃ©e.";
+
+  return {
+    intent,
+    mission_summary: missionSummary,
+    understanding_status: tasks.length ? understandingStatus : "partially_understood",
+    risk_level: riskLevel,
+    approval_required: approvalRequired,
+    missing_info: missingInfo,
+    tasks,
+  };
+}
+
+async function insertMissionAndTasks(
+  supabase: SupabaseClient,
+  userId: string,
+  source: string,
+  input: string,
+  interpretation: PierreInterpretation
+) {
+  const { data: mission, error: missionError } = await supabase
+    .from("pierre_missions")
+    .insert({
+      user_id: userId,
+      agent_slug: "pierre",
+      source,
+      raw_input: input,
+      mission_summary: interpretation.mission_summary,
+      intent: interpretation.intent,
+      understanding_status: interpretation.understanding_status,
+      risk_level: interpretation.risk_level,
+      approval_required: interpretation.approval_required,
+      status:
+        interpretation.understanding_status === "out_of_scope"
+          ? "blocked"
+          : interpretation.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretation.tasks.some((t) => t.status === "scheduled")
+          ? "scheduled"
+          : interpretation.tasks.some((t) => t.status === "awaiting_approval")
+          ? "awaiting_approval"
+          : "active",
+      missing_info_json: interpretation.missing_info,
+      brain_output_json: interpretation,
+      context_snapshot_json: {},
+    })
+    .select("*")
+    .single();
+
+  if (missionError || !mission) {
+    throw new Error(missionError?.message || "Impossible de crÃ©er la mission.");
+  }
+
+  let insertedTasks: Record<string, unknown>[] = [];
+
+  if (interpretation.tasks.length > 0) {
+    const payload = interpretation.tasks.map((task) => ({
+      mission_id: mission.id,
+      user_id: userId,
+      agent_slug: "pierre",
+      type: task.type,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      approval_required: task.approval_required,
+      payload_json: task.payload_json,
+      result_json: {},
+      depends_on_json: task.depends_on_json,
+      execute_at: task.execute_at,
+    }));
+
+    const { data: tasks, error: taskError } = await supabase
+      .from("pierre_tasks")
+      .insert(payload)
+      .select("*");
+
+    if (taskError) {
+      throw new Error(taskError.message);
+    }
+
+    insertedTasks = tasks || [];
+  }
+
+  const logRows = [
+    {
+      mission_id: mission.id,
+      task_id: null,
+      user_id: userId,
+      agent_slug: "pierre",
+      event_type: "mission_created",
+      message: "Mission Pierre crÃ©Ã©e depuis /api/pierre/use/submit",
+      meta_json: {
+        source,
+        understanding_status: interpretation.understanding_status,
+        risk_level: interpretation.risk_level,
+      },
+    },
+    ...insertedTasks.map((task) => ({
+      mission_id: mission.id,
+      task_id: task.id as string,
+      user_id: userId,
+      agent_slug: "pierre",
+      event_type: "task_created",
+      message: `Task crÃ©Ã©e : ${String(task.title || "")}`,
+      meta_json: {
+        type: task.type,
+        status: task.status,
+      },
+    })),
+  ];
+
+  await supabase.from("pierre_task_logs").insert(logRows);
+
+  return {
+    mission,
+    tasks: insertedTasks,
+  };
+}
+
+export async function POST(req: NextRequest) {
+  let supabase: SupabaseClient;
+
+  try {
+    supabase = makeServerSupabase();
+  } catch (e: unknown) {
+    return json(500, {
+      ok: false,
+      error: e instanceof Error ? e.message : "Configuration serveur invalide.",
+    });
+  }
+
+  const { error: authError, user } = await getAuthenticatedUser(req, supabase);
+
+  if (authError || !user) {
+    return json(401, { ok: false, error: authError || "Non authentifiÃ©." });
+  }
+
+  const access = await hasPierreAccess(supabase, user.id);
+
+  if (access.error) {
+    return json(500, { ok: false, error: access.error });
+  }
+
+  if (!access.ok) {
+    return json(403, { ok: false, error: "Pierre nâ€™est pas actif sur ce compte." });
+  }
+
+  let body: PierreUseSubmitBody;
+
+  try {
+    body = (await req.json()) as PierreUseSubmitBody;
+  } catch {
+    return json(400, { ok: false, error: "Body JSON invalide." });
+  }
+
+  const input = safeString(body.input);
+  const source = safeString(body.source) || "use_page";
+
+  if (!input || input.length < 3) {
+    return json(400, { ok: false, error: "RequÃªte libre trop courte." });
+  }
+
+  try {
+    const interpretation = buildInterpretation(input);
+
+    const { mission, tasks } = await insertMissionAndTasks(
+      supabase,
+      user.id,
+      source,
+      input,
+      interpretation
+    );
+
+    return json(200, {
+      ok: true,
+      mission,
+      interpretation,
+      tasks,
+    });
+  } catch (e: unknown) {
+    return json(500, {
+      ok: false,
+      error: e instanceof Error ? e.message : "Erreur lors de la crÃ©ation de mission Pierre.",
+    });
+  }
+}
+
+===== FILE: src/app/api/assistant/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { AGENTS } from "@/lib/agent-catalog";
+import {
+  DEFAULT_ASSISTANT_CONTEXT,
+  buildAccountSnapshot,
+  buildDeterministicAnswer,
+  buildFallbackAnswer,
+  buildKnowledgeContext,
+  buildKnowledgeDigest,
+  buildRelevantKnowledge,
+  buildSuggestedLinks,
+  buildSuggestedStatusCards,
+  classifyIntent,
+  getAssistantQuickAsks,
+  getAssistantWelcome,
+  type AssistantAccountContext,
+  type AssistantIntent,
+} from "@/lib/assistant/knowledge";
+
+type IncomingMsg = {
+  role: "user" | "assistant" | "system";
+  content: string;
+};
+
+type OnboardingRow = {
+  company_name?: string | null;
+  contact_first_name?: string | null;
+  contact_job_title?: string | null;
+  usual_tone?: string | null;
+  preferred_language?: string | null;
+  sender_mode?: string | null;
+  sender_status?: string | null;
+  domain_status?: string | null;
+  sender_email_requested?: string | null;
+  sender_email_effective?: string | null;
+  reply_to_email?: string | null;
+  onboarding_completed?: boolean | null;
+};
+
+type RouteAnswer = {
+  answer: string;
+  source: string;
+  hints?: string[];
+  quickAsks?: string[];
+};
+
+function json(status: number, body: Record<string, unknown>) {
+  return NextResponse.json(body, { status });
+}
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function makeServerSupabase(): SupabaseClient {
+  const url = getEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRole = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase serveur non configurÃ©.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function getBearerToken(req: NextRequest) {
+  const auth = req.headers.get("authorization") || req.headers.get("Authorization") || "";
+  if (!auth.startsWith("Bearer ")) return "";
+  return auth.slice("Bearer ".length).trim();
+}
+
+async function getAuthenticatedUser(
+  req: NextRequest,
+  supabase: SupabaseClient
+): Promise<{ error: string | null; user: User | null }> {
+  const token = getBearerToken(req);
+  if (!token) {
+    return { error: null, user: null };
+  }
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) {
+    return { error: error?.message || "Utilisateur non authentifiÃ©.", user: null };
+  }
+
+  return { error: null, user: data.user };
+}
+
+async function hasPierreAccess(supabase: SupabaseClient, userId: string) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id,status")
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false, error: error.message, has: false };
+  }
+
+  return { ok: true, error: null, has: Boolean(data) };
+}
+
+async function getPierreOnboarding(supabase: SupabaseClient, userId: string) {
+  const { data, error } = await supabase
+    .from("agent_onboarding_pierre")
+    .select(
+      [
+        "company_name",
+        "contact_first_name",
+        "contact_job_title",
+        "usual_tone",
+        "preferred_language",
+        "sender_mode",
+        "sender_status",
+        "domain_status",
+        "sender_email_requested",
+        "sender_email_effective",
+        "reply_to_email",
+        "onboarding_completed",
+      ].join(",")
+    )
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false, error: error.message, row: null as OnboardingRow | null };
+  }
+
+  return { ok: true, error: null, row: (data as OnboardingRow | null) || null };
+}
+
+function buildContextFromData(params: {
+  user: User | null;
+  hasAccess: boolean;
+  onboarding: OnboardingRow | null;
+}): AssistantAccountContext {
+  const { user, hasAccess, onboarding } = params;
+
+  return {
+    isAuthenticated: Boolean(user),
+    hasPierreAccess: hasAccess,
+    onboardingCompleted: onboarding?.onboarding_completed === true,
+    companyName: typeof onboarding?.company_name === "string" ? onboarding.company_name : "",
+    contactFirstName:
+      typeof onboarding?.contact_first_name === "string" ? onboarding.contact_first_name : "",
+    contactJobTitle:
+      typeof onboarding?.contact_job_title === "string" ? onboarding.contact_job_title : "",
+    usualTone: typeof onboarding?.usual_tone === "string" ? onboarding.usual_tone : "",
+    preferredLanguage:
+      typeof onboarding?.preferred_language === "string" ? onboarding.preferred_language : "fr",
+    senderMode: typeof onboarding?.sender_mode === "string" ? onboarding.sender_mode : "",
+    senderStatus: typeof onboarding?.sender_status === "string" ? onboarding.sender_status : "",
+    domainStatus: typeof onboarding?.domain_status === "string" ? onboarding.domain_status : "",
+    senderEmailRequested:
+      typeof onboarding?.sender_email_requested === "string" ? onboarding.sender_email_requested : "",
+    senderEmailEffective:
+      typeof onboarding?.sender_email_effective === "string" ? onboarding.sender_email_effective : "",
+    replyToEmail: typeof onboarding?.reply_to_email === "string" ? onboarding.reply_to_email : "",
+  };
+}
+
+async function buildAccountContext(req: NextRequest, supabase: SupabaseClient) {
+  const auth = await getAuthenticatedUser(req, supabase);
+  if (auth.error) {
+    return {
+      context: DEFAULT_ASSISTANT_CONTEXT,
+      warning: auth.error,
+    };
+  }
+
+  if (!auth.user) {
+    return {
+      context: DEFAULT_ASSISTANT_CONTEXT,
+      warning: null,
+    };
+  }
+
+  const access = await hasPierreAccess(supabase, auth.user.id);
+  if (!access.ok) {
+    return {
+      context: buildContextFromData({ user: auth.user, hasAccess: false, onboarding: null }),
+      warning: access.error,
+    };
+  }
+
+  const onboarding = await getPierreOnboarding(supabase, auth.user.id);
+  if (!onboarding.ok) {
+    return {
+      context: buildContextFromData({ user: auth.user, hasAccess: access.has, onboarding: null }),
+      warning: onboarding.error,
+    };
+  }
+
+  return {
+    context: buildContextFromData({
+      user: auth.user,
+      hasAccess: access.has,
+      onboarding: onboarding.row,
+    }),
+    warning: null,
+  };
+}
+
+function normalizeMessages(messages: IncomingMsg[] | undefined) {
+  if (!Array.isArray(messages)) return [];
+
+  return messages
+    .filter(Boolean)
+    .map((msg) => ({
+      role:
+        msg.role === "assistant" || msg.role === "system" || msg.role === "user"
+          ? msg.role
+          : "user",
+      content: typeof msg.content === "string" ? msg.content.slice(0, 5000) : "",
+    }))
+    .filter((msg) => msg.content.trim().length > 0)
+    .slice(-18);
+}
+
+function findLastUserMessage(messages: { role: string; content: string }[]) {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    if (messages[i]?.role === "user") {
+      return messages[i].content.trim();
+    }
+  }
+  return "";
+}
+
+function buildRecentConversation(messages: { role: string; content: string }[]) {
+  return messages
+    .slice(-8)
+    .map((msg) => `${msg.role === "user" ? "USER" : "ASSISTANT"}: ${msg.content}`)
+    .join("\n\n");
+}
+
+function buildAgentCatalogDigest() {
+  const catalog = Array.isArray(AGENTS) ? AGENTS : [];
+  return catalog
+    .map((agent) => {
+      return [
+        `Agent: ${agent.name} (${agent.slug})`,
+        `Role: ${agent.role}`,
+        `For: ${(agent.forWho || []).join(", ")}`,
+        `Does: ${(agent.does || []).join(" | ")}`,
+        `Does not: ${(agent.doesNot || []).join(" | ")}`,
+        `Examples: ${(agent.examples || []).join(" | ")}`,
+        agent.pricingNote ? `Pricing: ${agent.pricingNote}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+    })
+    .join("\n\n---\n\n");
+}
+
+function buildSystemPrompt(params: {
+  context: AssistantAccountContext;
+  intent: AssistantIntent;
+  userQuestion: string;
+  recentConversation: string;
+  relevantKnowledge: string;
+}) {
+  const accountSnapshot = buildAccountSnapshot(params.context);
+  const catalogDigest = buildAgentCatalogDigest();
+  const knowledgeContext = buildKnowledgeContext();
+
+  return [
+    "Tu es l'assistant produit officiel CloneStore pour le front du site.",
+    "Tu rÃ©ponds comme un assistant premium, direct, crÃ©dible et vraiment utile.",
+    "Tu n'Ã©cris jamais de rÃ©ponse scolaire en 5 parties.",
+    "Tu prÃ©fÃ¨res 1 Ã  3 paragraphes courts, ou une mini-liste seulement si elle aide vraiment.",
+    "Quand le meilleur choix est clair, tu choisis franchement.",
+    "Tu ne survends jamais un clone qui n'est pas rÃ©ellement prÃªt.",
+    "Si une information n'est pas confirmÃ©e, tu le dis clairement.",
+    "Tu peux parler de Pierre en profondeur : formulaire 1, page use, modification du contenu, email, PDF, fallback CloneStore, domaine vÃ©rifiÃ©, identitÃ© d'envoi.",
+    "Tu peux aussi rÃ©pondre sur le positionnement gÃ©nÃ©ral des clones, mais tu restes honnÃªte sur leur Ã©tat rÃ©el.",
+    "Tu ne parles pas d'implÃ©mentation interne non nÃ©cessaire, sauf si l'utilisateur pose explicitement la question.",
+    "Tu ne mets pas de markdown dÃ©coratif inutile.",
+    "Tu ne rÃ©ponds pas avec des titres numÃ©rotÃ©s scolaires.",
+    "Tu n'utilises pas la formule 'voici en 5 points'.",
+    "Si l'utilisateur demande quoi faire maintenant, ta rÃ©ponse doit finir par le prochain meilleur pas concret.",
+    "Si l'utilisateur demande quel clone choisir aujourd'hui, Pierre est le choix de rÃ©fÃ©rence si l'objectif est d'avoir quelque chose d'utile maintenant.",
+    "Clara, Alex, Emma et Noah ne doivent pas Ãªtre prÃ©sentÃ©s comme pleinement prÃªts tant que l'information ne l'affirme pas clairement.",
+    "RÃ©ponds en franÃ§ais.",
+    "",
+    `Intent dÃ©tectÃ©: ${params.intent}`,
+    `Question actuelle: ${params.userQuestion}`,
+    "",
+    "Ã‰TAT COMPTE / PIERRE:",
+    accountSnapshot,
+    "",
+    "CONNAISSANCE PRODUIT COMPLÃˆTE:",
+    knowledgeContext,
+    "",
+    "CONNAISSANCE LA PLUS PERTINENTE POUR CETTE QUESTION:",
+    params.relevantKnowledge || buildKnowledgeDigest(params.userQuestion),
+    "",
+    "CATALOGUE AGENTS:",
+    catalogDigest,
+    "",
+    "MÃ‰MOIRE CONVERSATION RÃ‰CENTE:",
+    params.recentConversation || "Aucune mÃ©moire rÃ©cente utile.",
+    "",
+    "STYLE FINAL ATTENDU:",
+    "- humain",
+    "- premium",
+    "- direct",
+    "- sans blabla marketing vide",
+    "- sans rÃ©ponse robotique",
+    "- sans structure scolaire",
+    "- avec une vraie recommandation si nÃ©cessaire",
+  ].join("\n");
+}
+
+function buildHintsForIntent(intent: AssistantIntent, context: AssistantAccountContext) {
+  if (intent === "post_payment") {
+    if (context.hasPierreAccess && !context.onboardingCompleted) {
+      return [
+        "Explique-moi le formulaire 1 simplement.",
+        "Quelles parties du formulaire 1 comptent le plus ?",
+        "Ensuite je vais oÃ¹ ?",
+      ];
+    }
+
+    return [
+      "Ã€ quoi sert le formulaire 1 ?",
+      "Comment fonctionne Pierre au quotidien ?",
+      "Comment se passe l'accÃ¨s aprÃ¨s paiement ?",
+    ];
+  }
+
+  if (intent === "onboarding") {
+    return [
+      "Quelles parties du formulaire 1 sont les plus importantes ?",
+      "Comment remplir le bloc email sans me tromper ?",
+      "Quand est-ce que Pierre devient vraiment utile ?",
+    ];
+  }
+
+  if (intent === "use_page") {
+    return [
+      "Comment modifier puis envoyer un email depuis Pierre ?",
+      "Comment fonctionne le PDF si j'ai modifiÃ© le contenu ?",
+      "Ã€ quoi sert l'historique ?",
+    ];
+  }
+
+  if (intent === "email_identity") {
+    return [
+      "Le fallback CloneStore, Ã§a change quoi pour moi ?",
+      "Quand est-ce qu'on bascule vers pierre@entreprise.com ?",
+      "Le reply-to sert Ã  quoi ?",
+    ];
+  }
+
+  if (intent === "clone_choice") {
+    return [
+      "Pourquoi tu me conseilles Pierre aujourd'hui ?",
+      "Clara est-elle vraiment prÃªte ?",
+      "Pierre peut faire quoi exactement ?",
+    ];
+  }
+
+  return getAssistantQuickAsks(context).slice(0, 4);
+}
+
+function enrichDeterministicAnswer(
+  answer: string,
+  intent: AssistantIntent,
+  context: AssistantAccountContext
+): RouteAnswer {
+  return {
+    answer,
+    source: `deterministic:${intent}`,
+    hints: buildHintsForIntent(intent, context),
+    quickAsks: getAssistantQuickAsks(context),
+  };
+}
+
+function fallbackRouteAnswer(
+  question: string,
+  intent: AssistantIntent,
+  context: AssistantAccountContext,
+  source: string
+): RouteAnswer {
+  return {
+    answer: buildFallbackAnswer(question, context, intent),
+    source,
+    hints: buildHintsForIntent(intent, context),
+    quickAsks: getAssistantQuickAsks(context),
+  };
+}
+
+async function callOpenAIChat(systemPrompt: string, messages: { role: string; content: string }[]) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY manquante.");
+  }
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: process.env.ASSISTANT_MODEL || "gpt-4.1-mini",
+      temperature: 0.4,
+      max_tokens: 900,
+      messages: [{ role: "system", content: systemPrompt }, ...messages],
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(detail || `OpenAI error ${res.status}`);
+  }
+
+  const data = (await res.json().catch(() => null)) as
+    | {
+        choices?: Array<{ message?: { content?: string } }>;
+      }
+    | null;
+
+  return data?.choices?.[0]?.message?.content?.trim() || "";
+}
+
+export async function GET(req: NextRequest) {
+  let supabase: SupabaseClient;
+
+  try {
+    supabase = makeServerSupabase();
+  } catch (error: unknown) {
+    return json(500, {
+      ok: false,
+      error: error instanceof Error ? error.message : "Configuration serveur invalide.",
+    });
+  }
+
+  const { context, warning } = await buildAccountContext(req, supabase);
+
+  return json(200, {
+    ok: true,
+    context,
+    welcome: getAssistantWelcome(context),
+    quickAsks: getAssistantQuickAsks(context),
+    statusCards: buildSuggestedStatusCards(context),
+    linkCards: buildSuggestedLinks(context),
+    focusTopics: [
+      "Pierre",
+      "Formulaire 1",
+      "Page use",
+      "Email",
+      "PDF",
+      "DNS",
+      "Fallback",
+      "Historique",
+    ],
+    warning,
+  });
+}
+
+export async function POST(req: NextRequest) {
+  let supabase: SupabaseClient;
+
+  try {
+    supabase = makeServerSupabase();
+  } catch (error: unknown) {
+    return json(500, {
+      error: error instanceof Error ? error.message : "Configuration serveur invalide.",
+    });
+  }
+
+  const { context } = await buildAccountContext(req, supabase);
+
+  let body: { messages?: IncomingMsg[] };
+  try {
+    body = (await req.json()) as { messages?: IncomingMsg[] };
+  } catch {
+    return json(400, { error: "Body JSON invalide." });
+  }
+
+  const safeMessages = normalizeMessages(body?.messages);
+  if (!safeMessages.length) {
+    return json(400, { error: "messages[] manquant." });
+  }
+
+  const userQuestion = findLastUserMessage(safeMessages);
+  if (!userQuestion) {
+    return json(400, { error: "Question utilisateur introuvable." });
+  }
+
+  const intent = classifyIntent(userQuestion);
+
+  const deterministic = buildDeterministicAnswer(userQuestion, context, intent);
+  if (deterministic) {
+    return json(200, enrichDeterministicAnswer(deterministic, intent, context));
+  }
+
+  const recentConversation = buildRecentConversation(safeMessages);
+  const relevantKnowledge = buildRelevantKnowledge(userQuestion, intent, context);
+  const systemPrompt = buildSystemPrompt({
+    context,
+    intent,
+    userQuestion,
+    recentConversation,
+    relevantKnowledge,
+  });
+
+  try {
+    const answer = await callOpenAIChat(systemPrompt, safeMessages);
+    if (!answer) {
+      const fallback = fallbackRouteAnswer(
+        userQuestion,
+        intent,
+        context,
+        "fallback-empty-answer"
+      );
+      return json(200, fallback);
+    }
+
+    return json(200, {
+      answer,
+      source: `llm:${intent}`,
+      hints: buildHintsForIntent(intent, context),
+      quickAsks: getAssistantQuickAsks(context),
+    });
+  } catch (error: unknown) {
+    const fallback = fallbackRouteAnswer(
+      userQuestion,
+      intent,
+      context,
+      "fallback-openai-error"
+    );
+
+    return json(200, {
+      ...fallback,
+      detail: error instanceof Error ? error.message : "Erreur OpenAI",
+    });
+  }
+}
+
+
+===== FILE: src/app/api/billing/activate/route.ts =====
+
+import { NextResponse } from "next/server";
+import { getStripe } from "@/lib/stripe";
+import { createClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+  if (!key) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+
+  return createClient(url, key, { auth: { persistSession: false } });
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+
+    const user_id = typeof body.user_id === "string" ? body.user_id : null;
+    const agent_slug = typeof body.agent_slug === "string" ? body.agent_slug : null;
+
+    if (!user_id || !agent_slug) {
+      return NextResponse.json({ error: "Missing user_id or agent_slug" }, { status: 400 });
+    }
+
+    // âœ… instanciation seulement Ã  lâ€™exÃ©cution (pas au build)
+    const stripe = getStripe();
+    const supabase = getSupabaseAdmin();
+
+    // âš ï¸ Ici tu mets ta logique rÃ©elle dâ€™activation.
+    // Exemple simple : activer dans orders (Ã  adapter Ã  ton schÃ©ma)
+    const { error } = await supabase
+      .from("orders")
+      .upsert({ user_id, agent_slug, status: "active", ended_at: null }, { onConflict: "user_id,agent_slug" });
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json({ ok: true });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
+
+
+
+===== FILE: src/app/api/checkout/route.ts =====
+
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { getBaseUrl } from "@/lib/base-url";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
+  return new Stripe(key, { apiVersion: "2025-11-17.clover" });
+}
+
+function json(status: number, data: unknown) {
+  return NextResponse.json(data, { status });
+}
+
+type Body = {
+  user_id: string;
+  agent_slug: string;
+};
+
+function getPriceId(agentSlug: string) {
+  // adapte si tu as plusieurs prix
+  if (agentSlug === "pierre") return process.env.STRIPE_PRICE_PIERRE;
+  if (agentSlug === "clara") return process.env.STRIPE_PRICE_CLARA;
+  return null;
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = (await req.json()) as Partial<Body>;
+    const user_id = typeof body.user_id === "string" ? body.user_id : null;
+    const agent_slug = typeof body.agent_slug === "string" ? body.agent_slug : null;
+
+    if (!user_id || !agent_slug) return json(400, { error: "Missing user_id/agent_slug" });
+
+    const priceId = getPriceId(agent_slug);
+    if (!priceId) return json(400, { error: "Missing Stripe price for agent" });
+
+    const stripe = getStripe();
+    const base = getBaseUrl();
+
+    const success_url = new URL("/paiement/success", base).toString();
+    const cancel_url = new URL("/paiement/cancel", base).toString();
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url,
+      cancel_url,
+      // IMPORTANT : metadata sur subscription (fiable pour webhooks)
+      subscription_data: {
+        metadata: { user_id, agent_slug },
+      },
+      metadata: { user_id, agent_slug },
+    });
+
+    if (!session.url) return json(500, { error: "No checkout url" });
+    return json(200, { url: session.url });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Checkout error";
+    return json(500, { error: msg });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+===== FILE: src/app/api/cron/pierre/route.ts =====
+
+// src/app/api/cron/pierre/route.ts
+import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+
+const CRON_SECRET = process.env.CRON_SECRET || "";
+
+function getOrigin(req: Request) {
+  const proto = req.headers.get("x-forwarded-proto") || "https";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  if (!host) return null;
+  return `${proto}://${host}`;
+}
+
+export async function GET(req: Request) {
+  try {
+    if (!CRON_SECRET) {
+      return NextResponse.json({ ok: false, error: "Missing CRON_SECRET" }, { status: 500 });
+    }
+
+    const origin = getOrigin(req);
+    if (!origin) {
+      return NextResponse.json({ ok: false, error: "Cannot determine origin" }, { status: 500 });
+    }
+
+    // Appelle tick sur la mÃªme instance (prod)
+    const url = `${origin}/api/pierre/tick?secret=${encodeURIComponent(CRON_SECRET)}&limit=5`;
+    const res = await fetch(url, { method: "GET" });
+    const text = await res.text();
+
+    return new NextResponse(text, {
+      status: res.status,
+      headers: { "content-type": "application/json" },
+    });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: String(e?.message ?? "cron_failed") }, { status: 500 });
+  }
+}
+
+
+
+===== FILE: src/app/api/orders/activate/route.ts =====
+
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { user_id, agent_slug, stripe_subscription_id } = body;
+
+    if (!user_id || !agent_slug || !stripe_subscription_id) {
+      return NextResponse.json(
+        { error: "Missing parameters" },
+        { status: 400 }
+      );
+    }
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !serviceKey) {
+      return NextResponse.json(
+        { error: "Supabase env missing" },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(url, serviceKey, {
+      auth: { persistSession: false },
+    });
+
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+      .from("orders")
+      .upsert(
+        {
+          user_id,
+          agent_slug,
+          status: "active",
+          started_at: now,
+          ended_at: null,
+          stripe_subscription_id,
+        },
+        { onConflict: "user_id,agent_slug" }
+      );
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Server error";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
+
+
+===== FILE: src/app/api/orders/cancel/route.ts =====
+
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function json(status: number, data: unknown) {
+  return NextResponse.json(data, { status });
+}
+
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
+  return new Stripe(key, { apiVersion: "2025-11-17.clover" as any });
+}
+
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+  if (!service) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+  return createClient(url, service, { auth: { persistSession: false } });
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = (await req.json().catch(() => ({}))) as { agent_slug?: string; access_token?: string };
+    const agent_slug = body.agent_slug;
+    const access_token = body.access_token;
+
+    if (!agent_slug) return json(400, { error: "Missing agent_slug" });
+    if (!access_token) return json(401, { error: "Missing access_token" });
+
+    const sb = getSupabaseAdmin();
+
+    // 1) qui est l'utilisateur ?
+    const { data: userRes, error: userErr } = await sb.auth.getUser(access_token);
+    if (userErr || !userRes?.user) return json(401, { error: "Auth session missing!" });
+
+    const user_id = userRes.user.id;
+
+    // 2) on rÃ©cupÃ¨re LA subId depuis orders
+    const { data: order, error: selErr } = await sb
+      .from("orders")
+      .select("stripe_subscription_id,status")
+      .eq("user_id", user_id)
+      .eq("agent_slug", agent_slug)
+      .maybeSingle();
+
+    if (selErr) return json(500, { error: selErr.message });
+    const subId = order?.stripe_subscription_id ?? null;
+
+    if (!subId) {
+      return json(400, {
+        error: "Missing subscription id (orders.stripe_subscription_id est vide). Corrige le webhook, puis rÃ©-essaie.",
+      });
+    }
+
+    // 3) annulation cÃ´tÃ© Stripe (immÃ©diate)
+    const stripe = getStripe();
+    await stripe.subscriptions.cancel(subId);
+
+    // 4) et on marque cancelled en DB (sÃ©curitÃ©, mÃªme si webhook va le faire)
+    const now = new Date().toISOString();
+    await sb
+      .from("orders")
+      .update({ status: "cancelled", ended_at: now })
+      .eq("user_id", user_id)
+      .eq("agent_slug", agent_slug);
+
+    return json(200, { ok: true });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Cancel failed";
+    return json(500, { error: msg });
+  }
+}
+
+
+
+===== FILE: src/app/api/pierre/action/route.ts =====
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import {
+  buildPierreEmailMetadata,
+  getResolvedPierreEmailIdentity,
+} from "@/lib/pierre-email-identity";
+
+type AllowedActionType = "email.send" | "doc.generate";
+
+type ActionAttachmentInput = {
+  filename?: string;
+  url?: string;
+  content_type?: string;
+};
+
+type PierreActionBody = {
+  action_type?: AllowedActionType;
+
+  // email
+  to?: string;
+  subject?: string;
+  cc?: string | string[];
+  bcc?: string | string[];
+
+  // shared content
+  html?: string;
+  text?: string;
+
+  // doc
+  filename?: string;
+  title?: string;
+
+  // premium email attachment support
+  attachments?: ActionAttachmentInput[];
+  pdf_url?: string;
+  pdf_filename?: string;
+
+  metadata?: Record<string, unknown>;
+};
+
+type EmailAttachmentValidated = {
+  filename: string;
+  url: string;
+  content_type?: string;
+};
+
+type EmailActionValidated = {
+  action_type: "email.send";
+  to: string[];
+  subject: string;
+  cc: string[];
+  bcc: string[];
+  html: string;
+  text: string;
+  attachments: EmailAttachmentValidated[];
+  metadata: Record<string, unknown>;
+};
+
+type DocActionValidated = {
+  action_type: "doc.generate";
+  html: string;
+  text: string;
+  title: string;
+  filename: string;
+  metadata: Record<string, unknown>;
+};
+
+type ValidatedAction = EmailActionValidated | DocActionValidated;
+
+type ValidateBodyResult =
+  | { ok: true; value: ValidatedAction }
+  | { ok: false; error: string };
+
+type MakePayloadAttachment = {
+  filename: string;
+  url: string;
+  content_type?: string;
+};
+
+type MakePayload = {
+  action_type: AllowedActionType;
+  agent_slug: "pierre";
+  user_id: string;
+  user_email: string | null;
+  ts: string;
+  request_id: string;
+  environment: string;
+
+  from?: string;
+  reply_to?: string;
+
+  to?: string;
+  to_list?: string[];
+  subject?: string;
+  cc?: string;
+  cc_list?: string[];
+  bcc?: string;
+  bcc_list?: string[];
+
+  html?: string;
+  text?: string;
+
+  filename?: string;
+  title?: string;
+
+  pdf_url?: string;
+  pdf_filename?: string;
+
+  attachments?: MakePayloadAttachment[];
+  has_attachments?: boolean;
+
+  metadata?: Record<string, unknown>;
+};
+
+type NormalizedMakeResponse = {
+  raw: unknown;
+  parsed: Record<string, unknown> | null;
+  pdf_url?: string;
+  file_url?: string;
+  output_url?: string;
+  link?: string;
+  message?: string;
+  ok?: boolean;
+};
+
+type WebhookResolution = {
+  url: string;
+  mode: "unified" | "split-email" | "split-doc";
+};
+
+type PierreAccessResult = {
+  ok: boolean;
+  error: string | null;
+  orderId?: string | null;
+};
+
+type LogPierreActionAttemptInput = {
+  userId: string;
+  actionType: AllowedActionType;
+  ok: boolean;
+  error?: string;
+  payload: Record<string, unknown>;
+  response?: Record<string, unknown> | null;
+  requestId: string;
+  durationMs?: number;
+};
+
+function json(status: number, body: Record<string, unknown>) {
+  return NextResponse.json(body, { status });
+}
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function getBearerToken(req: NextRequest) {
+  const auth =
+    req.headers.get("authorization") ||
+    req.headers.get("Authorization") ||
+    "";
+
+  if (!auth.startsWith("Bearer ")) return "";
+  return auth.slice("Bearer ".length).trim();
+}
+
+function buildRequestId() {
+  return `pierre_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function isAllowedActionType(value: unknown): value is AllowedActionType {
+  return value === "email.send" || value === "doc.generate";
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isValidHttpUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function safeString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function safeMetadata(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function clampString(value: string, max: number) {
+  return value.length > max ? value.slice(0, max) : value;
+}
+
+function toJsonSafe(value: unknown) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return JSON.stringify({ error: "serialization_failed" });
+  }
+}
+
+function truncateForLog(value: string, max: number) {
+  return value.length > max ? `${value.slice(0, max)}â€¦` : value;
+}
+
+function buildFilename(raw: string) {
+  const base = raw
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9\-_. ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return base || "document-pierre";
+}
+
+function ensurePdfExtension(raw: string) {
+  const base = buildFilename(raw);
+  return /\.pdf$/i.test(base) ? base : `${base}.pdf`;
+}
+
+function buildSafeAttachmentFilename(raw: string) {
+  const base = buildFilename(raw);
+  return clampString(base, 180);
+}
+
+function safeRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function parseUnknownJsonString(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+
+  const trimmed = value.trim();
+  if (!trimmed) return value;
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return value;
+  }
+}
+
+function parseNestedJson(value: unknown, maxDepth = 3): unknown {
+  let current = value;
+  for (let i = 0; i < maxDepth; i += 1) {
+    const parsed = parseUnknownJsonString(current);
+    if (parsed === current) return current;
+    current = parsed;
+  }
+  return current;
+}
+
+function resolveWebhook(actionType: AllowedActionType): WebhookResolution | null {
+  const generic = getEnv("MAKE_PIERRE_ACTION_WEBHOOK_URL");
+  const email = getEnv("MAKE_PIERRE_EMAIL_WEBHOOK_URL");
+  const doc = getEnv("MAKE_PIERRE_DOC_WEBHOOK_URL");
+
+  if (generic) {
+    return {
+      url: generic,
+      mode: "unified",
+    };
+  }
+
+  if (actionType === "email.send" && email) {
+    return {
+      url: email,
+      mode: "split-email",
+    };
+  }
+
+  if (actionType === "doc.generate" && doc) {
+    return {
+      url: doc,
+      mode: "split-doc",
+    };
+  }
+
+  return null;
+}
+
+function makeServerSupabase(): SupabaseClient {
+  const url = getEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRole = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase serveur non configurÃ©.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+async function getAuthenticatedUser(
+  req: NextRequest,
+  supabase: SupabaseClient
+): Promise<{ error: string | null; user: User | null }> {
+  const token = getBearerToken(req);
+
+  if (!token) {
+    return { error: "Token manquant.", user: null };
+  }
+
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error || !data.user) {
+    return {
+      error: error?.message || "Utilisateur non authentifiÃ©.",
+      user: null,
+    };
+  }
+
+  return { error: null, user: data.user };
+}
+
+async function hasPierreAccess(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<PierreAccessResult> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id,status")
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false, error: error.message, orderId: null };
+  }
+
+  return {
+    ok: Boolean(data),
+    error: null,
+    orderId: data?.id ?? null,
+  };
+}
+
+function normalizeEmailList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => safeString(item).toLowerCase())
+      .filter(Boolean);
+  }
+
+  const single = safeString(value);
+  if (!single) return [];
+
+  return single
+    .split(/[;,]/g)
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function uniqueEmailList(list: string[]) {
+  return Array.from(new Set(list));
+}
+
+function validateEmailList(
+  list: string[],
+  fieldLabel: string
+): { ok: true; value: string[] } | { ok: false; error: string } {
+  const unique = uniqueEmailList(list);
+
+  if (unique.length > 50) {
+    return {
+      ok: false,
+      error: `${fieldLabel} contient trop dâ€™adresses email.`,
+    };
+  }
+
+  for (const email of unique) {
+    if (!isValidEmail(email)) {
+      return {
+        ok: false,
+        error: `${fieldLabel} contient une adresse invalide : ${email}`,
+      };
+    }
+  }
+
+  return { ok: true, value: unique };
+}
+
+function normalizeAttachmentArray(
+  rawAttachments: ActionAttachmentInput[] | undefined,
+  rawPdfUrl: string,
+  rawPdfFilename: string
+): EmailAttachmentValidated[] {
+  const clean: EmailAttachmentValidated[] = [];
+  const seen = new Set<string>();
+
+  if (Array.isArray(rawAttachments)) {
+    for (const item of rawAttachments) {
+      const filename = buildSafeAttachmentFilename(
+        safeString(item?.filename) || "piece-jointe-pierre"
+      );
+      const url = safeString(item?.url);
+      const contentType = safeString(item?.content_type);
+
+      if (!url) continue;
+      if (!isValidHttpUrl(url)) continue;
+
+      const dedupeKey = `${filename}__${url}`;
+      if (seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+
+      clean.push({
+        filename,
+        url,
+        content_type: contentType || undefined,
+      });
+    }
+  }
+
+  const pdfUrl = safeString(rawPdfUrl);
+  if (pdfUrl && isValidHttpUrl(pdfUrl)) {
+    const pdfFilename = buildSafeAttachmentFilename(
+      safeString(rawPdfFilename) || "document-pierre.pdf"
+    );
+    const dedupeKey = `${pdfFilename}__${pdfUrl}`;
+
+    if (!seen.has(dedupeKey)) {
+      seen.add(dedupeKey);
+      clean.push({
+        filename: pdfFilename,
+        url: pdfUrl,
+        content_type: "application/pdf",
+      });
+    }
+  }
+
+  return clean.slice(0, 10);
+}
+
+function validateBody(raw: PierreActionBody): ValidateBodyResult {
+  if (!isAllowedActionType(raw.action_type)) {
+    return { ok: false, error: "action_type invalide." };
+  }
+
+  if (raw.action_type === "email.send") {
+    const toListValidation = validateEmailList(normalizeEmailList(raw.to), "to");
+    if (!toListValidation.ok) {
+      return { ok: false, error: toListValidation.error };
+    }
+
+    const ccListValidation = validateEmailList(normalizeEmailList(raw.cc), "cc");
+    if (!ccListValidation.ok) {
+      return { ok: false, error: ccListValidation.error };
+    }
+
+    const bccListValidation = validateEmailList(normalizeEmailList(raw.bcc), "bcc");
+    if (!bccListValidation.ok) {
+      return { ok: false, error: bccListValidation.error };
+    }
+
+    const to = toListValidation.value;
+    const cc = ccListValidation.value;
+    const bcc = bccListValidation.value;
+
+    const subject = clampString(safeString(raw.subject), 240);
+    const html = clampString(safeString(raw.html), 400000);
+    const text = clampString(safeString(raw.text), 180000);
+
+    if (!to.length) {
+      return { ok: false, error: "Destinataire email manquant." };
+    }
+
+    if (!subject) {
+      return { ok: false, error: "Objet email manquant." };
+    }
+
+    if (!html && !text) {
+      return { ok: false, error: "Contenu email manquant." };
+    }
+
+    const attachments = normalizeAttachmentArray(
+      Array.isArray(raw.attachments) ? raw.attachments : [],
+      safeString(raw.pdf_url),
+      safeString(raw.pdf_filename)
+    );
+
+    return {
+      ok: true,
+      value: {
+        action_type: "email.send",
+        to,
+        subject,
+        cc,
+        bcc,
+        html,
+        text,
+        attachments,
+        metadata: safeMetadata(raw.metadata),
+      },
+    };
+  }
+
+  const html = clampString(safeString(raw.html), 400000);
+  const text = clampString(safeString(raw.text), 180000);
+  const title = clampString(safeString(raw.title), 240) || "Document Pierre";
+  const filename = clampString(
+    ensurePdfExtension(safeString(raw.filename || raw.title || "document-pierre")),
+    180
+  );
+
+  if (!html && !text) {
+    return { ok: false, error: "Contenu document manquant." };
+  }
+
+  return {
+    ok: true,
+    value: {
+      action_type: "doc.generate",
+      html,
+      text,
+      title,
+      filename,
+      metadata: safeMetadata(raw.metadata),
+    },
+  };
+}
+
+function mergeMetadata(
+  base: Record<string, unknown>,
+  extra: Record<string, unknown>
+): Record<string, unknown> {
+  return {
+    ...base,
+    ...extra,
+  };
+}
+
+function extractBestUrl(record: Record<string, unknown> | null) {
+  if (!record) return "";
+
+  const direct =
+    safeString(record.url) ||
+    safeString(record.pdf_url) ||
+    safeString(record.file_url) ||
+    safeString(record.output_url) ||
+    safeString(record.output) ||
+    safeString(record.link) ||
+    safeString(record.download_url) ||
+    safeString(record.public_url);
+
+  if (direct && isValidHttpUrl(direct)) return direct;
+
+  const data = safeRecord(record.data);
+  if (data) {
+    const nested =
+      safeString(data.url) ||
+      safeString(data.pdf_url) ||
+      safeString(data.file_url) ||
+      safeString(data.output_url) ||
+      safeString(data.output) ||
+      safeString(data.link) ||
+      safeString(data.download_url) ||
+      safeString(data.public_url);
+
+    if (nested && isValidHttpUrl(nested)) return nested;
+  }
+
+  return "";
+}
+
+function normalizeMakeResponse(input: unknown): NormalizedMakeResponse {
+  const raw = input;
+  const deeplyParsed = parseNestedJson(input, 4);
+  const parsed = safeRecord(deeplyParsed);
+
+  const pdfUrl = extractBestUrl(parsed);
+  const fileUrl =
+    safeString(parsed?.file_url) ||
+    safeString(safeRecord(parsed?.data)?.file_url) ||
+    undefined;
+
+  const outputUrl =
+    safeString(parsed?.output_url) ||
+    safeString(safeRecord(parsed?.data)?.output_url) ||
+    safeString(parsed?.output) ||
+    safeString(safeRecord(parsed?.data)?.output) ||
+    undefined;
+
+  const link =
+    safeString(parsed?.link) ||
+    safeString(safeRecord(parsed?.data)?.link) ||
+    undefined;
+
+  const message =
+    safeString(parsed?.message) ||
+    safeString(safeRecord(parsed?.data)?.message) ||
+    undefined;
+
+  const ok =
+    typeof parsed?.ok === "boolean"
+      ? parsed.ok
+      : typeof safeRecord(parsed?.data)?.ok === "boolean"
+      ? (safeRecord(parsed?.data)?.ok as boolean)
+      : undefined;
+
+  return {
+    raw,
+    parsed,
+    pdf_url: pdfUrl || undefined,
+    file_url: fileUrl,
+    output_url: outputUrl,
+    link,
+    message,
+    ok,
+  };
+}
+
+async function logPierreActionAttempt(
+  supabase: SupabaseClient,
+  input: LogPierreActionAttemptInput
+) {
+  try {
+    const payloadForLog = {
+      ...input.payload,
+      html:
+        typeof input.payload.html === "string"
+          ? truncateForLog(input.payload.html, 4000)
+          : input.payload.html,
+      text:
+        typeof input.payload.text === "string"
+          ? truncateForLog(input.payload.text, 3000)
+          : input.payload.text,
+    };
+
+    const responseForLog = input.response
+      ? {
+          ...input.response,
+          make_response_raw:
+            typeof input.response.make_response_raw === "string"
+              ? truncateForLog(input.response.make_response_raw, 4000)
+              : input.response.make_response_raw,
+        }
+      : null;
+
+    await supabase.from("agent_history").insert({
+      user_id: input.userId,
+      agent_slug: "pierre",
+      created_at: new Date().toISOString(),
+      input: toJsonSafe({
+        kind: "action",
+        request_id: input.requestId,
+        action_type: input.actionType,
+        duration_ms: input.durationMs ?? null,
+        payload: payloadForLog,
+      }),
+      preset: "free",
+      tone: "pro",
+      language: "fr",
+      title:
+        input.actionType === "email.send"
+          ? "Action email Pierre"
+          : "Action document Pierre",
+      doc_type: input.actionType,
+      ok: input.ok,
+      error: input.error || null,
+      favorite: false,
+      pinned: false,
+      tags: toJsonSafe([
+        "action",
+        input.actionType,
+        input.ok ? "ok" : "err",
+      ]),
+      note: null,
+      response: responseForLog ? toJsonSafe(responseForLog) : null,
+    });
+  } catch {
+    // best effort
+  }
+}
+
+export async function GET(req: NextRequest) {
+  let supabase: SupabaseClient;
+
+  try {
+    supabase = makeServerSupabase();
+  } catch (e: unknown) {
+    return json(500, {
+      ok: false,
+      error: e instanceof Error ? e.message : "Configuration serveur invalide.",
+    });
+  }
+
+  const { error: authError, user } = await getAuthenticatedUser(req, supabase);
+
+  if (authError || !user) {
+    return json(401, {
+      ok: false,
+      error: authError || "Non authentifiÃ©.",
+    });
+  }
+
+  const access = await hasPierreAccess(supabase, user.id);
+
+  if (access.error) {
+    return json(500, { ok: false, error: access.error });
+  }
+
+  if (!access.ok) {
+    return json(403, {
+      ok: false,
+      error: "Pierre nâ€™est pas actif sur ce compte.",
+    });
+  }
+
+  const { identity, onboarding, error } = await getResolvedPierreEmailIdentity(
+    supabase,
+    user.id
+  );
+
+  if (error) {
+    return json(500, { ok: false, error });
+  }
+
+  const unifiedWebhook = getEnv("MAKE_PIERRE_ACTION_WEBHOOK_URL");
+  const emailWebhook = getEnv("MAKE_PIERRE_EMAIL_WEBHOOK_URL");
+  const docWebhook = getEnv("MAKE_PIERRE_DOC_WEBHOOK_URL");
+
+  return json(200, {
+    ok: true,
+    identity,
+    onboarding_exists: Boolean(onboarding),
+    available_actions: ["email.send", "doc.generate"],
+    attachment_support: true,
+    webhook_mode: unifiedWebhook
+      ? "unified"
+      : emailWebhook || docWebhook
+      ? "split"
+      : "missing",
+    webhook_config: {
+      unified: Boolean(unifiedWebhook),
+      email: Boolean(emailWebhook),
+      doc: Boolean(docWebhook),
+    },
+  });
+}
+
+export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
+  const requestId = buildRequestId();
+
+  let supabase: SupabaseClient;
+
+  try {
+    supabase = makeServerSupabase();
+  } catch (e: unknown) {
+    return json(500, {
+      ok: false,
+      error: e instanceof Error ? e.message : "Configuration serveur invalide.",
+      request_id: requestId,
+    });
+  }
+
+  const { error: authError, user } = await getAuthenticatedUser(req, supabase);
+
+  if (authError || !user) {
+    return json(401, {
+      ok: false,
+      error: authError || "Non authentifiÃ©.",
+      request_id: requestId,
+    });
+  }
+
+  const access = await hasPierreAccess(supabase, user.id);
+
+  if (access.error) {
+    return json(500, {
+      ok: false,
+      error: access.error,
+      request_id: requestId,
+    });
+  }
+
+  if (!access.ok) {
+    return json(403, {
+      ok: false,
+      error: "Pierre nâ€™est pas actif sur ce compte.",
+      request_id: requestId,
+    });
+  }
+
+  let body: PierreActionBody;
+
+  try {
+    body = (await req.json()) as PierreActionBody;
+  } catch {
+    return json(400, {
+      ok: false,
+      error: "Body JSON invalide.",
+      request_id: requestId,
+    });
+  }
+
+  const validated = validateBody(body);
+
+  if (!validated.ok) {
+    return json(400, {
+      ok: false,
+      error: validated.error,
+      request_id: requestId,
+    });
+  }
+
+  const action = validated.value;
+  const webhook = resolveWebhook(action.action_type);
+
+  if (!webhook?.url) {
+    return json(500, {
+      ok: false,
+      error:
+        action.action_type === "email.send"
+          ? "Webhook Make email non configurÃ©."
+          : "Webhook Make document non configurÃ©.",
+      request_id: requestId,
+    });
+  }
+
+  const { identity, onboarding, error: identityError } =
+    await getResolvedPierreEmailIdentity(supabase, user.id);
+
+  if (identityError) {
+    return json(500, {
+      ok: false,
+      error: identityError,
+      request_id: requestId,
+    });
+  }
+
+  const metadataBase = buildPierreEmailMetadata(identity);
+  const metadata = mergeMetadata(metadataBase, action.metadata || {});
+
+  const payload: MakePayload = {
+    action_type: action.action_type,
+    agent_slug: "pierre",
+    user_id: user.id,
+    user_email: user.email ?? null,
+    ts: new Date().toISOString(),
+    request_id: requestId,
+    environment: getEnv("NODE_ENV") || "production",
+    from: identity.from,
+    reply_to: identity.replyTo || undefined,
+    metadata,
+  };
+
+  if (action.action_type === "email.send") {
+    payload.to = action.to.join(", ");
+    payload.to_list = action.to;
+    payload.subject = action.subject;
+
+    if (action.cc.length) {
+      payload.cc = action.cc.join(", ");
+      payload.cc_list = action.cc;
+    }
+
+    if (action.bcc.length) {
+      payload.bcc = action.bcc.join(", ");
+      payload.bcc_list = action.bcc;
+    }
+
+    payload.html = action.html;
+    payload.text = action.text;
+    payload.attachments = action.attachments;
+    payload.has_attachments = action.attachments.length > 0;
+
+    const pdfAttachment = action.attachments.find(
+      (item) => item.content_type === "application/pdf" || /\.pdf$/i.test(item.filename)
+    );
+
+    if (pdfAttachment) {
+      payload.pdf_url = pdfAttachment.url;
+      payload.pdf_filename = pdfAttachment.filename;
+    }
+  } else {
+    payload.html = action.html;
+    payload.text = action.text;
+    payload.title = action.title;
+    payload.filename = action.filename;
+  }
+
+  const makeSecret = getEnv("MAKE_PIERRE_ACTION_SECRET");
+
+  try {
+    const makeRes = await fetch(webhook.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(makeSecret ? { "x-clonestore-secret": makeSecret } : {}),
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
+
+    const contentType = makeRes.headers.get("content-type") || "";
+    let makeData: unknown = null;
+
+    if (contentType.includes("application/json")) {
+      makeData = await makeRes.json().catch(() => null);
+    } else {
+      const text = await makeRes.text().catch(() => "");
+      makeData = text || null;
+    }
+
+    const normalizedMake = normalizeMakeResponse(makeData);
+    const durationMs = Date.now() - startedAt;
+
+    if (!makeRes.ok) {
+      await logPierreActionAttempt(supabase, {
+        userId: user.id,
+        actionType: action.action_type,
+        ok: false,
+        error: "Make a refusÃ© lâ€™action.",
+        payload,
+        response: {
+          make_status: makeRes.status,
+          webhook_mode: webhook.mode,
+          make_response_raw:
+            typeof normalizedMake.raw === "string"
+              ? normalizedMake.raw
+              : toJsonSafe(normalizedMake.raw),
+          make_response_parsed: normalizedMake.parsed,
+          pdf_url: normalizedMake.pdf_url || null,
+          file_url: normalizedMake.file_url || null,
+          output_url: normalizedMake.output_url || null,
+          link: normalizedMake.link || null,
+          message: normalizedMake.message || null,
+        },
+        requestId,
+        durationMs,
+      });
+
+      return json(502, {
+        ok: false,
+        error: "Make a refusÃ© lâ€™action.",
+        request_id: requestId,
+        action_type: action.action_type,
+        make_status: makeRes.status,
+        webhook_mode: webhook.mode,
+        make_response: normalizedMake.raw,
+        make_response_parsed: normalizedMake.parsed,
+        pdf_url: normalizedMake.pdf_url || null,
+        file_url: normalizedMake.file_url || null,
+        output_url: normalizedMake.output_url || null,
+        link: normalizedMake.link || null,
+        make_message: normalizedMake.message || null,
+        identity,
+        onboarding_exists: Boolean(onboarding),
+        duration_ms: durationMs,
+      });
+    }
+
+    await logPierreActionAttempt(supabase, {
+      userId: user.id,
+      actionType: action.action_type,
+      ok: true,
+      payload,
+      response: {
+        make_status: makeRes.status,
+        webhook_mode: webhook.mode,
+        make_response_raw:
+          typeof normalizedMake.raw === "string"
+            ? normalizedMake.raw
+            : toJsonSafe(normalizedMake.raw),
+        make_response_parsed: normalizedMake.parsed,
+        pdf_url: normalizedMake.pdf_url || null,
+        file_url: normalizedMake.file_url || null,
+        output_url: normalizedMake.output_url || null,
+        link: normalizedMake.link || null,
+        message: normalizedMake.message || null,
+      },
+      requestId,
+      durationMs,
+    });
+
+    return json(200, {
+      ok: true,
+      request_id: requestId,
+      action_type: action.action_type,
+      make_status: makeRes.status,
+      webhook_mode: webhook.mode,
+      make_response: normalizedMake.raw,
+      make_response_parsed: normalizedMake.parsed,
+      pdf_url: normalizedMake.pdf_url || null,
+      file_url: normalizedMake.file_url || null,
+      output_url: normalizedMake.output_url || null,
+      link: normalizedMake.link || null,
+      make_message: normalizedMake.message || null,
+      attachments_count:
+        action.action_type === "email.send" ? action.attachments.length : 0,
+      identity,
+      onboarding_exists: Boolean(onboarding),
+      duration_ms: durationMs,
+    });
+  } catch (e: unknown) {
+    const durationMs = Date.now() - startedAt;
+
+    await logPierreActionAttempt(supabase, {
+      userId: user.id,
+      actionType: action.action_type,
+      ok: false,
+      error: e instanceof Error ? e.message : "Erreur lors de lâ€™appel Make.",
+      payload,
+      response: null,
+      requestId,
+      durationMs,
+    });
+
+    return json(500, {
+      ok: false,
+      error: e instanceof Error ? e.message : "Erreur lors de lâ€™appel Make.",
+      request_id: requestId,
+      action_type: action.action_type,
+      webhook_mode: webhook.mode,
+      identity,
+      onboarding_exists: Boolean(onboarding),
+      duration_ms: durationMs,
+    });
+  }
+}
+
+===== FILE: src/app/api/pierre/brain/route.ts =====
+
+// src/app/api/pierre/brain/route.ts
+
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
+import { z } from "zod";
+import {
+  PierreDocType,
+  PierreTone,
+  PIERRE_SCHEMA_VERSION,
+  PIERRE_DEFAULT_LANGUAGE,
+  PIERRE_CONFIDENCE_THRESHOLD,
+} from "@/lib/pierre/docTypes";
+import { PierreBrainResponseSchema } from "@/lib/pierre/schema";
+
+/* ============================== */
+/* OPENAI CLIENT                  */
+/* ============================== */
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
+
+/* ============================== */
+/* INPUT VALIDATION               */
+/* ============================== */
+
+const BrainInputSchema = z.object({
+  input: z.string().min(3),
+  tone: z.nativeEnum(PierreTone).optional(),
+  language: z.string().optional(),
+  company_name: z.string().optional(),
+});
+
+/* ============================== */
+/* ROUTE                          */
+/* ============================== */
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const parsed = BrainInputSchema.parse(body);
+
+    const prompt = `
+Tu es Pierre, assistant RH routeur.
+
+Tu dois rÃ©pondre STRICTEMENT en JSON valide.
+Aucun texte autour.
+
+Format exact :
+
+{
+  "doc_type": "STRING",
+  "confidence_score": 0.0,
+  "tone_used": "pro",
+  "missing_info_questions": []
+}
+
+Doc types autorisÃ©s :
+${Object.values(PierreDocType).join(", ")}
+
+Si ambigu -> doc_type = UNKNOWN
+
+Brief:
+${parsed.input}
+
+Ton demandÃ©:
+${parsed.tone || "pro"}
+
+Entreprise:
+${parsed.company_name || "non prÃ©cisÃ©e"}
+`;
+
+    const response = await openai.responses.create({
+      model: process.env.PIERRE_BRAIN_MODEL || "gpt-4.1",
+      input: prompt,
+      max_output_tokens: 500,
+    });
+
+    const raw = response.output_text;
+
+    if (!raw) {
+      console.log("RAW FULL RESPONSE:", response);
+      throw new Error("Model returned no output_text");
+    }
+
+    let routing;
+    try {
+      routing = JSON.parse(raw);
+    } catch {
+      console.log("MODEL RAW OUTPUT:", raw);
+      throw new Error("Model did not return valid JSON");
+    }
+
+    const mustAsk =
+      routing.doc_type === PierreDocType.UNKNOWN ||
+      routing.confidence_score < PIERRE_CONFIDENCE_THRESHOLD ||
+      (routing.missing_info_questions &&
+        routing.missing_info_questions.length > 0);
+
+    const final = PierreBrainResponseSchema.parse({
+      schema_version: PIERRE_SCHEMA_VERSION,
+      doc_type: routing.doc_type,
+      doc_title:
+        routing.doc_type === PierreDocType.UNKNOWN
+          ? "Clarification nÃ©cessaire"
+          : "Document RH â€” Pierre",
+      tone_used: routing.tone_used || parsed.tone || PierreTone.PRO,
+      language: parsed.language || PIERRE_DEFAULT_LANGUAGE,
+      final_text_html: mustAsk
+        ? ""
+        : "<p>Routing OK. Generation premium arrive.</p>",
+      missing_info_questions: routing.missing_info_questions || [],
+      confidence_score: routing.confidence_score || 0.5,
+      safety_flags: {
+        legal_risk: false,
+        discrimination_risk: false,
+        pii_risk: false,
+      },
+      actions: [],
+    });
+
+    return NextResponse.json(final);
+  } catch (err: any) {
+    return NextResponse.json(
+      { ok: false, error: err.message },
+      { status: 400 }
+    );
+  }
+}
+
+
+
+

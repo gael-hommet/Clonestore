@@ -1,0 +1,4601 @@
+﻿
+
+
+============================================================
+FILE: src\lib\pierre\types.ts
+============================================================
+
+export type PierreLanguage = "fr" | "en" | "unknown";
+
+export type PierreTone =
+  | "neutral"
+  | "professional"
+  | "human"
+  | "warm"
+  | "direct"
+  | "firm"
+  | "formal"
+  | "unknown";
+
+export type PierreRiskLevel = "normal" | "sensitive" | "critical";
+
+export type PierreApprovalMode =
+  | "none"
+  | "recommended"
+  | "required"
+  | "blocked";
+
+export type PierreMissionStatus =
+  | "draft"
+  | "planned"
+  | "queued"
+  | "awaiting_info"
+  | "awaiting_validation"
+  | "in_progress"
+  | "completed"
+  | "blocked"
+  | "failed"
+  | "retry";
+
+export type PierreTaskStatus =
+  | "draft"
+  | "planned"
+  | "pending"
+  | "queued"
+  | "awaiting_info"
+  | "awaiting_validation"
+  | "ready"
+  | "in_progress"
+  | "done"
+  | "blocked"
+  | "failed"
+  | "retry"
+  | "cancelled";
+
+export type PierreTaskType =
+  | "write_document"
+  | "rewrite_document"
+  | "prepare_email"
+  | "send_email"
+  | "generate_pdf"
+  | "ask_missing_info"
+  | "follow_up_candidate"
+  | "follow_up_internal"
+  | "wait_validation"
+  | "plan_action"
+  | "summarize_request"
+  | "organize_work"
+  | "close_mission"
+  | "block_mission"
+  | "other";
+
+export type PierreClassification =
+  | "recruitment"
+  | "application"
+  | "convocation"
+  | "candidate_refusal"
+  | "candidate_followup"
+  | "onboarding"
+  | "internal_hr_communication"
+  | "procedure_reminder"
+  | "hr_note"
+  | "interview_summary"
+  | "simple_hr_letter"
+  | "document_request"
+  | "planning"
+  | "followup_mission"
+  | "internal_followup"
+  | "external_followup"
+  | "sensitive_request"
+  | "out_of_scope"
+  | "unknown";
+
+export type PierreEntityHints = {
+  recipient_name?: string | null;
+  recipient_email?: string | null;
+  candidate_name?: string | null;
+  manager_name?: string | null;
+  position_title?: string | null;
+  document_title?: string | null;
+  company_name?: string | null;
+  date?: string | null;
+  time?: string | null;
+  location?: string | null;
+};
+
+export type PierreMissingFieldCode =
+  | "recipient_name"
+  | "recipient_email"
+  | "candidate_name"
+  | "position_title"
+  | "document_title"
+  | "date"
+  | "time"
+  | "location"
+  | "context"
+  | "validation_target"
+  | "document_source"
+  | "company_name";
+
+export type PierreMissingInfoItem = {
+  code: PierreMissingFieldCode;
+  label: string;
+  required: boolean;
+  reason: string;
+  question: string;
+};
+
+export type PierreTaskDraft = {
+  client_id?: string | null;
+  title: string;
+  type: PierreTaskType;
+  status: PierreTaskStatus;
+  priority: number;
+  approval_required: boolean;
+  risk_level: PierreRiskLevel;
+  scheduled_for: string | null;
+  due_at: string | null;
+  depends_on_indexes: number[];
+  blocking_reason: string | null;
+  notes: string | null;
+  output_kind: "document" | "email" | "pdf" | "followup" | "plan" | "none";
+};
+
+export type PierreInterpretation = {
+  request_text: string;
+  normalized_text: string;
+  language: PierreLanguage;
+  tone: PierreTone;
+  classification: PierreClassification;
+  secondary_classifications: PierreClassification[];
+  intent: string;
+  risk_level: PierreRiskLevel;
+  approval_mode: PierreApprovalMode;
+  approval_required: boolean;
+  out_of_scope: boolean;
+  blocked: boolean;
+  blocked_reason: string | null;
+  mission_title: string;
+  summary: string;
+  immediate: boolean;
+  planifiable: boolean;
+  multi_action: boolean;
+  missing_info: PierreMissingInfoItem[];
+  entities: PierreEntityHints;
+  tasks: PierreTaskDraft[];
+  suggested_reply: string | null;
+};
+
+export type PierreCompanyMemoryLike = {
+  company_name?: string | null;
+  sender_name?: string | null;
+  sender_email?: string | null;
+  tone?: string | null;
+  language?: string | null;
+  rules?: string[] | null;
+  preferences?: Record<string, unknown> | null;
+  email_identity?: {
+    sender_name?: string | null;
+    sender_email?: string | null;
+    reply_to?: string | null;
+    provider?: string | null;
+    domain_verified?: boolean | null;
+    [key: string]: unknown;
+  } | null;
+  metadata?: Record<string, unknown> | null;
+  [key: string]: unknown;
+};
+
+export type PierreInterpretInput = {
+  text: string;
+  companyMemory?: PierreCompanyMemoryLike | null;
+  now?: Date;
+};
+
+
+============================================================
+FILE: src\lib\pierre\schema.ts
+============================================================
+
+// src/lib/pierre/schema.ts
+
+import { z } from "zod";
+import {
+  PierreDocType,
+  PierreTone,
+  PIERRE_SCHEMA_VERSION,
+  PIERRE_DEFAULT_LANGUAGE,
+} from "./docTypes";
+
+/**
+ * Questions manquantes (format stable, exploitable UI + logique)
+ */
+export const MissingInfoQuestionSchema = z
+  .object({
+    id: z.string().min(1),
+    question: z.string().min(1),
+    priority: z.enum(["high", "medium", "low"]),
+    expected_format: z.enum(["text", "number", "date", "email", "phone", "choice"]),
+    choices: z.array(z.string().min(1)).optional(),
+  })
+  .strict();
+
+export type MissingInfoQuestion = z.infer<typeof MissingInfoQuestionSchema>;
+
+/**
+ * Flags sécurité
+ */
+export const SafetyFlagsSchema = z
+  .object({
+    legal_risk: z.boolean(),
+    discrimination_risk: z.boolean(),
+    pii_risk: z.boolean(),
+  })
+  .strict();
+
+export type SafetyFlags = z.infer<typeof SafetyFlagsSchema>;
+
+/**
+ * Action (pour Make). IMPORTANT : pas de z.record ici.
+ * On accepte un objet libre avec n'importe quelles clés, valeurs unknown.
+ */
+const LooseObjectSchema = z.object({}).catchall(z.unknown());
+
+export const PierreActionSchema = z
+  .object({
+    type: z.enum(["doc.generate", "email.send"]),
+    payload: LooseObjectSchema.optional(),
+  })
+  .strict();
+
+export type PierreAction = z.infer<typeof PierreActionSchema>;
+
+/**
+ * Réponse finale du Brain (contrat produit)
+ */
+export const PierreBrainResponseSchema = z
+  .object({
+    schema_version: z.literal(PIERRE_SCHEMA_VERSION),
+
+    doc_type: z.nativeEnum(PierreDocType),
+    doc_title: z.string().min(1),
+
+    tone_used: z.nativeEnum(PierreTone),
+    language: z.string().min(2).default(PIERRE_DEFAULT_LANGUAGE),
+
+    // HTML final copiable
+    final_text_html: z.string(),
+
+    // Questions si infos manquantes
+    missing_info_questions: z.array(MissingInfoQuestionSchema),
+
+    // 0..1
+    confidence_score: z.number().min(0).max(1),
+
+    safety_flags: SafetyFlagsSchema,
+
+    // Actions recommandées (Make)
+    actions: z.array(PierreActionSchema).default([]),
+  })
+  .strict();
+
+export type PierreBrainResponse = z.infer<typeof PierreBrainResponseSchema>;
+
+
+
+============================================================
+FILE: src\lib\pierre\constants.ts
+============================================================
+
+import type { PierreClassification, PierreTaskType } from "./types";
+
+export const PIERRE_NAME = "Pierre";
+
+export const PIERRE_PRODUCT_LABEL = "Assistant RH Automatisé";
+
+export const PIERRE_ALLOWED_SCOPE = [
+  "documents RH simples",
+  "communications RH simples",
+  "onboarding",
+  "convocations",
+  "refus candidats",
+  "relances",
+  "rappels de procédure",
+  "notes RH internes",
+  "comptes rendus simples",
+  "organisation de tâches RH",
+  "suivi et continuité RH",
+] as const;
+
+export const PIERRE_BLOCKED_SCOPE_KEYWORDS = [
+  "licencier",
+  "licenciement",
+  "sanction disciplinaire",
+  "blâme",
+  "mise à pied",
+  "discrimination",
+  "choix juridique",
+  "fraude",
+  "mensonge RH",
+  "faux document",
+] as const;
+
+export const PIERRE_VALIDATION_KEYWORDS = [
+  "attends ma validation",
+  "après validation",
+  "à valider",
+  "soumets-moi",
+  "avant envoi",
+  "avant d'envoyer",
+  "avant de l'envoyer",
+  "fais valider",
+] as const;
+
+export const PIERRE_MULTI_ACTION_SEPARATORS = [
+  " puis ",
+  " ensuite ",
+  " et ",
+  ", puis ",
+  ";",
+] as const;
+
+export const PIERRE_CLASSIFICATION_KEYWORDS: Array<{
+  classification: PierreClassification;
+  keywords: string[];
+}> = [
+  {
+    classification: "convocation",
+    keywords: ["convocation", "convoque", "entretien", "rendez-vous entretien"],
+  },
+  {
+    classification: "candidate_refusal",
+    keywords: ["refus", "refuser candidature", "refus candidat", "candidature refusée"],
+  },
+  {
+    classification: "candidate_followup",
+    keywords: ["relance candidat", "relancer candidat", "sans réponse candidat"],
+  },
+  {
+    classification: "onboarding",
+    keywords: ["onboarding", "intégration", "message d'accueil", "arrivée lundi"],
+  },
+  {
+    classification: "internal_hr_communication",
+    keywords: ["note interne", "communication interne", "message manager", "message interne"],
+  },
+  {
+    classification: "procedure_reminder",
+    keywords: ["procédure", "rappel procédure", "rappel administratif", "consigne RH"],
+  },
+  {
+    classification: "interview_summary",
+    keywords: ["compte rendu", "synthèse entretien", "résumé entretien"],
+  },
+  {
+    classification: "document_request",
+    keywords: ["document", "prépare le document", "génère un document", "pdf"],
+  },
+  {
+    classification: "planning",
+    keywords: ["organise", "planifie", "programme", "demain", "semaine", "planning"],
+  },
+  {
+    classification: "followup_mission",
+    keywords: ["relance", "suis", "suivi", "si pas de réponse", "rappelle-moi"],
+  },
+  {
+    classification: "application",
+    keywords: ["candidature", "poste", "offre d'emploi", "recrutement"],
+  },
+];
+
+export const PIERRE_CLASSIFICATION_TO_PRIMARY_TASK: Record<
+  PierreClassification,
+  PierreTaskType
+> = {
+  recruitment: "organize_work",
+  application: "prepare_email",
+  convocation: "write_document",
+  candidate_refusal: "prepare_email",
+  candidate_followup: "follow_up_candidate",
+  onboarding: "prepare_email",
+  internal_hr_communication: "prepare_email",
+  procedure_reminder: "write_document",
+  hr_note: "write_document",
+  interview_summary: "write_document",
+  simple_hr_letter: "write_document",
+  document_request: "write_document",
+  planning: "organize_work",
+  followup_mission: "follow_up_internal",
+  internal_followup: "follow_up_internal",
+  external_followup: "follow_up_candidate",
+  sensitive_request: "wait_validation",
+  out_of_scope: "block_mission",
+  unknown: "summarize_request",
+};
+
+export const PIERRE_DEFAULT_LANGUAGE = "fr";
+
+export const PIERRE_DEFAULT_TONE = "professional";
+
+export const PIERRE_MAX_MISSING_INFO_QUESTIONS = 6;
+
+
+============================================================
+FILE: src\lib\pierre\access.ts
+============================================================
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export async function hasPierreAccess(supabase: SupabaseClient, userId: string) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id,status")
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error) {
+    return {
+      ok: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    ok: Boolean(data),
+    error: null as string | null,
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\auth.ts
+============================================================
+
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { safeString } from "@/lib/pierre/utils";
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+export function makePierreServerSupabase(): SupabaseClient {
+  const url = getEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRole = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!url || !serviceRole) {
+    throw new Error("Supabase serveur non configuré.");
+  }
+
+  return createClient(url, serviceRole, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+export function getBearerTokenFromRequest(req: Request) {
+  const auth =
+    req.headers.get("authorization") ||
+    req.headers.get("Authorization") ||
+    "";
+
+  if (!auth.startsWith("Bearer ")) return "";
+  return auth.slice("Bearer ".length).trim();
+}
+
+export async function getAuthenticatedPierreUser(
+  req: Request,
+  supabase: SupabaseClient
+): Promise<{ error: string | null; user: User | null }> {
+  const token = safeString(getBearerTokenFromRequest(req));
+
+  if (!token) {
+    return { error: "Token manquant.", user: null };
+  }
+
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error || !data.user) {
+    return {
+      error: error?.message || "Utilisateur non authentifié.",
+      user: null,
+    };
+  }
+
+  return { error: null, user: data.user };
+}
+
+
+============================================================
+FILE: src\lib\pierre\guards.ts
+============================================================
+
+import {
+  PIERRE_BLOCKED_SCOPE_KEYWORDS,
+  PIERRE_VALIDATION_KEYWORDS,
+} from "./constants";
+import type { PierreCompanyMemoryLike, PierreTone } from "./types";
+
+function normalize(input: string): string {
+  return input
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+export function pierreTextIncludesAny(text: string, needles: readonly string[]): boolean {
+  const normalized = normalize(text);
+  return needles.some((needle) => normalized.includes(normalize(needle)));
+}
+
+export function pierreNeedsHumanValidation(text: string): boolean {
+  return pierreTextIncludesAny(text, PIERRE_VALIDATION_KEYWORDS);
+}
+
+export function pierreIsBlockedRequest(text: string): boolean {
+  return pierreTextIncludesAny(text, PIERRE_BLOCKED_SCOPE_KEYWORDS);
+}
+
+export function pierreResolvePreferredTone(
+  companyMemory?: PierreCompanyMemoryLike | null
+): PierreTone {
+  const tone = String(companyMemory?.tone ?? "").toLowerCase().trim();
+
+  switch (tone) {
+    case "professional":
+    case "neutral":
+    case "human":
+    case "warm":
+    case "direct":
+    case "firm":
+    case "formal":
+      return tone;
+    default:
+      return "professional";
+  }
+}
+
+
+============================================================
+FILE: src\lib\pierre\logs.ts
+============================================================
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { PierreTaskLogInsert } from "@/lib/pierre/types";
+
+export async function insertPierreLogs(
+  supabase: SupabaseClient,
+  rows: PierreTaskLogInsert[]
+) {
+  if (!rows.length) return;
+
+  const { error } = await supabase.from("pierre_task_logs").insert(rows);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function insertPierreMissionCreatedLog(
+  supabase: SupabaseClient,
+  input: {
+    missionId: string;
+    userId: string;
+    source: string;
+    understandingStatus: string;
+    riskLevel: string;
+    approvalRequired: boolean;
+  }
+) {
+  await insertPierreLogs(supabase, [
+    {
+      mission_id: input.missionId,
+      task_id: null,
+      user_id: input.userId,
+      agent_slug: "pierre",
+      event_type: "mission_created",
+      message: "Mission Pierre créée.",
+      meta_json: {
+        source: input.source,
+        understanding_status: input.understandingStatus,
+        risk_level: input.riskLevel,
+        approval_required: input.approvalRequired,
+      },
+    },
+  ]);
+}
+
+export async function insertPierreTaskCreatedLogs(
+  supabase: SupabaseClient,
+  input: {
+    missionId: string;
+    userId: string;
+    tasks: Array<{
+      id: string;
+      type: string;
+      title: string;
+      status: string;
+      approval_required?: boolean;
+      execute_at?: string | null;
+    }>;
+  }
+) {
+  if (!input.tasks.length) return;
+
+  await insertPierreLogs(
+    supabase,
+    input.tasks.map((task) => ({
+      mission_id: input.missionId,
+      task_id: task.id,
+      user_id: input.userId,
+      agent_slug: "pierre",
+      event_type: "task_created",
+      message: `Task créée : ${task.title}`,
+      meta_json: {
+        type: task.type,
+        status: task.status,
+        approval_required: Boolean(task.approval_required),
+        execute_at: task.execute_at || null,
+      },
+    }))
+  );
+}
+
+export async function insertPierreTaskStatusLog(
+  supabase: SupabaseClient,
+  input: {
+    missionId: string | null;
+    taskId: string;
+    userId: string;
+    eventType: string;
+    message: string;
+    meta?: Record<string, unknown>;
+  }
+) {
+  await insertPierreLogs(supabase, [
+    {
+      mission_id: input.missionId,
+      task_id: input.taskId,
+      user_id: input.userId,
+      agent_slug: "pierre",
+      event_type: input.eventType,
+      message: input.message,
+      meta_json: input.meta || {},
+    },
+  ]);
+}
+
+
+============================================================
+FILE: src\lib\pierre\memory.ts
+============================================================
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import { safeString } from "@/lib/pierre/utils";
+
+export type PierreCompanyMemoryRow = {
+  id?: string;
+  user_id: string;
+  agent_slug: "pierre";
+  memory_json: Record<string, unknown>;
+  created_at?: string;
+  updated_at?: string;
+};
+
+type GenericRecord = Record<string, unknown>;
+
+function isPlainObject(value: unknown): value is GenericRecord {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function sanitizeString(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return trimmed.length > 5000 ? trimmed.slice(0, 5000) : trimmed;
+}
+
+function sanitizeArray(input: unknown[], depth: number): unknown[] {
+  return input
+    .slice(0, 100)
+    .map((item) => sanitizePierreMemoryValue(item, depth + 1))
+    .filter((item) => item !== undefined);
+}
+
+function sanitizeObject(input: GenericRecord, depth: number): GenericRecord {
+  const output: GenericRecord = {};
+
+  for (const [key, value] of Object.entries(input).slice(0, 200)) {
+    const cleanKey = safeString(key);
+    if (!cleanKey) continue;
+
+    const cleanValue = sanitizePierreMemoryValue(value, depth + 1);
+
+    if (cleanValue !== undefined) {
+      output[cleanKey] = cleanValue;
+    }
+  }
+
+  return output;
+}
+
+export function sanitizePierreMemoryValue(
+  value: unknown,
+  depth = 0
+): unknown {
+  if (depth > 8) return undefined;
+
+  if (value === null) return null;
+
+  if (typeof value === "string") {
+    const clean = sanitizeString(value);
+    return clean || "";
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : undefined;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return sanitizeArray(value, depth);
+  }
+
+  if (isPlainObject(value)) {
+    return sanitizeObject(value, depth);
+  }
+
+  return undefined;
+}
+
+export function sanitizePierreMemoryPatch(
+  patch: Record<string, unknown>
+): Record<string, unknown> {
+  return sanitizeObject(patch, 0);
+}
+
+export function deepMergePierreMemory(
+  base: Record<string, unknown>,
+  patch: Record<string, unknown>
+): Record<string, unknown> {
+  const output: Record<string, unknown> = { ...base };
+
+  for (const [key, patchValue] of Object.entries(patch)) {
+    const baseValue = output[key];
+
+    if (isPlainObject(baseValue) && isPlainObject(patchValue)) {
+      output[key] = deepMergePierreMemory(baseValue, patchValue);
+      continue;
+    }
+
+    output[key] = patchValue;
+  }
+
+  return output;
+}
+
+export async function getPierreCompanyMemory(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<PierreCompanyMemoryRow | null> {
+  const { data, error } = await supabase
+    .from("pierre_company_memory")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data as PierreCompanyMemoryRow | null) || null;
+}
+
+export async function upsertPierreCompanyMemory(
+  supabase: SupabaseClient,
+  input: {
+    userId: string;
+    patch: Record<string, unknown>;
+    mode?: "merge" | "replace";
+  }
+): Promise<PierreCompanyMemoryRow> {
+  const existing = await getPierreCompanyMemory(supabase, input.userId);
+
+  const cleanPatch = sanitizePierreMemoryPatch(input.patch);
+  const mode = input.mode || "merge";
+
+  const nextMemory =
+    mode === "replace"
+      ? cleanPatch
+      : deepMergePierreMemory(existing?.memory_json || {}, cleanPatch);
+
+  if (existing?.id) {
+    const { data, error } = await supabase
+      .from("pierre_company_memory")
+      .update({
+        memory_json: nextMemory,
+      })
+      .eq("id", existing.id)
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      throw new Error(
+        error?.message || "Impossible de mettre à jour la mémoire entreprise Pierre."
+      );
+    }
+
+    return data as PierreCompanyMemoryRow;
+  }
+
+  const { data, error } = await supabase
+    .from("pierre_company_memory")
+    .insert({
+      user_id: input.userId,
+      agent_slug: "pierre",
+      memory_json: nextMemory,
+    })
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    throw new Error(
+      error?.message || "Impossible de créer la mémoire entreprise Pierre."
+    );
+  }
+
+  return data as PierreCompanyMemoryRow;
+}
+
+export function buildPierreDefaultMemoryShape(
+  existing?: Record<string, unknown> | null
+) {
+  const base = existing || {};
+
+  return deepMergePierreMemory(
+    {
+      company_profile: {
+        company_name: "",
+        sector: "",
+        country: "France",
+        language: "fr",
+      },
+      email: {
+        sender_name: "Pierre",
+        sender_local_part: "pierre",
+        sender_email: "",
+        reply_to: "",
+        sending_domain: "",
+        provider_mode: "gateway",
+        provider_url: "",
+        provider_secret: "",
+        provider_api_key: "",
+      },
+      hr_preferences: {
+        default_tone: "professionnel",
+        signature_name: "Pierre",
+        approval_policy: "sensitive_only",
+      },
+      legal_preferences: {
+        contract_language: "fr",
+        require_human_validation_for_sensitive_actions: true,
+      },
+    },
+    base
+  );
+}
+
+
+============================================================
+FILE: src\lib\pierre\utils.ts
+============================================================
+
+export function safeString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export function normalizeSpaces(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+export function clampNumber(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+export function detectEmailInText(input: string) {
+  const match = input.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi);
+  return match?.[0] || "";
+}
+
+export function containsAny(text: string, needles: string[]) {
+  const lower = text.toLowerCase();
+  return needles.some((needle) => lower.includes(needle.toLowerCase()));
+}
+
+export function buildJsonResponse<T extends Record<string, unknown>>(status: number, body: T) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+
+============================================================
+FILE: src\lib\pierre-email-identity.ts
+============================================================
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export type PierreOnboardingRow = {
+  id?: string;
+  user_id: string;
+  agent_slug: "pierre" | string;
+
+  company_name: string;
+  legal_company_name: string;
+  company_email_domain: string;
+  company_website: string;
+  company_phone: string;
+  company_address: string;
+  company_city: string;
+  company_postal_code: string;
+  company_country: string;
+  company_siren: string;
+  company_size: string;
+  company_industry: string;
+  company_description: string;
+
+  contact_first_name: string;
+  contact_last_name: string;
+  contact_job_title: string;
+  contact_email: string;
+  contact_phone: string;
+
+  hr_team_size: string;
+  recruitment_volume: string;
+  main_hr_needs: string;
+  typical_document_types: string;
+  usual_tone: string;
+  preferred_language: string;
+  signature_name: string;
+  signature_job_title: string;
+  signature_email: string;
+  signature_phone: string;
+  default_email_footer: string;
+
+  sender_mode: string;
+  sender_email_requested: string;
+  sender_email_effective: string;
+  reply_to_email: string;
+  sender_status: string;
+  domain_status: string;
+  domain_name: string;
+  postmark_domain_id: string;
+  postmark_signature_id: string;
+
+  legal_mentions: string;
+  confidentiality_notes: string;
+  forbidden_words: string;
+  mandatory_words: string;
+  internal_policy_notes: string;
+
+  onboarding_completed: boolean;
+  onboarding_completed_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type PierreResolvedEmailIdentity = {
+  from: string;
+  replyTo: string;
+  senderMode: "client_verified" | "clonestore_fallback";
+  senderStatus: string;
+  domainStatus: string;
+  requestedFrom: string;
+  effectiveFrom: string;
+  domainName: string;
+  onboardingCompleted: boolean;
+  companyName: string;
+  contactEmail: string;
+};
+
+const CLONESTORE_FALLBACK_FROM = "clonestore@clonestore.pro";
+
+function safeString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeDomain(value: string): string {
+  return safeString(value)
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split("/")[0]
+    .trim();
+}
+
+function domainFromEmail(email: string): string {
+  const normalized = safeString(email).toLowerCase();
+  if (!normalized.includes("@")) return "";
+  return normalized.split("@")[1].trim();
+}
+
+function isVerifiedDomain(row: Partial<PierreOnboardingRow> | null | undefined): boolean {
+  return safeString(row?.domain_status).toLowerCase() === "verified";
+}
+
+function hasRequestedSender(row: Partial<PierreOnboardingRow> | null | undefined): boolean {
+  return safeString(row?.sender_email_requested).includes("@");
+}
+
+function buildReplyTo(row: Partial<PierreOnboardingRow> | null | undefined): string {
+  return (
+    safeString(row?.reply_to_email) ||
+    safeString(row?.contact_email) ||
+    safeString(row?.signature_email) ||
+    ""
+  );
+}
+
+function buildDomainName(row: Partial<PierreOnboardingRow> | null | undefined): string {
+  return (
+    normalizeDomain(safeString(row?.domain_name)) ||
+    domainFromEmail(safeString(row?.sender_email_requested)) ||
+    normalizeDomain(safeString(row?.company_email_domain)) ||
+    normalizeDomain(safeString(row?.company_website)) ||
+    ""
+  );
+}
+
+export function resolvePierreEmailIdentity(
+  row: Partial<PierreOnboardingRow> | null | undefined
+): PierreResolvedEmailIdentity {
+  const requestedFrom = safeString(row?.sender_email_requested).toLowerCase();
+  const explicitEffective = safeString(row?.sender_email_effective).toLowerCase();
+  const replyTo = buildReplyTo(row);
+  const domainName = buildDomainName(row);
+  const onboardingCompleted = row?.onboarding_completed === true;
+  const companyName = safeString(row?.company_name);
+  const contactEmail = safeString(row?.contact_email);
+  const senderStatus = safeString(row?.sender_status) || "draft";
+  const domainStatus = safeString(row?.domain_status) || "not_started";
+
+  if (isVerifiedDomain(row) && hasRequestedSender(row)) {
+    return {
+      from: requestedFrom,
+      replyTo,
+      senderMode: "client_verified",
+      senderStatus,
+      domainStatus,
+      requestedFrom,
+      effectiveFrom: requestedFrom,
+      domainName,
+      onboardingCompleted,
+      companyName,
+      contactEmail,
+    };
+  }
+
+  return {
+    from: explicitEffective || CLONESTORE_FALLBACK_FROM,
+    replyTo,
+    senderMode: "clonestore_fallback",
+    senderStatus,
+    domainStatus,
+    requestedFrom,
+    effectiveFrom: explicitEffective || CLONESTORE_FALLBACK_FROM,
+    domainName,
+    onboardingCompleted,
+    companyName,
+    contactEmail,
+  };
+}
+
+export async function getPierreOnboardingByUserId(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{
+  row: PierreOnboardingRow | null;
+  error: string | null;
+}> {
+  const { data, error } = await supabase
+    .from("agent_onboarding_pierre")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .maybeSingle();
+
+  if (error) {
+    return {
+      row: null,
+      error: error.message,
+    };
+  }
+
+  return {
+    row: (data as PierreOnboardingRow | null) || null,
+    error: null,
+  };
+}
+
+export async function getResolvedPierreEmailIdentity(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{
+  identity: PierreResolvedEmailIdentity;
+  onboarding: PierreOnboardingRow | null;
+  error: string | null;
+}> {
+  const { row, error } = await getPierreOnboardingByUserId(supabase, userId);
+
+  if (error) {
+    return {
+      identity: resolvePierreEmailIdentity(null),
+      onboarding: null,
+      error,
+    };
+  }
+
+  return {
+    identity: resolvePierreEmailIdentity(row),
+    onboarding: row,
+    error: null,
+  };
+}
+
+export function buildPierreEmailMetadata(
+  identity: PierreResolvedEmailIdentity
+): Record<string, unknown> {
+  return {
+    sender_mode: identity.senderMode,
+    sender_status: identity.senderStatus,
+    domain_status: identity.domainStatus,
+    requested_from: identity.requestedFrom,
+    effective_from: identity.effectiveFrom,
+    reply_to: identity.replyTo,
+    domain_name: identity.domainName,
+    onboarding_completed: identity.onboardingCompleted,
+    company_name: identity.companyName,
+    contact_email: identity.contactEmail,
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\docTypes.ts
+============================================================
+
+// src/lib/pierre/docTypes.ts
+
+export const PIERRE_SCHEMA_VERSION = "1.0" as const;
+
+export const PierreTone = {
+  PRO: "pro",
+  CONVIVIAL: "convivial",
+} as const;
+
+export type PierreTone = (typeof PierreTone)[keyof typeof PierreTone];
+
+export const PierreDocType = {
+  JOB_OFFER: "JOB_OFFER",
+  JOB_DESCRIPTION: "JOB_DESCRIPTION",
+
+  CANDIDATE_EMAIL_REJECTION: "CANDIDATE_EMAIL_REJECTION",
+  CANDIDATE_EMAIL_INVITE: "CANDIDATE_EMAIL_INVITE",
+  CANDIDATE_EMAIL_FOLLOWUP: "CANDIDATE_EMAIL_FOLLOWUP",
+  CANDIDATE_EMAIL_ONBOARDING: "CANDIDATE_EMAIL_ONBOARDING",
+
+  INTERVIEW_SCORECARD: "INTERVIEW_SCORECARD",
+  INTERVIEW_REPORT: "INTERVIEW_REPORT",
+
+  PLAN_30_60_90: "PLAN_30_60_90",
+  INTERNAL_PROCEDURE: "INTERNAL_PROCEDURE",
+
+  UNKNOWN: "UNKNOWN",
+} as const;
+
+export type PierreDocType = (typeof PierreDocType)[keyof typeof PierreDocType];
+
+export const PIERRE_CONFIDENCE_THRESHOLD = 0.72;
+export const PIERRE_DEFAULT_LANGUAGE = "fr-FR" as const;
+
+// Ton par défaut (si onboarding pas renseigné)
+export const PIERRE_DEFAULT_TONE: PierreTone = PierreTone.PRO;
+
+
+
+============================================================
+FILE: src\lib\pierre\requiredFields.ts
+============================================================
+
+import { PierreDocType } from "./docTypes";
+
+export const requiredFieldsByDocType = {
+  [PierreDocType.CANDIDATE_EMAIL_REJECTION]: [
+    "candidate_name",
+    "job_title"
+  ],
+  [PierreDocType.CANDIDATE_EMAIL_INVITE]: [
+    "candidate_name",
+    "job_title",
+    "interview_date",
+    "interview_time",
+    "interview_location"
+  ],
+  [PierreDocType.CANDIDATE_EMAIL_FOLLOWUP]: [
+    "candidate_name",
+    "job_title"
+  ],
+  [PierreDocType.CANDIDATE_EMAIL_ONBOARDING]: [
+    "candidate_name",
+    "job_title",
+    "start_date"
+  ],
+};
+
+
+============================================================
+FILE: src\lib\pierre\mission\interpret.ts
+============================================================
+
+import {
+  classifyMission,
+  type PierreMissionClassification,
+} from "./classify";
+
+export type PierreMissionRiskLevel = "normal" | "sensitive" | "critical";
+export type PierreMissionTaskStatus =
+  | "pending"
+  | "queued"
+  | "scheduled"
+  | "awaiting_info"
+  | "awaiting_approval"
+  | "blocked";
+
+export type PierreMissionTaskDraft = {
+  type: string;
+  title: string;
+  description: string;
+  status: PierreMissionTaskStatus;
+  approval_required: boolean;
+  risk_level: PierreMissionRiskLevel;
+  scheduled_for: string | null;
+  payload: Record<string, unknown>;
+};
+
+export type PierreMissionInterpretInput = {
+  input: string;
+  context?: string | null;
+};
+
+export type PierreMissionInterpretation = {
+  intent: string;
+  classification: PierreMissionClassification;
+  summary: string;
+  language: string;
+  tone: string;
+  risk_level: PierreMissionRiskLevel;
+  approval_required: boolean;
+  missing_info: string[];
+  missing_info_questions: string[];
+  refusals: string[];
+  tasks: PierreMissionTaskDraft[];
+  confidence: number;
+  explainability: {
+    classification_reasons: string[];
+    matched_signals: string[];
+  };
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function corpus(input: PierreMissionInterpretInput): string {
+  return normalizeText([input.input, input.context || ""].filter(Boolean).join("\n"));
+}
+
+function detectLanguage(value: string): string {
+  const lower = value.toLowerCase();
+  const englishSignals = [
+    "candidate",
+    "interview",
+    "job offer",
+    "follow up",
+    "please",
+    "draft",
+    "recruitment",
+    "hiring",
+  ];
+
+  const hits = englishSignals.filter((signal) => lower.includes(signal)).length;
+  return hits >= 2 ? "en" : "fr";
+}
+
+function detectTone(value: string): string {
+  const lower = value.toLowerCase();
+
+  if (
+    lower.includes("ferme") ||
+    lower.includes("strict") ||
+    lower.includes("recadr") ||
+    lower.includes("formal warning")
+  ) {
+    return "ferme";
+  }
+
+  if (
+    lower.includes("humain") ||
+    lower.includes("bienveillant") ||
+    lower.includes("chaleureux")
+  ) {
+    return "humain";
+  }
+
+  if (
+    lower.includes("direct") ||
+    lower.includes("court") ||
+    lower.includes("concis")
+  ) {
+    return "direct";
+  }
+
+  return "professionnel";
+}
+
+function detectIntent(value: string): string {
+  const lower = value.toLowerCase();
+
+  if (
+    lower.includes("envoie") ||
+    lower.includes("envoyer") ||
+    lower.includes("send")
+  ) {
+    return "execute_rh_action";
+  }
+
+  if (
+    lower.includes("prepare") ||
+    lower.includes("prépare") ||
+    lower.includes("redige") ||
+    lower.includes("rédige") ||
+    lower.includes("draft")
+  ) {
+    return "prepare_rh_deliverable";
+  }
+
+  if (
+    lower.includes("programme") ||
+    lower.includes("planifie") ||
+    lower.includes("schedule")
+  ) {
+    return "schedule_rh_action";
+  }
+
+  if (lower.includes("relance") || lower.includes("follow up")) {
+    return "follow_up_rh_action";
+  }
+
+  return "structure_rh_mission";
+}
+
+function detectRisk(
+  text: string,
+  classification: PierreMissionClassification,
+): PierreMissionRiskLevel {
+  const lower = text.toLowerCase();
+
+  const criticalSignals = [
+    "licenciement",
+    "harcelement",
+    "harcèlement",
+    "contentieux",
+    "prud'hommes",
+    "discrimination",
+    "sanction disciplinaire",
+  ];
+
+  const sensitiveSignals = [
+    "avertissement",
+    "mise a pied",
+    "mise à pied",
+    "conflit",
+    "absence injustifiee",
+    "absence injustifiée",
+    "salaire",
+    "confidentiel",
+    "plainte",
+  ];
+
+  if (criticalSignals.some((signal) => lower.includes(signal))) return "critical";
+  if (sensitiveSignals.some((signal) => lower.includes(signal))) return "sensitive";
+  if (classification === "demande_sensible") return "sensitive";
+
+  return "normal";
+}
+
+function needsApproval(
+  value: string,
+  risk: PierreMissionRiskLevel,
+  classification: PierreMissionClassification,
+): boolean {
+  const lower = value.toLowerCase();
+
+  if (risk === "critical") return true;
+  if (classification === "demande_sensible") return true;
+
+  const approvalSignals = [
+    "apres validation",
+    "après validation",
+    "avant envoi",
+    "a valider",
+    "à valider",
+    "validation manager",
+    "validation humaine",
+  ];
+
+  return approvalSignals.some((signal) => lower.includes(signal)) || risk === "sensitive";
+}
+
+function detectScheduling(value: string): string | null {
+  const lower = value.toLowerCase();
+  const now = new Date();
+
+  if (lower.includes("demain")) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + 1);
+    date.setHours(9, 0, 0, 0);
+    return date.toISOString();
+  }
+
+  const hourMatch = lower.match(/\b(\d{1,2})h(\d{2})?\b/);
+  if (hourMatch) {
+    const date = new Date(now);
+    const hours = Number(hourMatch[1]);
+    const minutes = hourMatch[2] ? Number(hourMatch[2]) : 0;
+
+    if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+      date.setHours(hours, minutes, 0, 0);
+      if (date.getTime() < now.getTime()) {
+        date.setDate(date.getDate() + 1);
+      }
+      return date.toISOString();
+    }
+  }
+
+  return null;
+}
+
+function detectMissingInfo(
+  rawInput: string,
+  classification: PierreMissionClassification,
+): { missing: string[]; questions: string[] } {
+  const lower = rawInput.toLowerCase();
+  const missing: string[] = [];
+  const questions: string[] = [];
+
+  const hasPersonName =
+    /\b[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\s+[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\b/.test(
+      rawInput,
+    );
+  const hasEmail = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(rawInput);
+  const hasDate = /\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\b/.test(rawInput);
+  const hasHour = /\b\d{1,2}h(\d{2})?\b/i.test(rawInput);
+
+  if (classification === "convocation_entretien" && !hasDate) {
+    missing.push("Date d’entretien manquante");
+    questions.push("Quelle est la date exacte de l’entretien ?");
+  }
+
+  if (classification === "convocation_entretien" && !hasHour) {
+    missing.push("Horaire d’entretien manquant");
+    questions.push("À quelle heure doit avoir lieu l’entretien ?");
+  }
+
+  if (
+    (
+      classification === "refus_candidat" ||
+      classification === "relance_candidat" ||
+      classification === "onboarding" ||
+      classification === "convocation_entretien" ||
+      classification === "candidature"
+    ) &&
+    !hasPersonName
+  ) {
+    missing.push("Nom complet de la personne concernée manquant");
+    questions.push("Quel est le nom complet de la personne concernée ?");
+  }
+
+  if (
+    (
+      classification === "refus_candidat" ||
+      classification === "relance_candidat" ||
+      classification === "convocation_entretien"
+    ) &&
+    !hasEmail
+  ) {
+    missing.push("Adresse email destinataire manquante");
+    questions.push("Quelle est l’adresse email du destinataire ?");
+  }
+
+  if (classification === "offre_emploi" && !lower.includes("poste")) {
+    missing.push("Intitulé du poste absent ou insuffisant");
+    questions.push("Quel est l’intitulé exact du poste ?");
+  }
+
+  return { missing, questions };
+}
+
+function detectRefusals(
+  classification: PierreMissionClassification,
+  risk: PierreMissionRiskLevel,
+  value: string,
+): string[] {
+  const lower = value.toLowerCase();
+  const refusals: string[] = [];
+
+  if (classification === "hors_perimetre") {
+    refusals.push(
+      "Demande hors périmètre RH contrôlé de Pierre : prospection commerciale, marketing massif ou usage non RH.",
+    );
+  }
+
+  if (
+    risk === "critical" &&
+    (
+      lower.includes("decide seul") ||
+      lower.includes("sans validation") ||
+      lower.includes("envoie directement")
+    )
+  ) {
+    refusals.push(
+      "Pierre ne peut pas exécuter seul une action critique RH sans validation humaine explicite.",
+    );
+  }
+
+  if (
+    lower.includes("sanctionne") ||
+    lower.includes("licencie directement") ||
+    lower.includes("prends la decision juridique")
+  ) {
+    refusals.push(
+      "Pierre ne prend pas seul de décision disciplinaire ou juridique.",
+    );
+  }
+
+  return refusals;
+}
+
+function buildSummary(
+  rawInput: string,
+  classification: PierreMissionClassification,
+  risk: PierreMissionRiskLevel,
+): string {
+  const cleaned = rawInput.trim().replace(/\s+/g, " ");
+  const clipped = cleaned.length > 260 ? `${cleaned.slice(0, 257)}…` : cleaned;
+  return `Mission RH classée "${classification}" avec niveau de risque "${risk}". Demande structurée à partir de : ${clipped}`;
+}
+
+function buildTasks(params: {
+  rawInput: string;
+  interpretationBase: Omit<PierreMissionInterpretation, "tasks">;
+}): PierreMissionTaskDraft[] {
+  const { rawInput, interpretationBase } = params;
+  const lower = rawInput.toLowerCase();
+  const scheduledFor = detectScheduling(rawInput);
+  const tasks: PierreMissionTaskDraft[] = [];
+
+  const requiresDraftDocument =
+    interpretationBase.classification === "offre_emploi" ||
+    interpretationBase.classification === "convocation_entretien" ||
+    interpretationBase.classification === "refus_candidat" ||
+    interpretationBase.classification === "onboarding" ||
+    interpretationBase.classification === "note_rh" ||
+    interpretationBase.classification === "courrier_rh" ||
+    interpretationBase.classification === "compte_rendu" ||
+    interpretationBase.classification === "rappel_procedure";
+
+  if (requiresDraftDocument) {
+    tasks.push({
+      type: "generate_document",
+      title: "Produire le document RH",
+      description:
+        "Rédiger un livrable RH premium cohérent avec la demande, la langue, le ton et le niveau de risque détectés.",
+      status:
+        interpretationBase.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretationBase.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretationBase.approval_required,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        classification: interpretationBase.classification,
+        language: interpretationBase.language,
+        tone: interpretationBase.tone,
+      },
+    });
+  }
+
+  if (
+    lower.includes("mail") ||
+    lower.includes("email") ||
+    lower.includes("envoyer") ||
+    lower.includes("send") ||
+    interpretationBase.classification === "refus_candidat" ||
+    interpretationBase.classification === "convocation_entretien" ||
+    interpretationBase.classification === "relance_candidat" ||
+    interpretationBase.classification === "onboarding"
+  ) {
+    tasks.push({
+      type: "prepare_email",
+      title: "Préparer l’email RH",
+      description:
+        "Préparer un email traçable, clair et conforme au cadre RH de l’entreprise.",
+      status:
+        interpretationBase.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretationBase.approval_required
+            ? "awaiting_approval"
+            : scheduledFor
+              ? "scheduled"
+              : "queued",
+      approval_required: interpretationBase.approval_required,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        language: interpretationBase.language,
+        tone: interpretationBase.tone,
+        scheduled_for: scheduledFor,
+      },
+    });
+  }
+
+  if (
+    lower.includes("pdf") ||
+    lower.includes("piece jointe") ||
+    lower.includes("pièce jointe") ||
+    lower.includes("export")
+  ) {
+    tasks.push({
+      type: "generate_pdf",
+      title: "Préparer l’export PDF",
+      description:
+        "Générer un PDF propre à partir du document ou du contenu RH finalisé.",
+      status:
+        interpretationBase.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretationBase.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretationBase.approval_required,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+      },
+    });
+  }
+
+  if (
+    lower.includes("relance") ||
+    lower.includes("si pas de reponse") ||
+    lower.includes("si pas de réponse")
+  ) {
+    tasks.push({
+      type: "schedule_follow_up",
+      title: "Préparer une relance RH",
+      description:
+        "Programmer une relance propre et traçable si aucune réponse n’est obtenue.",
+      status:
+        interpretationBase.approval_required || interpretationBase.missing_info.length > 0
+          ? "awaiting_approval"
+          : "scheduled",
+      approval_required: true,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        conditional: true,
+      },
+    });
+  }
+
+  if (interpretationBase.missing_info.length > 0) {
+    tasks.push({
+      type: "request_missing_info",
+      title: "Demander les informations manquantes",
+      description:
+        "Bloquer l’exécution complète tant que les éléments indispensables ne sont pas fournis.",
+      status: "awaiting_info",
+      approval_required: false,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        missing_info: interpretationBase.missing_info,
+        questions: interpretationBase.missing_info_questions,
+      },
+    });
+  }
+
+  if (interpretationBase.refusals.length > 0) {
+    tasks.push({
+      type: "block_mission",
+      title: "Bloquer l’exécution",
+      description:
+        "Bloquer la mission car la demande sort du cadre autorisé ou requiert un arbitrage humain préalable.",
+      status: "blocked",
+      approval_required: true,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        refusals: interpretationBase.refusals,
+      },
+    });
+  }
+
+  if (tasks.length === 0) {
+    tasks.push({
+      type: "structure_mission",
+      title: "Structurer la mission RH",
+      description:
+        "Créer un cadre d’exécution RH exploitable à partir de la demande libre.",
+      status:
+        interpretationBase.missing_info.length > 0
+          ? "awaiting_info"
+          : interpretationBase.approval_required
+            ? "awaiting_approval"
+            : "queued",
+      approval_required: interpretationBase.approval_required,
+      risk_level: interpretationBase.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+      },
+    });
+  }
+
+  return tasks;
+}
+
+export function interpretMission(
+  input: PierreMissionInterpretInput,
+): PierreMissionInterpretation {
+  const rawInput = input.input.trim();
+  const fullCorpus = corpus(input);
+
+  const classificationResult = classifyMission({
+    input: rawInput,
+    context: input.context || null,
+  });
+
+  const language = detectLanguage(fullCorpus);
+  const tone = detectTone(fullCorpus);
+  const riskLevel = detectRisk(fullCorpus, classificationResult.classification);
+  const approvalRequired = needsApproval(
+    fullCorpus,
+    riskLevel,
+    classificationResult.classification,
+  );
+  const missingInfo = detectMissingInfo(rawInput, classificationResult.classification);
+  const refusals = detectRefusals(
+    classificationResult.classification,
+    riskLevel,
+    fullCorpus,
+  );
+  const summary = buildSummary(
+    rawInput,
+    classificationResult.classification,
+    riskLevel,
+  );
+  const intent = detectIntent(fullCorpus);
+
+  const interpretationBase: Omit<PierreMissionInterpretation, "tasks"> = {
+    intent,
+    classification: classificationResult.classification,
+    summary,
+    language,
+    tone,
+    risk_level: riskLevel,
+    approval_required: approvalRequired,
+    missing_info: missingInfo.missing,
+    missing_info_questions: missingInfo.questions,
+    refusals,
+    confidence: classificationResult.confidence,
+    explainability: {
+      classification_reasons: classificationResult.reasons,
+      matched_signals: classificationResult.matchedSignals,
+    },
+  };
+
+  return {
+    ...interpretationBase,
+    tasks: buildTasks({
+      rawInput,
+      interpretationBase,
+    }),
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\mission\classify.ts
+============================================================
+
+export type PierreMissionClassification =
+  | "recrutement"
+  | "candidature"
+  | "offre_emploi"
+  | "convocation_entretien"
+  | "refus_candidat"
+  | "relance_candidat"
+  | "onboarding"
+  | "communication_interne_rh"
+  | "rappel_procedure"
+  | "note_rh"
+  | "compte_rendu"
+  | "courrier_rh"
+  | "mission_suivi"
+  | "demande_sensible"
+  | "hors_perimetre"
+  | "mission_rh_generale";
+
+export type PierreClassifyInput = {
+  input: string;
+  context?: string | null;
+};
+
+export type PierreClassifyResult = {
+  classification: PierreMissionClassification;
+  confidence: number;
+  reasons: string[];
+  matchedSignals: string[];
+};
+
+type WeightedRule = {
+  classification: PierreMissionClassification;
+  signals: string[];
+  weight: number;
+  reason: string;
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function buildCorpus(input: PierreClassifyInput): string {
+  return normalizeText([input.input, input.context || ""].filter(Boolean).join("\n"));
+}
+
+const RULES: WeightedRule[] = [
+  {
+    classification: "offre_emploi",
+    signals: ["offre d'emploi", "job offer", "fiche de poste", "poste a pourvoir", "annonce"],
+    weight: 12,
+    reason: "Le texte évoque une création ou rédaction d’offre de poste.",
+  },
+  {
+    classification: "convocation_entretien",
+    signals: ["convocation", "entretien", "rdv candidat", "invite a un entretien", "invitation entretien"],
+    weight: 12,
+    reason: "Le texte porte sur un entretien ou une convocation.",
+  },
+  {
+    classification: "refus_candidat",
+    signals: ["refus", "rejet candidature", "candidature non retenue", "candidate rejected"],
+    weight: 12,
+    reason: "Le texte porte sur un refus candidat.",
+  },
+  {
+    classification: "relance_candidat",
+    signals: ["relance", "follow up", "pas de reponse", "aucune reponse", "recontacter le candidat"],
+    weight: 10,
+    reason: "Le texte décrit une logique de relance ou de suivi candidat.",
+  },
+  {
+    classification: "onboarding",
+    signals: ["onboarding", "integration", "bienvenue", "arrivee du collaborateur", "parcours d'integration"],
+    weight: 11,
+    reason: "Le texte traite de l’intégration d’un salarié.",
+  },
+  {
+    classification: "note_rh",
+    signals: ["note rh", "note interne", "note au personnel", "memo rh", "memo interne"],
+    weight: 10,
+    reason: "Le texte vise une note RH ou interne.",
+  },
+  {
+    classification: "rappel_procedure",
+    signals: ["procedure", "rappel de procedure", "consigne", "respect du processus", "processus interne"],
+    weight: 10,
+    reason: "Le texte vise un rappel de procédure.",
+  },
+  {
+    classification: "compte_rendu",
+    signals: ["compte rendu", "compte-rendu", "synthese d'entretien", "resume entretien", "minutes"],
+    weight: 10,
+    reason: "Le texte demande un compte rendu ou une synthèse.",
+  },
+  {
+    classification: "courrier_rh",
+    signals: ["courrier", "lettre", "notification", "document officiel", "courrier salarie"],
+    weight: 9,
+    reason: "Le texte demande un courrier RH.",
+  },
+  {
+    classification: "communication_interne_rh",
+    signals: ["communication interne", "message equipe", "annonce interne", "communication rh"],
+    weight: 8,
+    reason: "Le texte vise une communication RH interne.",
+  },
+  {
+    classification: "mission_suivi",
+    signals: ["suivi", "timeline", "rappel", "faire le point", "pilotage", "monitoring"],
+    weight: 8,
+    reason: "Le texte est orienté suivi opérationnel.",
+  },
+  {
+    classification: "demande_sensible",
+    signals: [
+      "avertissement",
+      "mise a pied",
+      "conflit",
+      "harcelement",
+      "sanction disciplinaire",
+      "absence injustifiee",
+      "contentieux",
+      "plainte",
+    ],
+    weight: 14,
+    reason: "Le texte contient des signaux RH sensibles.",
+  },
+  {
+    classification: "recrutement",
+    signals: ["recrutement", "recruter", "candidat", "pipeline candidat", "shortlist", "sourcing"],
+    weight: 7,
+    reason: "Le texte se situe dans un cadre recrutement.",
+  },
+  {
+    classification: "candidature",
+    signals: ["candidature", "cv", "profil candidat", "postulation", "dossier candidat"],
+    weight: 7,
+    reason: "Le texte est centré sur une candidature.",
+  },
+  {
+    classification: "hors_perimetre",
+    signals: ["prospection commerciale", "cold email", "vente", "marketing massif", "campagne publicitaire"],
+    weight: 16,
+    reason: "Le texte sort du périmètre RH contrôlé de Pierre.",
+  },
+];
+
+export function classifyMission(
+  input: PierreClassifyInput,
+): PierreClassifyResult {
+  const corpus = buildCorpus(input);
+
+  const scoreMap = new Map<PierreMissionClassification, number>();
+  const reasonsMap = new Map<PierreMissionClassification, string[]>();
+  const signalsMap = new Map<PierreMissionClassification, string[]>();
+
+  for (const rule of RULES) {
+    const matchedSignals = rule.signals.filter((signal) =>
+      corpus.includes(normalizeText(signal)),
+    );
+
+    if (matchedSignals.length === 0) continue;
+
+    const signalScore = rule.weight * matchedSignals.length;
+    scoreMap.set(
+      rule.classification,
+      (scoreMap.get(rule.classification) || 0) + signalScore,
+    );
+
+    reasonsMap.set(rule.classification, [
+      ...(reasonsMap.get(rule.classification) || []),
+      rule.reason,
+    ]);
+
+    signalsMap.set(rule.classification, [
+      ...(signalsMap.get(rule.classification) || []),
+      ...matchedSignals,
+    ]);
+  }
+
+  if (scoreMap.size === 0) {
+    return {
+      classification: "mission_rh_generale",
+      confidence: 0.42,
+      reasons: [
+        "Aucun signal métier fort n’a dominé. La mission reste dans un cadre RH générique.",
+      ],
+      matchedSignals: [],
+    };
+  }
+
+  const ranked = [...scoreMap.entries()].sort((a, b) => b[1] - a[1]);
+  const [bestClassification, bestScore] = ranked[0];
+  const secondScore = ranked[1]?.[1] || 0;
+
+  let confidence = 0.55 + Math.min(0.4, (bestScore - secondScore) / 30);
+  confidence = Math.max(0.5, Math.min(0.97, confidence));
+
+  return {
+    classification: bestClassification,
+    confidence: Number(confidence.toFixed(2)),
+    reasons: [...new Set(reasonsMap.get(bestClassification) || [])],
+    matchedSignals: [...new Set(signalsMap.get(bestClassification) || [])],
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\mission\build-tasks.ts
+============================================================
+
+import type {
+  PierreMissionClassification,
+} from "./classify";
+import type {
+  PierreMissionRiskLevel,
+} from "./risk";
+
+export type PierreMissionTaskStatus =
+  | "pending"
+  | "queued"
+  | "scheduled"
+  | "awaiting_info"
+  | "awaiting_approval"
+  | "blocked";
+
+export type PierreMissionTaskDraft = {
+  type: string;
+  title: string;
+  description: string;
+  status: PierreMissionTaskStatus;
+  approval_required: boolean;
+  risk_level: PierreMissionRiskLevel;
+  scheduled_for: string | null;
+  payload: Record<string, unknown>;
+};
+
+export type PierreBuildTasksInput = {
+  rawInput: string;
+  classification: PierreMissionClassification;
+  language: string;
+  tone: string;
+  risk_level: PierreMissionRiskLevel;
+  approval_required: boolean;
+  missing_info: string[];
+  missing_info_questions: string[];
+  refusals?: string[];
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function detectScheduling(value: string): string | null {
+  const lower = value.toLowerCase();
+  const now = new Date();
+
+  if (lower.includes("demain")) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + 1);
+    date.setHours(9, 0, 0, 0);
+    return date.toISOString();
+  }
+
+  const hourMatch = lower.match(/\b(\d{1,2})h(\d{2})?\b/);
+  if (hourMatch) {
+    const date = new Date(now);
+    const hours = Number(hourMatch[1]);
+    const minutes = hourMatch[2] ? Number(hourMatch[2]) : 0;
+
+    if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+      date.setHours(hours, minutes, 0, 0);
+      if (date.getTime() < now.getTime()) {
+        date.setDate(date.getDate() + 1);
+      }
+      return date.toISOString();
+    }
+  }
+
+  if (
+    lower.includes("plus tard aujourd'hui") ||
+    lower.includes("plus tard aujourd hui")
+  ) {
+    const date = new Date(now);
+    date.setHours(Math.max(now.getHours() + 2, 16), 0, 0, 0);
+    return date.toISOString();
+  }
+
+  return null;
+}
+
+function baseStatus(params: {
+  missingInfoCount: number;
+  approvalRequired: boolean;
+  scheduledFor: string | null;
+  blocked: boolean;
+}): PierreMissionTaskStatus {
+  if (params.blocked) return "blocked";
+  if (params.missingInfoCount > 0) return "awaiting_info";
+  if (params.approvalRequired) return "awaiting_approval";
+  if (params.scheduledFor) return "scheduled";
+  return "queued";
+}
+
+function classificationNeedsDocument(
+  classification: PierreMissionClassification,
+): boolean {
+  return [
+    "offre_emploi",
+    "convocation_entretien",
+    "refus_candidat",
+    "onboarding",
+    "note_rh",
+    "rappel_procedure",
+    "compte_rendu",
+    "courrier_rh",
+    "communication_interne_rh",
+  ].includes(classification);
+}
+
+function classificationNeedsEmail(
+  classification: PierreMissionClassification,
+): boolean {
+  return [
+    "convocation_entretien",
+    "refus_candidat",
+    "relance_candidat",
+    "onboarding",
+    "communication_interne_rh",
+  ].includes(classification);
+}
+
+function classificationCanGeneratePdf(
+  classification: PierreMissionClassification,
+): boolean {
+  return [
+    "offre_emploi",
+    "convocation_entretien",
+    "refus_candidat",
+    "onboarding",
+    "note_rh",
+    "courrier_rh",
+    "compte_rendu",
+  ].includes(classification);
+}
+
+function buildDocumentTitle(
+  classification: PierreMissionClassification,
+): string {
+  switch (classification) {
+    case "offre_emploi":
+      return "Produire l’offre d’emploi";
+    case "convocation_entretien":
+      return "Rédiger la convocation d’entretien";
+    case "refus_candidat":
+      return "Rédiger le refus candidat";
+    case "onboarding":
+      return "Préparer le document d’onboarding";
+    case "note_rh":
+      return "Rédiger la note RH";
+    case "rappel_procedure":
+      return "Rédiger le rappel de procédure";
+    case "compte_rendu":
+      return "Rédiger le compte rendu";
+    case "courrier_rh":
+      return "Rédiger le courrier RH";
+    case "communication_interne_rh":
+      return "Rédiger la communication RH interne";
+    default:
+      return "Produire le document RH";
+  }
+}
+
+function buildDocumentDescription(
+  classification: PierreMissionClassification,
+): string {
+  switch (classification) {
+    case "offre_emploi":
+      return "Créer une offre d’emploi claire, crédible, structurée et alignée avec le ton de l’entreprise.";
+    case "convocation_entretien":
+      return "Rédiger une convocation d’entretien propre, lisible, précise et professionnelle.";
+    case "refus_candidat":
+      return "Rédiger un refus candidat respectueux, humain et traçable.";
+    case "onboarding":
+      return "Préparer un document d’intégration clair, opérationnel et rassurant.";
+    case "note_rh":
+      return "Structurer une note RH propre et facilement diffusable.";
+    case "rappel_procedure":
+      return "Rédiger un rappel de procédure clair, ferme si nécessaire, et compréhensible.";
+    case "compte_rendu":
+      return "Formaliser un compte rendu RH exploitable, propre et traçable.";
+    case "courrier_rh":
+      return "Rédiger un courrier RH formel, cohérent et maîtrisé.";
+    case "communication_interne_rh":
+      return "Préparer une communication interne RH claire et bien cadrée.";
+    default:
+      return "Produire un livrable RH premium à partir de la mission libre.";
+  }
+}
+
+function buildEmailTitle(
+  classification: PierreMissionClassification,
+): string {
+  switch (classification) {
+    case "convocation_entretien":
+      return "Préparer l’email de convocation";
+    case "refus_candidat":
+      return "Préparer l’email de refus";
+    case "relance_candidat":
+      return "Préparer l’email de relance";
+    case "onboarding":
+      return "Préparer l’email d’onboarding";
+    case "communication_interne_rh":
+      return "Préparer l’email de communication interne";
+    default:
+      return "Préparer l’email RH";
+  }
+}
+
+function buildEmailDescription(
+  classification: PierreMissionClassification,
+): string {
+  switch (classification) {
+    case "convocation_entretien":
+      return "Préparer un email clair de convocation d’entretien avec les informations pratiques nécessaires.";
+    case "refus_candidat":
+      return "Préparer un email de refus candidat propre, respectueux et cohérent avec l’image de l’entreprise.";
+    case "relance_candidat":
+      return "Préparer un email de relance RH clair, poli et actionnable.";
+    case "onboarding":
+      return "Préparer un email d’intégration structuré et rassurant.";
+    case "communication_interne_rh":
+      return "Préparer un email interne RH lisible et directement diffusable.";
+    default:
+      return "Préparer un email RH traçable, cohérent et contrôlable.";
+  }
+}
+
+export function buildMissionTasks(
+  input: PierreBuildTasksInput,
+): PierreMissionTaskDraft[] {
+  const lower = normalizeText(input.rawInput);
+  const scheduledFor = detectScheduling(input.rawInput);
+  const refusals = input.refusals || [];
+
+  const tasks: PierreMissionTaskDraft[] = [];
+
+  const blockedByRefusal = refusals.length > 0;
+  const commonStatus = baseStatus({
+    missingInfoCount: input.missing_info.length,
+    approvalRequired: input.approval_required,
+    scheduledFor,
+    blocked: blockedByRefusal,
+  });
+
+  if (classificationNeedsDocument(input.classification)) {
+    tasks.push({
+      type: "generate_document",
+      title: buildDocumentTitle(input.classification),
+      description: buildDocumentDescription(input.classification),
+      status: commonStatus,
+      approval_required: input.approval_required,
+      risk_level: input.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        classification: input.classification,
+        language: input.language,
+        tone: input.tone,
+      },
+    });
+  }
+
+  if (
+    classificationNeedsEmail(input.classification) ||
+    lower.includes("email") ||
+    lower.includes("mail") ||
+    lower.includes("envoyer") ||
+    lower.includes("send")
+  ) {
+    tasks.push({
+      type: "prepare_email",
+      title: buildEmailTitle(input.classification),
+      description: buildEmailDescription(input.classification),
+      status: commonStatus === "queued" && scheduledFor ? "scheduled" : commonStatus,
+      approval_required: input.approval_required,
+      risk_level: input.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        classification: input.classification,
+        language: input.language,
+        tone: input.tone,
+        scheduled_for: scheduledFor,
+      },
+    });
+  }
+
+  if (
+    classificationCanGeneratePdf(input.classification) ||
+    lower.includes("pdf") ||
+    lower.includes("export") ||
+    lower.includes("piece jointe") ||
+    lower.includes("pièce jointe")
+  ) {
+    tasks.push({
+      type: "generate_pdf",
+      title: "Préparer l’export PDF",
+      description:
+        "Générer un PDF propre à partir du livrable RH final ou d’un document joint à une communication.",
+      status: commonStatus,
+      approval_required: input.approval_required,
+      risk_level: input.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+      },
+    });
+  }
+
+  if (
+    lower.includes("relance") ||
+    lower.includes("si pas de reponse") ||
+    lower.includes("si pas de réponse")
+  ) {
+    tasks.push({
+      type: "schedule_follow_up",
+      title: "Préparer la relance RH",
+      description:
+        "Programmer une relance propre, traçable et contrôlée si aucune réponse n’est obtenue.",
+      status:
+        blockedByRefusal
+          ? "blocked"
+          : input.missing_info.length > 0
+            ? "awaiting_info"
+            : "scheduled",
+      approval_required: true,
+      risk_level: input.risk_level,
+      scheduled_for: scheduledFor,
+      payload: {
+        source: "mission_engine",
+        conditional: true,
+      },
+    });
+  }
+
+  if (input.missing_info.length > 0) {
+    tasks.push({
+      type: "request_missing_info",
+      title: "Demander les informations manquantes",
+      description:
+        "Suspendre l’exécution complète tant que les informations essentielles à une action RH propre et sûre ne sont pas réunies.",
+      status: "awaiting_info",
+      approval_required: false,
+      risk_level: input.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        missing_info: input.missing_info,
+        questions: input.missing_info_questions,
+      },
+    });
+  }
+
+  if (refusals.length > 0) {
+    tasks.push({
+      type: "block_mission",
+      title: "Bloquer la mission",
+      description:
+        "Empêcher l’exécution tant que la demande reste hors périmètre ou incompatible avec les règles de sécurité RH de Pierre.",
+      status: "blocked",
+      approval_required: true,
+      risk_level: input.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        refusals,
+      },
+    });
+  }
+
+  if (tasks.length === 0) {
+    tasks.push({
+      type: "structure_mission",
+      title: "Structurer la mission RH",
+      description:
+        "Créer un cadre d’exécution RH exploitable à partir de la demande libre.",
+      status: commonStatus,
+      approval_required: input.approval_required,
+      risk_level: input.risk_level,
+      scheduled_for: null,
+      payload: {
+        source: "mission_engine",
+        classification: input.classification,
+      },
+    });
+  }
+
+  return tasks;
+}
+
+
+============================================================
+FILE: src\lib\pierre\mission\missing-info.ts
+============================================================
+
+export type PierreMissingInfoInput = {
+  input: string;
+  classification?: string | null;
+  context?: string | null;
+};
+
+export type PierreMissingInfoResult = {
+  missing_info: string[];
+  missing_info_questions: string[];
+  can_produce_draft: boolean;
+  should_block_execution: boolean;
+  completeness_score: number;
+};
+
+type MissingFieldRule = {
+  key: string;
+  appliesTo: string[];
+  requiredWhen: (corpus: string, rawInput: string) => boolean;
+  isPresent: (corpus: string, rawInput: string) => boolean;
+  missingLabel: string;
+  question: string;
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function buildCorpus(input: PierreMissingInfoInput): string {
+  return normalizeText(
+    [input.input, input.context || "", input.classification || ""]
+      .filter(Boolean)
+      .join("\n"),
+  );
+}
+
+function hasEmail(value: string): boolean {
+  return /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(value);
+}
+
+function hasDate(value: string): boolean {
+  return /\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\b/.test(value);
+}
+
+function hasHour(value: string): boolean {
+  return /\b\d{1,2}h(\d{2})?\b/i.test(value);
+}
+
+function hasFullName(value: string): boolean {
+  return /\b[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\s+[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\b/.test(
+    value,
+  );
+}
+
+function hasJobTitle(corpus: string): boolean {
+  return (
+    corpus.includes("poste ") ||
+    corpus.includes("intitule du poste") ||
+    corpus.includes("intitulé du poste") ||
+    corpus.includes("job title") ||
+    corpus.includes("role ")
+  );
+}
+
+function hasLocation(corpus: string): boolean {
+  return (
+    corpus.includes("site ") ||
+    corpus.includes("lieu ") ||
+    corpus.includes("localisation") ||
+    corpus.includes("location ")
+  );
+}
+
+function hasManager(corpus: string): boolean {
+  return (
+    corpus.includes("manager") ||
+    corpus.includes("responsable") ||
+    corpus.includes("superviseur") ||
+    corpus.includes("reporting to")
+  );
+}
+
+const RULES: MissingFieldRule[] = [
+  {
+    key: "person_name",
+    appliesTo: [
+      "convocation_entretien",
+      "refus_candidat",
+      "relance_candidat",
+      "onboarding",
+      "candidature",
+    ],
+    requiredWhen: () => true,
+    isPresent: (_corpus, rawInput) => hasFullName(rawInput),
+    missingLabel: "Nom complet de la personne concernée manquant",
+    question: "Quel est le nom complet de la personne concernée ?",
+  },
+  {
+    key: "recipient_email",
+    appliesTo: [
+      "convocation_entretien",
+      "refus_candidat",
+      "relance_candidat",
+      "onboarding",
+    ],
+    requiredWhen: () => true,
+    isPresent: (_corpus, rawInput) => hasEmail(rawInput),
+    missingLabel: "Adresse email destinataire manquante",
+    question: "Quelle est l’adresse email du destinataire ?",
+  },
+  {
+    key: "interview_date",
+    appliesTo: ["convocation_entretien"],
+    requiredWhen: () => true,
+    isPresent: (_corpus, rawInput) => hasDate(rawInput),
+    missingLabel: "Date d’entretien manquante",
+    question: "Quelle est la date exacte de l’entretien ?",
+  },
+  {
+    key: "interview_hour",
+    appliesTo: ["convocation_entretien"],
+    requiredWhen: () => true,
+    isPresent: (_corpus, rawInput) => hasHour(rawInput),
+    missingLabel: "Horaire d’entretien manquant",
+    question: "À quelle heure doit avoir lieu l’entretien ?",
+  },
+  {
+    key: "job_title",
+    appliesTo: ["offre_emploi", "onboarding"],
+    requiredWhen: () => true,
+    isPresent: (corpus) => hasJobTitle(corpus),
+    missingLabel: "Intitulé du poste absent ou insuffisant",
+    question: "Quel est l’intitulé exact du poste ?",
+  },
+  {
+    key: "location",
+    appliesTo: ["offre_emploi", "convocation_entretien", "onboarding"],
+    requiredWhen: () => true,
+    isPresent: (corpus) => hasLocation(corpus),
+    missingLabel: "Lieu ou localisation manquants",
+    question: "Quel est le lieu ou la localisation à indiquer ?",
+  },
+  {
+    key: "manager",
+    appliesTo: ["onboarding"],
+    requiredWhen: () => true,
+    isPresent: (corpus) => hasManager(corpus),
+    missingLabel: "Responsable ou référent hiérarchique manquant",
+    question: "Quel est le nom du responsable ou du référent à mentionner ?",
+  },
+];
+
+function isExecutionSensitive(classification: string): boolean {
+  return [
+    "convocation_entretien",
+    "refus_candidat",
+    "relance_candidat",
+    "onboarding",
+    "courrier_rh",
+    "demande_sensible",
+  ].includes(classification);
+}
+
+function canStillProduceDraft(
+  classification: string,
+  missingInfoCount: number,
+): boolean {
+  if (missingInfoCount === 0) return true;
+
+  if (classification === "offre_emploi") return true;
+  if (classification === "note_rh") return true;
+  if (classification === "rappel_procedure") return true;
+  if (classification === "compte_rendu") return true;
+
+  return missingInfoCount <= 1;
+}
+
+export function detectMissingMissionInfo(
+  input: PierreMissingInfoInput,
+): PierreMissingInfoResult {
+  const classification = normalizeText(input.classification || "mission_rh_generale");
+  const corpus = buildCorpus(input);
+  const rawInput = input.input || "";
+
+  const applicableRules = RULES.filter((rule) =>
+    rule.appliesTo.includes(classification),
+  );
+
+  const missing_info: string[] = [];
+  const missing_info_questions: string[] = [];
+
+  for (const rule of applicableRules) {
+    const required = rule.requiredWhen(corpus, rawInput);
+    if (!required) continue;
+
+    const present = rule.isPresent(corpus, rawInput);
+    if (present) continue;
+
+    missing_info.push(rule.missingLabel);
+    missing_info_questions.push(rule.question);
+  }
+
+  const uniqueMissing = [...new Set(missing_info)];
+  const uniqueQuestions = [...new Set(missing_info_questions)];
+
+  const can_produce_draft = canStillProduceDraft(
+    classification,
+    uniqueMissing.length,
+  );
+
+  const should_block_execution =
+    uniqueMissing.length > 0 &&
+    isExecutionSensitive(classification) &&
+    !can_produce_draft;
+
+  const denominator = Math.max(applicableRules.length, 1);
+  const completeness_score = Number(
+    Math.max(0, 1 - uniqueMissing.length / denominator).toFixed(2),
+  );
+
+  return {
+    missing_info: uniqueMissing,
+    missing_info_questions: uniqueQuestions,
+    can_produce_draft,
+    should_block_execution,
+    completeness_score,
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\mission\risk.ts
+============================================================
+
+export type PierreMissionRiskLevel = "normal" | "sensitive" | "critical";
+
+export type PierreRiskInput = {
+  input: string;
+  classification?: string | null;
+  context?: string | null;
+};
+
+export type PierreRiskResult = {
+  risk_level: PierreMissionRiskLevel;
+  approval_required: boolean;
+  blocked: boolean;
+  reasons: string[];
+  matched_signals: string[];
+  warnings: string[];
+};
+
+type RiskRule = {
+  level: PierreMissionRiskLevel;
+  signals: string[];
+  reason: string;
+  approval_required?: boolean;
+  blocked?: boolean;
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function buildCorpus(input: PierreRiskInput): string {
+  return normalizeText(
+    [input.input, input.context || "", input.classification || ""]
+      .filter(Boolean)
+      .join("\n"),
+  );
+}
+
+const CRITICAL_RULES: RiskRule[] = [
+  {
+    level: "critical",
+    signals: [
+      "licenciement",
+      "harcelement",
+      "harcèlement",
+      "discrimination",
+      "prud'hommes",
+      "contentieux",
+      "sanction disciplinaire",
+      "rupture forcee",
+      "rupture forcée",
+    ],
+    reason:
+      "La demande contient un signal RH critique impliquant un risque juridique, disciplinaire ou réputationnel élevé.",
+    approval_required: true,
+    blocked: false,
+  },
+  {
+    level: "critical",
+    signals: [
+      "decide seul",
+      "décide seul",
+      "sans validation",
+      "envoie directement sans validation",
+      "prends la decision juridique",
+      "prend la decision disciplinaire",
+    ],
+    reason:
+      "La demande cherche à contourner la validation humaine sur un sujet sensible ou critique.",
+    approval_required: true,
+    blocked: true,
+  },
+];
+
+const SENSITIVE_RULES: RiskRule[] = [
+  {
+    level: "sensitive",
+    signals: [
+      "avertissement",
+      "mise a pied",
+      "mise à pied",
+      "conflit",
+      "absence injustifiee",
+      "absence injustifiée",
+      "salaire",
+      "confidentiel",
+      "plainte",
+      "recadrage",
+    ],
+    reason:
+      "La demande contient un signal RH sensible nécessitant prudence, traçabilité et contrôle.",
+    approval_required: true,
+    blocked: false,
+  },
+  {
+    level: "sensitive",
+    signals: [
+      "refus candidat",
+      "refus de candidature",
+      "convocation entretien",
+      "onboarding",
+      "offre emploi",
+      "courrier rh",
+    ],
+    reason:
+      "La mission relève d’un usage RH encadré, généralement autorisé mais nécessitant une formulation soignée.",
+    approval_required: false,
+    blocked: false,
+  },
+];
+
+const CLASSIFICATION_DEFAULTS: Partial<Record<string, PierreMissionRiskLevel>> = {
+  offre_emploi: "normal",
+  convocation_entretien: "normal",
+  refus_candidat: "normal",
+  relance_candidat: "normal",
+  onboarding: "normal",
+  note_rh: "normal",
+  rappel_procedure: "normal",
+  compte_rendu: "normal",
+  courrier_rh: "sensitive",
+  demande_sensible: "sensitive",
+  hors_perimetre: "critical",
+};
+
+function scoreRuleMatches(
+  corpus: string,
+  rules: RiskRule[],
+): Array<{
+  rule: RiskRule;
+  matchedSignals: string[];
+}> {
+  return rules
+    .map((rule) => ({
+      rule,
+      matchedSignals: rule.signals.filter((signal) =>
+        corpus.includes(normalizeText(signal)),
+      ),
+    }))
+    .filter((entry) => entry.matchedSignals.length > 0);
+}
+
+export function assessMissionRisk(input: PierreRiskInput): PierreRiskResult {
+  const corpus = buildCorpus(input);
+  const classificationKey = normalizeText(input.classification || "");
+
+  const criticalMatches = scoreRuleMatches(corpus, CRITICAL_RULES);
+  const sensitiveMatches = scoreRuleMatches(corpus, SENSITIVE_RULES);
+
+  const reasons: string[] = [];
+  const matched_signals: string[] = [];
+  const warnings: string[] = [];
+
+  let risk_level: PierreMissionRiskLevel =
+    CLASSIFICATION_DEFAULTS[classificationKey] || "normal";
+  let approval_required = risk_level !== "normal";
+  let blocked = classificationKey === "hors_perimetre";
+
+  if (classificationKey === "hors_perimetre") {
+    reasons.push(
+      "La mission est classée hors périmètre de Pierre et doit être bloquée ou reroutée.",
+    );
+    warnings.push(
+      "Pierre ne doit pas exécuter une demande hors périmètre RH contrôlé.",
+    );
+  }
+
+  if (sensitiveMatches.length > 0 && risk_level === "normal") {
+    risk_level = "sensitive";
+  }
+
+  if (criticalMatches.length > 0) {
+    risk_level = "critical";
+  }
+
+  for (const match of [...sensitiveMatches, ...criticalMatches]) {
+    reasons.push(match.rule.reason);
+    matched_signals.push(...match.matchedSignals);
+
+    if (match.rule.approval_required) {
+      approval_required = true;
+    }
+
+    if (match.rule.blocked) {
+      blocked = true;
+    }
+  }
+
+  if (risk_level === "critical") {
+    warnings.push(
+      "Validation humaine obligatoire avant toute action sortante ou document sensible.",
+    );
+  } else if (risk_level === "sensitive") {
+    warnings.push(
+      "Mission sensible : garder une traçabilité propre et un niveau de contrôle humain adapté.",
+    );
+  }
+
+  if (
+    corpus.includes("juridique") ||
+    corpus.includes("avocat") ||
+    corpus.includes("contentieux")
+  ) {
+    warnings.push(
+      "Pierre ne remplace pas un avis juridique et ne doit pas trancher seul un sujet légal.",
+    );
+    approval_required = true;
+  }
+
+  return {
+    risk_level,
+    approval_required,
+    blocked,
+    reasons: [...new Set(reasons)],
+    matched_signals: [...new Set(matched_signals)],
+    warnings: [...new Set(warnings)],
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\mission\schedule.ts
+============================================================
+
+export type PierreMissionScheduleKind =
+  | "immediate"
+  | "scheduled_today"
+  | "scheduled_specific_time"
+  | "scheduled_tomorrow"
+  | "after_validation"
+  | "conditional_follow_up"
+  | "unspecified";
+
+export type PierreMissionScheduleInput = {
+  input: string;
+  approval_required?: boolean;
+};
+
+export type PierreMissionScheduleResult = {
+  kind: PierreMissionScheduleKind;
+  scheduled_for: string | null;
+  follow_up_delay_hours: number | null;
+  requires_validation_before_execution: boolean;
+  conditional_trigger: string | null;
+  reasons: string[];
+};
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function clampToFuture(date: Date, now: Date): Date {
+  if (date.getTime() <= now.getTime()) {
+    date.setDate(date.getDate() + 1);
+  }
+  return date;
+}
+
+function setTime(base: Date, hours: number, minutes: number): Date {
+  const next = new Date(base);
+  next.setHours(hours, minutes, 0, 0);
+  return next;
+}
+
+function parseExplicitHour(lower: string, now: Date): Date | null {
+  const hourMatch = lower.match(/\b(\d{1,2})h(\d{2})?\b/);
+  if (!hourMatch) return null;
+
+  const hours = Number(hourMatch[1]);
+  const minutes = hourMatch[2] ? Number(hourMatch[2]) : 0;
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+
+  return clampToFuture(setTime(now, hours, minutes), now);
+}
+
+function parseTomorrow(lower: string, now: Date): Date | null {
+  if (!lower.includes("demain")) return null;
+
+  const next = new Date(now);
+  next.setDate(next.getDate() + 1);
+
+  const explicitHour = parseExplicitHour(lower, next);
+  if (explicitHour) return explicitHour;
+
+  next.setHours(9, 0, 0, 0);
+  return next;
+}
+
+function parseTodayLater(lower: string, now: Date): Date | null {
+  if (
+    !lower.includes("plus tard aujourd'hui") &&
+    !lower.includes("plus tard aujourd hui") &&
+    !lower.includes("cet apres midi") &&
+    !lower.includes("cet après midi") &&
+    !lower.includes("ce soir")
+  ) {
+    return null;
+  }
+
+  if (lower.includes("ce soir")) {
+    const date = new Date(now);
+    date.setHours(18, 0, 0, 0);
+    return clampToFuture(date, now);
+  }
+
+  if (lower.includes("cet apres midi") || lower.includes("cet après midi")) {
+    const date = new Date(now);
+    date.setHours(15, 0, 0, 0);
+    return clampToFuture(date, now);
+  }
+
+  const date = new Date(now);
+  date.setHours(Math.max(now.getHours() + 2, 16), 0, 0, 0);
+  return clampToFuture(date, now);
+}
+
+function parseRelativeDelay(lower: string, now: Date): Date | null {
+  const minuteMatch = lower.match(/\bdans\s+(\d{1,3})\s+minutes?\b/);
+  if (minuteMatch) {
+    const minutes = Number(minuteMatch[1]);
+    if (Number.isFinite(minutes) && minutes > 0) {
+      return new Date(now.getTime() + minutes * 60_000);
+    }
+  }
+
+  const hourMatch = lower.match(/\bdans\s+(\d{1,2})\s+heures?\b/);
+  if (hourMatch) {
+    const hours = Number(hourMatch[1]);
+    if (Number.isFinite(hours) && hours > 0) {
+      return new Date(now.getTime() + hours * 3_600_000);
+    }
+  }
+
+  return null;
+}
+
+export function detectMissionSchedule(
+  input: PierreMissionScheduleInput,
+): PierreMissionScheduleResult {
+  const lower = normalizeText(input.input);
+  const now = new Date();
+  const reasons: string[] = [];
+  const requires_validation_before_execution = Boolean(input.approval_required);
+
+  const explicitTomorrow = parseTomorrow(lower, now);
+  if (explicitTomorrow) {
+    reasons.push("La demande mentionne une exécution demain.");
+    return {
+      kind: "scheduled_tomorrow",
+      scheduled_for: explicitTomorrow.toISOString(),
+      follow_up_delay_hours: null,
+      requires_validation_before_execution,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  const explicitRelative = parseRelativeDelay(lower, now);
+  if (explicitRelative) {
+    reasons.push("La demande contient un délai relatif explicite.");
+    return {
+      kind: "scheduled_specific_time",
+      scheduled_for: explicitRelative.toISOString(),
+      follow_up_delay_hours: null,
+      requires_validation_before_execution,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  const explicitHour = parseExplicitHour(lower, now);
+  if (explicitHour) {
+    reasons.push("La demande contient un horaire explicite.");
+    return {
+      kind: "scheduled_specific_time",
+      scheduled_for: explicitHour.toISOString(),
+      follow_up_delay_hours: null,
+      requires_validation_before_execution,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  const explicitToday = parseTodayLater(lower, now);
+  if (explicitToday) {
+    reasons.push("La demande implique une exécution plus tard aujourd’hui.");
+    return {
+      kind: "scheduled_today",
+      scheduled_for: explicitToday.toISOString(),
+      follow_up_delay_hours: null,
+      requires_validation_before_execution,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  if (
+    lower.includes("apres validation") ||
+    lower.includes("après validation") ||
+    lower.includes("une fois valide") ||
+    lower.includes("une fois validé") ||
+    lower.includes("une fois validee") ||
+    lower.includes("une fois validée")
+  ) {
+    reasons.push("La demande impose une validation préalable avant exécution.");
+    return {
+      kind: "after_validation",
+      scheduled_for: null,
+      follow_up_delay_hours: null,
+      requires_validation_before_execution: true,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  if (
+    lower.includes("si pas de reponse") ||
+    lower.includes("si pas de réponse") ||
+    lower.includes("en l'absence de reponse") ||
+    lower.includes("en l'absence de réponse")
+  ) {
+    let follow_up_delay_hours: number | null = 48;
+
+    const daysMatch = lower.match(/\b(\d{1,2})\s+jours?\b/);
+    if (daysMatch) {
+      const days = Number(daysMatch[1]);
+      if (Number.isFinite(days) && days > 0) {
+        follow_up_delay_hours = days * 24;
+      }
+    } else {
+      const hoursMatch = lower.match(/\b(\d{1,2})\s+heures?\b/);
+      if (hoursMatch) {
+        const hours = Number(hoursMatch[1]);
+        if (Number.isFinite(hours) && hours > 0) {
+          follow_up_delay_hours = hours;
+        }
+      }
+    }
+
+    reasons.push("La demande contient une logique conditionnelle de relance.");
+    return {
+      kind: "conditional_follow_up",
+      scheduled_for: null,
+      follow_up_delay_hours,
+      requires_validation_before_execution,
+      conditional_trigger: "no_reply_detected",
+      reasons,
+    };
+  }
+
+  if (requires_validation_before_execution) {
+    reasons.push("Aucune heure explicite, mais la validation humaine bloque l’exécution immédiate.");
+    return {
+      kind: "after_validation",
+      scheduled_for: null,
+      follow_up_delay_hours: null,
+      requires_validation_before_execution: true,
+      conditional_trigger: null,
+      reasons,
+    };
+  }
+
+  reasons.push("Aucune contrainte temporelle explicite détectée.");
+  return {
+    kind: "immediate",
+    scheduled_for: null,
+    follow_up_delay_hours: null,
+    requires_validation_before_execution: false,
+    conditional_trigger: null,
+    reasons,
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\documents\doc-type.ts
+============================================================
+
+import { containsAny } from "@/lib/pierre/utils";
+
+export type PierreDocumentType =
+  | "convocation"
+  | "refus"
+  | "onboarding"
+  | "offre_emploi"
+  | "fiche_poste"
+  | "procedure"
+  | "compte_rendu"
+  | "note_rh"
+  | "courrier"
+  | "generic";
+
+export function detectPierreDocumentType(input: string): PierreDocumentType {
+  if (containsAny(input, ["convocation"])) return "convocation";
+  if (containsAny(input, ["refus"])) return "refus";
+  if (containsAny(input, ["onboarding", "intégration", "integration"])) return "onboarding";
+  if (containsAny(input, ["offre d'emploi", "offre d’emploi"])) return "offre_emploi";
+  if (containsAny(input, ["fiche de poste"])) return "fiche_poste";
+  if (containsAny(input, ["procédure", "procedure"])) return "procedure";
+  if (containsAny(input, ["compte rendu", "compte-rendu"])) return "compte_rendu";
+  if (containsAny(input, ["note rh", "synthèse", "synthese"])) return "note_rh";
+  if (containsAny(input, ["courrier"])) return "courrier";
+
+  return "generic";
+}
+
+
+============================================================
+FILE: src\lib\pierre\documents\generate.ts
+============================================================
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { PierreRunnableTask } from "@/lib/pierre/tasks/executors";
+import { safeString } from "@/lib/pierre/utils";
+import { detectPierreDocumentType } from "@/lib/pierre/documents/doc-type";
+import { buildPierreDocumentTitle } from "@/lib/pierre/documents/title";
+import { normalizePierreDocumentText } from "@/lib/pierre/documents/normalize-text";
+import { normalizePierreDocumentHtml } from "@/lib/pierre/documents/normalize-html";
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function textToHtml(value: string) {
+  const escaped = value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+  return `<div>${escaped.replace(/\n{2,}/g, "</div><div>").replace(/\n/g, "<br />")}</div>`;
+}
+
+function buildFallbackDocumentText(rawInput: string, title: string) {
+  return normalizePierreDocumentText([
+    title,
+    "",
+    "Document préparé par Pierre.",
+    "",
+    "Consigne d’origine :",
+    rawInput,
+    "",
+    "À compléter / ajuster selon le contexte RH réel de l’entreprise.",
+  ].join("\n"));
+}
+
+export async function generatePierreDocument(
+  supabase: SupabaseClient,
+  input: {
+    task: PierreRunnableTask;
+  }
+) {
+  const payload = input.task.payload_json || {};
+  const rawInput =
+    safeString(payload.raw_input) ||
+    safeString(payload.input) ||
+    safeString(payload.prompt);
+
+  const companyName =
+    safeString(payload.company_name) || null;
+
+  const docType = detectPierreDocumentType(rawInput);
+  const title =
+    safeString(payload.title) ||
+    buildPierreDocumentTitle({
+      docType,
+      companyName,
+    });
+
+  const engineUrl = getEnv("PIERRE_DOCUMENT_ENGINE_URL");
+  let bodyText = "";
+  let bodyHtml = "";
+
+  if (engineUrl) {
+    const response = await fetch(engineUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(getEnv("PIERRE_DOCUMENT_ENGINE_SECRET")
+          ? {
+              "x-pierre-document-secret":
+                getEnv("PIERRE_DOCUMENT_ENGINE_SECRET"),
+            }
+          : {}),
+      },
+      body: JSON.stringify({
+        mode: "generate",
+        title,
+        doc_type: docType,
+        raw_input: rawInput,
+        payload,
+      }),
+    });
+
+    const raw = await response.text();
+    const parsed = (() => {
+      try {
+        return JSON.parse(raw) as Record<string, unknown>;
+      } catch {
+        return { raw };
+      }
+    })();
+
+    if (!response.ok) {
+      throw new Error(
+        typeof parsed.error === "string"
+          ? parsed.error
+          : "Le moteur document Pierre a échoué."
+      );
+    }
+
+    bodyText = normalizePierreDocumentText(
+      safeString(parsed.body_text) || buildFallbackDocumentText(rawInput, title)
+    );
+
+    bodyHtml = normalizePierreDocumentHtml(
+      safeString(parsed.body_html) || textToHtml(bodyText)
+    );
+  } else {
+    bodyText = buildFallbackDocumentText(rawInput, title);
+    bodyHtml = normalizePierreDocumentHtml(textToHtml(bodyText));
+  }
+
+  let documentId: string | null = null;
+
+  try {
+    const { data } = await supabase
+      .from("pierre_documents")
+      .insert({
+        user_id: input.task.user_id,
+        mission_id: input.task.mission_id,
+        task_id: input.task.id,
+        agent_slug: "pierre",
+        title,
+        doc_type: docType,
+        body_text: bodyText,
+        body_html: bodyHtml,
+        status: "generated",
+        meta_json: {
+          source_task_type: input.task.type,
+        },
+      })
+      .select("id")
+      .maybeSingle();
+
+    documentId = (data?.id as string | undefined) || null;
+  } catch (error) {
+    console.error("[PIERRE_DOCUMENT_INSERT_ERROR]", error);
+  }
+
+  return {
+    document_id: documentId,
+    title,
+    doc_type: docType,
+    body_text: bodyText,
+    body_html: bodyHtml,
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\documents\rewrite.ts
+============================================================
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { PierreRunnableTask } from "@/lib/pierre/tasks/executors";
+import { safeString } from "@/lib/pierre/utils";
+import { detectPierreDocumentType } from "@/lib/pierre/documents/doc-type";
+import { buildPierreDocumentTitle } from "@/lib/pierre/documents/title";
+import { normalizePierreDocumentText } from "@/lib/pierre/documents/normalize-text";
+import { normalizePierreDocumentHtml } from "@/lib/pierre/documents/normalize-html";
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function textToHtml(value: string) {
+  const escaped = value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+  return `<div>${escaped.replace(/\n{2,}/g, "</div><div>").replace(/\n/g, "<br />")}</div>`;
+}
+
+export async function rewritePierreDocument(
+  supabase: SupabaseClient,
+  input: {
+    task: PierreRunnableTask;
+  }
+) {
+  const payload = input.task.payload_json || {};
+  const originalText =
+    safeString(payload.body_text) ||
+    safeString(payload.text) ||
+    safeString(payload.document_text) ||
+    safeString(payload.raw_input);
+
+  if (!originalText) {
+    throw new Error("Aucun contenu à réécrire n’a été trouvé pour cette task.");
+  }
+
+  const companyName = safeString(payload.company_name) || null;
+  const docType = detectPierreDocumentType(originalText);
+  const title =
+    safeString(payload.title) ||
+    buildPierreDocumentTitle({
+      docType,
+      companyName,
+    });
+
+  const engineUrl = getEnv("PIERRE_DOCUMENT_ENGINE_URL");
+  let bodyText = "";
+
+  if (engineUrl) {
+    const response = await fetch(engineUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(getEnv("PIERRE_DOCUMENT_ENGINE_SECRET")
+          ? {
+              "x-pierre-document-secret":
+                getEnv("PIERRE_DOCUMENT_ENGINE_SECRET"),
+            }
+          : {}),
+      },
+      body: JSON.stringify({
+        mode: "rewrite",
+        title,
+        doc_type: docType,
+        original_text: originalText,
+        payload,
+      }),
+    });
+
+    const raw = await response.text();
+    const parsed = (() => {
+      try {
+        return JSON.parse(raw) as Record<string, unknown>;
+      } catch {
+        return { raw };
+      }
+    })();
+
+    if (!response.ok) {
+      throw new Error(
+        typeof parsed.error === "string"
+          ? parsed.error
+          : "Le moteur de réécriture Pierre a échoué."
+      );
+    }
+
+    bodyText = normalizePierreDocumentText(
+      safeString(parsed.body_text) || originalText
+    );
+  } else {
+    bodyText = normalizePierreDocumentText(originalText);
+  }
+
+  const bodyHtml = normalizePierreDocumentHtml(textToHtml(bodyText));
+
+  let documentId: string | null = null;
+
+  try {
+    const { data } = await supabase
+      .from("pierre_documents")
+      .insert({
+        user_id: input.task.user_id,
+        mission_id: input.task.mission_id,
+        task_id: input.task.id,
+        agent_slug: "pierre",
+        title,
+        doc_type: docType,
+        body_text: bodyText,
+        body_html: bodyHtml,
+        status: "rewritten",
+        meta_json: {
+          source_task_type: input.task.type,
+        },
+      })
+      .select("id")
+      .maybeSingle();
+
+    documentId = (data?.id as string | undefined) || null;
+  } catch (error) {
+    console.error("[PIERRE_DOCUMENT_REWRITE_INSERT_ERROR]", error);
+  }
+
+  return {
+    document_id: documentId,
+    title,
+    doc_type: docType,
+    body_text: bodyText,
+    body_html: bodyHtml,
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\documents\normalize-html.ts
+============================================================
+
+export function normalizePierreDocumentHtml(value: string) {
+  return value
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+
+============================================================
+FILE: src\lib\pierre\documents\normalize-text.ts
+============================================================
+
+import { normalizeSpaces } from "@/lib/pierre/utils";
+
+export function normalizePierreDocumentText(value: string) {
+  return value
+    .split("\n")
+    .map((line) => normalizeSpaces(line))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+
+============================================================
+FILE: src\lib\pierre\documents\title.ts
+============================================================
+
+import type { PierreDocumentType } from "@/lib/pierre/documents/doc-type";
+
+export function buildPierreDocumentTitle(input: {
+  docType: PierreDocumentType;
+  companyName?: string | null;
+}) {
+  const date = new Date().toISOString().slice(0, 10);
+
+  const base =
+    input.docType === "convocation"
+      ? "Convocation RH"
+      : input.docType === "refus"
+      ? "Courrier de refus"
+      : input.docType === "onboarding"
+      ? "Document d’onboarding"
+      : input.docType === "offre_emploi"
+      ? "Offre d’emploi"
+      : input.docType === "fiche_poste"
+      ? "Fiche de poste"
+      : input.docType === "procedure"
+      ? "Procédure RH"
+      : input.docType === "compte_rendu"
+      ? "Compte rendu RH"
+      : input.docType === "note_rh"
+      ? "Note RH"
+      : input.docType === "courrier"
+      ? "Courrier RH"
+      : "Document RH";
+
+  return input.companyName
+    ? `${base} — ${input.companyName} — ${date}`
+    : `${base} — ${date}`;
+}
+
+
+============================================================
+FILE: src\lib\pierre\pdf\filename.ts
+============================================================
+
+import { safeString } from "@/lib/pierre/utils";
+
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+}
+
+export function buildPierrePdfFilename(input: {
+  title?: string | null;
+  fallback?: string | null;
+}) {
+  const base =
+    safeString(input.title) ||
+    safeString(input.fallback) ||
+    "document-pierre";
+
+  const slug = slugify(base) || "document-pierre";
+
+  return `${slug}.pdf`;
+}
+
+
+============================================================
+FILE: src\lib\pierre\pdf\generate.ts
+============================================================
+
+import type { PierreRunnableTask } from "@/lib/pierre/tasks/executors";
+import { safeString } from "@/lib/pierre/utils";
+import { buildPierrePdfFilename } from "@/lib/pierre/pdf/filename";
+import { uploadPierrePdfFile } from "@/lib/pierre/pdf/upload";
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+export async function generatePierrePdf(input: {
+  task: PierreRunnableTask;
+}) {
+  const payload = input.task.payload_json || {};
+
+  const title =
+    safeString(payload.title) ||
+    safeString(payload.document_title) ||
+    "Document Pierre";
+
+  const bodyHtml =
+    safeString(payload.body_html) ||
+    safeString(payload.document_html) ||
+    safeString(payload.generated_document_html);
+
+  const bodyText =
+    safeString(payload.body_text) ||
+    safeString(payload.document_text) ||
+    safeString(payload.generated_document_text);
+
+  if (!bodyHtml && !bodyText) {
+    throw new Error(
+      "Aucun contenu document n’est disponible pour générer le PDF Pierre."
+    );
+  }
+
+  const rendererUrl = getEnv("PIERRE_PDF_RENDERER_URL");
+
+  if (!rendererUrl) {
+    throw new Error(
+      "PIERRE_PDF_RENDERER_URL est manquant. Le moteur PDF Pierre n’est pas configuré."
+    );
+  }
+
+  const filename = buildPierrePdfFilename({
+    title,
+    fallback: "document-pierre",
+  });
+
+  const response = await fetch(rendererUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(getEnv("PIERRE_PDF_RENDERER_SECRET")
+        ? {
+            "x-pierre-pdf-secret": getEnv("PIERRE_PDF_RENDERER_SECRET"),
+          }
+        : {}),
+    },
+    body: JSON.stringify({
+      title,
+      filename,
+      body_html: bodyHtml || null,
+      body_text: bodyText || null,
+    }),
+  });
+
+  const raw = await response.text();
+  const parsed = (() => {
+    try {
+      return JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      return { raw };
+    }
+  })();
+
+  if (!response.ok) {
+    throw new Error(
+      typeof parsed.error === "string"
+        ? parsed.error
+        : "Le renderer PDF Pierre a échoué."
+    );
+  }
+
+  const pdfBase64 =
+    safeString(parsed.pdf_base64) ||
+    safeString(parsed.base64);
+
+  const directUrl =
+    safeString(parsed.pdf_url) ||
+    safeString(parsed.file_url) ||
+    safeString(parsed.url);
+
+  if (directUrl) {
+    return {
+      filename,
+      file_url: directUrl,
+      uploaded: true,
+      renderer_response_json: parsed,
+    };
+  }
+
+  if (!pdfBase64) {
+    throw new Error(
+      "Le renderer PDF Pierre n’a renvoyé ni URL, ni contenu base64."
+    );
+  }
+
+  const uploadResult = await uploadPierrePdfFile({
+    filename,
+    content_base64: pdfBase64,
+    content_type: "application/pdf",
+  });
+
+  return {
+    filename,
+    file_url: uploadResult.file_url,
+    uploaded: uploadResult.uploaded,
+    renderer_response_json: parsed,
+    upload_response_json: uploadResult.response_json,
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\pdf\upload.ts
+============================================================
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+export async function uploadPierrePdfFile(input: {
+  filename: string;
+  content_base64: string;
+  content_type?: string | null;
+}) {
+  const uploadUrl = getEnv("PIERRE_FILE_UPLOAD_URL");
+
+  if (!uploadUrl) {
+    return {
+      uploaded: false,
+      file_url: null as string | null,
+      response_json: {},
+    };
+  }
+
+  const response = await fetch(uploadUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(getEnv("PIERRE_FILE_UPLOAD_SECRET")
+        ? { "x-pierre-upload-secret": getEnv("PIERRE_FILE_UPLOAD_SECRET") }
+        : {}),
+    },
+    body: JSON.stringify({
+      filename: input.filename,
+      content_base64: input.content_base64,
+      content_type: input.content_type || "application/pdf",
+    }),
+  });
+
+  const raw = await response.text();
+  const parsed = (() => {
+    try {
+      return JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      return { raw };
+    }
+  })();
+
+  if (!response.ok) {
+    throw new Error(
+      typeof parsed.error === "string"
+        ? parsed.error
+        : "Upload PDF Pierre impossible."
+    );
+  }
+
+  return {
+    uploaded: true,
+    file_url:
+      typeof parsed.file_url === "string"
+        ? parsed.file_url
+        : typeof parsed.url === "string"
+        ? parsed.url
+        : null,
+    response_json: parsed,
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\email\attachments.ts
+============================================================
+
+import { safeString } from "@/lib/pierre/utils";
+
+export type PierreEmailAttachment = {
+  filename: string;
+  content_type: string | null;
+  url?: string | null;
+  content_base64?: string | null;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeAttachment(input: unknown): PierreEmailAttachment | null {
+  if (typeof input === "string") {
+    const url = safeString(input);
+    if (!url) return null;
+
+    const filename =
+      url.split("/").pop()?.split("?")[0]?.trim() || "attachment";
+
+    return {
+      filename,
+      content_type: null,
+      url,
+      content_base64: null,
+    };
+  }
+
+  if (!isRecord(input)) return null;
+
+  const filename =
+    safeString(input.filename) ||
+    safeString(input.name) ||
+    "attachment";
+
+  const contentType =
+    safeString(input.content_type) ||
+    safeString(input.mime_type) ||
+    safeString(input.contentType) ||
+    null;
+
+  const url =
+    safeString(input.url) ||
+    safeString(input.file_url) ||
+    safeString(input.download_url) ||
+    null;
+
+  const contentBase64 =
+    safeString(input.content_base64) ||
+    safeString(input.base64) ||
+    null;
+
+  if (!url && !contentBase64) return null;
+
+  return {
+    filename,
+    content_type: contentType,
+    url,
+    content_base64: contentBase64,
+  };
+}
+
+export function normalizePierreEmailAttachments(
+  payload: Record<string, unknown> | null | undefined
+): PierreEmailAttachment[] {
+  const source = payload || {};
+
+  const raw =
+    source.attachments ||
+    source.files ||
+    source.attachment_urls ||
+    [];
+
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map(normalizeAttachment)
+    .filter((item): item is PierreEmailAttachment => Boolean(item));
+}
+
+
+============================================================
+FILE: src\lib\pierre\email\build-payload.ts
+============================================================
+
+import { detectEmailInText, safeString } from "@/lib/pierre/utils";
+import type { PierreSenderProfile } from "@/lib/pierre/email/sender-profile";
+import {
+  normalizePierreEmailAttachments,
+  type PierreEmailAttachment,
+} from "@/lib/pierre/email/attachments";
+
+export type PierreBuiltEmailPayload = {
+  from: {
+    email: string;
+    name: string;
+  };
+  reply_to: string | null;
+  to: string[];
+  cc: string[];
+  bcc: string[];
+  subject: string;
+  body_text: string;
+  body_html: string;
+  attachments: PierreEmailAttachment[];
+};
+
+function isProbablyEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(value.trim());
+}
+
+function uniqueEmails(values: string[]) {
+  return [...new Set(values.map((value) => value.trim().toLowerCase()))];
+}
+
+function collectEmails(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return uniqueEmails(
+      value
+        .map((item) => safeString(item))
+        .filter((item) => isProbablyEmail(item))
+    );
+  }
+
+  if (typeof value === "string") {
+    const matches = value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [];
+    return uniqueEmails(matches);
+  }
+
+  return [];
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function textToHtml(value: string) {
+  const safe = escapeHtml(value);
+  return `<div>${safe.replace(/\n{2,}/g, "</div><div>").replace(/\n/g, "<br />")}</div>`;
+}
+
+function buildDefaultSubject(payload: Record<string, unknown>) {
+  return (
+    safeString(payload.subject) ||
+    safeString(payload.email_subject) ||
+    safeString(payload.title) ||
+    "Message RH préparé par Pierre"
+  );
+}
+
+function buildDefaultBodyText(payload: Record<string, unknown>) {
+  const preferred =
+    safeString(payload.body_text) ||
+    safeString(payload.text) ||
+    safeString(payload.message_text) ||
+    safeString(payload.document_text) ||
+    safeString(payload.generated_document_text);
+
+  if (preferred) return preferred;
+
+  const rawInput =
+    safeString(payload.raw_input) ||
+    safeString(payload.input) ||
+    safeString(payload.prompt);
+
+  if (rawInput) {
+    return [
+      "Bonjour,",
+      "",
+      "Pierre a préparé ce message à partir de la consigne suivante :",
+      rawInput,
+      "",
+      "Merci.",
+    ].join("\n");
+  }
+
+  return "Bonjour,\n\nMessage préparé par Pierre.\n\nMerci.";
+}
+
+export function buildPierreEmailPayload(input: {
+  senderProfile: PierreSenderProfile;
+  payload: Record<string, unknown> | null | undefined;
+}): PierreBuiltEmailPayload {
+  const payload = input.payload || {};
+
+  const to = uniqueEmails([
+    ...collectEmails(payload.to),
+    ...collectEmails(payload.recipient_email),
+    ...collectEmails(payload.recipient_emails),
+    ...collectEmails(payload.destinataire_email),
+    ...collectEmails(payload.destinataires),
+    ...collectEmails(safeString(payload.raw_input)),
+  ]);
+
+  const cc = uniqueEmails([
+    ...collectEmails(payload.cc),
+    ...collectEmails(payload.cc_emails),
+  ]);
+
+  const bcc = uniqueEmails([
+    ...collectEmails(payload.bcc),
+    ...collectEmails(payload.bcc_emails),
+  ]);
+
+  if (to.length === 0) {
+    const detected = detectEmailInText(safeString(payload.raw_input));
+    if (detected && isProbablyEmail(detected)) {
+      to.push(detected.toLowerCase());
+    }
+  }
+
+  if (to.length === 0) {
+    throw new Error("Aucun destinataire email valide n’a été détecté.");
+  }
+
+  const subject = buildDefaultSubject(payload);
+  const bodyText = buildDefaultBodyText(payload);
+
+  const bodyHtml =
+    safeString(payload.body_html) ||
+    safeString(payload.html) ||
+    safeString(payload.message_html) ||
+    safeString(payload.document_html) ||
+    safeString(payload.generated_document_html) ||
+    textToHtml(bodyText);
+
+  return {
+    from: {
+      email: input.senderProfile.sender_email,
+      name: input.senderProfile.sender_name,
+    },
+    reply_to: input.senderProfile.reply_to,
+    to,
+    cc,
+    bcc,
+    subject,
+    body_text: bodyText,
+    body_html: bodyHtml,
+    attachments: normalizePierreEmailAttachments(payload),
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\email\draft.ts
+============================================================
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { PierreRunnableTask } from "@/lib/pierre/tasks/executors";
+import { buildPierreEmailPayload } from "@/lib/pierre/email/build-payload";
+import { resolvePierreSenderProfile } from "@/lib/pierre/email/sender-profile";
+
+export async function createPierreEmailDraft(
+  supabase: SupabaseClient,
+  input: {
+    task: PierreRunnableTask;
+  }
+) {
+  const senderProfile = await resolvePierreSenderProfile(supabase, {
+    userId: input.task.user_id,
+    payload: input.task.payload_json,
+  });
+
+  const emailPayload = buildPierreEmailPayload({
+    senderProfile,
+    payload: input.task.payload_json,
+  });
+
+  let draftId: string | null = null;
+
+  try {
+    const { data } = await supabase
+      .from("pierre_outbound_emails")
+      .insert({
+        user_id: input.task.user_id,
+        mission_id: input.task.mission_id,
+        task_id: input.task.id,
+        agent_slug: "pierre",
+        from_email: emailPayload.from.email,
+        from_name: emailPayload.from.name,
+        to_json: emailPayload.to,
+        cc_json: emailPayload.cc,
+        bcc_json: emailPayload.bcc,
+        subject: emailPayload.subject,
+        body_text: emailPayload.body_text,
+        body_html: emailPayload.body_html,
+        status: "draft",
+        provider: "draft_only",
+      })
+      .select("id")
+      .maybeSingle();
+
+    draftId = (data?.id as string | undefined) || null;
+  } catch (error) {
+    console.error("[PIERRE_EMAIL_DRAFT_INSERT_ERROR]", error);
+  }
+
+  return {
+    draft_id: draftId,
+    sender_email: emailPayload.from.email,
+    sender_name: emailPayload.from.name,
+    to: emailPayload.to,
+    cc: emailPayload.cc,
+    bcc: emailPayload.bcc,
+    subject: emailPayload.subject,
+    body_text: emailPayload.body_text,
+    body_html: emailPayload.body_html,
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\email\provider.ts
+============================================================
+
+import type { PierreBuiltEmailPayload } from "@/lib/pierre/email/build-payload";
+import type { PierreSenderProfile } from "@/lib/pierre/email/sender-profile";
+
+export type PierreEmailProviderSendResult = {
+  ok: boolean;
+  provider: string;
+  message_id: string | null;
+  status: string;
+  response_json: Record<string, unknown>;
+};
+
+function safeJsonParse(value: string) {
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object"
+      ? (parsed as Record<string, unknown>)
+      : { raw: value };
+  } catch {
+    return { raw: value };
+  }
+}
+
+export async function sendPierreEmailWithProvider(input: {
+  senderProfile: PierreSenderProfile;
+  email: PierreBuiltEmailPayload;
+}) : Promise<PierreEmailProviderSendResult> {
+  const endpoint = input.senderProfile.provider_url;
+
+  if (!endpoint) {
+    throw new Error(
+      "Aucun provider d’envoi email n’est configuré pour Pierre."
+    );
+  }
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(input.senderProfile.provider_secret
+        ? { "x-pierre-provider-secret": input.senderProfile.provider_secret }
+        : {}),
+      ...(input.senderProfile.provider_api_key
+        ? { Authorization: `Bearer ${input.senderProfile.provider_api_key}` }
+        : {}),
+    },
+    body: JSON.stringify({
+      mode: input.senderProfile.provider_mode,
+      from: input.email.from,
+      reply_to: input.email.reply_to,
+      to: input.email.to,
+      cc: input.email.cc,
+      bcc: input.email.bcc,
+      subject: input.email.subject,
+      body_text: input.email.body_text,
+      body_html: input.email.body_html,
+      attachments: input.email.attachments,
+    }),
+  });
+
+  const rawText = await response.text();
+  const parsed = safeJsonParse(rawText);
+
+  if (!response.ok) {
+    throw new Error(
+      typeof parsed.error === "string"
+        ? parsed.error
+        : `Le provider email Pierre a renvoyé HTTP ${response.status}.`
+    );
+  }
+
+  return {
+    ok: true,
+    provider:
+      typeof parsed.provider === "string"
+        ? parsed.provider
+        : input.senderProfile.provider_mode,
+    message_id:
+      typeof parsed.message_id === "string"
+        ? parsed.message_id
+        : typeof parsed.id === "string"
+        ? parsed.id
+        : null,
+    status:
+      typeof parsed.status === "string"
+        ? parsed.status
+        : "sent",
+    response_json: parsed,
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\email\send.ts
+============================================================
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { PierreRunnableTask } from "@/lib/pierre/tasks/executors";
+import { buildPierreEmailPayload } from "@/lib/pierre/email/build-payload";
+import { resolvePierreSenderProfile } from "@/lib/pierre/email/sender-profile";
+import { sendPierreEmailWithProvider } from "@/lib/pierre/email/provider";
+
+async function persistPierreOutboundEmail(
+  supabase: SupabaseClient,
+  input: {
+    task: PierreRunnableTask;
+    sender_email: string;
+    sender_name: string;
+    to: string[];
+    cc: string[];
+    bcc: string[];
+    subject: string;
+    body_text: string;
+    body_html: string;
+    provider: string;
+    provider_message_id: string | null;
+    status: string;
+    provider_response_json: Record<string, unknown>;
+  }
+) {
+  try {
+    await supabase.from("pierre_outbound_emails").insert({
+      user_id: input.task.user_id,
+      mission_id: input.task.mission_id,
+      task_id: input.task.id,
+      agent_slug: "pierre",
+      from_email: input.sender_email,
+      from_name: input.sender_name,
+      to_json: input.to,
+      cc_json: input.cc,
+      bcc_json: input.bcc,
+      subject: input.subject,
+      body_text: input.body_text,
+      body_html: input.body_html,
+      provider: input.provider,
+      provider_message_id: input.provider_message_id,
+      status: input.status,
+      provider_response_json: input.provider_response_json,
+    });
+  } catch (error) {
+    console.error("[PIERRE_OUTBOUND_EMAIL_INSERT_ERROR]", error);
+  }
+}
+
+export async function sendPierreEmail(
+  supabase: SupabaseClient,
+  input: {
+    task: PierreRunnableTask;
+  }
+) {
+  const senderProfile = await resolvePierreSenderProfile(supabase, {
+    userId: input.task.user_id,
+    payload: input.task.payload_json,
+  });
+
+  const emailPayload = buildPierreEmailPayload({
+    senderProfile,
+    payload: input.task.payload_json,
+  });
+
+  const providerResult = await sendPierreEmailWithProvider({
+    senderProfile,
+    email: emailPayload,
+  });
+
+  await persistPierreOutboundEmail(supabase, {
+    task: input.task,
+    sender_email: emailPayload.from.email,
+    sender_name: emailPayload.from.name,
+    to: emailPayload.to,
+    cc: emailPayload.cc,
+    bcc: emailPayload.bcc,
+    subject: emailPayload.subject,
+    body_text: emailPayload.body_text,
+    body_html: emailPayload.body_html,
+    provider: providerResult.provider,
+    provider_message_id: providerResult.message_id,
+    status: providerResult.status,
+    provider_response_json: providerResult.response_json,
+  });
+
+  return {
+    provider: providerResult.provider,
+    provider_message_id: providerResult.message_id,
+    sender_email: emailPayload.from.email,
+    sender_name: emailPayload.from.name,
+    to: emailPayload.to,
+    cc: emailPayload.cc,
+    bcc: emailPayload.bcc,
+    subject: emailPayload.subject,
+    status: providerResult.status,
+    response_json: providerResult.response_json,
+  };
+}
+
+
+============================================================
+FILE: src\lib\pierre\email\sender-profile.ts
+============================================================
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import { safeString } from "@/lib/pierre/utils";
+
+export type PierreSenderProfile = {
+  sender_email: string;
+  sender_name: string;
+  reply_to: string | null;
+  company_name: string | null;
+  sending_domain: string | null;
+  provider_mode: "gateway" | "webhook";
+  provider_url: string | null;
+  provider_secret: string | null;
+  provider_api_key: string | null;
+};
+
+type GenericRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is GenericRecord {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function getEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function isProbablyEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(value.trim());
+}
+
+function normalizeDomain(value: string) {
+  return value.trim().toLowerCase().replace(/^@+/, "");
+}
+
+function extractFirstObject(input: GenericRecord, keys: string[]) {
+  for (const key of keys) {
+    const value = input[key];
+    if (isRecord(value)) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function readStringDeep(input: GenericRecord | null, keys: string[]) {
+  if (!input) return "";
+
+  for (const key of keys) {
+    const value = safeString(input[key]);
+    if (value) return value;
+  }
+
+  return "";
+}
+
+function buildSenderEmailFromDomain(localPart: string, domain: string) {
+  const cleanLocalPart = safeString(localPart).toLowerCase() || "pierre";
+  const cleanDomain = normalizeDomain(domain);
+
+  if (!cleanDomain) return "";
+
+  return `${cleanLocalPart}@${cleanDomain}`;
+}
+
+function resolveMemoryConfig(row: GenericRecord | null) {
+  if (!row) return null;
+
+  const directNested =
+    extractFirstObject(row, [
+      "memory_json",
+      "profile_json",
+      "settings_json",
+      "config_json",
+      "configuration_json",
+      "data_json",
+      "value_json",
+      "context_json",
+      "company_context_json",
+    ]) || row;
+
+  const emailConfig =
+    extractFirstObject(directNested, [
+      "email",
+      "mail",
+      "email_settings",
+      "mail_settings",
+      "sender_profile",
+      "sender",
+      "smtp",
+      "provider",
+    ]) || directNested;
+
+  return {
+    root: directNested,
+    email: emailConfig,
+  };
+}
+
+export async function resolvePierreSenderProfile(
+  supabase: SupabaseClient,
+  input: {
+    userId: string;
+    payload?: Record<string, unknown> | null;
+  }
+): Promise<PierreSenderProfile> {
+  const payload = (input.payload || {}) as GenericRecord;
+
+  let memoryRow: GenericRecord | null = null;
+
+  try {
+    const { data } = await supabase
+      .from("pierre_company_memory")
+      .select("*")
+      .eq("user_id", input.userId)
+      .maybeSingle();
+
+    memoryRow = (data as GenericRecord | null) || null;
+  } catch {
+    memoryRow = null;
+  }
+
+  const memory = resolveMemoryConfig(memoryRow);
+
+  const payloadSenderEmail = safeString(payload.sender_email);
+  const payloadSenderName = safeString(payload.sender_name);
+  const payloadReplyTo = safeString(payload.reply_to);
+  const payloadCompanyName = safeString(payload.company_name);
+  const payloadSendingDomain = safeString(payload.sending_domain);
+  const payloadProviderMode = safeString(payload.provider_mode);
+  const payloadProviderUrl = safeString(payload.provider_url);
+  const payloadProviderSecret = safeString(payload.provider_secret);
+  const payloadProviderApiKey = safeString(payload.provider_api_key);
+  const payloadLocalPart = safeString(payload.sender_local_part) || "pierre";
+
+  const memorySenderEmail = readStringDeep(memory?.email || null, [
+    "sender_email",
+    "from_email",
+    "email",
+  ]);
+
+  const memorySenderName = readStringDeep(memory?.email || null, [
+    "sender_name",
+    "from_name",
+    "name",
+  ]);
+
+  const memoryReplyTo = readStringDeep(memory?.email || null, [
+    "reply_to",
+    "replyTo",
+  ]);
+
+  const memoryCompanyName =
+    readStringDeep(memory?.root || null, [
+      "company_name",
+      "companyName",
+      "legal_name",
+      "brand_name",
+      "brandName",
+    ]) ||
+    readStringDeep(memory?.email || null, [
+      "company_name",
+      "companyName",
+    ]);
+
+  const memorySendingDomain = readStringDeep(memory?.email || null, [
+    "sending_domain",
+    "domain",
+    "mail_domain",
+    "email_domain",
+  ]);
+
+  const memoryProviderMode = readStringDeep(memory?.email || null, [
+    "provider_mode",
+    "mode",
+  ]);
+
+  const memoryProviderUrl = readStringDeep(memory?.email || null, [
+    "provider_url",
+    "webhook_url",
+    "gateway_url",
+  ]);
+
+  const memoryProviderSecret = readStringDeep(memory?.email || null, [
+    "provider_secret",
+    "webhook_secret",
+    "gateway_secret",
+  ]);
+
+  const memoryProviderApiKey = readStringDeep(memory?.email || null, [
+    "provider_api_key",
+    "api_key",
+    "apiKey",
+  ]);
+
+  const fallbackCompanyName = getEnv("PIERRE_DEFAULT_COMPANY_NAME");
+  const fallbackSenderName = getEnv("PIERRE_DEFAULT_SENDER_NAME") || "Pierre";
+  const fallbackSenderEmail = getEnv("PIERRE_DEFAULT_SENDER_EMAIL");
+  const fallbackSendingDomain = getEnv("PIERRE_DEFAULT_SENDING_DOMAIN");
+  const fallbackProviderMode = getEnv("PIERRE_EMAIL_PROVIDER_MODE") || "gateway";
+  const fallbackProviderUrl = getEnv("PIERRE_EMAIL_GATEWAY_URL");
+  const fallbackProviderSecret = getEnv("PIERRE_EMAIL_GATEWAY_SECRET");
+  const fallbackProviderApiKey = getEnv("PIERRE_EMAIL_PROVIDER_API_KEY");
+
+  const sendingDomain =
+    payloadSendingDomain ||
+    memorySendingDomain ||
+    fallbackSendingDomain ||
+    null;
+
+  let senderEmail =
+    payloadSenderEmail ||
+    memorySenderEmail ||
+    fallbackSenderEmail ||
+    "";
+
+  if (!senderEmail && sendingDomain) {
+    senderEmail = buildSenderEmailFromDomain(payloadLocalPart, sendingDomain);
+  }
+
+  if (!isProbablyEmail(senderEmail)) {
+    throw new Error(
+      "Aucune adresse d’envoi Pierre valide n’est configurée pour cette entreprise."
+    );
+  }
+
+  const senderName =
+    payloadSenderName ||
+    memorySenderName ||
+    (memoryCompanyName ? `Pierre — ${memoryCompanyName}` : "") ||
+    fallbackSenderName;
+
+  const replyToRaw =
+    payloadReplyTo ||
+    memoryReplyTo ||
+    senderEmail;
+
+  const replyTo = isProbablyEmail(replyToRaw) ? replyToRaw : null;
+
+  const providerModeRaw =
+    payloadProviderMode ||
+    memoryProviderMode ||
+    fallbackProviderMode;
+
+  const providerMode =
+    providerModeRaw === "webhook" ? "webhook" : "gateway";
+
+  return {
+    sender_email: senderEmail,
+    sender_name: senderName || "Pierre",
+    reply_to: replyTo,
+    company_name:
+      payloadCompanyName ||
+      memoryCompanyName ||
+      fallbackCompanyName ||
+      null,
+    sending_domain: sendingDomain,
+    provider_mode: providerMode,
+    provider_url:
+      payloadProviderUrl ||
+      memoryProviderUrl ||
+      fallbackProviderUrl ||
+      null,
+    provider_secret:
+      payloadProviderSecret ||
+      memoryProviderSecret ||
+      fallbackProviderSecret ||
+      null,
+    provider_api_key:
+      payloadProviderApiKey ||
+      memoryProviderApiKey ||
+      fallbackProviderApiKey ||
+      null,
+  };
+}

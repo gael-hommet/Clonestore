@@ -1,0 +1,521 @@
+===== FILE: src/app/agents/alex/page.tsx =====
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import {
+  Sparkles,
+  ArrowRight,
+  Timer,
+  ShieldCheck,
+  Wand2,
+  Workflow,
+  ClipboardList,
+  FileText,
+  BadgeCheck,
+  Layers,
+  Target,
+  MessageSquareText,
+  AtSign,
+  Building2,
+  Plug,
+  CheckCircle2,
+  BriefcaseBusiness,
+} from "lucide-react";
+
+type AccessCheckResult = { ok: boolean; has: boolean };
+
+function Pill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">
+      {children}
+    </span>
+  );
+}
+
+function Card({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="rounded-2xl border p-6 space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground">{icon}</span>
+        <p className="font-medium">{title}</p>
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+export default function AlexPage() {
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [loading, setLoading] = useState(true);
+  const [isLogged, setIsLogged] = useState(false);
+  const [hasAlex, setHasAlex] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [shouldPoll, setShouldPoll] = useState(false);
+
+  useEffect(() => {
+    const u = new URL(window.location.href);
+    setShouldPoll(u.searchParams.get("success") === "1");
+  }, []);
+
+  async function checkAccess(): Promise<AccessCheckResult> {
+    setError(null);
+
+    if (!supabase) {
+      setIsLogged(false);
+      setHasAlex(false);
+      setLoading(false);
+      setError(
+        "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY (local + Vercel)."
+      );
+      return { ok: false, has: false };
+    }
+
+    try {
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr) {
+        setIsLogged(false);
+        setHasAlex(false);
+        setLoading(false);
+        setError(userErr.message);
+        return { ok: false, has: false };
+      }
+
+      const user = userData?.user;
+      if (!user) {
+        setIsLogged(false);
+        setHasAlex(false);
+        setLoading(false);
+        return { ok: true, has: false };
+      }
+
+      setIsLogged(true);
+
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("agent_slug", "alex")
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (orderErr) setError(orderErr.message);
+
+      const has = Boolean(order);
+      setHasAlex(has);
+      setLoading(false);
+      return { ok: true, has };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erreur accès";
+      setError(msg);
+      setLoading(false);
+      return { ok: false, has: false };
+    }
+  }
+
+  useEffect(() => {
+    let stopped = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    async function run() {
+      setLoading(true);
+      const first = await checkAccess();
+
+      if (shouldPoll && first.ok && !first.has) {
+        const started = Date.now();
+
+        intervalId = setInterval(async () => {
+          if (stopped) return;
+
+          const res = await checkAccess();
+
+          if (res.has) {
+            if (intervalId) clearInterval(intervalId);
+
+            const u = new URL(window.location.href);
+            u.searchParams.delete("success");
+            window.history.replaceState({}, "", u.toString());
+          }
+
+          if (Date.now() - started > 25_000) {
+            if (intervalId) clearInterval(intervalId);
+          }
+        }, 1500);
+      }
+    }
+
+    run();
+
+    return () => {
+      stopped = true;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [shouldPoll]);
+
+  return (
+    <main className="mx-auto max-w-6xl py-12 px-4 space-y-12">
+      {/* HERO */}
+      <header className="space-y-6">
+        <div className="flex flex-wrap gap-2">
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              Clone CloneStore • Assistant commercial
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <BriefcaseBusiness className="h-3.5 w-3.5" />
+              Prospection + messages
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <Workflow className="h-3.5 w-3.5" />
+              Compatible CloneOS
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <AtSign className="h-3.5 w-3.5" />
+              Email pro via DNS
+            </span>
+          </Pill>
+          <Pill>Scripts & process</Pill>
+        </div>
+
+        <div className="space-y-3">
+          <h1 className="text-4xl font-semibold tracking-tight">
+            Alex — l’assistant commercial qui structure ton pipeline, prépare tes messages, et standardise ta vente
+          </h1>
+          <p className="text-muted-foreground leading-relaxed max-w-3xl">
+            Alex transforme des notes brutes en actions commerciales claires : messages de prospection, relances,
+            scripts d’appel, réponses aux objections, et process de suivi.
+            <span className="block mt-2">
+              En mode CloneOS/Router, Alex peut exécuter des routines autorisées : préparer des séquences,
+              demander une info manquante, générer un compte rendu, et déclencher des tâches vers d’autres clones.
+            </span>
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button asChild>
+            <Link href="#acces">
+              Accéder à Alex <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/agents">Retour boutique</Link>
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Timer className="h-4 w-4" />}
+            title="Gain de temps"
+            desc="Tu arrêtes de réécrire tes messages. Alex sort des textes propres, cohérents, prêts à envoyer."
+          />
+          <Card
+            icon={<Wand2 className="h-4 w-4" />}
+            title="Standardisation"
+            desc="Même niveau de qualité dans tes relances, scripts et réponses — même quand tu es fatigué."
+          />
+          <Card
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Garde-fous"
+            desc="Alex n’invente pas des promesses. Il suit tes règles et escalade si c’est sensible."
+          />
+        </div>
+      </header>
+
+      {/* AUTONOMIE / CLONEOS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Autonomie & CloneOS</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Workflow className="h-4 w-4" />}
+            title="Routines commerciales"
+            desc="Relances, séquences, templates, suivi : Alex peut produire et maintenir ton système commercial."
+          />
+          <Card
+            icon={<Layers className="h-4 w-4" />}
+            title="Coopération"
+            desc="Alex peut déclencher d’autres clones (ex : Emma pour support, Pierre pour docs) via Router."
+          />
+          <Card
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Traçabilité"
+            desc="Historique/log possible : actions, brouillons, décisions proposées, et étapes suivantes."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2">
+          <p className="text-sm font-medium">Objectif</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Avoir un commercial “systèmes & messages” : moins d’impro, plus de process, et des livrables répétables.
+          </p>
+        </div>
+      </section>
+
+      {/* EMAIL ENTREPRISE (DNS) */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Email entreprise (option) : Alex au nom de ta boîte</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card
+            icon={<Building2 className="h-4 w-4" />}
+            title="Adresse pro dédiée"
+            desc="Connexion possible à une adresse du domaine (ex : alex@tonentreprise.com / sales@tonentreprise.com) via DNS."
+          />
+          <Card
+            icon={<AtSign className="h-4 w-4" />}
+            title="Séquences prêtes"
+            desc="Alex prépare objets + messages + relances. Envoi automatique uniquement si tu l’actives."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2">
+          <p className="text-sm font-medium">Résultat</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Un outbound plus propre, plus constant, avec moins de “trous” dans le suivi.
+          </p>
+        </div>
+      </section>
+
+      {/* INTEGRATIONS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Connexion outils (option)</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Plug className="h-4 w-4" />}
+            title="CRM & outils"
+            desc="Connexion possible selon ton stack (via Router/Make/API) : suivi, tâches, notes, exports."
+          />
+          <Card
+            icon={<ClipboardList className="h-4 w-4" />}
+            title="Compte rendu"
+            desc="À partir de notes brutes : Alex sort un compte rendu + next steps + relances à prévoir."
+          />
+          <Card
+            icon={<Target className="h-4 w-4" />}
+            title="Qualification"
+            desc="Alex structure une qualification simple (besoin, urgence, budget, décideur, objections)."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2">
+          <p className="text-sm font-medium">Note</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Les intégrations dépendent de ton outil. Sans connecteur direct, on passe par Router/Make ou API quand c’est possible.
+          </p>
+        </div>
+      </section>
+
+      {/* CAPACITÉS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Ce que Alex fait</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card
+            icon={<MessageSquareText className="h-4 w-4" />}
+            title="Prospection & relances"
+            desc="Messages courts, emails, DM, relances. Plusieurs variantes selon ton ton et ta cible."
+          />
+          <Card
+            icon={<FileText className="h-4 w-4" />}
+            title="Scripts & playbooks"
+            desc="Scripts d’appel, réponses aux objections, checklists, mini playbooks commerciaux."
+          />
+          <Card
+            icon={<ClipboardList className="h-4 w-4" />}
+            title="Pipeline & process"
+            desc="Étapes, règles, suivi, tags. Alex t’aide à standardiser un pipeline simple et efficace."
+          />
+          <Card
+            icon={<BadgeCheck className="h-4 w-4" />}
+            title="Cohérence"
+            desc="Même niveau de qualité, mêmes règles, même structure dans tes échanges commerciaux."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6">
+          <p className="text-sm">
+            <span className="font-medium">Alex ne fait pas :</span>{" "}
+            <span className="text-muted-foreground">
+              promettre un résultat garanti • inventer des données • envoyer automatiquement sans autorisation • fournir du conseil juridique formel.
+            </span>
+          </p>
+        </div>
+      </section>
+
+      {/* EXEMPLES */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Exemples de briefs (et ce que tu obtiens)</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border p-6 space-y-3">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Prospection : DRH PME 50-150 salariés. Message court, ton pro, objectif : call 15 min.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              3 variantes + objet + angle valeur + CTA simple.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Relance J+3 et J+7, sans être lourd.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Séquence de relances courte + version “polie” + version “directe”.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Objection : ‘pas de budget’. Réponds et propose une option.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Réponse structurée + options + question de qualification.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Notes d’appel → compte rendu + next steps + relance à préparer.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              CR propre + actions + brouillon de mail de suivi.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* COMMENT */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Comment ça marche</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border p-6 space-y-2">
+            <p className="text-sm font-medium">1) Tu fixes les règles</p>
+            <p className="text-sm text-muted-foreground">
+              Ton, offre, cibles, objections, ce qu’on promet / ne promet pas.
+            </p>
+          </div>
+          <div className="rounded-2xl border p-6 space-y-2">
+            <p className="text-sm font-medium">2) Alex produit</p>
+            <p className="text-sm text-muted-foreground">
+              Messages, scripts, séquences, playbooks — prêts à copier-coller.
+            </p>
+          </div>
+          <div className="rounded-2xl border p-6 space-y-2">
+            <p className="text-sm font-medium">3) Mode CloneOS (option)</p>
+            <p className="text-sm text-muted-foreground">
+              Déclencheurs Router : suivi, relances, tâches, coopération inter-clones.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border p-6 space-y-3">
+        <h3 className="text-lg font-medium">3 modes d’utilisation</h3>
+
+        <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
+          <li>
+            <span className="font-medium text-foreground">Mode simple :</span> brief → Alex te rend les messages/scrits.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Mode système :</span> pipeline + templates + process commercial.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Mode CloneOS :</span> routines + coopération via Router.
+          </li>
+        </ul>
+      </section>
+
+      {/* ACCÈS / CTA */}
+      <section id="acces" className="rounded-2xl border p-8 space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold">Accès à Alex</h2>
+            <p className="text-sm text-muted-foreground">
+              Statut actuel : <span className="font-medium text-foreground">en construction</span>.
+            </p>
+          </div>
+          <Button asChild variant="outline">
+            <Link href="/agents">Boutique</Link>
+          </Button>
+        </div>
+
+        {loading ? (
+          <p className="text-sm text-muted-foreground">
+            Vérification en cours…
+            {shouldPoll && <span> (post-paiement, attente activation...)</span>}
+          </p>
+        ) : hasAlex ? (
+          <>
+            <p className="text-sm text-muted-foreground">Alex est actif dans ton espace.</p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild>
+                <Link href="/agents/alex/use">Utiliser Alex</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/profile/agents">Mes clones</Link>
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              {isLogged
+                ? "Alex n’est pas encore disponible à l’achat. Tu peux déjà poser des questions via l’assistant."
+                : "Connecte-toi pour suivre l’arrivée d’Alex. En attendant, tu peux poser tes questions via l’assistant."}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild variant="outline">
+                <Link href="/assistant">Poser une question</Link>
+              </Button>
+
+              {!isLogged && (
+                <Button asChild variant="outline">
+                  <Link href="/login">Se connecter</Link>
+                </Button>
+              )}
+
+              <Button variant="outline" onClick={() => checkAccess()}>
+                Rafraîchir l’accès
+              </Button>
+            </div>
+          </>
+        )}
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+      </section>
+    </main>
+  );
+}
+

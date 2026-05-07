@@ -1,0 +1,296 @@
+r ce qu’il fait souvent, ce qu’il peut faire, et ce qu’il ne doit jamais exécuter seul."
+          >
+            <TextAreaField
+              label="Documents récurrents"
+              value={form.policy.recurring_documents}
+              onChange={(value) => updateSection("policy", "recurring_documents", value)}
+              placeholder="Convocations, refus, relances, onboarding, rappels de procédure…"
+              rows={4}
+            />
+
+            <TextAreaField
+              label="Règles récurrentes"
+              value={form.policy.recurring_rules}
+              onChange={(value) => updateSection("policy", "recurring_rules", value)}
+              placeholder="Délais de relance, types de cas fréquents, habitudes de fonctionnement…"
+              rows={4}
+            />
+
+            <TextAreaField
+              label="Cas sensibles"
+              value={form.policy.sensitive_cases}
+              onChange={(value) => updateSection("policy", "sensitive_cases", value)}
+              placeholder="Quels cas exigent toujours validation humaine ?"
+              rows={4}
+            />
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <TextAreaField
+                label="Actions autorisées"
+                value={form.policy.allowed_actions}
+                onChange={(value) => updateSection("policy", "allowed_actions", value)}
+                placeholder="Ce que Pierre peut faire seul ou préparer."
+                rows={5}
+              />
+              <TextAreaField
+                label="Actions interdites"
+                value={form.policy.forbidden_actions}
+                onChange={(value) => updateSection("policy", "forbidden_actions", value)}
+                placeholder="Ce que Pierre ne doit jamais faire."
+                rows={5}
+              />
+            </div>
+          </FormSection>
+
+          <FormSection
+            title="5. Paramètres d’autonomie"
+            description="L’autonomie doit être puissante mais gouvernée."
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              <ToggleField
+                label="Préparer sans envoyer par défaut"
+                description="Pierre peut préparer les documents et emails sans les envoyer automatiquement."
+                checked={form.autonomy.can_prepare_only}
+                onChange={(checked) =>
+                  updateSection("autonomy", "can_prepare_only", checked)
+                }
+              />
+              <ToggleField
+                label="Envoi d’emails simples autorisé"
+                description="Autoriser Pierre à envoyer certains emails simples, si le cadre interne le permet."
+                checked={form.autonomy.can_send_simple_emails}
+                onChange={(checked) =>
+                  updateSection("autonomy", "can_send_simple_emails", checked)
+                }
+              />
+              <ToggleField
+                label="Relances automatiques autorisées"
+                description="Autoriser Pierre à relancer automatiquement dans le cadre défini."
+                checked={form.autonomy.can_follow_up}
+                onChange={(checked) =>
+                  updateSection("autonomy", "can_follow_up", checked)
+                }
+              />
+              <ToggleField
+                label="Validation humaine obligatoire sur le sensible"
+                description="Les cas sensibles remontent toujours avant exécution."
+                checked={form.autonomy.human_validation_required_for_sensitive}
+                onChange={(checked) =>
+                  updateSection(
+                    "autonomy",
+                    "human_validation_required_for_sensitive",
+                    checked,
+                  )
+                }
+              />
+            </div>
+          </FormSection>
+
+          <FormSection
+            title="6. Identité de messagerie"
+            description="Pierre doit paraître réellement intégré à l’entreprise, avec une identité mail claire et contrôlée."
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field
+                label="Adresse email liée"
+                value={form.messaging.sender_email}
+                onChange={(value) => updateSection("messaging", "sender_email", value)}
+                placeholder="pierre@entreprise.com"
+                icon={<Mail className="h-4 w-4" />}
+                type="email"
+              />
+              <Field
+                label="Nom d’affichage"
+                value={form.messaging.sender_display_name}
+                onChange={(value) =>
+                  updateSection("messaging", "sender_display_name", value)
+                }
+                placeholder="Pierre / RH Entreprise"
+                icon={<Users className="h-4 w-4" />}
+              />
+            </div>
+
+            <Field
+              label="Reply-to"
+              value={form.messaging.reply_to}
+              onChange={(value) => updateSection("messaging", "reply_to", value)}
+              placeholder="recrutement@entreprise.com"
+              icon={<Mail className="h-4 w-4" />}
+              type="email"
+            />
+
+            <TextAreaField
+              label="Signature"
+              value={form.messaging.signature}
+              onChange={(value) => updateSection("messaging", "signature", value)}
+              placeholder="Signature email de Pierre…"
+              rows={4}
+            />
+
+            <TextAreaField
+              label="Politique d’envoi"
+              value={form.messaging.sending_policy}
+              onChange={(value) => updateSection("messaging", "sending_policy", value)}
+              placeholder="Dans quels cas Pierre peut envoyer ? Dans quels cas il prépare seulement ?"
+              rows={4}
+            />
+          </FormSection>
+
+          <FormSection
+            title="7. Mémoire utile et références"
+            description="Ajoute ici ce que Pierre doit garder en tête pour mieux s’aligner sur votre entreprise."
+          >
+            <TextAreaField
+              label="Formulations et phrases préférées"
+              value={form.memory.preferred_phrases}
+              onChange={(value) => updateSection("memory", "preferred_phrases", value)}
+              placeholder="Exemples de formulations, expressions, styles préférés…"
+              rows={4}
+            />
+
+            <TextAreaField
+              label="Notes de référence"
+              value={form.memory.reference_notes}
+              onChange={(value) => updateSection("memory", "reference_notes", value)}
+              placeholder="Informations importantes à réutiliser régulièrement…"
+              rows={5}
+            />
+
+            <TextAreaField
+              label="Templates / remarques utiles"
+              value={form.memory.templates_notes}
+              onChange={(value) => updateSection("memory", "templates_notes", value)}
+              placeholder="Notes sur les modèles de documents, habitudes d’onboarding, règles de forme…"
+              rows={5}
+            />
+          </FormSection>
+
+          <section className="cs-panel overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-account-accent)_12%,transparent),transparent_72%)]" />
+
+            <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+                  Enregistrement
+                </p>
+                <h3 className="cs-heading text-2xl">
+                  Enregistrer l’Empreinte Entreprise de Pierre
+                </h3>
+                <p className="max-w-2xl text-sm text-[var(--cs-ink-4)]">
+                  Cette base doit ensuite nourrir Pierre, son comportement, sa
+                  mémoire d’entreprise, ses validations et ses futures missions.
+                </p>
+
+                {saveMessage ? (
+                  <p
+                    className={[
+                      "text-sm",
+                      saveState === "error"
+                        ? "text-[var(--cs-danger)]"
+                        : "text-[var(--cs-success)]",
+                    ].join(" ")}
+                  >
+                    {saveMessage}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  disabled={saveState === "loading"}
+                  className={[
+                    "inline-flex h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+                    "border",
+                    saveState === "loading"
+                      ? "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.62),rgba(255,249,242,0.42))] text-[var(--cs-ink-4)] opacity-80"
+                      : "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))] text-white shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)] hover:-translate-y-0.5",
+                  ].join(" ")}
+                >
+                  {saveState === "loading" ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Enregistrement…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      <span>Enregistrer</span>
+                    </>
+                  )}
+                </button>
+
+                <ActionButton
+                  href="/agents/pierre/use"
+                  label="Aller dans Pierre"
+                  primary={false}
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+          </section>
+        </form>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Pourquoi cette page est stratégique"
+              title="L’onboarding de Pierre doit déjà vendre sa profondeur."
+              text="Cette page doit montrer que Pierre ne sort pas de nulle part : il apprend le ton, les règles, la messagerie, l’autonomie et le cadre de l’entreprise."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Empreinte forte"
+                text="Pierre doit travailler comme votre entreprise, pas comme un modèle générique."
+                icon={<Sparkles className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Contrôle réel"
+                text="Le client doit sentir qu’il peut tout ajuster proprement."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+              <InfoCard
+                title="Continuité"
+                text="Cette base conditionne ensuite la qualité des missions, des relances et des sorties."
+                icon={<FileText className="h-4 w-4" />}
+                tone="blue"
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Règle produit"
+              title="Ce n’est pas un formulaire de plus. C’est la matrice de Pierre."
+              text="Le client doit comprendre que ce qu’il remplit ici nourrit réellement le comportement, les validations, la voix écrite et le niveau d’autonomie de Pierre."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="CloneADN"
+                text="L’empreinte devient une base d’alignement entreprise."
+                icon={<Sparkles className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="CloneGuard"
+                text="Les validations et interdits doivent être visibles et cadrés ici."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="rose"
+              />
+              <InfoCard
+                title="Messagerie réelle"
+                text="L’identité email de Pierre doit être un vrai levier de crédibilité."
+                icon={<Mail className="h-4 w-4" />}
+                tone="blue"
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

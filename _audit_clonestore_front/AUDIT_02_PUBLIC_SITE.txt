@@ -1,0 +1,4540 @@
+﻿
+
+
+============================================================
+FILE: src\app\page.tsx
+============================================================
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  BrainCircuit,
+  BriefcaseBusiness,
+  FileCheck2,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+  Workflow,
+} from "lucide-react";
+import { AGENTS } from "@/lib/agent-catalog";
+import { CLONESTORE_SECTIONS } from "@/components/site/clonestore-sections";
+import {
+  ActionButton,
+  BulletList,
+  InfoCard,
+  SectionTitle,
+} from "@/components/site/public-primitives";
+
+function isAvailableNow(slug: string) {
+  return slug === "pierre";
+}
+
+function AgentSpotlightCard({
+  slug,
+  name,
+  role,
+  description,
+  bullets,
+}: {
+  slug: string;
+  name: string;
+  role: string;
+  description: string;
+  bullets: string[];
+}) {
+  const available = isAvailableNow(slug);
+
+  return (
+    <article className="cs-card h-full">
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-lg font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                {name}
+              </p>
+              <p className="text-sm font-medium text-[var(--cs-ink-3)]">{role}</p>
+            </div>
+
+            <span className={available ? "cs-status cs-status--success" : "cs-status"}>
+              {available ? "Disponible" : "En construction"}
+            </span>
+          </div>
+
+          <p className="text-sm leading-7 text-[var(--cs-ink-4)]">{description}</p>
+
+          <BulletList items={bullets.slice(0, 4)} />
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <ActionButton
+            href={`/agents/${slug}`}
+            label={available ? `Voir ${name}` : "Voir la fiche"}
+            primary
+            icon={<ArrowRight className="h-4 w-4" />}
+          />
+          {available ? (
+            <ActionButton
+              href="/checkout?agent=pierre"
+              label="Activer"
+              icon={<Sparkles className="h-4 w-4" />}
+            />
+          ) : (
+            <ActionButton
+              href="/questions"
+              label="Poser une question"
+              icon={<Bot className="h-4 w-4" />}
+            />
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export default function HomePage() {
+  const heroAgents = AGENTS.slice(0, 5);
+  const sections = CLONESTORE_SECTIONS.slice(0, 4);
+
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-8 xl:grid-cols-[1.05fr_0.95fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <Sparkles className="h-3.5 w-3.5 text-[var(--cs-violet)]" />
+                  <span>OS d’employés IA premium</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Gouverné, traçable, pilotable</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-6xl">
+                  CloneStore transforme
+                  <br />
+                  <span className="cs-gradient-text">
+                    des postes entiers en exécution réelle.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm leading-8 text-[var(--cs-ink-4)] md:text-base">
+                  CloneStore n’est pas une collection de gadgets IA. C’est un système
+                  d’exploitation d’employés IA conçu pour les entreprises qui veulent
+                  gagner du temps, réduire la charge mentale, garder le contrôle et
+                  faire exécuter davantage sans bricolage.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/agents"
+                  label="Voir la boutique"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents/pierre"
+                  label="Découvrir Pierre"
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Parler à CloneChat"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <InfoCard
+                  title="Capacité réelle"
+                  text="Des employés IA conçus pour absorber un vrai bloc de travail, pas seulement rédiger deux textes."
+                  icon={<Workflow className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Contrôle"
+                  text="Cockpit, validations, traçabilité, mémoire entreprise et logique de gouvernance intégrée."
+                  icon={<ShieldCheck className="h-4 w-4" />}
+                  tone="green"
+                />
+                <InfoCard
+                  title="Lisibilité"
+                  text="Une interface calme, claire et premium pour piloter un système complexe sans être noyé."
+                  icon={<Waypoints className="h-4 w-4" />}
+                  tone="blue"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <div className="cs-card">
+                <div className="relative space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                        Employé le plus concret aujourd’hui
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
+                        Si un client veut une valeur réelle maintenant, la réponse
+                        honnête est Pierre.
+                      </p>
+                    </div>
+                    <span className="cs-status cs-status--success">Disponible</span>
+                  </div>
+
+                  <div className="rounded-[1.2rem] border border-[var(--cs-line-soft)] bg-white/40 p-4">
+                    <p className="text-xl font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                      Pierre
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-[var(--cs-ink-3)]">
+                      Poste RH opérationnel automatisé
+                    </p>
+                    <p className="mt-3 text-sm leading-7 text-[var(--cs-ink-4)]">
+                      Missions RH, documents, emails, relances, onboarding,
+                      exécution contrôlée, historique et logique de cockpit.
+                    </p>
+                  </div>
+
+                  <BulletList
+                    items={[
+                      "Centre de missions RH",
+                      "Documents et emails premium",
+                      "PDF, artefacts, historique",
+                      "Empreinte Entreprise et identité d’envoi",
+                    ]}
+                  />
+
+                  <div className="flex flex-wrap gap-3">
+                    <ActionButton
+                      href="/agents/pierre"
+                      label="Voir Pierre"
+                      primary
+                      icon={<ArrowRight className="h-4 w-4" />}
+                    />
+                    <ActionButton
+                      href="/checkout?agent=pierre"
+                      label="Activer Pierre"
+                      icon={<Sparkles className="h-4 w-4" />}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard
+                  title="CloneOS"
+                  text="Orchestration des missions, tâches et employés."
+                  icon={<BrainCircuit className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="CloneTrace"
+                  text="Trace claire des actions, états, validations et livrables."
+                  icon={<FileCheck2 className="h-4 w-4" />}
+                  tone="blue"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Pourquoi CloneStore"
+            title="Le but n’est pas d’ajouter un outil. Le but est de retirer du poids opérationnel."
+            text="CloneStore doit être compris comme une capacité nouvelle pour l’entreprise : plus d’exécution, plus de continuité, plus de contrôle, sans sensation de produit fragile."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard
+              title="Postes automatisés"
+              text="Chaque employé IA correspond à un périmètre métier lisible et assumé."
+              icon={<BriefcaseBusiness className="h-4 w-4" />}
+              tone="violet"
+            />
+            <InfoCard
+              title="Mémoire entreprise"
+              text="Le système doit progressivement ressembler à la façon de travailler du client."
+              icon={<BrainCircuit className="h-4 w-4" />}
+              tone="blue"
+            />
+            <InfoCard
+              title="Validation intelligente"
+              text="Les cas sensibles doivent remonter proprement au lieu de partir en roue libre."
+              icon={<ShieldCheck className="h-4 w-4" />}
+              tone="green"
+            />
+            <InfoCard
+              title="Pilotage central"
+              text="Le cockpit doit rester la tour de contrôle de l’entreprise, pas un labyrinthe SaaS."
+              icon={<Waypoints className="h-4 w-4" />}
+              tone="rose"
+            />
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Employés visibles"
+            title="Une gamme cohérente, avec une entrée immédiate claire."
+            text="Le catalogue CloneStore doit rester ambitieux sans mentir. Aujourd’hui, Pierre est l’entrée forte. Les autres employés existent dans la vision produit, mais doivent rester présentés avec honnêteté."
+            right={
+              <ActionButton
+                href="/agents"
+                label="Ouvrir la boutique"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+            }
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {heroAgents.map((agent) => (
+              <AgentSpotlightCard
+                key={agent.slug}
+                slug={agent.slug}
+                name={agent.name}
+                role={agent.role}
+                description={agent.does[0] ?? agent.role}
+                bullets={agent.does}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Architecture visible"
+            title="Un produit profond côté système, lisible côté client."
+            text="La profondeur technique doit soutenir la confiance, pas la complexité perçue."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {sections.map((section) => (
+              <Link
+                key={section.id}
+                href={`/clonestore/${section.id}`}
+                className="cs-card cs-hover-lift block h-full"
+              >
+                <div className="relative flex h-full flex-col justify-between gap-5">
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
+                      {section.label}
+                    </p>
+                    <p className="text-lg font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                      {section.title}
+                    </p>
+                    <p className="text-sm leading-7 text-[var(--cs-ink-4)]">
+                      {section.summary}
+                    </p>
+                  </div>
+
+                  <div className="inline-flex items-center gap-2 text-sm font-medium text-[var(--cs-ink-2)]">
+                    En savoir plus
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-violet)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--cs-violet)]" />
+                <span>Entrer dans CloneStore</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Commence par Pierre.
+              <br />
+              Entre ensuite dans le cockpit CloneStore.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--cs-ink-4)] md:text-base">
+              La promesse doit être simple : une entrée crédible maintenant, un
+              système plus vaste ensuite, toujours avec une sensation de produit
+              premium et pilotable.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/agents/pierre"
+                label="Découvrir Pierre"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/profile"
+                label="Voir Mon espace"
+                icon={<Waypoints className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+
+============================================================
+FILE: src\app\agents\page.tsx
+============================================================
+
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  Building2,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+import { AGENTS, type AgentSpec } from "@/lib/agent-catalog";
+import {
+  ActionButton,
+  BulletList,
+  InfoCard,
+  SectionTitle,
+} from "@/components/site/public-primitives";
+
+function isAvailableNow(slug: string) {
+  return slug === "pierre";
+}
+
+function AgentCatalogCard({ agent }: { agent: AgentSpec }) {
+  const available = isAvailableNow(agent.slug);
+
+  return (
+    <article className="cs-card h-full">
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-lg font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                {agent.name}
+              </p>
+              <p className="text-sm font-medium text-[var(--cs-ink-3)]">{agent.role}</p>
+            </div>
+
+            <span className={available ? "cs-status cs-status--success" : "cs-status"}>
+              {available ? "Disponible" : "En construction"}
+            </span>
+          </div>
+
+          <div className="rounded-[1.15rem] border border-[var(--cs-line-soft)] bg-white/36 p-4">
+            <p className="text-sm leading-7 text-[var(--cs-ink-4)]">
+              {agent.does[0] ?? "Employé visible dans l’univers CloneStore."}
+            </p>
+          </div>
+
+          <BulletList items={agent.does.slice(0, 4)} />
+
+          {agent.pricingNote ? (
+            <p className="text-xs text-[var(--cs-ink-4)]">{agent.pricingNote}</p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <ActionButton
+            href={`/agents/${agent.slug}`}
+            label={`Voir ${agent.name}`}
+            primary
+            icon={<ArrowRight className="h-4 w-4" />}
+          />
+          {available ? (
+            <ActionButton
+              href="/checkout?agent=pierre"
+              label="Activer"
+              icon={<Sparkles className="h-4 w-4" />}
+            />
+          ) : (
+            <ActionButton
+              href="/questions"
+              label="Poser une question"
+              icon={<Bot className="h-4 w-4" />}
+            />
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export default function AgentsPage() {
+  const readyAgents = AGENTS.filter((agent) => isAvailableNow(agent.slug));
+  const upcomingAgents = AGENTS.filter((agent) => !isAvailableNow(agent.slug));
+
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.05fr_0.95fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <BriefcaseBusiness className="h-3.5 w-3.5 text-[var(--cs-violet)]" />
+                  <span>Boutique CloneStore</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Lecture honnête du niveau produit</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Des employés IA premium,
+                  <br />
+                  <span className="cs-gradient-text">
+                    pas des gadgets vendus trop tôt.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm leading-8 text-[var(--cs-ink-4)] md:text-base">
+                  La boutique CloneStore doit être ambitieuse, mais propre. Elle montre
+                  la profondeur du système, tout en gardant une vérité simple : aujourd’hui,
+                  Pierre est l’entrée la plus crédible pour un client qui veut une vraie
+                  valeur opérationnelle maintenant.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/agents/pierre"
+                  label="Découvrir Pierre"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/checkout?agent=pierre"
+                  label="Activer Pierre"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <InfoCard
+                  title="Honnêteté"
+                  text="On ne survend pas un employé tant qu’il n’a pas le niveau produit attendu."
+                  icon={<ShieldCheck className="h-4 w-4" />}
+                  tone="green"
+                />
+                <InfoCard
+                  title="Profondeur"
+                  text="Le catalogue doit montrer la vision CloneStore sans casser la crédibilité du présent."
+                  icon={<Building2 className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Entrée claire"
+                  text="Le client qui veut de la valeur maintenant doit comprendre vite qu’il faut commencer par Pierre."
+                  icon={<Waypoints className="h-4 w-4" />}
+                  tone="blue"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <div className="cs-card">
+                <div className="relative space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                        Recommandation actuelle
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
+                        Si tu veux un employé réellement exploitable maintenant.
+                      </p>
+                    </div>
+                    <span className="cs-status cs-status--success">Choix recommandé</span>
+                  </div>
+
+                  <div className="rounded-[1.2rem] border border-[var(--cs-line-soft)] bg-white/40 p-4">
+                    <p className="text-xl font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                      Pierre
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-[var(--cs-ink-3)]">
+                      Poste RH opérationnel automatisé
+                    </p>
+                    <p className="mt-3 text-sm leading-7 text-[var(--cs-ink-4)]">
+                      C’est aujourd’hui l’employé le plus concret dans le parcours
+                      CloneStore : setup, cockpit, missions, documents, emails,
+                      PDF, historique et logique d’exécution.
+                    </p>
+                  </div>
+
+                  <BulletList
+                    items={[
+                      "Entrée crédible immédiate",
+                      "Usage RH concret",
+                      "Cockpit dédié et logique de missions",
+                      "Parcours commercial et produit déjà cohérents",
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard
+                  title={`${readyAgents.length}`}
+                  text="employé ouvert publiquement au niveau attendu."
+                  icon={<Sparkles className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title={`${upcomingAgents.length}`}
+                  text="employés déjà visibles dans la vision CloneStore."
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                  tone="blue"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Disponible maintenant"
+            title="L’entrée la plus forte aujourd’hui"
+            text="On ne dilue pas le message : pour un usage réel immédiat, Pierre est l’employé à pousser."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {readyAgents.map((agent) => (
+              <AgentCatalogCard key={agent.slug} agent={agent} />
+            ))}
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Gamme visible"
+            title="Le reste de l’univers CloneStore"
+            text="Ces employés doivent exister dans l’écosystème et dans l’imaginaire produit, sans être présentés comme plus mûrs qu’ils ne le sont réellement."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {upcomingAgents.map((agent) => (
+              <AgentCatalogCard key={agent.slug} agent={agent} />
+            ))}
+          </div>
+        </section>
+
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-violet)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--cs-violet)]" />
+                <span>Commencer proprement</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Le bon départ n’est pas compliqué.
+              <br />
+              Il s’appelle Pierre.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--cs-ink-4)] md:text-base">
+              Le site doit rendre ce choix évident sans bruit inutile, tout en
+              gardant l’ambition complète de CloneStore visible derrière.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/agents/pierre"
+                label="Voir Pierre"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/checkout?agent=pierre"
+                label="Continuer vers le checkout"
+                icon={<Sparkles className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+
+============================================================
+MISSING FILE: src\app\agents\[slug]\page.tsx
+============================================================
+
+
+
+============================================================
+MISSING FILE: src\app\agents\[slug]\use\page.tsx
+============================================================
+
+
+
+============================================================
+FILE: src\app\agents\pierre\page.tsx
+============================================================
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  CheckCircle2,
+  Clock3,
+  FileCheck2,
+  FileText,
+  Mail,
+  MessageSquareMore,
+  ShieldCheck,
+  Sparkles,
+  UserCheck,
+  Users,
+  Waypoints,
+} from "lucide-react";
+
+type Capability = {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone: "violet" | "blue" | "rose" | "green";
+};
+
+const keyCapabilities: Capability[] = [
+  {
+    title: "Mission libre RH",
+    text: "Pierre comprend une demande naturelle, la transforme en mission, détecte les informations manquantes et structure le travail.",
+    icon: <Waypoints className="h-4 w-4" />,
+    tone: "violet",
+  },
+  {
+    title: "Documents RH premium",
+    text: "Convocations, refus, relances, onboarding, notes internes, courriers RH simples, synthèses et brouillons propres.",
+    icon: <FileText className="h-4 w-4" />,
+    tone: "blue",
+  },
+  {
+    title: "Emails & relances",
+    text: "Prépare, envoie si autorisé, relance et suit les échanges dans le temps avec historique clair.",
+    icon: <Mail className="h-4 w-4" />,
+    tone: "rose",
+  },
+  {
+    title: "Traçabilité & contrôle",
+    text: "Validations, blocages, livrables, états et continuité remontent dans une logique CloneTrace exploitable.",
+    icon: <FileCheck2 className="h-4 w-4" />,
+    tone: "green",
+  },
+];
+
+const useCases = [
+  "Préparer une convocation pour demain à 14h.",
+  "Relancer ce candidat demain matin si je n’ai pas de réponse ce soir.",
+  "Préparer un mail d’onboarding pour l’arrivée de Léa lundi.",
+  "Refaire ce message en plus humain et plus professionnel.",
+  "Demander les pièces manquantes puis relancer dans 48h.",
+  "Préparer le PDF et garder le document prêt à validation.",
+];
+
+const workflow = [
+  {
+    step: "01",
+    title: "Vous donnez une demande RH naturelle",
+    text: "Pas besoin de parler en prompts. Vous exprimez une mission comme à un collaborateur RH.",
+  },
+  {
+    step: "02",
+    title: "Pierre comprend, structure et classe",
+    text: "Il détecte le type de mission, le niveau de sensibilité, les infos manquantes et les validations nécessaires.",
+  },
+  {
+    step: "03",
+    title: "Il produit, suit et relance",
+    text: "Documents, emails, PDF, relances, reprise de mission et continuité sous règles.",
+  },
+  {
+    step: "04",
+    title: "Vous gardez le contrôle",
+    text: "Les cas sensibles remontent, le reste avance, et tout reste visible dans le cockpit.",
+  },
+];
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+  right,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="max-w-3xl space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+          {kicker}
+        </p>
+        <h2 className="cs-heading text-2xl md:text-4xl">{title}</h2>
+        <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+      </div>
+      {right ? <div className="shrink-0">{right}</div> : null}
+    </div>
+  );
+}
+
+function CapabilityCard({ item }: { item: Capability }) {
+  const toneClass =
+    item.tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : item.tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : item.tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {item.icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {item.title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{item.text}</p>
+      </div>
+    </div>
+  );
+}
+
+function StatTile({
+  label,
+  value,
+  helper,
+}: {
+  label: string;
+  value: string;
+  helper: string;
+}) {
+  return (
+    <div className="cs-card">
+      <div className="relative space-y-2">
+        <p className="text-xs uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
+          {label}
+        </p>
+        <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+          {value}
+        </p>
+        <p className="text-xs text-[var(--cs-ink-4)]">{helper}</p>
+      </div>
+    </div>
+  );
+}
+
+function WorkflowCard({
+  step,
+  title,
+  text,
+}: {
+  step: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <span className="cs-pill">{step}</span>
+          <span className="cs-status cs-status--info">Workflow</span>
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+            {title}
+          </h3>
+          <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-account-accent)]" />
+          <span className="text-sm text-[var(--cs-ink-4)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function PierrePage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        {/* HERO */}
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.05fr_0.95fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <BriefcaseBusiness className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Pierre</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Poste RH opérationnel automatisé</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Pierre absorbe une part massive
+                  <br />
+                  <span className="cs-gradient-text">
+                    du travail RH opérationnel.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Pierre n’est pas un bot RH. Pierre est un poste RH
+                  opérationnel automatisé conçu pour comprendre une demande RH
+                  libre, la transformer en mission structurée, produire des
+                  documents et communications propres, exécuter certaines
+                  actions autorisées, relancer, suivre et garder une trace
+                  claire dans le temps.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/paiement"
+                  label="Commencer avec Pierre"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents"
+                  label="Retour à la boutique"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <StatTile
+                  label="Prix actuel"
+                  value="449€/mois"
+                  helper="Prix fondateur affiché aujourd’hui."
+                />
+                <StatTile
+                  label="Positionnement"
+                  value="Poste RH"
+                  helper="Pas un simple assistant rédactionnel."
+                />
+                <StatTile
+                  label="Promesse"
+                  value="Travail absorbé"
+                  helper="Moins de charge mentale, plus de continuité."
+                />
+              </div>
+            </div>
+
+            {/* HERO RIGHT */}
+            <div className="grid gap-4">
+              <div className="cs-panel">
+                <div className="relative space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-[var(--cs-ink-4)]">
+                        Ce que Pierre fait ressentir
+                      </p>
+                      <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                        “J’ai un RH qui travaille.”
+                      </p>
+                    </div>
+                    <span className="cs-status cs-status--success">Disponible</span>
+                  </div>
+
+                  <div className="grid gap-3">
+                    <div className="cs-card">
+                      <div className="relative flex items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[color:color-mix(in_srgb,var(--cs-line-soft)_70%,white)] bg-white/58 text-[var(--cs-account-accent)] shadow-[var(--cs-shadow-soft)]">
+                          <FileText className="h-4.5 w-4.5" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                            Documents RH propres
+                          </p>
+                          <p className="text-sm text-[var(--cs-ink-4)]">
+                            Convocations, refus, relances, onboarding, notes et
+                            brouillons prêts à valider ou à envoyer.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="cs-card">
+                      <div className="relative flex items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[color:color-mix(in_srgb,var(--cs-line-soft)_70%,white)] bg-white/58 text-[var(--cs-info)] shadow-[var(--cs-shadow-soft)]">
+                          <MessageSquareMore className="h-4.5 w-4.5" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                            Continuité dans le temps
+                          </p>
+                          <p className="text-sm text-[var(--cs-ink-4)]">
+                            Pierre ne répond pas juste une fois. Il suit,
+                            relance, reprend et garde le fil.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="cs-card">
+                      <div className="relative flex items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[color:color-mix(in_srgb,var(--cs-line-soft)_70%,white)] bg-white/58 text-[var(--cs-danger)] shadow-[var(--cs-shadow-soft)]">
+                          <ShieldCheck className="h-4.5 w-4.5" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                            Contrôle humain sur le sensible
+                          </p>
+                          <p className="text-sm text-[var(--cs-ink-4)]">
+                            Les cas critiques, disciplinaires ou juridiques ne
+                            partent pas en roue libre.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="cs-card">
+                    <div className="relative space-y-2">
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                        Prix fondateur
+                      </p>
+                      <p className="text-sm text-[var(--cs-ink-4)]">
+                        Les premiers clients conservent leur prix fondateur tant
+                        que le prix affiché au moment de leur souscription ne
+                        baisse pas ensuite.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CORE CAPABILITIES */}
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Ce que Pierre fait vraiment"
+            title="Un moteur de missions RH, pas un simple générateur."
+            text="Pierre doit comprendre, produire, exécuter sous règles, relancer, suivre, mémoriser et rendre un historique clair."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {keyCapabilities.map((item) => (
+              <CapabilityCard key={item.title} item={item} />
+            ))}
+          </div>
+        </section>
+
+        {/* USE CASES */}
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Exemples de demandes"
+              title="Pierre doit comprendre ce genre de formulations naturelles."
+              text="Le client parle à Pierre comme à un collaborateur RH en télétravail, pas comme à une IA fragile."
+            />
+
+            <div className="mt-6 grid gap-3">
+              {useCases.map((item) => (
+                <div key={item} className="cs-card">
+                  <div className="relative flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-[color:color-mix(in_srgb,var(--cs-line-soft)_70%,white)] bg-white/58 text-[var(--cs-account-accent)] shadow-[var(--cs-shadow-soft)]">
+                      <Bot className="h-4 w-4" />
+                    </div>
+                    <p className="text-sm text-[var(--cs-ink-3)]">“{item}”</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Ce que Pierre absorbe"
+              title="Une masse réelle de travail RH opérationnel."
+              text="La valeur n’est pas seulement la qualité du texte. La valeur, c’est la charge retirée au client."
+            />
+
+            <div className="mt-6">
+              <BulletList
+                items={[
+                  "Préparer et réécrire des documents RH crédibles.",
+                  "Préparer et envoyer des emails simples si autorisé.",
+                  "Générer des PDF propres et exploitables.",
+                  "Demander les informations manquantes intelligemment.",
+                  "Planifier des actions et des relances.",
+                  "Maintenir des missions sur plusieurs jours.",
+                  "Historiser documents, tâches, validations, blocages et sorties.",
+                  "S’aligner progressivement sur le ton et les habitudes de l’entreprise.",
+                ]}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* WORKFLOW */}
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Comment Pierre travaille"
+            title="Une logique de mission structurée, pas un simple échange de messages."
+            text="Le client donne une mission, Pierre interprète, structure, produit, suit et remonte ce qui exige une décision humaine."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {workflow.map((item) => (
+              <WorkflowCard
+                key={item.step}
+                step={item.step}
+                title={item.title}
+                text={item.text}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* SAFEGUARDS */}
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Garde-fous"
+              title="Pierre est puissant, mais jamais incontrôlé."
+              text="Le produit doit rester crédible. Il refuse ou escalade ce qui sort du cadre RH opérationnel autorisé."
+            />
+
+            <div className="mt-6">
+              <BulletList
+                items={[
+                  "Ne pas inventer les informations manquantes.",
+                  "Ne pas prendre seul une décision disciplinaire.",
+                  "Ne pas prendre seul une décision juridique sensible.",
+                  "Bloquer ou soumettre les cas critiques.",
+                  "Expliquer pourquoi une action est validée, bloquée ou refusée.",
+                  "Laisser une trace claire des actions et des statuts.",
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Pourquoi Pierre est rentable"
+              title="Le client doit sentir du temps rendu dès la première semaine."
+              text="Pierre vaut le prix lorsqu’il retire immédiatement de la charge mentale, des oublis, des relances et de l’administratif RH répétitif."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <div className="cs-card">
+                <div className="relative flex items-start gap-3">
+                  <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-account-accent)]" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                      Moins de temps perdu
+                    </p>
+                    <p className="text-sm text-[var(--cs-ink-4)]">
+                      Les tâches RH répétitives cessent de reposer entièrement
+                      sur l’humain.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="cs-card">
+                <div className="relative flex items-start gap-3">
+                  <Users className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-info)]" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                      Moins de charge mentale
+                    </p>
+                    <p className="text-sm text-[var(--cs-ink-4)]">
+                      Pierre garde la continuité, les rappels, les tâches et les
+                      sorties organisées.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="cs-card">
+                <div className="relative flex items-start gap-3">
+                  <UserCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-success)]" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                      Meilleur contrôle
+                    </p>
+                    <p className="text-sm text-[var(--cs-ink-4)]">
+                      Le client récupère la main sur les bons cas, pas sur toute
+                      la mécanique.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FINAL CTA */}
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-account-accent)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                <span>Pierre est la meilleure porte d’entrée dans CloneStore</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Commencez par le poste RH.
+              <br />
+              Entrez ensuite dans le cockpit complet.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--cs-ink-4)] md:text-base">
+              Pierre est pensé pour être une preuve forte : mission libre,
+              documents, emails, relances, continuité, contrôle et traçabilité,
+              le tout dans un produit sérieux et premium.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/paiement"
+                label="Commencer avec Pierre"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/questions"
+                label="Parler à CloneStore"
+                icon={<Bot className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+
+============================================================
+FILE: src\app\agents\alex\page.tsx
+============================================================
+
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import {
+  Sparkles,
+  ArrowRight,
+  Timer,
+  ShieldCheck,
+  Wand2,
+  Workflow,
+  ClipboardList,
+  FileText,
+  BadgeCheck,
+  Layers,
+  Target,
+  MessageSquareText,
+  AtSign,
+  Building2,
+  Plug,
+  CheckCircle2,
+  BriefcaseBusiness,
+} from "lucide-react";
+
+type AccessCheckResult = { ok: boolean; has: boolean };
+
+function Pill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">
+      {children}
+    </span>
+  );
+}
+
+function Card({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="rounded-2xl border p-6 space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground">{icon}</span>
+        <p className="font-medium">{title}</p>
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+export default function AlexPage() {
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [loading, setLoading] = useState(true);
+  const [isLogged, setIsLogged] = useState(false);
+  const [hasAlex, setHasAlex] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [shouldPoll, setShouldPoll] = useState(false);
+
+  useEffect(() => {
+    const u = new URL(window.location.href);
+    setShouldPoll(u.searchParams.get("success") === "1");
+  }, []);
+
+  async function checkAccess(): Promise<AccessCheckResult> {
+    setError(null);
+
+    if (!supabase) {
+      setIsLogged(false);
+      setHasAlex(false);
+      setLoading(false);
+      setError(
+        "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY (local + Vercel)."
+      );
+      return { ok: false, has: false };
+    }
+
+    try {
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr) {
+        setIsLogged(false);
+        setHasAlex(false);
+        setLoading(false);
+        setError(userErr.message);
+        return { ok: false, has: false };
+      }
+
+      const user = userData?.user;
+      if (!user) {
+        setIsLogged(false);
+        setHasAlex(false);
+        setLoading(false);
+        return { ok: true, has: false };
+      }
+
+      setIsLogged(true);
+
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("agent_slug", "alex")
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (orderErr) setError(orderErr.message);
+
+      const has = Boolean(order);
+      setHasAlex(has);
+      setLoading(false);
+      return { ok: true, has };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erreur accès";
+      setError(msg);
+      setLoading(false);
+      return { ok: false, has: false };
+    }
+  }
+
+  useEffect(() => {
+    let stopped = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    async function run() {
+      setLoading(true);
+      const first = await checkAccess();
+
+      if (shouldPoll && first.ok && !first.has) {
+        const started = Date.now();
+
+        intervalId = setInterval(async () => {
+          if (stopped) return;
+
+          const res = await checkAccess();
+
+          if (res.has) {
+            if (intervalId) clearInterval(intervalId);
+
+            const u = new URL(window.location.href);
+            u.searchParams.delete("success");
+            window.history.replaceState({}, "", u.toString());
+          }
+
+          if (Date.now() - started > 25_000) {
+            if (intervalId) clearInterval(intervalId);
+          }
+        }, 1500);
+      }
+    }
+
+    run();
+
+    return () => {
+      stopped = true;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [shouldPoll]);
+
+  return (
+    <main className="mx-auto max-w-6xl py-12 px-4 space-y-12">
+      {/* HERO */}
+      <header className="space-y-6">
+        <div className="flex flex-wrap gap-2">
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              Clone CloneStore • Assistant commercial
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <BriefcaseBusiness className="h-3.5 w-3.5" />
+              Prospection + messages
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <Workflow className="h-3.5 w-3.5" />
+              Compatible CloneOS
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <AtSign className="h-3.5 w-3.5" />
+              Email pro via DNS
+            </span>
+          </Pill>
+          <Pill>Scripts & process</Pill>
+        </div>
+
+        <div className="space-y-3">
+          <h1 className="text-4xl font-semibold tracking-tight">
+            Alex — l’assistant commercial qui structure ton pipeline, prépare tes messages, et standardise ta vente
+          </h1>
+          <p className="text-muted-foreground leading-relaxed max-w-3xl">
+            Alex transforme des notes brutes en actions commerciales claires : messages de prospection, relances,
+            scripts d’appel, réponses aux objections, et process de suivi.
+            <span className="block mt-2">
+              En mode CloneOS/Router, Alex peut exécuter des routines autorisées : préparer des séquences,
+              demander une info manquante, générer un compte rendu, et déclencher des tâches vers d’autres clones.
+            </span>
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button asChild>
+            <Link href="#acces">
+              Accéder à Alex <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/agents">Retour boutique</Link>
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Timer className="h-4 w-4" />}
+            title="Gain de temps"
+            desc="Tu arrêtes de réécrire tes messages. Alex sort des textes propres, cohérents, prêts à envoyer."
+          />
+          <Card
+            icon={<Wand2 className="h-4 w-4" />}
+            title="Standardisation"
+            desc="Même niveau de qualité dans tes relances, scripts et réponses — même quand tu es fatigué."
+          />
+          <Card
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Garde-fous"
+            desc="Alex n’invente pas des promesses. Il suit tes règles et escalade si c’est sensible."
+          />
+        </div>
+      </header>
+
+      {/* AUTONOMIE / CLONEOS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Autonomie & CloneOS</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Workflow className="h-4 w-4" />}
+            title="Routines commerciales"
+            desc="Relances, séquences, templates, suivi : Alex peut produire et maintenir ton système commercial."
+          />
+          <Card
+            icon={<Layers className="h-4 w-4" />}
+            title="Coopération"
+            desc="Alex peut déclencher d’autres clones (ex : Emma pour support, Pierre pour docs) via Router."
+          />
+          <Card
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Traçabilité"
+            desc="Historique/log possible : actions, brouillons, décisions proposées, et étapes suivantes."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2">
+          <p className="text-sm font-medium">Objectif</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Avoir un commercial “systèmes & messages” : moins d’impro, plus de process, et des livrables répétables.
+          </p>
+        </div>
+      </section>
+
+      {/* EMAIL ENTREPRISE (DNS) */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Email entreprise (option) : Alex au nom de ta boîte</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card
+            icon={<Building2 className="h-4 w-4" />}
+            title="Adresse pro dédiée"
+            desc="Connexion possible à une adresse du domaine (ex : alex@tonentreprise.com / sales@tonentreprise.com) via DNS."
+          />
+          <Card
+            icon={<AtSign className="h-4 w-4" />}
+            title="Séquences prêtes"
+            desc="Alex prépare objets + messages + relances. Envoi automatique uniquement si tu l’actives."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2">
+          <p className="text-sm font-medium">Résultat</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Un outbound plus propre, plus constant, avec moins de “trous” dans le suivi.
+          </p>
+        </div>
+      </section>
+
+      {/* INTEGRATIONS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Connexion outils (option)</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Plug className="h-4 w-4" />}
+            title="CRM & outils"
+            desc="Connexion possible selon ton stack (via Router/Make/API) : suivi, tâches, notes, exports."
+          />
+          <Card
+            icon={<ClipboardList className="h-4 w-4" />}
+            title="Compte rendu"
+            desc="À partir de notes brutes : Alex sort un compte rendu + next steps + relances à prévoir."
+          />
+          <Card
+            icon={<Target className="h-4 w-4" />}
+            title="Qualification"
+            desc="Alex structure une qualification simple (besoin, urgence, budget, décideur, objections)."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2">
+          <p className="text-sm font-medium">Note</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Les intégrations dépendent de ton outil. Sans connecteur direct, on passe par Router/Make ou API quand c’est possible.
+          </p>
+        </div>
+      </section>
+
+      {/* CAPACITÉS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Ce que Alex fait</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card
+            icon={<MessageSquareText className="h-4 w-4" />}
+            title="Prospection & relances"
+            desc="Messages courts, emails, DM, relances. Plusieurs variantes selon ton ton et ta cible."
+          />
+          <Card
+            icon={<FileText className="h-4 w-4" />}
+            title="Scripts & playbooks"
+            desc="Scripts d’appel, réponses aux objections, checklists, mini playbooks commerciaux."
+          />
+          <Card
+            icon={<ClipboardList className="h-4 w-4" />}
+            title="Pipeline & process"
+            desc="Étapes, règles, suivi, tags. Alex t’aide à standardiser un pipeline simple et efficace."
+          />
+          <Card
+            icon={<BadgeCheck className="h-4 w-4" />}
+            title="Cohérence"
+            desc="Même niveau de qualité, mêmes règles, même structure dans tes échanges commerciaux."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6">
+          <p className="text-sm">
+            <span className="font-medium">Alex ne fait pas :</span>{" "}
+            <span className="text-muted-foreground">
+              promettre un résultat garanti • inventer des données • envoyer automatiquement sans autorisation • fournir du conseil juridique formel.
+            </span>
+          </p>
+        </div>
+      </section>
+
+      {/* EXEMPLES */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Exemples de briefs (et ce que tu obtiens)</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border p-6 space-y-3">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Prospection : DRH PME 50-150 salariés. Message court, ton pro, objectif : call 15 min.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              3 variantes + objet + angle valeur + CTA simple.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Relance J+3 et J+7, sans être lourd.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Séquence de relances courte + version “polie” + version “directe”.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Objection : ‘pas de budget’. Réponds et propose une option.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Réponse structurée + options + question de qualification.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Notes d’appel → compte rendu + next steps + relance à préparer.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              CR propre + actions + brouillon de mail de suivi.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* COMMENT */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Comment ça marche</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border p-6 space-y-2">
+            <p className="text-sm font-medium">1) Tu fixes les règles</p>
+            <p className="text-sm text-muted-foreground">
+              Ton, offre, cibles, objections, ce qu’on promet / ne promet pas.
+            </p>
+          </div>
+          <div className="rounded-2xl border p-6 space-y-2">
+            <p className="text-sm font-medium">2) Alex produit</p>
+            <p className="text-sm text-muted-foreground">
+              Messages, scripts, séquences, playbooks — prêts à copier-coller.
+            </p>
+          </div>
+          <div className="rounded-2xl border p-6 space-y-2">
+            <p className="text-sm font-medium">3) Mode CloneOS (option)</p>
+            <p className="text-sm text-muted-foreground">
+              Déclencheurs Router : suivi, relances, tâches, coopération inter-clones.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border p-6 space-y-3">
+        <h3 className="text-lg font-medium">3 modes d’utilisation</h3>
+
+        <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
+          <li>
+            <span className="font-medium text-foreground">Mode simple :</span> brief → Alex te rend les messages/scrits.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Mode système :</span> pipeline + templates + process commercial.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Mode CloneOS :</span> routines + coopération via Router.
+          </li>
+        </ul>
+      </section>
+
+      {/* ACCÈS / CTA */}
+      <section id="acces" className="rounded-2xl border p-8 space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold">Accès à Alex</h2>
+            <p className="text-sm text-muted-foreground">
+              Statut actuel : <span className="font-medium text-foreground">en construction</span>.
+            </p>
+          </div>
+          <Button asChild variant="outline">
+            <Link href="/agents">Boutique</Link>
+          </Button>
+        </div>
+
+        {loading ? (
+          <p className="text-sm text-muted-foreground">
+            Vérification en cours…
+            {shouldPoll && <span> (post-paiement, attente activation...)</span>}
+          </p>
+        ) : hasAlex ? (
+          <>
+            <p className="text-sm text-muted-foreground">Alex est actif dans ton espace.</p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild>
+                <Link href="/agents/alex/use">Utiliser Alex</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/profile/agents">Mes clones</Link>
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              {isLogged
+                ? "Alex n’est pas encore disponible à l’achat. Tu peux déjà poser des questions via l’assistant."
+                : "Connecte-toi pour suivre l’arrivée d’Alex. En attendant, tu peux poser tes questions via l’assistant."}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild variant="outline">
+                <Link href="/assistant">Poser une question</Link>
+              </Button>
+
+              {!isLogged && (
+                <Button asChild variant="outline">
+                  <Link href="/login">Se connecter</Link>
+                </Button>
+              )}
+
+              <Button variant="outline" onClick={() => checkAccess()}>
+                Rafraîchir l’accès
+              </Button>
+            </div>
+          </>
+        )}
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+      </section>
+    </main>
+  );
+}
+
+
+
+============================================================
+FILE: src\app\agents\clara\page.tsx
+============================================================
+
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import {
+  Sparkles,
+  ArrowRight,
+  Timer,
+  ShieldCheck,
+  Wand2,
+  Bot,
+  Radar,
+  Workflow,
+  AtSign,
+  Building2,
+  ClipboardList,
+  FileText,
+  CheckCircle2,
+  Mail,
+  Users,
+  ListChecks,
+  ScanSearch,
+  BadgeCheck,
+  Plug,
+} from "lucide-react";
+
+type AccessCheckResult = { ok: boolean; has: boolean };
+
+function Pill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground cs-pill">
+      {children}
+    </span>
+  );
+}
+
+function Card({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground">{icon}</span>
+        <p className="font-medium">{title}</p>
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+export default function ClaraPage() {
+  // ✅ singleton Supabase
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [loading, setLoading] = useState(true);
+  const [isLogged, setIsLogged] = useState(false);
+  const [hasClara, setHasClara] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Hydration-safe
+  const [shouldPoll, setShouldPoll] = useState(false);
+
+  useEffect(() => {
+    const u = new URL(window.location.href);
+    setShouldPoll(u.searchParams.get("success") === "1");
+  }, []);
+
+  async function checkAccess(): Promise<AccessCheckResult> {
+    setError(null);
+
+    if (!supabase) {
+      setIsLogged(false);
+      setHasClara(false);
+      setLoading(false);
+      setError(
+        "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY (local + Vercel)."
+      );
+      return { ok: false, has: false };
+    }
+
+    try {
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr) {
+        setIsLogged(false);
+        setHasClara(false);
+        setLoading(false);
+        setError(userErr.message);
+        return { ok: false, has: false };
+      }
+
+      const user = userData?.user;
+      if (!user) {
+        setIsLogged(false);
+        setHasClara(false);
+        setLoading(false);
+        return { ok: true, has: false };
+      }
+
+      setIsLogged(true);
+
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("agent_slug", "clara")
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (orderErr) setError(orderErr.message);
+
+      const has = Boolean(order);
+      setHasClara(has);
+      setLoading(false);
+      return { ok: true, has };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erreur accès";
+      setError(msg);
+      setLoading(false);
+      return { ok: false, has: false };
+    }
+  }
+
+  useEffect(() => {
+    let stopped = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    async function run() {
+      setLoading(true);
+      const first = await checkAccess();
+
+      if (shouldPoll && first.ok && !first.has) {
+        const started = Date.now();
+
+        intervalId = setInterval(async () => {
+          if (stopped) return;
+
+          const res = await checkAccess();
+
+          if (res.has) {
+            if (intervalId) clearInterval(intervalId);
+
+            const u = new URL(window.location.href);
+            u.searchParams.delete("success");
+            window.history.replaceState({}, "", u.toString());
+          }
+
+          if (Date.now() - started > 25_000) {
+            if (intervalId) clearInterval(intervalId);
+          }
+        }, 1500);
+      }
+    }
+
+    run();
+
+    return () => {
+      stopped = true;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [shouldPoll]);
+
+  return (
+    <main className="mx-auto max-w-6xl py-12 px-4 space-y-12">
+      {/* HERO */}
+      <header className="space-y-6">
+        <div className="flex flex-wrap gap-2">
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              Clone CloneStore • Recrutement
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <ScanSearch className="h-3.5 w-3.5" />
+              Analyse + scoring + shortlist
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <Radar className="h-3.5 w-3.5" />
+              Autonome (selon règles)
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <Workflow className="h-3.5 w-3.5" />
+              Compatible CloneOS
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <AtSign className="h-3.5 w-3.5" />
+              Email pro via DNS
+            </span>
+          </Pill>
+        </div>
+
+        <div className="space-y-3">
+          <h1 className="text-4xl font-semibold tracking-tight">
+            Clara — la recruteuse IA autonome qui structure ton recrutement, du tri à la shortlist, avec décisions claires
+          </h1>
+          <p className="text-muted-foreground leading-relaxed max-w-3xl">
+            Clara lit, extrait, score et compare. Elle transforme un tas de candidatures en{" "}
+            <span className="font-medium text-foreground">shortlist exploitable</span>, avec raisons “pourquoi oui /
+            pourquoi non”, questions d’entretien ciblées, et messages prêts à envoyer si tu l’actives.
+            <span className="block mt-2">
+              Clara peut aussi fonctionner en <span className="font-medium text-foreground">mode autonome</span> : elle
+              agit sur déclencheurs (nouveau CV, nouvelle annonce, nouvelle étape pipeline) via CloneOS/Router — avec
+              historique/log.
+            </span>
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button asChild>
+            <Link href="#acces">
+              Accéder à Clara <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/agents">Retour boutique</Link>
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Timer className="h-4 w-4" />}
+            title="Tri massif, sans fatigue"
+            desc="Clara gère de gros volumes (CV, candidatures, profils) avec une structure constante."
+          />
+          <Card
+            icon={<Wand2 className="h-4 w-4" />}
+            title="Décision structurée"
+            desc="Scoring + justification + comparaison : tu sais exactement pourquoi un profil passe ou sort."
+          />
+          <Card
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Règles + garde-fous"
+            desc="Clara ne devine pas. Elle s’appuie sur les infos fournies. Hors cadre : elle demande, ou refuse."
+          />
+        </div>
+      </header>
+
+      {/* AUTONOMIE / CLONEOS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Autonomie & CloneOS </h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Bot className="h-4 w-4" />}
+            title="Recruteuse autonome"
+            desc="Elle peut piloter des tâches récurrentes : tri, scoring, shortlist, relances, préparation d’entretiens — selon ton setup."
+          />
+          <Card
+            icon={<Workflow className="h-4 w-4" />}
+            title="Coopération inter-clones"
+            desc="Compatible CloneOS : Clara peut déclencher Pierre (mails, docs RH) via le Router, ou être déclenchée par un autre clone."
+          />
+          <Card
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Traçabilité"
+            desc="Chaque action peut être loggée : ce qui a été lu, pourquoi tel score, quelle shortlist, quel message généré."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+          <p className="text-sm font-medium">Ce que Clara promet / ce qu'elle ne promet pas</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Clara peut absorber une grosse charge de recrutement et te faire gagner énormément de temps, mais je ne
+            vends pas “5 employés” comme une garantie. La performance dépend du volume, de la qualité des CV, et de tes
+            critères/règles.
+          </p>
+        </div>
+      </section>
+
+      {/* EMAIL ENTREPRISE (DNS) */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Email entreprise (option) : Clara au nom de ta boîte</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card
+            icon={<Building2 className="h-4 w-4" />}
+            title="Adresse pro dédiée"
+            desc="Connexion possible à une adresse du domaine (ex : clara@tonentreprise.com) via configuration DNS."
+          />
+          <Card
+            icon={<Mail className="h-4 w-4" />}
+            title="Messages candidats"
+            desc="Clara peut préparer des messages candidats (reçus, refus, relances, convocations). Envoi automatique uniquement si tu l’autorises."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+          <p className="text-sm font-medium">Résultat</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Un ton RH constant, une expérience candidat plus propre, et un pipeline qui avance même quand tu es occupé.
+          </p>
+        </div>
+      </section>
+
+      {/* INTEGRATIONS RH */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Intégrations RH (option) : ATS / outils internes</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Plug className="h-4 w-4" />}
+            title="Connexion outils"
+            desc="Clara peut être reliée à des outils RH (ATS/pipeline) via intégrations, selon ton stack et ce que tu autorises."
+          />
+          <Card
+            icon={<ListChecks className="h-4 w-4" />}
+            title="Pipeline recrutement"
+            desc="Elle peut aider à structurer : étapes, statuts, critères, checklists, et suivi des candidats."
+          />
+          <Card
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Données maîtrisées"
+            desc="On limite aux données nécessaires. Pas d’invention, pas d’accès implicite : tout est autorisé explicitement."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+          <p className="text-sm font-medium">Note</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Les intégrations dépendent de ton outil (et des autorisations). Si un connecteur n’existe pas, on passe par un
+            flux Router/Make ou API quand c’est possible.
+          </p>
+        </div>
+      </section>
+
+      {/* CAPACITÉS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Ce que Clara fait</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card
+            icon={<FileText className="h-4 w-4" />}
+            title="Analyse & extraction CV"
+            desc="Lecture, extraction des infos clés, synthèse claire et comparable entre candidats."
+          />
+          <Card
+            icon={<BadgeCheck className="h-4 w-4" />}
+            title="Scoring selon critères"
+            desc="Score basé sur tes must-have / nice-to-have / contexte poste. Justification transparente."
+          />
+          <Card
+            icon={<Users className="h-4 w-4" />}
+            title="Shortlists exploitables"
+            desc="Top candidats + raisons + risques + points à vérifier. Format prêt à partager en interne."
+          />
+          <Card
+            icon={<ClipboardList className="h-4 w-4" />}
+            title="Préparation d’entretien"
+            desc="Questions ciblées + axes d’évaluation + grille simple pour standardiser les décisions."
+          />
+          <Card
+            icon={<CheckCircle2 className="h-4 w-4" />}
+            title="Comparaison candidats"
+            desc="Comparatifs 1v1 / 1v3 / 1v10. Elle explique le choix et propose une décision."
+          />
+          <Card
+            icon={<Mail className="h-4 w-4" />}
+            title="Messages candidats (option)"
+            desc="Prépare les mails candidats. Envoi automatique uniquement si tu actives et autorises."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 cs-card shadow-soft">
+          <p className="text-sm">
+            <span className="font-medium">Clara ne fait pas :</span>{" "}
+            <span className="text-muted-foreground">
+              rédiger des documents RH complets type “contrat/notes/process” (c’est Pierre) • inventer des infos absentes
+              • promesses juridiques • remplacer l’entretien humain (elle prépare la décision).
+            </span>
+          </p>
+        </div>
+      </section>
+
+      {/* EXEMPLES */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Exemples de briefs (et ce que tu obtiens)</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “J’ai 37 CV pour un commercial B2B. Score + shortlist de 5 + raisons.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Tableau synthèse + scores + shortlist + points à vérifier à l’entretien.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Compare ces 3 candidats et propose une décision (avec risques).”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Comparatif clair + recommandation + plan de questions pour confirmer.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Prépare l’entretien : questions ciblées + grille d’éval.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Questions par thème + grille simple + critères “go/no-go”.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Pipeline : on reçoit 10 CV/jour. Classe automatiquement et alerte quand profil ‘A’.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Règles + déclencheurs + shortlist continue (si ton setup est activé).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* COMMENT */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Comment ça marche</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+            <p className="text-sm font-medium">1) Tu fournis le contexte</p>
+            <p className="text-sm text-muted-foreground">
+              Poste, must-have, niveau, critères, ton process (même simple).
+            </p>
+          </div>
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+            <p className="text-sm font-medium">2) Clara analyse & score</p>
+            <p className="text-sm text-muted-foreground">
+              Extraction, synthèse, scoring, shortlist et recommandations.
+            </p>
+          </div>
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+            <p className="text-sm font-medium">3) Clara peut automatiser</p>
+            <p className="text-sm text-muted-foreground">
+              Déclencheurs via CloneOS/Router : tri continu, alertes, messages, coopération avec Pierre.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+        <h3 className="text-lg font-medium">3 modes d’utilisation</h3>
+
+        <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
+          <li>
+            <span className="font-medium text-foreground">Mode simple :</span> tu upload/colles des CV → Clara rend scoring
+            + shortlist.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Mode pipeline :</span> Clara gère un flux continu (tri, alertes,
+            comparatifs).
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Mode CloneOS :</span> Clara coopère avec Pierre (mails/docs) via
+            Router, avec logs.
+          </li>
+        </ul>
+      </section>
+
+      {/* ACCÈS / CTA */}
+      <section id="acces" className="rounded-2xl border p-8 space-y-4 cs-card shadow-soft">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold">Accès à Clara</h2>
+            <p className="text-sm text-muted-foreground">
+              Statut actuel : <span className="font-medium text-foreground">en construction</span>.
+            </p>
+          </div>
+          <Button asChild variant="outline">
+            <Link href="/agents">Boutique</Link>
+          </Button>
+        </div>
+
+        {loading ? (
+          <p className="text-sm text-muted-foreground">
+            Vérification en cours…
+            {shouldPoll && <span> (post-paiement, attente activation...)</span>}
+          </p>
+        ) : hasClara ? (
+          <>
+            <p className="text-sm text-muted-foreground">Clara est active dans ton espace.</p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild>
+                <Link href="/agents/clara/use">Utiliser Clara</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/profile/agents">Mes clones</Link>
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              {isLogged
+                ? "Clara n’est pas encore disponible à l’achat. Tu peux déjà poser des questions via l’assistant."
+                : "Connecte-toi pour suivre l’arrivée de Clara. En attendant, tu peux poser tes questions via l’assistant."}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild variant="outline">
+                <Link href="/assistant">Poser une question</Link>
+              </Button>
+
+              {!isLogged && (
+                <Button asChild variant="outline">
+                  <Link href="/login">Se connecter</Link>
+                </Button>
+              )}
+
+              <Button variant="outline" onClick={() => checkAccess()}>
+                Rafraîchir l’accès
+              </Button>
+            </div>
+          </>
+        )}
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+      </section>
+    </main>
+  );
+}
+
+
+
+
+
+
+
+============================================================
+FILE: src\app\agents\emma\page.tsx
+============================================================
+
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import {
+  Sparkles,
+  ArrowRight,
+  Timer,
+  ShieldCheck,
+  Wand2,
+  Bot,
+  Workflow,
+  AtSign,
+  Building2,
+  LifeBuoy,
+  Mail,
+  ClipboardList,
+  MessageSquareText,
+  Tag,
+  ListChecks,
+  Plug,
+  BadgeCheck,
+} from "lucide-react";
+
+type AccessCheckResult = { ok: boolean; has: boolean };
+
+function Pill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground cs-pill">
+      {children}
+    </span>
+  );
+}
+
+function Card({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground">{icon}</span>
+        <p className="font-medium">{title}</p>
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+export default function EmmaPage() {
+  // ✅ singleton Supabase
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [loading, setLoading] = useState(true);
+  const [isLogged, setIsLogged] = useState(false);
+  const [hasEmma, setHasEmma] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Hydration-safe
+  const [shouldPoll, setShouldPoll] = useState(false);
+
+  useEffect(() => {
+    const u = new URL(window.location.href);
+    setShouldPoll(u.searchParams.get("success") === "1");
+  }, []);
+
+  async function checkAccess(): Promise<AccessCheckResult> {
+    setError(null);
+
+    if (!supabase) {
+      setIsLogged(false);
+      setHasEmma(false);
+      setLoading(false);
+      setError(
+        "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY (local + Vercel)."
+      );
+      return { ok: false, has: false };
+    }
+
+    try {
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr) {
+        setIsLogged(false);
+        setHasEmma(false);
+        setLoading(false);
+        setError(userErr.message);
+        return { ok: false, has: false };
+      }
+
+      const user = userData?.user;
+      if (!user) {
+        setIsLogged(false);
+        setHasEmma(false);
+        setLoading(false);
+        return { ok: true, has: false };
+      }
+
+      setIsLogged(true);
+
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("agent_slug", "emma")
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (orderErr) setError(orderErr.message);
+
+      const has = Boolean(order);
+      setHasEmma(has);
+      setLoading(false);
+      return { ok: true, has };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erreur accès";
+      setError(msg);
+      setLoading(false);
+      return { ok: false, has: false };
+    }
+  }
+
+  useEffect(() => {
+    let stopped = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    async function run() {
+      setLoading(true);
+      const first = await checkAccess();
+
+      if (shouldPoll && first.ok && !first.has) {
+        const started = Date.now();
+
+        intervalId = setInterval(async () => {
+          if (stopped) return;
+
+          const res = await checkAccess();
+
+          if (res.has) {
+            if (intervalId) clearInterval(intervalId);
+
+            const u = new URL(window.location.href);
+            u.searchParams.delete("success");
+            window.history.replaceState({}, "", u.toString());
+          }
+
+          if (Date.now() - started > 25_000) {
+            if (intervalId) clearInterval(intervalId);
+          }
+        }, 1500);
+      }
+    }
+
+    run();
+
+    return () => {
+      stopped = true;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [shouldPoll]);
+
+  return (
+    <main className="mx-auto max-w-6xl py-12 px-4 space-y-12">
+      {/* HERO */}
+      <header className="space-y-6">
+        <div className="flex flex-wrap gap-2">
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              Clone CloneStore • Support
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <LifeBuoy className="h-3.5 w-3.5" />
+              SAV + emails + réponses
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <Workflow className="h-3.5 w-3.5" />
+              Compatible CloneOS
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <AtSign className="h-3.5 w-3.5" />
+              Email pro via DNS
+            </span>
+          </Pill>
+          <Pill>Ton client constant</Pill>
+        </div>
+
+        <div className="space-y-3">
+          <h1 className="text-4xl font-semibold tracking-tight">
+            Emma — l’agent support autonome qui gère ton SAV, structure les demandes, et prépare des réponses prêtes à envoyer
+          </h1>
+          <p className="text-muted-foreground leading-relaxed max-w-3xl">
+            Emma transforme un flux “bordel” (emails, messages, tickets) en support carré :
+            catégorisation, priorités, réponses cohérentes, et suivi.
+            <span className="block mt-2">
+              En mode autonome, Emma peut traiter les demandes récurrentes via CloneOS/Router : elle classe, prépare la
+              réponse, et peut déclencher des actions autorisées (ex : créer un ticket, générer un résumé, demander une
+              info manquante).
+            </span>
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button asChild>
+            <Link href="#acces">
+              Accéder à Emma <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/agents">Retour boutique</Link>
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Timer className="h-4 w-4" />}
+            title="Réponses rapides"
+            desc="Emma prépare des réponses propres en quelques secondes, même sur des cas répétitifs."
+          />
+          <Card
+            icon={<Wand2 className="h-4 w-4" />}
+            title="Ton de marque"
+            desc="Même style, même politesse, même clarté. Tu arrêtes les réponses “à l’arrache”."
+          />
+          <Card
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Garde-fous"
+            desc="Emma ne promet pas n’importe quoi : hors règles, elle te demande, ou elle escalade."
+          />
+        </div>
+      </header>
+
+      {/* AUTONOMIE / CLONEOS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Autonomie & CloneOS</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Bot className="h-4 w-4" />}
+            title="Support autonome"
+            desc="Elle peut traiter les demandes récurrentes selon tes règles : réponses, relances, demandes d’infos manquantes."
+          />
+          <Card
+            icon={<Workflow className="h-4 w-4" />}
+            title="Coopération inter-clones"
+            desc="Emma peut déclencher un autre clone si besoin (ex : Pierre pour une réponse RH structurée), via Router."
+          />
+          <Card
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Traçabilité"
+            desc="Historique/log possible : demandes reçues, catégories, brouillons de réponses, actions réalisées."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+          <p className="text-sm font-medium">Objectif</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Réduire drastiquement le temps support, sans dégrader la qualité. Emma ne remplace pas ton produit — elle
+            fait tourner ton support proprement.
+          </p>
+        </div>
+      </section>
+
+      {/* EMAIL ENTREPRISE (DNS) */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Email entreprise (option) : Emma au nom de ta boîte</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card
+            icon={<Building2 className="h-4 w-4" />}
+            title="Adresse pro dédiée"
+            desc="Connexion possible à une adresse du domaine (ex : support@tonentreprise.com / emma@tonentreprise.com) via DNS."
+          />
+          <Card
+            icon={<Mail className="h-4 w-4" />}
+            title="Réponses prêtes à envoyer"
+            desc="Emma prépare l’objet, la réponse, les étapes suivantes. Envoi automatique uniquement si tu l’autorises."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+          <p className="text-sm font-medium">Résultat</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Un support pro, plus rapide, plus cohérent, avec moins d’oublis et moins de clients laissés “sans réponse”.
+          </p>
+        </div>
+      </section>
+
+      {/* INTEGRATIONS SAV */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Connexion au SAV / tickets (option)</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Plug className="h-4 w-4" />}
+            title="Outils support"
+            desc="Emma peut être reliée à un outil de support/tickets selon ton stack et tes autorisations."
+          />
+          <Card
+            icon={<Tag className="h-4 w-4" />}
+            title="Catégorisation & priorités"
+            desc="Elle classe (bug, facturation, livraison, accès, demande commerciale), et met des priorités."
+          />
+          <Card
+            icon={<ListChecks className="h-4 w-4" />}
+            title="Routines & suivi"
+            desc="Relances, demandes d’infos manquantes, résumés d’échanges, prochaine action recommandée."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+          <p className="text-sm font-medium">Note</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Les intégrations dépendent de ton outil. Sans connecteur direct, on passe par Router/Make ou API quand c’est
+            possible.
+          </p>
+        </div>
+      </section>
+
+      {/* CAPACITÉS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Ce que Emma fait</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card
+            icon={<MessageSquareText className="h-4 w-4" />}
+            title="Réponses support"
+            desc="Réponses claires, polies, structurées (avec étapes). Adaptation au ton de la marque."
+          />
+          <Card
+            icon={<ClipboardList className="h-4 w-4" />}
+            title="Résumé & contexte"
+            desc="Résumé des échanges, points importants, ce qui manque, prochaine action recommandée."
+          />
+          <Card
+            icon={<Tag className="h-4 w-4" />}
+            title="Catégorisation"
+            desc="Classe la demande et propose un niveau d’urgence + routage interne si besoin."
+          />
+          <Card
+            icon={<BadgeCheck className="h-4 w-4" />}
+            title="Qualité constante"
+            desc="Réponses propres même quand tu es pressé : structure + formulation + clarté."
+          />
+          <Card
+            icon={<Mail className="h-4 w-4" />}
+            title="Emails (option)"
+            desc="Prépare l’email complet. Envoi automatique uniquement si tu actives et autorises."
+          />
+          <Card
+            icon={<LifeBuoy className="h-4 w-4" />}
+            title="Escalade intelligente"
+            desc="Si c’est hors règles ou sensible : elle demande validation, ou transfère au bon endroit."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 cs-card shadow-soft">
+          <p className="text-sm">
+            <span className="font-medium">Emma ne fait pas :</span>{" "}
+            <span className="text-muted-foreground">
+              promettre un remboursement/engagement sans règle • “inventer” une réponse si l’info n’existe pas • gérer un
+              litige juridique • accéder à des données non autorisées.
+            </span>
+          </p>
+        </div>
+      </section>
+
+      {/* EXEMPLES */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Exemples de briefs (et ce que tu obtiens)</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Client énervé : ‘je n’ai pas accès’, reste calme, demande les infos utiles.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Réponse pro + empathie + questions ciblées + étapes de résolution.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Résume ce fil de 12 mails et dis la prochaine action.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Résumé clair + points clés + action recommandée + brouillon de réponse.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Classe ces 30 demandes : bug / facturation / livraison / accès.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Catégories + priorités + suggestions de réponses types.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Mode autonome : nouvelle demande → réponse brouillon + tag + alerte si urgent.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Flux CloneOS/Router : classification + brouillon + escalade si besoin.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* COMMENT */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Comment ça marche</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+            <p className="text-sm font-medium">1) Tu définis les règles</p>
+            <p className="text-sm text-muted-foreground">
+              Ton, garanties, FAQ, ce que Emma peut dire / ne pas dire, et quand escalader.
+            </p>
+          </div>
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+            <p className="text-sm font-medium">2) Emma traite</p>
+            <p className="text-sm text-muted-foreground">
+              Classe, résume, propose une réponse, et demande ce qui manque.
+            </p>
+          </div>
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+            <p className="text-sm font-medium">3) Automatisation (option)</p>
+            <p className="text-sm text-muted-foreground">
+              Déclencheurs CloneOS/Router : mails, tickets, suivi, relances — avec logs.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+        <h3 className="text-lg font-medium">3 modes d’utilisation</h3>
+
+        <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
+          <li>
+            <span className="font-medium text-foreground">Mode simple :</span> tu colles une demande → Emma te donne la
+            réponse pro.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Mode support :</span> Emma classe + résume + prépare les réponses
+            selon ta base.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Mode CloneOS :</span> automatisation + coopération avec d’autres
+            clones via Router.
+          </li>
+        </ul>
+      </section>
+
+      {/* ACCÈS / CTA */}
+      <section id="acces" className="rounded-2xl border p-8 space-y-4 cs-card shadow-soft">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold">Accès à Emma</h2>
+            <p className="text-sm text-muted-foreground">
+              Statut actuel : <span className="font-medium text-foreground">en construction</span>.
+            </p>
+          </div>
+          <Button asChild variant="outline">
+            <Link href="/agents">Boutique</Link>
+          </Button>
+        </div>
+
+        {loading ? (
+          <p className="text-sm text-muted-foreground">
+            Vérification en cours…
+            {shouldPoll && <span> (post-paiement, attente activation...)</span>}
+          </p>
+        ) : hasEmma ? (
+          <>
+            <p className="text-sm text-muted-foreground">Emma est active dans ton espace.</p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild>
+                <Link href="/agents/emma/use">Utiliser Emma</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/profile/agents">Mes clones</Link>
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              {isLogged
+                ? "Emma n’est pas encore disponible à l’achat. Tu peux déjà poser des questions via l’assistant."
+                : "Connecte-toi pour suivre l’arrivée d’Emma. En attendant, tu peux poser tes questions via l’assistant."}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild variant="outline">
+                <Link href="/assistant">Poser une question</Link>
+              </Button>
+
+              {!isLogged && (
+                <Button asChild variant="outline">
+                  <Link href="/login">Se connecter</Link>
+                </Button>
+              )}
+
+              <Button variant="outline" onClick={() => checkAccess()}>
+                Rafraîchir l’accès
+              </Button>
+            </div>
+          </>
+        )}
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+      </section>
+    </main>
+  );
+}
+
+
+
+
+============================================================
+FILE: src\app\agents\noah\page.tsx
+============================================================
+
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import {
+  Sparkles,
+  ArrowRight,
+  Timer,
+  ShieldCheck,
+  Wand2,
+  Layers,
+  ClipboardList,
+  FileText,
+  BadgeCheck,
+  Target,
+  MessageSquareText,
+  AtSign,
+  Building2,
+  Plug,
+  CheckCircle2,
+  LayoutList,
+  CalendarClock,
+  Scale,
+  Network,
+} from "lucide-react";
+
+type AccessCheckResult = { ok: boolean; has: boolean };
+
+function Pill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground cs-pill">
+      {children}
+    </span>
+  );
+}
+
+function Card({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground">{icon}</span>
+        <p className="font-medium">{title}</p>
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+export default function NoahPage() {
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [loading, setLoading] = useState(true);
+  const [isLogged, setIsLogged] = useState(false);
+  const [hasNoah, setHasNoah] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [shouldPoll, setShouldPoll] = useState(false);
+
+  useEffect(() => {
+    const u = new URL(window.location.href);
+    setShouldPoll(u.searchParams.get("success") === "1");
+  }, []);
+
+  async function checkAccess(): Promise<AccessCheckResult> {
+    setError(null);
+
+    if (!supabase) {
+      setIsLogged(false);
+      setHasNoah(false);
+      setLoading(false);
+      setError(
+        "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY (local + Vercel)."
+      );
+      return { ok: false, has: false };
+    }
+
+    try {
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr) {
+        setIsLogged(false);
+        setHasNoah(false);
+        setLoading(false);
+        setError(userErr.message);
+        return { ok: false, has: false };
+      }
+
+      const user = userData?.user;
+      if (!user) {
+        setIsLogged(false);
+        setHasNoah(false);
+        setLoading(false);
+        return { ok: true, has: false };
+      }
+
+      setIsLogged(true);
+
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("agent_slug", "noah")
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (orderErr) setError(orderErr.message);
+
+      const has = Boolean(order);
+      setHasNoah(has);
+      setLoading(false);
+      return { ok: true, has };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erreur accès";
+      setError(msg);
+      setLoading(false);
+      return { ok: false, has: false };
+    }
+  }
+
+  useEffect(() => {
+    let stopped = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    async function run() {
+      setLoading(true);
+      const first = await checkAccess();
+
+      if (shouldPoll && first.ok && !first.has) {
+        const started = Date.now();
+
+        intervalId = setInterval(async () => {
+          if (stopped) return;
+
+          const res = await checkAccess();
+
+          if (res.has) {
+            if (intervalId) clearInterval(intervalId);
+
+            const u = new URL(window.location.href);
+            u.searchParams.delete("success");
+            window.history.replaceState({}, "", u.toString());
+          }
+
+          if (Date.now() - started > 25_000) {
+            if (intervalId) clearInterval(intervalId);
+          }
+        }, 1500);
+      }
+    }
+
+    run();
+
+    return () => {
+      stopped = true;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [shouldPoll]);
+
+  return (
+    <main className="mx-auto max-w-6xl py-12 px-4 space-y-12">
+      {/* HERO */}
+      <header className="space-y-6">
+        <div className="flex flex-wrap gap-2">
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              Clone CloneStore • Assistant direction
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <LayoutList className="h-3.5 w-3.5" />
+              Pilotage + décisions
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <Layers className="h-3.5 w-3.5" />
+              Compatible CloneOS
+            </span>
+          </Pill>
+          <Pill>
+            <span className="inline-flex items-center gap-2">
+              <AtSign className="h-3.5 w-3.5" />
+              Email pro via DNS
+            </span>
+          </Pill>
+          <Pill>Notes → actions</Pill>
+        </div>
+
+        <div className="space-y-3">
+          <h1 className="text-4xl font-semibold tracking-tight">
+            Noah — l’assistant direction qui transforme le flou en plan clair (priorités, décisions, docs, suivi)
+          </h1>
+          <p className="text-muted-foreground leading-relaxed max-w-3xl">
+            Noah est fait pour les dirigeants et managers qui veulent avancer vite sans se perdre :
+            il structure, tranche (avec toi), prépare les documents de pilotage, et garde un fil conducteur.
+            <span className="block mt-2">
+              En mode CloneOS/Router, Noah peut orchestrer des routines autorisées et coopérer avec d’autres clones
+              (ex : Pierre pour docs RH, Emma pour support, Alex pour messages).
+            </span>
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button asChild>
+            <Link href="#acces">
+              Accéder à Noah <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/agents">Retour boutique</Link>
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Timer className="h-4 w-4" />}
+            title="Tu gagnes des heures"
+            desc="Moins de chaos : Noah synthétise, structure, propose une prochaine action claire."
+          />
+          <Card
+            icon={<Wand2 className="h-4 w-4" />}
+            title="Pilotage propre"
+            desc="Notes, plans, mails, décisions : même standard de qualité, tout le temps."
+          />
+          <Card
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Garde-fous"
+            desc="Noah n’invente pas. Il demande ce qui manque, et reste dans le périmètre."
+          />
+        </div>
+      </header>
+
+      {/* AUTONOMIE / CLONEOS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Autonomie & CloneOS</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Network className="h-4 w-4" />}
+            title="Orchestration"
+            desc="Noah peut déclencher des actions via Router : demandes d’infos, briefs, livrables, suivi."
+          />
+          <Card
+            icon={<Layers className="h-4 w-4" />}
+            title="Coopération inter-clones"
+            desc="Noah coordonne : Pierre écrit, Emma répond, Alex prépare une séquence — Noah assemble."
+          />
+          <Card
+            icon={<ClipboardList className="h-4 w-4" />}
+            title="Routines"
+            desc="Réunions → compte rendu → décisions → tâches → relances : un cycle stable et traçable."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+          <p className="text-sm font-medium">Promesse réaliste</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Noah ne “magique” pas une entreprise. Il te rend meilleur au quotidien : moins de dispersion, plus de clarté,
+            des décisions documentées, et des actions suivies.
+          </p>
+        </div>
+      </section>
+
+      {/* EMAIL ENTREPRISE (DNS) */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Email entreprise (option) : Noah au nom de ta boîte</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card
+            icon={<Building2 className="h-4 w-4" />}
+            title="Adresse pro dédiée"
+            desc="Connexion possible à une adresse du domaine (ex : noah@tonentreprise.com / direction@tonentreprise.com) via DNS."
+          />
+          <Card
+            icon={<AtSign className="h-4 w-4" />}
+            title="Préparation & envoi"
+            desc="Noah prépare des mails de pilotage, comptes rendus, relances. Envoi auto uniquement si activé."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+          <p className="text-sm font-medium">Cas typique</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Après une réunion : Noah génère le compte rendu + décisions + actions + mail récapitulatif prêt à partir.
+          </p>
+        </div>
+      </section>
+
+      {/* INTEGRATIONS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Connexion outils (option)</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            icon={<Plug className="h-4 w-4" />}
+            title="Agenda / tâches"
+            desc="Connexion possible selon ton stack (Router/Make/API) : tâches, suivis, exports, rappels."
+          />
+          <Card
+            icon={<CalendarClock className="h-4 w-4" />}
+            title="Rituels"
+            desc="Weekly review, priorités semaine, points blocages : Noah industrialise tes rituels."
+          />
+          <Card
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Traçabilité"
+            desc="Historique/log : décisions, tâches, livrables, et état d’avancement."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+          <p className="text-sm font-medium">Note</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Les intégrations dépendent des outils. Sans connecteur direct, on passe par Router/Make ou API quand c’est possible.
+          </p>
+        </div>
+      </section>
+
+      {/* CAPACITÉS */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Ce que Noah fait</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card
+            icon={<ClipboardList className="h-4 w-4" />}
+            title="Décisions & priorités"
+            desc="Clarifie les options, propose un arbitrage, sort un plan d’action simple et priorisé."
+          />
+          <Card
+            icon={<FileText className="h-4 w-4" />}
+            title="Docs de pilotage"
+            desc="Notes de synthèse, plans, briefs, checklists, documents de cadrage, récapitulatifs."
+          />
+          <Card
+            icon={<MessageSquareText className="h-4 w-4" />}
+            title="Communication"
+            desc="Mails de pilotage : demandes, recadrage, relances, compte rendu, message d’alignement."
+          />
+          <Card
+            icon={<Target className="h-4 w-4" />}
+            title="Cadrage & exécution"
+            desc="Transforme une idée floue en objectifs, étapes, risques, et next steps."
+          />
+          <Card
+            icon={<Scale className="h-4 w-4" />}
+            title="Risque & cohérence"
+            desc="Relit un plan/texte : incohérences, trous, risques évidents, points à clarifier."
+          />
+          <Card
+            icon={<BadgeCheck className="h-4 w-4" />}
+            title="Standardisation"
+            desc="Même format de CR, même structure de brief, mêmes règles internes — ça devient “propre”."
+          />
+        </div>
+
+        <div className="rounded-2xl border p-6 cs-card shadow-soft">
+          <p className="text-sm">
+            <span className="font-medium">Noah ne fait pas :</span>{" "}
+            <span className="text-muted-foreground">
+              se substituer à une décision humaine • inventer des données • exécuter des actions sensibles sans autorisation • conseil juridique formel.
+            </span>
+          </p>
+        </div>
+      </section>
+
+      {/* EXEMPLES */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Exemples de briefs (et ce que tu obtiens)</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “J’ai trop de sujets. Fais un tri : urgent / important, et donne un plan de la semaine.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Priorités + planning simple + risques + actions immédiates.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Notes réunion → compte rendu + décisions + actions + mail à envoyer.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              CR propre + next steps + mail récap prêt à partir.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Je dois cadrer un projet. Fais un doc : objectif, périmètre, étapes, risques.”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Document de cadrage clair + checklists + points à clarifier.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+            <p className="text-sm font-medium">Brief</p>
+            <p className="text-sm text-muted-foreground">
+              “Prépare un mail d’alignement à l’équipe (objectifs, attentes, ton pro).”
+            </p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
+            <p className="text-sm text-muted-foreground">
+              Mail complet + structure + ton maîtrisé + CTA clair.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* COMMENT */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Comment ça marche</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+            <p className="text-sm font-medium">1) Tu donnes le contexte</p>
+            <p className="text-sm text-muted-foreground">
+              Notes brutes, messages, objectifs, contraintes. Même brouillon.
+            </p>
+          </div>
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+            <p className="text-sm font-medium">2) Noah structure</p>
+            <p className="text-sm text-muted-foreground">
+              Synthèse, décisions proposées, plan, docs, messages prêts.
+            </p>
+          </div>
+          <div className="rounded-2xl border p-6 space-y-2 cs-card shadow-soft">
+            <p className="text-sm font-medium">3) Mode CloneOS (option)</p>
+            <p className="text-sm text-muted-foreground">
+              Déclencheurs Router : routines, coopération, exécution autorisée, logs.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border p-6 space-y-3 cs-card shadow-soft">
+        <h3 className="text-lg font-medium">3 modes d’utilisation</h3>
+
+        <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
+          <li>
+            <span className="font-medium text-foreground">Mode simple :</span> brief → Noah sort synthèse + plan + doc/mails.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Mode pilotage :</span> rituels (weekly), décisions, suivi, formats standard.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Mode CloneOS :</span> orchestration via Router + coopération inter-clones.
+          </li>
+        </ul>
+      </section>
+
+      {/* ACCÈS / CTA */}
+      <section id="acces" className="rounded-2xl border p-8 space-y-4 cs-card shadow-soft">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold">Accès à Noah</h2>
+            <p className="text-sm text-muted-foreground">
+              Statut actuel : <span className="font-medium text-foreground">en construction</span>. (Tarif cible : 499€/mois)
+            </p>
+          </div>
+          <Button asChild variant="outline">
+            <Link href="/agents">Boutique</Link>
+          </Button>
+        </div>
+
+        {loading ? (
+          <p className="text-sm text-muted-foreground">
+            Vérification en cours…
+            {shouldPoll && <span> (post-paiement, attente activation...)</span>}
+          </p>
+        ) : hasNoah ? (
+          <>
+            <p className="text-sm text-muted-foreground">Noah est actif dans ton espace.</p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild>
+                <Link href="/agents/noah/use">Utiliser Noah</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/profile/agents">Mes clones</Link>
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              {isLogged
+                ? "Noah n’est pas encore disponible à l’achat. Tu peux déjà poser des questions via l’assistant."
+                : "Connecte-toi pour suivre l’arrivée de Noah. En attendant, tu peux poser des questions via l’assistant."}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild variant="outline">
+                <Link href="/assistant">Poser une question</Link>
+              </Button>
+
+              {!isLogged && (
+                <Button asChild variant="outline">
+                  <Link href="/login">Se connecter</Link>
+                </Button>
+              )}
+
+              <Button variant="outline" onClick={() => checkAccess()}>
+                Rafraîchir l’accès
+              </Button>
+            </div>
+          </>
+        )}
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+      </section>
+    </main>
+  );
+}
+
+
+
+============================================================
+MISSING FILE: src\app\clonestore\[slug]\page.tsx
+============================================================
+
+
+
+============================================================
+FILE: src\app\questions\page.tsx
+============================================================
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  BrainCircuit,
+  BriefcaseBusiness,
+  FileCheck2,
+  LifeBuoy,
+  MessageSquareMore,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)] border",
+        primary
+          ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))] text-white shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)] hover:-translate-y-0.5"
+          : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))] text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/92",
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-3xl space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+        {kicker}
+      </p>
+      <h2 className="cs-heading text-2xl md:text-4xl">{title}</h2>
+      <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+      ? "text-[var(--cs-info)]"
+      : tone === "rose"
+      ? "text-[var(--cs-danger)]"
+      : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">{title}</span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function QuestionCard({
+  question,
+  answer,
+}: {
+  question: string;
+  answer: string;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative space-y-3">
+        <p className="text-sm font-semibold text-[var(--cs-ink-1)]">{question}</p>
+        <p className="text-sm text-[var(--cs-ink-4)]">{answer}</p>
+      </div>
+    </div>
+  );
+}
+
+const faq = [
+  {
+    question: "À quoi sert cette page ?",
+    answer:
+      "Elle sert à orienter rapidement le client, expliquer le rôle de CloneChat, et éviter qu’il se perde entre support, cockpit, boutique et configuration.",
+  },
+  {
+    question: "Le chatbot CloneStore sert à quoi exactement ?",
+    answer:
+      "Il sert à répondre aux questions sur CloneStore, orienter vers le bon espace, clarifier le fonctionnement des employés IA et aider à débloquer un parcours.",
+  },
+  {
+    question: "Est-ce que je dois toujours passer par le support humain ?",
+    answer:
+      "Non. Le but est justement que CloneChat couvre une grande partie des questions simples, récurrentes et de navigation.",
+  },
+  {
+    question: "Où aller si je veux utiliser Pierre ?",
+    answer:
+      "Le chemin logique est : Mon espace ou Mes employés, puis Pierre, puis son cockpit d’usage ou sa configuration selon le besoin.",
+  },
+  {
+    question: "Où aller si je veux acheter un employé IA ?",
+    answer:
+      "La boutique reste le bon point d’entrée public. Elle doit ensuite rediriger proprement vers le checkout, puis vers le cockpit après activation.",
+  },
+  {
+    question: "Cette page remplace-t-elle le cockpit ?",
+    answer:
+      "Non. Cette page oriente, rassure et débloque. Le cockpit reste le cœur du travail réel et du pilotage du système.",
+  },
+];
+
+export default function QuestionsPage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.03fr_0.97fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <LifeBuoy className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Questions & orientation</span>
+                </span>
+                <span className="cs-pill">
+                  <Bot className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Assistant CloneStore</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Une page pour comprendre,
+                  <br />
+                  <span className="cs-gradient-text">être orienté et débloquer rapidement.</span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Cette page ne doit pas être un simple “contact”. Elle doit servir à guider
+                  le client, expliquer le rôle de CloneChat, et éviter qu’il perde du temps
+                  à chercher où aller ou comment avancer.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/assistant"
+                  label="Ouvrir CloneChat"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/profile"
+                  label="Aller au cockpit"
+                  icon={<Waypoints className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents"
+                  label="Voir la boutique"
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <InfoCard
+                title="Orientation"
+                text="Le client doit comprendre immédiatement où aller selon son besoin."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Assistant"
+                text="CloneChat doit résoudre un grand volume de questions simples et récurrentes."
+                icon={<Bot className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Confiance"
+                text="Le support doit rassurer sans créer une sensation de produit fragile."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+              <InfoCard
+                title="Cohérence"
+                text="Cette page doit renvoyer vers le bon espace sans casser le parcours."
+                icon={<BrainCircuit className="h-4 w-4" />}
+                tone="rose"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Le rôle de CloneChat"
+            title="Un assistant d’orientation, d’explication et de déblocage"
+            text="CloneChat n’est pas un gadget. Il doit aider à comprendre le système, répondre aux questions fréquentes et envoyer rapidement le client vers la bonne action."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard
+              title="Comprendre CloneStore"
+              text="Expliquer les employés IA, la logique du système et la valeur du produit."
+              icon={<BrainCircuit className="h-4 w-4" />}
+              tone="violet"
+            />
+            <InfoCard
+              title="Orienter"
+              text="Envoyer le client vers la boutique, le cockpit, Pierre ou la configuration."
+              icon={<Waypoints className="h-4 w-4" />}
+              tone="blue"
+            />
+            <InfoCard
+              title="Débloquer"
+              text="Répondre aux hésitations simples sans forcer un support humain immédiat."
+              icon={<MessageSquareMore className="h-4 w-4" />}
+              tone="green"
+            />
+            <InfoCard
+              title="Rassurer"
+              text="Donner une impression de produit structuré, pas de SaaS fragile."
+              icon={<ShieldCheck className="h-4 w-4" />}
+              tone="rose"
+            />
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Questions fréquentes"
+            title="Ce que le client doit pouvoir comprendre très vite"
+            text="Cette page doit absorber beaucoup de questions naturelles sans devenir confuse."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {faq.map((item) => (
+              <QuestionCard
+                key={item.question}
+                question={item.question}
+                answer={item.answer}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Quand utiliser cette page"
+              title="Le bon usage de Questions / Support"
+              text="Elle doit servir avant, pendant et après l’entrée dans CloneStore."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Avant achat"
+                text="Comprendre ce que fait Pierre, comment fonctionne CloneStore, et quel espace visiter."
+                icon={<BriefcaseBusiness className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Pendant l’activation"
+                text="Débloquer une hésitation ou clarifier une étape sans sortir du parcours."
+                icon={<Sparkles className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Après entrée"
+                text="Aider à retrouver rapidement le cockpit, Pierre, la configuration ou la boutique."
+                icon={<FileCheck2 className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Direction produit"
+              title="Cette page doit réduire la friction, pas créer un tunnel support"
+              text="L’objectif n’est pas de faire attendre le client, mais de l’aider à avancer immédiatement."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Rapidité"
+                text="Le bon prochain clic doit être évident."
+                icon={<ArrowRight className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Lisibilité"
+                text="Même quelqu’un qui déteste l’informatique doit comprendre où aller."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Calme"
+                text="Le support CloneStore doit inspirer maîtrise, fluidité et confiance."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-account-accent)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                <span>CloneStore doit toujours rester compréhensible</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Besoin d’être orienté ?
+              <br />
+              Reprends le bon chemin immédiatement.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--cs-ink-4)] md:text-base">
+              Boutique, Pierre, cockpit, configuration ou CloneChat : cette page doit toujours
+              te renvoyer rapidement au bon endroit.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/assistant"
+                label="Ouvrir CloneChat"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/profile"
+                label="Aller au cockpit"
+                icon={<Waypoints className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+
+============================================================
+FILE: src\app\legal\confidentialite\page.tsx
+============================================================
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Database,
+  Eye,
+  FileCheck2,
+  Lock,
+  Mail,
+  Server,
+  ShieldCheck,
+  Sparkles,
+  UserCheck,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease)] border",
+        primary
+          ? "border-[rgba(111,99,246,0.16)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-violet)_92%,white),color-mix(in_srgb,var(--cs-violet-2)_88%,white))] text-white shadow-[0_18px_40px_rgba(95,92,230,0.18)] hover:-translate-y-0.5"
+          : "border-[var(--cs-line-soft)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))] text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/92",
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-3xl space-y-3">
+      <p className="cs-eyebrow">{kicker}</p>
+      <h2 className="cs-heading text-2xl md:text-4xl">{title}</h2>
+      <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-violet)]"
+      : tone === "blue"
+        ? "text-[color:#4c6fff]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm leading-6 text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function LegalSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="cs-card">
+      <div className="relative space-y-4">
+        <h3 className="text-xl font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+          {title}
+        </h3>
+        <div className="space-y-3 text-sm leading-7 text-[var(--cs-ink-4)]">
+          {children}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-2">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <span className="mt-[10px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--cs-violet)]" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function ConfidentialitePage() {
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-6">
+          <section className="cs-command-surface overflow-hidden">
+            <div className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr] xl:items-start">
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="cs-pill">
+                    <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-violet)]" />
+                    <span>Politique de confidentialité</span>
+                  </span>
+                  <span className="cs-pill">
+                    <Lock className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                    <span>Clarté, contrôle, transparence</span>
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <h1 className="cs-display text-[clamp(2rem,3.5vw,4.6rem)] leading-[0.96]">
+                    Une confidentialité claire,
+                    <br />
+                    <span className="cs-gradient-text">
+                      à la hauteur d’un produit entreprise.
+                    </span>
+                  </h1>
+
+                  <p className="max-w-3xl text-sm leading-7 text-[var(--cs-ink-3)] md:text-base">
+                    CloneStore doit inspirer confiance. Cette page explique
+                    simplement quelles données peuvent être traitées, dans quel
+                    cadre, pour quelles finalités, et avec quels droits pour
+                    l’utilisateur.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <ActionButton
+                    href="/assistant"
+                    label="Ouvrir CloneChat"
+                    primary
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/profile"
+                    label="Retour au cockpit"
+                    icon={<Sparkles className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard
+                  title="Transparence"
+                  text="Le client doit comprendre ce qui est collecté, utilisé, conservé et affiché."
+                  icon={<Eye className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Contrôle"
+                  text="Le produit doit permettre de piloter, corriger ou supprimer ce qui est nécessaire."
+                  icon={<UserCheck className="h-4 w-4" />}
+                  tone="green"
+                />
+                <InfoCard
+                  title="Traçabilité"
+                  text="CloneStore valorise la visibilité des missions, validations, actions et historiques."
+                  icon={<FileCheck2 className="h-4 w-4" />}
+                  tone="blue"
+                />
+                <InfoCard
+                  title="Infrastructure"
+                  text="Le service repose sur une logique d’entreprise, pas sur une simple interface de chat."
+                  icon={<Server className="h-4 w-4" />}
+                  tone="rose"
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="cs-panel">
+            <div className="p-6 md:p-7">
+              <SectionTitle
+                kicker="Vue d’ensemble"
+                title="Ce que cette politique doit expliquer clairement"
+                text="Le but n’est pas d’écraser le lecteur sous le jargon. Le but est d’expliquer honnêtement ce qui est traité dans CloneStore et pourquoi."
+              />
+
+              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <InfoCard
+                  title="Qui traite"
+                  text="L’entité CloneStore, ou l’entité d’exploitation associée, dans le cadre du service proposé."
+                  icon={<ShieldCheck className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Quelles données"
+                  text="Compte, entreprise, usage, missions, documents, messages, paramètres et historiques."
+                  icon={<Database className="h-4 w-4" />}
+                  tone="blue"
+                />
+                <InfoCard
+                  title="Pourquoi"
+                  text="Fournir le service, sécuriser l’usage, piloter le produit et aider le client."
+                  icon={<Sparkles className="h-4 w-4" />}
+                  tone="green"
+                />
+                <InfoCard
+                  title="Quels droits"
+                  text="Accès, rectification, suppression, limitation, opposition et demande d’information."
+                  icon={<Mail className="h-4 w-4" />}
+                  tone="rose"
+                />
+              </div>
+            </div>
+          </section>
+
+          <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+            <div className="space-y-6">
+              <LegalSection title="1. Responsable du traitement">
+                <p>
+                  CloneStore agit dans le cadre de la fourniture d’un service
+                  logiciel destiné aux entreprises. Les coordonnées exactes du
+                  responsable du traitement, de l’entité d’exploitation et des
+                  mentions légales complémentaires devront être confirmées dans la
+                  version juridique finale publiée.
+                </p>
+                <p>
+                  Pour toute question liée à la confidentialité, une adresse de
+                  contact dédiée pourra être fournie. Cette politique a vocation à
+                  être claire dès maintenant, puis juridiquement finalisée au
+                  moment du lancement public.
+                </p>
+              </LegalSection>
+
+              <LegalSection title="2. Données susceptibles d’être traitées">
+                <BulletList
+                  items={[
+                    "Informations de compte : identité, email, accès, préférences utilisateur.",
+                    "Informations d’entreprise : nom, secteur, paramètres, identité de messagerie, empreinte entreprise.",
+                    "Données d’usage : missions, tâches, validations, historiques, journaux fonctionnels et éléments de traçabilité.",
+                    "Documents et contenus fournis dans le cadre du service : fichiers, textes, emails, éléments RH ou opérationnels.",
+                    "Données techniques : sécurité, logs applicatifs, informations nécessaires à la maintenance et à la prévention des abus.",
+                  ]}
+                />
+              </LegalSection>
+
+              <LegalSection title="3. Finalités principales">
+                <BulletList
+                  items={[
+                    "Créer et gérer les comptes utilisateurs et les accès entreprise.",
+                    "Permettre l’utilisation des employés IA, des missions, des livrables, des messages et de la traçabilité produit.",
+                    "Configurer les règles, préférences, paramètres et éléments d’identité liés à l’entreprise cliente.",
+                    "Fournir l’assistance, l’onboarding, les réponses aux questions et les services liés au support.",
+                    "Renforcer la sécurité, prévenir les abus, maintenir la stabilité du service et tracer certains événements critiques.",
+                    "Améliorer le service dans le respect du cadre contractuel et des engagements pris vis-à-vis des clients.",
+                  ]}
+                />
+              </LegalSection>
+
+              <LegalSection title="4. Bases juridiques">
+                <p>Selon les cas, le traitement peut reposer sur :</p>
+                <BulletList
+                  items={[
+                    "l’exécution du contrat ou de mesures précontractuelles liées au service CloneStore ;",
+                    "le respect d’obligations légales applicables ;",
+                    "l’intérêt légitime lié à la sécurité, à la fiabilité, à l’amélioration du service et à la prévention des abus ;",
+                    "le consentement lorsque celui-ci est requis dans certains cas spécifiques.",
+                  ]}
+                />
+                <p>
+                  La qualification précise des bases juridiques devra être
+                  consolidée dans la version juridique finale.
+                </p>
+              </LegalSection>
+            </div>
+
+            <div className="space-y-6">
+              <LegalSection title="5. Partage et sous-traitants">
+                <p>
+                  CloneStore peut s’appuyer sur des prestataires techniques et des
+                  sous-traitants nécessaires à l’exploitation du service, par
+                  exemple pour l’hébergement, la base de données, l’envoi d’emails
+                  transactionnels, le paiement ou certaines briques
+                  d’infrastructure.
+                </p>
+                <p>
+                  L’objectif reste de limiter l’accès aux données à ce qui est
+                  strictement nécessaire au fonctionnement, à la sécurité et à
+                  l’exploitation du service.
+                </p>
+              </LegalSection>
+
+              <LegalSection title="6. Sécurité et gouvernance">
+                <BulletList
+                  items={[
+                    "Isolation logique des comptes et des entreprises.",
+                    "Gestion des accès, authentification et contrôle des permissions.",
+                    "Historique, traçabilité et journalisation d’événements critiques lorsque cela est nécessaire.",
+                    "Mécanismes de validation, de blocage et de gouvernance dans la logique produit.",
+                    "Approche de sécurité pensée pour un usage entreprise, même si tous les détails internes ne sont pas publiquement exposés.",
+                  ]}
+                />
+              </LegalSection>
+
+              <LegalSection title="7. Durée de conservation">
+                <p>
+                  Les données sont conservées pendant une durée cohérente avec les
+                  finalités du service, les obligations légales applicables, les
+                  impératifs de sécurité et les besoins raisonnables de
+                  traçabilité, de support ou de continuité opérationnelle.
+                </p>
+                <p>
+                  Certaines données peuvent être supprimées ou anonymisées après
+                  expiration de leur utilité, selon les règles internes retenues
+                  pour le service.
+                </p>
+              </LegalSection>
+
+              <LegalSection title="8. Vos droits">
+                <BulletList
+                  items={[
+                    "demander l’accès à certaines données vous concernant ;",
+                    "demander la rectification ou la mise à jour de données inexactes ;",
+                    "demander la suppression lorsque cela est juridiquement possible ;",
+                    "demander la limitation de certains traitements ;",
+                    "vous opposer à certains traitements lorsque le cadre le permet ;",
+                    "introduire une réclamation auprès de l’autorité compétente si nécessaire.",
+                  ]}
+                />
+                <p>
+                  Les modalités exactes d’exercice de ces droits devront être
+                  précisées dans la version juridique finale avec les bons canaux
+                  de contact.
+                </p>
+              </LegalSection>
+
+              <LegalSection title="9. Mise à jour de la politique">
+                <p>Cette politique pourra évoluer pour refléter :</p>
+                <BulletList
+                  items={[
+                    "l’évolution du service CloneStore ;",
+                    "l’ajout de nouvelles fonctionnalités ou couches produit ;",
+                    "des exigences juridiques, techniques ou contractuelles nouvelles ;",
+                    "des ajustements liés à l’infrastructure, aux sous-traitants ou à la sécurité.",
+                  ]}
+                />
+                <p>
+                  La date de dernière mise à jour pourra être indiquée ici dans la
+                  version finale publiée.
+                </p>
+              </LegalSection>
+            </div>
+          </div>
+
+          <section className="cs-panel overflow-hidden">
+            <div className="p-6 text-center md:p-8">
+              <div className="mx-auto w-fit">
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-violet)]" />
+                  <span>Encore une question sur la confidentialité ?</span>
+                </span>
+              </div>
+
+              <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+                Demande une réponse claire
+                <br />
+                plutôt que de rester dans le doute.
+              </h2>
+
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--cs-ink-4)] md:text-base">
+                L’assistant et le support doivent faire gagner du temps, y compris
+                sur les sujets de confiance, de cadre produit et d’usage.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                <ActionButton
+                  href="/assistant"
+                  label="Ouvrir CloneChat"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/profile"
+                  label="Retour au cockpit"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+============================================================
+FILE: src\app\healt\page.tsx
+============================================================
+
+export default function HealthPage() {
+  return (
+    <section className="mx-auto max-w-3xl py-12 px-4">
+      <h1 className="text-2xl font-semibold">Health OK</h1>
+      <p className="text-muted-foreground mt-2">Si tu vois cette page, le routing et le layout fonctionnent.</p>
+    </section>
+  );
+}
+
+
+
+============================================================
+FILE: src\lib\agent-catalog.ts
+============================================================
+
+export type AgentSpec = {
+  slug: string;
+  name: string;
+  role: string;
+  forWho: string[];
+  does: string[];
+  doesNot: string[];
+  examples: string[];
+  pricingNote?: string;
+};
+
+export const AGENTS: AgentSpec[] = [
+  {
+    slug: "pierre",
+    name: "Pierre",
+    role: "Employé IA RH opérationnel automatisé",
+    forWho: [
+      "Dirigeants de PME",
+      "Responsables RH",
+      "Office managers",
+      "Fondateurs sans RH dédié",
+      "Managers qui recrutent",
+    ],
+    does: [
+      "Comprend une demande RH libre et la transforme en mission structurée",
+      "Rédige et standardise des documents RH prêts à relire, valider ou envoyer",
+      "Produit convocations, refus, relances, onboarding, notes internes, courriers RH simples et synthèses",
+      "Prépare des emails RH avec ton adapté selon l’entreprise et le contexte",
+      "Peut générer des PDF propres à partir du contenu actif",
+      "Demande les informations manquantes quand une demande n’est pas suffisamment cadrée",
+      "Peut maintenir une continuité sur plusieurs tâches et plusieurs étapes",
+      "Peut préparer des actions email selon le cadre d’autonomie défini",
+      "Peut s’appuyer sur l’Empreinte Entreprise pour aligner le ton, les règles et l’identité d’envoi",
+      "Laisse une trace exploitable dans l’historique et la logique de mission",
+    ],
+    doesNot: [
+      "Ne remplace pas un conseil juridique formel",
+      "Ne prend pas seul des décisions disciplinaires sensibles",
+      "N’invente pas les informations absentes",
+      "N’est pas vendu comme moteur de scoring massif de CV",
+    ],
+    examples: [
+      "Prépare une convocation pour demain à 14h avec un ton professionnel et humain.",
+      "Relance ce candidat demain matin si je n’ai pas de réponse ce soir.",
+      "Prépare un mail d’onboarding pour l’arrivée de Léa lundi.",
+      "Refais ce message en plus humain et plus professionnel.",
+      "Prépare le PDF et garde le document prêt à validation.",
+    ],
+    pricingNote: "449€/mois",
+  },
+
+  {
+    slug: "clara",
+    name: "Clara",
+    role: "Employé IA recrutement premium",
+    forWho: [
+      "Dirigeants",
+      "Responsables recrutement",
+      "RH internes",
+      "Managers qui recrutent beaucoup",
+    ],
+    does: [
+      "Positionnement cible : coordination recrutement, lecture candidats, shortlist et continuité de pipeline",
+      "Vision produit : absorber une part massive du travail opérationnel recrutement",
+      "Doit à terme gérer plusieurs postes et plusieurs flux en parallèle",
+    ],
+    doesNot: [
+      "Ne doit pas être présentée comme totalement finalisée tant que son niveau réel n’est pas confirmé dans le produit",
+      "Ne doit pas être vendue comme disponible immédiatement si ce n’est pas le cas",
+    ],
+    examples: [
+      "En construction",
+      "En construction",
+      "En construction",
+    ],
+    pricingNote: "En construction",
+  },
+
+  {
+    slug: "emma",
+    name: "Emma",
+    role: "Employé IA support & communication",
+    forWho: [
+      "Entreprises avec volume support",
+      "Service client",
+      "SAV",
+      "Équipes opérationnelles",
+    ],
+    does: [
+      "Positionnement cible : réponses, suivi, communication et continuité relationnelle",
+    ],
+    doesNot: [
+      "Ne doit pas être présentée comme finalisée si le produit réel ne l’est pas encore",
+    ],
+    examples: [
+      "En construction",
+      "En construction",
+      "En construction",
+    ],
+    pricingNote: "En construction",
+  },
+
+  {
+    slug: "alex",
+    name: "Alex",
+    role: "Employé IA opérations",
+    forWho: [
+      "Managers",
+      "PME",
+      "Équipes d’exploitation",
+    ],
+    does: [
+      "Positionnement cible : coordination d’opérations structurées et suivi transverse",
+    ],
+    doesNot: [
+      "Ne doit pas être survendu tant que son produit réel n’est pas prêt",
+    ],
+    examples: [
+      "En construction",
+      "En construction",
+      "En construction",
+    ],
+    pricingNote: "En construction",
+  },
+
+  {
+    slug: "noah",
+    name: "Noah",
+    role: "Employé IA assistant direction",
+    forWho: [
+      "Dirigeants",
+      "Managers",
+      "Assistants de direction",
+      "Structures avec forte charge de pilotage",
+    ],
+    does: [
+      "Positionnement cible : transformer des notes et des sujets flous en plans clairs, priorités, décisions et suivis",
+      "Vision cible : comptes rendus, arbitrages, cadrage et pilotage plus lisible",
+    ],
+    doesNot: [
+      "Ne doit pas être présenté comme complètement prêt si ce n’est pas réellement confirmé",
+    ],
+    examples: [
+      "En construction",
+      "En construction",
+      "En construction",
+    ],
+    pricingNote: "En construction",
+  },
+
+  {
+    slug: "adrien",
+    name: "Adrien",
+    role: "Employé IA commandes & opérations",
+    forWho: [
+      "Entreprises avec flux de commandes",
+      "Opérations",
+      "Back-office",
+    ],
+    does: [
+      "Positionnement cible : gérer les commandes avec fiabilité, rigueur et coût réduit",
+    ],
+    doesNot: [
+      "Ne doit pas être présenté comme déjà pleinement opérationnel sans confirmation produit",
+    ],
+    examples: [
+      "En construction",
+      "En construction",
+      "En construction",
+    ],
+    pricingNote: "En construction",
+  },
+
+  {
+    slug: "lucas",
+    name: "Lucas",
+    role: "Employé IA finance opérationnelle",
+    forWho: [
+      "Dirigeants",
+      "Finance",
+      "Administration",
+    ],
+    does: [
+      "Positionnement cible : flux finance, facturation, relances et lecture plus claire des opérations financières",
+    ],
+    doesNot: [
+      "Ne doit pas être présenté comme prêt tant que le produit réel ne l’est pas",
+    ],
+    examples: [
+      "En construction",
+      "En construction",
+      "En construction",
+    ],
+    pricingNote: "En construction",
+  },
+
+  {
+    slug: "sophie",
+    name: "Sophie",
+    role: "Employé IA direction administrative automatisée",
+    forWho: [
+      "Dirigeants",
+      "Administration",
+      "Back-office",
+    ],
+    does: [
+      "Positionnement cible : absorber une part forte de l’administratif et de la coordination interne",
+    ],
+    doesNot: [
+      "Ne doit pas être présentée comme active si elle n’est pas réellement disponible",
+    ],
+    examples: [
+      "En construction",
+      "En construction",
+      "En construction",
+    ],
+    pricingNote: "En construction",
+  },
+];

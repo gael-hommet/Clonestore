@@ -1,0 +1,703 @@
+                 </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {studioMode === "document" && (
+                    <div className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
+                      <div className="space-y-4">
+                        <Field label="Titre (optionnel)">
+                          <input
+                            value={documentComposer.title}
+                            onChange={(e) =>
+                              setDocumentComposer((prev) => ({ ...prev, title: e.target.value }))
+                            }
+                            className={fieldClass}
+                            placeholder="Exemple : Convocation entretien commercial"
+                          />
+                        </Field>
+
+                        <Field
+                          label="Instructions"
+                          action={
+                            voiceSupported ? (
+                              <VoiceButton onClick={() => startVoice("documentInstructions")} />
+                            ) : null
+                          }
+                        >
+                          <textarea
+                            value={documentComposer.instructions}
+                            onChange={(e) =>
+                              setDocumentComposer((prev) => ({
+                                ...prev,
+                                instructions: e.target.value,
+                              }))
+                            }
+                            rows={7}
+                            className={fieldClass}
+                            placeholder="Explique précisément ce que Pierre doit produire."
+                          />
+                        </Field>
+
+                        <Field
+                          label="Contexte"
+                          action={
+                            voiceSupported ? (
+                              <VoiceButton onClick={() => startVoice("documentContext")} />
+                            ) : null
+                          }
+                        >
+                          <textarea
+                            value={documentComposer.context}
+                            onChange={(e) =>
+                              setDocumentComposer((prev) => ({
+                                ...prev,
+                                context: e.target.value,
+                              }))
+                            }
+                            rows={7}
+                            className={fieldClass}
+                            placeholder="Contexte entreprise, ton, infos utiles, contraintes."
+                          />
+                        </Field>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <Field label="Ton">
+                            <input
+                              value={documentComposer.tone}
+                              onChange={(e) =>
+                                setDocumentComposer((prev) => ({
+                                  ...prev,
+                                  tone: e.target.value,
+                                }))
+                              }
+                              className={fieldClass}
+                              placeholder="professionnel"
+                            />
+                          </Field>
+                          <Field label="Langue">
+                            <input
+                              value={documentComposer.language}
+                              onChange={(e) =>
+                                setDocumentComposer((prev) => ({
+                                  ...prev,
+                                  language: e.target.value,
+                                }))
+                              }
+                              className={fieldClass}
+                              placeholder="fr"
+                            />
+                          </Field>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleGenerateDocument}
+                          disabled={busyAction === "generate-document"}
+                          className="inline-flex w-fit items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1d160f] disabled:opacity-50"
+                        >
+                          {busyAction === "generate-document" ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <FileText className="h-4 w-4" />
+                          )}
+                          Générer le document
+                        </button>
+
+                        {voiceInterim &&
+                          (voiceTarget === "documentInstructions" ||
+                            voiceTarget === "documentContext") && (
+                            <p className="text-sm italic text-[#8a7763]">{voiceInterim}</p>
+                          )}
+                      </div>
+
+                      <div className={cn(softPanel(), "p-4")}>
+                        <p className="text-sm font-semibold text-[#2f2418]">Aperçu</p>
+                        <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-5">
+                          <p className="text-lg font-semibold text-[#221910]">
+                            {documentComposer.title || "Titre du document"}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                            <span className="rounded-full border border-[#e8dac7] bg-[#fcf7f0] px-2.5 py-1 text-[#715f4d]">
+                              Ton : {documentComposer.tone || "—"}
+                            </span>
+                            <span className="rounded-full border border-[#e8dac7] bg-[#fcf7f0] px-2.5 py-1 text-[#715f4d]">
+                              Langue : {documentComposer.language || "—"}
+                            </span>
+                          </div>
+                          <div className="mt-5 space-y-4 text-sm leading-7 text-[#3a2f24]">
+                            <div>
+                              <p className="font-medium text-[#251b12]">Instructions</p>
+                              <p className="mt-1 whitespace-pre-wrap text-[#5c5044]">
+                                {documentComposer.instructions || "Les instructions apparaîtront ici."}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-[#251b12]">Contexte</p>
+                              <p className="mt-1 whitespace-pre-wrap text-[#5c5044]">
+                                {documentComposer.context || "Le contexte apparaîtra ici."}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {studioMode === "pdf" && (
+                    <div className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
+                      <div className="space-y-4">
+                        <Field label="Titre">
+                          <input
+                            value={pdfComposer.title}
+                            onChange={(e) =>
+                              setPdfComposer((prev) => ({ ...prev, title: e.target.value }))
+                            }
+                            className={fieldClass}
+                            placeholder="Titre du PDF"
+                          />
+                        </Field>
+
+                        <Field
+                          label="Texte / contenu"
+                          action={
+                            voiceSupported ? <VoiceButton onClick={() => startVoice("pdfText")} /> : null
+                          }
+                        >
+                          <textarea
+                            value={pdfComposer.text}
+                            onChange={(e) =>
+                              setPdfComposer((prev) => ({ ...prev, text: e.target.value }))
+                            }
+                            rows={16}
+                            className={fieldClass}
+                            placeholder="Texte à convertir en PDF."
+                          />
+                        </Field>
+
+                        <button
+                          type="button"
+                          onClick={handleGeneratePdf}
+                          disabled={busyAction === "generate-pdf"}
+                          className="inline-flex w-fit items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1d160f] disabled:opacity-50"
+                        >
+                          {busyAction === "generate-pdf" ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <ScrollText className="h-4 w-4" />
+                          )}
+                          Générer le PDF
+                        </button>
+
+                        {voiceInterim && voiceTarget === "pdfText" && (
+                          <p className="text-sm italic text-[#8a7763]">{voiceInterim}</p>
+                        )}
+                      </div>
+
+                      <div className={cn(softPanel(), "p-4")}>
+                        <p className="text-sm font-semibold text-[#2f2418]">Prévisualisation texte</p>
+                        <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-5">
+                          <p className="text-lg font-semibold text-[#221910]">
+                            {pdfComposer.title || "Titre PDF"}
+                          </p>
+                          <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-[#3c3025]">
+                            {pdfComposer.text || "Le contenu texte apparaîtra ici."}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {studioMode === "employee" && (
+                    <div className={cn(softPanel(), "p-5")}>
+                      <p className="text-sm font-semibold text-[#2f2418]">Mission libre</p>
+                      <p className="mt-2 text-sm leading-7 text-[#665648]">
+                        Le centre de missions a maintenant son propre espace dédié.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setMainSection("missions")}
+                        className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#2a2118] px-4 py-2.5 text-sm font-semibold text-white"
+                      >
+                        <Brain className="h-4 w-4" />
+                        Aller au centre de missions
+                      </button>
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+
+            {mainSection === "followup" && (
+              <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+                <section className="space-y-6">
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <MissionUnderstandingAny
+                      mission={missionCenter.mission}
+                      interpretation={missionCenter.interpretation}
+                      tasks={missionCenter.tasks}
+                    />
+                  </div>
+
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <ExecutionBoardAny
+                      mission={missionCenter.mission}
+                      tasks={missionCenter.tasks}
+                      logs={missionCenter.logs}
+                    />
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <TaskListAny
+                      tasks={missionCenter.tasks}
+                      onRunTask={missionCenter.runTask}
+                      onApproveTask={missionCenter.approveTask}
+                      onCancelTask={missionCenter.cancelTask}
+                      onRescheduleTask={missionCenter.rescheduleTask}
+                      relatedDocumentForTask={(task: PierreTask) =>
+                        relatedDocumentForTask(task, mergedDocuments)
+                      }
+                      relatedEmailForTask={(task: PierreTask) =>
+                        relatedEmailForTask(task, mergedEmails)
+                      }
+                    />
+                  </div>
+
+                  <div className={cn(shellPanel(), "p-5")}>
+                    <TimelineAny
+                      mission={missionCenter.mission}
+                      tasks={missionCenter.tasks}
+                      logs={missionCenter.logs}
+                      documents={mergedDocuments}
+                      emails={mergedEmails}
+                    />
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {mainSection === "artifacts" && (
+              <div className="grid gap-6 xl:grid-cols-[0.78fr_1.22fr]">
+                <section className={cn(shellPanel(), "p-5")}>
+                  <div className="flex flex-wrap gap-2">
+                    <TopTab
+                      active={artifactTab === "documents"}
+                      onClick={() => setArtifactTab("documents")}
+                      icon={FileText}
+                      label={`Documents (${mergedDocuments.length})`}
+                    />
+                    <TopTab
+                      active={artifactTab === "emails"}
+                      onClick={() => setArtifactTab("emails")}
+                      icon={Mail}
+                      label={`Emails (${mergedEmails.length})`}
+                    />
+                    <TopTab
+                      active={artifactTab === "pdfs"}
+                      onClick={() => setArtifactTab("pdfs")}
+                      icon={FileType2}
+                      label={`PDFs (${directPdfs.length})`}
+                    />
+                  </div>
+
+                  <div className="mt-5 max-h-[700px] space-y-3 overflow-auto pr-1">
+                    {artifactTab === "documents" &&
+                      (mergedDocuments.length === 0 ? (
+                        <EmptyState
+                          icon={FileText}
+                          title="Aucun document"
+                          description="Les documents générés apparaîtront ici."
+                        />
+                      ) : (
+                        mergedDocuments.map((doc) => (
+                          <ArtifactRow
+                            key={doc.id}
+                            active={selectedDocumentId === doc.id}
+                            title={doc.title ?? "Document sans titre"}
+                            subtitle={`${doc.type ?? "document"} · ${formatDateTime(
+                              doc.updated_at ?? doc.created_at
+                            )}`}
+                            status={doc.status ?? "ready"}
+                            onClick={() => setSelectedDocumentId(doc.id)}
+                          />
+                        ))
+                      ))}
+
+                    {artifactTab === "emails" &&
+                      (mergedEmails.length === 0 ? (
+                        <EmptyState
+                          icon={Mail}
+                          title="Aucun email"
+                          description="Les brouillons et préparations d’envoi apparaîtront ici."
+                        />
+                      ) : (
+                        mergedEmails.map((mail) => (
+                          <ArtifactRow
+                            key={mail.id}
+                            active={selectedEmailId === mail.id}
+                            title={mail.subject ?? "Email sans objet"}
+                            subtitle={`${mail.status ?? "draft"} · ${formatDateTime(
+                              mail.updated_at ?? mail.created_at
+                            )}`}
+                            status={mail.status ?? "draft"}
+                            onClick={() => setSelectedEmailId(mail.id)}
+                          />
+                        ))
+                      ))}
+
+                    {artifactTab === "pdfs" &&
+                      (directPdfs.length === 0 ? (
+                        <EmptyState
+                          icon={FileType2}
+                          title="Aucun PDF"
+                          description="Les PDF générés apparaîtront ici."
+                        />
+                      ) : (
+                        directPdfs.map((pdf) => (
+                          <ArtifactRow
+                            key={String(pdf.id ?? "")}
+                            active={selectedPdfId === String(pdf.id ?? "")}
+                            title={String(pdf.title ?? "PDF Pierre")}
+                            subtitle={formatDateTime(String(pdf.created_at ?? ""))}
+                            status="ready"
+                            onClick={() => setSelectedPdfId(String(pdf.id ?? ""))}
+                          />
+                        ))
+                      ))}
+                  </div>
+                </section>
+
+                <section className={cn(shellPanel(), "p-5")}>
+                  {artifactTab === "documents" && (
+                    <DocumentPanelAny
+                      document={selectedDocument}
+                      documents={mergedDocuments}
+                      selectedDocumentId={selectedDocumentId}
+                      onSelectDocument={setSelectedDocumentId}
+                    />
+                  )}
+
+                  {artifactTab === "emails" && (
+                    <>
+                      {selectedEmail ? (
+                        <div className="space-y-5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-2xl font-semibold text-[#241b12]">
+                                {selectedEmail.subject ?? "Email"}
+                              </p>
+                              <p className="mt-2 text-sm text-[#756555]">
+                                {selectedEmail.sender_name ?? "Pierre"}{" "}
+                                {selectedEmail.sender_email
+                                  ? `<${selectedEmail.sender_email}>`
+                                  : ""}
+                              </p>
+                            </div>
+                            <StatusBadgeAny status={selectedEmail.status ?? "draft"} />
+                          </div>
+
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <InfoCard
+                              label="À"
+                              value={
+                                Array.isArray(selectedEmail.to)
+                                  ? selectedEmail.to.join(", ")
+                                  : (selectedEmail.to as string) ?? "—"
+                              }
+                            />
+                            <InfoCard label="Statut" value={selectedEmail.status ?? "—"} />
+                          </div>
+
+                          <div className="rounded-[22px] border border-[#eadfce] bg-white p-5">
+                            <p className="whitespace-pre-wrap text-sm leading-7 text-[#3d3025]">
+                              {selectedEmail.text ?? selectedEmail.html ?? "Contenu indisponible"}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <EmptyState
+                          icon={Mail}
+                          title="Aucun email sélectionné"
+                          description="Sélectionne un email pour l’afficher."
+                        />
+                      )}
+                    </>
+                  )}
+
+                  {artifactTab === "pdfs" && (
+                    <>
+                      {selectedPdf ? (
+                        <div className="space-y-5">
+                          <p className="text-2xl font-semibold text-[#241b12]">
+                            {String(selectedPdf.title ?? "PDF")}
+                          </p>
+                          <div className="rounded-[22px] border border-[#eadfce] bg-white p-5">
+                            <p className="whitespace-pre-wrap text-sm leading-7 text-[#3d3025]">
+                              {String(selectedPdf.text ?? selectedPdf.html ?? "Prévisualisation indisponible")}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <EmptyState
+                          icon={FileType2}
+                          title="Aucun PDF sélectionné"
+                          description="Sélectionne un PDF pour l’afficher."
+                        />
+                      )}
+                    </>
+                  )}
+                </section>
+              </div>
+            )}
+
+            {mainSection === "history" && (
+              <section className={cn(shellPanel(), "p-5 lg:p-6")}>
+                <HistoryPanelAny
+                  items={history.items}
+                  loading={history.loading}
+                  onRefresh={() => history.refresh({ includeTasks: true })}
+                  onLoadMore={history.loadMore}
+                  onSelectMission={(missionId: string) => {
+                    missionCenter.setFocusedMissionId(missionId);
+                    setMainSection("followup");
+                  }}
+                />
+              </section>
+            )}
+
+            {mainSection === "memory" && (
+              <section className={cn(shellPanel(), "p-5 lg:p-6")}>
+                <MemoryPanelAny
+                  memory={memory.memory}
+                  loading={memory.loading}
+                  saving={memory.saving}
+                  onRefresh={memory.refresh}
+                  onSave={memory.updateMemory}
+                  senderIdentityResolved={memory.senderIdentityResolved}
+                />
+              </section>
+            )}
+          </div>
+        </main>
+      </div>
+
+      {commandOpen && (
+        <div className="fixed inset-0 z-50 bg-[rgba(31,24,15,0.38)] px-4 py-10 backdrop-blur-[3px]">
+          <div className="mx-auto w-full max-w-[920px] rounded-[30px] border border-[#eadfce] bg-[#fffdf9] shadow-[0_28px_90px_rgba(64,50,35,0.24)]">
+            <div className="flex items-center justify-between gap-3 border-b border-[#eadfce] px-5 py-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9a856f]">
+                  navigation rapide
+                </p>
+                <p className="mt-1 text-lg font-semibold text-[#241b12]">
+                  Rechercher une mission, une vue ou un historique
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCommandOpen(false)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#e7dac8] bg-white text-[#5e4f42]"
+              >
+                <X className="h-4.5 w-4.5" />
+              </button>
+            </div>
+
+            <div className="px-5 py-5">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9a856f]" />
+                <input
+                  value={commandSearch}
+                  onChange={(e) => setCommandSearch(e.target.value)}
+                  placeholder="Rechercher : convocation, historique, email, mémoire..."
+                  className="w-full rounded-[20px] border border-[#e7dac8] bg-white py-3 pl-11 pr-4 text-sm outline-none transition placeholder:text-[#a28d78] focus:border-[#d8bd9d] focus:ring-4 focus:ring-[#f3e6d6]"
+                />
+              </div>
+
+              <div className="mt-5 grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
+                <div className="space-y-3">
+                  <CommandBlock title="Aller vers">
+                    <CommandRow label="Cockpit global" onClick={() => jumpSection(setCommandOpen, setMainSection, "cockpit")} />
+                    <CommandRow label="Centre de missions" onClick={() => jumpSection(setCommandOpen, setMainSection, "missions")} />
+                    <CommandRow label="Studios directs" onClick={() => jumpSection(setCommandOpen, setMainSection, "studios")} />
+                    <CommandRow label="Suivi d’exécution" onClick={() => jumpSection(setCommandOpen, setMainSection, "followup")} />
+                    <CommandRow label="Artefacts produits" onClick={() => jumpSection(setCommandOpen, setMainSection, "artifacts")} />
+                    <CommandRow label="Historique" onClick={() => jumpSection(setCommandOpen, setMainSection, "history")} />
+                    <CommandRow label="Mémoire entreprise" onClick={() => jumpSection(setCommandOpen, setMainSection, "memory")} />
+                  </CommandBlock>
+
+                  <CommandBlock title="Actions rapides">
+                    <CommandRow
+                      label="Nouveau mail direct"
+                      onClick={() => {
+                        setMainSection("studios");
+                        setStudioMode("email");
+                        setCommandOpen(false);
+                      }}
+                    />
+                    <CommandRow
+                      label="Nouveau document direct"
+                      onClick={() => {
+                        setMainSection("studios");
+                        setStudioMode("document");
+                        setCommandOpen(false);
+                      }}
+                    />
+                    <CommandRow
+                      label="Nouveau PDF direct"
+                      onClick={() => {
+                        setMainSection("studios");
+                        setStudioMode("pdf");
+                        setCommandOpen(false);
+                      }}
+                    />
+                    <CommandRow
+                      label="Actualiser tout"
+                      onClick={() => {
+                        setCommandOpen(false);
+                        void handleRefreshAll();
+                      }}
+                    />
+                  </CommandBlock>
+                </div>
+
+                <div className="space-y-3">
+                  <CommandBlock title="Historique récent">
+                    {filteredHistory.length === 0 ? (
+                      <p className="text-sm text-[#7d6b59]">Aucun résultat.</p>
+                    ) : (
+                      filteredHistory.map((item: any) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            if (item.mission_id) {
+                              missionCenter.setFocusedMissionId(item.mission_id);
+                              setMainSection("followup");
+                            } else {
+                              setMainSection("history");
+                            }
+                            setCommandOpen(false);
+                          }}
+                          className="flex w-full items-start justify-between gap-3 rounded-[18px] border border-[#eadfce] bg-white px-4 py-3 text-left transition hover:bg-[#fffaf3]"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-[#2b2118]">
+                              {item.title ?? "Élément"}
+                            </p>
+                            <p className="mt-1 truncate text-xs text-[#84715e]">
+                              {item.subtitle ?? item.kind ?? "historique"}
+                            </p>
+                          </div>
+                          <span className="flex-none rounded-full border border-[#eadbc9] bg-[#fcf7f0] px-2.5 py-1 text-[11px] font-medium text-[#735f4b]">
+                            {item.status ?? "—"}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </CommandBlock>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function jumpSection(
+  close: React.Dispatch<React.SetStateAction<boolean>>,
+  setSection: React.Dispatch<React.SetStateAction<MainSection>>,
+  section: MainSection
+) {
+  setSection(section);
+  close(false);
+}
+
+function KpiCard({
+  icon: Icon,
+  label,
+  value,
+  hint,
+  tone = "neutral",
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  hint?: string;
+  tone?: "neutral" | "good" | "warn";
+}) {
+  return (
+    <div className="rounded-[22px] border border-[#eadfce] bg-[#fffdf9] p-4">
+      <div className="flex items-center gap-3">
+        <div
+          className={cn(
+            "inline-flex h-11 w-11 items-center justify-center rounded-2xl",
+            tone === "good" && "bg-[#e7f4eb] text-[#2f6c43]",
+            tone === "warn" && "bg-[#fff1df] text-[#8a5b17]",
+            tone === "neutral" && "bg-[#f5ede4] text-[#745f48]"
+          )}
+        >
+          <Icon className="h-5 w-5" />
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9b8771]">
+            {label}
+          </p>
+          <p className="mt-1 text-lg font-semibold text-[#241b12]">{value}</p>
+          {hint ? <p className="mt-1 truncate text-xs text-[#83715f]">{hint}</p> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniState({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[18px] border border-[#eadfce] bg-white px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a856f]">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-[#241b12]">{value}</p>
+    </div>
+  );
+}
+
+function QuickActionButton({
+  icon: Icon,
+  title,
+  description,
+  onClick,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-start gap-3 rounded-[20px] border border-[#eadfce] bg-white px-4 py-4 text-left transition hover:bg-[#fffaf3]"
+    >
+      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f4ebdf] text-[#6d573d]">
+        <Icon className="h-4.5 w-4.5" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-[#2b2118]">{title}</p>
+        <p className="mt-1 text-xs leading-5 text-[#7b6956]">{description}</p>
+      </div>
+    </button>
+  );
+}
+
+function QuickMissionCard({
+  title,
+  text,
+  onClick,
+}: {
+  title: string;
+  text: string;
+  onCli

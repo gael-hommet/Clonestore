@@ -1,0 +1,849 @@
+===== FILE: src/app/profile/page.tsx =====
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  AlertCircle,
+  BadgeCheck,
+  Bell,
+  BriefcaseBusiness,
+  Building2,
+  ChevronRight,
+  CreditCard,
+  Fingerprint,
+  FolderKanban,
+  Layers3,
+  LifeBuoy,
+  LockKeyhole,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  User2,
+  Users2,
+  WandSparkles,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getSupabase } from "@/lib/supabase";
+
+type ProfileRow = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+};
+
+type OrderRow = {
+  id: string;
+  agent_slug: string;
+  status: string;
+  started_at: string | null;
+  ended_at: string | null;
+};
+
+function safeTrim(value: string | null | undefined) {
+  const text = (value ?? "").trim();
+  return text.length ? text : null;
+}
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString("fr-FR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function titleCaseSlug(slug: string) {
+  return slug
+    .split(/[-_]/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function statusLabel(status: string) {
+  const normalized = (status || "").toLowerCase();
+
+  if (normalized === "active") return "Actif";
+  if (normalized === "cancelled") return "Résilié";
+  if (normalized === "past_due") return "Paiement en attente";
+  if (normalized === "trialing") return "Essai";
+  if (normalized === "incomplete") return "Incomplet";
+
+  return status || "—";
+}
+
+function statusClass(status: string) {
+  const normalized = (status || "").toLowerCase();
+
+  if (normalized === "active") {
+    return "cs-status cs-status--success";
+  }
+
+  if (normalized === "past_due" || normalized === "incomplete") {
+    return "cs-status cs-status--warn";
+  }
+
+  if (normalized === "trialing") {
+    return "cs-status cs-status--info";
+  }
+
+  return "cs-status";
+}
+
+function getInitials(name: string | null | undefined, email: string | null | undefined) {
+  const cleanName = safeTrim(name);
+  if (cleanName) {
+    const parts = cleanName.split(/\s+/).filter(Boolean).slice(0, 2);
+    const initials = parts.map((part) => part.charAt(0).toUpperCase()).join("");
+    if (initials) return initials;
+  }
+
+  const cleanEmail = safeTrim(email);
+  if (cleanEmail) {
+    return cleanEmail.slice(0, 2).toUpperCase();
+  }
+
+  return "CS";
+}
+
+function getAgentSummary(slug: string) {
+  const normalized = slug.toLowerCase();
+
+  if (normalized === "pierre") {
+    return {
+      role: "RH opérationnel automatisé",
+      description:
+        "Missions RH, documents, emails, relances, continuité et pilotage opérationnel.",
+      primaryHref: "/agents/pierre/use",
+      primaryLabel: "Utiliser Pierre",
+      secondaryHref: "/agents/pierre/setup",
+      secondaryLabel: "Configurer Pierre",
+      tertiaryHref: "/agents/pierre",
+      tertiaryLabel: "Voir la fiche",
+    };
+  }
+
+  return {
+    role: "Employé IA en préparation",
+    description:
+      "Périmètre produit en cours de construction dans l’écosystème CloneStore.",
+    primaryHref: `/agents/${normalized}`,
+    primaryLabel: "Voir la fiche",
+    secondaryHref: "/agents",
+    secondaryLabel: "Voir la boutique",
+    tertiaryHref: "/profile/agents",
+    tertiaryLabel: "Mes employés",
+  };
+}
+
+function SectionShell({
+  title,
+  description,
+  children,
+  right,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+  right?: ReactNode;
+}) {
+  return (
+    <section className="cs-panel p-5">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1">
+            <p className="cs-eyebrow">{title}</p>
+            {description ? (
+              <p className="text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                {description}
+              </p>
+            ) : null}
+          </div>
+          {right ? <div>{right}</div> : null}
+        </div>
+
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function StatCard({
+  title,
+  value,
+  helper,
+  icon,
+}: {
+  title: string;
+  value: string | number;
+  helper: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-[0.8rem] font-medium text-[var(--cs-ink-4)]">{title}</p>
+          <p className="text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+            {value}
+          </p>
+          <p className="text-[0.82rem] leading-6 text-[var(--cs-ink-3)]">{helper}</p>
+        </div>
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+      </div>
+    </div>
+  );
+}
+
+function KeyValueRow({
+  label,
+  value,
+  icon,
+  mono = false,
+}: {
+  label: string;
+  value: ReactNode;
+  icon: ReactNode;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-[1.15rem] border border-[var(--cs-line-soft)] bg-white/30 px-4 py-3">
+      <div className="flex items-center gap-3">
+        <div className="text-[var(--cs-ink-4)]">{icon}</div>
+        <p className="text-[0.84rem] text-[var(--cs-ink-3)]">{label}</p>
+      </div>
+
+      <p
+        className={[
+          "max-w-[58%] text-right text-[0.86rem] font-medium text-[var(--cs-ink-1)]",
+          mono ? "font-mono text-[0.76rem]" : "",
+        ].join(" ")}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function ControlCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+        <div className="space-y-1">
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">{title}</p>
+          <p className="text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <div className="rounded-[1.2rem] border border-[rgba(200,70,70,0.18)] bg-[rgba(200,70,70,0.05)] px-4 py-3">
+      <div className="flex items-start gap-3">
+        <AlertCircle className="mt-0.5 h-4 w-4 text-[var(--cs-danger)]" />
+        <p className="text-[0.84rem] leading-6 text-[var(--cs-danger)]">{message}</p>
+      </div>
+    </div>
+  );
+}
+
+export default function ProfilePage() {
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [userId, setUserId] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+
+  const load = useCallback(
+    async (silent = false) => {
+      if (silent) setRefreshing(true);
+      else setLoading(true);
+
+      setError(null);
+
+      if (!supabase) {
+        setError(
+          "Configuration Supabase manquante. Vérifie les variables publiques puis redémarre le serveur."
+        );
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      if (!authData.user) {
+        setUserId(null);
+        setEmail(null);
+        setProfile(null);
+        setOrders([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      const currentUserId = authData.user.id;
+      setUserId(currentUserId);
+      setEmail(authData.user.email ?? null);
+
+      const [profileResult, ordersResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, email, full_name")
+          .eq("id", currentUserId)
+          .maybeSingle(),
+        supabase
+          .from("orders")
+          .select("id, agent_slug, status, started_at, ended_at")
+          .eq("user_id", currentUserId)
+          .order("started_at", { ascending: false }),
+      ]);
+
+      if (profileResult.error) {
+        setProfile(null);
+      } else {
+        setProfile((profileResult.data as ProfileRow | null) ?? null);
+      }
+
+      if (ordersResult.error) {
+        setError(ordersResult.error.message);
+        setOrders([]);
+      } else {
+        setOrders((ordersResult.data ?? []) as OrderRow[]);
+      }
+
+      setLoading(false);
+      setRefreshing(false);
+    },
+    [supabase]
+  );
+
+  useEffect(() => {
+    void load(false);
+  }, [load]);
+
+  const displayName = useMemo(() => {
+    return (
+      safeTrim(profile?.full_name) ||
+      safeTrim(profile?.email) ||
+      safeTrim(email) ||
+      "Compte CloneStore"
+    );
+  }, [profile?.full_name, profile?.email, email]);
+
+  const initials = useMemo(
+    () => getInitials(profile?.full_name, profile?.email || email),
+    [profile?.full_name, profile?.email, email]
+  );
+
+  const activeOrders = useMemo(
+    () => orders.filter((order) => (order.status || "").toLowerCase() === "active"),
+    [orders]
+  );
+
+  const inactiveOrders = useMemo(
+    () => orders.filter((order) => (order.status || "").toLowerCase() !== "active"),
+    [orders]
+  );
+
+  const lastOrder = useMemo(() => orders[0] ?? null, [orders]);
+
+  const pierreIsActive = useMemo(
+    () =>
+      orders.some(
+        (order) =>
+          order.agent_slug.toLowerCase() === "pierre" &&
+          (order.status || "").toLowerCase() === "active"
+      ),
+    [orders]
+  );
+
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-5">
+          <section className="cs-command-surface">
+            <div className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr] xl:items-center">
+              <div className="space-y-5">
+                <span className="cs-pill">
+                  <Building2 className="h-4 w-4 text-[var(--cs-violet)]" />
+                  Mon espace
+                </span>
+
+                <div className="space-y-3">
+                  <h1 className="cs-display text-[clamp(1.95rem,3vw,3.3rem)] leading-[0.98]">
+                    Piloter CloneStore côté{" "}
+                    <span className="cs-gradient-text">entreprise</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
+                    Mon espace réunit le compte, les accès, les employés actifs,
+                    les réglages structurants, la personnalisation et les zones
+                    de contrôle globales de l’entreprise.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    asChild
+                    className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    <Link href="/profile/agents">Mes employés</Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    <Link href="/agents">Voir la boutique</Link>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void load(true)}
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    {refreshing ? "Actualisation…" : "Actualiser"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="cs-panel p-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <StatCard
+                    title="Employés actifs"
+                    value={activeOrders.length}
+                    helper="Accès utilisables maintenant"
+                    icon={<BadgeCheck className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Historique"
+                    value={orders.length}
+                    helper="Souscriptions connues"
+                    icon={<FolderKanban className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Pierre"
+                    value={pierreIsActive ? "Actif" : "Non actif"}
+                    helper="Poste RH opérationnel"
+                    icon={<Sparkles className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Compte"
+                    value={userId ? "Connecté" : "Invité"}
+                    helper="État de session"
+                    icon={<ShieldCheck className="h-5 w-5" />}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {error ? <ErrorBanner message={error} /> : null}
+
+          {!loading && !userId ? (
+            <section className="cs-panel p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-2">
+                  <p className="cs-eyebrow">Accès</p>
+                  <p className="text-[1.15rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                    Aucune session active
+                  </p>
+                  <p className="max-w-2xl text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                    Connecte-toi pour accéder à l’administration du compte, aux
+                    employés IA, à l’empreinte entreprise et aux zones de pilotage.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    <Link href="/login">Connexion</Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    <Link href="/signup">Créer un compte</Link>
+                  </Button>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {loading ? (
+            <section className="cs-panel p-5">
+              <p className="text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                Chargement du compte CloneStore…
+              </p>
+            </section>
+          ) : null}
+
+          {!loading && userId ? (
+            <>
+              <div className="grid gap-5 xl:grid-cols-[0.96fr_1.04fr]">
+                <SectionShell
+                  title="Compte"
+                  description="Identité, session et accès principaux du compte entreprise."
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-4 rounded-[1.25rem] border border-[var(--cs-line-soft)] bg-white/30 px-4 py-4">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[var(--cs-line-soft)] bg-white/52 text-[1rem] font-semibold text-[var(--cs-ink-1)]">
+                        {initials}
+                      </div>
+
+                      <div className="space-y-1">
+                        <p className="text-[1rem] font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                          {displayName}
+                        </p>
+                        <p className="text-[0.86rem] text-[var(--cs-ink-3)]">
+                          {profile?.email || email || "Adresse email indisponible"}
+                        </p>
+                        <div className="pt-1">
+                          <span className="cs-status cs-status--info">Compte entreprise</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <KeyValueRow
+                      label="Nom affiché"
+                      value={displayName}
+                      icon={<User2 className="h-4 w-4" />}
+                    />
+                    <KeyValueRow
+                      label="Adresse email"
+                      value={profile?.email || email || "—"}
+                      icon={<Mail className="h-4 w-4" />}
+                    />
+                    <KeyValueRow
+                      label="User ID"
+                      value={userId}
+                      icon={<Fingerprint className="h-4 w-4" />}
+                      mono
+                    />
+                    <KeyValueRow
+                      label="Dernière souscription"
+                      value={lastOrder ? titleCaseSlug(lastOrder.agent_slug) : "Aucune"}
+                      icon={<BriefcaseBusiness className="h-4 w-4" />}
+                    />
+                  </div>
+                </SectionShell>
+
+                <SectionShell
+                  title="Pilotage"
+                  description="Grandes zones que l’entreprise doit pouvoir piloter depuis Mon espace."
+                >
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <ControlCard
+                      icon={<Building2 className="h-4 w-4" />}
+                      title="Entreprise"
+                      text="Identité, structure, contexte, empreinte et paramètres maîtres."
+                    />
+                    <ControlCard
+                      icon={<Users2 className="h-4 w-4" />}
+                      title="Équipe & accès"
+                      text="Utilisateurs autorisés, rôles, validateurs et niveaux de contrôle."
+                    />
+                    <ControlCard
+                      icon={<CreditCard className="h-4 w-4" />}
+                      title="Facturation"
+                      text="Abonnements, historique, état des accès et logique commerciale."
+                    />
+                    <ControlCard
+                      icon={<Layers3 className="h-4 w-4" />}
+                      title="Technologies"
+                      text="CloneOS, CloneADN, CloneGuard, CloneTrace et réglages associés."
+                    />
+                    <ControlCard
+                      icon={<WandSparkles className="h-4 w-4" />}
+                      title="Mémoire & intelligence"
+                      text="Habitudes, comportement appris, personnalisation et alignement."
+                    />
+                    <ControlCard
+                      icon={<Bell className="h-4 w-4" />}
+                      title="Notifications"
+                      text="Alertes, briefings, suivis, rappels et livraisons importantes."
+                    />
+                    <ControlCard
+                      icon={<LockKeyhole className="h-4 w-4" />}
+                      title="Sécurité"
+                      text="Permissions, gouvernance, validation, refus et sécurité du système."
+                    />
+                    <ControlCard
+                      icon={<LifeBuoy className="h-4 w-4" />}
+                      title="Support"
+                      text="Aide produit, orientation et résolution des frictions d’usage."
+                    />
+                  </div>
+                </SectionShell>
+              </div>
+
+              <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
+                <SectionShell
+                  title="Accès directs"
+                  description="Raccourcis vers les zones de travail et de configuration déjà utiles."
+                >
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <QuickLinkCard
+                      href="/profile/agents"
+                      title="Mes employés"
+                      text="Zone de travail et accès aux employés IA."
+                    />
+                    <QuickLinkCard
+                      href="/agents"
+                      title="Boutique"
+                      text="Catalogue des employés IA CloneStore."
+                    />
+                    <QuickLinkCard
+                      href="/assistant"
+                      title="CloneChat"
+                      text="Comprendre, orienter, débloquer."
+                    />
+                    <QuickLinkCard
+                      href="/paiement"
+                      title="Paiement"
+                      text="Souscriptions, parcours et pages de paiement."
+                    />
+                    <QuickLinkCard
+                      href="/questions"
+                      title="Support"
+                      text="Questions produit et aide générale."
+                    />
+                    <QuickLinkCard
+                      href="/legal/confidentialite"
+                      title="Confidentialité"
+                      text="Cadre de confiance et politique associée."
+                    />
+                  </div>
+                </SectionShell>
+
+                <SectionShell
+                  title="Pierre"
+                  description="Accès rapide au poste RH opérationnel automatisé."
+                  right={
+                    pierreIsActive ? (
+                      <span className="cs-status cs-status--success">Pierre actif</span>
+                    ) : (
+                      <span className="cs-status">Pierre non actif</span>
+                    )
+                  }
+                >
+                  <div className="space-y-3">
+                    <div className="rounded-[1.2rem] border border-[var(--cs-line-soft)] bg-white/32 px-4 py-4">
+                      <p className="text-[0.9rem] font-semibold text-[var(--cs-ink-1)]">
+                        Poste RH opérationnel automatisé
+                      </p>
+                      <p className="mt-2 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+                        Pierre couvre missions RH, documents, emails, relances,
+                        continuité, validations, historique et exécution sous contrôle.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3">
+                      <Button
+                        asChild
+                        className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                          boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                        }}
+                      >
+                        <Link href="/agents/pierre/use">Utiliser Pierre</Link>
+                      </Button>
+
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                      >
+                        <Link href="/agents/pierre/setup">Configurer Pierre</Link>
+                      </Button>
+
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                      >
+                        <Link href="/agents/pierre">Voir la fiche</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </SectionShell>
+              </div>
+
+              <SectionShell
+                title="Historique des accès"
+                description="Lecture synthétique des souscriptions connues du compte."
+              >
+                {orders.length === 0 ? (
+                  <div className="rounded-[1.2rem] border border-[var(--cs-line-soft)] bg-white/28 px-4 py-5">
+                    <p className="text-[0.9rem] font-semibold text-[var(--cs-ink-1)]">
+                      Aucun employé souscrit pour le moment
+                    </p>
+                    <p className="mt-2 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+                      La boutique permet de découvrir la gamme CloneStore et les
+                      futurs postes automatisés.
+                    </p>
+
+                    <div className="mt-4">
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                      >
+                        <Link href="/agents">Voir la boutique</Link>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {orders.map((order) => {
+                      const agent = getAgentSummary(order.agent_slug);
+
+                      return (
+                        <article key={order.id} className="cs-card cs-card-tight">
+                          <div className="space-y-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="space-y-1">
+                                <p className="text-[0.96rem] font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                                  {titleCaseSlug(order.agent_slug)}
+                                </p>
+                                <p className="text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+                                  {agent.role}
+                                </p>
+                              </div>
+
+                              <span className={statusClass(order.status)}>
+                                {statusLabel(order.status)}
+                              </span>
+                            </div>
+
+                            <div className="space-y-2">
+                              <p className="text-[0.82rem] text-[var(--cs-ink-4)]">
+                                Début : {formatDate(order.started_at)}
+                              </p>
+                              <p className="text-[0.82rem] text-[var(--cs-ink-4)]">
+                                Fin : {formatDate(order.ended_at)}
+                              </p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                asChild
+                                variant="outline"
+                                className="h-9 rounded-full bg-white/45 px-4 text-[0.82rem] font-medium"
+                              >
+                                <Link href={agent.primaryHref}>{agent.primaryLabel}</Link>
+                              </Button>
+
+                              <Button
+                                asChild
+                                variant="outline"
+                                className="h-9 rounded-full bg-white/45 px-4 text-[0.82rem] font-medium"
+                              >
+                                <Link href={agent.secondaryHref}>{agent.secondaryLabel}</Link>
+                              </Button>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </SectionShell>
+
+              <section className="grid gap-4 md:grid-cols-2">
+                <StatCard
+                  title="Actifs"
+                  value={activeOrders.length}
+                  helper="Employés actuellement exploitables"
+                  icon={<BadgeCheck className="h-5 w-5" />}
+                />
+                <StatCard
+                  title="Autres statuts"
+                  value={inactiveOrders.length}
+                  helper="Résiliés, incomplets ou non actifs"
+                  icon={<BriefcaseBusiness className="h-5 w-5" />}
+                />
+              </section>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuickLinkCard({
+  href,
+  title,
+  text,
+}: {
+  href: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="cs-card cs-card-tight cs-hover-lift block"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">{title}</p>
+          <p className="text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+
+        <ChevronRight className="mt-0.5 h-4 w-4 text-[var(--cs-ink-4)]" />
+      </div>
+    </Link>
+  );
+}

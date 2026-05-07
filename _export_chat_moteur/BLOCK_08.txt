@@ -1,0 +1,5086 @@
+﻿===== FILE: src/app/page.tsx =====
+
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowRight,
+  Blocks,
+  BrainCircuit,
+  BriefcaseBusiness,
+  ChevronRight,
+  LayoutDashboard,
+  LockKeyhole,
+  MessagesSquare,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+import {
+  CLONESTORE_SECTIONS,
+  type CloneStoreSection,
+  type CloneStoreSectionId,
+} from "@/components/site/clonestore-sections";
+
+const sectionMeta: Record<CloneStoreSectionId, { icon: ReactNode }> = {
+  vision: {
+    icon: <Sparkles className="h-4 w-4 text-[var(--cs-violet)]" />,
+  },
+  technologies: {
+    icon: <BrainCircuit className="h-4 w-4 text-[var(--cs-violet)]" />,
+  },
+  fonctionnement: {
+    icon: <Waypoints className="h-4 w-4 text-[var(--cs-violet)]" />,
+  },
+  controle: {
+    icon: <ShieldCheck className="h-4 w-4 text-[var(--cs-violet)]" />,
+  },
+  memoire: {
+    icon: <Blocks className="h-4 w-4 text-[var(--cs-violet)]" />,
+  },
+  securite: {
+    icon: <LockKeyhole className="h-4 w-4 text-[var(--cs-violet)]" />,
+  },
+  deploiement: {
+    icon: <LayoutDashboard className="h-4 w-4 text-[var(--cs-violet)]" />,
+  },
+};
+
+export default function HomePage() {
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)]">
+          <aside className="hidden xl:block">
+            <div className="sticky top-28 cs-card cs-card-tight">
+              <div className="space-y-3">
+                <p className="cs-eyebrow">Homepage</p>
+
+                <nav className="flex flex-col gap-1">
+                  <a
+                    href="#hero"
+                    className="flex items-center justify-between rounded-2xl px-3 py-2.5 text-[0.88rem] font-medium text-[var(--cs-ink-2)] transition hover:bg-white/45"
+                  >
+                    <span>Accueil</span>
+                    <ChevronRight className="h-4 w-4 text-[var(--cs-ink-4)]" />
+                  </a>
+
+                  {CLONESTORE_SECTIONS.map((section: CloneStoreSection) => (
+                    <Link
+                      key={section.id}
+                      href={`/clonestore/${section.id}`}
+                      className="flex items-center justify-between rounded-2xl px-3 py-2.5 text-[0.88rem] font-medium text-[var(--cs-ink-2)] transition hover:bg-white/45"
+                    >
+                      <span>{section.label}</span>
+                      <ChevronRight className="h-4 w-4 text-[var(--cs-ink-4)]" />
+                    </Link>
+                  ))}
+                </nav>
+
+                <div className="rounded-[1.15rem] border border-[var(--cs-line-soft)] bg-white/32 px-4 py-4">
+                  <p className="text-[0.9rem] font-semibold text-[var(--cs-ink-1)]">
+                    Vue dâ€™ensemble
+                  </p>
+                  <p className="mt-2 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+                    La home prÃ©sente CloneStore comme systÃ¨me dâ€™exploitation
+                    dâ€™employÃ©s IA pour entreprises, puis renvoie vers des pages
+                    dÃ©taillÃ©es plus profondes.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <div className="space-y-5">
+            <section id="hero" className="cs-command-surface">
+              <div className="grid gap-5 xl:grid-cols-[1.03fr_0.97fr] xl:items-center">
+                <div className="space-y-5">
+                  <span className="cs-pill">
+                    <Sparkles className="h-4 w-4 text-[var(--cs-violet)]" />
+                    EmployÃ©s IA premium pour entreprises
+                  </span>
+
+                  <div className="space-y-4">
+                    <h1 className="cs-display text-[clamp(1.95rem,3vw,3.45rem)] leading-[0.98]">
+                      Gagner du temps et de{" "}
+                      <span className="cs-gradient-text">lâ€™argent</span>.
+                    </h1>
+
+                    <p className="max-w-3xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
+                      CloneStore aide les entreprises Ã  rÃ©duire leur charge
+                      opÃ©rationnelle grÃ¢ce Ã  des employÃ©s IA spÃ©cialisÃ©s,
+                      pilotables depuis un cockpit haut de gamme conÃ§u pour
+                      lâ€™exÃ©cution, la clartÃ© et le contrÃ´le.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      asChild
+                      className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                        boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                      }}
+                    >
+                      <Link href="/agents">
+                        Voir la boutique
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                    >
+                      <Link href="/assistant">Ouvrir CloneChat</Link>
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <QuickPoint
+                      icon={<BriefcaseBusiness className="h-4 w-4" />}
+                      title="Boutique"
+                      text="gamme dâ€™employÃ©s"
+                    />
+                    <QuickPoint
+                      icon={<MessagesSquare className="h-4 w-4" />}
+                      title="CloneChat"
+                      text="comprend et oriente"
+                    />
+                    <QuickPoint
+                      icon={<LayoutDashboard className="h-4 w-4" />}
+                      title="Mes employÃ©s"
+                      text="zone de travail"
+                    />
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <div className="cs-panel h-full p-5">
+                    <div className="absolute inset-0 opacity-55" aria-hidden="true">
+                      <div className="absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color:var(--cs-line-soft)]" />
+                      <div className="absolute left-1/2 top-1/2 h-[240px] w-[240px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color:var(--cs-line-soft)]" />
+                      <div className="absolute left-1/2 top-1/2 h-[130px] w-[130px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color:var(--cs-line-soft)]" />
+                    </div>
+
+                    <div className="relative flex min-h-[320px] flex-col justify-between">
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="cs-status cs-status--info">CloneStore</span>
+                        <span className="cs-status">Entreprise-ready</span>
+                      </div>
+
+                      <div className="flex flex-1 items-center justify-center py-4">
+                        <div className="relative flex h-[130px] w-[130px] items-center justify-center rounded-full bg-white/35 shadow-[0_28px_80px_rgba(17,24,39,0.10)]">
+                          <div className="absolute inset-3 rounded-full border border-white/40" />
+                          <div className="absolute inset-8 rounded-full border border-[color:var(--cs-line-soft)]" />
+
+                          <svg
+                            viewBox="0 0 24 56"
+                            className="relative h-[76px] w-[31px]"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <rect
+                              x="3"
+                              y="3"
+                              width="18"
+                              height="50"
+                              rx="9"
+                              stroke="url(#homeMarkGradient)"
+                              strokeWidth="3.5"
+                            />
+                            <defs>
+                              <linearGradient
+                                id="homeMarkGradient"
+                                x1="3"
+                                y1="3"
+                                x2="21"
+                                y2="53"
+                              >
+                                <stop stopColor="color-mix(in srgb, var(--cs-violet) 88%, white 12%)" />
+                                <stop
+                                  offset="1"
+                                  stopColor="color-mix(in srgb, var(--cs-violet-2) 88%, white 12%)"
+                                />
+                              </linearGradient>
+                            </defs>
+                          </svg>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3">
+                        <InfoRow
+                          title="Boutique"
+                          text="PrÃ©sente la gamme des employÃ©s IA et leurs grands pÃ©rimÃ¨tres."
+                        />
+                        <InfoRow
+                          title="Mes employÃ©s"
+                          text="Zone cockpit oÃ¹ lâ€™entreprise fait rÃ©ellement travailler CloneStore."
+                        />
+                        <InfoRow
+                          title="Mon espace"
+                          text="Compte, empreinte, personnalisation, statistiques et abonnements."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {CLONESTORE_SECTIONS.map((section: CloneStoreSection) => (
+                <Link
+                  key={section.id}
+                  href={`/clonestore/${section.id}`}
+                  className="cs-card cs-card-tight cs-hover-lift block"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5">{sectionMeta[section.id].icon}</div>
+
+                    <div className="space-y-2">
+                      <p className="text-[0.9rem] font-semibold text-[var(--cs-ink-1)]">
+                        {section.label}
+                      </p>
+                      <p className="text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+                        {section.summary}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuickPoint({
+  icon,
+  title,
+  text,
+}: {
+  icon: ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+        <div>
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">
+            {title}
+          </p>
+          <p className="mt-1 text-[0.84rem] text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-[1.2rem] border border-[var(--cs-line-soft)] bg-white/42 px-4 py-4">
+      <p className="text-[0.86rem] font-semibold text-[var(--cs-ink-1)]">
+        {title}
+      </p>
+      <p className="mt-1 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+        {text}
+      </p>
+    </div>
+  );
+}
+
+===== FILE: src/app/paiement/cancel/page.tsx =====
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  CreditCard,
+  ShieldCheck,
+  Sparkles,
+  Undo2,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+export default function PaiementCancelPage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <Undo2 className="h-3.5 w-3.5 text-[var(--cs-danger)]" />
+                  <span>Paiement interrompu</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Rien nâ€™est perdu</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Le paiement nâ€™a pas Ã©tÃ© finalisÃ©.
+                  <br />
+                  <span className="cs-gradient-text">
+                    Vous pouvez reprendre proprement.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Cette page ne doit jamais culpabiliser ni crÃ©er de stress.
+                  Elle doit simplement rassurer, expliquer que rien nâ€™est cassÃ©,
+                  et proposer les bons prochains choix.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/checkout?agent=pierre"
+                  label="Reprendre le paiement"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents/pierre"
+                  label="Retour Ã  Pierre"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <InfoCard
+                title="Aucune perte"
+                text="Lâ€™interruption de paiement ne doit pas donner lâ€™impression que quelque chose est cassÃ©."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+              <InfoCard
+                title="Reprise claire"
+                text="Le bon prochain clic doit Ãªtre Ã©vident et rassurant."
+                icon={<ArrowRight className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Contexte conservÃ©"
+                text="Le client reste dans le parcours CloneStore, sans rupture brutale."
+                icon={<CreditCard className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Aide disponible"
+                text="Lâ€™assistant reste accessible immÃ©diatement si un doute subsiste."
+                icon={<Bot className="h-4 w-4" />}
+                tone="rose"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-account-accent)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                <span>Vous pouvez reprendre quand vous voulez</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Retournez sur Pierre,
+              <br />
+              ou reprenez directement le checkout.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--cs-ink-4)] md:text-base">
+              Cette Ã©tape doit rester calme, propre et premium. Pas de panique,
+              pas de confusion, juste une reprise claire.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/checkout?agent=pierre"
+                label="Reprendre le checkout"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/questions"
+                label="Ouvrir lâ€™assistant"
+                icon={<Bot className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+===== FILE: src/app/paiement/page.tsx =====
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  CheckCircle2,
+  CreditCard,
+  FileCheck2,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+  UserCheck,
+  Waypoints,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+  right,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="max-w-3xl space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+          {kicker}
+        </p>
+        <h2 className="cs-heading text-2xl md:text-4xl">{title}</h2>
+        <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+      </div>
+      {right ? <div className="shrink-0">{right}</div> : null}
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-account-accent)]" />
+          <span className="text-sm text-[var(--cs-ink-4)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function PaymentCard({
+  title,
+  price,
+  helper,
+  href,
+  primary = false,
+}: {
+  title: string;
+  price: string;
+  helper: string;
+  href: string;
+  primary?: boolean;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-lg font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                {title}
+              </p>
+              <p className="mt-1 text-sm text-[var(--cs-ink-4)]">{helper}</p>
+            </div>
+            <span className="cs-status cs-status--success">Disponible</span>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-3xl font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+              {price}
+            </p>
+            <p className="text-xs text-[var(--cs-ink-4)]">
+              Prix fondateur affichÃ© actuellement
+            </p>
+          </div>
+        </div>
+
+        <ActionButton
+          href={href}
+          label="Continuer"
+          primary={primary}
+          icon={<ArrowRight className="h-4 w-4" />}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function PaiementPage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        {/* HERO */}
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.03fr_0.97fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <CreditCard className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Paiement CloneStore</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Simple, clair, premium</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Une entrÃ©e propre dans CloneStore,
+                  <br />
+                  <span className="cs-gradient-text">
+                    sans friction ni confusion.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Cette page doit rassurer immÃ©diatement : on comprend ce quâ€™on
+                  achÃ¨te, le cadre est clair, la suite logique aussi. Le paiement
+                  nâ€™est pas une rupture dâ€™expÃ©rience, câ€™est la continuitÃ© dâ€™un
+                  produit sÃ©rieux.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/checkout?agent=pierre"
+                  label="Commencer avec Pierre"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents/pierre"
+                  label="Voir la fiche Pierre"
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <InfoCard
+                  title="ClartÃ©"
+                  text="Le client doit comprendre immÃ©diatement quelle est lâ€™offre active."
+                  icon={<UserCheck className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Confiance"
+                  text="Le ton, la structure et le calme visuel doivent supprimer le doute inutile."
+                  icon={<Lock className="h-4 w-4" />}
+                  tone="blue"
+                />
+                <InfoCard
+                  title="Suite logique"
+                  text="Paiement, succÃ¨s, activation, cockpit : tout doit sâ€™enchaÃ®ner proprement."
+                  icon={<Waypoints className="h-4 w-4" />}
+                  tone="green"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <PaymentCard
+                title="Pierre"
+                price="449â‚¬/mois"
+                helper="Poste RH opÃ©rationnel automatisÃ©"
+                href="/checkout?agent=pierre"
+                primary
+              />
+
+              <div className="cs-card">
+                <div className="relative space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                        Ce que vous activez rÃ©ellement
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
+                        Un poste RH automatisÃ© avec mission libre, documents,
+                        emails, relances, continuitÃ©, validations et trace.
+                      </p>
+                    </div>
+                    <span className="cs-status cs-status--info">CloneStore</span>
+                  </div>
+
+                  <BulletList
+                    items={[
+                      "EntrÃ©e dans le cockpit privÃ© aprÃ¨s activation",
+                      "Configuration de lâ€™entreprise et des rÃ¨gles",
+                      "Utilisation rÃ©elle de Pierre depuis le site",
+                      "Historique, gouvernance, aide et continuitÃ©",
+                    ]}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* PAYMENT LOGIC */}
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Ce que cette Ã©tape doit transmettre"
+            title="Le paiement doit prolonger la crÃ©dibilitÃ© produit."
+            text="On ne vend pas un simple abonnement logiciel. On active un poste automatisÃ© dans un systÃ¨me dâ€™entreprise plus grand."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard
+              title="Poste activÃ©"
+              text="Le client active Pierre, pas une simple fonctionnalitÃ©."
+              icon={<BriefcaseBusiness className="h-4 w-4" />}
+              tone="violet"
+            />
+            <InfoCard
+              title="SystÃ¨me derriÃ¨re"
+              text="CloneOS, CloneTrace, gouvernance et cockpit soutiennent lâ€™expÃ©rience."
+              icon={<FileCheck2 className="h-4 w-4" />}
+              tone="blue"
+            />
+            <InfoCard
+              title="Prix lisible"
+              text="Un seul prix visible au lancement, sans usine compliquÃ©e."
+              icon={<CreditCard className="h-4 w-4" />}
+              tone="green"
+            />
+            <InfoCard
+              title="Aide immÃ©diate"
+              text="Si un doute subsiste, lâ€™assistant CloneStore reste accessible."
+              icon={<Bot className="h-4 w-4" />}
+              tone="rose"
+            />
+          </div>
+        </section>
+
+        {/* BEFORE / AFTER */}
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Avant paiement"
+              title="Le client doit Ãªtre rassurÃ© et comprendre ce quâ€™il obtient."
+              text="Pas de prÃ©cipitation visuelle, pas de flou, pas de bruit inutile. Juste la bonne information."
+            />
+
+            <div className="mt-6">
+              <BulletList
+                items={[
+                  "Quel employÃ© est activÃ©",
+                  "Quel prix est affichÃ©",
+                  "Quelle valeur rÃ©elle est achetÃ©e",
+                  "Quelle est la suite logique aprÃ¨s achat",
+                  "OÃ¹ poser une question si nÃ©cessaire",
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="AprÃ¨s paiement"
+              title="Le client doit Ãªtre repris immÃ©diatement par le bon parcours."
+              text="La transition idÃ©ale : confirmation, activation, onboarding utile, puis cockpit CloneStore."
+            />
+
+            <div className="mt-6">
+              <BulletList
+                items={[
+                  "Page succÃ¨s claire et premium",
+                  "Activation propre de lâ€™accÃ¨s",
+                  "Orientation vers lâ€™onboarding ou le cockpit",
+                  "Aucune sensation de vide aprÃ¨s achat",
+                  "Assistant toujours disponible",
+                ]}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* FINAL CTA */}
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-account-accent)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                <span>PrÃªt Ã  entrer dans le systÃ¨me ?</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Activez Pierre.
+              <br />
+              Entrez ensuite dans le cockpit CloneStore.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--cs-ink-4)] md:text-base">
+              Le paiement ne doit pas Ãªtre une parenthÃ¨se. Il doit Ãªtre une
+              continuitÃ© naturelle de lâ€™expÃ©rience premium CloneStore.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/checkout?agent=pierre"
+                label="Continuer vers le checkout"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/questions"
+                label="Parler Ã  lâ€™assistant"
+                icon={<Bot className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+===== FILE: src/app/paiement/success/page.tsx =====
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  CheckCircle2,
+  FileCheck2,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-3xl space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+        {kicker}
+      </p>
+      <h2 className="cs-heading text-2xl md:text-4xl">{title}</h2>
+      <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-success)]" />
+          <span className="text-sm text-[var(--cs-ink-4)]">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function PaiementSuccessPage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Paiement confirmÃ©</span>
+                </span>
+                <span className="cs-pill">
+                  <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Bienvenue dans CloneStore</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Câ€™est bon.
+                  <br />
+                  <span className="cs-gradient-text">
+                    Vous entrez maintenant dans le systÃ¨me.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Le paiement a bien Ã©tÃ© validÃ©. La suite doit Ãªtre limpide :
+                  activation, accÃ¨s, configuration utile, puis cockpit CloneStore.
+                  Aucun vide, aucune confusion, aucune rupture.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/profile"
+                  label="Entrer dans le cockpit"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents/pierre/setup"
+                  label="Configurer Pierre"
+                  icon={<Waypoints className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Ouvrir lâ€™assistant"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <div className="cs-card">
+                <div className="relative space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                        Ã‰tape validÃ©e
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
+                        Votre entrÃ©e dans CloneStore est confirmÃ©e.
+                      </p>
+                    </div>
+                    <span className="cs-status cs-status--success">SuccÃ¨s</span>
+                  </div>
+
+                  <BulletList
+                    items={[
+                      "Paiement acceptÃ©",
+                      "AccÃ¨s prÃªt Ã  Ãªtre utilisÃ©",
+                      "Suite logique vers activation et cockpit",
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard
+                  title="Cockpit"
+                  text="Le bon prochain Ã©cran doit Ãªtre votre espace principal de pilotage."
+                  icon={<Waypoints className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Configuration"
+                  text="Lâ€™onboarding doit immÃ©diatement servir Ã  rendre Pierre utile, pas Ã  perdre du temps."
+                  icon={<FileCheck2 className="h-4 w-4" />}
+                  tone="blue"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Ce qui doit arriver maintenant"
+              title="Le client doit Ãªtre repris sans friction."
+              text="AprÃ¨s un paiement rÃ©ussi, il faut une transition premium vers lâ€™usage rÃ©el."
+            />
+
+            <div className="mt-6">
+              <BulletList
+                items={[
+                  "AccÃ¨s immÃ©diat au cockpit",
+                  "Configuration utile de Pierre",
+                  "Assistant disponible si besoin",
+                  "Aucune sensation de vide ou de flottement",
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Rassurance"
+              title="Le produit doit confirmer sa crÃ©dibilitÃ© juste aprÃ¨s lâ€™achat."
+              text="Cette page existe pour garder un niveau de confiance Ã©levÃ© mÃªme aprÃ¨s la transaction."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="ClartÃ©"
+                text="Le client comprend immÃ©diatement que tout sâ€™est bien passÃ©."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+              <InfoCard
+                title="Suite logique"
+                text="Le bon prochain clic est Ã©vident."
+                icon={<ArrowRight className="h-4 w-4" />}
+                tone="violet"
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+===== FILE: src/app/profile/_ui/AccountCard.tsx =====
+
+import Link from "next/link";
+import { UserRound } from "lucide-react";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+type AccountItemObject = {
+  label?: ReactNode;
+  value?: ReactNode;
+};
+
+type LooseItem = ReactNode | AccountItemObject;
+
+export type AccountCardProps = {
+  title?: ReactNode;
+  description?: ReactNode;
+  value?: ReactNode;
+  helper?: ReactNode;
+  badge?: ReactNode;
+  icon?: ReactNode;
+  items?: LooseItem[];
+  ctaLabel?: ReactNode;
+  ctaHref?: string;
+  footer?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+  [key: string]: unknown;
+};
+
+function isAccountItemObject(item: LooseItem): item is AccountItemObject {
+  return typeof item === "object" && item !== null && !Array.isArray(item) && ("label" in item || "value" in item);
+}
+
+function renderItem(item: LooseItem, index: number) {
+  if (isAccountItemObject(item)) {
+    return (
+      <div
+        key={index}
+        className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3"
+      >
+        <p className="text-xs uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
+          {item.label}
+        </p>
+        <p className="mt-1 text-sm font-medium text-[var(--cs-ink-2)]">
+          {item.value}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      key={index}
+      className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3 text-sm text-[var(--cs-ink-4)]"
+    >
+      {item}
+    </div>
+  );
+}
+
+export default function AccountCard({
+  title = "Compte",
+  description = "RÃ©sumÃ© du compte CloneStore.",
+  value,
+  helper,
+  badge,
+  icon,
+  items,
+  ctaLabel,
+  ctaHref,
+  footer,
+  children,
+  className,
+}: AccountCardProps) {
+  return (
+    <section className={cn("cs-card h-full", className)}>
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-[var(--cs-account-accent)]">
+                {icon ?? <UserRound className="h-4 w-4" />}
+                <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+                  {title}
+                </span>
+              </div>
+
+              {value ? (
+                <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                  {value}
+                </p>
+              ) : null}
+
+              <p className="text-sm text-[var(--cs-ink-4)]">{description}</p>
+            </div>
+
+            {badge ? <div className="shrink-0">{badge}</div> : null}
+          </div>
+
+          {helper ? (
+            <p className="text-xs text-[var(--cs-ink-4)]">{helper}</p>
+          ) : null}
+
+          {items && items.length > 0 ? (
+            <div className="grid gap-3">{items.map(renderItem)}</div>
+          ) : null}
+
+          {children ? <div>{children}</div> : null}
+        </div>
+
+        {ctaHref && ctaLabel ? (
+          <div>
+            <Link
+              href={ctaHref}
+              className="inline-flex h-10 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/72 px-4 text-sm font-medium text-[var(--cs-ink-2)] transition hover:-translate-y-0.5 hover:bg-white/92"
+            >
+              {ctaLabel}
+            </Link>
+          </div>
+        ) : footer ? (
+          <div>{footer}</div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+===== FILE: src/app/profile/_ui/ActivityCard.tsx =====
+
+import Link from "next/link";
+import { Activity } from "lucide-react";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+type ActivityRowObject = {
+  title?: ReactNode;
+  text?: ReactNode;
+};
+
+type LooseRow = ReactNode | ActivityRowObject;
+
+export type ActivityCardProps = {
+  title?: ReactNode;
+  description?: ReactNode;
+  icon?: ReactNode;
+  rows?: LooseRow[];
+  ctaLabel?: ReactNode;
+  ctaHref?: string;
+  footer?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+  [key: string]: unknown;
+};
+
+function isActivityRowObject(row: LooseRow): row is ActivityRowObject {
+  return typeof row === "object" && row !== null && !Array.isArray(row) && ("title" in row || "text" in row);
+}
+
+function renderRow(row: LooseRow, index: number) {
+  if (isActivityRowObject(row)) {
+    return (
+      <div
+        key={index}
+        className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3"
+      >
+        <p className="text-sm font-medium text-[var(--cs-ink-2)]">{row.title}</p>
+        <p className="mt-1 text-sm text-[var(--cs-ink-4)]">{row.text}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      key={index}
+      className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3 text-sm text-[var(--cs-ink-4)]"
+    >
+      {row}
+    </div>
+  );
+}
+
+export default function ActivityCard({
+  title = "ActivitÃ©",
+  description = "Lecture simple de lâ€™activitÃ© rÃ©cente.",
+  icon,
+  rows,
+  ctaLabel,
+  ctaHref,
+  footer,
+  children,
+  className,
+}: ActivityCardProps) {
+  return (
+    <section className={cn("cs-card h-full", className)}>
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-[var(--cs-info)]">
+            {icon ?? <Activity className="h-4 w-4" />}
+            <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+              {title}
+            </span>
+          </div>
+
+          <p className="text-sm text-[var(--cs-ink-4)]">{description}</p>
+
+          {rows && rows.length > 0 ? (
+            <div className="grid gap-3">{rows.map(renderRow)}</div>
+          ) : null}
+
+          {children ? <div>{children}</div> : null}
+        </div>
+
+        {ctaHref && ctaLabel ? (
+          <Link
+            href={ctaHref}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/72 px-4 text-sm font-medium text-[var(--cs-ink-2)] transition hover:-translate-y-0.5 hover:bg-white/92"
+          >
+            {ctaLabel}
+          </Link>
+        ) : footer ? (
+          <div>{footer}</div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+===== FILE: src/app/profile/_ui/AgentsCard.tsx =====
+
+import Link from "next/link";
+import { BriefcaseBusiness } from "lucide-react";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+type AgentRowObject = {
+  name?: ReactNode;
+  role?: ReactNode;
+  status?: ReactNode;
+};
+
+type AgentRow = ReactNode | AgentRowObject;
+
+export type AgentsCardProps = {
+  title?: ReactNode;
+  description?: ReactNode;
+  icon?: ReactNode;
+  rows?: AgentRow[];
+  ctaLabel?: ReactNode;
+  ctaHref?: string;
+  footer?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+  [key: string]: unknown;
+};
+
+function isAgentRowObject(row: AgentRow): row is AgentRowObject {
+  return typeof row === "object" && row !== null && !Array.isArray(row) && ("name" in row || "role" in row || "status" in row);
+}
+
+function renderRow(row: AgentRow, index: number) {
+  if (isAgentRowObject(row)) {
+    return (
+      <div
+        key={index}
+        className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-[var(--cs-ink-2)]">{row.name}</p>
+            <p className="mt-1 text-sm text-[var(--cs-ink-4)]">{row.role}</p>
+          </div>
+          {row.status ? <div className="shrink-0">{row.status}</div> : null}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      key={index}
+      className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3 text-sm text-[var(--cs-ink-4)]"
+    >
+      {row}
+    </div>
+  );
+}
+
+export default function AgentsCard({
+  title = "EmployÃ©s IA",
+  description = "Vue condensÃ©e des employÃ©s liÃ©s au compte.",
+  icon,
+  rows,
+  ctaLabel,
+  ctaHref,
+  footer,
+  children,
+  className,
+}: AgentsCardProps) {
+  return (
+    <section className={cn("cs-card h-full", className)}>
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-[var(--cs-account-accent)]">
+            {icon ?? <BriefcaseBusiness className="h-4 w-4" />}
+            <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+              {title}
+            </span>
+          </div>
+
+          <p className="text-sm text-[var(--cs-ink-4)]">{description}</p>
+
+          {rows && rows.length > 0 ? (
+            <div className="grid gap-3">{rows.map(renderRow)}</div>
+          ) : null}
+
+          {children ? <div>{children}</div> : null}
+        </div>
+
+        {ctaHref && ctaLabel ? (
+          <Link
+            href={ctaHref}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/72 px-4 text-sm font-medium text-[var(--cs-ink-2)] transition hover:-translate-y-0.5 hover:bg-white/92"
+          >
+            {ctaLabel}
+          </Link>
+        ) : footer ? (
+          <div>{footer}</div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+===== FILE: src/app/profile/_ui/BillingCard.tsx =====
+
+import Link from "next/link";
+import { CreditCard } from "lucide-react";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+type BillingLineObject = {
+  label?: ReactNode;
+  value?: ReactNode;
+};
+
+type BillingLine = ReactNode | BillingLineObject;
+
+export type BillingCardProps = {
+  title?: ReactNode;
+  description?: ReactNode;
+  price?: ReactNode;
+  icon?: ReactNode;
+  lines?: BillingLine[];
+  ctaLabel?: ReactNode;
+  ctaHref?: string;
+  footer?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+  [key: string]: unknown;
+};
+
+function isBillingLineObject(line: BillingLine): line is BillingLineObject {
+  return typeof line === "object" && line !== null && !Array.isArray(line) && ("label" in line || "value" in line);
+}
+
+function renderLine(line: BillingLine, index: number) {
+  if (isBillingLineObject(line)) {
+    return (
+      <div
+        key={index}
+        className="flex items-center justify-between gap-3 rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3"
+      >
+        <span className="text-sm text-[var(--cs-ink-4)]">{line.label}</span>
+        <span className="text-sm font-medium text-[var(--cs-ink-2)]">{line.value}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      key={index}
+      className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/58 px-4 py-3 text-sm text-[var(--cs-ink-4)]"
+    >
+      {line}
+    </div>
+  );
+}
+
+export default function BillingCard({
+  title = "Facturation",
+  description = "Informations de facturation et dâ€™abonnement.",
+  price,
+  icon,
+  lines,
+  ctaLabel,
+  ctaHref,
+  footer,
+  children,
+  className,
+}: BillingCardProps) {
+  return (
+    <section className={cn("cs-card h-full", className)}>
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-[var(--cs-success)]">
+            {icon ?? <CreditCard className="h-4 w-4" />}
+            <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+              {title}
+            </span>
+          </div>
+
+          {price ? (
+            <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+              {price}
+            </p>
+          ) : null}
+
+          <p className="text-sm text-[var(--cs-ink-4)]">{description}</p>
+
+          {lines && lines.length > 0 ? (
+            <div className="grid gap-3">{lines.map(renderLine)}</div>
+          ) : null}
+
+          {children ? <div>{children}</div> : null}
+        </div>
+
+        {ctaHref && ctaLabel ? (
+          <Link
+            href={ctaHref}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/72 px-4 text-sm font-medium text-[var(--cs-ink-2)] transition hover:-translate-y-0.5 hover:bg-white/92"
+          >
+            {ctaLabel}
+          </Link>
+        ) : footer ? (
+          <div>{footer}</div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+===== FILE: src/app/profile/agents/next.config.ts =====
+
+// next.config.ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  eslint: {
+    // EmpÃªche ESLint de casser les builds de production.
+    // On corrige les rÃ¨gles au fil de lâ€™eau cÃ´tÃ© repo, mais la prod ne bloque plus.
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    // Optionnel : si jamais TS trouve un type blocking en prod, il ne stoppe pas la build.
+    // Tu peux supprimer cette section si tu prÃ©fÃ¨res le strict total.
+    ignoreBuildErrors: false,
+  },
+};
+
+export default nextConfig;
+
+
+===== FILE: src/app/profile/agents/page.tsx =====
+
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  AlertCircle,
+  ArrowRight,
+  BadgeCheck,
+  BriefcaseBusiness,
+  FolderKanban,
+  LayoutDashboard,
+  Settings2,
+  Sparkles,
+  Wrench,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getSupabase } from "@/lib/supabase";
+
+type OrderRow = {
+  id: string;
+  agent_slug: string;
+  status: string;
+  started_at: string | null;
+  ended_at: string | null;
+};
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return "â€”";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString("fr-FR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function titleCaseSlug(slug: string) {
+  return slug
+    .split(/[-_]/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function statusLabel(status: string) {
+  const normalized = (status || "").toLowerCase();
+
+  if (normalized === "active") return "Actif";
+  if (normalized === "cancelled") return "RÃ©siliÃ©";
+  if (normalized === "past_due") return "Paiement en attente";
+  if (normalized === "trialing") return "Essai";
+  if (normalized === "incomplete") return "Incomplet";
+
+  return status || "â€”";
+}
+
+function statusClass(status: string) {
+  const normalized = (status || "").toLowerCase();
+
+  if (normalized === "active") {
+    return "cs-status cs-status--success";
+  }
+
+  if (normalized === "past_due" || normalized === "incomplete") {
+    return "cs-status cs-status--warn";
+  }
+
+  if (normalized === "trialing") {
+    return "cs-status cs-status--info";
+  }
+
+  return "cs-status";
+}
+
+function getAgentConfig(slug: string) {
+  const normalized = slug.toLowerCase();
+
+  if (normalized === "pierre") {
+    return {
+      role: "RH opÃ©rationnel automatisÃ©",
+      description:
+        "Centre de missions RH, documents, emails, relances, continuitÃ©, historique et contrÃ´le.",
+      primaryHref: "/agents/pierre/use",
+      primaryLabel: "Utiliser Pierre",
+      secondaryHref: "/agents/pierre/setup",
+      secondaryLabel: "Configurer",
+      tertiaryHref: "/agents/pierre",
+      tertiaryLabel: "Voir la fiche",
+      spotlight: true,
+    };
+  }
+
+  return {
+    role: "EmployÃ© IA en prÃ©paration",
+    description:
+      "EmployÃ© CloneStore en construction, rattachÃ© Ã  la gamme dâ€™exploitation future.",
+    primaryHref: `/agents/${normalized}`,
+    primaryLabel: "Voir la fiche",
+    secondaryHref: "/agents",
+    secondaryLabel: "Voir la boutique",
+    tertiaryHref: "/profile",
+    tertiaryLabel: "Mon espace",
+    spotlight: false,
+  };
+}
+
+function StatCard({
+  title,
+  value,
+  helper,
+  icon,
+}: {
+  title: string;
+  value: string | number;
+  helper: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-[0.8rem] font-medium text-[var(--cs-ink-4)]">{title}</p>
+          <p className="text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+            {value}
+          </p>
+          <p className="text-[0.82rem] leading-6 text-[var(--cs-ink-3)]">{helper}</p>
+        </div>
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+      </div>
+    </div>
+  );
+}
+
+function MiniInfo({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+        <div>
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">{title}</p>
+          <p className="mt-2 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <div className="rounded-[1.2rem] border border-[rgba(200,70,70,0.18)] bg-[rgba(200,70,70,0.05)] px-4 py-3">
+      <div className="flex items-start gap-3">
+        <AlertCircle className="mt-0.5 h-4 w-4 text-[var(--cs-danger)]" />
+        <p className="text-[0.84rem] leading-6 text-[var(--cs-danger)]">{message}</p>
+      </div>
+    </div>
+  );
+}
+
+export default function ProfileAgentsPage() {
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [userId, setUserId] = useState<string | null>(null);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+
+  const load = useCallback(
+    async (silent = false) => {
+      if (silent) setRefreshing(true);
+      else setLoading(true);
+
+      setError(null);
+
+      if (!supabase) {
+        setError(
+          "Configuration Supabase manquante. VÃ©rifie les variables publiques puis redÃ©marre le serveur."
+        );
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      if (!authData.user) {
+        setUserId(null);
+        setOrders([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      setUserId(authData.user.id);
+
+      const { data, error: ordersError } = await supabase
+        .from("orders")
+        .select("id, agent_slug, status, started_at, ended_at")
+        .eq("user_id", authData.user.id)
+        .order("started_at", { ascending: false });
+
+      if (ordersError) {
+        setError(ordersError.message);
+        setOrders([]);
+      } else {
+        setOrders((data ?? []) as OrderRow[]);
+      }
+
+      setLoading(false);
+      setRefreshing(false);
+    },
+    [supabase]
+  );
+
+  useEffect(() => {
+    void load(false);
+  }, [load]);
+
+  const activeOrders = useMemo(
+    () => orders.filter((order) => (order.status || "").toLowerCase() === "active"),
+    [orders]
+  );
+
+  const inactiveOrders = useMemo(
+    () => orders.filter((order) => (order.status || "").toLowerCase() !== "active"),
+    [orders]
+  );
+
+  const pierreOrder = useMemo(
+    () => orders.find((order) => order.agent_slug.toLowerCase() === "pierre") ?? null,
+    [orders]
+  );
+
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-5">
+          <section className="cs-command-surface">
+            <div className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr] xl:items-center">
+              <div className="space-y-5">
+                <span className="cs-pill">
+                  <LayoutDashboard className="h-4 w-4 text-[var(--cs-violet)]" />
+                  Mes employÃ©s
+                </span>
+
+                <div className="space-y-3">
+                  <h1 className="cs-display text-[clamp(1.95rem,3vw,3.3rem)] leading-[0.98]">
+                    Faire travailler les{" "}
+                    <span className="cs-gradient-text">employÃ©s IA</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
+                    Cette zone regroupe les accÃ¨s aux employÃ©s souscrits, leur
+                    Ã©tat, leurs points dâ€™entrÃ©e et les chemins les plus utiles
+                    pour travailler dans CloneStore cÃ´tÃ© entreprise.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    asChild
+                    className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    <Link href="/profile">Mon espace</Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    <Link href="/agents">Boutique</Link>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void load(true)}
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    {refreshing ? "Actualisationâ€¦" : "Actualiser"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="cs-panel p-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <StatCard
+                    title="Actifs"
+                    value={activeOrders.length}
+                    helper="EmployÃ©s disponibles maintenant"
+                    icon={<BadgeCheck className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Historique"
+                    value={orders.length}
+                    helper="EmployÃ©s liÃ©s au compte"
+                    icon={<FolderKanban className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Pierre"
+                    value={pierreOrder ? statusLabel(pierreOrder.status) : "Absent"}
+                    helper="Ã‰tat du poste RH opÃ©rationnel"
+                    icon={<Sparkles className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Compte"
+                    value={userId ? "ConnectÃ©" : "InvitÃ©"}
+                    helper="Session nÃ©cessaire pour piloter"
+                    icon={<BriefcaseBusiness className="h-5 w-5" />}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {error ? <ErrorBanner message={error} /> : null}
+
+          {!loading && !userId ? (
+            <section className="cs-panel p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-2">
+                  <p className="cs-eyebrow">AccÃ¨s</p>
+                  <p className="text-[1.1rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                    Connecte-toi pour accÃ©der aux employÃ©s
+                  </p>
+                  <p className="max-w-2xl text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                    Les employÃ©s IA, leurs zones dâ€™usage et leurs statuts
+                    nÃ©cessitent une session active.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    <Link href="/login">Connexion</Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    <Link href="/signup">CrÃ©er un compte</Link>
+                  </Button>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {loading ? (
+            <section className="cs-panel p-5">
+              <p className="text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                Chargement des employÃ©s du compteâ€¦
+              </p>
+            </section>
+          ) : null}
+
+          {!loading && userId ? (
+            <>
+              <section className="grid gap-4 md:grid-cols-3">
+                <MiniInfo
+                  icon={<LayoutDashboard className="h-4 w-4" />}
+                  title="Zone de travail"
+                  text="Mes employÃ©s sert de point dâ€™entrÃ©e vers les cockpits et usages rÃ©els."
+                />
+                <MiniInfo
+                  icon={<Settings2 className="h-4 w-4" />}
+                  title="Configuration"
+                  text="Chaque employÃ© a vocation Ã  possÃ©der sa logique de setup et ses rÃ©glages."
+                />
+                <MiniInfo
+                  icon={<Wrench className="h-4 w-4" />}
+                  title="Exploitation"
+                  text="Le but nâ€™est pas de discuter avec une IA, mais de faire tourner un vrai poste."
+                />
+              </section>
+
+              {orders.length === 0 ? (
+                <section className="cs-panel p-5">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <p className="cs-eyebrow">EmployÃ©s</p>
+                      <p className="text-[1.15rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                        Aucun employÃ© souscrit pour le moment
+                      </p>
+                      <p className="max-w-2xl text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                        La boutique permet de dÃ©couvrir les postes automatisÃ©s
+                        disponibles ou en construction dans CloneStore.
+                      </p>
+                    </div>
+
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                    >
+                      <Link href="/agents">Voir la boutique</Link>
+                    </Button>
+                  </div>
+                </section>
+              ) : (
+                <section className="grid gap-4 md:grid-cols-2">
+                  {orders.map((order) => {
+                    const agent = getAgentConfig(order.agent_slug);
+
+                    return (
+                      <article key={order.id} className="cs-panel cs-hover-lift p-5">
+                        <div className="flex h-full flex-col justify-between gap-5">
+                          <div className="space-y-5">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className={statusClass(order.status)}>
+                                    {statusLabel(order.status)}
+                                  </span>
+                                  {agent.spotlight ? (
+                                    <span className="cs-status cs-status--info">
+                                      EmployÃ© clÃ©
+                                    </span>
+                                  ) : (
+                                    <span className="cs-status">En construction</span>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <h2 className="text-[1.28rem] font-semibold tracking-[-0.045em] text-[var(--cs-ink-1)]">
+                                    {titleCaseSlug(order.agent_slug)}
+                                  </h2>
+                                  <p className="mt-1 text-[0.88rem] font-medium text-[var(--cs-ink-2)]">
+                                    {agent.role}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <p className="text-[0.9rem] leading-7 text-[var(--cs-ink-3)]">
+                              {agent.description}
+                            </p>
+
+                            <div className="grid gap-2">
+                              <p className="text-[0.82rem] text-[var(--cs-ink-4)]">
+                                DÃ©but : {formatDate(order.started_at)}
+                              </p>
+                              <p className="text-[0.82rem] text-[var(--cs-ink-4)]">
+                                Fin : {formatDate(order.ended_at)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              asChild
+                              className="h-10 rounded-full px-4 text-[0.84rem] font-medium text-white"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                                boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                              }}
+                            >
+                              <Link href={agent.primaryHref}>
+                                {agent.primaryLabel}
+                                <ArrowRight className="h-4 w-4" />
+                              </Link>
+                            </Button>
+
+                            <Button
+                              asChild
+                              variant="outline"
+                              className="h-10 rounded-full bg-white/45 px-4 text-[0.84rem] font-medium"
+                            >
+                              <Link href={agent.secondaryHref}>{agent.secondaryLabel}</Link>
+                            </Button>
+
+                            <Button
+                              asChild
+                              variant="outline"
+                              className="h-10 rounded-full bg-white/45 px-4 text-[0.84rem] font-medium"
+                            >
+                              <Link href={agent.tertiaryHref}>{agent.tertiaryLabel}</Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </section>
+              )}
+
+              <section className="grid gap-4 md:grid-cols-2">
+                <StatCard
+                  title="Actifs"
+                  value={activeOrders.length}
+                  helper="EmployÃ©s actuellement utilisables"
+                  icon={<BadgeCheck className="h-5 w-5" />}
+                />
+                <StatCard
+                  title="Autres statuts"
+                  value={inactiveOrders.length}
+                  helper="EmployÃ©s non actifs ou hors Ã©tat standard"
+                  icon={<BriefcaseBusiness className="h-5 w-5" />}
+                />
+              </section>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+===== FILE: src/app/profile/client.tsx =====
+
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  AlertCircle,
+  ArrowRight,
+  BadgeCheck,
+  Bot,
+  BriefcaseBusiness,
+  Clock3,
+  Loader2,
+  Settings2,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+
+type OrderRow = {
+  id: string;
+  agent_slug: string;
+  status: string;
+  started_at: string | null;
+  ended_at: string | null;
+};
+
+type AgentMeta = {
+  name: string;
+  role: string;
+  description: string;
+  statusLabelWhenMissing?: string;
+};
+
+const AGENT_META: Record<string, AgentMeta> = {
+  pierre: {
+    name: "Pierre",
+    role: "Poste RH opÃ©rationnel automatisÃ©",
+    description:
+      "Documents, emails, relances, onboarding, continuitÃ©, validations et traÃ§abilitÃ© RH.",
+    statusLabelWhenMissing: "Disponible Ã  lâ€™achat",
+  },
+  clara: {
+    name: "Clara",
+    role: "Recrutement automatisÃ©",
+    description:
+      "Coordination recrutement, suivi candidats, shortlists et pipeline plus lisible.",
+    statusLabelWhenMissing: "En construction",
+  },
+  emma: {
+    name: "Emma",
+    role: "Support & communication",
+    description:
+      "RÃ©ponses, organisation relationnelle, continuitÃ© support et communication structurÃ©e.",
+    statusLabelWhenMissing: "En construction",
+  },
+  alex: {
+    name: "Alex",
+    role: "OpÃ©rations automatisÃ©es",
+    description:
+      "Coordination dâ€™opÃ©rations structurÃ©es, suivi et exÃ©cution transverse.",
+    statusLabelWhenMissing: "En construction",
+  },
+  noah: {
+    name: "Noah",
+    role: "Support de flux internes",
+    description:
+      "Organisation, suivi et lisibilitÃ© de flux internes rÃ©pÃ©titifs.",
+    statusLabelWhenMissing: "En construction",
+  },
+  adrien: {
+    name: "Adrien",
+    role: "Commandes & opÃ©rations",
+    description:
+      "Traitement, suivi et continuitÃ© des commandes avec plus de rigueur.",
+    statusLabelWhenMissing: "En construction",
+  },
+  thomas: {
+    name: "Thomas",
+    role: "Prospection & LeadForge",
+    description:
+      "Organisation de prospection, suivi commercial et logique outbound structurÃ©e.",
+    statusLabelWhenMissing: "En construction",
+  },
+  lucas: {
+    name: "Lucas",
+    role: "Finance opÃ©rationnelle",
+    description:
+      "Suivi et structuration de flux finance opÃ©rationnels.",
+    statusLabelWhenMissing: "En construction",
+  },
+  sophie: {
+    name: "Sophie",
+    role: "Direction administrative automatisÃ©e",
+    description:
+      "Organisation administrative, coordination et continuitÃ© des opÃ©rations.",
+    statusLabelWhenMissing: "En construction",
+  },
+};
+
+const CATALOG_ORDER = [
+  "pierre",
+  "clara",
+  "emma",
+  "alex",
+  "noah",
+  "adrien",
+  "thomas",
+  "lucas",
+  "sophie",
+];
+
+function fmtDate(value: string | null | undefined) {
+  if (!value) return "â€”";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("fr-FR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
+function statusClass(status: string) {
+  const st = status.toLowerCase();
+
+  if (st === "active") return "cs-status cs-status--success";
+  if (st === "trialing") return "cs-status cs-status--info";
+  if (st === "past_due") return "cs-status cs-status--warn";
+  if (st === "cancelled") return "cs-status";
+  return "cs-status";
+}
+
+function statusLabel(status: string) {
+  const st = status.toLowerCase();
+
+  if (st === "active") return "Actif";
+  if (st === "trialing") return "Essai";
+  if (st === "past_due") return "Paiement en attente";
+  if (st === "cancelled") return "RÃ©siliÃ©";
+  return status || "Inconnu";
+}
+
+function getAgentMeta(slug: string): AgentMeta {
+  return (
+    AGENT_META[slug] ?? {
+      name: slug.charAt(0).toUpperCase() + slug.slice(1),
+      role: "EmployÃ© IA CloneStore",
+      description:
+        "EmployÃ© IA rattachÃ© Ã  lâ€™Ã©cosystÃ¨me CloneStore.",
+      statusLabelWhenMissing: "BientÃ´t",
+    }
+  );
+}
+
+function ActionLink({
+  href,
+  label,
+  primary = false,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)] border",
+        primary
+          ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))] text-white hover:-translate-y-0.5"
+          : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/70 text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/92",
+      ].join(" ")}
+    >
+      <span>{label}</span>
+      <ArrowRight className="h-4 w-4" />
+    </Link>
+  );
+}
+
+function AgentCard({
+  slug,
+  order,
+}: {
+  slug: string;
+  order: OrderRow | null;
+}) {
+  const meta = getAgentMeta(slug);
+  const isActive = order ? order.status.toLowerCase() === "active" : false;
+  const isPierre = slug === "pierre";
+
+  const primaryHref = order
+    ? isPierre
+      ? "/agents/pierre/use"
+      : `/agents/${slug}/use`
+    : isPierre
+      ? "/agents/pierre"
+      : `/agents/${slug}`;
+
+  const secondaryHref = order
+    ? isPierre
+      ? "/agents/pierre/setup"
+      : `/agents/${slug}`
+    : "/agents";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-lg font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                {meta.name}
+              </p>
+              <p className="text-sm font-medium text-[var(--cs-ink-3)]">
+                {meta.role}
+              </p>
+            </div>
+
+            {order ? (
+              <span className={statusClass(order.status)}>
+                {statusLabel(order.status)}
+              </span>
+            ) : (
+              <span className="cs-status">
+                {meta.statusLabelWhenMissing ?? "BientÃ´t"}
+              </span>
+            )}
+          </div>
+
+          <p className="text-sm text-[var(--cs-ink-4)]">{meta.description}</p>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-[1.1rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_65%,white)] bg-white/58 px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
+                DÃ©but
+              </p>
+              <p className="mt-1 text-sm font-medium text-[var(--cs-ink-2)]">
+                {order ? fmtDate(order.started_at) : "â€”"}
+              </p>
+            </div>
+
+            <div className="rounded-[1.1rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_65%,white)] bg-white/58 px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
+                Fin / Ã©tat
+              </p>
+              <p className="mt-1 text-sm font-medium text-[var(--cs-ink-2)]">
+                {order ? fmtDate(order.ended_at) : "Non activÃ©"}
+              </p>
+            </div>
+          </div>
+
+          {isActive ? (
+            <div className="rounded-[1.1rem] border border-[color:rgba(35,122,82,0.16)] bg-[rgba(35,122,82,0.06)] px-4 py-3">
+              <p className="text-sm font-medium text-[var(--cs-ink-2)]">
+                EmployÃ© actif
+              </p>
+              <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
+                Cet employÃ© est disponible dans votre espace et doit Ãªtre
+                accessible rapidement depuis cette page.
+              </p>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <ActionLink
+            href={primaryHref}
+            label={
+              order
+                ? isPierre
+                  ? "Utiliser"
+                  : "Ouvrir"
+                : isPierre
+                  ? "DÃ©couvrir"
+                  : "Voir"
+            }
+            primary
+          />
+
+          <ActionLink
+            href={secondaryHref}
+            label={
+              order
+                ? isPierre
+                  ? "Configurer"
+                  : "Fiche"
+                : isPierre
+                  ? "Recruter"
+                  : "Boutique"
+            }
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatTile({
+  label,
+  value,
+  helper,
+}: {
+  label: string;
+  value: string;
+  helper: string;
+}) {
+  return (
+    <div className="cs-card">
+      <div className="relative space-y-2">
+        <p className="text-xs uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
+          {label}
+        </p>
+        <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+          {value}
+        </p>
+        <p className="text-xs text-[var(--cs-ink-4)]">{helper}</p>
+      </div>
+    </div>
+  );
+}
+
+export default function Client() {
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "active" | "catalog">("all");
+
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      setLoading(true);
+      setError(null);
+
+      if (!supabase) {
+        if (!active) return;
+        setError(
+          "Configuration Supabase manquante. VÃ©rifie les variables dâ€™environnement et redÃ©marre le projet.",
+        );
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: userRes, error: userErr } = await supabase.auth.getUser();
+
+        if (userErr) throw userErr;
+
+        const user = userRes.user;
+        if (!user) {
+          if (!active) return;
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
+
+        const { data, error: ordersErr } = await supabase
+          .from("orders")
+          .select("id, agent_slug, status, started_at, ended_at")
+          .eq("user_id", user.id)
+          .order("started_at", { ascending: false });
+
+        if (ordersErr) throw ordersErr;
+
+        if (!active) return;
+        setOrders((data ?? []) as OrderRow[]);
+        setLoading(false);
+      } catch (err) {
+        if (!active) return;
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Impossible de charger les employÃ©s pour le moment.",
+        );
+        setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
+
+  const ordersBySlug = useMemo(() => {
+    const map = new Map<string, OrderRow>();
+
+    for (const order of orders) {
+      if (!map.has(order.agent_slug)) {
+        map.set(order.agent_slug, order);
+      }
+    }
+
+    return map;
+  }, [orders]);
+
+  const activeOrders = useMemo(
+    () => orders.filter((o) => o.status.toLowerCase() === "active"),
+    [orders],
+  );
+
+  const visibleSlugs = useMemo(() => {
+    const set = new Set<string>(CATALOG_ORDER);
+
+    for (const order of orders) {
+      set.add(order.agent_slug);
+    }
+
+    const base = Array.from(set);
+
+    if (filter === "active") {
+      return base.filter((slug) => {
+        const order = ordersBySlug.get(slug);
+        return order?.status.toLowerCase() === "active";
+      });
+    }
+
+    if (filter === "catalog") {
+      return CATALOG_ORDER;
+    }
+
+    return base;
+  }, [filter, orders, ordersBySlug]);
+
+  return (
+    <div className="space-y-6">
+      <section className="grid gap-4 md:grid-cols-3">
+        <StatTile
+          label="EmployÃ©s actifs"
+          value={String(activeOrders.length)}
+          helper="AccÃ¨s rÃ©ellement utilisables aujourdâ€™hui."
+        />
+        <StatTile
+          label="Historique liÃ© au compte"
+          value={String(orders.length)}
+          helper="EmployÃ©s dÃ©jÃ  activÃ©s ou passÃ©s par le compte."
+        />
+        <StatTile
+          label="Catalogue visible"
+          value={String(CATALOG_ORDER.length)}
+          helper="PrÃ©sence produit globale CloneStore."
+        />
+      </section>
+
+      <section className="cs-card">
+        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+              Filtrer la vue
+            </p>
+            <p className="text-sm text-[var(--cs-ink-4)]">
+              Pour quelquâ€™un de non technique, la navigation doit rester simple
+              et instantanÃ©e.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setFilter("all")}
+              className={[
+                "rounded-full border px-4 py-2 text-sm font-medium transition",
+                filter === "all"
+                  ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_22%,white)] bg-[color:color-mix(in_srgb,var(--cs-account-accent)_12%,white)] text-[var(--cs-ink-1)]"
+                  : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/52 text-[var(--cs-ink-3)]",
+              ].join(" ")}
+            >
+              Tout voir
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilter("active")}
+              className={[
+                "rounded-full border px-4 py-2 text-sm font-medium transition",
+                filter === "active"
+                  ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_22%,white)] bg-[color:color-mix(in_srgb,var(--cs-account-accent)_12%,white)] text-[var(--cs-ink-1)]"
+                  : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/52 text-[var(--cs-ink-3)]",
+              ].join(" ")}
+            >
+              Actifs seulement
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilter("catalog")}
+              className={[
+                "rounded-full border px-4 py-2 text-sm font-medium transition",
+                filter === "catalog"
+                  ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_22%,white)] bg-[color:color-mix(in_srgb,var(--cs-account-accent)_12%,white)] text-[var(--cs-ink-1)]"
+                  : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/52 text-[var(--cs-ink-3)]",
+              ].join(" ")}
+            >
+              Catalogue CloneStore
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {loading ? (
+        <section className="cs-card">
+          <div className="relative flex items-center gap-3">
+            <Loader2 className="h-4 w-4 animate-spin text-[var(--cs-account-accent)]" />
+            <p className="text-sm text-[var(--cs-ink-4)]">
+              Chargement des employÃ©sâ€¦
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      {!loading && error ? (
+        <section className="cs-card">
+          <div className="relative flex items-start gap-3">
+            <AlertCircle className="mt-0.5 h-4 w-4 text-[var(--cs-danger)]" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                Chargement impossible
+              </p>
+              <p className="text-sm text-[var(--cs-ink-4)]">{error}</p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {!loading && !error && visibleSlugs.length === 0 ? (
+        <section className="cs-card">
+          <div className="relative space-y-4 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-white/60 text-[var(--cs-account-accent)] shadow-[var(--cs-shadow-soft)]">
+              <Sparkles className="h-5 w-5" />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-lg font-semibold text-[var(--cs-ink-1)]">
+                Aucun employÃ© Ã  afficher
+              </p>
+              <p className="mx-auto max-w-xl text-sm text-[var(--cs-ink-4)]">
+                Cette vue se remplira dÃ¨s que des employÃ©s seront activÃ©s ou
+                visibles dans le catalogue retenu.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <ActionLink href="/agents" label="Voir la boutique" primary />
+              <ActionLink href="/questions" label="Ouvrir lâ€™assistant" />
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {!loading && !error && visibleSlugs.length > 0 ? (
+        <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          {visibleSlugs.map((slug) => (
+            <AgentCard
+              key={slug}
+              slug={slug}
+              order={ordersBySlug.get(slug) ?? null}
+            />
+          ))}
+        </section>
+      ) : null}
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <div className="cs-card">
+          <div className="relative flex items-start gap-3">
+            <BadgeCheck className="mt-0.5 h-4 w-4 text-[var(--cs-success)]" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                AccÃ¨s rapides
+              </p>
+              <p className="text-sm text-[var(--cs-ink-4)]">
+                Pierre actif doit Ãªtre atteignable en un clic.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="cs-card">
+          <div className="relative flex items-start gap-3">
+            <Settings2 className="mt-0.5 h-4 w-4 text-[var(--cs-account-accent)]" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                Configuration
+              </p>
+              <p className="text-sm text-[var(--cs-ink-4)]">
+                Lâ€™utilisateur doit comprendre quoi rÃ©gler et oÃ¹ aller.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="cs-card">
+          <div className="relative flex items-start gap-3">
+            <Clock3 className="mt-0.5 h-4 w-4 text-[var(--cs-info)]" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                ContinuitÃ©
+              </p>
+              <p className="text-sm text-[var(--cs-ink-4)]">
+                MÃªme les employÃ©s Ã  venir doivent dÃ©jÃ  exister proprement dans
+                lâ€™univers CloneStore.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+===== FILE: src/app/profile/layout.tsx =====
+
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Bot,
+  BriefcaseBusiness,
+  Settings2,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+
+function NavItem({
+  href,
+  label,
+  icon,
+  active,
+}: {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium transition-all",
+        active
+          ? "bg-[rgba(111,70,255,0.1)] text-[color:var(--cs-violet)] shadow-[inset_0_0_0_1px_rgba(111,70,255,0.1)]"
+          : "text-[color:var(--cs-ink-3)] hover:bg-white/60 hover:text-[color:var(--cs-ink-1)]",
+      ].join(" ")}
+    >
+      {icon}
+      <span>{label}</span>
+    </Link>
+  );
+}
+
+export default function ProfileLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+
+  return (
+    <div className="space-y-4">
+      <section className="cs-panel rounded-[1.8rem] p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <NavItem
+            href="/profile"
+            label="Cockpit"
+            icon={<Waypoints className="h-4 w-4" />}
+            active={pathname === "/profile"}
+          />
+          <NavItem
+            href="/profile/agents"
+            label="EmployÃ©s"
+            icon={<BriefcaseBusiness className="h-4 w-4" />}
+            active={pathname === "/profile/agents"}
+          />
+          <NavItem
+            href="/assistant"
+            label="Assistant"
+            icon={<Bot className="h-4 w-4" />}
+            active={pathname === "/assistant"}
+          />
+          <NavItem
+            href="/agents"
+            label="Boutique"
+            icon={<Sparkles className="h-4 w-4" />}
+            active={pathname === "/agents"}
+          />
+          <NavItem
+            href="/agents/pierre/setup"
+            label="Configuration"
+            icon={<Settings2 className="h-4 w-4" />}
+            active={pathname === "/agents/pierre/setup"}
+          />
+        </div>
+      </section>
+
+      {children}
+    </div>
+  );
+}
+
+===== FILE: src/app/profile/page.tsx =====
+
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  AlertCircle,
+  BadgeCheck,
+  Bell,
+  BriefcaseBusiness,
+  Building2,
+  ChevronRight,
+  CreditCard,
+  Fingerprint,
+  FolderKanban,
+  Layers3,
+  LifeBuoy,
+  LockKeyhole,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  User2,
+  Users2,
+  WandSparkles,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getSupabase } from "@/lib/supabase";
+
+type ProfileRow = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+};
+
+type OrderRow = {
+  id: string;
+  agent_slug: string;
+  status: string;
+  started_at: string | null;
+  ended_at: string | null;
+};
+
+function safeTrim(value: string | null | undefined) {
+  const text = (value ?? "").trim();
+  return text.length ? text : null;
+}
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return "â€”";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString("fr-FR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function titleCaseSlug(slug: string) {
+  return slug
+    .split(/[-_]/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function statusLabel(status: string) {
+  const normalized = (status || "").toLowerCase();
+
+  if (normalized === "active") return "Actif";
+  if (normalized === "cancelled") return "RÃ©siliÃ©";
+  if (normalized === "past_due") return "Paiement en attente";
+  if (normalized === "trialing") return "Essai";
+  if (normalized === "incomplete") return "Incomplet";
+
+  return status || "â€”";
+}
+
+function statusClass(status: string) {
+  const normalized = (status || "").toLowerCase();
+
+  if (normalized === "active") {
+    return "cs-status cs-status--success";
+  }
+
+  if (normalized === "past_due" || normalized === "incomplete") {
+    return "cs-status cs-status--warn";
+  }
+
+  if (normalized === "trialing") {
+    return "cs-status cs-status--info";
+  }
+
+  return "cs-status";
+}
+
+function getInitials(name: string | null | undefined, email: string | null | undefined) {
+  const cleanName = safeTrim(name);
+  if (cleanName) {
+    const parts = cleanName.split(/\s+/).filter(Boolean).slice(0, 2);
+    const initials = parts.map((part) => part.charAt(0).toUpperCase()).join("");
+    if (initials) return initials;
+  }
+
+  const cleanEmail = safeTrim(email);
+  if (cleanEmail) {
+    return cleanEmail.slice(0, 2).toUpperCase();
+  }
+
+  return "CS";
+}
+
+function getAgentSummary(slug: string) {
+  const normalized = slug.toLowerCase();
+
+  if (normalized === "pierre") {
+    return {
+      role: "RH opÃ©rationnel automatisÃ©",
+      description:
+        "Missions RH, documents, emails, relances, continuitÃ© et pilotage opÃ©rationnel.",
+      primaryHref: "/agents/pierre/use",
+      primaryLabel: "Utiliser Pierre",
+      secondaryHref: "/agents/pierre/setup",
+      secondaryLabel: "Configurer Pierre",
+      tertiaryHref: "/agents/pierre",
+      tertiaryLabel: "Voir la fiche",
+    };
+  }
+
+  return {
+    role: "EmployÃ© IA en prÃ©paration",
+    description:
+      "PÃ©rimÃ¨tre produit en cours de construction dans lâ€™Ã©cosystÃ¨me CloneStore.",
+    primaryHref: `/agents/${normalized}`,
+    primaryLabel: "Voir la fiche",
+    secondaryHref: "/agents",
+    secondaryLabel: "Voir la boutique",
+    tertiaryHref: "/profile/agents",
+    tertiaryLabel: "Mes employÃ©s",
+  };
+}
+
+function SectionShell({
+  title,
+  description,
+  children,
+  right,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+  right?: ReactNode;
+}) {
+  return (
+    <section className="cs-panel p-5">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1">
+            <p className="cs-eyebrow">{title}</p>
+            {description ? (
+              <p className="text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                {description}
+              </p>
+            ) : null}
+          </div>
+          {right ? <div>{right}</div> : null}
+        </div>
+
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function StatCard({
+  title,
+  value,
+  helper,
+  icon,
+}: {
+  title: string;
+  value: string | number;
+  helper: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-[0.8rem] font-medium text-[var(--cs-ink-4)]">{title}</p>
+          <p className="text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+            {value}
+          </p>
+          <p className="text-[0.82rem] leading-6 text-[var(--cs-ink-3)]">{helper}</p>
+        </div>
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+      </div>
+    </div>
+  );
+}
+
+function KeyValueRow({
+  label,
+  value,
+  icon,
+  mono = false,
+}: {
+  label: string;
+  value: ReactNode;
+  icon: ReactNode;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-[1.15rem] border border-[var(--cs-line-soft)] bg-white/30 px-4 py-3">
+      <div className="flex items-center gap-3">
+        <div className="text-[var(--cs-ink-4)]">{icon}</div>
+        <p className="text-[0.84rem] text-[var(--cs-ink-3)]">{label}</p>
+      </div>
+
+      <p
+        className={[
+          "max-w-[58%] text-right text-[0.86rem] font-medium text-[var(--cs-ink-1)]",
+          mono ? "font-mono text-[0.76rem]" : "",
+        ].join(" ")}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function ControlCard({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="cs-card cs-card-tight">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 text-[var(--cs-violet)]">{icon}</div>
+        <div className="space-y-1">
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">{title}</p>
+          <p className="text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <div className="rounded-[1.2rem] border border-[rgba(200,70,70,0.18)] bg-[rgba(200,70,70,0.05)] px-4 py-3">
+      <div className="flex items-start gap-3">
+        <AlertCircle className="mt-0.5 h-4 w-4 text-[var(--cs-danger)]" />
+        <p className="text-[0.84rem] leading-6 text-[var(--cs-danger)]">{message}</p>
+      </div>
+    </div>
+  );
+}
+
+export default function ProfilePage() {
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [userId, setUserId] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+
+  const load = useCallback(
+    async (silent = false) => {
+      if (silent) setRefreshing(true);
+      else setLoading(true);
+
+      setError(null);
+
+      if (!supabase) {
+        setError(
+          "Configuration Supabase manquante. VÃ©rifie les variables publiques puis redÃ©marre le serveur."
+        );
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      if (!authData.user) {
+        setUserId(null);
+        setEmail(null);
+        setProfile(null);
+        setOrders([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      const currentUserId = authData.user.id;
+      setUserId(currentUserId);
+      setEmail(authData.user.email ?? null);
+
+      const [profileResult, ordersResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, email, full_name")
+          .eq("id", currentUserId)
+          .maybeSingle(),
+        supabase
+          .from("orders")
+          .select("id, agent_slug, status, started_at, ended_at")
+          .eq("user_id", currentUserId)
+          .order("started_at", { ascending: false }),
+      ]);
+
+      if (profileResult.error) {
+        setProfile(null);
+      } else {
+        setProfile((profileResult.data as ProfileRow | null) ?? null);
+      }
+
+      if (ordersResult.error) {
+        setError(ordersResult.error.message);
+        setOrders([]);
+      } else {
+        setOrders((ordersResult.data ?? []) as OrderRow[]);
+      }
+
+      setLoading(false);
+      setRefreshing(false);
+    },
+    [supabase]
+  );
+
+  useEffect(() => {
+    void load(false);
+  }, [load]);
+
+  const displayName = useMemo(() => {
+    return (
+      safeTrim(profile?.full_name) ||
+      safeTrim(profile?.email) ||
+      safeTrim(email) ||
+      "Compte CloneStore"
+    );
+  }, [profile?.full_name, profile?.email, email]);
+
+  const initials = useMemo(
+    () => getInitials(profile?.full_name, profile?.email || email),
+    [profile?.full_name, profile?.email, email]
+  );
+
+  const activeOrders = useMemo(
+    () => orders.filter((order) => (order.status || "").toLowerCase() === "active"),
+    [orders]
+  );
+
+  const inactiveOrders = useMemo(
+    () => orders.filter((order) => (order.status || "").toLowerCase() !== "active"),
+    [orders]
+  );
+
+  const lastOrder = useMemo(() => orders[0] ?? null, [orders]);
+
+  const pierreIsActive = useMemo(
+    () =>
+      orders.some(
+        (order) =>
+          order.agent_slug.toLowerCase() === "pierre" &&
+          (order.status || "").toLowerCase() === "active"
+      ),
+    [orders]
+  );
+
+  return (
+    <div className="cs-page">
+      <div className="cs-page-shell">
+        <div className="space-y-5">
+          <section className="cs-command-surface">
+            <div className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr] xl:items-center">
+              <div className="space-y-5">
+                <span className="cs-pill">
+                  <Building2 className="h-4 w-4 text-[var(--cs-violet)]" />
+                  Mon espace
+                </span>
+
+                <div className="space-y-3">
+                  <h1 className="cs-display text-[clamp(1.95rem,3vw,3.3rem)] leading-[0.98]">
+                    Piloter CloneStore cÃ´tÃ©{" "}
+                    <span className="cs-gradient-text">entreprise</span>.
+                  </h1>
+
+                  <p className="max-w-3xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
+                    Mon espace rÃ©unit le compte, les accÃ¨s, les employÃ©s actifs,
+                    les rÃ©glages structurants, la personnalisation et les zones
+                    de contrÃ´le globales de lâ€™entreprise.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    asChild
+                    className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    <Link href="/profile/agents">Mes employÃ©s</Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    <Link href="/agents">Voir la boutique</Link>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void load(true)}
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    {refreshing ? "Actualisationâ€¦" : "Actualiser"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="cs-panel p-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <StatCard
+                    title="EmployÃ©s actifs"
+                    value={activeOrders.length}
+                    helper="AccÃ¨s utilisables maintenant"
+                    icon={<BadgeCheck className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Historique"
+                    value={orders.length}
+                    helper="Souscriptions connues"
+                    icon={<FolderKanban className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Pierre"
+                    value={pierreIsActive ? "Actif" : "Non actif"}
+                    helper="Poste RH opÃ©rationnel"
+                    icon={<Sparkles className="h-5 w-5" />}
+                  />
+                  <StatCard
+                    title="Compte"
+                    value={userId ? "ConnectÃ©" : "InvitÃ©"}
+                    helper="Ã‰tat de session"
+                    icon={<ShieldCheck className="h-5 w-5" />}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {error ? <ErrorBanner message={error} /> : null}
+
+          {!loading && !userId ? (
+            <section className="cs-panel p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-2">
+                  <p className="cs-eyebrow">AccÃ¨s</p>
+                  <p className="text-[1.15rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                    Aucune session active
+                  </p>
+                  <p className="max-w-2xl text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                    Connecte-toi pour accÃ©der Ã  lâ€™administration du compte, aux
+                    employÃ©s IA, Ã  lâ€™empreinte entreprise et aux zones de pilotage.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                  >
+                    <Link href="/login">Connexion</Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                      boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                    }}
+                  >
+                    <Link href="/signup">CrÃ©er un compte</Link>
+                  </Button>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {loading ? (
+            <section className="cs-panel p-5">
+              <p className="text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
+                Chargement du compte CloneStoreâ€¦
+              </p>
+            </section>
+          ) : null}
+
+          {!loading && userId ? (
+            <>
+              <div className="grid gap-5 xl:grid-cols-[0.96fr_1.04fr]">
+                <SectionShell
+                  title="Compte"
+                  description="IdentitÃ©, session et accÃ¨s principaux du compte entreprise."
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-4 rounded-[1.25rem] border border-[var(--cs-line-soft)] bg-white/30 px-4 py-4">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[var(--cs-line-soft)] bg-white/52 text-[1rem] font-semibold text-[var(--cs-ink-1)]">
+                        {initials}
+                      </div>
+
+                      <div className="space-y-1">
+                        <p className="text-[1rem] font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                          {displayName}
+                        </p>
+                        <p className="text-[0.86rem] text-[var(--cs-ink-3)]">
+                          {profile?.email || email || "Adresse email indisponible"}
+                        </p>
+                        <div className="pt-1">
+                          <span className="cs-status cs-status--info">Compte entreprise</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <KeyValueRow
+                      label="Nom affichÃ©"
+                      value={displayName}
+                      icon={<User2 className="h-4 w-4" />}
+                    />
+                    <KeyValueRow
+                      label="Adresse email"
+                      value={profile?.email || email || "â€”"}
+                      icon={<Mail className="h-4 w-4" />}
+                    />
+                    <KeyValueRow
+                      label="User ID"
+                      value={userId}
+                      icon={<Fingerprint className="h-4 w-4" />}
+                      mono
+                    />
+                    <KeyValueRow
+                      label="DerniÃ¨re souscription"
+                      value={lastOrder ? titleCaseSlug(lastOrder.agent_slug) : "Aucune"}
+                      icon={<BriefcaseBusiness className="h-4 w-4" />}
+                    />
+                  </div>
+                </SectionShell>
+
+                <SectionShell
+                  title="Pilotage"
+                  description="Grandes zones que lâ€™entreprise doit pouvoir piloter depuis Mon espace."
+                >
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <ControlCard
+                      icon={<Building2 className="h-4 w-4" />}
+                      title="Entreprise"
+                      text="IdentitÃ©, structure, contexte, empreinte et paramÃ¨tres maÃ®tres."
+                    />
+                    <ControlCard
+                      icon={<Users2 className="h-4 w-4" />}
+                      title="Ã‰quipe & accÃ¨s"
+                      text="Utilisateurs autorisÃ©s, rÃ´les, validateurs et niveaux de contrÃ´le."
+                    />
+                    <ControlCard
+                      icon={<CreditCard className="h-4 w-4" />}
+                      title="Facturation"
+                      text="Abonnements, historique, Ã©tat des accÃ¨s et logique commerciale."
+                    />
+                    <ControlCard
+                      icon={<Layers3 className="h-4 w-4" />}
+                      title="Technologies"
+                      text="CloneOS, CloneADN, CloneGuard, CloneTrace et rÃ©glages associÃ©s."
+                    />
+                    <ControlCard
+                      icon={<WandSparkles className="h-4 w-4" />}
+                      title="MÃ©moire & intelligence"
+                      text="Habitudes, comportement appris, personnalisation et alignement."
+                    />
+                    <ControlCard
+                      icon={<Bell className="h-4 w-4" />}
+                      title="Notifications"
+                      text="Alertes, briefings, suivis, rappels et livraisons importantes."
+                    />
+                    <ControlCard
+                      icon={<LockKeyhole className="h-4 w-4" />}
+                      title="SÃ©curitÃ©"
+                      text="Permissions, gouvernance, validation, refus et sÃ©curitÃ© du systÃ¨me."
+                    />
+                    <ControlCard
+                      icon={<LifeBuoy className="h-4 w-4" />}
+                      title="Support"
+                      text="Aide produit, orientation et rÃ©solution des frictions dâ€™usage."
+                    />
+                  </div>
+                </SectionShell>
+              </div>
+
+              <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
+                <SectionShell
+                  title="AccÃ¨s directs"
+                  description="Raccourcis vers les zones de travail et de configuration dÃ©jÃ  utiles."
+                >
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <QuickLinkCard
+                      href="/profile/agents"
+                      title="Mes employÃ©s"
+                      text="Zone de travail et accÃ¨s aux employÃ©s IA."
+                    />
+                    <QuickLinkCard
+                      href="/agents"
+                      title="Boutique"
+                      text="Catalogue des employÃ©s IA CloneStore."
+                    />
+                    <QuickLinkCard
+                      href="/assistant"
+                      title="CloneChat"
+                      text="Comprendre, orienter, dÃ©bloquer."
+                    />
+                    <QuickLinkCard
+                      href="/paiement"
+                      title="Paiement"
+                      text="Souscriptions, parcours et pages de paiement."
+                    />
+                    <QuickLinkCard
+                      href="/questions"
+                      title="Support"
+                      text="Questions produit et aide gÃ©nÃ©rale."
+                    />
+                    <QuickLinkCard
+                      href="/legal/confidentialite"
+                      title="ConfidentialitÃ©"
+                      text="Cadre de confiance et politique associÃ©e."
+                    />
+                  </div>
+                </SectionShell>
+
+                <SectionShell
+                  title="Pierre"
+                  description="AccÃ¨s rapide au poste RH opÃ©rationnel automatisÃ©."
+                  right={
+                    pierreIsActive ? (
+                      <span className="cs-status cs-status--success">Pierre actif</span>
+                    ) : (
+                      <span className="cs-status">Pierre non actif</span>
+                    )
+                  }
+                >
+                  <div className="space-y-3">
+                    <div className="rounded-[1.2rem] border border-[var(--cs-line-soft)] bg-white/32 px-4 py-4">
+                      <p className="text-[0.9rem] font-semibold text-[var(--cs-ink-1)]">
+                        Poste RH opÃ©rationnel automatisÃ©
+                      </p>
+                      <p className="mt-2 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+                        Pierre couvre missions RH, documents, emails, relances,
+                        continuitÃ©, validations, historique et exÃ©cution sous contrÃ´le.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3">
+                      <Button
+                        asChild
+                        className="h-10 rounded-full px-4 text-[0.88rem] font-medium text-white"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, color-mix(in srgb, var(--cs-violet) 92%, white 8%), color-mix(in srgb, var(--cs-violet-2) 88%, white 12%))",
+                          boxShadow: "0 12px 30px rgba(95, 92, 230, 0.18)",
+                        }}
+                      >
+                        <Link href="/agents/pierre/use">Utiliser Pierre</Link>
+                      </Button>
+
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                      >
+                        <Link href="/agents/pierre/setup">Configurer Pierre</Link>
+                      </Button>
+
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                      >
+                        <Link href="/agents/pierre">Voir la fiche</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </SectionShell>
+              </div>
+
+              <SectionShell
+                title="Historique des accÃ¨s"
+                description="Lecture synthÃ©tique des souscriptions connues du compte."
+              >
+                {orders.length === 0 ? (
+                  <div className="rounded-[1.2rem] border border-[var(--cs-line-soft)] bg-white/28 px-4 py-5">
+                    <p className="text-[0.9rem] font-semibold text-[var(--cs-ink-1)]">
+                      Aucun employÃ© souscrit pour le moment
+                    </p>
+                    <p className="mt-2 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+                      La boutique permet de dÃ©couvrir la gamme CloneStore et les
+                      futurs postes automatisÃ©s.
+                    </p>
+
+                    <div className="mt-4">
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="h-10 rounded-full bg-white/45 px-4 text-[0.88rem] font-medium"
+                      >
+                        <Link href="/agents">Voir la boutique</Link>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {orders.map((order) => {
+                      const agent = getAgentSummary(order.agent_slug);
+
+                      return (
+                        <article key={order.id} className="cs-card cs-card-tight">
+                          <div className="space-y-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="space-y-1">
+                                <p className="text-[0.96rem] font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
+                                  {titleCaseSlug(order.agent_slug)}
+                                </p>
+                                <p className="text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
+                                  {agent.role}
+                                </p>
+                              </div>
+
+                              <span className={statusClass(order.status)}>
+                                {statusLabel(order.status)}
+                              </span>
+                            </div>
+
+                            <div className="space-y-2">
+                              <p className="text-[0.82rem] text-[var(--cs-ink-4)]">
+                                DÃ©but : {formatDate(order.started_at)}
+                              </p>
+                              <p className="text-[0.82rem] text-[var(--cs-ink-4)]">
+                                Fin : {formatDate(order.ended_at)}
+                              </p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                asChild
+                                variant="outline"
+                                className="h-9 rounded-full bg-white/45 px-4 text-[0.82rem] font-medium"
+                              >
+                                <Link href={agent.primaryHref}>{agent.primaryLabel}</Link>
+                              </Button>
+
+                              <Button
+                                asChild
+                                variant="outline"
+                                className="h-9 rounded-full bg-white/45 px-4 text-[0.82rem] font-medium"
+                              >
+                                <Link href={agent.secondaryHref}>{agent.secondaryLabel}</Link>
+                              </Button>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </SectionShell>
+
+              <section className="grid gap-4 md:grid-cols-2">
+                <StatCard
+                  title="Actifs"
+                  value={activeOrders.length}
+                  helper="EmployÃ©s actuellement exploitables"
+                  icon={<BadgeCheck className="h-5 w-5" />}
+                />
+                <StatCard
+                  title="Autres statuts"
+                  value={inactiveOrders.length}
+                  helper="RÃ©siliÃ©s, incomplets ou non actifs"
+                  icon={<BriefcaseBusiness className="h-5 w-5" />}
+                />
+              </section>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuickLinkCard({
+  href,
+  title,
+  text,
+}: {
+  href: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="cs-card cs-card-tight cs-hover-lift block"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-[0.88rem] font-semibold text-[var(--cs-ink-1)]">{title}</p>
+          <p className="text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">{text}</p>
+        </div>
+
+        <ChevronRight className="mt-0.5 h-4 w-4 text-[var(--cs-ink-4)]" />
+      </div>
+    </Link>
+  );
+}
+
+===== FILE: src/app/questions/page.tsx =====
+
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  BrainCircuit,
+  BriefcaseBusiness,
+  FileCheck2,
+  LifeBuoy,
+  MessageSquareMore,
+  ShieldCheck,
+  Sparkles,
+  Waypoints,
+} from "lucide-react";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)] border",
+        primary
+          ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))] text-white shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)] hover:-translate-y-0.5"
+          : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))] text-[var(--cs-ink-2)] hover:-translate-y-0.5 hover:bg-white/92",
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+  right,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="max-w-3xl space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+          {kicker}
+        </p>
+        <h2 className="cs-heading text-2xl md:text-4xl">{title}</h2>
+        <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+      </div>
+      {right ? <div className="shrink-0">{right}</div> : null}
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function QuestionCard({
+  question,
+  answer,
+}: {
+  question: string;
+  answer: string;
+}) {
+  return (
+    <div className="cs-card h-full">
+      <div className="relative space-y-3">
+        <p className="text-sm font-semibold text-[var(--cs-ink-1)]">{question}</p>
+        <p className="text-sm text-[var(--cs-ink-4)]">{answer}</p>
+      </div>
+    </div>
+  );
+}
+
+const faq = [
+  {
+    question: "Ã€ quoi sert cette page ?",
+    answer:
+      "Elle sert Ã  orienter rapidement le client, expliquer le rÃ´le de lâ€™assistant CloneStore, et Ã©viter quâ€™il se perde entre support, cockpit, boutique et configuration.",
+  },
+  {
+    question: "Le chatbot CloneStore sert Ã  quoi exactement ?",
+    answer:
+      "Il sert Ã  rÃ©pondre aux questions sur CloneStore, orienter vers le bon espace, clarifier le fonctionnement des employÃ©s IA et aider Ã  dÃ©bloquer un parcours.",
+  },
+  {
+    question: "Est-ce que je dois toujours passer par le support humain ?",
+    answer:
+      "Non. Le but est justement que lâ€™assistant couvre une grande partie des questions simples, rÃ©currentes et de navigation, pour Ã©viter au client de perdre du temps.",
+  },
+  {
+    question: "OÃ¹ aller si je veux utiliser Pierre ?",
+    answer:
+      "Le chemin logique est : Mon compte ou Mes employÃ©s IA, puis Pierre, puis son cockpit dâ€™usage ou sa configuration selon le besoin.",
+  },
+  {
+    question: "OÃ¹ aller si je veux acheter un employÃ© IA ?",
+    answer:
+      "La boutique reste le bon point dâ€™entrÃ©e public. Elle doit ensuite rediriger proprement vers le checkout, puis vers le cockpit aprÃ¨s activation.",
+  },
+  {
+    question: "Cette page remplace-t-elle le cockpit ?",
+    answer:
+      "Non. Cette page oriente, rassure et dÃ©bloque. Le cockpit reste le cÅ“ur du travail rÃ©el et du pilotage du systÃ¨me.",
+  },
+];
+
+export default function QuestionsPage() {
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.03fr_0.97fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <LifeBuoy className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>Questions & orientation</span>
+                </span>
+                <span className="cs-pill">
+                  <Bot className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>Assistant CloneStore</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  Une page pour comprendre,
+                  <br />
+                  <span className="cs-gradient-text">
+                    Ãªtre orientÃ© et dÃ©bloquer rapidement.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Cette page ne doit pas Ãªtre un simple â€œcontactâ€. Elle doit
+                  servir Ã  guider le client, expliquer le rÃ´le du chatbot
+                  CloneStore, et Ã©viter quâ€™il perde du temps Ã  chercher oÃ¹ aller
+                  ou comment avancer.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/profile"
+                  label="Aller au cockpit"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents"
+                  label="Voir la boutique"
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents/pierre"
+                  label="Voir Pierre"
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <InfoCard
+                title="Orientation"
+                text="Le client doit comprendre immÃ©diatement oÃ¹ aller selon son besoin."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Assistant"
+                text="Le chatbot doit rÃ©soudre un grand volume de questions simples et rÃ©currentes."
+                icon={<Bot className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Confiance"
+                text="Le support doit rassurer sans crÃ©er une sensation de produit fragile."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+              <InfoCard
+                title="CohÃ©rence"
+                text="Cette page doit renvoyer vers le bon espace sans casser le parcours."
+                icon={<BrainCircuit className="h-4 w-4" />}
+                tone="rose"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Le rÃ´le du chatbot CloneStore"
+            title="Un assistant dâ€™orientation, dâ€™explication et de dÃ©blocage"
+            text="Le chatbot CloneStore nâ€™est pas un gadget. Il doit aider Ã  comprendre le systÃ¨me, rÃ©pondre aux questions frÃ©quentes et envoyer rapidement le client vers la bonne action."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard
+              title="Comprendre CloneStore"
+              text="Expliquer les employÃ©s IA, la logique du systÃ¨me et la valeur du produit."
+              icon={<BrainCircuit className="h-4 w-4" />}
+              tone="violet"
+            />
+            <InfoCard
+              title="Orienter"
+              text="Envoyer le client vers la boutique, le cockpit, Pierre ou la configuration."
+              icon={<Waypoints className="h-4 w-4" />}
+              tone="blue"
+            />
+            <InfoCard
+              title="DÃ©bloquer"
+              text="RÃ©pondre aux hÃ©sitations simples sans forcer un support humain immÃ©diat."
+              icon={<MessageSquareMore className="h-4 w-4" />}
+              tone="green"
+            />
+            <InfoCard
+              title="Rassurer"
+              text="Donner une impression de produit structurÃ©, pas de SaaS fragile."
+              icon={<ShieldCheck className="h-4 w-4" />}
+              tone="rose"
+            />
+          </div>
+        </section>
+
+        <section className="cs-panel">
+          <SectionTitle
+            kicker="Questions frÃ©quentes"
+            title="Ce que le client doit pouvoir comprendre trÃ¨s vite"
+            text="Cette page doit absorber beaucoup de questions naturelles sans devenir confuse."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {faq.map((item) => (
+              <QuestionCard
+                key={item.question}
+                question={item.question}
+                answer={item.answer}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Quand utiliser cette page"
+              title="Le bon usage de Questions / Support"
+              text="Elle doit servir avant, pendant et aprÃ¨s lâ€™entrÃ©e dans CloneStore."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Avant achat"
+                text="Comprendre ce que fait Pierre, comment fonctionne CloneStore, et quel espace visiter."
+                icon={<BriefcaseBusiness className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Pendant lâ€™activation"
+                text="DÃ©bloquer une hÃ©sitation ou clarifier une Ã©tape sans sortir du parcours."
+                icon={<Sparkles className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="AprÃ¨s entrÃ©e"
+                text="Aider Ã  retrouver rapidement le cockpit, Pierre, la configuration ou la boutique."
+                icon={<FileCheck2 className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Direction produit"
+              title="Cette page doit rÃ©duire la friction, pas crÃ©er un tunnel support"
+              text="Lâ€™objectif nâ€™est pas de faire attendre le client, mais de lâ€™aider Ã  avancer immÃ©diatement."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="RapiditÃ©"
+                text="Le bon prochain clic doit Ãªtre Ã©vident."
+                icon={<ArrowRight className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="LisibilitÃ©"
+                text="MÃªme quelquâ€™un qui dÃ©teste lâ€™informatique doit comprendre oÃ¹ aller."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Calme"
+                text="Le support CloneStore doit inspirer maÃ®trise, fluiditÃ© et confiance."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="cs-panel overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--cs-account-accent)_12%,transparent),transparent_72%)]" />
+
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="mx-auto w-fit">
+              <span className="cs-pill">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                <span>CloneStore doit toujours rester comprÃ©hensible</span>
+              </span>
+            </div>
+
+            <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
+              Besoin dâ€™Ãªtre orientÃ© ?
+              <br />
+              Reprends le bon chemin immÃ©diatement.
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--cs-ink-4)] md:text-base">
+              Boutique, Pierre, cockpit, configuration ou assistant : cette page
+              doit toujours te renvoyer rapidement au bon endroit.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <ActionButton
+                href="/profile"
+                label="Aller au cockpit"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              <ActionButton
+                href="/agents"
+                label="Voir la boutique"
+                icon={<BriefcaseBusiness className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+===== FILE: src/app/signup/page.tsx =====
+
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  Building2,
+  Loader2,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+  Waypoints,
+} from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+
+function ActionButton({
+  href,
+  label,
+  primary = false,
+  icon,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+        "border",
+        primary
+          ? [
+              "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)]",
+              "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))]",
+              "text-white",
+              "shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)]",
+              "hover:-translate-y-0.5 hover:shadow-[0_24px_52px_color-mix(in_srgb,var(--cs-account-accent)_24%,transparent)]",
+            ].join(" ")
+          : [
+              "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)]",
+              "bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))]",
+              "text-[var(--cs-ink-2)]",
+              "hover:-translate-y-0.5 hover:bg-white/92",
+            ].join(" "),
+      ].join(" ")}
+    >
+      {label}
+      {icon}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-3xl space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--cs-ink-4)]">
+        {kicker}
+      </p>
+      <h2 className="cs-heading text-2xl md:text-3xl">{title}</h2>
+      <p className="text-sm text-[var(--cs-ink-4)] md:text-base">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  text,
+  icon,
+  tone = "violet",
+}: {
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+  tone?: "violet" | "blue" | "rose" | "green";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "text-[var(--cs-account-accent)]"
+      : tone === "blue"
+        ? "text-[var(--cs-info)]"
+        : tone === "rose"
+          ? "text-[var(--cs-danger)]"
+          : "text-[var(--cs-success)]";
+
+  return (
+    <div className="cs-card h-full">
+      <div className="relative flex h-full flex-col gap-4">
+        <div className={`flex items-center gap-2 ${toneClass}`}>
+          {icon}
+          <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+            {title}
+          </span>
+        </div>
+        <p className="text-sm text-[var(--cs-ink-4)]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  icon,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  autoComplete,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  type?: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  autoComplete?: string;
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-sm font-medium text-[var(--cs-ink-2)]">{label}</span>
+      <div className="flex items-center gap-3 rounded-[1.2rem] border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.78),rgba(255,250,244,0.52))] px-4 py-3 shadow-[var(--cs-shadow-soft)]">
+        <span className="text-[var(--cs-account-accent)]">{icon}</span>
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          className="w-full border-0 bg-transparent text-sm text-[var(--cs-ink-2)] outline-none placeholder:text-[var(--cs-ink-4)]"
+        />
+      </div>
+    </label>
+  );
+}
+
+export default function SignupPage() {
+  const router = useRouter();
+  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+
+  const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const passwordChecks = useMemo(
+    () => ({
+      length: password.length >= 8,
+      upper: /[A-ZÃ€-Ã–Ã˜-Ã]/.test(password),
+      lower: /[a-zÃ -Ã¶Ã¸-Ã¿]/.test(password),
+      number: /\d/.test(password),
+      match: password.length > 0 && password === confirmPassword,
+    }),
+    [password, confirmPassword],
+  );
+
+  const canSubmit = useMemo(() => {
+    return (
+      fullName.trim().length > 0 &&
+      email.trim().length > 0 &&
+      passwordChecks.length &&
+      passwordChecks.upper &&
+      passwordChecks.lower &&
+      passwordChecks.number &&
+      passwordChecks.match &&
+      !isLoading
+    );
+  }, [fullName, email, passwordChecks, isLoading]);
+
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+
+    if (!supabase) {
+      setError(
+        "Configuration Supabase manquante. VÃ©rifie tes variables dâ€™environnement puis redÃ©marre le projet.",
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const redirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/profile`
+          : undefined;
+
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: redirectTo,
+          data: {
+            full_name: fullName.trim(),
+            company_name: companyName.trim() || null,
+          },
+        },
+      });
+
+      if (signUpError) {
+        throw signUpError;
+      }
+
+      if (data.session) {
+        router.push("/profile");
+        router.refresh();
+        return;
+      }
+
+      setSuccess(
+        "Compte crÃ©Ã©. VÃ©rifie maintenant ton email pour confirmer ton accÃ¨s puis entre dans CloneStore.",
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible de crÃ©er le compte pour le moment.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function CheckItem({
+    ok,
+    text,
+  }: {
+    ok: boolean;
+    text: string;
+  }) {
+    return (
+      <div className="flex items-center gap-2 text-xs">
+        <span
+          className={[
+            "h-2.5 w-2.5 rounded-full",
+            ok ? "bg-[var(--cs-success)]" : "bg-[rgba(20,20,22,0.16)]",
+          ].join(" ")}
+        />
+        <span className={ok ? "text-[var(--cs-ink-2)]" : "text-[var(--cs-ink-4)]"}>
+          {text}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="cs-page-shell py-10 md:py-14">
+      <div className="space-y-6">
+        <section className="cs-command-surface overflow-hidden">
+          <div className="cs-system-halo" />
+
+          <div className="relative grid gap-6 xl:grid-cols-[1.02fr_0.98fr] xl:items-start">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cs-pill">
+                  <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
+                  <span>CrÃ©ation de compte CloneStore</span>
+                </span>
+                <span className="cs-pill">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
+                  <span>PremiÃ¨re entrÃ©e dans le systÃ¨me</span>
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="cs-heading text-3xl md:text-5xl">
+                  CrÃ©ez votre compte
+                  <br />
+                  <span className="cs-gradient-text">
+                    et entrez dans votre futur cockpit.
+                  </span>
+                </h1>
+
+                <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
+                  Lâ€™inscription doit rester simple, propre et rassurante. On entre
+                  ensuite dans CloneStore pour configurer lâ€™entreprise, activer les
+                  bons employÃ©s IA et piloter le systÃ¨me depuis un seul endroit.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <ActionButton
+                  href="/login"
+                  label="DÃ©jÃ  un compte ? Se connecter"
+                  primary
+                  icon={<ArrowRight className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/questions"
+                  label="Poser une question"
+                  icon={<Bot className="h-4 w-4" />}
+                />
+                <ActionButton
+                  href="/agents"
+                  label="Voir la boutique"
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard
+                  title="EntrÃ©e propre"
+                  text="CrÃ©er un compte doit Ãªtre fluide, rapide et sans intimidation."
+                  icon={<UserRound className="h-4 w-4" />}
+                  tone="violet"
+                />
+                <InfoCard
+                  title="Suite logique"
+                  text="AprÃ¨s crÃ©ation, le client entre dans un cockpit clair plutÃ´t que dans un espace vide."
+                  icon={<Waypoints className="h-4 w-4" />}
+                  tone="blue"
+                />
+                <InfoCard
+                  title="SÃ©curitÃ©"
+                  text="La confiance se construit aussi dans la qualitÃ© perÃ§ue de lâ€™accÃ¨s et du cadre produit."
+                  icon={<Lock className="h-4 w-4" />}
+                  tone="green"
+                />
+                <InfoCard
+                  title="Assistance"
+                  text="Lâ€™assistant CloneStore reste disponible si quelque chose bloque ou si une question subsiste."
+                  icon={<Bot className="h-4 w-4" />}
+                  tone="rose"
+                />
+              </div>
+            </div>
+
+            <div className="cs-panel">
+              <div className="relative space-y-6">
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--cs-ink-4)]">
+                    Nouveau compte
+                  </p>
+                  <h2 className="cs-heading text-2xl">CrÃ©er un compte</h2>
+                  <p className="text-sm text-[var(--cs-ink-4)]">
+                    Quelques informations simples pour dÃ©marrer proprement.
+                  </p>
+                </div>
+
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <Field
+                    label="Nom complet"
+                    icon={<UserRound className="h-4 w-4" />}
+                    value={fullName}
+                    onChange={setFullName}
+                    placeholder="PrÃ©nom Nom"
+                    autoComplete="name"
+                  />
+
+                  <Field
+                    label="Entreprise (optionnel)"
+                    icon={<Building2 className="h-4 w-4" />}
+                    value={companyName}
+                    onChange={setCompanyName}
+                    placeholder="Nom de votre entreprise"
+                    autoComplete="organization"
+                  />
+
+                  <Field
+                    label="Adresse email"
+                    icon={<Mail className="h-4 w-4" />}
+                    value={email}
+                    onChange={setEmail}
+                    placeholder="vous@entreprise.com"
+                    autoComplete="email"
+                    type="email"
+                  />
+
+                  <Field
+                    label="Mot de passe"
+                    icon={<Lock className="h-4 w-4" />}
+                    value={password}
+                    onChange={setPassword}
+                    placeholder="Choisissez un mot de passe"
+                    autoComplete="new-password"
+                    type="password"
+                  />
+
+                  <Field
+                    label="Confirmer le mot de passe"
+                    icon={<Lock className="h-4 w-4" />}
+                    value={confirmPassword}
+                    onChange={setConfirmPassword}
+                    placeholder="Retapez le mot de passe"
+                    autoComplete="new-password"
+                    type="password"
+                  />
+
+                  <div className="cs-card">
+                    <div className="relative space-y-3">
+                      <p className="text-sm font-medium text-[var(--cs-ink-2)]">
+                        VÃ©rifications mot de passe
+                      </p>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <CheckItem ok={passwordChecks.length} text="Au moins 8 caractÃ¨res" />
+                        <CheckItem ok={passwordChecks.upper} text="Une majuscule" />
+                        <CheckItem ok={passwordChecks.lower} text="Une minuscule" />
+                        <CheckItem ok={passwordChecks.number} text="Un chiffre" />
+                        <CheckItem ok={passwordChecks.match} text="Confirmation identique" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {error ? (
+                    <div className="rounded-[1.2rem] border border-[color:rgba(161,75,83,0.22)] bg-[rgba(161,75,83,0.08)] px-4 py-3 text-sm text-[var(--cs-danger)]">
+                      {error}
+                    </div>
+                  ) : null}
+
+                  {success ? (
+                    <div className="rounded-[1.2rem] border border-[color:rgba(35,122,82,0.22)] bg-[rgba(35,122,82,0.08)] px-4 py-3 text-sm text-[var(--cs-success)]">
+                      {success}
+                    </div>
+                  ) : null}
+
+                  <button
+                    type="submit"
+                    disabled={!canSubmit}
+                    className={[
+                      "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-[var(--cs-speed-fast)] ease-[var(--cs-ease-premium)]",
+                      "border",
+                      canSubmit
+                        ? "border-[color:color-mix(in_srgb,var(--cs-account-accent)_18%,white)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cs-account-accent)_92%,white),color-mix(in_srgb,var(--cs-accent-blue)_30%,var(--cs-account-accent)))] text-white shadow-[0_18px_40px_color-mix(in_srgb,var(--cs-account-accent)_18%,transparent)] hover:-translate-y-0.5"
+                        : "border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.62),rgba(255,249,242,0.42))] text-[var(--cs-ink-4)] opacity-70",
+                    ].join(" ")}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>CrÃ©ation du compteâ€¦</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>CrÃ©er mon compte CloneStore</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--cs-line-soft)] pt-4">
+                  <p className="text-sm text-[var(--cs-ink-4)]">
+                    Vous avez dÃ©jÃ  un compte ?
+                  </p>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-[var(--cs-ink-2)] transition hover:text-[var(--cs-ink-1)]"
+                  >
+                    Se connecter
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Pourquoi cette page compte"
+              title="Lâ€™inscription prÃ©pare la suite de lâ€™expÃ©rience."
+              text="CrÃ©er un compte ne doit pas Ãªtre une formalitÃ© froide. Câ€™est la premiÃ¨re vraie entrÃ©e dans le systÃ¨me CloneStore."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="ClartÃ©"
+                text="Chaque champ doit Ãªtre simple, comprÃ©hensible et utile."
+                icon={<Sparkles className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="Confiance"
+                text="Le produit doit paraÃ®tre maÃ®trisÃ© dÃ¨s la premiÃ¨re interaction personnelle."
+                icon={<ShieldCheck className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Projection"
+                text="Le client doit dÃ©jÃ  comprendre quâ€™il va entrer dans un cockpit dâ€™entreprise premium."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="green"
+              />
+            </div>
+          </div>
+
+          <div className="cs-panel">
+            <SectionTitle
+              kicker="Ce qui vient ensuite"
+              title="Le compte est crÃ©Ã©. Puis le vrai parcours commence."
+              text="AprÃ¨s lâ€™accÃ¨s, la logique CloneStore prend le relais : cockpit, employÃ©s IA, personnalisation, missions, aide et contrÃ´le."
+            />
+
+            <div className="mt-6 grid gap-3">
+              <InfoCard
+                title="Cockpit"
+                text="Le point dâ€™entrÃ©e principal pour piloter le systÃ¨me."
+                icon={<Waypoints className="h-4 w-4" />}
+                tone="violet"
+              />
+              <InfoCard
+                title="EmployÃ©s IA"
+                text="Pierre et les autres postes visibles dans une logique cohÃ©rente."
+                icon={<BriefcaseBusiness className="h-4 w-4" />}
+                tone="blue"
+              />
+              <InfoCard
+                title="Assistant"
+                text="Toujours disponible pour guider, expliquer et dÃ©bloquer."
+                icon={<Bot className="h-4 w-4" />}
+                tone="rose"
+              />
+            </div>
+
+            <div className="mt-6">
+              <ActionButton
+                href="/questions"
+                label="Ouvrir lâ€™assistant"
+                primary
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+===== FILE: src/app/test-pierre/page.tsx =====
+
+"use client";
+
+import { useMemo, useState } from "react";
+
+type Tone = "pro" | "convivial";
+
+const EXAMPLES: { label: string; input: string; tone: Tone }[] = [
+  {
+    label: "Refus candidat (junior)",
+    tone: "convivial",
+    input:
+      "Mail de refus pour un candidat junior. Ton humain. Poste: assistant commercial. Raison: nous avons retenu un profil plus expÃ©rimentÃ©.",
+  },
+  {
+    label: "Convocation entretien",
+    tone: "pro",
+    input:
+      "Mail de convocation entretien. Poste: technicien maintenance. Date: mardi. Heure: 10h. Lieu: Nanterre (sur site). DurÃ©e: 45 min. Interlocuteurs: Responsable maintenance + RH.",
+  },
+  {
+    label: "Relance candidat",
+    tone: "pro",
+    input:
+      "Relance candidat qui n'a pas rÃ©pondu. Poste: dÃ©veloppeur front. CrÃ©neaux: mardi 10h, jeudi 15h.",
+  },
+  {
+    label: "Onboarding avant arrivÃ©e",
+    tone: "convivial",
+    input:
+      "Mail onboarding avant arrivÃ©e. Poste: comptable. Date arrivÃ©e: 3 mars. Heure: 9h. Lieu: Boulogne. Contact: Sarah (RH). Documents: piÃ¨ce dâ€™identitÃ©, RIB, carte vitale.",
+  },
+  {
+    label: "Mail insolite (report entretien)",
+    tone: "pro",
+    input:
+      "Mail pour dÃ©caler lâ€™entretien au dernier moment, sâ€™excuser, proposer 2 nouveaux crÃ©neaux. Poste: chef de projet. Ton pro et rassurant.",
+  },
+];
+
+export default function TestPierrePage() {
+  const [tone, setTone] = useState<Tone>("convivial");
+  const [companyName, setCompanyName] = useState("CloneStore");
+  const [text, setText] = useState(EXAMPLES[0].input);
+
+  const [loading, setLoading] = useState(false);
+  const [out, setOut] = useState<any>(null);
+  const [raw, setRaw] = useState<string>("");
+  const [err, setErr] = useState<string | null>(null);
+
+  const payload = useMemo(
+    () => ({
+      input: text,
+      tone,
+      company_name: companyName,
+    }),
+    [text, tone, companyName]
+  );
+
+  async function run() {
+    setLoading(true);
+    setErr(null);
+    setOut(null);
+    setRaw("");
+
+    try {
+      const res = await fetch("/api/pierre/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const txt = await res.text();
+      setRaw(txt);
+
+      // essaie de parser JSON seulement si possible
+      let data: any = null;
+      try {
+        data = txt ? JSON.parse(txt) : null;
+      } catch {
+        data = null;
+      }
+
+      if (!res.ok) {
+        const msg = data?.error || data?.message || `HTTP ${res.status}`;
+        throw new Error(msg);
+      }
+
+      if (!data) {
+        throw new Error("RÃ©ponse non-JSON reÃ§ue (voir RAW).");
+      }
+
+      setOut(data);
+    } catch (e: any) {
+      setErr(e?.message || "Erreur");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function applyExample(i: number) {
+    const ex = EXAMPLES[i];
+    setText(ex.input);
+    setTone(ex.tone);
+  }
+
+  return (
+    <div style={{ padding: 28, maxWidth: 1000, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 14 }}>
+        Test Pierre â€” Generate (emails + insolites)
+      </h1>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 14,
+          marginBottom: 14,
+        }}
+      >
+        <div>
+          <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>
+            Entreprise (signature)
+          </label>
+          <input
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              borderRadius: 10,
+              border: "1px solid #ddd",
+            }}
+          />
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>
+            Ton
+          </label>
+          <select
+            value={tone}
+            onChange={(e) => setTone(e.target.value as Tone)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              background: "white",
+            }}
+          >
+            <option value="pro">pro</option>
+            <option value="convivial">convivial</option>
+          </select>
+        </div>
+      </div>
+
+      <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>
+        Brief
+      </label>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={6}
+        style={{
+          width: "100%",
+          padding: "12px 12px",
+          borderRadius: 12,
+          border: "1px solid #ddd",
+          fontFamily: "inherit",
+        }}
+      />
+
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 10 }}>
+        {EXAMPLES.map((ex, idx) => (
+          <button
+            key={ex.label}
+            onClick={() => applyExample(idx)}
+            style={{
+              padding: "8px 10px",
+              borderRadius: 999,
+              border: "1px solid #ddd",
+              background: "white",
+              cursor: "pointer",
+            }}
+          >
+            {ex.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "center" }}>
+        <button
+          onClick={run}
+          disabled={loading}
+          style={{
+            padding: "10px 14px",
+            borderRadius: 10,
+            border: "1px solid #ccc",
+            background: loading ? "#f3f3f3" : "white",
+            cursor: loading ? "not-allowed" : "pointer",
+            fontWeight: 700,
+          }}
+        >
+          {loading ? "GÃ©nÃ©ration..." : "GÃ©nÃ©rer"}
+        </button>
+
+        {err && <span style={{ color: "crimson", fontWeight: 700 }}>{err}</span>}
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>RAW rÃ©ponse (debug)</h2>
+        <pre
+          style={{
+            background: "#111",
+            color: "#fff",
+            padding: 12,
+            borderRadius: 12,
+            overflowX: "auto",
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {raw || "(vide)"}
+        </pre>
+      </div>
+
+      {out && (
+        <>
+          <div style={{ marginTop: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>JSON reÃ§u</h2>
+            <pre
+              style={{
+                background: "#111",
+                color: "#fff",
+                padding: 12,
+                borderRadius: 12,
+                overflowX: "auto",
+              }}
+            >
+              {JSON.stringify(out, null, 2)}
+            </pre>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>AperÃ§u HTML</h2>
+            <div
+              style={{
+                border: "1px solid #ddd",
+                borderRadius: 12,
+                padding: 16,
+                background: "white",
+                lineHeight: 1.5,
+              }}
+              dangerouslySetInnerHTML={{ __html: out.final_text_html || "" }}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+===== FILE: src/components/pierre/PierreDocumentEditor.tsx =====
+
+"use client";
+
+import { useEffect, useState } from "react";
+
+export type PierreDocumentEditorValue = {
+  title: string;
+  doc_type: string;
+  body_text: string;
+  body_html: string;
+};
+
+type PierreDocumentEditorProps = {
+  value: PierreDocumentEditorValue | null;
+  onChange?: (value: PierreDocumentEditorValue) => void;
+};
+
+export function PierreDocumentEditor({
+  value,
+  onChange,
+}: PierreDocumentEditorProps) {
+  const [localValue, setLocalValue] = useState<PierreDocumentEditorValue | null>(
+    value
+  );
+  const [mode, setMode] = useState<"text" | "html">("text");
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  if (!localValue) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-black/10 p-4">
+        <p className="text-sm text-white/50">
+          Aucun document sÃ©lectionnÃ© pour le moment.
+        </p>
+      </div>
+    );
+  }
+
+  const updateValue = (patch: Partial<PierreDocumentEditorValue>) => {
+    const next = {
+      ...localValue,
+      ...patch,
+    };
+
+    setLocalValue(next);
+    onChange?.(next);
+  };
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/10 p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs uppercase tracking-wide text-white/35">
+            Document actif
+          </p>
+          <input
+            value={localValue.title}
+            onChange={(event) => updateValue({ title: event.target.value })}
+            className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white outline-none"
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setMode("text")}
+            className={[
+              "rounded-xl px-3 py-2 text-xs font-medium transition",
+              mode === "text"
+                ? "bg-violet-500 text-white"
+                : "bg-white/5 text-white/70 hover:bg-white/10",
+            ].join(" ")}
+          >
+            Texte
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("html")}
+            className={[
+              "rounded-xl px-3 py-2 text-xs font-medium transition",
+              mode === "html"
+                ? "bg-violet-500 text-white"
+                : "bg-white/5 text-white/70 hover:bg-white/10",
+            ].join(" ")}
+          >
+            HTML
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/50">
+        Type : {localValue.doc_type || "generic"}
+      </div>
+
+      {mode === "text" ? (
+        <textarea
+          value={localValue.body_text}
+          onChange={(event) => updateValue({ body_text: event.target.value })}
+          className="min-h-[260px] w-full rounded-2xl border border-white/10 bg-[#0d0d0d] px-4 py-4 text-sm leading-7 text-white outline-none"
+        />
+      ) : (
+        <textarea
+          value={localValue.body_html}
+          onChange={(event) => updateValue({ body_html: event.target.value })}
+          className="min-h-[260px] w-full rounded-2xl border border-white/10 bg-[#0d0d0d] px-4 py-4 text-sm leading-7 text-white outline-none"
+        />
+      )}
+    </div>
+  );
+}
+
+
