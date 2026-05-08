@@ -12,10 +12,25 @@ function getOrigin(req: Request) {
   return `${proto}://${host}`;
 }
 
+function checkCronAuth(req: Request): boolean {
+  const secret = CRON_SECRET;
+  if (!secret) return false;
+
+  const authHeader = req.headers.get("authorization") || "";
+  if (authHeader === `Bearer ${secret}`) return true;
+
+  const url = new URL(req.url);
+  return url.searchParams.get("secret") === secret;
+}
+
 export async function GET(req: Request) {
   try {
     if (!CRON_SECRET) {
       return NextResponse.json({ ok: false, error: "Missing CRON_SECRET" }, { status: 500 });
+    }
+
+    if (!checkCronAuth(req)) {
+      return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
     }
 
     const origin = getOrigin(req);

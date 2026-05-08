@@ -345,7 +345,11 @@ export async function POST(request: NextRequest) {
     }
 
     const currentStatus = trimOrNull(task.status);
-    if (currentStatus === "completed" || currentStatus === "done") {
+    if (
+      currentStatus === "done" ||
+      currentStatus === "error" ||
+      currentStatus === "cancelled"
+    ) {
       return json({
         ok: true,
         processed: false,
@@ -421,8 +425,9 @@ export async function POST(request: NextRequest) {
     const { data: completedTask, error: completedError } = await supabase
       .from("pierre_tasks")
       .update({
-        status: "completed",
-        completed_at: new Date().toISOString(),
+        status: "done",
+        finished_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
       .eq("id", taskId)
       .select("*")

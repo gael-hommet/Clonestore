@@ -35,7 +35,18 @@ const BrainInputSchema = z.object({
 /* ROUTE                          */
 /* ============================== */
 
+function checkWorkerAuth(req: Request): boolean {
+  const workerSecret = process.env.PIERRE_QUEUE_WORKER_SECRET;
+  if (!workerSecret) return true;
+  const provided = (req as Request & { headers: Headers }).headers.get("x-pierre-worker-secret");
+  return provided === workerSecret;
+}
+
 export async function POST(req: Request) {
+  if (!checkWorkerAuth(req)) {
+    return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const parsed = BrainInputSchema.parse(body);

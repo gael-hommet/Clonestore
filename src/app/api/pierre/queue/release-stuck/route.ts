@@ -25,7 +25,18 @@ function getSupabaseAdmin(): SupabaseClient {
   });
 }
 
-export async function POST(_request: NextRequest) {
+function checkWorkerAuth(request: NextRequest): boolean {
+  const workerSecret = process.env.PIERRE_QUEUE_WORKER_SECRET;
+  if (!workerSecret) return true;
+  const provided = request.headers.get("x-pierre-worker-secret");
+  return provided === workerSecret;
+}
+
+export async function POST(request: NextRequest) {
+  if (!checkWorkerAuth(request)) {
+    return json({ ok: false, error: "Unauthorized." }, 401);
+  }
+
   try {
     const supabase = getSupabaseAdmin();
 
