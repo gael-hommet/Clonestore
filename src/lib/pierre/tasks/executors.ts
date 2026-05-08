@@ -310,15 +310,22 @@ export async function executePierreTask(
 
   switch (task.type) {
     case "generate_document":
+    case "doc.generate":
+    case "doc.rewrite":
       return executeGenerateDocument(task, context);
 
     case "prepare_email":
+    case "email.draft":
+    case "email.send":
       return executePrepareEmail(task, context);
 
     case "generate_pdf":
+    case "pdf.generate":
       return executeGeneratePdf(task, context);
 
     case "schedule_follow_up":
+    case "followup.schedule":
+    case "reminder.create":
       return executeScheduleFollowUp(task, context);
 
     case "request_missing_info":

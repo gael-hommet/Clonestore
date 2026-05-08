@@ -297,8 +297,20 @@ async function generateEmailArtifact(
   return data;
 }
 
+function checkWorkerAuth(request: NextRequest): boolean {
+  const workerSecret = process.env.PIERRE_QUEUE_WORKER_SECRET;
+  if (!workerSecret) return true; // no secret configured, allow
+
+  const provided = request.headers.get("x-pierre-worker-secret");
+  return provided === workerSecret;
+}
+
 export async function POST(request: NextRequest) {
   try {
+    if (!checkWorkerAuth(request)) {
+      return json({ ok: false, error: "Unauthorized." }, 401);
+    }
+
     const body = (await request.json().catch(() => null)) as ProcessTaskBody | null;
     const taskId = trimOrNull(body?.taskId);
 

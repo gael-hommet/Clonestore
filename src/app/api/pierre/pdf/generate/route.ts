@@ -8,23 +8,18 @@ type AuthenticatedContext = {
   accessToken: string | null;
 };
 
-type SendEmailBody = {
-  to?: string | null;
-  cc?: string | null;
-  bcc?: string | null;
-  subject?: string | null;
-  body?: string | null;
-  senderName?: string | null;
-  senderEmail?: string | null;
-  missionId?: string | null;
-  attachments?: unknown;
-};
-
-type SenderIdentityResolved = {
-  senderName: string | null;
-  senderEmail: string | null;
-  senderDomain: string | null;
-  source: "payload" | "memory" | "fallback" | "none";
+type GeneratePdfBody = {
+  text: string | null;
+  html: string | null;
+  missionId: string | null;
+  taskId: string | null;
+  sourceDocumentId: string | null;
+  title: string | null;
+  template: string | null;
+  layout: string | null;
+  tone: string | null;
+  language: string | null;
+  metadata: unknown;
 };
 
 type JsonErrorExtra = {
@@ -66,11 +61,7 @@ function getNestedString(
 
 function jsonError(message: string, status: number, extra?: JsonErrorExtra) {
   return NextResponse.json(
-    {
-      ok: false,
-      error: message,
-      ...(extra ?? {}),
-    },
+    { ok: false, error: message, ...(extra ?? {}) },
     { status },
   );
 }
@@ -85,10 +76,7 @@ function createAdminClient(): SupabaseClient {
   }
 
   return createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
+    auth: { persistSession: false, autoRefreshToken: false },
   });
 }
 
@@ -106,20 +94,13 @@ function tryReadBearerToken(request: NextRequest): string | null {
 function tryReadSupabaseCookieToken(request: NextRequest): string | null {
   const cookies = request.cookies.getAll();
 
-  const directCandidates = [
-    "sb-access-token",
-    "supabase-access-token",
-    "access-token",
-  ];
-
-  for (const key of directCandidates) {
+  for (const key of ["sb-access-token", "supabase-access-token", "access-token"]) {
     const found = request.cookies.get(key)?.value;
     if (found) return found;
   }
 
   for (const cookie of cookies) {
     if (!cookie.name.includes("auth-token")) continue;
-
     const raw = cookie.value;
     if (!raw) continue;
 
@@ -136,11 +117,9 @@ function tryReadSupabaseCookieToken(request: NextRequest): string | null {
 
       if (isObject(parsed)) {
         const currentSession = getNestedObject(parsed, "currentSession");
-
         const candidate =
           getNestedString(parsed, "access_token") ||
           getNestedString(currentSession, "access_token");
-
         if (candidate) return candidate;
       }
     } catch {
@@ -177,10 +156,7 @@ async function authenticateRequest(
     };
   }
 
-  return {
-    userId: data.user.id,
-    accessToken,
-  };
+  return { userId: data.user.id, accessToken };
 }
 
 function mapDbError(error: unknown) {
@@ -196,45 +172,67 @@ function mapDbError(error: unknown) {
   }
 
   if (error instanceof Error) {
-    return {
-      message: error.message,
-      code: null,
-      details: null,
-    };
+    return { message: error.message, code: null, details: null };
   }
 
-  return {
-    message: "Unexpected database error.",
-    code: null,
-    details: null,
-  };
+  return { message: "Unexpected database error.", code: null, details: null };
 }
 
-function normalizeBody(raw: unknown): SendEmailBody {
+function normalizeBody(raw: unknown): GeneratePdfBody {
   if (!isObject(raw)) {
     return {
-      to: null,
-      cc: null,
-      bcc: null,
-      subject: null,
-      body: null,
-      senderName: null,
-      senderEmail: null,
+      text: null,
+      html: null,
       missionId: null,
-      attachments: null,
+      taskId: null,
+      sourceDocumentId: null,
+      title: null,
+      template: null,
+      layout: null,
+      tone: null,
+      language: null,
+      metadata: null,
     };
   }
 
+  const text =
+    asString(raw.text) ||
+    asString(raw.content) ||
+    asString(raw.bodyText) ||
+    asString(raw.body_text) ||
+    asString(raw.documentText) ||
+    asString(raw.document_text);
+
+  const html =
+    asString(raw.html) ||
+    asString(raw.htmlContent) ||
+    asString(raw.html_content) ||
+    asString(raw.bodyHtml) ||
+    asString(raw.body_html) ||
+    asString(raw.documentHtml) ||
+    asString(raw.document_html);
+
+  const missionId = asString(raw.missionId) || asString(raw.mission_id);
+  const taskId = asString(raw.taskId) || asString(raw.task_id);
+  const sourceDocumentId =
+    asString(raw.sourceDocumentId) || asString(raw.source_document_id);
+  const title =
+    asString(raw.title) ||
+    asString(raw.documentTitle) ||
+    asString(raw.document_title);
+
   return {
-    to: asString(raw.to),
-    cc: asString(raw.cc),
-    bcc: asString(raw.bcc),
-    subject: asString(raw.subject),
-    body: asString(raw.body),
-    senderName: asString(raw.senderName),
-    senderEmail: asString(raw.senderEmail),
-    missionId: asString(raw.missionId),
-    attachments: raw.attachments ?? null,
+    text,
+    html,
+    missionId,
+    taskId,
+    sourceDocumentId,
+    title,
+    template: asString(raw.template),
+    layout: asString(raw.layout),
+    tone: asString(raw.tone),
+    language: asString(raw.language),
+    metadata: raw.metadata ?? null,
   };
 }
 
@@ -272,6 +270,93 @@ async function verifyMissionOwnershipIfNeeded(
   return data as DbRow;
 }
 
+async function verifyTaskOwnershipIfNeeded(
+  supabaseAdmin: SupabaseClient,
+  taskId: string | null | undefined,
+  userId: string,
+): Promise<DbRow | null> {
+  if (!taskId) return null;
+
+  const { data: task, error: taskError } = await supabaseAdmin
+    .from("pierre_tasks")
+    .select("*")
+    .eq("id", taskId)
+    .maybeSingle();
+
+  if (taskError) {
+    throw {
+      status: 500,
+      message: "Unable to load task.",
+      code: "TASK_FETCH_FAILED",
+      details: mapDbError(taskError),
+    };
+  }
+
+  if (!task) {
+    throw { status: 404, message: "Task not found.", code: "TASK_NOT_FOUND" };
+  }
+
+  // Verify via its parent mission
+  const taskMissionId = asString(task.mission_id);
+  if (taskMissionId) {
+    const { data: mission, error: missionError } = await supabaseAdmin
+      .from("pierre_missions")
+      .select("id")
+      .eq("id", taskMissionId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (missionError) {
+      throw {
+        status: 500,
+        message: "Unable to verify task ownership.",
+        code: "TASK_OWNERSHIP_CHECK_FAILED",
+        details: mapDbError(missionError),
+      };
+    }
+
+    if (!mission) {
+      throw { status: 404, message: "Task not found.", code: "TASK_NOT_FOUND" };
+    }
+  }
+
+  return task as DbRow;
+}
+
+async function loadSourceDocumentIfNeeded(
+  supabaseAdmin: SupabaseClient,
+  sourceDocumentId: string | null | undefined,
+  userId: string,
+): Promise<DbRow | null> {
+  if (!sourceDocumentId) return null;
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_documents")
+    .select("*")
+    .eq("id", sourceDocumentId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw {
+      status: 500,
+      message: "Unable to load source document.",
+      code: "SOURCE_DOCUMENT_FETCH_FAILED",
+      details: mapDbError(error),
+    };
+  }
+
+  if (!data) {
+    throw {
+      status: 404,
+      message: "Source document not found.",
+      code: "SOURCE_DOCUMENT_NOT_FOUND",
+    };
+  }
+
+  return data as DbRow;
+}
+
 async function loadCompanyMemory(
   supabaseAdmin: SupabaseClient,
   userId: string,
@@ -296,126 +381,124 @@ async function loadCompanyMemory(
   return (data ?? null) as DbRow | null;
 }
 
-function resolveSenderIdentity(
-  body: SendEmailBody,
-  memory: DbRow | null,
-): SenderIdentityResolved {
-  const senderIdentity = isObject(memory?.sender_identity)
-    ? memory?.sender_identity
-    : null;
-
-  const payloadName = body.senderName;
-  const payloadEmail = body.senderEmail;
-
-  if (payloadName || payloadEmail) {
-    const email = payloadEmail || null;
-    return {
-      senderName: payloadName || null,
-      senderEmail: email,
-      senderDomain: email && email.includes("@") ? email.split("@")[1] : null,
-      source: "payload",
-    };
-  }
-
-  const memoryName =
-    asString(memory?.sender_name) ||
-    asString(senderIdentity?.sender_name) ||
-    asString(senderIdentity?.name);
-  const memoryEmail =
-    asString(memory?.sender_email) ||
-    asString(senderIdentity?.sender_email) ||
-    asString(senderIdentity?.email);
-
-  if (memoryName || memoryEmail) {
-    return {
-      senderName: memoryName || null,
-      senderEmail: memoryEmail || null,
-      senderDomain:
-        asString(memory?.sender_domain) ||
-        (memoryEmail && memoryEmail.includes("@") ? memoryEmail.split("@")[1] : null),
-      source: "memory",
-    };
-  }
-
-  const fallbackName = asString(process.env.PIERRE_FALLBACK_SENDER_NAME);
-  const fallbackEmail = asString(process.env.PIERRE_FALLBACK_SENDER_EMAIL);
-
-  if (fallbackName || fallbackEmail) {
-    return {
-      senderName: fallbackName || null,
-      senderEmail: fallbackEmail || null,
-      senderDomain:
-        fallbackEmail && fallbackEmail.includes("@")
-          ? fallbackEmail.split("@")[1]
-          : null,
-      source: "fallback",
-    };
-  }
-
-  return {
-    senderName: null,
-    senderEmail: null,
-    senderDomain: null,
-    source: "none",
-  };
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-function validateSendBody(body: SendEmailBody) {
-  if (!body.to) {
-    throw {
-      status: 400,
-      message: "Recipient email is required.",
-      code: "EMAIL_TO_REQUIRED",
-    };
-  }
+function textToParagraphs(text: string): string {
+  return text
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => `<p>${escapeHtml(block).replace(/\n/g, "<br />")}</p>`)
+    .join("\n");
+}
 
-  if (!body.subject) {
-    throw {
-      status: 400,
-      message: "Email subject is required.",
-      code: "EMAIL_SUBJECT_REQUIRED",
-    };
-  }
-
-  if (!body.body) {
-    throw {
-      status: 400,
-      message: "Email body is required.",
-      code: "EMAIL_BODY_REQUIRED",
-    };
+function formatDateForLocale(isoDate: string, language: string): string {
+  try {
+    const locale = language === "en" ? "en-GB" : "fr-FR";
+    return new Date(isoDate).toLocaleDateString(locale, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return isoDate;
   }
 }
 
-function buildProviderMessageId() {
-  return `pierre_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+function buildPremiumPdfHtml(params: {
+  title: string;
+  textContent: string;
+  rawHtml: string | null;
+  companyName: string;
+  tone: string;
+  language: string;
+  generatedAt: string;
+}): string {
+  const { title, textContent, rawHtml, companyName, tone, language, generatedAt } =
+    params;
+
+  const bodyContent = rawHtml || textToParagraphs(textContent);
+  const formattedDate = formatDateForLocale(generatedAt, language);
+  const generatedByLabel = language === "en" ? "Generated by Pierre" : "Document Pierre";
+  const toneLabel = language === "en" ? `Tone: ${tone}` : `Ton : ${tone}`;
+  const metaLine = `${escapeHtml(companyName)} &bull; ${escapeHtml(formattedDate)} &bull; ${escapeHtml(generatedByLabel)} &bull; ${escapeHtml(toneLabel)}`;
+
+  return [
+    "<!DOCTYPE html>",
+    `<html lang="${escapeHtml(language)}">`,
+    "<head>",
+    '<meta charset="UTF-8" />',
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+    `<title>${escapeHtml(title)}</title>`,
+    "<style>",
+    "  *, *::before, *::after { box-sizing: border-box; }",
+    "  body { font-family: Georgia, 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.7; color: #1a1a1a; background: #ffffff; max-width: 800px; margin: 0 auto; padding: 48px 56px; }",
+    "  h1 { font-size: 1.75em; font-weight: 700; border-bottom: 2px solid #1a1a1a; padding-bottom: 0.35em; margin-top: 0; margin-bottom: 0.25em; }",
+    "  .doc-meta { color: #555; font-size: 0.82em; font-family: Arial, Helvetica, sans-serif; margin-bottom: 2.5em; }",
+    "  p { margin: 0.9em 0; }",
+    "  ul, ol { padding-left: 1.5em; }",
+    "  li { margin: 0.4em 0; }",
+    "  strong, b { font-weight: 700; }",
+    "  @media print {",
+    "    body { padding: 20px; font-size: 11pt; }",
+    "    .doc-meta { color: #444; }",
+    "  }",
+    "</style>",
+    "</head>",
+    "<body>",
+    `<h1>${escapeHtml(title)}</h1>`,
+    `<p class="doc-meta">${metaLine}</p>`,
+    bodyContent,
+    "</body>",
+    "</html>",
+  ].join("\n");
 }
 
-async function insertSentEmail(params: {
+async function insertPdfDocument(params: {
   supabaseAdmin: SupabaseClient;
+  userId: string;
   missionId: string | null;
-  sender: SenderIdentityResolved;
-  body: SendEmailBody;
-  providerMessageId: string;
+  taskId: string | null;
+  title: string;
+  textContent: string;
+  htmlContent: string;
+  docMetadata: Record<string, unknown>;
 }): Promise<DbRow> {
-  const { supabaseAdmin, missionId, sender, body, providerMessageId } = params;
+  const {
+    supabaseAdmin,
+    userId,
+    missionId,
+    taskId,
+    title,
+    textContent,
+    htmlContent,
+    docMetadata,
+  } = params;
 
-  const insertPayload = {
+  const insertPayload: Record<string, unknown> = {
+    user_id: userId,
     mission_id: missionId,
-    to: body.to || null,
-    cc: body.cc || null,
-    bcc: body.bcc || null,
-    subject: body.subject || null,
-    body_text: body.body || null,
-    body_html: null,
-    sender_name: sender.senderName,
-    sender_email: sender.senderEmail,
-    status: "sent",
-    provider_message_id: providerMessageId,
-    attachments: body.attachments ?? null,
+    task_id: taskId,
+    agent_slug: "pierre",
+    doc_type: "pdf_export",
+    title,
+    text_content: textContent,
+    html_content: htmlContent,
+    pdf_url: null,
+    source_kind: "pdf_generated",
+    tags_json: ["pdf", "pdf_export", "pierre"],
+    status: "generated",
+    metadata: docMetadata,
   };
 
   const { data, error } = await supabaseAdmin
-    .from("pierre_outbound_emails")
+    .from("pierre_documents")
     .insert(insertPayload)
     .select("*")
     .single();
@@ -423,8 +506,8 @@ async function insertSentEmail(params: {
   if (error || !data) {
     throw {
       status: 500,
-      message: "Unable to save sent email.",
-      code: "EMAIL_SEND_SAVE_FAILED",
+      message: "Unable to save PDF document.",
+      code: "PDF_DOCUMENT_CREATE_FAILED",
       details: mapDbError(error),
     };
   }
@@ -432,83 +515,198 @@ async function insertSentEmail(params: {
   return data as DbRow;
 }
 
-async function insertMissionLogIfNeeded(params: {
+async function insertPdfLogIfNeeded(params: {
   supabaseAdmin: SupabaseClient;
   missionId: string | null;
-  subject: string;
-  emailId: string;
-  to: string;
-}) {
-  const { supabaseAdmin, missionId, subject, emailId, to } = params;
-  if (!missionId) return;
+  taskId: string | null;
+  pdfDocumentId: string;
+  sourceDocumentId: string | null;
+  generatedAt: string;
+}): Promise<void> {
+  const { supabaseAdmin, missionId, taskId, pdfDocumentId, sourceDocumentId, generatedAt } =
+    params;
+
+  if (!missionId && !taskId) return;
 
   const { error } = await supabaseAdmin.from("pierre_task_logs").insert({
     mission_id: missionId,
+    task_id: taskId,
     level: "info",
-    event: "email_sent_direct",
-    message: `Email envoyé : ${subject}`,
+    event: "pdf_generated_direct",
+    message: "PDF Pierre genere depuis route directe.",
     payload: {
-      email_id: emailId,
-      to,
-      subject,
+      pdf_document_id: pdfDocumentId,
+      source_document_id: sourceDocumentId,
+      generated_at: generatedAt,
     },
   });
 
   if (error) {
-    throw {
-      status: 500,
-      message: "Unable to create mission log.",
-      code: "MISSION_LOG_CREATE_FAILED",
-      details: mapDbError(error),
-    };
+    console.warn("[pierre/pdf/generate] Failed to insert task log:", error.message);
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = normalizeBody(await request.json());
-    validateSendBody(body);
 
     const supabaseAdmin = createAdminClient();
     const auth = await authenticateRequest(request, supabaseAdmin);
 
-    const [mission, memory] = await Promise.all([
-      verifyMissionOwnershipIfNeeded(supabaseAdmin, body.missionId, auth.userId),
+    // Verify mission ownership if provided
+    const mission = await verifyMissionOwnershipIfNeeded(
+      supabaseAdmin,
+      body.missionId,
+      auth.userId,
+    );
+
+    // Verify task ownership if provided (sequential: needed before loading source doc)
+    const task = await verifyTaskOwnershipIfNeeded(
+      supabaseAdmin,
+      body.taskId,
+      auth.userId,
+    );
+
+    // Load source document and company memory in parallel
+    const [sourceDocument, memory] = await Promise.all([
+      loadSourceDocumentIfNeeded(supabaseAdmin, body.sourceDocumentId, auth.userId),
       loadCompanyMemory(supabaseAdmin, auth.userId),
     ]);
 
-    const sender = resolveSenderIdentity(body, memory);
-    const providerMessageId = buildProviderMessageId();
+    // Resolve content: payload > source document
+    const textContent =
+      body.text ||
+      asString(sourceDocument?.text_content) ||
+      null;
 
-    const email = await insertSentEmail({
-      supabaseAdmin,
-      missionId: mission ? (mission.id as string) : null,
-      sender,
-      body,
-      providerMessageId,
+    const rawHtml =
+      body.html ||
+      asString(sourceDocument?.html_content) ||
+      null;
+
+    if (!textContent && !rawHtml) {
+      return jsonError(
+        "Document content is required (text or html).",
+        400,
+        { code: "PDF_CONTENT_REQUIRED" },
+      );
+    }
+
+    // Resolve title
+    const title =
+      body.title ||
+      asString(sourceDocument?.title) ||
+      "Document Pierre";
+
+    // Resolve display settings from payload, memory, then defaults
+    const companyName =
+      asString(memory?.company_name) ||
+      asString(memory?.name) ||
+      "Pierre RH";
+
+    const tone =
+      body.tone ||
+      asString(memory?.preferred_tone) ||
+      asString(memory?.tone_guide) ||
+      "professionnel";
+
+    const language =
+      body.language ||
+      asString(memory?.preferred_language) ||
+      "fr";
+
+    // Build plain text for storage (strip HTML tags if only HTML was provided)
+    const finalTextContent =
+      textContent ||
+      (rawHtml ? rawHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() : "");
+
+    const generatedAt = new Date().toISOString();
+
+    const premiumHtml = buildPremiumPdfHtml({
+      title,
+      textContent: finalTextContent,
+      rawHtml,
+      companyName,
+      tone,
+      language,
+      generatedAt,
     });
 
-    await insertMissionLogIfNeeded({
+    const resolvedMissionId = mission ? String(mission.id) : null;
+    const resolvedTaskId = task ? String(task.id) : null;
+
+    const docMetadata: Record<string, unknown> = {
+      source: "api:pierre:pdf:generate",
+      tone,
+      language,
+      company_name: companyName,
+      source_document_id: body.sourceDocumentId || null,
+      mission_id: resolvedMissionId,
+      task_id: resolvedTaskId,
+      generated_at: generatedAt,
+      ...(isObject(body.metadata) ? body.metadata : {}),
+    };
+
+    const document = await insertPdfDocument({
       supabaseAdmin,
-      missionId: mission ? (mission.id as string) : null,
-      subject: body.subject as string,
-      emailId: String(email.id),
-      to: body.to as string,
+      userId: auth.userId,
+      missionId: resolvedMissionId,
+      taskId: resolvedTaskId,
+      title,
+      textContent: finalTextContent,
+      htmlContent: premiumHtml,
+      docMetadata,
     });
+
+    const documentId = String(document.id);
+    const pdfUrl = asString(document.pdf_url) || null;
+
+    await insertPdfLogIfNeeded({
+      supabaseAdmin,
+      missionId: resolvedMissionId,
+      taskId: resolvedTaskId,
+      pdfDocumentId: documentId,
+      sourceDocumentId: body.sourceDocumentId || null,
+      generatedAt,
+    });
+
+    // Build a PDF record shape compatible with front-end normalizePdf
+    const pdfRecord = {
+      id: documentId,
+      mission_id: resolvedMissionId,
+      task_id: resolvedTaskId,
+      title,
+      doc_type: "pdf_export",
+      filename: null,
+      storage_path: null,
+      public_url: pdfUrl,
+      signed_url: null,
+      status: "generated",
+      created_at: asString(document.created_at),
+      updated_at: asString(document.updated_at),
+    };
 
     return NextResponse.json({
       ok: true,
-      email,
-      sent: email,
-      provider: {
-        provider: "internal_stub",
-        messageId: providerMessageId,
-        deliveryAccepted: true,
-        senderIdentityResolved: sender,
+      pdf: pdfRecord,
+      document,
+      pdfs: [pdfRecord],
+      documents: [document],
+      artifact: {
+        kind: "pdf",
+        status: "generated",
+        document_id: documentId,
+        pdf_url: pdfUrl,
+        note: "PDF logique genere et stocke dans pierre_documents. Rendu binaire disponible apres configuration du renderer.",
       },
       meta: {
-        fetchedAt: new Date().toISOString(),
-        missionId: mission ? (mission.id as string) : null,
+        fetchedAt: generatedAt,
+        missionId: resolvedMissionId,
+        taskId: resolvedTaskId,
+        sourceDocumentId: body.sourceDocumentId || null,
+        companyName,
+        tone,
+        language,
       },
     });
   } catch (error) {
