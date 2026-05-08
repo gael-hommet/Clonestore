@@ -1,4 +1,4 @@
-﻿import { normalizePierreTaskStatus } from "./status";
+import { normalizePierreTaskStatus } from "./status";
 
 export type PierreExecutorTask = {
   id: string;
@@ -50,6 +50,30 @@ export type PierreExecutorOutcome =
   | PierreExecutorSuccess
   | PierreExecutorFailure;
 
+// Artifact request shapes emitted by executors when payload has content.
+// The persistence layer (process-task.ts + run-next adapter) handles actual DB writes.
+export type PierreDocumentArtifactRequest = {
+  kind: "document" | "pdf";
+  doc_type: string;
+  title: string;
+  text_content: string;
+  html_content: string;
+};
+
+export type PierreEmailArtifactRequest = {
+  kind: "email_draft" | "email_send";
+  subject: string;
+  body_text: string;
+  body_html: string;
+  to_json: string[];
+  cc_json: string[];
+  bcc_json: string[];
+};
+
+export type PierreArtifactRequest =
+  | PierreDocumentArtifactRequest
+  | PierreEmailArtifactRequest;
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -77,6 +101,19 @@ function missingInfoFromPayload(payload: unknown): string[] {
 function hasApprovalRequired(payload: unknown): boolean {
   if (!isObject(payload)) return false;
   return payload.approval_required === true;
+}
+
+// Extract email addresses from a payload field value.
+function collectEmailStrings(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => asString(item))
+      .filter((v): v is string => v !== null && v.includes("@"));
+  }
+  if (typeof value === "string" && value.includes("@")) {
+    return [value.trim()];
+  }
+  return [];
 }
 
 function buildSuccess(
@@ -119,6 +156,106 @@ function buildFailure(params: {
   };
 }
 
+// Try to extract a document artifact request from the task payload.
+// Returns null when the payload lacks content — no artifact can be prepared.
+function tryExtractDocumentArtifact(
+  task: PierreExecutorTask,
+  kind: "document" | "pdf",
+): PierreDocumentArtifactRequest | null {
+  const payload = isObject(task.payload) ? task.payload : null;
+  if (!payload) return null;
+
+  const textContent =
+    asString(payload.text_content) ||
+    asString(payload.body_text) ||
+    asString(payload.document_text) ||
+    asString(payload.generated_document_text) ||
+    asString(payload.raw_input) ||
+    asString(payload.input);
+
+  const htmlContent =
+    asString(payload.html_content) ||
+    asString(payload.body_html) ||
+    asString(payload.document_html) ||
+    asString(payload.generated_document_html);
+
+  if (!textContent && !htmlContent) return null;
+
+  const resolvedDocType =
+    asString(payload.doc_type) || (kind === "pdf" ? "pdf_export" : "document_rh");
+
+  const resolvedTitle =
+    asString(payload.title) ||
+    asString(task.title) ||
+    (kind === "pdf" ? "Document Pierre PDF" : "Document Pierre");
+
+  return {
+    kind,
+    doc_type: resolvedDocType,
+    title: resolvedTitle,
+    text_content: textContent || "",
+    html_content: htmlContent || "",
+  };
+}
+
+// Try to extract an email artifact request from the task payload.
+// Returns null when the payload lacks subject and body — no draft can be prepared.
+function tryExtractEmailArtifact(
+  task: PierreExecutorTask,
+  kind: "email_draft" | "email_send",
+): PierreEmailArtifactRequest | null {
+  const payload = isObject(task.payload) ? task.payload : null;
+  if (!payload) return null;
+
+  const subject =
+    asString(payload.subject) ||
+    asString(payload.email_subject) ||
+    asString(payload.title);
+
+  const bodyText =
+    asString(payload.body_text) ||
+    asString(payload.text_content) ||
+    asString(payload.document_text) ||
+    asString(payload.generated_document_text) ||
+    asString(payload.raw_input);
+
+  const bodyHtml =
+    asString(payload.body_html) ||
+    asString(payload.html_content) ||
+    asString(payload.document_html) ||
+    asString(payload.generated_document_html);
+
+  if (!subject && !bodyText && !bodyHtml) return null;
+
+  const toJson = [
+    ...collectEmailStrings(payload.to),
+    ...collectEmailStrings(payload.recipient_email),
+    ...collectEmailStrings(payload.recipient_emails),
+    ...collectEmailStrings(payload.destinataire_email),
+    ...collectEmailStrings(payload.destinataires),
+  ];
+
+  const ccJson = [
+    ...collectEmailStrings(payload.cc),
+    ...collectEmailStrings(payload.cc_emails),
+  ];
+
+  const bccJson = [
+    ...collectEmailStrings(payload.bcc),
+    ...collectEmailStrings(payload.bcc_emails),
+  ];
+
+  return {
+    kind,
+    subject: subject || "(sans objet)",
+    body_text: bodyText || "",
+    body_html: bodyHtml || "",
+    to_json: [...new Set(toJson)],
+    cc_json: [...new Set(ccJson)],
+    bcc_json: [...new Set(bccJson)],
+  };
+}
+
 function executeGenerateDocument(
   task: PierreExecutorTask,
   context: PierreExecutorContext,
@@ -132,18 +269,23 @@ function executeGenerateDocument(
       error_code: "MISSING_INFO",
       event: "document_generation_waiting_info",
       level: "warning",
-      message: "Impossible de gÃ©nÃ©rer le document sans les informations manquantes.",
+      message: "Impossible de generer le document sans les informations manquantes.",
       payload: { missing_info: missingInfo },
     });
   }
 
+  const artifactRequest = tryExtractDocumentArtifact(task, "document");
+  const generatedAt = (context.now ?? new Date()).toISOString();
+
   return buildSuccess(
-    "document_generated",
-    "Le document RH a Ã©tÃ© gÃ©nÃ©rÃ© avec succÃ¨s.",
+    "document_artifact_planned",
+    "Tache de generation de document enregistree.",
     {
-      generated_document: true,
       task_id: task.id,
-      generated_at: (context.now ?? new Date()).toISOString(),
+      generated_at: generatedAt,
+      ...(artifactRequest
+        ? { artifact_request: artifactRequest }
+        : { artifact_pending: true, note: "Le payload ne contient pas de contenu generable." }),
     },
   );
 }
@@ -161,7 +303,7 @@ function executePrepareEmail(
       error_code: "MISSING_INFO",
       event: "email_preparation_waiting_info",
       level: "warning",
-      message: "Impossible de prÃ©parer lâ€™email tant que certaines informations manquent.",
+      message: "Impossible de preparer l'email tant que certaines informations manquent.",
       payload: { missing_info: missingInfo },
     });
   }
@@ -172,17 +314,26 @@ function executePrepareEmail(
       error_code: "APPROVAL_REQUIRED",
       event: "email_preparation_waiting_approval",
       level: "warning",
-      message: "La prÃ©paration de lâ€™email exige une validation humaine prÃ©alable.",
+      message: "La preparation de l'email exige une validation humaine prealable.",
     });
   }
 
+  const isSend = task.type === "email.send" || task.type === "send_email";
+  const artifactRequest = tryExtractEmailArtifact(
+    task,
+    isSend ? "email_send" : "email_draft",
+  );
+  const generatedAt = (context.now ?? new Date()).toISOString();
+
   return buildSuccess(
-    "email_prepared",
-    "Lâ€™email RH a Ã©tÃ© prÃ©parÃ© avec succÃ¨s.",
+    "email_artifact_planned",
+    "Tache de preparation d'email enregistree.",
     {
-      prepared_email: true,
       task_id: task.id,
-      generated_at: (context.now ?? new Date()).toISOString(),
+      generated_at: generatedAt,
+      ...(artifactRequest
+        ? { artifact_request: artifactRequest }
+        : { artifact_pending: true, note: "Le payload ne contient pas de contenu email generable." }),
     },
   );
 }
@@ -200,18 +351,23 @@ function executeGeneratePdf(
       error_code: "MISSING_INFO",
       event: "pdf_generation_waiting_info",
       level: "warning",
-      message: "Impossible de gÃ©nÃ©rer le PDF sans les informations nÃ©cessaires.",
+      message: "Impossible de generer le PDF sans les informations necessaires.",
       payload: { missing_info: missingInfo },
     });
   }
 
+  const artifactRequest = tryExtractDocumentArtifact(task, "pdf");
+  const generatedAt = (context.now ?? new Date()).toISOString();
+
   return buildSuccess(
-    "pdf_generated",
-    "Le PDF a Ã©tÃ© gÃ©nÃ©rÃ© avec succÃ¨s.",
+    "pdf_artifact_planned",
+    "Tache de generation PDF enregistree.",
     {
-      generated_pdf: true,
       task_id: task.id,
-      generated_at: (context.now ?? new Date()).toISOString(),
+      generated_at: generatedAt,
+      ...(artifactRequest
+        ? { artifact_request: artifactRequest }
+        : { artifact_pending: true, note: "Le payload ne contient pas de contenu PDF generable." }),
     },
   );
 }
@@ -222,7 +378,7 @@ function executeScheduleFollowUp(
 ): PierreExecutorOutcome {
   return buildSuccess(
     "follow_up_scheduled",
-    "La relance a Ã©tÃ© planifiÃ©e avec succÃ¨s.",
+    "La relance a ete planifiee avec succes.",
     {
       scheduled_follow_up: true,
       task_id: task.id,
@@ -243,8 +399,8 @@ function executeRequestMissingInfo(task: PierreExecutorTask): PierreExecutorOutc
     level: "warning",
     message:
       missingInfo.length > 0
-        ? "La tÃ¢che reste en attente des informations manquantes."
-        : "La tÃ¢che attend des clarifications supplÃ©mentaires.",
+        ? "La tache reste en attente des informations manquantes."
+        : "La tache attend des clarifications supplementaires.",
     payload: {
       missing_info: missingInfo,
     },
@@ -257,7 +413,7 @@ function executeBlockMission(task: PierreExecutorTask): PierreExecutorOutcome {
     error_code: "EXECUTION_ERROR",
     event: "mission_blocked",
     level: "warning",
-    message: "La mission est bloquÃ©e et nÃ©cessite un arbitrage humain.",
+    message: "La mission est bloquee et necessite un arbitrage humain.",
     payload: {
       task_id: task.id,
     },
@@ -270,7 +426,7 @@ function executeStructureMission(
 ): PierreExecutorOutcome {
   return buildSuccess(
     "mission_structured",
-    "La mission RH a Ã©tÃ© structurÃ©e avec succÃ¨s.",
+    "La mission RH a ete structuree avec succes.",
     {
       structured_mission: true,
       task_id: task.id,
@@ -285,13 +441,17 @@ export async function executePierreTask(
 ): Promise<PierreExecutorOutcome> {
   const normalizedStatus = normalizePierreTaskStatus(task.status);
 
-  if (normalizedStatus !== "running" && normalizedStatus !== "queued" && normalizedStatus !== "pending") {
+  if (
+    normalizedStatus !== "running" &&
+    normalizedStatus !== "queued" &&
+    normalizedStatus !== "pending"
+  ) {
     return buildFailure({
       status: "blocked",
       error_code: "EXECUTION_ERROR",
       event: "executor_invalid_status",
       level: "warning",
-      message: `La tÃ¢che ne peut pas Ãªtre exÃ©cutÃ©e depuis le statut ${normalizedStatus}.`,
+      message: `La tache ne peut pas etre executee depuis le statut ${normalizedStatus}.`,
       payload: {
         status: normalizedStatus,
       },
@@ -304,7 +464,7 @@ export async function executePierreTask(
       error_code: "UNSUPPORTED_TASK",
       event: "executor_missing_task_type",
       level: "error",
-      message: "Le type de tÃ¢che est manquant.",
+      message: "Le type de tache est manquant.",
     });
   }
 
@@ -329,6 +489,7 @@ export async function executePierreTask(
       return executeScheduleFollowUp(task, context);
 
     case "request_missing_info":
+    case "ask_missing_info":
       return executeRequestMissingInfo(task);
 
     case "block_mission":
@@ -343,14 +504,13 @@ export async function executePierreTask(
         error_code: "UNSUPPORTED_TASK",
         event: "executor_unsupported_task",
         level: "error",
-        message: `Type de tÃ¢che non supportÃ© : ${task.type}`,
+        message: `Type de tache non supporte : ${task.type}`,
         payload: {
           task_type: task.type,
         },
       });
   }
 }
-
 
 export type PierreRunnableTask = PierreExecutorTask & {
   user_id: string;
