@@ -20,7 +20,7 @@ type TimelineEntry = {
   status?: string | null;
 };
 
-function text(value: unknown, fallback = "â€”") {
+function text(value: unknown, fallback = "—") {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
 }
 
@@ -29,9 +29,9 @@ function asDate(value: unknown): string | null {
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "â€”";
+  if (!value) return "—";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "â€”";
+  if (Number.isNaN(date.getTime())) return "—";
 
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
@@ -87,7 +87,7 @@ export function PierreMissionTimeline({
         id: `mission-${String(mission.id)}`,
         kind: "mission",
         title: text(mission.title, "Mission Pierre"),
-        subtitle: text(mission.summary, text(mission.status, "Mission crÃ©Ã©e")),
+        subtitle: text(mission.summary, text(mission.status, "Mission créée")),
         createdAt: asDate(mission.updated_at) ?? asDate(mission.created_at),
         status: text(mission.status, "draft"),
       });
@@ -97,7 +97,7 @@ export function PierreMissionTimeline({
       items.push({
         id: `task-${String(task.id ?? Math.random())}`,
         kind: "task",
-        title: text(task.title, "TÃ¢che Pierre"),
+        title: text(task.title, "Tâche Pierre"),
         subtitle: `Type : ${text(task.type, "other")}`,
         createdAt: asDate(task.updated_at) ?? asDate(task.created_at),
         status: text(task.status, "draft"),
@@ -108,8 +108,8 @@ export function PierreMissionTimeline({
       items.push({
         id: `log-${String(log.id ?? Math.random())}`,
         kind: "log",
-        title: text(log.event, "Ã‰vÃ©nement"),
-        subtitle: text(log.message, "Log systÃ¨me"),
+        title: text(log.event, "Événement"),
+        subtitle: text(log.message, "Log système"),
         createdAt: asDate(log.created_at),
         status: null,
       });
@@ -160,16 +160,16 @@ export function PierreMissionTimeline({
       <div>
         <p className="text-sm font-semibold text-[#241b12]">Timeline mission</p>
         <p className="mt-1 text-sm text-[#6b5b4b]">
-          Vue unifiÃ©e de la mission, des tÃ¢ches, des logs et des artefacts.
+          Vue unifiée de la mission, des tâches, des logs et des artefacts.
         </p>
       </div>
 
       {entries.length === 0 ? (
         <div className="rounded-[22px] border border-dashed border-[#e6dacb] bg-[#fffdf9] px-4 py-8 text-center">
-          <p className="text-sm font-semibold text-[#2e241a]">Aucune activitÃ©</p>
+          <p className="text-sm font-semibold text-[#2e241a]">Aucune activité</p>
           <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#7a6957]">
-            La timeline se construira automatiquement Ã  mesure que Pierre interprÃ¨te,
-            planifie, exÃ©cute et journalise la mission.
+            La timeline se construira automatiquement à mesure que Pierre interprète,
+            planifie, exécute et journalise la mission.
           </p>
         </div>
       ) : (

@@ -74,7 +74,7 @@ function makeServerSupabase(): SupabaseClient {
   const serviceRole = getEnv("SUPABASE_SERVICE_ROLE_KEY");
 
   if (!url || !serviceRole) {
-    throw new Error("Supabase serveur non configurÃ©.");
+    throw new Error("Supabase serveur non configuré.");
   }
 
   return createClient(url, serviceRole, {
@@ -98,7 +98,7 @@ async function getAuthenticatedUser(
   const { data, error } = await supabase.auth.getUser(token);
 
   if (error || !data.user) {
-    return { error: error?.message || "Utilisateur non authentifiÃ©.", user: null };
+    return { error: error?.message || "Utilisateur non authentifié.", user: null };
   }
 
   return { error: null, user: data.user };
@@ -133,7 +133,7 @@ function detectRiskLevel(input: string): "low" | "medium" | "high" {
     text.includes("sanction") ||
     text.includes("disciplinaire") ||
     text.includes("avertissement") ||
-    text.includes("mise Ã  pied") ||
+    text.includes("mise à pied") ||
     text.includes("juridique")
   ) {
     return "high";
@@ -158,12 +158,12 @@ function detectApprovalRequired(input: string, risk: "low" | "medium" | "high") 
   if (risk === "high") return true;
 
   if (
-    text.includes("aprÃ¨s validation") ||
+    text.includes("après validation") ||
     text.includes("apres validation") ||
     text.includes("soumets-moi") ||
     text.includes("avant envoi") ||
     text.includes("ne l'envoie pas tout de suite") ||
-    text.includes("ne lâ€™envoie pas tout de suite")
+    text.includes("ne l’envoie pas tout de suite")
   ) {
     return true;
   }
@@ -174,7 +174,7 @@ function detectApprovalRequired(input: string, risk: "low" | "medium" | "high") 
 function detectScheduleText(input: string): string | null {
   const text = input.toLowerCase();
 
-  const hourMatch = text.match(/\bÃ \s+(\d{1,2})h(?:(\d{2}))?\b/);
+  const hourMatch = text.match(/\bà\s+(\d{1,2})h(?:(\d{2}))?\b/);
   if (!hourMatch) return null;
 
   const h = Number(hourMatch[1]);
@@ -221,15 +221,15 @@ function buildInterpretation(inputRaw: string): PierreInterpretation {
     lower.includes("compte-rendu") ||
     lower.includes("onboarding") ||
     lower.includes("offre d'emploi") ||
-    lower.includes("offre dâ€™emploi") ||
+    lower.includes("offre d’emploi") ||
     lower.includes("fiche de poste") ||
-    lower.includes("procÃ©dure") ||
+    lower.includes("procédure") ||
     lower.includes("procedure");
 
   const asksReminder =
     lower.includes("rappel") ||
     lower.includes("relance") ||
-    lower.includes("si pas de rÃ©ponse") ||
+    lower.includes("si pas de réponse") ||
     lower.includes("si pas de reponse");
 
   const outOfScope =
@@ -241,7 +241,7 @@ function buildInterpretation(inputRaw: string): PierreInterpretation {
   if (outOfScope) {
     return {
       intent: "out_of_scope",
-      mission_summary: "Demande hors pÃ©rimÃ¨tre RH prÃ©vu pour Pierre.",
+      mission_summary: "Demande hors périmètre RH prévu pour Pierre.",
       understanding_status: "out_of_scope",
       risk_level: "high",
       approval_required: true,
@@ -253,7 +253,7 @@ function buildInterpretation(inputRaw: string): PierreInterpretation {
   if (asksEmail && !detectedEmail) {
     missingInfo.push({
       key: "recipient_email",
-      question: "Quel est lâ€™email exact du destinataire ?",
+      question: "Quel est l’email exact du destinataire ?",
       expected_format: "email",
       required: true,
     });
@@ -262,10 +262,10 @@ function buildInterpretation(inputRaw: string): PierreInterpretation {
   if (asksEmail) {
     tasks.push({
       type: detectedEmail ? "email.send" : "email.draft",
-      title: detectedEmail ? "Envoyer un email RH" : "PrÃ©parer un brouillon email RH",
+      title: detectedEmail ? "Envoyer un email RH" : "Préparer un brouillon email RH",
       description: detectedEmail
-        ? "Envoi email demandÃ© depuis la requÃªte libre."
-        : "La requÃªte demande un email mais lâ€™adresse du destinataire manque encore.",
+        ? "Envoi email demandé depuis la requête libre."
+        : "La requête demande un email mais l’adresse du destinataire manque encore.",
       status: approvalRequired
         ? "awaiting_approval"
         : executeAt
@@ -287,8 +287,8 @@ function buildInterpretation(inputRaw: string): PierreInterpretation {
   if (asksDoc || (!asksEmail && !asksReminder)) {
     tasks.push({
       type: "doc.generate",
-      title: "GÃ©nÃ©rer le document RH",
-      description: "Production du rendu RH demandÃ© par la mission.",
+      title: "Générer le document RH",
+      description: "Production du rendu RH demandé par la mission.",
       status: missingInfo.length ? "blocked" : "ready",
       priority: 90,
       approval_required: false,
@@ -303,7 +303,7 @@ function buildInterpretation(inputRaw: string): PierreInterpretation {
   if (asksReminder) {
     tasks.push({
       type: "followup.schedule",
-      title: "CrÃ©er une relance / suivi",
+      title: "Créer une relance / suivi",
       description: "La mission contient une logique de rappel ou relance.",
       status: missingInfo.length ? "blocked" : executeAt ? "scheduled" : "draft",
       priority: 70,
@@ -328,8 +328,8 @@ function buildInterpretation(inputRaw: string): PierreInterpretation {
 
   const missionSummary =
     tasks.length > 0
-      ? `Mission interprÃ©tÃ©e : ${tasks.map((t) => t.title).join(" + ")}.`
-      : "Mission reÃ§ue, mais aucune action exploitable nâ€™a Ã©tÃ© dÃ©tectÃ©e.";
+      ? `Mission interprétée : ${tasks.map((t) => t.title).join(" + ")}.`
+      : "Mission reçue, mais aucune action exploitable n’a été détectée.";
 
   return {
     intent,
@@ -379,7 +379,7 @@ async function insertMissionAndTasks(
     .single();
 
   if (missionError || !mission) {
-    throw new Error(missionError?.message || "Impossible de crÃ©er la mission.");
+    throw new Error(missionError?.message || "Impossible de créer la mission.");
   }
 
   let insertedTasks: Record<string, unknown>[] = [];
@@ -420,7 +420,7 @@ async function insertMissionAndTasks(
       user_id: userId,
       agent_slug: "pierre",
       event_type: "mission_created",
-      message: "Mission Pierre crÃ©Ã©e depuis /api/pierre/use/submit",
+      message: "Mission Pierre créée depuis /api/pierre/use/submit",
       meta_json: {
         source,
         understanding_status: interpretation.understanding_status,
@@ -433,7 +433,7 @@ async function insertMissionAndTasks(
       user_id: userId,
       agent_slug: "pierre",
       event_type: "task_created",
-      message: `Task crÃ©Ã©e : ${String(task.title || "")}`,
+      message: `Task créée : ${String(task.title || "")}`,
       meta_json: {
         type: task.type,
         status: task.status,
@@ -464,7 +464,7 @@ export async function POST(req: NextRequest) {
   const { error: authError, user } = await getAuthenticatedUser(req, supabase);
 
   if (authError || !user) {
-    return json(401, { ok: false, error: authError || "Non authentifiÃ©." });
+    return json(401, { ok: false, error: authError || "Non authentifié." });
   }
 
   const access = await hasPierreAccess(supabase, user.id);
@@ -474,7 +474,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (!access.ok) {
-    return json(403, { ok: false, error: "Pierre nâ€™est pas actif sur ce compte." });
+    return json(403, { ok: false, error: "Pierre n’est pas actif sur ce compte." });
   }
 
   let body: PierreUseSubmitBody;
@@ -489,7 +489,7 @@ export async function POST(req: NextRequest) {
   const source = safeString(body.source) || "use_page";
 
   if (!input || input.length < 3) {
-    return json(400, { ok: false, error: "RequÃªte libre trop courte." });
+    return json(400, { ok: false, error: "Requête libre trop courte." });
   }
 
   try {
@@ -512,7 +512,7 @@ export async function POST(req: NextRequest) {
   } catch (e: unknown) {
     return json(500, {
       ok: false,
-      error: e instanceof Error ? e.message : "Erreur lors de la crÃ©ation de mission Pierre.",
+      error: e instanceof Error ? e.message : "Erreur lors de la création de mission Pierre.",
     });
   }
 }

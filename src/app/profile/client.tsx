@@ -37,7 +37,7 @@ type OrderRow = {
 };
 
 function formatDateTime(value: string | null | undefined) {
-  if (!value) return "â€”";
+  if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
 
@@ -58,12 +58,12 @@ function statusLabel(status: string) {
   const normalized = normalizeStatus(status);
 
   if (normalized === "active") return "Actif";
-  if (normalized === "cancelled") return "RÃ©siliÃ©";
+  if (normalized === "cancelled") return "Résilié";
   if (normalized === "past_due") return "Paiement en attente";
   if (normalized === "trialing") return "Essai";
-  if (normalized === "incomplete") return "Activation incomplÃ¨te";
+  if (normalized === "incomplete") return "Activation incomplète";
 
-  return status || "â€”";
+  return status || "—";
 }
 
 function statusClass(status: string) {
@@ -148,7 +148,7 @@ function EmployeeCard({
                 )}
 
                 {agent.slug === "pierre" ? (
-                  <span className="cs-status cs-status--success">EntrÃ©e forte</span>
+                  <span className="cs-status cs-status--success">Entrée forte</span>
                 ) : null}
               </div>
 
@@ -164,15 +164,15 @@ function EmployeeCard({
           </div>
 
           <p className="text-[0.9rem] leading-7 text-[var(--cs-ink-3)]">
-            {agent.does[0] ?? "EmployÃ© IA CloneStore."}
+            {agent.does[0] ?? "Employé IA CloneStore."}
           </p>
 
           <div className="grid gap-2">
             <p className="text-[0.82rem] text-[var(--cs-ink-4)]">
-              DÃ©but : {order ? formatDateTime(order.started_at) : "â€”"}
+              Début : {order ? formatDateTime(order.started_at) : "—"}
             </p>
             <p className="text-[0.82rem] text-[var(--cs-ink-4)]">
-              Fin / Ã©tat : {order ? formatDateTime(order.ended_at) : "Non activÃ©"}
+              Fin / état : {order ? formatDateTime(order.ended_at) : "Non activé"}
             </p>
           </div>
         </div>
@@ -216,7 +216,7 @@ export default function ProfileAgentsClient() {
 
       if (!supabase) {
         setError(
-          "Configuration Supabase manquante. VÃ©rifie les variables publiques puis redÃ©marre le serveur.",
+          "Configuration Supabase manquante. Vérifie les variables publiques puis redémarre le serveur.",
         );
         setLoading(false);
         setRefreshing(false);
@@ -307,20 +307,20 @@ export default function ProfileAgentsClient() {
               <div className="space-y-5">
                 <span className="cs-pill">
                   <LayoutDashboard className="h-4 w-4 text-[var(--cs-violet)]" />
-                  Mes employÃ©s
+                  Mes employés
                 </span>
 
                 <div className="space-y-3">
                   <h1 className="cs-display text-[clamp(1.95rem,3vw,3.3rem)] leading-[0.98]">
                     Faire travailler les
                     <br />
-                    <span className="cs-gradient-text">employÃ©s IA.</span>
+                    <span className="cs-gradient-text">employés IA.</span>
                   </h1>
 
                   <p className="max-w-3xl text-[0.92rem] leading-7 text-[var(--cs-ink-3)]">
-                    Cette zone doit devenir le vrai point dâ€™entrÃ©e de travail du client.
-                    Elle rassemble les employÃ©s actifs, les accÃ¨s prioritaires, les
-                    activations possibles et le reste de lâ€™univers CloneStore dans un
+                    Cette zone doit devenir le vrai point d’entrée de travail du client.
+                    Elle rassemble les employés actifs, les accès prioritaires, les
+                    activations possibles et le reste de l’univers CloneStore dans un
                     cadre premium et lisible.
                   </p>
                 </div>
@@ -351,28 +351,28 @@ export default function ProfileAgentsClient() {
                   <ProfileStatCard
                     title="Actifs"
                     value={activeOrders.length}
-                    helper="EmployÃ©s utilisables maintenant"
+                    helper="Employés utilisables maintenant"
                     icon={<BadgeCheck className="h-5 w-5" />}
                     tone="success"
                   />
                   <ProfileStatCard
-                    title="Disponibles Ã  ouvrir"
+                    title="Disponibles à ouvrir"
                     value={availableToActivate.length}
-                    helper="EmployÃ©s activables maintenant"
+                    helper="Employés activables maintenant"
                     icon={<Sparkles className="h-5 w-5" />}
                     tone="violet"
                   />
                   <ProfileStatCard
                     title="Vision future"
                     value={futureAgents.length}
-                    helper="EmployÃ©s visibles dans la gamme"
+                    helper="Employés visibles dans la gamme"
                     icon={<Clock3 className="h-5 w-5" />}
                     tone="blue"
                   />
                   <ProfileStatCard
                     title="Compte"
-                    value={userId ? "ConnectÃ©" : "InvitÃ©"}
-                    helper="Session privÃ©e nÃ©cessaire"
+                    value={userId ? "Connecté" : "Invité"}
+                    helper="Session privée nécessaire"
                     icon={<BriefcaseBusiness className="h-5 w-5" />}
                     tone="default"
                   />
@@ -385,16 +385,16 @@ export default function ProfileAgentsClient() {
 
           {!loading && !userId ? (
             <ProfileSection
-              title="AccÃ¨s"
-              description="Une session active est nÃ©cessaire pour piloter les employÃ©s."
+              title="Accès"
+              description="Une session active est nécessaire pour piloter les employés."
             >
               <ProfileEmptyState
-                title="Connecte-toi pour accÃ©der Ã  tes employÃ©s"
-                text="Le cockpit employÃ©s, les usages Pierre, les configurations et les Ã©tats de souscription nÃ©cessitent une session CloneStore active."
+                title="Connecte-toi pour accéder à tes employés"
+                text="Le cockpit employés, les usages Pierre, les configurations et les états de souscription nécessitent une session CloneStore active."
                 actions={
                   <>
                     <ProfileActionLink href="/login" label="Connexion" primary />
-                    <ProfileActionLink href="/signup" label="CrÃ©er un compte" />
+                    <ProfileActionLink href="/signup" label="Créer un compte" />
                   </>
                 }
               />
@@ -404,11 +404,11 @@ export default function ProfileAgentsClient() {
           {loading ? (
             <ProfileSection
               title="Chargement"
-              description="Lecture des employÃ©s liÃ©s au compte."
+              description="Lecture des employés liés au compte."
             >
               <div className="rounded-[1.2rem] border border-[var(--cs-line-soft)] bg-white/28 px-4 py-5">
                 <p className="text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
-                  Chargement des employÃ©s du compteâ€¦
+                  Chargement des employés du compte…
                 </p>
               </div>
             </ProfileSection>
@@ -425,7 +425,7 @@ export default function ProfileAgentsClient() {
                         Zone de travail
                       </p>
                       <p className="mt-1 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
-                        Mes employÃ©s doit servir de point dâ€™entrÃ©e rÃ©el vers les cockpits.
+                        Mes employés doit servir de point d’entrée réel vers les cockpits.
                       </p>
                     </div>
                   </div>
@@ -439,7 +439,7 @@ export default function ProfileAgentsClient() {
                         Configuration
                       </p>
                       <p className="mt-1 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
-                        Chaque employÃ© doit Ãªtre lisible cÃ´tÃ© usage et cÃ´tÃ© setup.
+                        Chaque employé doit être lisible côté usage et côté setup.
                       </p>
                     </div>
                   </div>
@@ -453,7 +453,7 @@ export default function ProfileAgentsClient() {
                         Exploitation
                       </p>
                       <p className="mt-1 text-[0.84rem] leading-6 text-[var(--cs-ink-3)]">
-                        Le but nâ€™est pas de â€œparler Ã  une IAâ€, mais de faire tourner un poste.
+                        Le but n’est pas de “parler à une IA”, mais de faire tourner un poste.
                       </p>
                     </div>
                   </div>
@@ -462,10 +462,10 @@ export default function ProfileAgentsClient() {
 
               <ProfileSection
                 title="Actifs maintenant"
-                description="Les employÃ©s dÃ©jÃ  exploitables doivent ressortir avant tout le reste."
+                description="Les employés déjà exploitables doivent ressortir avant tout le reste."
                 right={
                   refreshing ? (
-                    <span className="cs-status cs-status--info">Actualisationâ€¦</span>
+                    <span className="cs-status cs-status--info">Actualisation…</span>
                   ) : (
                     <ProfileActionLink
                       href="/profile"
@@ -476,8 +476,8 @@ export default function ProfileAgentsClient() {
               >
                 {activeAgents.length === 0 ? (
                   <ProfileEmptyState
-                    title="Aucun employÃ© actif"
-                    text="Le meilleur dÃ©part aujourdâ€™hui reste dâ€™activer Pierre pour obtenir une vraie valeur opÃ©rationnelle immÃ©diate."
+                    title="Aucun employé actif"
+                    text="Le meilleur départ aujourd’hui reste d’activer Pierre pour obtenir une vraie valeur opérationnelle immédiate."
                     actions={
                       <>
                         <ProfileActionLink
@@ -507,12 +507,12 @@ export default function ProfileAgentsClient() {
 
               <ProfileSection
                 title="Disponibles maintenant"
-                description="Ce bloc doit rendre Ã©vident lâ€™employÃ© Ã  activer quand rien nâ€™est encore ouvert."
+                description="Ce bloc doit rendre évident l’employé à activer quand rien n’est encore ouvert."
               >
                 {availableToActivate.length === 0 ? (
                   <ProfileEmptyState
-                    title="Aucun autre employÃ© immÃ©diatement activable"
-                    text="Lâ€™entrÃ©e publique ouverte aujourdâ€™hui reste concentrÃ©e sur Pierre."
+                    title="Aucun autre employé immédiatement activable"
+                    text="L’entrée publique ouverte aujourd’hui reste concentrée sur Pierre."
                   />
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
@@ -529,7 +529,7 @@ export default function ProfileAgentsClient() {
 
               <ProfileSection
                 title="Univers CloneStore"
-                description="Les employÃ©s Ã  venir doivent exister proprement dans lâ€™Ã©cosystÃ¨me sans Ãªtre survendus."
+                description="Les employés à venir doivent exister proprement dans l’écosystème sans être survendus."
               >
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {futureAgents.map((agent) => (
@@ -546,21 +546,21 @@ export default function ProfileAgentsClient() {
                 <ProfileStatCard
                   title="Actifs"
                   value={activeOrders.length}
-                  helper="EmployÃ©s rÃ©ellement utilisables"
+                  helper="Employés réellement utilisables"
                   icon={<BadgeCheck className="h-5 w-5" />}
                   tone="success"
                 />
                 <ProfileStatCard
-                  title="EntrÃ©e forte"
+                  title="Entrée forte"
                   value="Pierre"
-                  helper="Le point de dÃ©part le plus crÃ©dible aujourdâ€™hui"
+                  helper="Le point de départ le plus crédible aujourd’hui"
                   icon={<Sparkles className="h-5 w-5" />}
                   tone="violet"
                 />
                 <ProfileStatCard
                   title="Support"
                   value="CloneChat"
-                  helper="Doit orienter, expliquer et rÃ©duire la friction"
+                  helper="Doit orienter, expliquer et réduire la friction"
                   icon={<Bot className="h-5 w-5" />}
                   tone="blue"
                 />

@@ -1,27 +1,32 @@
-import { buildPierreTaskRunPatch, decidePierreTaskRun } from "../tasks/run";
 import { executePierreTask, type PierreExecutorTask } from "../tasks/executors";
-import { buildPierreTaskReleasePatch } from "../tasks/release";
-import { buildPierreTaskRetryPatch } from "../tasks/retry";
 
 export type PierreQueueTaskRecord = {
   id: string;
   mission_id?: string | null;
+  user_id?: string | null;
+  agent_slug?: string | null;
   type?: string | null;
   title?: string | null;
   description?: string | null;
   status?: string | null;
   payload?: unknown;
+  payload_json?: unknown;
   result?: unknown;
+  result_json?: unknown;
+  locked_by?: string | null;
+  locked_at?: string | null;
   claimed_by?: string | null;
   claimed_at?: string | null;
-  locked_until?: string | null;
+  execute_at?: string | null;
   scheduled_for?: string | null;
   approval_required?: boolean | null;
   retry_count?: number | null;
   max_retries?: number | null;
+  last_error?: string | null;
   error_message?: string | null;
   blocked_reason?: string | null;
   started_at?: string | null;
+  finished_at?: string | null;
   completed_at?: string | null;
   updated_at?: string | null;
   created_at?: string | null;
@@ -33,6 +38,7 @@ export type PierreQueuePersistenceAdapter = {
     taskId: string,
     patch: Record<string, unknown>,
   ) => Promise<void>;
+
   insertTaskLog: (entry: {
     mission_id?: string | null;
     task_id?: string | null;
@@ -41,6 +47,13 @@ export type PierreQueuePersistenceAdapter = {
     message: string;
     payload?: Record<string, unknown> | null;
   }) => Promise<void>;
+
+  insertArtifact?: (params: {
+    taskId: string;
+    missionId: string | null;
+    userId: string | null;
+    artifactRequest: Record<string, unknown>;
+  }) => Promise<{ artifact_id: string | null; artifact_kind: string }>;
 };
 
 export type PierreProcessTaskInput = {
@@ -56,7 +69,7 @@ export type PierreProcessTaskResult =
       phase: "completed";
       taskId: string;
       missionId: string | null;
-      finalStatus: "completed";
+      finalStatus: "done";
       result: Record<string, unknown>;
     }
   | {
@@ -74,15 +87,72 @@ export type PierreProcessTaskResult =
       errorCode?: string;
     };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function asString(value: unknown): string | null {
   if (typeof value === "string") {
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : null;
   }
+
   if (typeof value === "number" && Number.isFinite(value)) {
     return String(value);
   }
+
   return null;
+}
+
+function asNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function extractArtifactRequest(
+  result: Record<string, unknown>,
+): Record<string, unknown> | null {
+  const artifactRequest = result.artifact_request;
+  return isRecord(artifactRequest) ? artifactRequest : null;
+}
+
+function resolvePayload(task: PierreQueueTaskRecord): unknown {
+  if (task.payload !== undefined && task.payload !== null) return task.payload;
+  if (task.payload_json !== undefined && task.payload_json !== null) {
+    return task.payload_json;
+  }
+  return {};
+}
+
+function resolveResult(task: PierreQueueTaskRecord): unknown {
+  if (task.result !== undefined && task.result !== null) return task.result;
+  if (task.result_json !== undefined && task.result_json !== null) {
+    return task.result_json;
+  }
+  return {};
+}
+
+function isTerminalStatus(status: string | null): boolean {
+  return (
+    status === "done" ||
+    status === "error" ||
+    status === "cancelled" ||
+    status === "blocked"
+  );
+}
+
+function isDue(task: PierreQueueTaskRecord, now: Date): boolean {
+  const dateValue = asString(task.execute_at) || asString(task.scheduled_for);
+  if (!dateValue) return true;
+
+  const timestamp = new Date(dateValue).getTime();
+  if (!Number.isFinite(timestamp)) return true;
+
+  return timestamp <= now.getTime();
+}
+
+function nextRetryDate(now: Date, retryCount: number): string {
+  const delayMinutes = Math.min(30, Math.max(2, 2 * (retryCount + 1)));
+  return new Date(now.getTime() + delayMinutes * 60_000).toISOString();
 }
 
 async function safeInsertLog(
@@ -99,6 +169,72 @@ async function safeInsertLog(
   await persistence.insertTaskLog(entry);
 }
 
+async function persistArtifactIfNeeded(params: {
+  persistence: PierreQueuePersistenceAdapter;
+  taskId: string;
+  missionId: string | null;
+  userId: string | null;
+  result: Record<string, unknown>;
+}) {
+  const { persistence, taskId, missionId, userId, result } = params;
+  const artifactRequest = extractArtifactRequest(result);
+
+  if (!artifactRequest) {
+    return result;
+  }
+
+  if (!persistence.insertArtifact) {
+    await safeInsertLog(persistence, {
+      mission_id: missionId,
+      task_id: taskId,
+      level: "warning",
+      event: "artifact_persistence_unavailable",
+      message:
+        "La tâche a produit une demande d'artefact, mais l'adapter de persistance est indisponible.",
+      payload: {
+        artifact_request: artifactRequest,
+      },
+    });
+
+    return {
+      ...result,
+      artifact_persistence: {
+        ok: false,
+        reason: "INSERT_ARTIFACT_ADAPTER_MISSING",
+      },
+    };
+  }
+
+  const artifact = await persistence.insertArtifact({
+    taskId,
+    missionId,
+    userId,
+    artifactRequest,
+  });
+
+  await safeInsertLog(persistence, {
+    mission_id: missionId,
+    task_id: taskId,
+    level: "info",
+    event: "artifact_persisted",
+    message: `Artefact Pierre persisté : ${artifact.artifact_kind}`,
+    payload: {
+      artifact_id: artifact.artifact_id,
+      artifact_kind: artifact.artifact_kind,
+      artifact_request: artifactRequest,
+    },
+  });
+
+  return {
+    ...result,
+    artifact_persistence: {
+      ok: true,
+      artifact_id: artifact.artifact_id,
+      artifact_kind: artifact.artifact_kind,
+    },
+  };
+}
+
 export async function processPierreTask(
   input: PierreProcessTaskInput,
 ): Promise<PierreProcessTaskResult> {
@@ -106,24 +242,21 @@ export async function processPierreTask(
   const task = input.task;
   const taskId = task.id;
   const missionId = asString(task.mission_id);
+  const userId = asString(task.user_id);
+  const currentStatus = asString(task.status) || "ready";
 
   try {
-    const runDecision = decidePierreTaskRun({
-      task,
-      now,
-    });
+    if (isTerminalStatus(currentStatus)) {
+      const reason = `La tâche est déjà dans un statut terminal : ${currentStatus}.`;
 
-    if (!runDecision.allowed) {
       await safeInsertLog(input.persistence, {
         mission_id: missionId,
         task_id: taskId,
-        level:
-          runDecision.run_code === "TERMINAL_STATUS" ? "info" : "warning",
+        level: "info",
         event: "task_run_rejected",
-        message: runDecision.reason,
+        message: reason,
         payload: {
-          run_code: runDecision.run_code,
-          next_status: runDecision.next_status,
+          status: currentStatus,
         },
       });
 
@@ -132,49 +265,110 @@ export async function processPierreTask(
         phase: "run_rejected",
         taskId,
         missionId,
-        finalStatus: runDecision.next_status,
-        reason: runDecision.reason,
-        errorCode: runDecision.run_code,
+        finalStatus: currentStatus,
+        reason,
+        errorCode: "TERMINAL_STATUS",
       };
     }
 
-    const runPatch = buildPierreTaskRunPatch({
-      task,
-      now,
-    });
+    if (currentStatus === "awaiting_approval") {
+      const reason = "La tâche attend une validation humaine.";
 
-    await input.persistence.updateTask(taskId, runPatch.patch);
+      await safeInsertLog(input.persistence, {
+        mission_id: missionId,
+        task_id: taskId,
+        level: "warning",
+        event: "task_run_rejected",
+        message: reason,
+        payload: {
+          status: currentStatus,
+        },
+      });
+
+      return {
+        ok: false,
+        phase: "run_rejected",
+        taskId,
+        missionId,
+        finalStatus: currentStatus,
+        reason,
+        errorCode: "APPROVAL_REQUIRED",
+      };
+    }
+
+    if (!isDue(task, now)) {
+      const reason = "La tâche est planifiée pour plus tard.";
+
+      await safeInsertLog(input.persistence, {
+        mission_id: missionId,
+        task_id: taskId,
+        level: "info",
+        event: "task_run_rejected",
+        message: reason,
+        payload: {
+          execute_at: task.execute_at ?? task.scheduled_for ?? null,
+        },
+      });
+
+      return {
+        ok: false,
+        phase: "run_rejected",
+        taskId,
+        missionId,
+        finalStatus: currentStatus,
+        reason,
+        errorCode: "NOT_DUE_YET",
+      };
+    }
+
+    await input.persistence.updateTask(taskId, {
+      status: "running",
+      locked_by: input.workerId,
+      locked_at: now.toISOString(),
+      started_at: task.started_at ?? now.toISOString(),
+      updated_at: now.toISOString(),
+    });
 
     await safeInsertLog(input.persistence, {
       mission_id: missionId,
       task_id: taskId,
       level: "info",
       event: "task_run_started",
-      message: runPatch.reason,
+      message: "Exécution de la tâche Pierre démarrée.",
       payload: {
         worker_id: input.workerId,
+        previous_status: currentStatus,
       },
     });
 
     const executorTask: PierreExecutorTask = {
       ...task,
+      payload: resolvePayload(task),
+      result: resolveResult(task),
       status: "running",
-      started_at: now.toISOString(),
+      started_at: task.started_at ?? now.toISOString(),
       claimed_by: input.workerId,
+      locked_by: input.workerId,
     };
 
     const outcome = await executePierreTask(executorTask, { now });
 
     if (outcome.ok) {
-      await input.persistence.updateTask(taskId, {
-        status: "completed",
+      const finalResult = await persistArtifactIfNeeded({
+        persistence: input.persistence,
+        taskId,
+        missionId,
+        userId,
         result: outcome.result,
-        error_message: null,
-        blocked_reason: null,
-        locked_until: null,
-        claimed_at: null,
-        claimed_by: null,
-        completed_at: now.toISOString(),
+      });
+
+      await input.persistence.updateTask(taskId, {
+        status: "done",
+        result_json: finalResult,
+        last_error: null,
+        locked_by: null,
+        locked_at: null,
+        finished_at: now.toISOString(),
         updated_at: now.toISOString(),
       });
 
@@ -192,8 +386,8 @@ export async function processPierreTask(
         phase: "completed",
         taskId,
         missionId,
-        finalStatus: "completed",
-        result: outcome.result,
+        finalStatus: "done",
+        result: finalResult,
       };
     }
 
@@ -211,26 +405,16 @@ export async function processPierreTask(
       outcome.status === "awaiting_approval" ||
       outcome.status === "blocked"
     ) {
-      const releasePatch = buildPierreTaskReleasePatch({
-        task: {
-          ...task,
-          status: "running",
-          claimed_by: input.workerId,
-          claimed_at: now.toISOString(),
-        },
-        workerId: input.workerId,
-        now,
-        mode: "unlock_only",
-        force: true,
-      });
+      const finalStatus =
+        outcome.status === "awaiting_info" ? "blocked" : outcome.status;
 
       await input.persistence.updateTask(taskId, {
-        ...releasePatch.patch,
-        status: outcome.status,
-        error_message:
-          outcome.status === "blocked" ? outcome.message : null,
+        status: finalStatus,
+        last_error: outcome.message,
+        locked_by: null,
+        locked_at: null,
         blocked_reason:
-          outcome.status === "blocked" ? outcome.message : null,
+          finalStatus === "blocked" ? outcome.message : task.blocked_reason ?? null,
         updated_at: now.toISOString(),
       });
 
@@ -239,27 +423,21 @@ export async function processPierreTask(
         phase: "released",
         taskId,
         missionId,
-        finalStatus: outcome.status,
+        finalStatus,
         reason: outcome.message,
         errorCode: outcome.error_code,
       };
     }
 
-    const retryPatch = buildPierreTaskRetryPatch({
-      task: {
-        ...task,
-        status: "failed",
-      },
-      now,
-    });
+    const retryCount = asNumber(task.retry_count) ?? 0;
+    const maxRetries = asNumber(task.max_retries) ?? 3;
 
-    if (!retryPatch.allowed) {
+    if (retryCount >= maxRetries) {
       await input.persistence.updateTask(taskId, {
-        status: "failed",
-        error_message: outcome.message,
-        locked_until: null,
-        claimed_at: null,
-        claimed_by: null,
+        status: "error",
+        last_error: outcome.message,
+        locked_by: null,
+        locked_at: null,
         updated_at: now.toISOString(),
       });
 
@@ -268,15 +446,19 @@ export async function processPierreTask(
         phase: "executor_failed",
         taskId,
         missionId,
-        finalStatus: "failed",
+        finalStatus: "error",
         reason: outcome.message,
         errorCode: outcome.error_code,
       };
     }
 
     await input.persistence.updateTask(taskId, {
-      ...retryPatch.patch,
-      error_message: outcome.message,
+      status: "retry",
+      retry_count: retryCount + 1,
+      execute_at: nextRetryDate(now, retryCount),
+      last_error: outcome.message,
+      locked_by: null,
+      locked_at: null,
       updated_at: now.toISOString(),
     });
 
@@ -285,10 +467,12 @@ export async function processPierreTask(
       task_id: taskId,
       level: "warning",
       event: "task_retry_scheduled",
-      message: retryPatch.reason,
+      message: "La tâche Pierre a échoué et sera retentée.",
       payload: {
         error_code: outcome.error_code,
         failure_message: outcome.message,
+        retry_count: retryCount + 1,
+        max_retries: maxRetries,
       },
     });
 
@@ -297,8 +481,8 @@ export async function processPierreTask(
       phase: "retry_scheduled",
       taskId,
       missionId,
-      finalStatus: "scheduled",
-      reason: retryPatch.reason,
+      finalStatus: "retry",
+      reason: outcome.message,
       errorCode: outcome.error_code,
     };
   } catch (error) {
@@ -315,11 +499,10 @@ export async function processPierreTask(
     });
 
     await input.persistence.updateTask(taskId, {
-      status: "failed",
-      error_message: message,
-      locked_until: null,
-      claimed_at: null,
-      claimed_by: null,
+      status: "error",
+      last_error: message,
+      locked_by: null,
+      locked_at: null,
       updated_at: now.toISOString(),
     });
 
@@ -328,7 +511,7 @@ export async function processPierreTask(
       phase: "process_error",
       taskId,
       missionId,
-      finalStatus: "failed",
+      finalStatus: "error",
       reason: message,
       errorCode: "PROCESS_TASK_ERROR",
     };

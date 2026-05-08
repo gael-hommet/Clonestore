@@ -44,16 +44,16 @@ const CRITICAL_RULES: RiskRule[] = [
     signals: [
       "licenciement",
       "harcelement",
-      "harcÃ¨lement",
+      "harcèlement",
       "discrimination",
       "prud'hommes",
       "contentieux",
       "sanction disciplinaire",
       "rupture forcee",
-      "rupture forcÃ©e",
+      "rupture forcée",
     ],
     reason:
-      "La demande contient un signal RH critique impliquant un risque juridique, disciplinaire ou rÃ©putationnel Ã©levÃ©.",
+      "La demande contient un signal RH critique impliquant un risque juridique, disciplinaire ou réputationnel élevé.",
     approval_required: true,
     blocked: false,
   },
@@ -61,14 +61,14 @@ const CRITICAL_RULES: RiskRule[] = [
     level: "critical",
     signals: [
       "decide seul",
-      "dÃ©cide seul",
+      "décide seul",
       "sans validation",
       "envoie directement sans validation",
       "prends la decision juridique",
       "prend la decision disciplinaire",
     ],
     reason:
-      "La demande cherche Ã  contourner la validation humaine sur un sujet sensible ou critique.",
+      "La demande cherche à contourner la validation humaine sur un sujet sensible ou critique.",
     approval_required: true,
     blocked: true,
   },
@@ -80,17 +80,17 @@ const SENSITIVE_RULES: RiskRule[] = [
     signals: [
       "avertissement",
       "mise a pied",
-      "mise Ã  pied",
+      "mise à pied",
       "conflit",
       "absence injustifiee",
-      "absence injustifiÃ©e",
+      "absence injustifiée",
       "salaire",
       "confidentiel",
       "plainte",
       "recadrage",
     ],
     reason:
-      "La demande contient un signal RH sensible nÃ©cessitant prudence, traÃ§abilitÃ© et contrÃ´le.",
+      "La demande contient un signal RH sensible nécessitant prudence, traçabilité et contrôle.",
     approval_required: true,
     blocked: false,
   },
@@ -105,7 +105,7 @@ const SENSITIVE_RULES: RiskRule[] = [
       "courrier rh",
     ],
     reason:
-      "La mission relÃ¨ve dâ€™un usage RH encadrÃ©, gÃ©nÃ©ralement autorisÃ© mais nÃ©cessitant une formulation soignÃ©e.",
+      "La mission relève d’un usage RH encadré, généralement autorisé mais nécessitant une formulation soignée.",
     approval_required: false,
     blocked: false,
   },
@@ -160,10 +160,10 @@ export function assessMissionRisk(input: PierreRiskInput): PierreRiskResult {
 
   if (classificationKey === "hors_perimetre") {
     reasons.push(
-      "La mission est classÃ©e hors pÃ©rimÃ¨tre de Pierre et doit Ãªtre bloquÃ©e ou reroutÃ©e.",
+      "La mission est classée hors périmètre de Pierre et doit être bloquée ou reroutée.",
     );
     warnings.push(
-      "Pierre ne doit pas exÃ©cuter une demande hors pÃ©rimÃ¨tre RH contrÃ´lÃ©.",
+      "Pierre ne doit pas exécuter une demande hors périmètre RH contrôlé.",
     );
   }
 
@@ -194,7 +194,7 @@ export function assessMissionRisk(input: PierreRiskInput): PierreRiskResult {
     );
   } else if (risk_level === "sensitive") {
     warnings.push(
-      "Mission sensible : garder une traÃ§abilitÃ© propre et un niveau de contrÃ´le humain adaptÃ©.",
+      "Mission sensible : garder une traçabilité propre et un niveau de contrôle humain adapté.",
     );
   }
 
@@ -204,7 +204,7 @@ export function assessMissionRisk(input: PierreRiskInput): PierreRiskResult {
     corpus.includes("contentieux")
   ) {
     warnings.push(
-      "Pierre ne remplace pas un avis juridique et ne doit pas trancher seul un sujet lÃ©gal.",
+      "Pierre ne remplace pas un avis juridique et ne doit pas trancher seul un sujet légal.",
     );
     approval_required = true;
   }

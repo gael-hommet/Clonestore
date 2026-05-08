@@ -80,7 +80,7 @@ export default function PaiementSuccessPage() {
                 <div className="flex flex-wrap gap-2">
                   <span className="cs-pill">
                     <CheckCircle2 className="h-3.5 w-3.5 text-[var(--cs-success)]" />
-                    Paiement confirmÃ©
+                    Paiement confirmé
                   </span>
                   <span className="cs-pill">
                     <Sparkles className="h-3.5 w-3.5 text-[#6f83ff]" />
@@ -90,16 +90,16 @@ export default function PaiementSuccessPage() {
 
                 <div className="max-w-4xl space-y-5">
                   <h1 className="cs-heading text-[clamp(2.4rem,5vw,5.5rem)] leading-[0.94] tracking-[-0.065em]">
-                    Activation confirmÃ©e.
+                    Activation confirmée.
                     <br />
                     <span className="bg-[linear-gradient(135deg,#151922_0%,#2d3446_46%,#667cff_100%)] bg-clip-text text-transparent">
-                      Votre espace peut Ãªtre configurÃ©.
+                      Votre espace peut être configuré.
                     </span>
                   </h1>
 
                   <p className="max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
-                    Lâ€™accÃ¨s est validÃ©. La suite logique : configurer votre espace,
-                    retrouver vos employÃ©s IA, puis entrer dans le cockpit.
+                    L’accès est validé. La suite logique : configurer votre espace,
+                    retrouver vos employés IA, puis entrer dans le cockpit.
                   </p>
                 </div>
 
@@ -117,7 +117,7 @@ export default function PaiementSuccessPage() {
                   />
                   <ActionButton
                     href="/assistant"
-                    label="Demander Ã  CloneStore"
+                    label="Demander à CloneStore"
                     icon={<Bot className="h-4 w-4" />}
                   />
                 </div>
@@ -131,23 +131,23 @@ export default function PaiementSuccessPage() {
               >
                 <div className="space-y-4">
                   <StepCard
-                    title="Paiement acceptÃ©"
-                    text="Votre activation CloneStore est confirmÃ©e."
+                    title="Paiement accepté"
+                    text="Votre activation CloneStore est confirmée."
                     icon={<CheckCircle2 className="h-4 w-4" />}
                   />
                   <StepCard
                     title="Configuration"
-                    text="Pierre peut maintenant Ãªtre prÃ©parÃ© avec vos rÃ¨gles, votre entreprise et vos usages."
+                    text="Pierre peut maintenant être préparé avec vos règles, votre entreprise et vos usages."
                     icon={<FileCheck2 className="h-4 w-4" />}
                   />
                   <StepCard
                     title="Cockpit"
-                    text="Votre espace central vous permettra de piloter vos employÃ©s IA."
+                    text="Votre espace central vous permettra de piloter vos employés IA."
                     icon={<Waypoints className="h-4 w-4" />}
                   />
                   <StepCard
-                    title="ContrÃ´le"
-                    text="Les actions sensibles restent encadrÃ©es, visibles et validables."
+                    title="Contrôle"
+                    text="Les actions sensibles restent encadrées, visibles et validables."
                     icon={<ShieldCheck className="h-4 w-4" />}
                   />
 

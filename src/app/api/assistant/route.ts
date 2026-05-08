@@ -41,13 +41,13 @@ export async function POST(request: Request) {
       return NextResponse.json<AssistantResponseBody>(
         {
           ok: false,
-          answer: "Je nâ€™ai reÃ§u aucune question exploitable.",
+          answer: "Je n’ai reçu aucune question exploitable.",
           intent: "general",
           quickAsks: getAssistantQuickAsks(DEFAULT_ASSISTANT_CONTEXT),
           statusCards: buildSuggestedStatusCards(DEFAULT_ASSISTANT_CONTEXT),
           links: buildSuggestedLinks(DEFAULT_ASSISTANT_CONTEXT),
           supportScope:
-            "CloneChat couvre dÃ©jÃ  le support de comprÃ©hension et dâ€™orientation produit. La couche screenshots/fichiers/bugs live viendra plus tard.",
+            "CloneChat couvre déjà le support de compréhension et d’orientation produit. La couche screenshots/fichiers/bugs live viendra plus tard.",
         },
         { status: 400 }
       );
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       statusCards: buildSuggestedStatusCards(context),
       links: buildSuggestedLinks(context),
       supportScope:
-        "CloneChat connaÃ®t lâ€™Ã©tat produit actuel, les parcours, les pages, les rÃ´les, les prix visibles, les limites et les usages dÃ©jÃ  validÃ©s. La couche de diagnostic par captures/fichiers/bugs live sera ajoutÃ©e aprÃ¨s stabilisation produit.",
+        "CloneChat connaît l’état produit actuel, les parcours, les pages, les rôles, les prix visibles, les limites et les usages déjà validés. La couche de diagnostic par captures/fichiers/bugs live sera ajoutée après stabilisation produit.",
     });
   } catch (error) {
     return NextResponse.json<AssistantResponseBody>(
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
         statusCards: buildSuggestedStatusCards(DEFAULT_ASSISTANT_CONTEXT),
         links: buildSuggestedLinks(DEFAULT_ASSISTANT_CONTEXT),
         supportScope:
-          "CloneChat couvre dÃ©jÃ  le support de comprÃ©hension et dâ€™orientation produit. La couche screenshots/fichiers/bugs live viendra plus tard.",
+          "CloneChat couvre déjà le support de compréhension et d’orientation produit. La couche screenshots/fichiers/bugs live viendra plus tard.",
       },
       { status: 500 }
     );

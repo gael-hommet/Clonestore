@@ -40,7 +40,7 @@ const { data: auth, error: authErr } = await supabase.auth.getUser();
       if (cancelled) return;
 
       if (authErr || !user) {
-        // vers ta route rÃ©elle de login (tu utilises /login ailleurs)
+        // vers ta route réelle de login (tu utilises /login ailleurs)
         router.push("/login");
         return;
       }
@@ -83,13 +83,13 @@ const { data: auth, error: authErr } = await supabase.auth.getUser();
             / <span className="text-muted-foreground">{agentName}</span>
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">
-            {agentName} â€” Espace agent
+            {agentName} — Espace agent
           </h1>
-          <p className="text-sm text-muted-foreground">VÃ©rification de lâ€™accÃ¨sâ€¦</p>
+          <p className="text-sm text-muted-foreground">Vérification de l’accès…</p>
         </header>
 
         <section className="rounded-2xl border p-6">
-          <p className="text-sm text-muted-foreground">Chargementâ€¦</p>
+          <p className="text-sm text-muted-foreground">Chargement…</p>
         </section>
       </main>
     );
@@ -109,16 +109,16 @@ const { data: auth, error: authErr } = await supabase.auth.getUser();
             / <span>Utiliser</span>
           </p>
 
-          <h1 className="text-2xl font-semibold tracking-tight">AccÃ¨s indisponible</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Accès indisponible</h1>
           <p className="text-sm text-muted-foreground">
-            Cet agent nâ€™est pas actif sur ton compte.
+            Cet agent n’est pas actif sur ton compte.
           </p>
         </header>
 
         <section className="rounded-2xl border p-6 space-y-4">
           <div className="rounded-xl border p-4">
             <p className="text-sm text-muted-foreground">
-              Si tu viens dâ€™effectuer un paiement, attends quelques secondes puis recharge la page.
+              Si tu viens d’effectuer un paiement, attends quelques secondes puis recharge la page.
             </p>
           </div>
 
@@ -127,7 +127,7 @@ const { data: auth, error: authErr } = await supabase.auth.getUser();
               <Link href={`/agents/${slug}`}>Voir la fiche</Link>
             </Button>
             <Button asChild>
-              <Link href={`/paiement?agent=${slug}`}>Activer lâ€™accÃ¨s</Link>
+              <Link href={`/paiement?agent=${slug}`}>Activer l’accès</Link>
             </Button>
             <Button asChild variant="outline">
               <Link href="/profile">Mon compte</Link>
@@ -153,11 +153,11 @@ const { data: auth, error: authErr } = await supabase.auth.getUser();
         </p>
 
         <h1 className="text-2xl font-semibold tracking-tight">
-          {agentName} â€” Espace agent
+          {agentName} — Espace agent
         </h1>
 
         <p className="text-sm text-muted-foreground">
-          Lance tes demandes, retrouve lâ€™historique et pilote lâ€™agent depuis cet espace.
+          Lance tes demandes, retrouve l’historique et pilote l’agent depuis cet espace.
         </p>
       </header>
 
@@ -168,27 +168,27 @@ const { data: auth, error: authErr } = await supabase.auth.getUser();
           <div className="rounded-xl border p-4 space-y-2">
             <p className="text-sm font-medium">Faire une demande</p>
             <p className="text-sm text-muted-foreground">
-              Envoie une demande Ã  lâ€™agent (ex : â€œrÃ©dige un mailâ€¦â€, â€œprÃ©pare un docâ€¦â€, â€œanalyseâ€¦â€).
+              Envoie une demande à l’agent (ex : “rédige un mail…”, “prépare un doc…”, “analyse…”).
             </p>
             <Button asChild className="w-full">
-              <Link href={`/agents/${slug}/request`}>CrÃ©er une demande</Link>
+              <Link href={`/agents/${slug}/request`}>Créer une demande</Link>
             </Button>
           </div>
 
           <div className="rounded-xl border p-4 space-y-2">
             <p className="text-sm font-medium">Historique</p>
             <p className="text-sm text-muted-foreground">
-              Consulte ce qui a Ã©tÃ© fait : rÃ©sultats, statuts et actions passÃ©es.
+              Consulte ce qui a été fait : résultats, statuts et actions passées.
             </p>
             <Button asChild variant="outline" className="w-full">
-              <Link href={`/agents/${slug}/history`}>Voir lâ€™historique</Link>
+              <Link href={`/agents/${slug}/history`}>Voir l’historique</Link>
             </Button>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2 pt-2">
           <Button asChild variant="outline">
-            <Link href="/profile/agents">Retour Ã  Mes agents</Link>
+            <Link href="/profile/agents">Retour à Mes agents</Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/questions">Support</Link>

@@ -26,58 +26,58 @@ type Capability = {
 const keyCapabilities: Capability[] = [
   {
     title: "Mission libre RH",
-    text: "Pierre comprend une demande naturelle, la transforme en mission, dÃ©tecte les informations manquantes et structure le travail.",
+    text: "Pierre comprend une demande naturelle, la transforme en mission, détecte les informations manquantes et structure le travail.",
     icon: <Waypoints className="h-4 w-4" />,
     tone: "violet",
   },
   {
     title: "Documents RH premium",
-    text: "Convocations, refus, relances, onboarding, notes internes, courriers RH simples, synthÃ¨ses et brouillons propres.",
+    text: "Convocations, refus, relances, onboarding, notes internes, courriers RH simples, synthèses et brouillons propres.",
     icon: <FileText className="h-4 w-4" />,
     tone: "blue",
   },
   {
     title: "Emails & relances",
-    text: "PrÃ©pare, envoie si autorisÃ©, relance et suit les Ã©changes dans le temps avec historique clair.",
+    text: "Prépare, envoie si autorisé, relance et suit les échanges dans le temps avec historique clair.",
     icon: <Mail className="h-4 w-4" />,
     tone: "rose",
   },
   {
-    title: "TraÃ§abilitÃ© & contrÃ´le",
-    text: "Validations, blocages, livrables, Ã©tats et continuitÃ© remontent dans une logique CloneTrace exploitable.",
+    title: "Traçabilité & contrôle",
+    text: "Validations, blocages, livrables, états et continuité remontent dans une logique CloneTrace exploitable.",
     icon: <FileCheck2 className="h-4 w-4" />,
     tone: "green",
   },
 ];
 
 const useCases = [
-  "PrÃ©parer une convocation pour demain Ã  14h.",
-  "Relancer ce candidat demain matin si je nâ€™ai pas de rÃ©ponse ce soir.",
-  "PrÃ©parer un mail dâ€™onboarding pour lâ€™arrivÃ©e de LÃ©a lundi.",
+  "Préparer une convocation pour demain à 14h.",
+  "Relancer ce candidat demain matin si je n’ai pas de réponse ce soir.",
+  "Préparer un mail d’onboarding pour l’arrivée de Léa lundi.",
   "Refaire ce message en plus humain et plus professionnel.",
-  "Demander les piÃ¨ces manquantes puis relancer dans 48h.",
-  "PrÃ©parer le PDF et garder le document prÃªt Ã  validation.",
+  "Demander les pièces manquantes puis relancer dans 48h.",
+  "Préparer le PDF et garder le document prêt à validation.",
 ];
 
 const workflow = [
   {
     step: "01",
     title: "Vous donnez une demande RH naturelle",
-    text: "Pas besoin de parler en prompts. Vous exprimez une mission comme Ã  un collaborateur RH.",
+    text: "Pas besoin de parler en prompts. Vous exprimez une mission comme à un collaborateur RH.",
   },
   {
     step: "02",
     title: "Pierre comprend, structure et classe",
-    text: "Il dÃ©tecte le type de mission, le niveau de sensibilitÃ©, les infos manquantes et les validations nÃ©cessaires.",
+    text: "Il détecte le type de mission, le niveau de sensibilité, les infos manquantes et les validations nécessaires.",
   },
   {
     step: "03",
     title: "Il produit, suit et relance",
-    text: "Documents, emails, PDF, relances, reprise de mission et continuitÃ© sous rÃ¨gles.",
+    text: "Documents, emails, PDF, relances, reprise de mission et continuité sous règles.",
   },
   {
     step: "04",
-    title: "Vous gardez le contrÃ´le",
+    title: "Vous gardez le contrôle",
     text: "Les cas sensibles remontent, le reste avance, et tout reste visible dans le cockpit.",
   },
 ];
@@ -252,7 +252,7 @@ export default function PierrePage() {
                 </span>
                 <span className="cs-pill">
                   <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
-                  <span>Poste RH opÃ©rationnel automatisÃ©</span>
+                  <span>Poste RH opérationnel automatisé</span>
                 </span>
               </div>
 
@@ -261,16 +261,16 @@ export default function PierrePage() {
                   Pierre absorbe une part massive
                   <br />
                   <span className="cs-gradient-text">
-                    du travail RH opÃ©rationnel.
+                    du travail RH opérationnel.
                   </span>
                 </h1>
 
                 <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
-                  Pierre nâ€™est pas un bot RH. Pierre est un poste RH
-                  opÃ©rationnel automatisÃ© conÃ§u pour comprendre une demande RH
-                  libre, la transformer en mission structurÃ©e, produire des
-                  documents et communications propres, exÃ©cuter certaines
-                  actions autorisÃ©es, relancer, suivre et garder une trace
+                  Pierre n’est pas un bot RH. Pierre est un poste RH
+                  opérationnel automatisé conçu pour comprendre une demande RH
+                  libre, la transformer en mission structurée, produire des
+                  documents et communications propres, exécuter certaines
+                  actions autorisées, relancer, suivre et garder une trace
                   claire dans le temps.
                 </p>
               </div>
@@ -289,7 +289,7 @@ export default function PierrePage() {
                 />
                 <ActionButton
                   href="/agents"
-                  label="Retour Ã  la boutique"
+                  label="Retour à la boutique"
                   icon={<Sparkles className="h-4 w-4" />}
                 />
               </div>
@@ -297,18 +297,18 @@ export default function PierrePage() {
               <div className="grid gap-4 sm:grid-cols-3">
                 <StatTile
                   label="Prix actuel"
-                  value="449â‚¬/mois"
-                  helper="Prix fondateur affichÃ© aujourdâ€™hui."
+                  value="449€/mois"
+                  helper="Prix fondateur affiché aujourd’hui."
                 />
                 <StatTile
                   label="Positionnement"
                   value="Poste RH"
-                  helper="Pas un simple assistant rÃ©dactionnel."
+                  helper="Pas un simple assistant rédactionnel."
                 />
                 <StatTile
                   label="Promesse"
-                  value="Travail absorbÃ©"
-                  helper="Moins de charge mentale, plus de continuitÃ©."
+                  value="Travail absorbé"
+                  helper="Moins de charge mentale, plus de continuité."
                 />
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function PierrePage() {
                         Ce que Pierre fait ressentir
                       </p>
                       <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">
-                        â€œJâ€™ai un RH qui travaille.â€
+                        “J’ai un RH qui travaille.”
                       </p>
                     </div>
                     <span className="cs-status cs-status--success">Disponible</span>
@@ -341,7 +341,7 @@ export default function PierrePage() {
                           </p>
                           <p className="text-sm text-[var(--cs-ink-4)]">
                             Convocations, refus, relances, onboarding, notes et
-                            brouillons prÃªts Ã  valider ou Ã  envoyer.
+                            brouillons prêts à valider ou à envoyer.
                           </p>
                         </div>
                       </div>
@@ -354,10 +354,10 @@ export default function PierrePage() {
                         </div>
                         <div className="space-y-1">
                           <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
-                            ContinuitÃ© dans le temps
+                            Continuité dans le temps
                           </p>
                           <p className="text-sm text-[var(--cs-ink-4)]">
-                            Pierre ne rÃ©pond pas juste une fois. Il suit,
+                            Pierre ne répond pas juste une fois. Il suit,
                             relance, reprend et garde le fil.
                           </p>
                         </div>
@@ -371,7 +371,7 @@ export default function PierrePage() {
                         </div>
                         <div className="space-y-1">
                           <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
-                            ContrÃ´le humain sur le sensible
+                            Contrôle humain sur le sensible
                           </p>
                           <p className="text-sm text-[var(--cs-ink-4)]">
                             Les cas critiques, disciplinaires ou juridiques ne
@@ -389,7 +389,7 @@ export default function PierrePage() {
                       </p>
                       <p className="text-sm text-[var(--cs-ink-4)]">
                         Les premiers clients conservent leur prix fondateur tant
-                        que le prix affichÃ© au moment de leur souscription ne
+                        que le prix affiché au moment de leur souscription ne
                         baisse pas ensuite.
                       </p>
                     </div>
@@ -404,8 +404,8 @@ export default function PierrePage() {
         <section className="cs-panel">
           <SectionTitle
             kicker="Ce que Pierre fait vraiment"
-            title="Un moteur de missions RH, pas un simple gÃ©nÃ©rateur."
-            text="Pierre doit comprendre, produire, exÃ©cuter sous rÃ¨gles, relancer, suivre, mÃ©moriser et rendre un historique clair."
+            title="Un moteur de missions RH, pas un simple générateur."
+            text="Pierre doit comprendre, produire, exécuter sous règles, relancer, suivre, mémoriser et rendre un historique clair."
           />
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -421,7 +421,7 @@ export default function PierrePage() {
             <SectionTitle
               kicker="Exemples de demandes"
               title="Pierre doit comprendre ce genre de formulations naturelles."
-              text="Le client parle Ã  Pierre comme Ã  un collaborateur RH en tÃ©lÃ©travail, pas comme Ã  une IA fragile."
+              text="Le client parle à Pierre comme à un collaborateur RH en télétravail, pas comme à une IA fragile."
             />
 
             <div className="mt-6 grid gap-3">
@@ -431,7 +431,7 @@ export default function PierrePage() {
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-[color:color-mix(in_srgb,var(--cs-line-soft)_70%,white)] bg-white/58 text-[var(--cs-account-accent)] shadow-[var(--cs-shadow-soft)]">
                       <Bot className="h-4 w-4" />
                     </div>
-                    <p className="text-sm text-[var(--cs-ink-3)]">â€œ{item}â€</p>
+                    <p className="text-sm text-[var(--cs-ink-3)]">“{item}”</p>
                   </div>
                 </div>
               ))}
@@ -441,21 +441,21 @@ export default function PierrePage() {
           <div className="cs-panel">
             <SectionTitle
               kicker="Ce que Pierre absorbe"
-              title="Une masse rÃ©elle de travail RH opÃ©rationnel."
-              text="La valeur nâ€™est pas seulement la qualitÃ© du texte. La valeur, câ€™est la charge retirÃ©e au client."
+              title="Une masse réelle de travail RH opérationnel."
+              text="La valeur n’est pas seulement la qualité du texte. La valeur, c’est la charge retirée au client."
             />
 
             <div className="mt-6">
               <BulletList
                 items={[
-                  "PrÃ©parer et rÃ©Ã©crire des documents RH crÃ©dibles.",
-                  "PrÃ©parer et envoyer des emails simples si autorisÃ©.",
-                  "GÃ©nÃ©rer des PDF propres et exploitables.",
+                  "Préparer et réécrire des documents RH crédibles.",
+                  "Préparer et envoyer des emails simples si autorisé.",
+                  "Générer des PDF propres et exploitables.",
                   "Demander les informations manquantes intelligemment.",
                   "Planifier des actions et des relances.",
                   "Maintenir des missions sur plusieurs jours.",
-                  "Historiser documents, tÃ¢ches, validations, blocages et sorties.",
-                  "Sâ€™aligner progressivement sur le ton et les habitudes de lâ€™entreprise.",
+                  "Historiser documents, tâches, validations, blocages et sorties.",
+                  "S’aligner progressivement sur le ton et les habitudes de l’entreprise.",
                 ]}
               />
             </div>
@@ -466,8 +466,8 @@ export default function PierrePage() {
         <section className="cs-panel">
           <SectionTitle
             kicker="Comment Pierre travaille"
-            title="Une logique de mission structurÃ©e, pas un simple Ã©change de messages."
-            text="Le client donne une mission, Pierre interprÃ¨te, structure, produit, suit et remonte ce qui exige une dÃ©cision humaine."
+            title="Une logique de mission structurée, pas un simple échange de messages."
+            text="Le client donne une mission, Pierre interprète, structure, produit, suit et remonte ce qui exige une décision humaine."
           />
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -487,18 +487,18 @@ export default function PierrePage() {
           <div className="cs-panel">
             <SectionTitle
               kicker="Garde-fous"
-              title="Pierre est puissant, mais jamais incontrÃ´lÃ©."
-              text="Le produit doit rester crÃ©dible. Il refuse ou escalade ce qui sort du cadre RH opÃ©rationnel autorisÃ©."
+              title="Pierre est puissant, mais jamais incontrôlé."
+              text="Le produit doit rester crédible. Il refuse ou escalade ce qui sort du cadre RH opérationnel autorisé."
             />
 
             <div className="mt-6">
               <BulletList
                 items={[
                   "Ne pas inventer les informations manquantes.",
-                  "Ne pas prendre seul une dÃ©cision disciplinaire.",
-                  "Ne pas prendre seul une dÃ©cision juridique sensible.",
+                  "Ne pas prendre seul une décision disciplinaire.",
+                  "Ne pas prendre seul une décision juridique sensible.",
                   "Bloquer ou soumettre les cas critiques.",
-                  "Expliquer pourquoi une action est validÃ©e, bloquÃ©e ou refusÃ©e.",
+                  "Expliquer pourquoi une action est validée, bloquée ou refusée.",
                   "Laisser une trace claire des actions et des statuts.",
                 ]}
               />
@@ -508,8 +508,8 @@ export default function PierrePage() {
           <div className="cs-panel">
             <SectionTitle
               kicker="Pourquoi Pierre est rentable"
-              title="Le client doit sentir du temps rendu dÃ¨s la premiÃ¨re semaine."
-              text="Pierre vaut le prix lorsquâ€™il retire immÃ©diatement de la charge mentale, des oublis, des relances et de lâ€™administratif RH rÃ©pÃ©titif."
+              title="Le client doit sentir du temps rendu dès la première semaine."
+              text="Pierre vaut le prix lorsqu’il retire immédiatement de la charge mentale, des oublis, des relances et de l’administratif RH répétitif."
             />
 
             <div className="mt-6 grid gap-3">
@@ -521,8 +521,8 @@ export default function PierrePage() {
                       Moins de temps perdu
                     </p>
                     <p className="text-sm text-[var(--cs-ink-4)]">
-                      Les tÃ¢ches RH rÃ©pÃ©titives cessent de reposer entiÃ¨rement
-                      sur lâ€™humain.
+                      Les tâches RH répétitives cessent de reposer entièrement
+                      sur l’humain.
                     </p>
                   </div>
                 </div>
@@ -536,8 +536,8 @@ export default function PierrePage() {
                       Moins de charge mentale
                     </p>
                     <p className="text-sm text-[var(--cs-ink-4)]">
-                      Pierre garde la continuitÃ©, les rappels, les tÃ¢ches et les
-                      sorties organisÃ©es.
+                      Pierre garde la continuité, les rappels, les tâches et les
+                      sorties organisées.
                     </p>
                   </div>
                 </div>
@@ -548,11 +548,11 @@ export default function PierrePage() {
                   <UserCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-success)]" />
                   <div className="space-y-1">
                     <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
-                      Meilleur contrÃ´le
+                      Meilleur contrôle
                     </p>
                     <p className="text-sm text-[var(--cs-ink-4)]">
-                      Le client rÃ©cupÃ¨re la main sur les bons cas, pas sur toute
-                      la mÃ©canique.
+                      Le client récupère la main sur les bons cas, pas sur toute
+                      la mécanique.
                     </p>
                   </div>
                 </div>
@@ -569,7 +569,7 @@ export default function PierrePage() {
             <div className="mx-auto w-fit">
               <span className="cs-pill">
                 <Sparkles className="h-3.5 w-3.5 text-[var(--cs-account-accent)]" />
-                <span>Pierre est la meilleure porte dâ€™entrÃ©e dans CloneStore</span>
+                <span>Pierre est la meilleure porte d’entrée dans CloneStore</span>
               </span>
             </div>
 
@@ -580,9 +580,9 @@ export default function PierrePage() {
             </h2>
 
             <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--cs-ink-4)] md:text-base">
-              Pierre est pensÃ© pour Ãªtre une preuve forte : mission libre,
-              documents, emails, relances, continuitÃ©, contrÃ´le et traÃ§abilitÃ©,
-              le tout dans un produit sÃ©rieux et premium.
+              Pierre est pensé pour être une preuve forte : mission libre,
+              documents, emails, relances, continuité, contrôle et traçabilité,
+              le tout dans un produit sérieux et premium.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -594,7 +594,7 @@ export default function PierrePage() {
               />
               <ActionButton
                 href="/questions"
-                label="Parler Ã  CloneStore"
+                label="Parler à CloneStore"
                 icon={<Bot className="h-4 w-4" />}
               />
             </div>

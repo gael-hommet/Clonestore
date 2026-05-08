@@ -69,7 +69,7 @@ function buildInitialState(
     company_name: text(source?.company_name),
     company_tone: text(source?.company_tone, "professionnel"),
     default_language: text(source?.default_language, "fr"),
-    communication_style: text(source?.communication_style, "clair, structurÃ©, fiable"),
+    communication_style: text(source?.communication_style, "clair, structuré, fiable"),
     candidate_tone: text(source?.candidate_tone, "humain, professionnel, respectueux"),
     internal_tone: text(source?.internal_tone, "clair, direct, professionnel"),
     validation_mode: text(source?.validation_mode, "smart"),
@@ -223,7 +223,7 @@ export function PierreMemoryPanel({
     const payload = buildSavePayload(form);
     await onSave(payload);
     setDirty(false);
-    setSaveNotice("MÃ©moire entreprise mise Ã  jour.");
+    setSaveNotice("Mémoire entreprise mise à jour.");
   }, [form, onSave]);
 
   const resolvedSource = senderIdentityResolved?.source || "inconnue";
@@ -236,11 +236,11 @@ export function PierreMemoryPanel({
             <Settings2 className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#241b12]">MÃ©moire entreprise Pierre</p>
+            <p className="text-sm font-semibold text-[#241b12]">Mémoire entreprise Pierre</p>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-[#6b5b4b]">
-              Cette couche dÃ©termine le ton, les rÃ¨gles RH, lâ€™identitÃ© dâ€™envoi et le
-              comportement par dÃ©faut de Pierre. Elle doit Ãªtre stable, crÃ©dible et
-              suffisamment prÃ©cise pour homogÃ©nÃ©iser les futures missions.
+              Cette couche détermine le ton, les règles RH, l’identité d’envoi et le
+              comportement par défaut de Pierre. Elle doit être stable, crédible et
+              suffisamment précise pour homogénéiser les futures missions.
             </p>
           </div>
         </div>
@@ -280,11 +280,11 @@ export function PierreMemoryPanel({
         <div className="space-y-6">
           <SectionCard
             icon={Building2}
-            title="IdentitÃ© entreprise"
-            subtitle="Base de personnalitÃ© et de cohÃ©rence de Pierre."
+            title="Identité entreprise"
+            subtitle="Base de personnalité et de cohérence de Pierre."
           >
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Nom de lâ€™entreprise" hint="Nom principal de la sociÃ©tÃ© servie par Pierre.">
+              <Field label="Nom de l’entreprise" hint="Nom principal de la société servie par Pierre.">
                 <input
                   value={form.company_name}
                   onChange={(e) => updateField("company_name", e.target.value)}
@@ -293,7 +293,7 @@ export function PierreMemoryPanel({
                 />
               </Field>
 
-              <Field label="Langue par dÃ©faut" hint="Langue dominante de production.">
+              <Field label="Langue par défaut" hint="Langue dominante de production.">
                 <input
                   value={form.default_language}
                   onChange={(e) => updateField("default_language", e.target.value)}
@@ -327,13 +327,13 @@ export function PierreMemoryPanel({
             <div className="mt-4">
               <Field
                 label="Style de communication global"
-                hint="DÃ©crit comment lâ€™entreprise veut apparaÃ®tre dans les communications RH."
+                hint="Décrit comment l’entreprise veut apparaître dans les communications RH."
               >
                 <textarea
                   value={form.communication_style}
                   onChange={(e) => updateField("communication_style", e.target.value)}
                   className={inputClass(true)}
-                  placeholder="Exemple : clair, rassurant, structurÃ©, fiable, sans excÃ¨s de familiaritÃ©."
+                  placeholder="Exemple : clair, rassurant, structuré, fiable, sans excès de familiarité."
                 />
               </Field>
             </div>
@@ -341,7 +341,7 @@ export function PierreMemoryPanel({
 
           <SectionCard
             icon={Sparkles}
-            title="TonalitÃ© mÃ©tier RH"
+            title="Tonalité métier RH"
             subtitle="Affinage du comportement de Pierre selon la cible."
           >
             <div className="grid gap-4">
@@ -359,25 +359,25 @@ export function PierreMemoryPanel({
 
               <Field
                 label="Ton interne / managers"
-                hint="Comment Pierre doit sâ€™adresser aux managers et interlocuteurs internes."
+                hint="Comment Pierre doit s’adresser aux managers et interlocuteurs internes."
               >
                 <textarea
                   value={form.internal_tone}
                   onChange={(e) => updateField("internal_tone", e.target.value)}
                   className={inputClass(true)}
-                  placeholder="Exemple : direct, synthÃ©tique, structurÃ©, fiable, orientÃ© exÃ©cution."
+                  placeholder="Exemple : direct, synthétique, structuré, fiable, orienté exécution."
                 />
               </Field>
 
               <Field
-                label="RÃ¨gles RH / garde-fous"
-                hint="Rappels mÃ©tier que Pierre doit respecter en prioritÃ©."
+                label="Règles RH / garde-fous"
+                hint="Rappels métier que Pierre doit respecter en priorité."
               >
                 <textarea
                   value={form.hr_rules}
                   onChange={(e) => updateField("hr_rules", e.target.value)}
                   className={inputClass(true)}
-                  placeholder="Exemple : ne jamais inventer une donnÃ©e manquante, demander validation humaine sur les sujets sensibles, rester dans le pÃ©rimÃ¨tre RH simple."
+                  placeholder="Exemple : ne jamais inventer une donnée manquante, demander validation humaine sur les sujets sensibles, rester dans le périmètre RH simple."
                 />
               </Field>
             </div>
@@ -385,13 +385,13 @@ export function PierreMemoryPanel({
 
           <SectionCard
             icon={Mail}
-            title="IdentitÃ© dâ€™envoi"
-            subtitle="Adresse et signature de communication utilisÃ©es par Pierre."
+            title="Identité d’envoi"
+            subtitle="Adresse et signature de communication utilisées par Pierre."
           >
             <div className="grid gap-4 md:grid-cols-2">
               <Field
-                label="Nom dâ€™envoi"
-                hint="Exemple : Pierre RH Â· Cultura"
+                label="Nom d’envoi"
+                hint="Exemple : Pierre RH · Cultura"
               >
                 <input
                   value={form.sender_name}
@@ -402,8 +402,8 @@ export function PierreMemoryPanel({
               </Field>
 
               <Field
-                label="Email dâ€™envoi"
-                hint="Peut Ãªtre une adresse pro, sous-domaine ou identitÃ© dÃ©diÃ©e."
+                label="Email d’envoi"
+                hint="Peut être une adresse pro, sous-domaine ou identité dédiée."
               >
                 <input
                   value={form.sender_email}
@@ -416,7 +416,7 @@ export function PierreMemoryPanel({
               <div className="md:col-span-2">
                 <Field
                   label="Reply-to"
-                  hint="Adresse de rÃ©ponse prioritaire si diffÃ©rente de lâ€™adresse dâ€™envoi."
+                  hint="Adresse de réponse prioritaire si différente de l’adresse d’envoi."
                 >
                   <input
                     value={form.reply_to}
@@ -431,13 +431,13 @@ export function PierreMemoryPanel({
             <div className="mt-4">
               <Field
                 label="Signature"
-                hint="Bloc de signature par dÃ©faut pour les emails et documents RH."
+                hint="Bloc de signature par défaut pour les emails et documents RH."
               >
                 <textarea
                   value={form.signature}
                   onChange={(e) => updateField("signature", e.target.value)}
                   className={inputClass(true)}
-                  placeholder={"Exemple :\nPierre\nAssistant RH automatisÃ©\nEntreprise\nCoordonnÃ©es utiles"}
+                  placeholder={"Exemple :\nPierre\nAssistant RH automatisé\nEntreprise\nCoordonnées utiles"}
                 />
               </Field>
             </div>
@@ -447,13 +447,13 @@ export function PierreMemoryPanel({
         <div className="space-y-6">
           <SectionCard
             icon={Shield}
-            title="RÃ©sumÃ© opÃ©rationnel"
-            subtitle="Lecture rapide de lâ€™Ã©tat actuel de la mÃ©moire entreprise."
+            title="Résumé opérationnel"
+            subtitle="Lecture rapide de l’état actuel de la mémoire entreprise."
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <Pill
                 label="Entreprise"
-                value={form.company_name || "Non dÃ©finie"}
+                value={form.company_name || "Non définie"}
                 tone={form.company_name ? "good" : "warn"}
               />
               <Pill
@@ -467,8 +467,8 @@ export function PierreMemoryPanel({
                 tone="neutral"
               />
               <Pill
-                label="Email dâ€™envoi"
-                value={form.sender_email || "Non dÃ©fini"}
+                label="Email d’envoi"
+                value={form.sender_email || "Non défini"}
                 tone={form.sender_email ? "good" : "warn"}
               />
             </div>
@@ -476,23 +476,23 @@ export function PierreMemoryPanel({
 
           <SectionCard
             icon={UserRound}
-            title="IdentitÃ© rÃ©solue actuellement"
-            subtitle="Ce que Pierre comprend aujourdâ€™hui comme identitÃ© effective."
+            title="Identité résolue actuellement"
+            subtitle="Ce que Pierre comprend aujourd’hui comme identité effective."
           >
             <div className="space-y-3">
               <Pill
-                label="Nom rÃ©solu"
-                value={senderIdentityResolved?.sender_name || "Non dÃ©fini"}
+                label="Nom résolu"
+                value={senderIdentityResolved?.sender_name || "Non défini"}
                 tone={senderIdentityResolved?.sender_name ? "good" : "warn"}
               />
               <Pill
-                label="Email rÃ©solu"
-                value={senderIdentityResolved?.sender_email || "Non dÃ©fini"}
+                label="Email résolu"
+                value={senderIdentityResolved?.sender_email || "Non défini"}
                 tone={senderIdentityResolved?.sender_email ? "good" : "warn"}
               />
               <Pill
-                label="Reply-to rÃ©solu"
-                value={senderIdentityResolved?.reply_to || "Non dÃ©fini"}
+                label="Reply-to résolu"
+                value={senderIdentityResolved?.reply_to || "Non défini"}
                 tone="neutral"
               />
               <Pill
@@ -509,7 +509,7 @@ export function PierreMemoryPanel({
                 className="inline-flex items-center gap-2 rounded-full border border-[#e5d7c7] bg-white px-4 py-2.5 text-sm font-semibold text-[#4c4033] transition hover:bg-[#fffaf3]"
               >
                 <RefreshCw className="h-4 w-4" />
-                Reprendre lâ€™identitÃ© rÃ©solue
+                Reprendre l’identité résolue
               </button>
             </div>
           </SectionCard>
@@ -517,18 +517,18 @@ export function PierreMemoryPanel({
           <SectionCard
             icon={Settings2}
             title="Lecture produit"
-            subtitle="Ã€ quoi doit servir cette mÃ©moire dans le cockpit Pierre."
+            subtitle="À quoi doit servir cette mémoire dans le cockpit Pierre."
           >
             <div className="rounded-[20px] border border-[#eadfce] bg-[#fffdf8] p-4 text-sm leading-7 text-[#5f5144]">
               <p>
-                Cette mÃ©moire ne doit pas Ãªtre un simple formulaire dÃ©coratif.
-                Elle doit devenir le noyau de cohÃ©rence de Pierre :
-                ton, identitÃ© dâ€™envoi, niveau de validation, rÃ¨gles RH, style
-                candidat, style interne, signature et prÃ©fÃ©rences dâ€™entreprise.
+                Cette mémoire ne doit pas être un simple formulaire décoratif.
+                Elle doit devenir le noyau de cohérence de Pierre :
+                ton, identité d’envoi, niveau de validation, règles RH, style
+                candidat, style interne, signature et préférences d’entreprise.
               </p>
               <p className="mt-4">
-                Plus cette couche est propre, plus Pierre devient perÃ§u comme un
-                employÃ© RH fiable plutÃ´t quâ€™un simple outil de gÃ©nÃ©ration.
+                Plus cette couche est propre, plus Pierre devient perçu comme un
+                employé RH fiable plutôt qu’un simple outil de génération.
               </p>
             </div>
           </SectionCard>

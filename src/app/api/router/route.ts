@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
-// âš ï¸ Mets ici l'URL EXACTE de ton webhook Make
+// âš ️ Mets ici l'URL EXACTE de ton webhook Make
 const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/u8nkxlkauyxlygy1r6p59rhmdk35ta4r";
 
 // =============================
 // TYPES
 // =============================
 type RouterRequestBody = {
-  client_id?: string; // ignorÃ© cÃ´tÃ© front, on utilise le token
+  client_id?: string; // ignoré côté front, on utilise le token
   token?: string;
   agent?: string;
   payload?: any;
@@ -24,7 +24,7 @@ type RouterResponse = {
 };
 
 // =============================
-// RÃ‰PONSE STANDARD
+// RÉPONSE STANDARD
 // =============================
 function buildResponse(
   status: RouterStatus,
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as RouterRequestBody;
     const { token, agent, payload } = body;
 
-    // 1) VÃ©rif des champs obligatoires (token + agent)
+    // 1) Vérif des champs obligatoires (token + agent)
     if (!token || !agent) {
       return buildResponse(
         "ERROR",
@@ -56,13 +56,13 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabase();
 
-    // 2) RÃ©cupÃ©rer le client_id Ã  partir du token
+    // 2) Récupérer le client_id à partir du token
     const clientId = await getClientIdFromToken(supabase, token);
     if (!clientId) {
       return buildResponse("UNAUTHORIZED", agent, null, "Invalid credentials");
     }
 
-    // 3) VÃ©rifier que ce client possÃ¨de bien cet agent
+    // 3) Vérifier que ce client possède bien cet agent
     const allowed = await checkAgentPermission(supabase, clientId, agent);
     if (!allowed) {
       return buildResponse(
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4) Appel Ã  Make : on envoie agent + payload
+    // 4) Appel à Make : on envoie agent + payload
     try {
       const makeResponse = await fetch(MAKE_WEBHOOK_URL, {
         method: "POST",
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
       let parsed: any = null;
 
       if (rawText && rawText.trim().length > 0) {
-        // On essaie de rÃ©cupÃ©rer tout ce qu'il y a entre le 1er { et le dernier }
+        // On essaie de récupérer tout ce qu'il y a entre le 1er { et le dernier }
         const match = rawText.match(/{[\s\S]*}/);
         if (match) {
           const jsonSlice = match[0];
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
             parsed = rawText;
           }
         } else {
-          // pas de {} trouvÃ©s, on garde le texte brut
+          // pas de {} trouvés, on garde le texte brut
           parsed = rawText;
         }
       } else {
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
 }
 
 // =============================
-// RÃ©cupÃ©rer le client_id Ã  partir du token
+// Récupérer le client_id à partir du token
 // =============================
 async function getClientIdFromToken(
   supabase: any,
@@ -153,7 +153,7 @@ async function getClientIdFromToken(
 }
 
 // =============================
-// VÃ©rifier si ce client possÃ¨de cet agent
+// Vérifier si ce client possède cet agent
 // =============================
 async function checkAgentPermission(
   supabase: any,

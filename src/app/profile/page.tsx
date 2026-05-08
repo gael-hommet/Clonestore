@@ -133,14 +133,14 @@ const tabs: Array<{
   eyebrow: string;
   icon: React.ComponentType<{ className?: string }>;
 }> = [
-  { key: "overview", label: "Vue dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ensemble", eyebrow: "Global", icon: Waypoints },
-  { key: "account", label: "Compte", eyebrow: "AccÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s", icon: User2 },
-  { key: "company", label: "Entreprise", eyebrow: "IdentitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©", icon: Building2 },
+  { key: "overview", label: "Vue d’ensemble", eyebrow: "Global", icon: Waypoints },
+  { key: "account", label: "Compte", eyebrow: "Accès", icon: User2 },
+  { key: "company", label: "Entreprise", eyebrow: "Identité", icon: Building2 },
   { key: "billing", label: "Abonnement", eyebrow: "Paiement", icon: CreditCard },
-  { key: "employees", label: "EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA", eyebrow: "Postes", icon: Users2 },
-  { key: "technologies", label: "Technologies", eyebrow: "SystÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨me", icon: BrainCircuit },
+  { key: "employees", label: "Employés IA", eyebrow: "Postes", icon: Users2 },
+  { key: "technologies", label: "Technologies", eyebrow: "Système", icon: BrainCircuit },
   { key: "footprint", label: "Empreinte", eyebrow: "ADN", icon: Fingerprint },
-  { key: "privacy", label: "ConfidentialitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©", eyebrow: "DonnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es", icon: ShieldCheck },
+  { key: "privacy", label: "Confidentialité", eyebrow: "Données", icon: ShieldCheck },
   { key: "notifications", label: "Notifications", eyebrow: "Alertes", icon: Bell },
   { key: "appearance", label: "Apparence", eyebrow: "Interface", icon: Palette },
 ];
@@ -157,9 +157,9 @@ const defaultCompanySettings: CompanySettings = {
 const defaultFootprintSettings: FootprintSettings = {
   tone: "Professionnel, clair, humain et direct.",
   validationRules:
-    "Les dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cisions sensibles, juridiques, disciplinaires ou financiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨res doivent rester ÃƒÆ’Ã†â€™  validation humaine.",
+    "Les décisions sensibles, juridiques, disciplinaires ou financières doivent rester à validation humaine.",
   sensitiveTopics:
-    "Juridique, discipline, licenciement, santÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©, donnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es sensibles, dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cisions engageantes.",
+    "Juridique, discipline, licenciement, santé, données sensibles, décisions engageantes.",
   signature: "",
   referenceContext: "",
 };
@@ -173,12 +173,12 @@ const defaultNotificationSettings: NotificationSettings = {
 };
 
 const defaultTechnologySettings: TechnologySettings = {
-  cloneOsMode: "Orchestration contrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e",
-  cloneAdnLearning: "Apprentissage progressif aprÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s validation",
-  cloneGuardStrictness: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°levÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e",
+  cloneOsMode: "Orchestration contrôlée",
+  cloneAdnLearning: "Apprentissage progressif après validation",
+  cloneGuardStrictness: "Élevée",
   cloneTraceLevel: "Complet",
   cloneVoiceAccess: "Disponible globalement",
-  cloneChatRole: "Orientation, support et explication systÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨me",
+  cloneChatRole: "Orientation, support et explication système",
 };
 
 const defaultAppearanceSettings: AppearanceSettings = {
@@ -199,7 +199,7 @@ const STORAGE_KEYS = {
 const THEME_TO_CLONE_APPEARANCE: Record<string, CloneAppearance> = {
   "Ivoire premium": "signature",
   "Graphite clair": "graphite",
-  "CrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨me champagne": "aura",
+  "Crème champagne": "aura",
 };
 
 const ACCENT_TO_DATASET: Record<string, string> = {
@@ -212,13 +212,13 @@ const ACCENT_TO_DATASET: Record<string, string> = {
 const DENSITY_TO_DATASET: Record<string, string> = {
   Confortable: "comfortable",
   Compacte: "compact",
-  "TrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e": "airy",
+  "Très aérée": "airy",
 };
 
 const MOTION_TO_DATASET: Record<string, string> = {
   "Subtile": "subtle",
-  "RÃ©duite": "reduced",
-  "DÃ©sactivÃ©e": "off",
+  "Réduite": "reduced",
+  "Désactivée": "off",
 };
 
 function getCloneAppearanceFromSettings(settings: AppearanceSettings): CloneAppearance {
@@ -264,7 +264,7 @@ function titleCaseSlug(slug: string) {
 }
 
 function formatDate(value: string | null | undefined) {
-  if (!value) return "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬";
+  if (!value) return "—";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -280,12 +280,12 @@ function statusLabel(status: string) {
   const normalized = status.toLowerCase();
 
   if (normalized === "active") return "Actif";
-  if (normalized === "cancelled") return "RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©siliÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©";
+  if (normalized === "cancelled") return "Résilié";
   if (normalized === "past_due") return "Paiement en attente";
   if (normalized === "trialing") return "Essai";
   if (normalized === "incomplete") return "Incomplet";
 
-  return status || "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬";
+  return status || "—";
 }
 
 function statusClass(status: string) {
@@ -326,10 +326,10 @@ function getAgentMeta(slug: string) {
 
   return {
     name: agent?.name ?? titleCaseSlug(normalized),
-    role: agent?.role ?? "EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© IA CloneStore",
+    role: agent?.role ?? "Employé IA CloneStore",
     description:
       agent?.does?.[0] ??
-      "EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© IA rattachÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© ÃƒÆ’Ã†â€™  lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢environnement CloneStore de lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢entreprise.",
+      "Employé IA rattaché à l’environnement CloneStore de l’entreprise.",
     href: `/agents/${normalized}`,
     cockpitHref: `/agents/${normalized}/use`,
     setupHref: `/agents/${normalized}/setup`,
@@ -691,7 +691,7 @@ function EmployeeMiniCard({ order }: { order: OrderRow }) {
           <p className="text-sm leading-6 text-[var(--cs-ink-3)]">{meta.description}</p>
 
           <div className="grid gap-1 text-xs text-[var(--cs-ink-4)]">
-            <span>DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©but : {formatDate(order.started_at)}</span>
+            <span>Début : {formatDate(order.started_at)}</span>
             <span>Fin : {formatDate(order.ended_at)}</span>
           </div>
         </div>
@@ -749,7 +749,7 @@ export default function ProfilePage() {
         setFeedback({
           type: "error",
           message:
-            "Configuration Supabase manquante. VÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rifie les variables publiques puis redÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©marre le projet.",
+            "Configuration Supabase manquante. Vérifie les variables publiques puis redémarre le projet.",
         });
         setLoading(false);
         setRefreshing(false);
@@ -863,7 +863,7 @@ export default function ProfilePage() {
     () => ({
       length: passwordDraft.length >= 8,
       upper: /\p{Lu}/u.test(passwordDraft),
-      lower: /[a-zÃƒÆ’Ã†â€™ -ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¶ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¸-ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¿]/.test(passwordDraft),
+      lower: /[a-zà-öø-ÿ]/.test(passwordDraft),
       number: /\d/.test(passwordDraft),
       match: passwordDraft.length > 0 && passwordDraft === passwordConfirmDraft,
     }),
@@ -902,7 +902,7 @@ export default function ProfilePage() {
 
       setFeedback({
         type: "success",
-        message: "Informations de compte enregistrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es.",
+        message: "Informations de compte enregistrées.",
       });
     } catch (error) {
       setFeedback({
@@ -910,7 +910,7 @@ export default function ProfilePage() {
         message:
           error instanceof Error
             ? error.message
-            : "Impossible dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢enregistrer les informations de compte.",
+            : "Impossible d’enregistrer les informations de compte.",
       });
     }
   }
@@ -923,7 +923,7 @@ export default function ProfilePage() {
     if (!nextEmail || nextEmail === displayEmail) {
       setFeedback({
         type: "info",
-        message: "Aucun nouvel email ÃƒÆ’Ã†â€™  enregistrer.",
+        message: "Aucun nouvel email à enregistrer.",
       });
       return;
     }
@@ -935,7 +935,7 @@ export default function ProfilePage() {
       setFeedback({
         type: "success",
         message:
-          "Demande de changement dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢email envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e. VÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rifie lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢adresse concernÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e pour confirmer la modification.",
+          "Demande de changement d’email envoyée. Vérifie l’adresse concernée pour confirmer la modification.",
       });
     } catch (error) {
       setFeedback({
@@ -943,7 +943,7 @@ export default function ProfilePage() {
         message:
           error instanceof Error
             ? error.message
-            : "Impossible de modifier lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢adresse email.",
+            : "Impossible de modifier l’adresse email.",
       });
     }
   }
@@ -963,7 +963,7 @@ export default function ProfilePage() {
 
       setFeedback({
         type: "success",
-        message: "Mot de passe mis ÃƒÆ’Ã†â€™  jour.",
+        message: "Mot de passe mis à jour.",
       });
     } catch (error) {
       setFeedback({
@@ -978,22 +978,22 @@ export default function ProfilePage() {
 
   function saveCompany() {
     saveJson(STORAGE_KEYS.company, company);
-    setFeedback({ type: "success", message: "Configuration entreprise enregistrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e." });
+    setFeedback({ type: "success", message: "Configuration entreprise enregistrée." });
   }
 
   function saveFootprint() {
     saveJson(STORAGE_KEYS.footprint, footprint);
-    setFeedback({ type: "success", message: "Empreinte Entreprise enregistrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e." });
+    setFeedback({ type: "success", message: "Empreinte Entreprise enregistrée." });
   }
 
   function saveNotifications() {
     saveJson(STORAGE_KEYS.notifications, notifications);
-    setFeedback({ type: "success", message: "PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rences de notifications enregistrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es." });
+    setFeedback({ type: "success", message: "Préférences de notifications enregistrées." });
   }
 
   function saveTechnologies() {
     saveJson(STORAGE_KEYS.technologies, technologies);
-    setFeedback({ type: "success", message: "PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rences technologies enregistrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es." });
+    setFeedback({ type: "success", message: "Préférences technologies enregistrées." });
   }
 
   function updateAppearanceSetting<K extends keyof AppearanceSettings>(
@@ -1016,7 +1016,7 @@ export default function ProfilePage() {
 
     setFeedback({
       type: "success",
-      message: "PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rences dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢apparence enregistrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es.",
+      message: "Préférences d’apparence enregistrées.",
     });
   }
 
@@ -1035,14 +1035,14 @@ export default function ProfilePage() {
         throw new Error(
           data?.error ||
             data?.message ||
-            "Le portail de paiement nÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢est pas encore disponible."
+            "Le portail de paiement n’est pas encore disponible."
         );
       }
 
       const url = data?.url || data?.portalUrl || data?.billingPortalUrl;
 
       if (!url) {
-        throw new Error("Aucune URL de portail de paiement nÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢a ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© renvoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e.");
+        throw new Error("Aucune URL de portail de paiement n’a été renvoyée.");
       }
 
       window.location.href = url;
@@ -1052,7 +1052,7 @@ export default function ProfilePage() {
         message:
           error instanceof Error
             ? error.message
-            : "Impossible dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ouvrir le portail de paiement.",
+            : "Impossible d’ouvrir le portail de paiement.",
       });
     }
   }
@@ -1088,7 +1088,7 @@ export default function ProfilePage() {
 
     setFeedback({
       type: "success",
-      message: "Export gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© sur cet appareil.",
+      message: "Export généré sur cet appareil.",
     });
   }
 
@@ -1096,7 +1096,7 @@ export default function ProfilePage() {
     if (dangerConfirm.trim().toUpperCase() !== "SUPPRIMER") {
       setFeedback({
         type: "error",
-        message: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°cris SUPPRIMER pour confirmer la demande.",
+        message: "Écris SUPPRIMER pour confirmer la demande.",
       });
       return;
     }
@@ -1112,14 +1112,14 @@ export default function ProfilePage() {
         throw new Error(
           data?.error ||
             data?.message ||
-            "La demande de suppression nÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢a pas pu ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªtre envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e."
+            "La demande de suppression n’a pas pu être envoyée."
         );
       }
 
       setDangerConfirm("");
       setFeedback({
         type: "success",
-        message: "Demande de suppression envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e.",
+        message: "Demande de suppression envoyée.",
       });
     } catch (error) {
       setFeedback({
@@ -1127,7 +1127,7 @@ export default function ProfilePage() {
         message:
           error instanceof Error
             ? error.message
-            : "Impossible dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢envoyer la demande de suppression.",
+            : "Impossible d’envoyer la demande de suppression.",
       });
     }
   }
@@ -1148,7 +1148,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3">
               <Loader2 className="h-5 w-5 animate-spin text-[#667cff]" />
               <p className="text-sm font-medium text-[var(--cs-ink-3)]">
-                Chargement de Mon CloneStoreÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦
+                Chargement de Mon CloneStore…
               </p>
             </div>
           </LiquidGlass>
@@ -1171,7 +1171,7 @@ export default function ProfilePage() {
                   </span>
                   <span className="cs-pill">
                     <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
-                    AccÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©
+                    Accès sécurisé
                   </span>
                 </div>
 
@@ -1180,14 +1180,14 @@ export default function ProfilePage() {
                 </h1>
 
                 <p className="mt-5 max-w-2xl text-sm leading-7 text-[var(--cs-ink-3)] md:text-base">
-                  Mon CloneStore regroupe le compte, lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢entreprise, lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢abonnement, les
-                  employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA, les technologies, lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢Empreinte Entreprise, la confidentialitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©,
-                  les notifications et lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢apparence.
+                  Mon CloneStore regroupe le compte, l’entreprise, l’abonnement, les
+                  employés IA, les technologies, l’Empreinte Entreprise, la confidentialité,
+                  les notifications et l’apparence.
                 </p>
 
                 <div className="mt-7 flex flex-wrap gap-3">
                   <ActionButton href="/signup" primary icon={<ArrowRight className="h-4 w-4" />}>
-                    CrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©er un compte
+                    Créer un compte
                   </ActionButton>
                   <ActionButton href="/login">Connexion</ActionButton>
                   <ActionButton href="/assistant">Ouvrir CloneChat</ActionButton>
@@ -1197,26 +1197,26 @@ export default function ProfilePage() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <MetricCard
                   title="Compte"
-                  value="PrivÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©"
-                  helper="AccÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s personnel et sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©"
+                  value="Privé"
+                  helper="Accès personnel et sécurisé"
                   icon={<LockKeyhole className="h-5 w-5" />}
                 />
                 <MetricCard
-                  title="EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA"
+                  title="Employés IA"
                   value="Pilotage"
                   helper="Gestion des postes actifs"
                   icon={<Users2 className="h-5 w-5" />}
                 />
                 <MetricCard
                   title="Technologies"
-                  value="RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©glages"
+                  value="Réglages"
                   helper="CloneOS, Guard, Trace, Voice"
                   icon={<BrainCircuit className="h-5 w-5" />}
                 />
                 <MetricCard
-                  title="DonnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es"
-                  value="ContrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´le"
-                  helper="Export, confidentialitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©, sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©"
+                  title="Données"
+                  value="Contrôle"
+                  helper="Export, confidentialité, sécurité"
                   icon={<Database className="h-5 w-5" />}
                 />
               </div>
@@ -1325,7 +1325,7 @@ export default function ProfilePage() {
                   Cockpit
                 </ActionButton>
                 <ActionButton onClick={signOut} icon={<LogOut className="h-4 w-4" />}>
-                  DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©connexion
+                  Déconnexion
                 </ActionButton>
               </div>
             </LiquidGlass>
@@ -1334,7 +1334,7 @@ export default function ProfilePage() {
           <section className="min-w-0 space-y-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="cs-eyebrow">Centre de contrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´le</p>
+                <p className="cs-eyebrow">Centre de contrôle</p>
                 <h1 className="cs-heading mt-2 text-[clamp(2rem,3.2vw,3.8rem)] leading-[0.96]">
                   Mon CloneStore
                 </h1>
@@ -1362,9 +1362,9 @@ export default function ProfilePage() {
 
             {activeTab === "overview" ? (
               <PanelShell
-                eyebrow="Vue dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ensemble"
-                title="Tout lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢environnement CloneStore, sans bruit inutile."
-                text="Cette page centralise le compte, lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢entreprise, lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢abonnement, les employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA, les technologies, lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢Empreinte Entreprise, la confidentialitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©, les notifications et lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢apparence."
+                eyebrow="Vue d’ensemble"
+                title="Tout l’environnement CloneStore, sans bruit inutile."
+                text="Cette page centralise le compte, l’entreprise, l’abonnement, les employés IA, les technologies, l’Empreinte Entreprise, la confidentialité, les notifications et l’apparence."
                 actions={
                   <>
                     <ActionButton href="/profile/agents" primary icon={<ArrowRight className="h-4 w-4" />}>
@@ -1377,13 +1377,13 @@ export default function ProfilePage() {
                 <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <MetricCard
-                      title="EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s actifs"
+                      title="Employés actifs"
                       value={activeOrders.length}
                       helper="Postes actuellement exploitables"
                       icon={<BadgeCheck className="h-5 w-5" />}
                     />
                     <MetricCard
-                      title="EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s"
+                      title="Employés liés"
                       value={orders.length}
                       helper="Historique du compte"
                       icon={<BriefcaseBusiness className="h-5 w-5" />}
@@ -1391,12 +1391,12 @@ export default function ProfilePage() {
                     <MetricCard
                       title="Catalogue"
                       value={availableAgentCount}
-                      helper="EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA visibles"
+                      helper="Employés IA visibles"
                       icon={<Users2 className="h-5 w-5" />}
                     />
                     <MetricCard
                       title="Session"
-                      value="ConnectÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©"
+                      value="Connecté"
                       helper="Compte CloneStore actif"
                       icon={<ShieldCheck className="h-5 w-5" />}
                     />
@@ -1406,23 +1406,23 @@ export default function ProfilePage() {
                     <ControlCard
                       icon={<Waypoints className="h-4 w-4" />}
                       title="Cockpit"
-                      text="AccÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s aux employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA possÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s, aux missions, aux messages, aux validations et aux actions opÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rationnelles."
+                      text="Accès aux employés IA possédés, aux missions, aux messages, aux validations et aux actions opérationnelles."
                       right={<ChevronRight className="h-4 w-4 text-[var(--cs-ink-4)]" />}
                     />
                     <ControlCard
                       icon={<BrainCircuit className="h-4 w-4" />}
                       title="Technologies"
-                      text="RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©glages globaux de CloneOS, CloneADN, CloneGuard, CloneTrace, CloneVoice et CloneChat."
+                      text="Réglages globaux de CloneOS, CloneADN, CloneGuard, CloneTrace, CloneVoice et CloneChat."
                     />
                     <ControlCard
                       icon={<Fingerprint className="h-4 w-4" />}
                       title="Empreinte Entreprise"
-                      text="Ton, rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨gles, validations, contexte, signature et habitudes de lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢entreprise."
+                      text="Ton, règles, validations, contexte, signature et habitudes de l’entreprise."
                     />
                     <ControlCard
                       icon={<CreditCard className="h-4 w-4" />}
                       title="Abonnement & paiement"
-                      text="EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s achetÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s, statut dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢accÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s, facturation et portail de paiement sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©."
+                      text="Employés achetés, statut d’accès, facturation et portail de paiement sécurisé."
                     />
                   </div>
                 </div>
@@ -1432,8 +1432,8 @@ export default function ProfilePage() {
             {activeTab === "account" ? (
               <PanelShell
                 eyebrow="Compte"
-                title="IdentitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©, accÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s et sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©."
-                text="Modifiez les informations essentielles du compte, lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢email, le mot de passe et les accÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s de sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©."
+                title="Identité, accès et sécurité."
+                text="Modifiez les informations essentielles du compte, l’email, le mot de passe et les accès de sécurité."
                 actions={
                   <ActionButton onClick={saveProfile} primary icon={<Save className="h-4 w-4" />}>
                     Enregistrer
@@ -1464,7 +1464,7 @@ export default function ProfilePage() {
                       label="Nom complet"
                       value={fullNameDraft}
                       onChange={setFullNameDraft}
-                      placeholder="PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©nom Nom"
+                      placeholder="Prénom Nom"
                       icon={<User2 className="h-4 w-4" />}
                     />
 
@@ -1482,7 +1482,7 @@ export default function ProfilePage() {
                       <ActionButton onClick={saveProfile} primary icon={<Save className="h-4 w-4" />}>
                         Enregistrer le profil
                       </ActionButton>
-                      <ActionButton onClick={updateEmail}>Changer lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢email</ActionButton>
+                      <ActionButton onClick={updateEmail}>Changer l’email</ActionButton>
                     </div>
                   </div>
 
@@ -1492,7 +1492,7 @@ export default function ProfilePage() {
                         label="Nouveau mot de passe"
                         value={passwordDraft}
                         onChange={setPasswordDraft}
-                        placeholder="Minimum 8 caractÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨res"
+                        placeholder="Minimum 8 caractères"
                         type="password"
                         autoComplete="new-password"
                         icon={<KeyRound className="h-4 w-4" />}
@@ -1511,7 +1511,7 @@ export default function ProfilePage() {
                     <LiquidGlass variant="clear" intensity="soft" className="rounded-[1.65rem] p-4">
                       <div className="grid gap-2 sm:grid-cols-2">
                         {[
-                          ["8 caractÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨res", passwordChecks.length],
+                          ["8 caractères", passwordChecks.length],
                           ["Une majuscule", passwordChecks.upper],
                           ["Une minuscule", passwordChecks.lower],
                           ["Un chiffre", passwordChecks.number],
@@ -1539,17 +1539,17 @@ export default function ProfilePage() {
                         primary
                         icon={<KeyRound className="h-4 w-4" />}
                       >
-                        Mettre ÃƒÆ’Ã†â€™  jour le mot de passe
+                        Mettre à jour le mot de passe
                       </ActionButton>
                       <ActionButton onClick={signOut} icon={<LogOut className="h-4 w-4" />}>
-                        DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©connexion
+                        Déconnexion
                       </ActionButton>
                     </div>
 
                     <ControlCard
                       icon={<ShieldCheck className="h-4 w-4" />}
-                      title="SÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© du compte"
-                      text="Les changements dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢email peuvent nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cessiter une confirmation par email selon la configuration Supabase."
+                      title="Sécurité du compte"
+                      text="Les changements d’email peuvent nécessiter une confirmation par email selon la configuration Supabase."
                     />
                   </div>
                 </div>
@@ -1559,8 +1559,8 @@ export default function ProfilePage() {
             {activeTab === "company" ? (
               <PanelShell
                 eyebrow="Entreprise"
-                title="IdentitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© et contexte gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ral."
-                text="Ces informations servent ÃƒÆ’Ã†â€™  rendre CloneStore plus cohÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rent avec lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢entreprise, ses prioritÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s et son fonctionnement."
+                title="Identité et contexte général."
+                text="Ces informations servent à rendre CloneStore plus cohérent avec l’entreprise, ses priorités et son fonctionnement."
                 actions={
                   <ActionButton onClick={saveCompany} primary icon={<Save className="h-4 w-4" />}>
                     Enregistrer
@@ -1570,7 +1570,7 @@ export default function ProfilePage() {
                 <div className="grid gap-4 xl:grid-cols-2">
                   <div className="grid gap-4 md:grid-cols-2">
                     <Field
-                      label="Nom de lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢entreprise"
+                      label="Nom de l’entreprise"
                       value={company.companyName}
                       onChange={(value) => setCompany((prev) => ({ ...prev, companyName: value }))}
                       placeholder="Nom de votre entreprise"
@@ -1580,7 +1580,7 @@ export default function ProfilePage() {
                       label="Secteur"
                       value={company.sector}
                       onChange={(value) => setCompany((prev) => ({ ...prev, sector: value }))}
-                      placeholder="RH, BTP, commerce, servicesÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦"
+                      placeholder="RH, BTP, commerce, services…"
                       icon={<BriefcaseBusiness className="h-4 w-4" />}
                     />
                     <SelectField
@@ -1590,10 +1590,10 @@ export default function ProfilePage() {
                       options={["", "1-10", "11-50", "51-200", "201-1000", "1000+"]}
                     />
                     <Field
-                      label="Votre rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´le"
+                      label="Votre rôle"
                       value={company.userRole}
                       onChange={(value) => setCompany((prev) => ({ ...prev, userRole: value }))}
-                      placeholder="Dirigeant, RH, managerÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦"
+                      placeholder="Dirigeant, RH, manager…"
                       icon={<User2 className="h-4 w-4" />}
                     />
                   </div>
@@ -1605,19 +1605,19 @@ export default function ProfilePage() {
                       onChange={(value) =>
                         setCompany((prev) => ({ ...prev, mainObjective: value }))
                       }
-                      placeholder="Ex : gagner du temps sur le RH, structurer les relances, rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©duire la charge adminÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦"
+                      placeholder="Ex : gagner du temps sur le RH, structurer les relances, réduire la charge admin…"
                     />
                     <SelectField
-                      label="Mode de pilotage prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©"
+                      label="Mode de pilotage préféré"
                       value={company.operatingMode}
                       onChange={(value) =>
                         setCompany((prev) => ({ ...prev, operatingMode: value }))
                       }
                       options={[
                         "pilotage",
-                        "contrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´le strict",
+                        "contrôle strict",
                         "autonomie progressive",
-                        "validation systÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©matique",
+                        "validation systématique",
                       ]}
                     />
                   </div>
@@ -1628,18 +1628,18 @@ export default function ProfilePage() {
             {activeTab === "billing" ? (
               <PanelShell
                 eyebrow="Abonnement & paiement"
-                title="Offres, employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s actifs, facturation et carte bancaire."
-                text="CloneStore ne stocke pas directement les numÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ros de carte. La gestion bancaire doit passer par un portail de paiement sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©."
+                title="Offres, employés actifs, facturation et carte bancaire."
+                text="CloneStore ne stocke pas directement les numéros de carte. La gestion bancaire doit passer par un portail de paiement sécurisé."
                 actions={
                   <ActionButton onClick={openBillingPortal} primary icon={<CreditCard className="h-4 w-4" />}>
-                    GÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer le paiement
+                    Gérer le paiement
                   </ActionButton>
                 }
               >
                 <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
                   <div className="grid gap-4">
                     <MetricCard
-                      title="EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s actifs"
+                      title="Employés actifs"
                       value={activeOrders.length}
                       helper="Souscriptions actuellement exploitables"
                       icon={<BadgeCheck className="h-5 w-5" />}
@@ -1647,13 +1647,13 @@ export default function ProfilePage() {
                     <MetricCard
                       title="Autres statuts"
                       value={inactiveOrders.length}
-                      helper="Incomplets, rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©siliÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s ou en attente"
+                      helper="Incomplets, résiliés ou en attente"
                       icon={<AlertCircle className="h-5 w-5" />}
                     />
                     <ControlCard
                       icon={<CreditCard className="h-4 w-4" />}
                       title="Carte bancaire"
-                      text="La modification de carte doit se faire depuis le portail Stripe ou le portail de paiement configurÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©."
+                      text="La modification de carte doit se faire depuis le portail Stripe ou le portail de paiement configuré."
                     />
                   </div>
 
@@ -1664,7 +1664,7 @@ export default function ProfilePage() {
                           Aucun abonnement actif
                         </p>
                         <p className="mt-2 text-sm leading-6 text-[var(--cs-ink-3)]">
-                          Les employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA achetÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s apparaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â®tront ici avec leur statut et leur accÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s.
+                          Les employés IA achetés apparaîtront ici avec leur statut et leur accès.
                         </p>
                         <div className="mt-4">
                           <ActionButton href="/agents" primary icon={<ArrowRight className="h-4 w-4" />}>
@@ -1696,7 +1696,7 @@ export default function ProfilePage() {
                                 </div>
                                 <p className="mt-1 text-sm text-[var(--cs-ink-3)]">{meta.role}</p>
                                 <p className="mt-2 text-xs text-[var(--cs-ink-4)]">
-                                  DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©but : {formatDate(order.started_at)} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Fin :{" "}
+                                  Début : {formatDate(order.started_at)} · Fin :{" "}
                                   {formatDate(order.ended_at)}
                                 </p>
                               </div>
@@ -1714,9 +1714,9 @@ export default function ProfilePage() {
 
             {activeTab === "employees" ? (
               <PanelShell
-                eyebrow="EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA"
-                title="Postes possÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s, configurables et futurs."
-                text="LÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢objectif est de gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer les employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA au pluriel, sans centrer lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢interface sur un seul poste."
+                eyebrow="Employés IA"
+                title="Postes possédés, configurables et futurs."
+                text="L’objectif est de gérer les employés IA au pluriel, sans centrer l’interface sur un seul poste."
                 actions={
                   <>
                     <ActionButton href="/profile/agents" primary icon={<ArrowRight className="h-4 w-4" />}>
@@ -1730,15 +1730,15 @@ export default function ProfilePage() {
                   <div className="grid gap-4">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <MetricCard
-                        title="PossÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s"
+                        title="Possédés"
                         value={ownedEmployeesCount}
-                        helper="EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s au compte"
+                        helper="Employés liés au compte"
                         icon={<Users2 className="h-5 w-5" />}
                       />
                       <MetricCard
                         title="Catalogue"
                         value={AGENTS.length}
-                        helper="EmployÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s visibles dans CloneStore"
+                        helper="Employés visibles dans CloneStore"
                         icon={<BriefcaseBusiness className="h-5 w-5" />}
                       />
                     </div>
@@ -1752,10 +1752,10 @@ export default function ProfilePage() {
                             key={agent.slug}
                             icon={<Sparkles className="h-4 w-4" />}
                             title={agent.name}
-                            text={`${agent.role} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· ${owned ? "LiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© au compte" : "Visible dans la boutique"}`}
+                            text={`${agent.role} · ${owned ? "Lié au compte" : "Visible dans la boutique"}`}
                             right={
                               <span className={owned ? "cs-status cs-status--success" : "cs-status"}>
-                                {owned ? "PossÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©" : "Catalogue"}
+                                {owned ? "Possédé" : "Catalogue"}
                               </span>
                             }
                           />
@@ -1770,10 +1770,10 @@ export default function ProfilePage() {
                     ) : (
                       <LiquidGlass variant="clear" intensity="soft" className="rounded-[1.65rem] p-5">
                         <p className="text-base font-semibold text-[var(--cs-ink-1)]">
-                          Aucun employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© actif
+                          Aucun employé actif
                         </p>
                         <p className="mt-2 text-sm leading-6 text-[var(--cs-ink-3)]">
-                          Activez un employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© IA depuis la boutique pour voir son cockpit et sa configuration ici.
+                          Activez un employé IA depuis la boutique pour voir son cockpit et sa configuration ici.
                         </p>
                         <div className="mt-4">
                           <ActionButton href="/agents" primary>
@@ -1790,8 +1790,8 @@ export default function ProfilePage() {
             {activeTab === "technologies" ? (
               <PanelShell
                 eyebrow="Technologies CloneStore"
-                title="RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©gler le comportement global du systÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨me."
-                text="Ces prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rences cadrent la maniÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨re dont CloneStore orchestre, apprend, trace, protÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨ge et assiste."
+                title="Régler le comportement global du système."
+                text="Ces préférences cadrent la manière dont CloneStore orchestre, apprend, trace, protège et assiste."
                 actions={
                   <ActionButton onClick={saveTechnologies} primary icon={<Save className="h-4 w-4" />}>
                     Enregistrer
@@ -1807,9 +1807,9 @@ export default function ProfilePage() {
                         setTechnologies((prev) => ({ ...prev, cloneOsMode: value }))
                       }
                       options={[
-                        "Orchestration contrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e",
+                        "Orchestration contrôlée",
                         "Orchestration rapide",
-                        "Orchestration trÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s prudente",
+                        "Orchestration très prudente",
                       ]}
                     />
                     <SelectField
@@ -1819,9 +1819,9 @@ export default function ProfilePage() {
                         setTechnologies((prev) => ({ ...prev, cloneAdnLearning: value }))
                       }
                       options={[
-                        "Apprentissage progressif aprÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s validation",
+                        "Apprentissage progressif après validation",
                         "Apprentissage conservateur",
-                        "Apprentissage accÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©",
+                        "Apprentissage accéléré",
                       ]}
                     />
                     <SelectField
@@ -1830,7 +1830,7 @@ export default function ProfilePage() {
                       onChange={(value) =>
                         setTechnologies((prev) => ({ ...prev, cloneGuardStrictness: value }))
                       }
-                      options={["Standard", "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°levÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e", "TrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s stricte"]}
+                      options={["Standard", "Élevée", "Très stricte"]}
                     />
                     <SelectField
                       label="CloneTrace"
@@ -1838,7 +1838,7 @@ export default function ProfilePage() {
                       onChange={(value) =>
                         setTechnologies((prev) => ({ ...prev, cloneTraceLevel: value }))
                       }
-                      options={["Essentiel", "Complet", "Audit renforcÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©"]}
+                      options={["Essentiel", "Complet", "Audit renforcé"]}
                     />
                     <SelectField
                       label="CloneVoice"
@@ -1848,8 +1848,8 @@ export default function ProfilePage() {
                       }
                       options={[
                         "Disponible globalement",
-                        "Seulement dans les espaces privÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s",
-                        "DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sactivÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©",
+                        "Seulement dans les espaces privés",
+                        "Désactivé",
                       ]}
                     />
                     <SelectField
@@ -1859,7 +1859,7 @@ export default function ProfilePage() {
                         setTechnologies((prev) => ({ ...prev, cloneChatRole: value }))
                       }
                       options={[
-                        "Orientation, support et explication systÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨me",
+                        "Orientation, support et explication système",
                         "Support uniquement",
                         "Assistant discret",
                       ]}
@@ -1870,12 +1870,12 @@ export default function ProfilePage() {
                     <ControlCard
                       icon={<BrainCircuit className="h-4 w-4" />}
                       title="CloneOS"
-                      text="Noyau qui transforme les demandes en missions, tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ches, prioritÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s et coordination."
+                      text="Noyau qui transforme les demandes en missions, tâches, priorités et coordination."
                     />
                     <ControlCard
                       icon={<WandSparkles className="h-4 w-4" />}
                       title="CloneADN"
-                      text="MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©moire comportementale : ton, habitudes, validations, prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rences et cohÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rence."
+                      text="Mémoire comportementale : ton, habitudes, validations, préférences et cohérence."
                     />
                     <ControlCard
                       icon={<LockKeyhole className="h-4 w-4" />}
@@ -1885,7 +1885,7 @@ export default function ProfilePage() {
                     <ControlCard
                       icon={<Workflow className="h-4 w-4" />}
                       title="CloneTrace"
-                      text="TraÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§abilitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© : historique, statuts, dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cisions, actions et continuitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©."
+                      text="Traçabilité : historique, statuts, décisions, actions et continuité."
                     />
                   </div>
                 </div>
@@ -1895,8 +1895,8 @@ export default function ProfilePage() {
             {activeTab === "footprint" ? (
               <PanelShell
                 eyebrow="Empreinte Entreprise"
-                title="LÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ADN opÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rationnel de votre entreprise."
-                text="LÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢Empreinte Entreprise doit aider les employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA ÃƒÆ’Ã†â€™  respecter le ton, les rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨gles, les validations et les habitudes de travail."
+                title="L’ADN opérationnel de votre entreprise."
+                text="L’Empreinte Entreprise doit aider les employés IA à respecter le ton, les règles, les validations et les habitudes de travail."
                 actions={
                   <ActionButton onClick={saveFootprint} primary icon={<Save className="h-4 w-4" />}>
                     Enregistrer
@@ -1906,18 +1906,18 @@ export default function ProfilePage() {
                 <div className="grid gap-4 xl:grid-cols-2">
                   <div className="grid gap-4">
                     <TextArea
-                      label="Ton de lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢entreprise"
+                      label="Ton de l’entreprise"
                       value={footprint.tone}
                       onChange={(value) => setFootprint((prev) => ({ ...prev, tone: value }))}
-                      placeholder="Ex : professionnel, direct, humain, haut de gammeÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦"
+                      placeholder="Ex : professionnel, direct, humain, haut de gamme…"
                     />
                     <TextArea
-                      label="RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨gles de validation"
+                      label="Règles de validation"
                       value={footprint.validationRules}
                       onChange={(value) =>
                         setFootprint((prev) => ({ ...prev, validationRules: value }))
                       }
-                      placeholder="Ce qui doit ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªtre validÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© par un humainÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦"
+                      placeholder="Ce qui doit être validé par un humain…"
                     />
                     <TextArea
                       label="Sujets sensibles"
@@ -1925,26 +1925,26 @@ export default function ProfilePage() {
                       onChange={(value) =>
                         setFootprint((prev) => ({ ...prev, sensitiveTopics: value }))
                       }
-                      placeholder="Ce qui doit ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªtre bloquÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©, remontÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© ou traitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© avec prudenceÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦"
+                      placeholder="Ce qui doit être bloqué, remonté ou traité avec prudence…"
                     />
                   </div>
 
                   <div className="grid gap-4">
                     <TextArea
-                      label="Signature / identitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©"
+                      label="Signature / identité"
                       value={footprint.signature}
                       onChange={(value) =>
                         setFootprint((prev) => ({ ...prev, signature: value }))
                       }
-                      placeholder="Signature email, formulation prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e, identitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢envoiÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦"
+                      placeholder="Signature email, formulation préférée, identité d’envoi…"
                     />
                     <TextArea
-                      label="Contexte de rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rence"
+                      label="Contexte de référence"
                       value={footprint.referenceContext}
                       onChange={(value) =>
                         setFootprint((prev) => ({ ...prev, referenceContext: value }))
                       }
-                      placeholder="Infos importantes ÃƒÆ’Ã†â€™  respecter dans les missionsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦"
+                      placeholder="Infos importantes à respecter dans les missions…"
                       minHeight="min-h-[168px]"
                     />
                   </div>
@@ -1954,12 +1954,12 @@ export default function ProfilePage() {
 
             {activeTab === "privacy" ? (
               <PanelShell
-                eyebrow="ConfidentialitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©"
-                title="ContrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´le des donnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es et demandes sensibles."
-                text="Cette zone regroupe export, visibilitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©, confidentialitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©, suppression et demandes liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es au compte."
+                eyebrow="Confidentialité"
+                title="Contrôle des données et demandes sensibles."
+                text="Cette zone regroupe export, visibilité, confidentialité, suppression et demandes liées au compte."
                 actions={
                   <ActionButton onClick={exportAccountData} primary icon={<Download className="h-4 w-4" />}>
-                    Exporter mes donnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es
+                    Exporter mes données
                   </ActionButton>
                 }
               >
@@ -1968,22 +1968,22 @@ export default function ProfilePage() {
                     <ControlCard
                       icon={<Database className="h-4 w-4" />}
                       title="Export local"
-                      text="GÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨re un fichier JSON avec les informations disponibles cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© compte et prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rences enregistrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es."
+                      text="Génère un fichier JSON avec les informations disponibles côté compte et préférences enregistrées."
                     />
                     <ControlCard
                       icon={<Eye className="h-4 w-4" />}
-                      title="VisibilitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©"
-                      text="Les missions, historiques, configurations et traces doivent rester lisibles et contrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´lables."
+                      title="Visibilité"
+                      text="Les missions, historiques, configurations et traces doivent rester lisibles et contrôlables."
                     />
                     <ControlCard
                       icon={<ShieldCheck className="h-4 w-4" />}
                       title="Protection"
-                      text="Les actions sensibles doivent ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªtre encadrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es par CloneGuard et les validations humaines."
+                      text="Les actions sensibles doivent être encadrées par CloneGuard et les validations humaines."
                     />
                     <ControlCard
                       icon={<LifeBuoy className="h-4 w-4" />}
                       title="Assistance"
-                      text="CloneChat et le support doivent pouvoir orienter clairement sur les sujets de confidentialitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©."
+                      text="CloneChat et le support doivent pouvoir orienter clairement sur les sujets de confidentialité."
                     />
                   </div>
 
@@ -1994,8 +1994,8 @@ export default function ProfilePage() {
                           Suppression du compte
                         </p>
                         <p className="mt-2 text-sm leading-6 text-[var(--cs-ink-3)]">
-                          La suppression dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢un compte entreprise doit ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªtre traitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e proprement :
-                          accÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s, facturation, donnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es, historiques et obligations ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ventuelles.
+                          La suppression d’un compte entreprise doit être traitée proprement :
+                          accès, facturation, données, historiques et obligations éventuelles.
                         </p>
                       </div>
 
@@ -2003,7 +2003,7 @@ export default function ProfilePage() {
                         label="Confirmation"
                         value={dangerConfirm}
                         onChange={setDangerConfirm}
-                        placeholder="ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°crivez SUPPRIMER"
+                        placeholder="Écrivez SUPPRIMER"
                         icon={<Trash2 className="h-4 w-4" />}
                       />
 
@@ -2016,7 +2016,7 @@ export default function ProfilePage() {
                           Demander la suppression
                         </ActionButton>
                         <ActionButton href="/legal/confidentialite">
-                          Politique de confidentialitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©
+                          Politique de confidentialité
                         </ActionButton>
                       </div>
                     </div>
@@ -2029,7 +2029,7 @@ export default function ProfilePage() {
               <PanelShell
                 eyebrow="Notifications"
                 title="Alertes internes, emails et rapports."
-                text="Les notifications doivent rester utiles, discrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨tes et orientÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es action."
+                text="Les notifications doivent rester utiles, discrètes et orientées action."
                 actions={
                   <ActionButton onClick={saveNotifications} primary icon={<Save className="h-4 w-4" />}>
                     Enregistrer
@@ -2040,7 +2040,7 @@ export default function ProfilePage() {
                   <div className="grid gap-3">
                     <ToggleRow
                       label="Notifications internes"
-                      text="Alertes premium dans lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢interface CloneStore."
+                      text="Alertes premium dans l’interface CloneStore."
                       checked={notifications.internalNotifications}
                       onChange={(value) =>
                         setNotifications((prev) => ({ ...prev, internalNotifications: value }))
@@ -2055,8 +2055,8 @@ export default function ProfilePage() {
                       }
                     />
                     <ToggleRow
-                      label="Rapports employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA"
-                      text="SynthÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨ses dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢activitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© et missions terminÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es."
+                      label="Rapports employés IA"
+                      text="Synthèses d’activité et missions terminées."
                       checked={notifications.employeeReports}
                       onChange={(value) =>
                         setNotifications((prev) => ({ ...prev, employeeReports: value }))
@@ -2071,8 +2071,8 @@ export default function ProfilePage() {
                       }
                     />
                     <ToggleRow
-                      label="Alertes sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©"
-                      text="Connexion, accÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s, changement dÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢email ou mot de passe."
+                      label="Alertes sécurité"
+                      text="Connexion, accès, changement d’email ou mot de passe."
                       checked={notifications.securityAlerts}
                       onChange={(value) =>
                         setNotifications((prev) => ({ ...prev, securityAlerts: value }))
@@ -2084,17 +2084,17 @@ export default function ProfilePage() {
                     <ControlCard
                       icon={<Bell className="h-4 w-4" />}
                       title="Notification interne"
-                      text="Exemple : un employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© IA a terminÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© un rapport, attend une validation ou signale un blocage."
+                      text="Exemple : un employé IA a terminé un rapport, attend une validation ou signale un blocage."
                     />
                     <ControlCard
                       icon={<MessageCircle className="h-4 w-4" />}
                       title="Messagerie"
-                      text="Les messages internes seront liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s au cockpit et aux employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s IA possÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s."
+                      text="Les messages internes seront liés au cockpit et aux employés IA possédés."
                     />
                     <ControlCard
                       icon={<FileCheck2 className="h-4 w-4" />}
                       title="Rapports"
-                      text="Les synthÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨ses doivent permettre de comprendre rapidement ce qui a ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© fait."
+                      text="Les synthèses doivent permettre de comprendre rapidement ce qui a été fait."
                     />
                   </div>
                 </div>
@@ -2104,8 +2104,8 @@ export default function ProfilePage() {
             {activeTab === "appearance" ? (
               <PanelShell
                 eyebrow="Apparence"
-                title="Interface, densitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©, couleur et confort."
-                text="Cette zone personnalise lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢environnement CloneStore sans casser la homepage ni son Liquid Glass original."
+                title="Interface, densité, couleur et confort."
+                text="Cette zone personnalise l’environnement CloneStore sans casser la homepage ni son Liquid Glass original."
                 actions={
                   <ActionButton onClick={saveAppearance} primary icon={<Save className="h-4 w-4" />}>
                     Enregistrer
@@ -2115,10 +2115,10 @@ export default function ProfilePage() {
                 <div className="grid gap-4 xl:grid-cols-2">
                   <div className="grid gap-4 md:grid-cols-2">
                     <SelectField
-                      label="ThÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨me"
+                      label="Thème"
                       value={appearance.theme}
                       onChange={(value) => updateAppearanceSetting("theme", value)}
-                      options={["Ivoire premium", "Graphite clair", "CrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨me champagne"]}
+                      options={["Ivoire premium", "Graphite clair", "Crème champagne"]}
                     />
                     <SelectField
                       label="Accent"
@@ -2127,16 +2127,16 @@ export default function ProfilePage() {
                       options={["Bleu graphite", "Bleu froid", "Champagne", "Violet discret"]}
                     />
                     <SelectField
-                      label="DensitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©"
+                      label="Densité"
                       value={appearance.density}
                       onChange={(value) => updateAppearanceSetting("density", value)}
-                      options={["Confortable", "Compacte", "TrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e"]}
+                      options={["Confortable", "Compacte", "Très aérée"]}
                     />
                     <SelectField
                       label="Animations"
                       value={appearance.motion}
                       onChange={(value) => updateAppearanceSetting("motion", value)}
-                      options={["Subtile", "RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©duite", "DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sactivÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e"]}
+                      options={["Subtile", "Réduite", "Désactivée"]}
                     />
                   </div>
 
@@ -2144,7 +2144,7 @@ export default function ProfilePage() {
                     <div className="space-y-5">
                       <div>
                         <p className="text-base font-semibold text-[var(--cs-ink-1)]">
-                          AperÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§u interface
+                          Aperçu interface
                         </p>
                         <p className="mt-2 text-sm leading-6 text-[var(--cs-ink-3)]">
                           La personnalisation reste premium : ivoire, graphite,
@@ -2158,7 +2158,7 @@ export default function ProfilePage() {
                             {appearance.theme}
                           </p>
                           <p className="mt-1 text-xs text-[var(--cs-ink-3)]">
-                            Accent : {appearance.accent} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· DensitÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© : {appearance.density} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Animations : {appearance.motion}
+                            Accent : {appearance.accent} · Densité : {appearance.density} · Animations : {appearance.motion}
                           </p>
                         </div>
 

@@ -122,7 +122,7 @@ export function decidePierreTaskClaim(
       claimed_at: claimedAt,
       claimed_by: claimedBy,
       locked_until: lockedUntil,
-      reason: "Le workerId est requis pour claim une tÃ¢che.",
+      reason: "Le workerId est requis pour claim une tâche.",
       conflict_code: "MISSING_WORKER_ID",
     };
   }
@@ -134,7 +134,7 @@ export function decidePierreTaskClaim(
       claimed_at: claimedAt,
       claimed_by: claimedBy,
       locked_until: lockedUntil,
-      reason: "La tÃ¢che est dÃ©jÃ  verrouillÃ©e par un autre worker.",
+      reason: "La tâche est déjà verrouillée par un autre worker.",
       conflict_code: "ALREADY_LOCKED",
     };
   }
@@ -146,7 +146,7 @@ export function decidePierreTaskClaim(
       claimed_at: claimedAt,
       claimed_by: claimedBy,
       locked_until: lockedUntil,
-      reason: "La tÃ¢che nÃ©cessite une validation humaine avant claim/exÃ©cution.",
+      reason: "La tâche nécessite une validation humaine avant claim/exécution.",
       conflict_code: "AWAITING_APPROVAL",
     };
   }
@@ -158,7 +158,7 @@ export function decidePierreTaskClaim(
       claimed_at: claimedAt,
       claimed_by: claimedBy,
       locked_until: lockedUntil,
-      reason: "La tÃ¢che est planifiÃ©e dans le futur et ne doit pas Ãªtre claimÃ©e maintenant.",
+      reason: "La tâche est planifiée dans le futur et ne doit pas être claimée maintenant.",
       conflict_code: "SCHEDULED_FUTURE",
     };
   }
@@ -178,7 +178,7 @@ export function decidePierreTaskClaim(
       claimed_at: claimedAt,
       claimed_by: claimedBy,
       locked_until: lockedUntil,
-      reason: `Le statut courant (${normalizedStatus}) nâ€™autorise pas un claim immÃ©diat.`,
+      reason: `Le statut courant (${normalizedStatus}) n’autorise pas un claim immédiat.`,
       conflict_code: "INVALID_STATUS",
     };
   }
@@ -194,8 +194,8 @@ export function decidePierreTaskClaim(
     locked_until: nextLockedUntil,
     reason:
       retryCount > 0
-        ? `La tÃ¢che a Ã©tÃ© reclaimÃ©e pour exÃ©cution (tentative ${retryCount + 1}).`
-        : "La tÃ¢che a Ã©tÃ© claimÃ©e avec succÃ¨s pour exÃ©cution.",
+        ? `La tâche a été reclaimée pour exécution (tentative ${retryCount + 1}).`
+        : "La tâche a été claimée avec succès pour exécution.",
     conflict_code: "NONE",
   };
 }

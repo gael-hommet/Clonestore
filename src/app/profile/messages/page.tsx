@@ -123,11 +123,11 @@ const STORAGE_KEYS = {
 const categories: CategoryDefinition[] = [
   {
     key: "preparations",
-    label: "PrÃ©parations",
-    shortLabel: "PrÃ©pa",
+    label: "Préparations",
+    shortLabel: "Prépa",
     eyebrow: "En construction",
     description:
-      "TÃ¢ches longues en prÃ©paration, brouillons, analyses en cours, missions pas encore livrÃ©es.",
+      "Tâches longues en préparation, brouillons, analyses en cours, missions pas encore livrées.",
     icon: Clock3,
   },
   {
@@ -136,43 +136,43 @@ const categories: CategoryDefinition[] = [
     shortLabel: "Suivis",
     eyebrow: "Dans le temps",
     description:
-      "Missions persistantes, relances, dossiers ouverts, Ã©lÃ©ments Ã  surveiller dans la durÃ©e.",
+      "Missions persistantes, relances, dossiers ouverts, éléments à surveiller dans la durée.",
     icon: Waypoints,
   },
   {
     key: "briefings",
     label: "Briefings",
     shortLabel: "Briefs",
-    eyebrow: "SynthÃ¨ses",
+    eyebrow: "Synthèses",
     description:
-      "Comptes rendus autonomes, rÃ©sumÃ©s du jour, de la semaine ou du mois.",
+      "Comptes rendus autonomes, résumés du jour, de la semaine ou du mois.",
     icon: MessageCircle,
   },
   {
     key: "livraisons",
     label: "Livraisons",
-    shortLabel: "LivrÃ©s",
-    eyebrow: "PrÃªt Ã  exploiter",
+    shortLabel: "Livrés",
+    eyebrow: "Prêt à exploiter",
     description:
-      "Documents prÃªts, analyses terminÃ©es, livrables finaux, PDF, emails prÃ©parÃ©s.",
+      "Documents prêts, analyses terminées, livrables finaux, PDF, emails préparés.",
     icon: PackageCheck,
   },
   {
     key: "alertes",
     label: "Alertes",
     shortLabel: "Alertes",
-    eyebrow: "Ã€ traiter",
+    eyebrow: "À traiter",
     description:
-      "Validations, risques, blocages, anomalies, permissions ou dÃ©cisions humaines requises.",
+      "Validations, risques, blocages, anomalies, permissions ou décisions humaines requises.",
     icon: ShieldAlert,
   },
   {
     key: "envoyes",
-    label: "EnvoyÃ©s / suivis",
-    shortLabel: "EnvoyÃ©s",
-    eyebrow: "TraÃ§abilitÃ©",
+    label: "Envoyés / suivis",
+    shortLabel: "Envoyés",
+    eyebrow: "Traçabilité",
     description:
-      "Documents importants envoyÃ©s, dÃ©cisions dÃ©clenchÃ©es, Ã©lÃ©ments retrouvables et suivis.",
+      "Documents importants envoyés, décisions déclenchées, éléments retrouvables et suivis.",
     icon: Send,
   },
 ];
@@ -197,7 +197,7 @@ function saveArrayToStorage(key: string, value: string[]) {
 }
 
 function formatDate(value: string | null | undefined) {
-  if (!value) return "â€”";
+  if (!value) return "—";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -214,11 +214,11 @@ function statusLabel(status: MessageStatus) {
   if (status === "new") return "Nouveau";
   if (status === "in_progress") return "En cours";
   if (status === "waiting_validation") return "Validation requise";
-  if (status === "delivered") return "LivrÃ©";
-  if (status === "sent") return "EnvoyÃ©";
-  if (status === "archived") return "ArchivÃ©";
+  if (status === "delivered") return "Livré";
+  if (status === "sent") return "Envoyé";
+  if (status === "archived") return "Archivé";
 
-  return "â€”";
+  return "—";
 }
 
 function priorityLabel(priority: MessagePriority) {
@@ -269,11 +269,11 @@ function buildInitialMessages(ownedEmployees: string[]): MessageItem[] {
   return [
     {
       id: "msg-preparation-rh-001",
-      title: "PrÃ©paration du dossier RH en cours",
+      title: "Préparation du dossier RH en cours",
       summary:
-        "Pierre prÃ©pare les Ã©lÃ©ments demandÃ©s, vÃ©rifie les informations manquantes et garde la mission ouverte.",
+        "Pierre prépare les éléments demandés, vérifie les informations manquantes et garde la mission ouverte.",
       body:
-        "La mission RH est en prÃ©paration. Pierre a structurÃ© les Ã©tapes, identifiÃ© les informations utiles, prÃ©parÃ© un premier brouillon et attend les derniers Ã©lÃ©ments avant livraison. CloneOS garde la mission active pour Ã©viter toute perte de continuitÃ©.",
+        "La mission RH est en préparation. Pierre a structuré les étapes, identifié les informations utiles, préparé un premier brouillon et attend les derniers éléments avant livraison. CloneOS garde la mission active pour éviter toute perte de continuité.",
       source: "Pierre",
       categories: ["preparations", "suivis"],
       priority: "important",
@@ -282,20 +282,20 @@ function buildInitialMessages(ownedEmployees: string[]): MessageItem[] {
       updatedAt: new Date(Date.now() - 1000 * 60 * 16).toISOString(),
       dueAt: new Date(Date.now() + 1000 * 60 * 60 * 5).toISOString(),
       employees: employees.includes("Pierre") ? ["Pierre"] : employees.slice(0, 1),
-      tags: ["RH", "mission longue", "brouillon", "continuitÃ©"],
+      tags: ["RH", "mission longue", "brouillon", "continuité"],
       deliverables: ["Brouillon RH", "Liste des informations manquantes"],
       actions: [
-        { label: "Ouvrir la prÃ©paration", tone: "primary" },
+        { label: "Ouvrir la préparation", tone: "primary" },
         { label: "Ajouter une information", tone: "neutral" },
       ],
     },
     {
       id: "msg-briefing-daily-001",
-      title: "Briefing opÃ©rationnel du jour",
+      title: "Briefing opérationnel du jour",
       summary:
-        "SynthÃ¨se des actions terminÃ©es, des missions en cours et des points qui nÃ©cessitent votre attention.",
+        "Synthèse des actions terminées, des missions en cours et des points qui nécessitent votre attention.",
       body:
-        "CloneOS a gÃ©nÃ©rÃ© un briefing quotidien regroupant les actions utiles : missions actives, livraisons prÃªtes, validations nÃ©cessaires, Ã©lÃ©ments Ã  surveiller et prioritÃ©s du jour. Ce briefing doit permettre au dirigeant de comprendre rapidement ce qui avance sans ouvrir chaque employÃ© IA sÃ©parÃ©ment.",
+        "CloneOS a généré un briefing quotidien regroupant les actions utiles : missions actives, livraisons prêtes, validations nécessaires, éléments à surveiller et priorités du jour. Ce briefing doit permettre au dirigeant de comprendre rapidement ce qui avance sans ouvrir chaque employé IA séparément.",
       source: "CloneOS",
       categories: ["briefings", "suivis"],
       priority: "normal",
@@ -304,19 +304,19 @@ function buildInitialMessages(ownedEmployees: string[]): MessageItem[] {
       updatedAt: new Date(Date.now() - 1000 * 60 * 110).toISOString(),
       employees,
       tags: ["briefing", "quotidien", "pilotage"],
-      deliverables: ["RÃ©sumÃ© du jour", "Points Ã  surveiller"],
+      deliverables: ["Résumé du jour", "Points à surveiller"],
       actions: [
         { label: "Lire le briefing", tone: "primary" },
-        { label: "CrÃ©er un suivi", tone: "neutral" },
+        { label: "Créer un suivi", tone: "neutral" },
       ],
     },
     {
       id: "msg-delivery-document-001",
-      title: "Document prÃªt Ã  validation",
+      title: "Document prêt à validation",
       summary:
-        "Un livrable est terminÃ©. Il peut Ãªtre relu, validÃ©, exportÃ© ou suivi dans le temps.",
+        "Un livrable est terminé. Il peut être relu, validé, exporté ou suivi dans le temps.",
       body:
-        "Le document demandÃ© est prÃªt. Il a Ã©tÃ© classÃ© comme livrable final, rattachÃ© Ã  la mission dâ€™origine et marquÃ© comme Ã©lÃ©ment important retrouvable. Vous pouvez le valider, demander une correction ou lâ€™ajouter au suivi long terme.",
+        "Le document demandé est prêt. Il a été classé comme livrable final, rattaché à la mission d’origine et marqué comme élément important retrouvable. Vous pouvez le valider, demander une correction ou l’ajouter au suivi long terme.",
       source: "CloneTrace",
       categories: ["livraisons", "envoyes", "suivis"],
       priority: "important",
@@ -328,16 +328,16 @@ function buildInitialMessages(ownedEmployees: string[]): MessageItem[] {
       deliverables: ["Document final", "Historique de mission"],
       actions: [
         { label: "Ouvrir le livrable", tone: "primary" },
-        { label: "Marquer Ã  suivre", tone: "neutral" },
+        { label: "Marquer à suivre", tone: "neutral" },
       ],
     },
     {
       id: "msg-alert-risk-001",
       title: "Validation humaine requise",
       summary:
-        "CloneGuard a dÃ©tectÃ© un sujet sensible. Lâ€™action ne doit pas partir sans accord humain.",
+        "CloneGuard a détecté un sujet sensible. L’action ne doit pas partir sans accord humain.",
       body:
-        "Une action demandÃ©e touche un sujet sensible. CloneGuard recommande une validation humaine avant exÃ©cution. La mission reste bloquÃ©e volontairement tant que la dÃ©cision nâ€™est pas confirmÃ©e.",
+        "Une action demandée touche un sujet sensible. CloneGuard recommande une validation humaine avant exécution. La mission reste bloquée volontairement tant que la décision n’est pas confirmée.",
       source: "CloneGuard",
       categories: ["alertes", "suivis"],
       priority: "critical",
@@ -346,19 +346,19 @@ function buildInitialMessages(ownedEmployees: string[]): MessageItem[] {
       updatedAt: new Date(Date.now() - 1000 * 60 * 28).toISOString(),
       employees: employees.slice(0, 1),
       tags: ["risque", "validation", "sensible", "CloneGuard"],
-      deliverables: ["Note de risque", "Action bloquÃ©e"],
+      deliverables: ["Note de risque", "Action bloquée"],
       actions: [
-        { label: "Examiner lâ€™alerte", tone: "danger" },
+        { label: "Examiner l’alerte", tone: "danger" },
         { label: "Demander une alternative", tone: "neutral" },
       ],
     },
     {
       id: "msg-sent-followup-001",
-      title: "Ã‰lÃ©ment envoyÃ© et placÃ© sous suivi",
+      title: "Élément envoyé et placé sous suivi",
       summary:
-        "Un message important a Ã©tÃ© envoyÃ©. Il reste visible dans EnvoyÃ©s / suivis pour Ãªtre retrouvÃ©.",
+        "Un message important a été envoyé. Il reste visible dans Envoyés / suivis pour être retrouvé.",
       body:
-        "Lâ€™Ã©lÃ©ment envoyÃ© a Ã©tÃ© rattachÃ© Ã  CloneTrace. Il restera retrouvable avec ses tags, son contexte, les employÃ©s concernÃ©s, la date dâ€™envoi et les prochaines actions Ã©ventuelles.",
+        "L’élément envoyé a été rattaché à CloneTrace. Il restera retrouvable avec ses tags, son contexte, les employés concernés, la date d’envoi et les prochaines actions éventuelles.",
       source: "CloneTrace",
       categories: ["envoyes", "suivis"],
       priority: "normal",
@@ -367,8 +367,8 @@ function buildInitialMessages(ownedEmployees: string[]): MessageItem[] {
       updatedAt: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
       dueAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2).toISOString(),
       employees: employees.slice(0, 2),
-      tags: ["envoyÃ©", "Ã  suivre", "retrouvable", "historique"],
-      deliverables: ["Message envoyÃ©", "Trace de suivi"],
+      tags: ["envoyé", "à suivre", "retrouvable", "historique"],
+      deliverables: ["Message envoyé", "Trace de suivi"],
       actions: [
         { label: "Voir la trace", tone: "primary" },
         { label: "Planifier une relance", tone: "neutral" },
@@ -376,11 +376,11 @@ function buildInitialMessages(ownedEmployees: string[]): MessageItem[] {
     },
     {
       id: "msg-multi-agent-001",
-      title: "Mission multi-employÃ©s dÃ©coupÃ©e par CloneOS",
+      title: "Mission multi-employés découpée par CloneOS",
       summary:
-        "CloneOS a identifiÃ© plusieurs flux de travail et les a rÃ©partis entre les employÃ©s disponibles.",
+        "CloneOS a identifié plusieurs flux de travail et les a répartis entre les employés disponibles.",
       body:
-        "La demande initiale nÃ©cessite plusieurs compÃ©tences. CloneOS a dÃ©coupÃ© la mission en workstreams, vÃ©rifiÃ© les employÃ©s disponibles sur le compte et prÃ©parÃ© une coordination entre les postes concernÃ©s. Les employÃ©s non souscrits ne seront pas sollicitÃ©s.",
+        "La demande initiale nécessite plusieurs compétences. CloneOS a découpé la mission en workstreams, vérifié les employés disponibles sur le compte et préparé une coordination entre les postes concernés. Les employés non souscrits ne seront pas sollicités.",
       source: "CloneOS",
       categories: ["preparations", "suivis", "briefings"],
       priority: "important",
@@ -388,11 +388,11 @@ function buildInitialMessages(ownedEmployees: string[]): MessageItem[] {
       createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
       updatedAt: new Date(Date.now() - 1000 * 60 * 52).toISOString(),
       employees,
-      tags: ["CloneOS", "orchestration", "multi-employÃ©s", "coordination"],
-      deliverables: ["Plan de mission", "DÃ©coupage des tÃ¢ches"],
+      tags: ["CloneOS", "orchestration", "multi-employés", "coordination"],
+      deliverables: ["Plan de mission", "Découpage des tâches"],
       actions: [
-        { label: "Voir le dÃ©coupage", tone: "primary" },
-        { label: "Modifier la prioritÃ©", tone: "neutral" },
+        { label: "Voir le découpage", tone: "primary" },
+        { label: "Modifier la priorité", tone: "neutral" },
       ],
     },
   ];
@@ -530,7 +530,7 @@ export default function ProfileMessagesPage() {
       setLoading(false);
       setAuthReady(true);
       setError(
-        "Configuration Supabase manquante. La messagerie sâ€™affiche en aperÃ§u local."
+        "Configuration Supabase manquante. La messagerie s’affiche en aperçu local."
       );
       return;
     }
@@ -730,8 +730,8 @@ export default function ProfileMessagesPage() {
               </h1>
 
               <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--cs-ink-3)] md:text-base">
-                Pas un chat brouillon : un centre premium pour les prÃ©parations,
-                suivis, briefings, livraisons, alertes et Ã©lÃ©ments envoyÃ©s Ã  retrouver
+                Pas un chat brouillon : un centre premium pour les préparations,
+                suivis, briefings, livraisons, alertes et éléments envoyés à retrouver
                 dans le temps.
               </p>
             </div>
@@ -768,7 +768,7 @@ export default function ProfileMessagesPage() {
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Rechercher une mission, un livrable, un employÃ©, une alerte, un document..."
+                    placeholder="Rechercher une mission, un livrable, un employé, une alerte, un document..."
                     className="h-12 w-full border-0 bg-transparent text-sm font-semibold text-[var(--cs-ink-1)] outline-none placeholder:text-[var(--cs-ink-4)]"
                   />
                   {query ? (
@@ -850,9 +850,9 @@ export default function ProfileMessagesPage() {
             >
               <div className="flex items-center justify-between gap-3 px-1 pb-4">
                 <div>
-                  <p className="cs-eyebrow">BoÃ®te opÃ©rationnelle</p>
+                  <p className="cs-eyebrow">Boîte opérationnelle</p>
                   <p className="mt-2 text-lg font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
-                    {visibleMessages.length} Ã©lÃ©ments
+                    {visibleMessages.length} éléments
                   </p>
                 </div>
 
@@ -862,7 +862,7 @@ export default function ProfileMessagesPage() {
                   className="inline-flex h-10 items-center gap-2 rounded-full border border-white/50 bg-white/34 px-4 text-xs font-semibold text-[var(--cs-ink-3)] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl"
                 >
                   <Filter className="h-3.5 w-3.5" />
-                  RÃ©initialiser
+                  Réinitialiser
                 </button>
               </div>
 
@@ -876,7 +876,7 @@ export default function ProfileMessagesPage() {
               ) : visibleMessages.length === 0 ? (
                 <EmptyState
                   title="Aucun message dans cette vue"
-                  text="Change dâ€™onglet, efface la recherche ou restaure les Ã©lÃ©ments masquÃ©s."
+                  text="Change d’onglet, efface la recherche ou restaure les éléments masqués."
                   icon={<Inbox className="h-6 w-6" />}
                 />
               ) : (
@@ -982,8 +982,8 @@ export default function ProfileMessagesPage() {
             >
               {!selectedMessage ? (
                 <EmptyState
-                  title="SÃ©lectionnez un message"
-                  text="Le dÃ©tail opÃ©rationnel apparaÃ®tra ici avec ses actions, ses employÃ©s, ses tags et ses livrables."
+                  title="Sélectionnez un message"
+                  text="Le détail opérationnel apparaîtra ici avec ses actions, ses employés, ses tags et ses livrables."
                   icon={<MessagesSquare className="h-6 w-6" />}
                 />
               ) : (
@@ -1024,8 +1024,8 @@ export default function ProfileMessagesPage() {
                       className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/55 bg-white/34 text-[var(--cs-ink-2)] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_14px_34px_rgba(38,32,22,0.08)] backdrop-blur-xl"
                       aria-label={
                         pinnedIds.includes(selectedMessage.id)
-                          ? "Retirer lâ€™Ã©pingle"
-                          : "Ã‰pingler"
+                          ? "Retirer l’épingle"
+                          : "Épingler"
                       }
                     >
                       {pinnedIds.includes(selectedMessage.id) ? (
@@ -1048,7 +1048,7 @@ export default function ProfileMessagesPage() {
 
                     <LiquidGlass variant="clear" intensity="soft" className="rounded-[1.35rem] p-4">
                       <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--cs-ink-4)]">
-                        Mise Ã  jour
+                        Mise à jour
                       </p>
                       <p className="mt-2 text-sm font-semibold text-[var(--cs-ink-1)]">
                         {formatDate(selectedMessage.updatedAt)}
@@ -1057,7 +1057,7 @@ export default function ProfileMessagesPage() {
 
                     <LiquidGlass variant="clear" intensity="soft" className="rounded-[1.35rem] p-4">
                       <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--cs-ink-4)]">
-                        Ã‰chÃ©ance
+                        Échéance
                       </p>
                       <p className="mt-2 text-sm font-semibold text-[var(--cs-ink-1)]">
                         {formatDate(selectedMessage.dueAt)}
@@ -1067,7 +1067,7 @@ export default function ProfileMessagesPage() {
 
                   <LiquidGlass variant="clear" intensity="soft" className="rounded-[1.65rem] p-5">
                     <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
-                      DÃ©tail opÃ©rationnel
+                      Détail opérationnel
                     </p>
                     <p className="mt-3 text-sm leading-7 text-[var(--cs-ink-3)]">
                       {selectedMessage.body}
@@ -1079,7 +1079,7 @@ export default function ProfileMessagesPage() {
                       <div className="flex items-center gap-2">
                         <BriefcaseBusiness className="h-4 w-4 text-[#667cff]" />
                         <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
-                          EmployÃ©s concernÃ©s
+                          Employés concernés
                         </p>
                       </div>
 
@@ -1121,7 +1121,7 @@ export default function ProfileMessagesPage() {
                     <div className="flex items-center gap-2">
                       <CalendarClock className="h-4 w-4 text-[#667cff]" />
                       <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
-                        CatÃ©gories et tags
+                        Catégories et tags
                       </p>
                     </div>
 
@@ -1190,15 +1190,15 @@ export default function ProfileMessagesPage() {
                 <div className="flex items-start gap-3">
                   <LockKeyhole className="mt-0.5 h-4 w-4 text-[#667cff]" />
                   <p className="text-sm leading-6 text-[var(--cs-ink-3)]">
-                    Connectez-vous pour relier cette messagerie aux vrais employÃ©s IA,
-                    aux missions et Ã  lâ€™historique du compte.
+                    Connectez-vous pour relier cette messagerie aux vrais employés IA,
+                    aux missions et à l’historique du compte.
                   </p>
                 </div>
 
                 <div className="flex gap-2">
                   <ActionButton href="/login">Connexion</ActionButton>
                   <ActionButton href="/signup" primary>
-                    CrÃ©er un compte
+                    Créer un compte
                   </ActionButton>
                 </div>
               </div>

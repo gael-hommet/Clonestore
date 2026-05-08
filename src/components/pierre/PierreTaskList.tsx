@@ -20,36 +20,36 @@ type Props = {
 function groupLabel(status: string) {
   const s = status.toLowerCase();
 
-  if (["awaiting_info"].includes(s)) return "En attente dâ€™information";
+  if (["awaiting_info"].includes(s)) return "En attente d’information";
   if (["awaiting_validation", "awaiting_approval"].includes(s)) {
     return "En attente de validation";
   }
-  if (["ready", "queued", "retry"].includes(s)) return "PrÃªtes Ã  traiter";
-  if (["planned"].includes(s)) return "PlanifiÃ©es";
+  if (["ready", "queued", "retry"].includes(s)) return "Prêtes à traiter";
+  if (["planned"].includes(s)) return "Planifiées";
   if (["running", "in_progress"].includes(s)) return "En cours";
-  if (["blocked", "failed"].includes(s)) return "BloquÃ©es";
-  if (["done", "completed"].includes(s)) return "TerminÃ©es";
-  if (["cancelled"].includes(s)) return "AnnulÃ©es";
+  if (["blocked", "failed"].includes(s)) return "Bloquées";
+  if (["done", "completed"].includes(s)) return "Terminées";
+  if (["cancelled"].includes(s)) return "Annulées";
   return "Autres";
 }
 
 function orderForGroup(label: string) {
   switch (label) {
-    case "En attente dâ€™information":
+    case "En attente d’information":
       return 1;
     case "En attente de validation":
       return 2;
-    case "PrÃªtes Ã  traiter":
+    case "Prêtes à traiter":
       return 3;
-    case "PlanifiÃ©es":
+    case "Planifiées":
       return 4;
     case "En cours":
       return 5;
-    case "BloquÃ©es":
+    case "Bloquées":
       return 6;
-    case "TerminÃ©es":
+    case "Terminées":
       return 7;
-    case "AnnulÃ©es":
+    case "Annulées":
       return 8;
     default:
       return 99;
@@ -116,19 +116,19 @@ export function PierreTaskList({
           <Layers3 className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-[#241b12]">TÃ¢ches de mission</p>
+          <p className="text-sm font-semibold text-[#241b12]">Tâches de mission</p>
           <p className="mt-1 text-sm text-[#6b5b4b]">
-            Pilotage dÃ©taillÃ© des actions RH interprÃ©tÃ©es par Pierre.
+            Pilotage détaillé des actions RH interprétées par Pierre.
           </p>
         </div>
       </div>
 
       {safeTasks.length === 0 ? (
         <div className="rounded-[22px] border border-dashed border-[#e6dacb] bg-[#fffdf9] px-4 py-8 text-center">
-          <p className="text-sm font-semibold text-[#2e241a]">Aucune tÃ¢che disponible</p>
+          <p className="text-sm font-semibold text-[#2e241a]">Aucune tâche disponible</p>
           <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#7a6957]">
-            Les tÃ¢ches structurÃ©es de la mission apparaÃ®tront ici avec leur statut,
-            leurs dÃ©pendances et leurs actions possibles.
+            Les tâches structurées de la mission apparaîtront ici avec leur statut,
+            leurs dépendances et leurs actions possibles.
           </p>
         </div>
       ) : (

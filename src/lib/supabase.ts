@@ -12,7 +12,7 @@ function readPublicSupabaseEnv() {
     return {
       ok: false as const,
       error:
-        "Variables Supabase manquantes. VÃ©rifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans .env.local.",
+        "Variables Supabase manquantes. Vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans .env.local.",
     };
   }
 
@@ -20,7 +20,7 @@ function readPublicSupabaseEnv() {
     return {
       ok: false as const,
       error:
-        "NEXT_PUBLIC_SUPABASE_URL semble invalide. Elle doit ressembler Ã  https://xxxx.supabase.co.",
+        "NEXT_PUBLIC_SUPABASE_URL semble invalide. Elle doit ressembler à https://xxxx.supabase.co.",
     };
   }
 

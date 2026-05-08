@@ -22,8 +22,8 @@ function isAvailableNow(slug: string) {
 }
 
 function getAgentPrice(agent: AgentSpec) {
-  if (agent.slug === "pierre") return "449 â‚¬/mois";
-  return "Ã€ venir";
+  if (agent.slug === "pierre") return "449 €/mois";
+  return "À venir";
 }
 
 function normalizeSearch(value: string) {
@@ -122,7 +122,7 @@ function StatusChip({ available }: { available: boolean }) {
       ) : (
         <Sparkles className="h-3.5 w-3.5" />
       )}
-      {available ? "Disponible" : "BientÃ´t"}
+      {available ? "Disponible" : "Bientôt"}
     </span>
   );
 }
@@ -264,7 +264,7 @@ export default function AgentsPage() {
                   </span>
                   <span className="cs-pill">
                     <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
-                    EmployÃ©s IA
+                    Employés IA
                   </span>
                 </div>
 
@@ -273,7 +273,7 @@ export default function AgentsPage() {
                 </h1>
 
                 <p className="mt-4 max-w-2xl text-[1rem] leading-8 text-[var(--cs-ink-3)] md:text-[1.06rem]">
-                  Choisissez les employÃ©s IA Ã  intÃ©grer dans votre entreprise.
+                  Choisissez les employés IA à intégrer dans votre entreprise.
                 </p>
               </div>
 
@@ -319,7 +319,7 @@ export default function AgentsPage() {
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Rechercher un employÃ©, un mÃ©tier, un besoinâ€¦ exemple : RH, recrutement, support, finance"
+                placeholder="Rechercher un employé, un métier, un besoin… exemple : RH, recrutement, support, finance"
                 className="h-14 w-full rounded-full border border-white/56 bg-white/34 px-12 text-[0.95rem] font-medium text-[var(--cs-ink-1)] shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_14px_34px_rgba(38,32,22,0.06)] outline-none backdrop-blur-xl placeholder:text-[var(--cs-ink-4)] focus:border-white/80 focus:bg-white/48"
               />
 
@@ -342,10 +342,10 @@ export default function AgentsPage() {
                 <p className="cs-eyebrow">Catalogue</p>
                 <h2 className="cs-heading mt-2 text-[clamp(1.7rem,2.6vw,2.8rem)]">
                   {normalizedQuery
-                    ? `${filteredAgents.length} rÃ©sultat${
+                    ? `${filteredAgents.length} résultat${
                         filteredAgents.length > 1 ? "s" : ""
                       }`
-                    : "Tous les employÃ©s IA"}
+                    : "Tous les employés IA"}
                 </h2>
               </div>
             </div>
@@ -364,11 +364,11 @@ export default function AgentsPage() {
                 className="rounded-[2.2rem] p-8 text-center"
               >
                 <p className="text-lg font-semibold text-[var(--cs-ink-1)]">
-                  Aucun employÃ© trouvÃ©.
+                  Aucun employé trouvé.
                 </p>
                 <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-[var(--cs-ink-3)]">
                   Essayez un autre besoin : RH, recrutement, support, finance,
-                  administratif, opÃ©rations ou direction.
+                  administratif, opérations ou direction.
                 </p>
               </LiquidGlass>
             )}

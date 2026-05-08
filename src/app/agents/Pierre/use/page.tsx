@@ -148,9 +148,9 @@ function parseJson<T>(raw: string | null): T | null {
 }
 
 function formatDateTime(value?: string | null): string {
-  if (!value) return "â€”";
+  if (!value) return "—";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "â€”";
+  if (Number.isNaN(date.getTime())) return "—";
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -403,8 +403,8 @@ export default function PierreUsePage() {
     recognition.onerror = (event: any) => {
       setVoiceError(
         event?.error === "not-allowed"
-          ? "AccÃ¨s micro refusÃ©."
-          : "La saisie vocale a rencontrÃ© une erreur."
+          ? "Accès micro refusé."
+          : "La saisie vocale a rencontré une erreur."
       );
       setIsListening(false);
     };
@@ -510,7 +510,7 @@ export default function PierreUsePage() {
       try {
         recognitionRef.current.start();
       } catch {
-        setVoiceError("Impossible de dÃ©marrer la saisie vocale.");
+        setVoiceError("Impossible de démarrer la saisie vocale.");
         setVoiceTarget(null);
       }
     },
@@ -564,7 +564,7 @@ export default function PierreUsePage() {
         payload.interpretation?.suggested_reply ??
         payload.interpretation?.summary ??
         payload.mission?.title ??
-        "Mission reÃ§ue et structurÃ©e par Pierre.";
+        "Mission reçue et structurée par Pierre.";
 
       pushThread({
         id: crypto.randomUUID(),
@@ -705,36 +705,36 @@ export default function PierreUsePage() {
     { key: "cockpit" as const, label: "Cockpit", icon: LayoutDashboard, hint: "Vue globale" },
     { key: "missions" as const, label: "Missions", icon: Brain, hint: "Commandement" },
     { key: "studios" as const, label: "Studios", icon: Wand2, hint: "Email / Doc / PDF" },
-    { key: "followup" as const, label: "Suivi", icon: Workflow, hint: "TÃ¢ches / timeline" },
+    { key: "followup" as const, label: "Suivi", icon: Workflow, hint: "Tâches / timeline" },
     { key: "artifacts" as const, label: "Artefacts", icon: Archive, hint: "Documents / emails" },
-    { key: "history" as const, label: "Historique", icon: History, hint: "Trace complÃ¨te" },
-    { key: "memory" as const, label: "MÃ©moire", icon: Settings2, hint: "Entreprise / identitÃ©" },
+    { key: "history" as const, label: "Historique", icon: History, hint: "Trace complète" },
+    { key: "memory" as const, label: "Mémoire", icon: Settings2, hint: "Entreprise / identité" },
   ];
 
   const quickMissionCards = [
     {
-      title: "PrÃ©parer une convocation",
-      text: "PrÃ©pare une convocation Ã  entretien pour demain matin, ton professionnel, puis attends ma validation avant envoi.",
+      title: "Préparer une convocation",
+      text: "Prépare une convocation à entretien pour demain matin, ton professionnel, puis attends ma validation avant envoi.",
     },
     {
       title: "Relancer un candidat",
-      text: "Relance le candidat pour savoir sâ€™il confirme sa disponibilitÃ© cette semaine, ton humain et professionnel.",
+      text: "Relance le candidat pour savoir s’il confirme sa disponibilité cette semaine, ton humain et professionnel.",
     },
     {
-      title: "Organiser ma journÃ©e RH",
-      text: "Organise ma journÃ©e RH, priorise les urgences, liste les tÃ¢ches, et propose un plan dâ€™exÃ©cution clair.",
+      title: "Organiser ma journée RH",
+      text: "Organise ma journée RH, priorise les urgences, liste les tâches, et propose un plan d’exécution clair.",
     },
     {
-      title: "CrÃ©er plusieurs actions",
-      text: "PrÃ©pare 3 convocations, puis un email interne rÃ©capitulatif, puis attends ma validation avant tout envoi.",
+      title: "Créer plusieurs actions",
+      text: "Prépare 3 convocations, puis un email interne récapitulatif, puis attends ma validation avant tout envoi.",
     },
     {
-      title: "PrÃ©parer un refus candidat",
-      text: "RÃ©dige un mail de refus candidat poli, humain, professionnel, avec ouverture pour opportunitÃ©s futures.",
+      title: "Préparer un refus candidat",
+      text: "Rédige un mail de refus candidat poli, humain, professionnel, avec ouverture pour opportunités futures.",
     },
     {
-      title: "PrÃ©parer onboarding",
-      text: "PrÃ©pare un message dâ€™accueil onboarding pour un nouveau collaborateur avec ton chaleureux et structurÃ©.",
+      title: "Préparer onboarding",
+      text: "Prépare un message d’accueil onboarding pour un nouveau collaborateur avec ton chaleureux et structuré.",
     },
   ];
 
@@ -773,9 +773,9 @@ export default function PierreUsePage() {
                       <Bot className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#2a2017]">Assistant RH AutomatisÃ©</p>
+                      <p className="text-sm font-semibold text-[#2a2017]">Assistant RH Automatisé</p>
                       <p className="mt-1 text-xs leading-5 text-[#7b6956]">
-                        Centre de missions, exÃ©cution, suivi, mÃ©moire et artefacts.
+                        Centre de missions, exécution, suivi, mémoire et artefacts.
                       </p>
                     </div>
                   </div>
@@ -824,7 +824,7 @@ export default function PierreUsePage() {
               {!leftCollapsed && (
                 <div className="mt-6 rounded-[24px] border border-[#eadfce] bg-[#fffdf8] p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9a856f]">
-                    Ã©tat rapide
+                    état rapide
                   </p>
                   <div className="mt-3 space-y-3 text-sm text-[#5e5143]">
                     <div className="flex items-center justify-between">
@@ -834,7 +834,7 @@ export default function PierreUsePage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>TÃ¢ches</span>
+                      <span>Tâches</span>
                       <span className="font-semibold text-[#2c231a]">
                         {activeMissionTasks.length}
                       </span>
@@ -844,9 +844,9 @@ export default function PierreUsePage() {
                       <span className="font-semibold text-[#2c231a]">{missionArtifactsCount}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>MÃ©moire</span>
+                      <span>Mémoire</span>
                       <span className="font-semibold text-[#2c231a]">
-                        {memory.memory ? "OK" : "Ã€ faire"}
+                        {memory.memory ? "OK" : "À faire"}
                       </span>
                     </div>
                   </div>
@@ -871,26 +871,26 @@ export default function PierreUsePage() {
                       {mainSection === "cockpit" && "Cockpit global"}
                       {mainSection === "missions" && "Centre de missions"}
                       {mainSection === "studios" && "Studios directs"}
-                      {mainSection === "followup" && "Suivi dâ€™exÃ©cution"}
+                      {mainSection === "followup" && "Suivi d’exécution"}
                       {mainSection === "artifacts" && "Artefacts produits"}
                       {mainSection === "history" && "Historique complet"}
-                      {mainSection === "memory" && "MÃ©moire entreprise"}
+                      {mainSection === "memory" && "Mémoire entreprise"}
                     </h2>
                     <p className="mt-2 max-w-4xl text-sm leading-7 text-[#665648]">
                       {mainSection === "cockpit" &&
-                        "Vue dâ€™ensemble de Pierre : mission active, exÃ©cution, artefacts, mÃ©moire et accÃ¨s direct aux actions clÃ©s."}
+                        "Vue d’ensemble de Pierre : mission active, exécution, artefacts, mémoire et accès direct aux actions clés."}
                       {mainSection === "missions" &&
-                        "Donne Ã  Pierre une mission libre comme Ã  un employÃ© en tÃ©lÃ©travail : il structure, planifie, demande validation si nÃ©cessaire, dÃ©tecte les infos manquantes et prÃ©pare lâ€™exÃ©cution."}
+                        "Donne à Pierre une mission libre comme à un employé en télétravail : il structure, planifie, demande validation si nécessaire, détecte les infos manquantes et prépare l’exécution."}
                       {mainSection === "studios" &&
                         "Production directe sans passer par une mission libre : email, document RH ou PDF."}
                       {mainSection === "followup" &&
-                        "Pilotage opÃ©rationnel des tÃ¢ches, validations, blocages, timeline et logs de mission."}
+                        "Pilotage opérationnel des tâches, validations, blocages, timeline et logs de mission."}
                       {mainSection === "artifacts" &&
-                        "Visualise les documents, emails et PDFs gÃ©nÃ©rÃ©s par Pierre, quâ€™ils viennent des missions ou des studios directs."}
+                        "Visualise les documents, emails et PDFs générés par Pierre, qu’ils viennent des missions ou des studios directs."}
                       {mainSection === "history" &&
-                        "Retrouve les productions passÃ©es, navigue dans la continuitÃ©, relis lâ€™activitÃ© et rouvre les Ã©lÃ©ments utiles."}
+                        "Retrouve les productions passées, navigue dans la continuité, relis l’activité et rouvre les éléments utiles."}
                       {mainSection === "memory" &&
-                        "Configure la mÃ©moire entreprise, lâ€™identitÃ© dâ€™envoi, le ton et les rÃ¨gles internes utilisÃ©es par Pierre."}
+                        "Configure la mémoire entreprise, l’identité d’envoi, le ton et les règles internes utilisées par Pierre."}
                     </p>
                   </div>
                 </div>
@@ -901,12 +901,12 @@ export default function PierreUsePage() {
                       {isListening ? (
                         <>
                           <Mic className="h-4 w-4 text-[#9b493c]" />
-                          DictÃ©e active
+                          Dictée active
                         </>
                       ) : (
                         <>
                           <MicOff className="h-4 w-4" />
-                          Voix prÃªte
+                          Voix prête
                         </>
                       )}
                     </div>
@@ -959,7 +959,7 @@ export default function PierreUsePage() {
                           />
                           <MenuAction
                             title="Studio email"
-                            description="RÃ©diger / brouillon / envoi"
+                            description="Rédiger / brouillon / envoi"
                             onClick={() => {
                               setMainSection("studios");
                               setStudioMode("email");
@@ -977,7 +977,7 @@ export default function PierreUsePage() {
                           />
                           <MenuAction
                             title="Studio PDF"
-                            description="Production PDF immÃ©diate"
+                            description="Production PDF immédiate"
                             onClick={() => {
                               setMainSection("studios");
                               setStudioMode("pdf");
@@ -985,8 +985,8 @@ export default function PierreUsePage() {
                             }}
                           />
                           <MenuAction
-                            title="Suivi des tÃ¢ches"
-                            description="Validation, blocages, exÃ©cution"
+                            title="Suivi des tâches"
+                            description="Validation, blocages, exécution"
                             onClick={() => {
                               setMainSection("followup");
                               setTopMenuOpen(false);
@@ -1002,15 +1002,15 @@ export default function PierreUsePage() {
                           />
                           <MenuAction
                             title="Historique"
-                            description="Recherche et continuitÃ©"
+                            description="Recherche et continuité"
                             onClick={() => {
                               setMainSection("history");
                               setTopMenuOpen(false);
                             }}
                           />
                           <MenuAction
-                            title="MÃ©moire entreprise"
-                            description="IdentitÃ©, ton, rÃ¨gles, configuration"
+                            title="Mémoire entreprise"
+                            description="Identité, ton, règles, configuration"
                             onClick={() => {
                               setMainSection("memory");
                               setTopMenuOpen(false);
@@ -1051,21 +1051,21 @@ export default function PierreUsePage() {
                     />
                     <KpiCard
                       icon={Clock3}
-                      label="TÃ¢ches actives"
+                      label="Tâches actives"
                       value={String(queuedCount + runningCount + awaitingInfoCount + approvalCount)}
-                      hint={`${queuedCount} prÃªtes Â· ${runningCount} en cours`}
+                      hint={`${queuedCount} prêtes · ${runningCount} en cours`}
                     />
                     <KpiCard
                       icon={Archive}
                       label="Artefacts"
                       value={String(missionArtifactsCount)}
-                      hint={`${mergedDocuments.length} docs Â· ${mergedEmails.length} emails Â· ${directPdfs.length} pdf`}
+                      hint={`${mergedDocuments.length} docs · ${mergedEmails.length} emails · ${directPdfs.length} pdf`}
                     />
                     <KpiCard
                       icon={Shield}
-                      label="MÃ©moire"
-                      value={memory.memory ? "ConfigurÃ©e" : "Ã€ complÃ©ter"}
-                      hint={memory.senderIdentityResolved.senderEmail ?? "IdentitÃ© dâ€™envoi non dÃ©finie"}
+                      label="Mémoire"
+                      value={memory.memory ? "Configurée" : "À compléter"}
+                      hint={memory.senderIdentityResolved.senderEmail ?? "Identité d’envoi non définie"}
                       tone={memory.memory ? "good" : "warn"}
                     />
                   </div>
@@ -1077,7 +1077,7 @@ export default function PierreUsePage() {
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <p className="text-lg font-semibold text-[#221910]">
-                              {missionCenter.mission?.title ?? "Aucune mission focalisÃ©e"}
+                              {missionCenter.mission?.title ?? "Aucune mission focalisée"}
                             </p>
                             <p className="mt-1 text-sm text-[#7b6956]">
                               {String(missionCenter.interpretation?.summary ?? missionCenter.mission?.request_text ?? "Sélectionne ou crée une mission pour afficher son contexte.")}
@@ -1090,12 +1090,12 @@ export default function PierreUsePage() {
                         </div>
 
                         <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                          <MiniState label="PrÃªtes" value={String(queuedCount)} />
+                          <MiniState label="Prêtes" value={String(queuedCount)} />
                           <MiniState label="En cours" value={String(runningCount)} />
                           <MiniState label="Validation" value={String(approvalCount)} />
                           <MiniState label="Infos" value={String(awaitingInfoCount)} />
-                          <MiniState label="TerminÃ©es" value={String(completedCount)} />
-                          <MiniState label="BloquÃ©es" value={String(blockedCount)} />
+                          <MiniState label="Terminées" value={String(completedCount)} />
+                          <MiniState label="Bloquées" value={String(blockedCount)} />
                         </div>
                       </div>
                     </div>
@@ -1105,13 +1105,13 @@ export default function PierreUsePage() {
                       <div className="mt-4 grid gap-3">
                         <QuickActionButton
                           icon={Brain}
-                          title="CrÃ©er une nouvelle mission"
+                          title="Créer une nouvelle mission"
                           description="Basculer vers le centre de missions"
                           onClick={() => setMainSection("missions")}
                         />
                         <QuickActionButton
                           icon={Mail}
-                          title="CrÃ©er un email direct"
+                          title="Créer un email direct"
                           description="Ouvrir le studio email"
                           onClick={() => {
                             setMainSection("studios");
@@ -1120,7 +1120,7 @@ export default function PierreUsePage() {
                         />
                         <QuickActionButton
                           icon={FileText}
-                          title="CrÃ©er un document RH"
+                          title="Créer un document RH"
                           description="Ouvrir le studio document"
                           onClick={() => {
                             setMainSection("studios");
@@ -1129,8 +1129,8 @@ export default function PierreUsePage() {
                         />
                         <QuickActionButton
                           icon={Workflow}
-                          title="Voir le suivi opÃ©rationnel"
-                          description="TÃ¢ches, timeline et validations"
+                          title="Voir le suivi opérationnel"
+                          description="Tâches, timeline et validations"
                           onClick={() => setMainSection("followup")}
                         />
                       </div>
@@ -1140,19 +1140,19 @@ export default function PierreUsePage() {
 
                 <section className="space-y-6">
                   <div className={cn(shellPanel(), "p-5")}>
-                    <p className="text-sm font-semibold text-[#2f2418]">IdentitÃ© dâ€™envoi active</p>
+                    <p className="text-sm font-semibold text-[#2f2418]">Identité d’envoi active</p>
                     <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-4">
                       <p className="text-sm text-[#4b3e31]">
                         <span className="font-semibold text-[#281e15]">Nom :</span>{" "}
-                        {memory.senderIdentityResolved.senderName ?? "Non dÃ©fini"}
+                        {memory.senderIdentityResolved.senderName ?? "Non défini"}
                       </p>
                       <p className="mt-2 text-sm text-[#4b3e31]">
                         <span className="font-semibold text-[#281e15]">Email :</span>{" "}
-                        {memory.senderIdentityResolved.senderEmail ?? "Non dÃ©fini"}
+                        {memory.senderIdentityResolved.senderEmail ?? "Non défini"}
                       </p>
                       <p className="mt-2 text-sm text-[#4b3e31]">
                         <span className="font-semibold text-[#281e15]">Reply-to :</span>{" "}
-                        {memory.senderIdentityResolved.replyTo ?? "Non dÃ©fini"}
+                        {memory.senderIdentityResolved.replyTo ?? "Non défini"}
                       </p>
                       <p className="mt-2 text-xs text-[#8a7764]">
                         Source : {memory.senderIdentityResolved.source}
@@ -1161,13 +1161,13 @@ export default function PierreUsePage() {
                   </div>
 
                   <div className={cn(shellPanel(), "p-5")}>
-                    <p className="text-sm font-semibold text-[#2f2418]">Derniers Ã©changes</p>
+                    <p className="text-sm font-semibold text-[#2f2418]">Derniers échanges</p>
                     <div className="mt-4 space-y-3">
                       {threadEntries.length === 0 ? (
                         <EmptyState
                           icon={ScrollText}
-                          title="Aucun Ã©change"
-                          description="Les derniers briefs et rÃ©ponses Pierre apparaÃ®tront ici."
+                          title="Aucun échange"
+                          description="Les derniers briefs et réponses Pierre apparaîtront ici."
                         />
                       ) : (
                         threadEntries.slice(0, 4).map((entry) => (
@@ -1181,7 +1181,7 @@ export default function PierreUsePage() {
                                   ? "vous"
                                   : entry.role === "assistant"
                                   ? "pierre"
-                                  : "systÃ¨me"}
+                                  : "système"}
                               </span>
                               <span className="text-xs text-[#998672]">
                                 {formatDateTime(entry.createdAt)}
@@ -1208,12 +1208,12 @@ export default function PierreUsePage() {
                         commandement
                       </p>
                       <h3 className="mt-2 text-2xl font-semibold text-[#221910]">
-                        Donne une mission Ã  Pierre
+                        Donne une mission à Pierre
                       </h3>
                       <p className="mt-2 max-w-3xl text-sm leading-7 text-[#665648]">
-                        Parle Ã  Pierre comme Ã  un employÃ© : il comprend la demande,
-                        dÃ©tecte les actions multiples, identifie les informations manquantes,
-                        Ã©value le risque, propose les validations utiles et structure la mission.
+                        Parle à Pierre comme à un employé : il comprend la demande,
+                        détecte les actions multiples, identifie les informations manquantes,
+                        évalue le risque, propose les validations utiles et structure la mission.
                       </p>
                     </div>
 
@@ -1224,7 +1224,7 @@ export default function PierreUsePage() {
                         className="inline-flex items-center gap-2 rounded-full border border-[#e7dac8] bg-white px-4 py-2 text-sm font-medium text-[#5c4d40]"
                       >
                         <Mic className="h-4 w-4" />
-                        DictÃ©e mission
+                        Dictée mission
                       </button>
                     )}
                   </div>
@@ -1235,7 +1235,7 @@ export default function PierreUsePage() {
                       onChange={setEmployeeDraft}
                       onSubmit={handleSubmitMission}
                       loading={busyAction === "submit-mission" || missionCenter.submitting}
-                      placeholder="Exemple : prÃ©pare 3 convocations pour demain, relance le candidat si pas de rÃ©ponse ce soir, puis attends ma validation avant tout envoi."
+                      placeholder="Exemple : prépare 3 convocations pour demain, relance le candidat si pas de réponse ce soir, puis attends ma validation avant tout envoi."
                     />
 
                     <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -1264,7 +1264,7 @@ export default function PierreUsePage() {
                           className="inline-flex items-center gap-2 rounded-full border border-[#e5c2be] bg-[#fff1ef] px-3 py-2 text-sm font-medium text-[#8b3d33]"
                         >
                           <MicOff className="h-4 w-4" />
-                          ArrÃªter la dictÃ©e
+                          Arrêter la dictée
                         </button>
                       )}
                     </div>
@@ -1304,8 +1304,8 @@ export default function PierreUsePage() {
                       {threadEntries.length === 0 ? (
                         <EmptyState
                           icon={ScrollText}
-                          title="Aucun brief enregistrÃ©"
-                          description="Les Ã©changes liÃ©s aux missions apparaÃ®tront ici."
+                          title="Aucun brief enregistré"
+                          description="Les échanges liés aux missions apparaîtront ici."
                         />
                       ) : (
                         threadEntries.map((entry) => (
@@ -1324,7 +1324,7 @@ export default function PierreUsePage() {
                                   ? "vous"
                                   : entry.role === "assistant"
                                   ? "pierre"
-                                  : "systÃ¨me"}
+                                  : "système"}
                               </span>
                               <span className="text-xs text-[#9b8975]">
                                 {formatDateTime(entry.createdAt)}
@@ -1360,7 +1360,7 @@ export default function PierreUsePage() {
                       active={studioMode === "email"}
                       icon={Mail}
                       title="Studio email"
-                      description="Brouillon ou prÃ©paration dâ€™envoi"
+                      description="Brouillon ou préparation d’envoi"
                       onClick={() => setStudioMode("email")}
                     />
                     <StudioSwitcher
@@ -1374,7 +1374,7 @@ export default function PierreUsePage() {
                       active={studioMode === "pdf"}
                       icon={FileType2}
                       title="Studio PDF"
-                      description="GÃ©nÃ©ration directe"
+                      description="Génération directe"
                       onClick={() => setStudioMode("pdf")}
                     />
                   </div>
@@ -1384,7 +1384,7 @@ export default function PierreUsePage() {
                   {studioMode === "email" && (
                     <div className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
                       <div className="space-y-4">
-                        <Field label="Ã€">
+                        <Field label="À">
                           <textarea
                             value={emailComposer.to}
                             onChange={(e) =>
@@ -1448,7 +1448,7 @@ export default function PierreUsePage() {
                             }
                             rows={14}
                             className={fieldClass}
-                            placeholder="RÃ©dige ici le message ou colle une base Ã  amÃ©liorer."
+                            placeholder="Rédige ici le message ou colle une base à améliorer."
                           />
                         </Field>
 
@@ -1464,7 +1464,7 @@ export default function PierreUsePage() {
                             ) : (
                               <Wand2 className="h-4 w-4" />
                             )}
-                            CrÃ©er le brouillon
+                            Créer le brouillon
                           </button>
 
                           <button
@@ -1478,7 +1478,7 @@ export default function PierreUsePage() {
                             ) : (
                               <Send className="h-4 w-4" />
                             )}
-                            PrÃ©parer lâ€™envoi
+                            Préparer l’envoi
                           </button>
                         </div>
 
@@ -1489,17 +1489,17 @@ export default function PierreUsePage() {
                       </div>
 
                       <div className={cn(softPanel(), "p-4")}>
-                        <p className="text-sm font-semibold text-[#2f2418]">PrÃ©visualisation</p>
+                        <p className="text-sm font-semibold text-[#2f2418]">Prévisualisation</p>
                         <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-5">
                           <p className="text-xs uppercase tracking-[0.18em] text-[#99856f]">de</p>
                           <p className="mt-1 text-sm text-[#3a2e22]">
-                            {memory.senderIdentityResolved.senderName ?? "Nom dâ€™envoi"}{" "}
+                            {memory.senderIdentityResolved.senderName ?? "Nom d’envoi"}{" "}
                             {memory.senderIdentityResolved.senderEmail
                               ? `<${memory.senderIdentityResolved.senderEmail}>`
                               : ""}
                           </p>
 
-                          <p className="mt-4 text-xs uppercase tracking-[0.18em] text-[#99856f]">Ã </p>
+                          <p className="mt-4 text-xs uppercase tracking-[0.18em] text-[#99856f]">à</p>
                           <p className="mt-1 text-sm text-[#3a2e22]">
                             {emailComposer.to || "Destinataire(s)"}
                           </p>
@@ -1513,7 +1513,7 @@ export default function PierreUsePage() {
 
                           <div className="mt-5 border-t border-[#eee4d8] pt-5">
                             <p className="whitespace-pre-wrap text-sm leading-7 text-[#3f3326]">
-                              {emailComposer.body || "Le contenu du message apparaÃ®tra ici."}
+                              {emailComposer.body || "Le contenu du message apparaîtra ici."}
                             </p>
                           </div>
                         </div>
@@ -1553,7 +1553,7 @@ export default function PierreUsePage() {
                             }
                             rows={7}
                             className={fieldClass}
-                            placeholder="Explique prÃ©cisÃ©ment ce que Pierre doit produire."
+                            placeholder="Explique précisément ce que Pierre doit produire."
                           />
                         </Field>
 
@@ -1619,7 +1619,7 @@ export default function PierreUsePage() {
                           ) : (
                             <FileText className="h-4 w-4" />
                           )}
-                          GÃ©nÃ©rer le document
+                          Générer le document
                         </button>
 
                         {voiceInterim &&
@@ -1630,30 +1630,30 @@ export default function PierreUsePage() {
                       </div>
 
                       <div className={cn(softPanel(), "p-4")}>
-                        <p className="text-sm font-semibold text-[#2f2418]">AperÃ§u</p>
+                        <p className="text-sm font-semibold text-[#2f2418]">Aperçu</p>
                         <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-5">
                           <p className="text-lg font-semibold text-[#221910]">
                             {documentComposer.title || "Titre du document"}
                           </p>
                           <div className="mt-3 flex flex-wrap gap-2 text-xs">
                             <span className="rounded-full border border-[#e8dac7] bg-[#fcf7f0] px-2.5 py-1 text-[#715f4d]">
-                              Ton : {documentComposer.tone || "â€”"}
+                              Ton : {documentComposer.tone || "—"}
                             </span>
                             <span className="rounded-full border border-[#e8dac7] bg-[#fcf7f0] px-2.5 py-1 text-[#715f4d]">
-                              Langue : {documentComposer.language || "â€”"}
+                              Langue : {documentComposer.language || "—"}
                             </span>
                           </div>
                           <div className="mt-5 space-y-4 text-sm leading-7 text-[#3a2f24]">
                             <div>
                               <p className="font-medium text-[#251b12]">Instructions</p>
                               <p className="mt-1 whitespace-pre-wrap text-[#5c5044]">
-                                {documentComposer.instructions || "Les instructions apparaÃ®tront ici."}
+                                {documentComposer.instructions || "Les instructions apparaîtront ici."}
                               </p>
                             </div>
                             <div>
                               <p className="font-medium text-[#251b12]">Contexte</p>
                               <p className="mt-1 whitespace-pre-wrap text-[#5c5044]">
-                                {documentComposer.context || "Le contexte apparaÃ®tra ici."}
+                                {documentComposer.context || "Le contexte apparaîtra ici."}
                               </p>
                             </div>
                           </div>
@@ -1689,7 +1689,7 @@ export default function PierreUsePage() {
                             }
                             rows={16}
                             className={fieldClass}
-                            placeholder="Texte Ã  convertir en PDF."
+                            placeholder="Texte à convertir en PDF."
                           />
                         </Field>
 
@@ -1704,7 +1704,7 @@ export default function PierreUsePage() {
                           ) : (
                             <ScrollText className="h-4 w-4" />
                           )}
-                          GÃ©nÃ©rer le PDF
+                          Générer le PDF
                         </button>
 
                         {voiceInterim && voiceTarget === "pdfText" && (
@@ -1713,13 +1713,13 @@ export default function PierreUsePage() {
                       </div>
 
                       <div className={cn(softPanel(), "p-4")}>
-                        <p className="text-sm font-semibold text-[#2f2418]">PrÃ©visualisation texte</p>
+                        <p className="text-sm font-semibold text-[#2f2418]">Prévisualisation texte</p>
                         <div className="mt-4 rounded-[22px] border border-[#eadfce] bg-white p-5">
                           <p className="text-lg font-semibold text-[#221910]">
                             {pdfComposer.title || "Titre PDF"}
                           </p>
                           <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-[#3c3025]">
-                            {pdfComposer.text || "Le contenu texte apparaÃ®tra ici."}
+                            {pdfComposer.text || "Le contenu texte apparaîtra ici."}
                           </div>
                         </div>
                       </div>
@@ -1730,7 +1730,7 @@ export default function PierreUsePage() {
                     <div className={cn(softPanel(), "p-5")}>
                       <p className="text-sm font-semibold text-[#2f2418]">Mission libre</p>
                       <p className="mt-2 text-sm leading-7 text-[#665648]">
-                        Le centre de missions a maintenant son propre espace dÃ©diÃ©.
+                        Le centre de missions a maintenant son propre espace dédié.
                       </p>
                       <button
                         type="button"
@@ -1826,7 +1826,7 @@ export default function PierreUsePage() {
                         <EmptyState
                           icon={FileText}
                           title="Aucun document"
-                          description="Les documents gÃ©nÃ©rÃ©s apparaÃ®tront ici."
+                          description="Les documents générés apparaîtront ici."
                         />
                       ) : (
                         mergedDocuments.map((doc) => (
@@ -1834,7 +1834,7 @@ export default function PierreUsePage() {
                             key={doc.id}
                             active={selectedDocumentId === doc.id}
                             title={doc.title ?? "Document sans titre"}
-                            subtitle={`${doc.type ?? "document"} Â· ${formatDateTime(
+                            subtitle={`${doc.type ?? "document"} · ${formatDateTime(
                               doc.updated_at ?? doc.created_at
                             )}`}
                             status={doc.status ?? "ready"}
@@ -1848,7 +1848,7 @@ export default function PierreUsePage() {
                         <EmptyState
                           icon={Mail}
                           title="Aucun email"
-                          description="Les brouillons et prÃ©parations dâ€™envoi apparaÃ®tront ici."
+                          description="Les brouillons et préparations d’envoi apparaîtront ici."
                         />
                       ) : (
                         mergedEmails.map((mail) => (
@@ -1856,7 +1856,7 @@ export default function PierreUsePage() {
                             key={mail.id}
                             active={selectedEmailId === mail.id}
                             title={mail.subject ?? "Email sans objet"}
-                            subtitle={`${mail.status ?? "draft"} Â· ${formatDateTime(
+                            subtitle={`${mail.status ?? "draft"} · ${formatDateTime(
                               mail.updated_at ?? mail.created_at
                             )}`}
                             status={mail.status ?? "draft"}
@@ -1870,7 +1870,7 @@ export default function PierreUsePage() {
                         <EmptyState
                           icon={FileType2}
                           title="Aucun PDF"
-                          description="Les PDF gÃ©nÃ©rÃ©s apparaÃ®tront ici."
+                          description="Les PDF générés apparaîtront ici."
                         />
                       ) : (
                         directPdfs.map((pdf) => (
@@ -1918,14 +1918,14 @@ export default function PierreUsePage() {
 
                           <div className="grid gap-3 md:grid-cols-2">
                             <InfoCard
-                              label="Ã€"
+                              label="À"
                               value={
                                 Array.isArray(selectedEmail.to)
                                   ? selectedEmail.to.join(", ")
-                                  : (selectedEmail.to as string) ?? "â€”"
+                                  : (selectedEmail.to as string) ?? "—"
                               }
                             />
-                            <InfoCard label="Statut" value={selectedEmail.status ?? "â€”"} />
+                            <InfoCard label="Statut" value={selectedEmail.status ?? "—"} />
                           </div>
 
                           <div className="rounded-[22px] border border-[#eadfce] bg-white p-5">
@@ -1937,8 +1937,8 @@ export default function PierreUsePage() {
                       ) : (
                         <EmptyState
                           icon={Mail}
-                          title="Aucun email sÃ©lectionnÃ©"
-                          description="SÃ©lectionne un email pour lâ€™afficher."
+                          title="Aucun email sélectionné"
+                          description="Sélectionne un email pour l’afficher."
                         />
                       )}
                     </>
@@ -1953,15 +1953,15 @@ export default function PierreUsePage() {
                           </p>
                           <div className="rounded-[22px] border border-[#eadfce] bg-white p-5">
                             <p className="whitespace-pre-wrap text-sm leading-7 text-[#3d3025]">
-                              {String(selectedPdf.text ?? selectedPdf.html ?? "PrÃ©visualisation indisponible")}
+                              {String(selectedPdf.text ?? selectedPdf.html ?? "Prévisualisation indisponible")}
                             </p>
                           </div>
                         </div>
                       ) : (
                         <EmptyState
                           icon={FileType2}
-                          title="Aucun PDF sÃ©lectionnÃ©"
-                          description="SÃ©lectionne un PDF pour lâ€™afficher."
+                          title="Aucun PDF sélectionné"
+                          description="Sélectionne un PDF pour l’afficher."
                         />
                       )}
                     </>
@@ -2029,7 +2029,7 @@ export default function PierreUsePage() {
                 <input
                   value={commandSearch}
                   onChange={(e) => setCommandSearch(e.target.value)}
-                  placeholder="Rechercher : convocation, historique, email, mÃ©moire..."
+                  placeholder="Rechercher : convocation, historique, email, mémoire..."
                   className="w-full rounded-[20px] border border-[#e7dac8] bg-white py-3 pl-11 pr-4 text-sm outline-none transition placeholder:text-[#a28d78] focus:border-[#d8bd9d] focus:ring-4 focus:ring-[#f3e6d6]"
                 />
               </div>
@@ -2040,10 +2040,10 @@ export default function PierreUsePage() {
                     <CommandRow label="Cockpit global" onClick={() => jumpSection(setCommandOpen, setMainSection, "cockpit")} />
                     <CommandRow label="Centre de missions" onClick={() => jumpSection(setCommandOpen, setMainSection, "missions")} />
                     <CommandRow label="Studios directs" onClick={() => jumpSection(setCommandOpen, setMainSection, "studios")} />
-                    <CommandRow label="Suivi dâ€™exÃ©cution" onClick={() => jumpSection(setCommandOpen, setMainSection, "followup")} />
+                    <CommandRow label="Suivi d’exécution" onClick={() => jumpSection(setCommandOpen, setMainSection, "followup")} />
                     <CommandRow label="Artefacts produits" onClick={() => jumpSection(setCommandOpen, setMainSection, "artifacts")} />
                     <CommandRow label="Historique" onClick={() => jumpSection(setCommandOpen, setMainSection, "history")} />
-                    <CommandRow label="MÃ©moire entreprise" onClick={() => jumpSection(setCommandOpen, setMainSection, "memory")} />
+                    <CommandRow label="Mémoire entreprise" onClick={() => jumpSection(setCommandOpen, setMainSection, "memory")} />
                   </CommandBlock>
 
                   <CommandBlock title="Actions rapides">
@@ -2082,9 +2082,9 @@ export default function PierreUsePage() {
                 </div>
 
                 <div className="space-y-3">
-                  <CommandBlock title="Historique rÃ©cent">
+                  <CommandBlock title="Historique récent">
                     {filteredHistory.length === 0 ? (
-                      <p className="text-sm text-[#7d6b59]">Aucun rÃ©sultat.</p>
+                      <p className="text-sm text-[#7d6b59]">Aucun résultat.</p>
                     ) : (
                       filteredHistory.map((item: any) => (
                         <button
@@ -2103,14 +2103,14 @@ export default function PierreUsePage() {
                         >
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold text-[#2b2118]">
-                              {item.title ?? "Ã‰lÃ©ment"}
+                              {item.title ?? "Élément"}
                             </p>
                             <p className="mt-1 truncate text-xs text-[#84715e]">
                               {item.subtitle ?? item.kind ?? "historique"}
                             </p>
                           </div>
                           <span className="flex-none rounded-full border border-[#eadbc9] bg-[#fcf7f0] px-2.5 py-1 text-[11px] font-medium text-[#735f4b]">
-                            {item.status ?? "â€”"}
+                            {item.status ?? "—"}
                           </span>
                         </button>
                       ))
@@ -2404,7 +2404,7 @@ function VoiceButton({ onClick }: { onClick: () => void }) {
       className="inline-flex items-center gap-2 rounded-full border border-[#e7dac8] bg-white px-3 py-1.5 text-xs font-medium text-[#5c4d40]"
     >
       <Mic className="h-3.5 w-3.5" />
-      DictÃ©e
+      Dictée
     </button>
   );
 }

@@ -64,7 +64,7 @@ export default async function CloneStoreDetailPage({
               className="inline-flex items-center gap-2 rounded-full border border-[var(--cs-line-soft)] bg-white/58 px-4 py-2 text-[0.84rem] font-medium text-[var(--cs-ink-2)] transition hover:-translate-y-0.5 hover:bg-white/84"
             >
               <ChevronLeft className="h-4 w-4" />
-              Retour Ã  lâ€™accueil
+              Retour à l’accueil
             </Link>
 
             <span className="cs-pill">
@@ -95,7 +95,7 @@ export default async function CloneStoreDetailPage({
           <section className="cs-panel">
             <div className="p-6 md:p-7">
               <div className="max-w-4xl">
-                <p className="cs-eyebrow">RÃ©sumÃ©</p>
+                <p className="cs-eyebrow">Résumé</p>
                 <p className="mt-3 text-base leading-8 text-[var(--cs-ink-3)]">
                   {section.summary}
                 </p>
@@ -130,12 +130,12 @@ export default async function CloneStoreDetailPage({
               <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
                 Comprendre la technologie,
                 <br />
-                sans perdre la simplicitÃ©.
+                sans perdre la simplicité.
               </h2>
 
               <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--cs-ink-4)] md:text-base">
-                Ces pages servent Ã  expliquer la profondeur de CloneStore sans noyer
-                le client. Le systÃ¨me doit rester premium, lisible et crÃ©dible.
+                Ces pages servent à expliquer la profondeur de CloneStore sans noyer
+                le client. Le système doit rester premium, lisible et crédible.
               </p>
 
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

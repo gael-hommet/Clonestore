@@ -23,287 +23,287 @@ export const CLONESTORE_SECTIONS: CloneStoreSection[] = [
   {
     id: "vision",
     label: "Vision",
-    title: "CloneStore est un systÃ¨me dâ€™exploitation dâ€™employÃ©s IA.",
+    title: "CloneStore est un système d’exploitation d’employés IA.",
     summary:
-      "CloneStore ne vend pas des gadgets IA. CloneStore vend de la capacitÃ© opÃ©rationnelle, du temps rendu, de la continuitÃ© et du contrÃ´le.",
+      "CloneStore ne vend pas des gadgets IA. CloneStore vend de la capacité opérationnelle, du temps rendu, de la continuité et du contrôle.",
     intro:
-      "La logique centrale de CloneStore est simple : permettre Ã  une entreprise de dÃ©lÃ©guer une part rÃ©elle de son travail opÃ©rationnel Ã  des employÃ©s IA spÃ©cialisÃ©s, gouvernÃ©s et pilotables depuis une interface claire.",
+      "La logique centrale de CloneStore est simple : permettre à une entreprise de déléguer une part réelle de son travail opérationnel à des employés IA spécialisés, gouvernés et pilotables depuis une interface claire.",
     blocks: [
       {
-        title: "Postes automatisÃ©s",
+        title: "Postes automatisés",
         text:
-          "Chaque employÃ© CloneStore correspond Ã  un vrai pÃ©rimÃ¨tre mÃ©tier. Lâ€™objectif nâ€™est pas dâ€™ajouter un outil de plus, mais dâ€™absorber un bloc de travail rÃ©el, durable et pilotable.",
+          "Chaque employé CloneStore correspond à un vrai périmètre métier. L’objectif n’est pas d’ajouter un outil de plus, mais d’absorber un bloc de travail réel, durable et pilotable.",
       },
       {
         title: "Temps et argent",
         text:
-          "La promesse publique reste volontairement directe : faire gagner du temps et de lâ€™argent grÃ¢ce Ã  une exÃ©cution plus rapide, plus disciplinÃ©e, mieux suivie et moins dÃ©pendante de la charge mentale humaine.",
+          "La promesse publique reste volontairement directe : faire gagner du temps et de l’argent grâce à une exécution plus rapide, plus disciplinée, mieux suivie et moins dépendante de la charge mentale humaine.",
       },
       {
         title: "Produit entreprise",
         text:
-          "CloneStore doit Ãªtre perÃ§u comme une infrastructure sÃ©rieuse, haut de gamme, conÃ§ue pour des usages concrets et non pour des dÃ©monstrations impressionnantes mais fragiles.",
+          "CloneStore doit être perçu comme une infrastructure sérieuse, haut de gamme, conçue pour des usages concrets et non pour des démonstrations impressionnantes mais fragiles.",
       },
       {
-        title: "DiffÃ©renciation",
+        title: "Différenciation",
         text:
-          "Le produit doit se distinguer des assistants gÃ©nÃ©riques par sa capacitÃ© Ã  structurer, mÃ©moriser, gouverner, exÃ©cuter et rendre visible le travail dans le temps.",
+          "Le produit doit se distinguer des assistants génériques par sa capacité à structurer, mémoriser, gouverner, exécuter et rendre visible le travail dans le temps.",
       },
       {
-        title: "SystÃ¨me, pas collection",
+        title: "Système, pas collection",
         text:
-          "CloneStore nâ€™est pas une liste de bots sÃ©parÃ©s. Câ€™est un systÃ¨me coordonnÃ© dâ€™employÃ©s IA reliÃ©s entre eux par une logique dâ€™entreprise commune.",
+          "CloneStore n’est pas une liste de bots séparés. C’est un système coordonné d’employés IA reliés entre eux par une logique d’entreprise commune.",
       },
       {
         title: "Vision long terme",
         text:
-          "La cible nâ€™est pas un simple gain marginal. La cible est une nouvelle maniÃ¨re pour les PME dâ€™absorber du travail opÃ©rationnel avec plus de constance, de vitesse et de contrÃ´le.",
+          "La cible n’est pas un simple gain marginal. La cible est une nouvelle manière pour les PME d’absorber du travail opérationnel avec plus de constance, de vitesse et de contrôle.",
       },
     ],
   },
   {
     id: "technologies",
     label: "Technologies",
-    title: "Un socle technologique lisible, visible et cohÃ©rent.",
+    title: "Un socle technologique lisible, visible et cohérent.",
     summary:
-      "CloneStore repose sur des technologies nommÃ©es, comprÃ©hensibles, qui expliquent la puissance du systÃ¨me sans noyer le client.",
+      "CloneStore repose sur des technologies nommées, compréhensibles, qui expliquent la puissance du système sans noyer le client.",
     intro:
-      "Le produit doit rester simple Ã  lire, mais la profondeur technologique doit Ãªtre rÃ©elle. Les grandes briques visibles structurent la comprÃ©hension et la confiance.",
+      "Le produit doit rester simple à lire, mais la profondeur technologique doit être réelle. Les grandes briques visibles structurent la compréhension et la confiance.",
     blocks: [
       {
         title: "CloneOS",
         text:
-          "Le noyau opÃ©ratoire invisible. Il transforme les demandes en missions, rÃ©partit les tÃ¢ches, coordonne les employÃ©s et centralise les rÃ©sultats.",
+          "Le noyau opératoire invisible. Il transforme les demandes en missions, répartit les tâches, coordonne les employés et centralise les résultats.",
       },
       {
         title: "CloneChat",
         text:
-          "Le point dâ€™entrÃ©e naturel. Il sert Ã  demander, orienter, dÃ©bloquer, comprendre et lancer des actions sans friction inutile.",
+          "Le point d’entrée naturel. Il sert à demander, orienter, débloquer, comprendre et lancer des actions sans friction inutile.",
       },
       {
         title: "CloneGuard",
         text:
-          "La couche de gouvernance. Elle encadre les permissions, les validations, les refus, les blocages et les zones sensibles du systÃ¨me.",
+          "La couche de gouvernance. Elle encadre les permissions, les validations, les refus, les blocages et les zones sensibles du système.",
       },
       {
         title: "CloneTrace",
         text:
-          "La couche de traÃ§abilitÃ©. Elle rend visible ce qui a Ã©tÃ© demandÃ©, produit, validÃ©, bloquÃ©, envoyÃ© ou terminÃ© dans le temps.",
+          "La couche de traçabilité. Elle rend visible ce qui a été demandé, produit, validé, bloqué, envoyé ou terminé dans le temps.",
       },
       {
         title: "CloneADN",
         text:
-          "La couche dâ€™alignement entreprise. Elle contient le ton, les prÃ©fÃ©rences, les rÃ¨gles, les habitudes et les Ã©lÃ©ments de comportement utiles Ã  lâ€™entreprise.",
+          "La couche d’alignement entreprise. Elle contient le ton, les préférences, les règles, les habitudes et les éléments de comportement utiles à l’entreprise.",
       },
       {
         title: "Technologies visibles",
         text:
-          "Ces briques doivent Ãªtre assez claires pour Ãªtre mÃ©morisables et assez solides pour vraiment structurer le produit. Elles ne sont pas dÃ©coratives.",
+          "Ces briques doivent être assez claires pour être mémorisables et assez solides pour vraiment structurer le produit. Elles ne sont pas décoratives.",
       },
     ],
   },
   {
     id: "fonctionnement",
-    label: "Comment Ã§a marche",
-    title: "Une demande simple, un travail structurÃ©, un rÃ©sultat pilotable.",
+    label: "Comment ça marche",
+    title: "Une demande simple, un travail structuré, un résultat pilotable.",
     summary:
-      "Le fonctionnement de CloneStore doit sembler naturel cÃ´tÃ© client, mais extrÃªmement structurÃ© cÃ´tÃ© systÃ¨me.",
+      "Le fonctionnement de CloneStore doit sembler naturel côté client, mais extrêmement structuré côté système.",
     intro:
-      "Le client ne doit pas sentir une machinerie compliquÃ©e. Il doit juste comprendre quâ€™il demande, que le systÃ¨me agit, et que tout reste lisible.",
+      "Le client ne doit pas sentir une machinerie compliquée. Il doit juste comprendre qu’il demande, que le système agit, et que tout reste lisible.",
     blocks: [
       {
-        title: "EntrÃ©e naturelle",
+        title: "Entrée naturelle",
         text:
-          "Le client passe par CloneChat, le cockpit ou un employÃ© spÃ©cialisÃ©. La demande peut Ãªtre libre, simple, naturelle et non technique.",
+          "Le client passe par CloneChat, le cockpit ou un employé spécialisé. La demande peut être libre, simple, naturelle et non technique.",
       },
       {
         title: "Transformation en mission",
         text:
-          "CloneStore comprend la demande, la transforme en mission, dÃ©coupe les actions, identifie les points sensibles et prÃ©pare lâ€™exÃ©cution.",
+          "CloneStore comprend la demande, la transforme en mission, découpe les actions, identifie les points sensibles et prépare l’exécution.",
       },
       {
         title: "Distribution du travail",
         text:
-          "Les tÃ¢ches peuvent Ãªtre attribuÃ©es au bon employÃ© ou rester concentrÃ©es sur un seul si le besoin le justifie.",
+          "Les tâches peuvent être attribuées au bon employé ou rester concentrées sur un seul si le besoin le justifie.",
       },
       {
-        title: "ExÃ©cution rÃ©elle",
+        title: "Exécution réelle",
         text:
-          "Le systÃ¨me produit des actions concrÃ¨tes : documents, emails, suivis, relances, validations, coordination et continuitÃ©.",
+          "Le système produit des actions concrètes : documents, emails, suivis, relances, validations, coordination et continuité.",
       },
       {
-        title: "VisibilitÃ© continue",
+        title: "Visibilité continue",
         text:
-          "Le client doit voir ce qui a Ã©tÃ© compris, ce qui est en cours, ce qui attend une validation et ce qui est terminÃ©.",
+          "Le client doit voir ce qui a été compris, ce qui est en cours, ce qui attend une validation et ce qui est terminé.",
       },
       {
-        title: "Boucle de continuitÃ©",
+        title: "Boucle de continuité",
         text:
-          "Le travail ne doit pas disparaÃ®tre aprÃ¨s la premiÃ¨re rÃ©ponse. CloneStore doit pouvoir reprendre une mission, maintenir un suivi et conserver un historique utile.",
+          "Le travail ne doit pas disparaître après la première réponse. CloneStore doit pouvoir reprendre une mission, maintenir un suivi et conserver un historique utile.",
       },
     ],
   },
   {
     id: "controle",
-    label: "ContrÃ´le",
-    title: "DÃ©lÃ©guer beaucoup, sans perdre la main.",
+    label: "Contrôle",
+    title: "Déléguer beaucoup, sans perdre la main.",
     summary:
-      "CloneStore est conÃ§u pour permettre une dÃ©lÃ©gation forte tout en gardant un niveau de contrÃ´le Ã©levÃ© sur les cas sensibles.",
+      "CloneStore est conçu pour permettre une délégation forte tout en gardant un niveau de contrôle élevé sur les cas sensibles.",
     intro:
-      "Le produit doit rassurer : plus dâ€™exÃ©cution, oui, mais jamais au prix de la lisibilitÃ© ou de la gouvernance.",
+      "Le produit doit rassurer : plus d’exécution, oui, mais jamais au prix de la lisibilité ou de la gouvernance.",
     blocks: [
       {
         title: "Cockpit central",
         text:
-          "Le cockpit rÃ©unit les missions, les validations, lâ€™historique et les accÃ¨s clÃ©s. Câ€™est le centre de pilotage du client.",
+          "Le cockpit réunit les missions, les validations, l’historique et les accès clés. C’est le centre de pilotage du client.",
       },
       {
         title: "Validations",
         text:
-          "Les cas sensibles, ambigus ou plus risquÃ©s doivent remonter proprement. Le produit ne doit jamais donner une impression de roue libre.",
+          "Les cas sensibles, ambigus ou plus risqués doivent remonter proprement. Le produit ne doit jamais donner une impression de roue libre.",
       },
       {
-        title: "RÃ¨gles dâ€™entreprise",
+        title: "Règles d’entreprise",
         text:
-          "Lâ€™entreprise dÃ©finit ses circuits humains, ses permissions, ses interdits et ses niveaux de validation. Le systÃ¨me doit les appliquer rÃ©ellement.",
+          "L’entreprise définit ses circuits humains, ses permissions, ses interdits et ses niveaux de validation. Le système doit les appliquer réellement.",
       },
       {
-        title: "LisibilitÃ© dâ€™action",
+        title: "Lisibilité d’action",
         text:
-          "Le client doit toujours pouvoir comprendre pourquoi une action est passÃ©e, bloquÃ©e ou soumise Ã  validation.",
+          "Le client doit toujours pouvoir comprendre pourquoi une action est passée, bloquée ou soumise à validation.",
       },
       {
-        title: "Autonomie cadrÃ©e",
+        title: "Autonomie cadrée",
         text:
-          "CloneStore doit dÃ©lÃ©guer beaucoup sur le rÃ©pÃ©titif et lâ€™opÃ©rationnel, tout en gardant lâ€™humain sur les dÃ©cisions sensibles ou engageantes.",
+          "CloneStore doit déléguer beaucoup sur le répétitif et l’opérationnel, tout en gardant l’humain sur les décisions sensibles ou engageantes.",
       },
       {
-        title: "Positionnement crÃ©dible",
+        title: "Positionnement crédible",
         text:
-          "La crÃ©dibilitÃ© vient dâ€™une combinaison rare : puissance dâ€™exÃ©cution, contrÃ´le visible et refus des zones floues quand câ€™est nÃ©cessaire.",
+          "La crédibilité vient d’une combinaison rare : puissance d’exécution, contrôle visible et refus des zones floues quand c’est nécessaire.",
       },
     ],
   },
   {
     id: "memoire",
-    label: "MÃ©moire & personnalisation",
-    title: "Un systÃ¨me qui sâ€™aligne sur lâ€™entreprise.",
+    label: "Mémoire & personnalisation",
+    title: "Un système qui s’aligne sur l’entreprise.",
     summary:
-      "CloneStore doit progressivement ressembler Ã  la maniÃ¨re de travailler de lâ€™entreprise, pas Ã  une IA gÃ©nÃ©rique.",
+      "CloneStore doit progressivement ressembler à la manière de travailler de l’entreprise, pas à une IA générique.",
     intro:
-      "La personnalisation nâ€™est pas cosmÃ©tique. Elle concerne le ton, les rÃ¨gles, les habitudes, les circuits de validation et la logique mÃ©tier.",
+      "La personnalisation n’est pas cosmétique. Elle concerne le ton, les règles, les habitudes, les circuits de validation et la logique métier.",
     blocks: [
       {
         title: "CloneADN",
         text:
-          "CloneADN contient lâ€™identitÃ© opÃ©rationnelle de lâ€™entreprise : ton, style, niveaux de formalitÃ©, habitudes, formulations et comportements attendus.",
+          "CloneADN contient l’identité opérationnelle de l’entreprise : ton, style, niveaux de formalité, habitudes, formulations et comportements attendus.",
       },
       {
         title: "Empreinte Entreprise",
         text:
-          "Le setup maÃ®tre structure les rÃ¨gles, les permissions, les valideurs, les documents de rÃ©fÃ©rence et les prÃ©fÃ©rences dâ€™exÃ©cution.",
+          "Le setup maître structure les règles, les permissions, les valideurs, les documents de référence et les préférences d’exécution.",
       },
       {
-        title: "MÃ©moire utile",
+        title: "Mémoire utile",
         text:
-          "La mÃ©moire doit servir lâ€™exÃ©cution : meilleure qualitÃ© de rÃ©daction, meilleure cohÃ©rence, meilleure comprÃ©hension du contexte et des habitudes.",
+          "La mémoire doit servir l’exécution : meilleure qualité de rédaction, meilleure cohérence, meilleure compréhension du contexte et des habitudes.",
       },
       {
         title: "Progression",
         text:
-          "Plus CloneStore travaille dans lâ€™entreprise, plus il doit devenir prÃ©cis, cohÃ©rent et naturel, sans cesser dâ€™Ãªtre gouvernÃ©.",
+          "Plus CloneStore travaille dans l’entreprise, plus il doit devenir précis, cohérent et naturel, sans cesser d’être gouverné.",
       },
       {
-        title: "Personnalisation rÃ©elle",
+        title: "Personnalisation réelle",
         text:
-          "Le systÃ¨me doit pouvoir reflÃ©ter une entreprise concrÃ¨te et non un style gÃ©nÃ©rique plaquÃ© partout.",
+          "Le système doit pouvoir refléter une entreprise concrète et non un style générique plaqué partout.",
       },
       {
-        title: "Valeur stratÃ©gique",
+        title: "Valeur stratégique",
         text:
-          "Cette mÃ©moire rend les employÃ©s IA plus utiles dans le temps. Elle transforme un usage ponctuel en continuitÃ© opÃ©rationnelle.",
+          "Cette mémoire rend les employés IA plus utiles dans le temps. Elle transforme un usage ponctuel en continuité opérationnelle.",
       },
     ],
   },
   {
     id: "securite",
-    label: "SÃ©curitÃ© & traÃ§abilitÃ©",
-    title: "Un systÃ¨me puissant doit rester traÃ§able.",
+    label: "Sécurité & traçabilité",
+    title: "Un système puissant doit rester traçable.",
     summary:
-      "La confiance vient de la lisibilitÃ© : savoir ce qui sâ€™est passÃ©, pourquoi, quand, et dans quel cadre.",
+      "La confiance vient de la lisibilité : savoir ce qui s’est passé, pourquoi, quand, et dans quel cadre.",
     intro:
-      "CloneStore ne doit pas Ãªtre perÃ§u comme une boÃ®te noire. Il doit produire une exÃ©cution claire, vÃ©rifiable et auditabile.",
+      "CloneStore ne doit pas être perçu comme une boîte noire. Il doit produire une exécution claire, vérifiable et auditabile.",
     blocks: [
       {
         title: "CloneTrace",
         text:
-          "CloneTrace conserve les missions, tÃ¢ches, validations, blocages, documents, emails et changements dâ€™Ã©tat dans un historique propre.",
+          "CloneTrace conserve les missions, tâches, validations, blocages, documents, emails et changements d’état dans un historique propre.",
       },
       {
         title: "Isolation",
         text:
-          "Les donnÃ©es, rÃ¨gles et actions doivent rester strictement rattachÃ©es Ã  lâ€™entreprise, avec des permissions et des niveaux dâ€™accÃ¨s cohÃ©rents.",
+          "Les données, règles et actions doivent rester strictement rattachées à l’entreprise, avec des permissions et des niveaux d’accès cohérents.",
       },
       {
         title: "Relecture",
         text:
-          "Le client doit pouvoir reprendre une mission, comprendre une dÃ©cision, retrouver un livrable et revoir les actions sans confusion.",
+          "Le client doit pouvoir reprendre une mission, comprendre une décision, retrouver un livrable et revoir les actions sans confusion.",
       },
       {
         title: "Gouvernance",
         text:
-          "Les couches de contrÃ´le et de validation doivent protÃ©ger le client sans casser lâ€™expÃ©rience utilisateur.",
+          "Les couches de contrôle et de validation doivent protéger le client sans casser l’expérience utilisateur.",
       },
       {
-        title: "CrÃ©dibilitÃ©",
+        title: "Crédibilité",
         text:
-          "La sÃ©curitÃ© perÃ§ue dÃ©pend aussi de la lisibilitÃ© des actions. Un systÃ¨me traÃ§able paraÃ®t immÃ©diatement plus sÃ©rieux.",
+          "La sécurité perçue dépend aussi de la lisibilité des actions. Un système traçable paraît immédiatement plus sérieux.",
       },
       {
-        title: "AuditabilitÃ©",
+        title: "Auditabilité",
         text:
-          "Ã€ mesure que CloneStore grandit, la capacitÃ© Ã  revoir le travail produit deviendra un avantage clÃ© auprÃ¨s des entreprises.",
+          "À mesure que CloneStore grandit, la capacité à revoir le travail produit deviendra un avantage clé auprès des entreprises.",
       },
     ],
   },
   {
     id: "deploiement",
-    label: "DÃ©ploiement & usage",
-    title: "Un produit conÃ§u pour Ãªtre rÃ©ellement utilisÃ©.",
+    label: "Déploiement & usage",
+    title: "Un produit conçu pour être réellement utilisé.",
     summary:
-      "Le dÃ©ploiement CloneStore doit Ãªtre simple cÃ´tÃ© client, tout en prÃ©parant un systÃ¨me puissant et Ã©volutif.",
+      "Le déploiement CloneStore doit être simple côté client, tout en préparant un système puissant et évolutif.",
     intro:
-      "Le produit doit Ãªtre facile Ã  adopter, simple Ã  comprendre et immÃ©diatement utile, sans dÃ©pendre dâ€™un parcours compliquÃ©.",
+      "Le produit doit être facile à adopter, simple à comprendre et immédiatement utile, sans dépendre d’un parcours compliqué.",
     blocks: [
       {
         title: "Boutique",
         text:
-          "La boutique prÃ©sente les employÃ©s IA disponibles ou en construction, avec une lecture claire de la gamme, des pÃ©rimÃ¨tres et de la maturitÃ© produit.",
+          "La boutique présente les employés IA disponibles ou en construction, avec une lecture claire de la gamme, des périmètres et de la maturité produit.",
       },
       {
-        title: "Mes employÃ©s",
+        title: "Mes employés",
         text:
-          "Cette zone correspond au cockpit dâ€™usage rÃ©el. Câ€™est lÃ  que lâ€™entreprise fait travailler CloneStore et retrouve ses points dâ€™entrÃ©e concrets.",
+          "Cette zone correspond au cockpit d’usage réel. C’est là que l’entreprise fait travailler CloneStore et retrouve ses points d’entrée concrets.",
       },
       {
         title: "Mon espace",
         text:
-          "Mon espace rÃ©unit le compte, lâ€™empreinte, les statistiques, les abonnements, la personnalisation et les rÃ©glages globaux.",
+          "Mon espace réunit le compte, l’empreinte, les statistiques, les abonnements, la personnalisation et les réglages globaux.",
       },
       {
         title: "Activation",
         text:
-          "Le parcours de paiement puis dâ€™activation doit rester lisible, rassurant et cohÃ©rent avec le niveau premium attendu du produit.",
+          "Le parcours de paiement puis d’activation doit rester lisible, rassurant et cohérent avec le niveau premium attendu du produit.",
       },
       {
         title: "Onboarding utile",
         text:
-          "Le setup ne doit pas Ãªtre un formulaire dÃ©coratif. Il doit rendre lâ€™employÃ© immÃ©diatement plus cohÃ©rent et plus fort.",
+          "Le setup ne doit pas être un formulaire décoratif. Il doit rendre l’employé immédiatement plus cohérent et plus fort.",
       },
       {
         title: "Adoption progressive",
         text:
-          "CloneStore doit pouvoir commencer par un premier employÃ© fort, puis sâ€™Ã©tendre vers un systÃ¨me plus large sans perdre en lisibilitÃ©.",
+          "CloneStore doit pouvoir commencer par un premier employé fort, puis s’étendre vers un système plus large sans perdre en lisibilité.",
       },
     ],
   },

@@ -211,14 +211,14 @@ type CloneOsPlan = {
 };
 
 const MESSAGE_CATEGORY_LABELS: Record<MessageCategory, string> = {
-  reception: "RÃ©ception",
+  reception: "Réception",
   suivis: "Suivis",
-  validation: "Ã€ valider",
-  preparation: "En prÃ©paration",
+  validation: "À valider",
+  preparation: "En préparation",
   briefings: "Briefings",
   livraisons: "Livraisons",
   alertes: "Alertes",
-  envoyes: "EnvoyÃ©s / suivi",
+  envoyes: "Envoyés / suivi",
 };
 
 const MISSION_COLUMNS: Array<{
@@ -229,32 +229,32 @@ const MISSION_COLUMNS: Array<{
   {
     status: "now",
     label: "Maintenant",
-    helper: "Actions immÃ©diates.",
+    helper: "Actions immédiates.",
   },
   {
     status: "today",
-    label: "Aujourdâ€™hui",
-    helper: "Travail prÃ©vu dans la journÃ©e.",
+    label: "Aujourd’hui",
+    helper: "Travail prévu dans la journée.",
   },
   {
     status: "scheduled",
-    label: "ProgrammÃ©",
-    helper: "Missions planifiÃ©es.",
+    label: "Programmé",
+    helper: "Missions planifiées.",
   },
   {
     status: "waiting_validation",
-    label: "Ã€ valider",
-    helper: "En pause avant dÃ©cision humaine.",
+    label: "À valider",
+    helper: "En pause avant décision humaine.",
   },
   {
     status: "blocked",
-    label: "BloquÃ©",
-    helper: "Friction ou risque dÃ©tectÃ©.",
+    label: "Bloqué",
+    helper: "Friction ou risque détecté.",
   },
   {
     status: "done",
-    label: "TerminÃ©",
-    helper: "LivrÃ© rÃ©cemment.",
+    label: "Terminé",
+    helper: "Livré récemment.",
   },
 ];
 
@@ -268,14 +268,14 @@ const ROUTING_KEYWORDS: Array<{
     keywords: [
       "pierre",
       "rh",
-      "salariÃ©",
+      "salarié",
       "salarie",
       "contrat",
       "candidat",
       "onboarding",
       "offboarding",
       "absence",
-      "congÃ©",
+      "congé",
       "conge",
       "convocation",
       "document rh",
@@ -283,7 +283,7 @@ const ROUTING_KEYWORDS: Array<{
       "ressources humaines",
     ],
     reason:
-      "Mission RH opÃ©rationnelle, document, email, suivi salariÃ© ou validation RH.",
+      "Mission RH opérationnelle, document, email, suivi salarié ou validation RH.",
   },
   {
     slug: "clara",
@@ -299,7 +299,7 @@ const ROUTING_KEYWORDS: Array<{
       "pipeline candidat",
     ],
     reason:
-      "Mission recrutement, candidature, shortlist ou coordination dâ€™entretien.",
+      "Mission recrutement, candidature, shortlist ou coordination d’entretien.",
   },
   {
     slug: "emma",
@@ -309,12 +309,12 @@ const ROUTING_KEYWORDS: Array<{
       "client",
       "sav",
       "ticket",
-      "rÃ©clamation",
+      "réclamation",
       "reclamation",
       "service client",
       "message client",
     ],
-    reason: "Mission support, relation client, rÃ©ponse ou suivi de ticket.",
+    reason: "Mission support, relation client, réponse ou suivi de ticket.",
   },
   {
     slug: "adrien",
@@ -323,12 +323,12 @@ const ROUTING_KEYWORDS: Array<{
       "commande",
       "livraison",
       "stock",
-      "expÃ©dition",
+      "expédition",
       "expedition",
       "retour produit",
       "suivi commande",
     ],
-    reason: "Mission commandes, flux opÃ©rationnel, livraison ou back-office.",
+    reason: "Mission commandes, flux opérationnel, livraison ou back-office.",
   },
   {
     slug: "lucas",
@@ -339,10 +339,10 @@ const ROUTING_KEYWORDS: Array<{
       "facturation",
       "paiement",
       "relance paiement",
-      "trÃ©sorerie",
+      "trésorerie",
       "tresorerie",
       "devis",
-      "impayÃ©",
+      "impayé",
       "impaye",
     ],
     reason: "Mission finance, facturation, paiement ou relance.",
@@ -353,31 +353,31 @@ const ROUTING_KEYWORDS: Array<{
       "sophie",
       "administratif",
       "dossier",
-      "procÃ©dure",
+      "procédure",
       "procedure",
       "back-office",
-      "secrÃ©tariat",
+      "secrétariat",
       "secretariat",
       "organisation interne",
     ],
-    reason: "Mission administrative, coordination interne ou dossier opÃ©rationnel.",
+    reason: "Mission administrative, coordination interne ou dossier opérationnel.",
   },
   {
     slug: "alex",
     keywords: [
       "alex",
-      "opÃ©rations",
+      "opérations",
       "operations",
-      "opÃ©ration",
+      "opération",
       "operation",
       "planning",
       "coordination",
       "process",
       "workflow",
-      "tÃ¢ches",
+      "tâches",
       "taches",
     ],
-    reason: "Mission opÃ©rations, planning, process ou coordination transverse.",
+    reason: "Mission opérations, planning, process ou coordination transverse.",
   },
 ];
 
@@ -407,12 +407,12 @@ function statusLabel(status: string) {
   const normalized = (status || "").toLowerCase();
 
   if (normalized === "active") return "Actif";
-  if (normalized === "cancelled") return "RÃ©siliÃ©";
+  if (normalized === "cancelled") return "Résilié";
   if (normalized === "past_due") return "Paiement en attente";
   if (normalized === "trialing") return "Essai";
   if (normalized === "incomplete") return "Incomplet";
 
-  return status || "â€”";
+  return status || "—";
 }
 
 function isActiveOrder(order: OrderRow) {
@@ -485,10 +485,10 @@ function getAgentMetaFromSlug(
   return {
     slug: normalized,
     name: agent?.name ?? titleCaseSlug(normalized),
-    role: agent?.role ?? "EmployÃ© IA CloneStore",
+    role: agent?.role ?? "Employé IA CloneStore",
     description:
       agent?.does?.[0] ??
-      "EmployÃ© IA rattachÃ© Ã  lâ€™environnement CloneStore de lâ€™entreprise.",
+      "Employé IA rattaché à l’environnement CloneStore de l’entreprise.",
     href: `/agents/${normalized}`,
     setupHref: `/agents/${normalized}/setup`,
     useHref:
@@ -502,11 +502,11 @@ function getAgentMetaFromSlug(
 
 function missionStatusLabel(status: MissionStatus) {
   if (status === "now") return "Maintenant";
-  if (status === "today") return "Aujourdâ€™hui";
-  if (status === "scheduled") return "ProgrammÃ©";
-  if (status === "waiting_validation") return "Ã€ valider";
-  if (status === "blocked") return "BloquÃ©";
-  return "TerminÃ©";
+  if (status === "today") return "Aujourd’hui";
+  if (status === "scheduled") return "Programmé";
+  if (status === "waiting_validation") return "À valider";
+  if (status === "blocked") return "Bloqué";
+  return "Terminé";
 }
 
 function missionStatusTone(status: MissionStatus): NotificationTone {
@@ -690,7 +690,7 @@ function EmployeeCard({
                   {employee.active ? "Actif" : statusLabel(employee.status)}
                 </span>
                 <span className="rounded-full border border-white/55 bg-white/42 px-2.5 py-1 text-[0.68rem] font-bold text-[var(--cs-ink-3)]">
-                  PossÃ©dÃ©
+                  Possédé
                 </span>
               </div>
 
@@ -749,7 +749,7 @@ function EmployeeCard({
             Configurer
           </Link>
           <button type="button" className="clone-liquid-button min-h-10 px-4">
-            RÃ¨gles
+            Règles
           </button>
           <button type="button" className="clone-liquid-button min-h-10 px-4">
             Autonomie
@@ -782,7 +782,7 @@ function MissionCard({
         >
           Risque{" "}
           {mission.risk === "high"
-            ? "Ã©levÃ©"
+            ? "élevé"
             : mission.risk === "medium"
               ? "moyen"
               : "faible"}
@@ -851,12 +851,12 @@ function ValidationCard({
           {item.status === "pending"
             ? "En attente"
             : item.status === "approved"
-              ? "ApprouvÃ©e"
+              ? "Approuvée"
               : item.status === "refused"
-                ? "RefusÃ©e"
+                ? "Refusée"
                 : item.status === "modified"
-                  ? "Ã€ modifier"
-                  : "BloquÃ©e"}
+                  ? "À modifier"
+                  : "Bloquée"}
         </span>
         <span
           className="rounded-full border px-2.5 py-1 text-[0.68rem] font-bold"
@@ -954,7 +954,7 @@ function MessageCard({
           </div>
 
           <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
-            {item.owner} Â· {item.source}
+            {item.owner} · {item.source}
           </p>
 
           <p className="mt-2 line-clamp-2 text-xs leading-5 text-[var(--cs-ink-3)]">
@@ -1007,7 +1007,7 @@ function RuleCard({
       </p>
 
       <p className="mt-2 text-[0.68rem] font-semibold text-[var(--cs-ink-4)]">
-        Source : {rule.createdFrom} Â· {rule.time}
+        Source : {rule.createdFrom} · {rule.time}
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -1060,7 +1060,7 @@ function TechnologyCard({
                   : "Attention"}
             </span>
             <span className="rounded-full border border-white/55 bg-white/42 px-2.5 py-1 text-[0.68rem] font-bold text-[var(--cs-ink-3)]">
-              {item.rules} rÃ¨gle{item.rules > 1 ? "s" : ""}
+              {item.rules} règle{item.rules > 1 ? "s" : ""}
             </span>
           </div>
 
@@ -1119,7 +1119,7 @@ export default function ProfileAgentsPage() {
       author: "CloneOS",
       role: "Centre de commandement",
       body:
-        "Ã‰crivez une demande libre. CloneOS comprend, dÃ©coupe, vÃ©rifie vos employÃ©s actifs, crÃ©e les tÃ¢ches, dÃ©tecte le risque et remonte les validations.",
+        "Écrivez une demande libre. CloneOS comprend, découpe, vérifie vos employés actifs, crée les tâches, détecte le risque et remonte les validations.",
       time: nowLabel(),
       tone: "info",
     },
@@ -1128,65 +1128,65 @@ export default function ProfileAgentsPage() {
   const [missions, setMissions] = useState<MissionItem[]>([
     {
       id: "mission-onboarding",
-      title: "Pack onboarding salariÃ©",
+      title: "Pack onboarding salarié",
       summary:
-        "PrÃ©paration dâ€™un email dâ€™accueil, dâ€™une checklist manager et dâ€™un document RH prÃªt Ã  validation.",
+        "Préparation d’un email d’accueil, d’une checklist manager et d’un document RH prêt à validation.",
       status: "today",
       employees: ["Pierre"],
       risk: "medium",
       urgency: "important",
       nextAction: "Attendre validation du document RH avant envoi externe.",
-      due: "Aujourdâ€™hui Â· 18:30",
-      trace: "CrÃ©Ã©e par CloneOS depuis le cockpit.",
+      due: "Aujourd’hui · 18:30",
+      trace: "Créée par CloneOS depuis le cockpit.",
     },
     {
       id: "mission-brief",
-      title: "Briefing opÃ©rationnel du soir",
+      title: "Briefing opérationnel du soir",
       summary:
-        "SynthÃ¨se des missions avancÃ©es, validations restantes, blocages et prioritÃ©s de demain.",
+        "Synthèse des missions avancées, validations restantes, blocages et priorités de demain.",
       status: "scheduled",
       employees: ["CloneOS"],
       risk: "low",
       urgency: "normal",
-      nextAction: "GÃ©nÃ©rer automatiquement le briefing Ã  22h.",
-      due: "Ce soir Â· 22:00",
-      trace: "TÃ¢che rÃ©currente pilotÃ©e par CloneOS.",
+      nextAction: "Générer automatiquement le briefing à 22h.",
+      due: "Ce soir · 22:00",
+      trace: "Tâche récurrente pilotée par CloneOS.",
     },
     {
       id: "mission-sensitive",
       title: "Email sensible en pause",
       summary:
-        "Un email prÃ©parÃ© demande une approbation humaine avant reprise de lâ€™exÃ©cution.",
+        "Un email préparé demande une approbation humaine avant reprise de l’exécution.",
       status: "waiting_validation",
       employees: ["Pierre", "CloneGuard"],
       risk: "high",
       urgency: "urgent",
       nextAction: "Approuver, refuser, modifier ou bloquer durablement.",
       due: "Action requise",
-      trace: "BloquÃ© par CloneGuard.",
+      trace: "Bloqué par CloneGuard.",
     },
   ]);
 
   const [validations, setValidations] = useState<ValidationItem[]>([
     {
       id: "validation-sensitive-email",
-      title: "Autorisation dâ€™envoi externe",
+      title: "Autorisation d’envoi externe",
       description:
-        "Pierre a prÃ©parÃ© un email RH externe. CloneGuard bloque lâ€™exÃ©cution tant quâ€™une validation humaine nâ€™est pas donnÃ©e.",
+        "Pierre a préparé un email RH externe. CloneGuard bloque l’exécution tant qu’une validation humaine n’est pas donnée.",
       employee: "Pierre / CloneGuard",
       risk: "high",
       status: "pending",
-      time: "Aujourdâ€™hui Â· 17:24",
+      time: "Aujourd’hui · 17:24",
     },
     {
       id: "validation-rule",
-      title: "Nouvelle rÃ¨gle Ã  confirmer",
+      title: "Nouvelle règle à confirmer",
       description:
-        "CloneOS propose dâ€™ajouter une rÃ¨gle durable : tout document sensible passe en validation humaine.",
+        "CloneOS propose d’ajouter une règle durable : tout document sensible passe en validation humaine.",
       employee: "CloneOS",
       risk: "medium",
       status: "pending",
-      time: "Aujourdâ€™hui Â· 16:50",
+      time: "Aujourd’hui · 16:50",
     },
   ]);
 
@@ -1195,10 +1195,10 @@ export default function ProfileAgentsPage() {
       id: "message-validation",
       title: "Validation requise avant envoi",
       body:
-        "Une action sensible est prÃªte, mais CloneGuard demande une validation humaine avant reprise.",
+        "Une action sensible est prête, mais CloneGuard demande une validation humaine avant reprise.",
       owner: "CloneGuard",
-      source: "ContrÃ´le",
-      time: "Aujourdâ€™hui Â· 17:24",
+      source: "Contrôle",
+      time: "Aujourd’hui · 17:24",
       tone: "critical",
       unread: true,
       categories: ["reception", "validation", "alertes", "suivis"],
@@ -1208,48 +1208,48 @@ export default function ProfileAgentsPage() {
     },
     {
       id: "message-preparation",
-      title: "Mission RH longue en prÃ©paration",
+      title: "Mission RH longue en préparation",
       body:
-        "Pierre prÃ©pare un pack onboarding avec documents, email, checklist et suivi.",
+        "Pierre prépare un pack onboarding avec documents, email, checklist et suivi.",
       owner: "Pierre",
       source: "Mission RH",
-      time: "Aujourdâ€™hui Â· 16:58",
+      time: "Aujourd’hui · 16:58",
       tone: "info",
       unread: true,
       categories: ["reception", "preparation", "suivis"],
       relatedEmployees: ["Pierre"],
       summary:
-        "Travail en prÃ©paration. Le livrable passera ensuite en livraison puis en suivi.",
+        "Travail en préparation. Le livrable passera ensuite en livraison puis en suivi.",
     },
     {
       id: "message-brief",
       title: "Briefing quotidien disponible",
       body:
-        "CloneOS a gÃ©nÃ©rÃ© un rÃ©sumÃ© des actions du jour, blocages et prioritÃ©s.",
+        "CloneOS a généré un résumé des actions du jour, blocages et priorités.",
       owner: "CloneOS",
       source: "Briefing",
-      time: "Aujourdâ€™hui Â· 18:00",
+      time: "Aujourd’hui · 18:00",
       tone: "success",
       unread: false,
       categories: ["briefings", "suivis"],
       relatedEmployees: ["CloneOS"],
       summary:
-        "Compte rendu autonome prÃªt. Peut Ãªtre insÃ©rÃ© dans le salon pour prÃ©cision.",
+        "Compte rendu autonome prêt. Peut être inséré dans le salon pour précision.",
     },
     {
       id: "message-delivery",
-      title: "Document prÃªt Ã  validation",
+      title: "Document prêt à validation",
       body:
-        "Un livrable est terminÃ©. Il peut Ãªtre relu, validÃ©, exportÃ© ou placÃ© sous suivi.",
+        "Un livrable est terminé. Il peut être relu, validé, exporté ou placé sous suivi.",
       owner: "CloneTrace",
       source: "Livrable",
-      time: "Aujourdâ€™hui Â· 17:02",
+      time: "Aujourd’hui · 17:02",
       tone: "info",
       unread: true,
       categories: ["livraisons", "envoyes", "suivis"],
       relatedEmployees: ["Pierre", "CloneTrace"],
       summary:
-        "Document terminÃ©, traÃ§able, retrouvable et prÃªt pour dÃ©cision.",
+        "Document terminé, traçable, retrouvable et prêt pour décision.",
     },
   ]);
 
@@ -1266,7 +1266,7 @@ export default function ProfileAgentsPage() {
       author: "CloneOS",
       role: "Orchestrateur central",
       body:
-        "Salon CloneStore ouvert. Parlez naturellement : â€œPierre, tu peux envoyerâ€, â€œnon, stopâ€, â€œÃ  22h fais-moi un briefâ€, â€œajoute cette rÃ¨gleâ€. CloneOS route, contrÃ´le et trace.",
+        "Salon CloneStore ouvert. Parlez naturellement : “Pierre, tu peux envoyer”, “non, stop”, “à 22h fais-moi un brief”, “ajoute cette règle”. CloneOS route, contrôle et trace.",
       time: nowLabel(),
       tone: "info",
     },
@@ -1278,7 +1278,7 @@ export default function ProfileAgentsPage() {
       id: "rule-sensitive-human-validation",
       title: "Validation humaine sur actions sensibles",
       body:
-        "Tout document sensible, email externe RH ou action Ã  risque doit passer par CloneGuard avant exÃ©cution.",
+        "Tout document sensible, email externe RH ou action à risque doit passer par CloneGuard avant exécution.",
       targetType: "global",
       target: "CloneStore",
       status: "active",
@@ -1290,13 +1290,13 @@ export default function ProfileAgentsPage() {
       id: "rule-evening-brief",
       title: "Briefing du soir",
       body:
-        "CloneOS prÃ©pare un briefing opÃ©rationnel du soir avec blocages, livraisons, validations et prioritÃ©s.",
+        "CloneOS prépare un briefing opérationnel du soir avec blocages, livraisons, validations et priorités.",
       targetType: "technology",
       target: "CloneOS",
       status: "active",
       sensitivity: "normal",
       createdFrom: "cockpit",
-      time: "Aujourdâ€™hui",
+      time: "Aujourd’hui",
     },
   ]);
 
@@ -1310,7 +1310,7 @@ export default function ProfileAgentsPage() {
   const [traceItems, setTraceItems] = useState<TraceItem[]>([
     {
       id: "trace-validation",
-      title: "Validation demandÃ©e",
+      title: "Validation demandée",
       detail: "CloneGuard a mis une action sensible en pause.",
       actor: "CloneGuard",
       time: "17:24",
@@ -1318,16 +1318,16 @@ export default function ProfileAgentsPage() {
     },
     {
       id: "trace-document",
-      title: "Document livrÃ©",
-      detail: "Un livrable a Ã©tÃ© marquÃ© prÃªt Ã  validation.",
+      title: "Document livré",
+      detail: "Un livrable a été marqué prêt à validation.",
       actor: "CloneTrace",
       time: "17:02",
       tone: "success",
     },
     {
       id: "trace-mission",
-      title: "Mission crÃ©Ã©e",
-      detail: "CloneOS a crÃ©Ã© une mission RH longue.",
+      title: "Mission créée",
+      detail: "CloneOS a créé une mission RH longue.",
       actor: "CloneOS",
       time: "16:58",
       tone: "info",
@@ -1339,18 +1339,18 @@ export default function ProfileAgentsPage() {
       id: "brief-day",
       title: "Briefing du jour",
       summary:
-        "3 missions actives, 2 validations restantes, 1 action sensible en pause, aucun incident critique non traitÃ©.",
-      period: "Aujourdâ€™hui",
+        "3 missions actives, 2 validations restantes, 1 action sensible en pause, aucun incident critique non traité.",
+      period: "Aujourd’hui",
       blockers: 1,
       delivered: 2,
       validations: 2,
     },
     {
       id: "brief-evening",
-      title: "Briefing du soir programmÃ©",
+      title: "Briefing du soir programmé",
       summary:
-        "CloneOS prÃ©parera Ã  22h une synthÃ¨se de ce qui a avancÃ©, ce qui bloque et ce qui doit Ãªtre priorisÃ© demain.",
-      period: "Ce soir Â· 22:00",
+        "CloneOS préparera à 22h une synthèse de ce qui a avancé, ce qui bloque et ce qui doit être priorisé demain.",
+      period: "Ce soir · 22:00",
       blockers: 0,
       delivered: 0,
       validations: 0,
@@ -1361,15 +1361,15 @@ export default function ProfileAgentsPage() {
     {
       id: "alert-sensitive",
       title: "Action sensible en pause",
-      detail: "Une autorisation est requise avant reprise dâ€™exÃ©cution.",
+      detail: "Une autorisation est requise avant reprise d’exécution.",
       tone: "critical",
       action: "Ouvrir validations",
     },
     {
       id: "alert-config",
-      title: "RÃ¨gles dâ€™autonomie Ã  contrÃ´ler",
+      title: "Règles d’autonomie à contrôler",
       detail:
-        "VÃ©rifiez les rÃ¨gles actives avant de dÃ©lÃ©guer plus dâ€™actions autonomes.",
+        "Vérifiez les règles actives avant de déléguer plus d’actions autonomes.",
       tone: "warning",
       action: "Configurer",
     },
@@ -1384,7 +1384,7 @@ export default function ProfileAgentsPage() {
 
       if (!supabase) {
         setError(
-          "Configuration Supabase manquante. VÃ©rifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY."
+          "Configuration Supabase manquante. Vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY."
         );
         setLoading(false);
         setRefreshing(false);
@@ -1552,9 +1552,9 @@ export default function ProfileAgentsPage() {
       {
         id: "cloneos",
         name: "CloneOS",
-        role: "Comprend, dÃ©coupe, route, coordonne et rÃ©unit les rÃ©sultats.",
+        role: "Comprend, découpe, route, coordonne et réunit les résultats.",
         state: "active",
-        lastEvent: "DerniÃ¨re orchestration : mission RH longue.",
+        lastEvent: "Dernière orchestration : mission RH longue.",
         rules: rules.filter(
           (rule) => rule.target === "CloneOS" || rule.target === "CloneStore"
         ).length,
@@ -1562,7 +1562,7 @@ export default function ProfileAgentsPage() {
       {
         id: "cloneguard",
         name: "CloneGuard",
-        role: "ContrÃ´le les risques, validations, blocages et permissions.",
+        role: "Contrôle les risques, validations, blocages et permissions.",
         state: validations.some((item) => item.status === "pending")
           ? "needs_attention"
           : "active",
@@ -1574,9 +1574,9 @@ export default function ProfileAgentsPage() {
       {
         id: "clonetrace",
         name: "CloneTrace",
-        role: "Historise les missions, dÃ©cisions, livraisons et Ã©vÃ©nements.",
+        role: "Historise les missions, décisions, livraisons et événements.",
         state: "active",
-        lastEvent: "DerniÃ¨re trace : document livrÃ©.",
+        lastEvent: "Dernière trace : document livré.",
         rules: rules.filter(
           (rule) => rule.target === "CloneTrace" || rule.target === "CloneStore"
         ).length,
@@ -1584,9 +1584,9 @@ export default function ProfileAgentsPage() {
       {
         id: "cloneadn",
         name: "CloneADN",
-        role: "Aligne le systÃ¨me avec les habitudes et rÃ¨gles de lâ€™entreprise.",
+        role: "Aligne le système avec les habitudes et règles de l’entreprise.",
         state: rules.length > 0 ? "active" : "watching",
-        lastEvent: "Alignement actif sur les rÃ¨gles validÃ©es.",
+        lastEvent: "Alignement actif sur les règles validées.",
         rules: rules.filter(
           (rule) => rule.target === "CloneADN" || rule.target === "CloneStore"
         ).length,
@@ -1594,9 +1594,9 @@ export default function ProfileAgentsPage() {
       {
         id: "clonevoice",
         name: "CloneVoice",
-        role: "Permet de commander CloneStore Ã  la voix.",
+        role: "Permet de commander CloneStore à la voix.",
         state: "watching",
-        lastEvent: "EntrÃ©e vocale prÃªte cÃ´tÃ© interface.",
+        lastEvent: "Entrée vocale prête côté interface.",
         rules: rules.filter(
           (rule) => rule.target === "CloneVoice" || rule.target === "CloneStore"
         ).length,
@@ -1621,13 +1621,13 @@ export default function ProfileAgentsPage() {
   const overviewStats = useMemo(
     () => [
       {
-        title: "EmployÃ©s possÃ©dÃ©s",
+        title: "Employés possédés",
         value: ownedEmployees.length,
-        helper: "ReliÃ©s au compte.",
+        helper: "Reliés au compte.",
         icon: <Users2 className="h-5 w-5" />,
       },
       {
-        title: "EmployÃ©s actifs",
+        title: "Employés actifs",
         value: activeEmployees.length,
         helper: "Mobilisables par CloneOS.",
         icon: <BadgeCheck className="h-5 w-5" />,
@@ -1635,13 +1635,13 @@ export default function ProfileAgentsPage() {
       {
         title: "Missions",
         value: missions.length,
-        helper: "Queue dâ€™exÃ©cution.",
+        helper: "Queue d’exécution.",
         icon: <GitBranch className="h-5 w-5" />,
       },
       {
         title: "Validations",
         value: validations.filter((item) => item.status === "pending").length,
-        helper: "DÃ©cisions humaines.",
+        helper: "Décisions humaines.",
         icon: <ShieldCheck className="h-5 w-5" />,
       },
     ],
@@ -1705,20 +1705,20 @@ export default function ProfileAgentsPage() {
     return {
       summary:
         recipients.length > 1
-          ? "CloneOS a dÃ©tectÃ© une mission multi-employÃ©s. La demande est dÃ©coupÃ©e en sous-missions, routÃ©e aux employÃ©s actifs, puis rÃ©unifiÃ©e."
+          ? "CloneOS a détecté une mission multi-employés. La demande est découpée en sous-missions, routée aux employés actifs, puis réunifiée."
           : recipients.length === 1
-            ? `CloneOS a dÃ©tectÃ© ${recipients[0].name} comme employÃ© principal.`
-            : "CloneOS garde la mission en cadrage : aucun employÃ© actif clairement mobilisable nâ€™a Ã©tÃ© dÃ©tectÃ©.",
+            ? `CloneOS a détecté ${recipients[0].name} comme employé principal.`
+            : "CloneOS garde la mission en cadrage : aucun employé actif clairement mobilisable n’a été détecté.",
       employees: recipients,
       unavailable,
       tasks: [
         "Comprendre la demande libre.",
-        "Identifier les employÃ©s IA requis.",
-        "VÃ©rifier les employÃ©s possÃ©dÃ©s et actifs.",
-        "CrÃ©er les sous-missions spÃ©cialisÃ©es.",
-        "ContrÃ´ler les risques avec CloneGuard.",
-        "Tracer les dÃ©cisions avec CloneTrace.",
-        "RÃ©unifier le rÃ©sultat dans le cockpit.",
+        "Identifier les employés IA requis.",
+        "Vérifier les employés possédés et actifs.",
+        "Créer les sous-missions spécialisées.",
+        "Contrôler les risques avec CloneGuard.",
+        "Tracer les décisions avec CloneTrace.",
+        "Réunifier le résultat dans le cockpit.",
       ],
       risk,
       validationRequired,
@@ -1786,24 +1786,24 @@ export default function ProfileAgentsPage() {
       {
         id: `command-plan-${Date.now()}`,
         author: "CloneOS",
-        role: "Plan dâ€™exÃ©cution",
+        role: "Plan d’exécution",
         body: [
           plan.summary,
           "",
-          `EmployÃ©s mobilisÃ©s : ${
+          `Employés mobilisés : ${
             plan.employees.length > 0
               ? plan.employees.map((employee) => employee.name).join(", ")
-              : "aucun pour lâ€™instant"
+              : "aucun pour l’instant"
           }.`,
           plan.unavailable.length > 0
-            ? `EmployÃ©s requis mais non actifs : ${plan.unavailable.join(", ")}.`
+            ? `Employés requis mais non actifs : ${plan.unavailable.join(", ")}.`
             : null,
           `Risque : ${plan.risk}.`,
           plan.validationRequired
-            ? "Validation humaine requise avant exÃ©cution sensible."
-            : "Aucune validation sensible dÃ©tectÃ©e Ã  ce stade.",
+            ? "Validation humaine requise avant exécution sensible."
+            : "Aucune validation sensible détectée à ce stade.",
           "",
-          `TÃ¢ches crÃ©Ã©es : ${plan.tasks.join(" â†’ ")}.`,
+          `Tâches créées : ${plan.tasks.join(" → ")}.`,
         ]
           .filter(Boolean)
           .join("\n"),
@@ -1814,7 +1814,7 @@ export default function ProfileAgentsPage() {
 
     const mission: MissionItem = {
       id: `mission-${Date.now()}`,
-      title: text.length > 88 ? `${text.slice(0, 88)}â€¦` : text,
+      title: text.length > 88 ? `${text.slice(0, 88)}…` : text,
       summary: plan.summary,
       status: plan.nextStatus,
       employees:
@@ -1831,8 +1831,8 @@ export default function ProfileAgentsPage() {
       nextAction: plan.validationRequired
         ? "Attendre une validation humaine avant reprise."
         : "Continuer le traitement et remonter le prochain statut.",
-      due: plan.validationRequired ? "Action requise" : "Aujourdâ€™hui",
-      trace: "Mission crÃ©Ã©e depuis le centre de commandement CloneOS.",
+      due: plan.validationRequired ? "Action requise" : "Aujourd’hui",
+      trace: "Mission créée depuis le centre de commandement CloneOS.",
     };
 
     setMissions((previous) => [mission, ...previous]);
@@ -1843,7 +1843,7 @@ export default function ProfileAgentsPage() {
           id: `validation-${Date.now()}`,
           title: "Validation requise depuis le command center",
           description:
-            "CloneOS a dÃ©tectÃ© une action potentiellement sensible. CloneGuard bloque lâ€™exÃ©cution jusquâ€™Ã  dÃ©cision humaine.",
+            "CloneOS a détecté une action potentiellement sensible. CloneGuard bloque l’exécution jusqu’à décision humaine.",
           employee:
             plan.employees.length > 0
               ? `${plan.employees.map((employee) => employee.name).join(", ")} / CloneGuard`
@@ -1860,8 +1860,8 @@ export default function ProfileAgentsPage() {
       {
         id: `message-command-${Date.now()}`,
         title: plan.validationRequired
-          ? "Mission crÃ©Ã©e avec validation"
-          : "Mission crÃ©Ã©e",
+          ? "Mission créée avec validation"
+          : "Mission créée",
         body: plan.summary,
         owner: "CloneOS",
         source: "Command center",
@@ -1875,14 +1875,14 @@ export default function ProfileAgentsPage() {
           plan.employees.length > 0
             ? plan.employees.map((employee) => employee.name)
             : ["CloneOS"],
-        summary: "Mission gÃ©nÃ©rÃ©e depuis la demande libre du cockpit principal.",
+        summary: "Mission générée depuis la demande libre du cockpit principal.",
       },
       ...previous,
     ]);
 
     pushTrace(
-      "Mission crÃ©Ã©e",
-      "CloneOS a transformÃ© une demande libre en mission structurÃ©e.",
+      "Mission créée",
+      "CloneOS a transformé une demande libre en mission structurée.",
       "CloneOS",
       "info"
     );
@@ -1899,7 +1899,7 @@ export default function ProfileAgentsPage() {
     if (!cleanBody) return;
 
     const title =
-      cleanBody.length > 62 ? `${cleanBody.slice(0, 62)}â€¦` : cleanBody;
+      cleanBody.length > 62 ? `${cleanBody.slice(0, 62)}…` : cleanBody;
 
     const rule: RuleItem = {
       id: `rule-${Date.now()}`,
@@ -1916,8 +1916,8 @@ export default function ProfileAgentsPage() {
     setRules((previous) => [rule, ...previous]);
 
     pushTrace(
-      "RÃ¨gle ajoutÃ©e",
-      `${target} reÃ§oit une nouvelle rÃ¨gle : ${cleanBody}`,
+      "Règle ajoutée",
+      `${target} reçoit une nouvelle règle : ${cleanBody}`,
       "CloneADN",
       "success"
     );
@@ -1927,8 +1927,8 @@ export default function ProfileAgentsPage() {
       {
         id: `salon-rule-${Date.now()}`,
         author: "CloneADN",
-        role: "MÃ©moire et rÃ¨gles",
-        body: `RÃ¨gle enregistrÃ©e pour ${target} : ${cleanBody}`,
+        role: "Mémoire et règles",
+        body: `Règle enregistrée pour ${target} : ${cleanBody}`,
         time: nowLabel(),
         tone: "success",
       },
@@ -1971,13 +1971,13 @@ export default function ProfileAgentsPage() {
         id: `message-validation-${Date.now()}`,
         title:
           status === "approved"
-            ? "Validation approuvÃ©e"
+            ? "Validation approuvée"
             : status === "blocked"
-              ? "Action bloquÃ©e"
+              ? "Action bloquée"
               : status === "modified"
-                ? "Modification demandÃ©e"
-                : "Validation refusÃ©e",
-        body: `${target.title} â€” dÃ©cision : ${status}.`,
+                ? "Modification demandée"
+                : "Validation refusée",
+        body: `${target.title} — décision : ${status}.`,
         owner: "CloneGuard",
         source: "Validation",
         time: nowLabel(),
@@ -1985,13 +1985,13 @@ export default function ProfileAgentsPage() {
         unread: true,
         categories: ["reception", "validation", "suivis"],
         relatedEmployees: [target.employee],
-        summary: "DÃ©cision humaine enregistrÃ©e dans CloneTrace.",
+        summary: "Décision humaine enregistrée dans CloneTrace.",
       },
       ...previous,
     ]);
 
     pushTrace(
-      "Validation mise Ã  jour",
+      "Validation mise à jour",
       `${target.title} : ${status}.`,
       "CloneGuard",
       tone
@@ -2021,15 +2021,15 @@ export default function ProfileAgentsPage() {
     if (!message) return;
 
     insertToSalon(
-      "Contexte glissÃ©",
+      "Contexte glissé",
       [
-        `Ã‰lÃ©ment ajoutÃ© au salon : ${message.title}`,
-        `RÃ©sumÃ© : ${message.summary}`,
-        `CatÃ©gories : ${message.categories
+        `Élément ajouté au salon : ${message.title}`,
+        `Résumé : ${message.summary}`,
+        `Catégories : ${message.categories
           .map((category) => MESSAGE_CATEGORY_LABELS[category])
           .join(", ")}`,
         "",
-        "Vous pouvez rÃ©pondre : oui, non, bloque, modifie, envoie, ajoute une rÃ¨gle, ou demande une alternative.",
+        "Vous pouvez répondre : oui, non, bloque, modifie, envoie, ajoute une règle, ou demande une alternative.",
       ].join("\n"),
       message.tone
     );
@@ -2047,7 +2047,7 @@ export default function ProfileAgentsPage() {
       normalized.includes("stop") ||
       normalized.includes("bloque") ||
       normalized.includes("arrete") ||
-      normalized.includes("arrÃªte") ||
+      normalized.includes("arrête") ||
       normalized.includes("ne l envoie pas") ||
       normalized.includes("ne l'envoie pas");
 
@@ -2060,17 +2060,17 @@ export default function ProfileAgentsPage() {
 
     const isRule =
       normalized.includes("regle") ||
-      normalized.includes("rÃ¨gle") ||
+      normalized.includes("règle") ||
       normalized.includes("desormais") ||
-      normalized.includes("dÃ©sormais") ||
+      normalized.includes("désormais") ||
       normalized.includes("a l avenir") ||
-      normalized.includes("Ã  lâ€™avenir") ||
+      normalized.includes("à l’avenir") ||
       normalized.includes("toujours");
 
     const isBrief =
       normalized.includes("brief") ||
       normalized.includes("resume") ||
-      normalized.includes("rÃ©sumÃ©") ||
+      normalized.includes("résumé") ||
       normalized.includes("22h") ||
       normalized.includes("22 h");
 
@@ -2091,7 +2091,7 @@ export default function ProfileAgentsPage() {
         author: "CloneOS",
         role: "Orchestrateur central",
         body:
-          "Instruction comprise. Lâ€™action associÃ©e reste arrÃªtÃ©e ou bloquÃ©e. Aucune exÃ©cution sensible ne reprend sans validation claire.",
+          "Instruction comprise. L’action associée reste arrêtée ou bloquée. Aucune exécution sensible ne reprend sans validation claire.",
         time: nowLabel(),
         tone: "critical",
       });
@@ -2099,8 +2099,8 @@ export default function ProfileAgentsPage() {
       setAlerts((previous) => [
         {
           id: `alert-stop-${Date.now()}`,
-          title: "Action bloquÃ©e depuis le salon",
-          detail: "Lâ€™utilisateur a donnÃ© une instruction dâ€™arrÃªt ou de blocage.",
+          title: "Action bloquée depuis le salon",
+          detail: "L’utilisateur a donné une instruction d’arrêt ou de blocage.",
           tone: "critical",
           action: "Voir salon",
         },
@@ -2108,8 +2108,8 @@ export default function ProfileAgentsPage() {
       ]);
 
       pushTrace(
-        "Action bloquÃ©e",
-        "Instruction de blocage donnÃ©e dans le salon.",
+        "Action bloquée",
+        "Instruction de blocage donnée dans le salon.",
         "CloneOS",
         "critical"
       );
@@ -2119,15 +2119,15 @@ export default function ProfileAgentsPage() {
       responses.push({
         id: `salon-rule-response-${Date.now()}`,
         author: "CloneADN",
-        role: "RÃ¨gles et mÃ©moire",
-        body: `RÃ¨gle comprise. Elle est enregistrÃ©e pour ${target} et restera visible dans la configuration rapide.`,
+        role: "Règles et mémoire",
+        body: `Règle comprise. Elle est enregistrée pour ${target} et restera visible dans la configuration rapide.`,
         time: nowLabel(),
         tone: "success",
       });
 
       const rule: RuleItem = {
         id: `rule-salon-${Date.now()}`,
-        title: text.length > 62 ? `${text.slice(0, 62)}â€¦` : text,
+        title: text.length > 62 ? `${text.slice(0, 62)}…` : text,
         body: text,
         targetType: recipients[0] ? "employee" : "global",
         target,
@@ -2141,14 +2141,14 @@ export default function ProfileAgentsPage() {
       };
 
       setRules((previous) => [rule, ...previous]);
-      pushTrace("RÃ¨gle ajoutÃ©e depuis le salon", text, "CloneADN", "success");
+      pushTrace("Règle ajoutée depuis le salon", text, "CloneADN", "success");
     } else if (isBrief) {
       responses.push({
         id: `salon-brief-${Date.now()}`,
         author: recipients[0]?.name ?? "CloneOS",
-        role: recipients[0]?.role ?? "Briefing automatisÃ©",
+        role: recipients[0]?.role ?? "Briefing automatisé",
         body:
-          "Câ€™est notÃ©. CloneOS prÃ©pare la tÃ¢che de briefing avec horaire, contenu attendu, validations restantes, blocages et livraisons.",
+          "C’est noté. CloneOS prépare la tâche de briefing avec horaire, contenu attendu, validations restantes, blocages et livraisons.",
         time: nowLabel(),
         tone: "success",
       });
@@ -2156,34 +2156,34 @@ export default function ProfileAgentsPage() {
       setMissions((previous) => [
         {
           id: `mission-brief-${Date.now()}`,
-          title: "Briefing demandÃ© depuis le salon",
+          title: "Briefing demandé depuis le salon",
           summary: text,
           status: "scheduled",
           employees: [recipients[0]?.name ?? "CloneOS"],
           risk: "low",
           urgency: "normal",
-          nextAction: "GÃ©nÃ©rer le briefing au moment demandÃ©.",
-          due: normalized.includes("22") ? "Ce soir Â· 22:00" : "ProgrammÃ©",
-          trace: "CrÃ©Ã© depuis le Salon CloneStore.",
+          nextAction: "Générer le briefing au moment demandé.",
+          due: normalized.includes("22") ? "Ce soir · 22:00" : "Programmé",
+          trace: "Créé depuis le Salon CloneStore.",
         },
         ...previous,
       ]);
 
-      pushTrace("Briefing programmÃ©", text, "CloneOS", "info");
+      pushTrace("Briefing programmé", text, "CloneOS", "info");
     } else if (isApproval) {
       responses.push({
         id: `salon-approval-${Date.now()}`,
         author: recipients[0]?.name ?? "CloneOS",
-        role: recipients[0]?.role ?? "Reprise dâ€™exÃ©cution",
+        role: recipients[0]?.role ?? "Reprise d’exécution",
         body:
-          "Validation reÃ§ue. CloneOS reprend la mission en pause si le contexte est clair et si CloneGuard ne dÃ©tecte aucun blocage restant.",
+          "Validation reçue. CloneOS reprend la mission en pause si le contexte est clair et si CloneGuard ne détecte aucun blocage restant.",
         time: nowLabel(),
         tone: "success",
       });
 
       pushTrace(
-        "Validation donnÃ©e",
-        "Instruction de reprise donnÃ©e dans le salon.",
+        "Validation donnée",
+        "Instruction de reprise donnée dans le salon.",
         "CloneOS",
         "success"
       );
@@ -2195,14 +2195,14 @@ export default function ProfileAgentsPage() {
           role: agent.role,
           body:
             recipients.length > 1
-              ? "CloneOS mâ€™a transmis ma partie de la demande. Je traite uniquement mon pÃ©rimÃ¨tre, puis CloneOS rÃ©unira les rÃ©ponses."
-              : "CloneOS mâ€™a transmis votre demande. Je traite mon pÃ©rimÃ¨tre avec traÃ§abilitÃ© et validation humaine si nÃ©cessaire.",
+              ? "CloneOS m’a transmis ma partie de la demande. Je traite uniquement mon périmètre, puis CloneOS réunira les réponses."
+              : "CloneOS m’a transmis votre demande. Je traite mon périmètre avec traçabilité et validation humaine si nécessaire.",
           time: nowLabel(),
           tone: "info",
         });
       });
 
-      pushTrace("Message routÃ©", text, "CloneOS", "info");
+      pushTrace("Message routé", text, "CloneOS", "info");
     } else {
       responses.push({
         id: `salon-default-${Date.now()}`,
@@ -2210,8 +2210,8 @@ export default function ProfileAgentsPage() {
         role: "Orchestrateur central",
         body:
           activeOnlyAgentMetas.length > 0
-            ? "Demande reÃ§ue. Je peux la cadrer, dÃ©tecter les employÃ©s nÃ©cessaires ou demander une prÃ©cision avant distribution."
-            : "Demande reÃ§ue. Aucun employÃ© IA actif nâ€™est dÃ©tectÃ© sur ce compte, donc je garde la demande au niveau CloneOS.",
+            ? "Demande reçue. Je peux la cadrer, détecter les employés nécessaires ou demander une précision avant distribution."
+            : "Demande reçue. Aucun employé IA actif n’est détecté sur ce compte, donc je garde la demande au niveau CloneOS.",
         time: nowLabel(),
         tone: "info",
       });
@@ -2224,7 +2224,7 @@ export default function ProfileAgentsPage() {
   function configureTechnology(name: string) {
     setQuickRuleTargetType("technology");
     setQuickRuleTarget(name);
-    setQuickRuleText(`${name} doit appliquer la rÃ¨gle suivante : `);
+    setQuickRuleText(`${name} doit appliquer la règle suivante : `);
 
     document.getElementById("rules")?.scrollIntoView({
       behavior: "smooth",
@@ -2240,7 +2240,7 @@ export default function ProfileAgentsPage() {
             <div className="flex items-center gap-3">
               <Loader2 className="h-5 w-5 animate-spin text-[var(--cs-violet)]" />
               <p className="text-sm font-medium text-[var(--cs-ink-3)]">
-                Chargement du cockpit CloneStoreâ€¦
+                Chargement du cockpit CloneStore…
               </p>
             </div>
           </section>
@@ -2272,8 +2272,8 @@ export default function ProfileAgentsPage() {
                 </h1>
 
                 <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--cs-ink-3)]">
-                  Le cockpit rÃ©unit la commande CloneOS, les employÃ©s possÃ©dÃ©s,
-                  les missions, validations, messages, rÃ¨gles, traces, briefings
+                  Le cockpit réunit la commande CloneOS, les employés possédés,
+                  les missions, validations, messages, règles, traces, briefings
                   et technologies visibles.
                 </p>
 
@@ -2286,7 +2286,7 @@ export default function ProfileAgentsPage() {
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                   <Link href="/signup" className="clone-liquid-button">
-                    CrÃ©er un compte
+                    Créer un compte
                   </Link>
                 </div>
               </div>
@@ -2295,11 +2295,11 @@ export default function ProfileAgentsPage() {
                 <StatCard
                   title="Commande"
                   value="CloneOS"
-                  helper="Une requÃªte, plusieurs employÃ©s."
+                  helper="Une requête, plusieurs employés."
                   icon={<Command className="h-5 w-5" />}
                 />
                 <StatCard
-                  title="ContrÃ´le"
+                  title="Contrôle"
                   value="CloneGuard"
                   helper="Validations et blocages."
                   icon={<ShieldCheck className="h-5 w-5" />}
@@ -2313,7 +2313,7 @@ export default function ProfileAgentsPage() {
                 <StatCard
                   title="Salon"
                   value="Vivant"
-                  helper="Parlez au systÃ¨me entier."
+                  helper="Parlez au système entier."
                   icon={<MessageSquareQuote className="h-5 w-5" />}
                 />
               </div>
@@ -2362,7 +2362,7 @@ export default function ProfileAgentsPage() {
                 />
                 <RailButton
                   open={railOpen}
-                  label="EmployÃ©s actifs"
+                  label="Employés actifs"
                   icon={<Users2 className="h-4 w-4" />}
                   target="employees"
                 />
@@ -2392,7 +2392,7 @@ export default function ProfileAgentsPage() {
                 />
                 <RailButton
                   open={railOpen}
-                  label="RÃ¨gles"
+                  label="Règles"
                   icon={<Settings2 className="h-4 w-4" />}
                   target="rules"
                 />
@@ -2426,7 +2426,7 @@ export default function ProfileAgentsPage() {
                 >
                   <User2 className="h-4 w-4 text-[var(--cs-violet)]" />
                   {railOpen ? (
-                    <span className="text-xs font-bold">Profil / rÃ©glages</span>
+                    <span className="text-xs font-bold">Profil / réglages</span>
                   ) : null}
                 </Link>
 
@@ -2462,7 +2462,7 @@ export default function ProfileAgentsPage() {
                       </span>
                       <span className="cs-pill">
                         <ShieldCheck className="h-4 w-4 text-[var(--cs-success)]" />
-                        EmployÃ©s possÃ©dÃ©s uniquement
+                        Employés possédés uniquement
                       </span>
                       {refreshing ? (
                         <span className="cs-pill">
@@ -2473,16 +2473,16 @@ export default function ProfileAgentsPage() {
                     </div>
 
                     <h1 className="mt-5 max-w-6xl text-[clamp(2.25rem,4.8vw,5.2rem)] font-semibold leading-[0.94] tracking-[-0.075em] text-[var(--cs-ink-1)]">
-                      Pilotez votre systÃ¨me
+                      Pilotez votre système
                       <br />
-                      <span className="cs-gradient-text">dâ€™employÃ©s IA.</span>
+                      <span className="cs-gradient-text">d’employés IA.</span>
                     </h1>
 
                     <p className="mt-4 max-w-4xl text-sm leading-7 text-[var(--cs-ink-3)]">
-                      Parlez Ã  CloneOS, supervisez les employÃ©s possÃ©dÃ©s, validez
+                      Parlez à CloneOS, supervisez les employés possédés, validez
                       les actions sensibles, suivez les missions, configurez les
-                      rÃ¨gles, lisez les messages et retrouvez toute la trace
-                      dâ€™exÃ©cution.
+                      règles, lisez les messages et retrouvez toute la trace
+                      d’exécution.
                     </p>
                   </div>
 
@@ -2616,7 +2616,7 @@ export default function ProfileAgentsPage() {
                     <input
                       value={searchQuery}
                       onChange={(event) => setSearchQuery(event.target.value)}
-                      placeholder="Recherche universelle : mission, employÃ©, document, email, validation, trace, rÃ¨gle, briefingâ€¦"
+                      placeholder="Recherche universelle : mission, employé, document, email, validation, trace, règle, briefing…"
                       className="w-full border-0 bg-transparent text-sm font-medium text-[var(--cs-ink-1)] outline-none placeholder:text-[var(--cs-ink-4)]"
                     />
                   </div>
@@ -2651,23 +2651,23 @@ export default function ProfileAgentsPage() {
                   <div>
                     <p className="cs-eyebrow">Centre de commandement CloneOS</p>
                     <h2 className="mt-3 text-[1.65rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
-                      Parlez au systÃ¨me entier, pas Ã  un seul agent.
+                      Parlez au système entier, pas à un seul agent.
                     </h2>
                     <p className="mt-2 max-w-4xl text-sm leading-7 text-[var(--cs-ink-3)]">
-                      Une requÃªte libre peut devenir une mission simple, une mission
-                      multi-employÃ©s, une rÃ¨gle, une validation, un briefing ou une
-                      action programmÃ©e.
+                      Une requête libre peut devenir une mission simple, une mission
+                      multi-employés, une règle, une validation, un briefing ou une
+                      action programmée.
                     </p>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
                     <span className="cs-pill">
                       <Mic className="h-4 w-4 text-[var(--cs-violet)]" />
-                      CloneVoice prÃªt
+                      CloneVoice prêt
                     </span>
                     <span className="cs-pill">
                       <FileText className="h-4 w-4 text-[var(--cs-violet)]" />
-                      Fichiers prÃªts
+                      Fichiers prêts
                     </span>
                   </div>
                 </div>
@@ -2693,7 +2693,7 @@ export default function ProfileAgentsPage() {
                       >
                         <div className="flex items-center justify-between gap-4">
                           <span className="text-xs font-bold uppercase tracking-[0.14em] opacity-75">
-                            {message.author} Â· {message.role}
+                            {message.author} · {message.role}
                           </span>
                           <span className="text-xs font-semibold opacity-45">
                             {message.time}
@@ -2718,11 +2718,11 @@ export default function ProfileAgentsPage() {
                 <div className="border-t border-white/40 px-4 pb-4 pt-3">
                   <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
                     {[
-                      "PrÃ©pare un mail RH et fais-le valider avant envoi.",
-                      "Pierre, prÃ©pare les documents dâ€™onboarding pour demain.",
-                      "Ã€ 22h, envoie-moi un briefing complet.",
-                      "Ajoute la rÃ¨gle : tout document sensible passe en validation humaine.",
-                      "Dis-moi ce qui est bloquÃ© aujourdâ€™hui.",
+                      "Prépare un mail RH et fais-le valider avant envoi.",
+                      "Pierre, prépare les documents d’onboarding pour demain.",
+                      "À 22h, envoie-moi un briefing complet.",
+                      "Ajoute la règle : tout document sensible passe en validation humaine.",
+                      "Dis-moi ce qui est bloqué aujourd’hui.",
                     ].map((suggestion) => (
                       <button
                         key={suggestion}
@@ -2753,7 +2753,7 @@ export default function ProfileAgentsPage() {
                           submitCommand();
                         }
                       }}
-                      placeholder="Demandez une mission Ã  CloneOS : action, validation, rÃ¨gle, briefing, programmation, blocageâ€¦"
+                      placeholder="Demandez une mission à CloneOS : action, validation, règle, briefing, programmation, blocage…"
                       rows={1}
                       className="max-h-32 min-h-11 resize-none border-0 bg-transparent px-2 py-3 text-sm font-medium leading-5 text-[var(--cs-ink-1)] outline-none placeholder:text-[var(--cs-ink-4)]"
                     />
@@ -2782,14 +2782,14 @@ export default function ProfileAgentsPage() {
             <section id="employees" className="cs-panel scroll-mt-24 p-5">
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <p className="cs-eyebrow">Mes employÃ©s IA</p>
+                  <p className="cs-eyebrow">Mes employés IA</p>
                   <h2 className="mt-3 text-[1.75rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
-                    Force de travail possÃ©dÃ©e par ce compte.
+                    Force de travail possédée par ce compte.
                   </h2>
                   <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--cs-ink-3)]">
-                    CloneOS ne mobilise que les employÃ©s IA actifs du client.
-                    Chaque carte donne accÃ¨s au cockpit, Ã  la configuration, aux
-                    rÃ¨gles, permissions et autonomie.
+                    CloneOS ne mobilise que les employés IA actifs du client.
+                    Chaque carte donne accès au cockpit, à la configuration, aux
+                    règles, permissions et autonomie.
                   </p>
                 </div>
 
@@ -2801,7 +2801,7 @@ export default function ProfileAgentsPage() {
                     href="/profile"
                     className="clone-liquid-button clone-liquid-button--dark"
                   >
-                    RÃ©glages globaux
+                    Réglages globaux
                   </Link>
                 </div>
               </div>
@@ -2809,11 +2809,11 @@ export default function ProfileAgentsPage() {
               {activeAgentMetas.length === 0 ? (
                 <div className="mt-5 rounded-[1.7rem] border border-white/55 bg-white/30 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl">
                   <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
-                    Aucun employÃ© IA dÃ©tectÃ© sur ce compte.
+                    Aucun employé IA détecté sur ce compte.
                   </p>
                   <p className="mt-2 text-sm leading-7 text-[var(--cs-ink-3)]">
                     Le cockpit reste disponible au niveau CloneOS, mais la force
-                    de travail prendra toute sa valeur dÃ¨s quâ€™un employÃ© IA sera
+                    de travail prendra toute sa valeur dès qu’un employé IA sera
                     actif.
                   </p>
                 </div>
@@ -2844,13 +2844,13 @@ export default function ProfileAgentsPage() {
             <section id="missions" className="cs-panel scroll-mt-24 p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="cs-eyebrow">Board missions / exÃ©cution</p>
+                  <p className="cs-eyebrow">Board missions / exécution</p>
                   <h2 className="mt-3 text-[1.75rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
                     File de travail vivante.
                   </h2>
                   <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--cs-ink-3)]">
-                    Le board montre ce qui est immÃ©diat, prÃ©vu, programmÃ©, en
-                    attente, bloquÃ© ou livrÃ© rÃ©cemment.
+                    Le board montre ce qui est immédiat, prévu, programmé, en
+                    attente, bloqué ou livré récemment.
                   </p>
                 </div>
               </div>
@@ -2883,7 +2883,7 @@ export default function ProfileAgentsPage() {
                               mission={mission}
                               onInsert={() =>
                                 insertToSalon(
-                                  "Mission insÃ©rÃ©e",
+                                  "Mission insérée",
                                   `${mission.title}\n${mission.summary}\nProchaine action : ${mission.nextAction}`,
                                   getRiskTone(mission.risk)
                                 )
@@ -2892,7 +2892,7 @@ export default function ProfileAgentsPage() {
                           ))
                         ) : (
                           <div className="rounded-[1.25rem] border border-white/50 bg-white/28 p-4 text-xs leading-5 text-[var(--cs-ink-4)]">
-                            Aucun Ã©lÃ©ment.
+                            Aucun élément.
                           </div>
                         )}
                       </div>
@@ -2913,8 +2913,8 @@ export default function ProfileAgentsPage() {
                     Validations, blocages et arbitrages.
                   </h2>
                   <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--cs-ink-3)]">
-                    Chaque action sensible peut Ãªtre approuvÃ©e, refusÃ©e, modifiÃ©e,
-                    reportÃ©e, bloquÃ©e durablement ou transformÃ©e en rÃ¨gle.
+                    Chaque action sensible peut être approuvée, refusée, modifiée,
+                    reportée, bloquée durablement ou transformée en règle.
                   </p>
                 </div>
 
@@ -2926,7 +2926,7 @@ export default function ProfileAgentsPage() {
                       onUpdate={(status) => updateValidation(item.id, status)}
                       onInsert={() =>
                         insertToSalon(
-                          "Validation insÃ©rÃ©e",
+                          "Validation insérée",
                           `${item.title}\n${item.description}`,
                           getRiskTone(item.risk)
                         )
@@ -2993,9 +2993,9 @@ export default function ProfileAgentsPage() {
                 <div className="border-b border-white/40 p-5">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="cs-eyebrow">Messagerie structurÃ©e</p>
+                      <p className="cs-eyebrow">Messagerie structurée</p>
                       <h2 className="mt-2 text-[1.35rem] font-semibold tracking-[-0.05em] text-[var(--cs-ink-1)]">
-                        Flux opÃ©rationnel.
+                        Flux opérationnel.
                       </h2>
                     </div>
 
@@ -3003,7 +3003,7 @@ export default function ProfileAgentsPage() {
                       href="/profile/messages"
                       className="clone-liquid-button min-h-10 px-4"
                     >
-                      Ouvrir page complÃ¨te
+                      Ouvrir page complète
                     </Link>
                   </div>
 
@@ -3071,7 +3071,7 @@ export default function ProfileAgentsPage() {
                               {selectedMessage.title}
                             </h2>
                             <p className="mt-2 text-xs text-[var(--cs-ink-4)]">
-                              {selectedMessage.owner} Â· {selectedMessage.source} Â·{" "}
+                              {selectedMessage.owner} · {selectedMessage.source} ·{" "}
                               {selectedMessage.time}
                             </p>
                           </div>
@@ -3081,14 +3081,14 @@ export default function ProfileAgentsPage() {
                           type="button"
                           onClick={() =>
                             insertToSalon(
-                              "Message insÃ©rÃ©",
+                              "Message inséré",
                               `${selectedMessage.title}\n${selectedMessage.summary}`,
                               selectedMessage.tone
                             )
                           }
                           className="clone-liquid-button clone-liquid-button--dark min-h-10 px-4"
                         >
-                          InsÃ©rer salon
+                          Insérer salon
                         </button>
                       </div>
                     </div>
@@ -3133,8 +3133,8 @@ export default function ProfileAgentsPage() {
                           className="clone-liquid-button min-h-10 px-4"
                           onClick={() =>
                             insertToSalon(
-                              "Demande dâ€™examen",
-                              `Examine cet Ã©lÃ©ment : ${selectedMessage.title}`,
+                              "Demande d’examen",
+                              `Examine cet élément : ${selectedMessage.title}`,
                               selectedMessage.tone
                             )
                           }
@@ -3146,7 +3146,7 @@ export default function ProfileAgentsPage() {
                           className="clone-liquid-button min-h-10 px-4"
                           onClick={() =>
                             insertToSalon(
-                              "Alternative demandÃ©e",
+                              "Alternative demandée",
                               `Propose une alternative pour : ${selectedMessage.title}`,
                               "info"
                             )
@@ -3159,20 +3159,20 @@ export default function ProfileAgentsPage() {
                           className="clone-liquid-button min-h-10 px-4"
                           onClick={() =>
                             addRuleFromText(
-                              `RÃ¨gle issue du message "${selectedMessage.title}" : Ã  formaliser.`,
+                              `Règle issue du message "${selectedMessage.title}" : à formaliser.`,
                               "cockpit",
                               selectedMessage.relatedEmployees[0] ?? "CloneStore"
                             )
                           }
                         >
-                          Transformer en rÃ¨gle
+                          Transformer en règle
                         </button>
                       </div>
                     </div>
                   </>
                 ) : (
                   <div className="p-5 text-sm text-[var(--cs-ink-3)]">
-                    Aucun message sÃ©lectionnÃ©.
+                    Aucun message sélectionné.
                   </div>
                 )}
               </section>
@@ -3203,18 +3203,18 @@ export default function ProfileAgentsPage() {
                       </span>
                       <span className="cs-pill">
                         <Sparkles className="h-4 w-4 text-[var(--cs-success)]" />
-                        Groupe de travail orchestrÃ©
+                        Groupe de travail orchestré
                       </span>
                     </div>
 
                     <h2 className="mt-4 text-[1.62rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
-                      Discutez avec CloneOS et vos employÃ©s actifs.
+                      Discutez avec CloneOS et vos employés actifs.
                     </h2>
 
                     <p className="mt-3 max-w-4xl text-sm leading-7 text-[var(--cs-ink-3)]">
-                      Ã‰crivez, parlez, glissez une fiche, validez, refusez,
-                      corrigez, crÃ©ez une rÃ¨gle ou programmez une demande. CloneOS
-                      comprend et route uniquement aux employÃ©s disponibles.
+                      Écrivez, parlez, glissez une fiche, validez, refusez,
+                      corrigez, créez une règle ou programmez une demande. CloneOS
+                      comprend et route uniquement aux employés disponibles.
                     </p>
                   </div>
 
@@ -3346,9 +3346,9 @@ export default function ProfileAgentsPage() {
                         {[
                           "Pierre, tu peux envoyer.",
                           "Non, bloque cette action.",
-                          "Dis CloneStore, ce soir Ã  22h prÃ©cise, fais-moi un brief.",
-                          "Ajoute la rÃ¨gle : toujours valider avant envoi externe.",
-                          "Route Ã§a Ã  Sophie plutÃ´t quâ€™Ã  Pierre.",
+                          "Dis CloneStore, ce soir à 22h précise, fais-moi un brief.",
+                          "Ajoute la règle : toujours valider avant envoi externe.",
+                          "Route ça à Sophie plutôt qu’à Pierre.",
                         ].map((example) => (
                           <button
                             key={example}
@@ -3380,7 +3380,7 @@ export default function ProfileAgentsPage() {
                                 sendSalonMessage();
                               }
                             }}
-                            placeholder="Ã‰crivez Ã  CloneStoreâ€¦ Ex. â€œPierre, tu peux envoyer.â€ / â€œNon, stop.â€ / â€œÃ€ 22h, fais-moi un brief.â€"
+                            placeholder="Écrivez à CloneStore… Ex. “Pierre, tu peux envoyer.” / “Non, stop.” / “À 22h, fais-moi un brief.”"
                             rows={2}
                             className="max-h-44 min-h-[3.4rem] resize-none border-0 bg-transparent px-2 py-3 text-[0.94rem] leading-6 text-[var(--cs-ink-1)] outline-none placeholder:text-[var(--cs-ink-4)]"
                           />
@@ -3403,12 +3403,12 @@ export default function ProfileAgentsPage() {
 
                           <span className="inline-flex items-center gap-1 rounded-full border border-white/55 bg-white/44 px-2.5 py-1 text-[0.72rem] font-semibold text-[var(--cs-ink-3)]">
                             <Volume2 className="h-3.5 w-3.5" />
-                            CloneVoice prÃªt
+                            CloneVoice prêt
                           </span>
 
                           <span className="inline-flex items-center gap-1 rounded-full border border-white/55 bg-white/44 px-2.5 py-1 text-[0.72rem] font-semibold text-[var(--cs-ink-3)]">
                             <ShieldCheck className="h-3.5 w-3.5" />
-                            CloneOS contrÃ´le les accÃ¨s
+                            CloneOS contrôle les accès
                           </span>
                         </div>
                       </div>
@@ -3429,8 +3429,8 @@ export default function ProfileAgentsPage() {
                             Logique du salon
                           </p>
                           <p className="mt-2 text-sm leading-7 text-[var(--cs-ink-3)]">
-                            Vous parlez Ã  CloneStore. CloneOS comprend, route,
-                            bloque, reprend ou transforme vos messages en rÃ¨gles.
+                            Vous parlez à CloneStore. CloneOS comprend, route,
+                            bloque, reprend ou transforme vos messages en règles.
                           </p>
                         </div>
                       </div>
@@ -3473,10 +3473,10 @@ export default function ProfileAgentsPage() {
               <section className="cs-panel p-5">
                 <p className="cs-eyebrow">Configuration rapide</p>
                 <h2 className="mt-3 text-[1.55rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
-                  RÃ¨gles, autonomie et permissions.
+                  Règles, autonomie et permissions.
                 </h2>
                 <p className="mt-2 text-sm leading-7 text-[var(--cs-ink-3)]">
-                  CrÃ©ez une rÃ¨gle globale, une rÃ¨gle employÃ© ou une rÃ¨gle
+                  Créez une règle globale, une règle employé ou une règle
                   technologie sans quitter le cockpit.
                 </p>
 
@@ -3502,7 +3502,7 @@ export default function ProfileAgentsPage() {
                     >
                       <option value="global">Globale CloneStore</option>
                       <option value="technology">Technologie</option>
-                      <option value="employee">EmployÃ© IA</option>
+                      <option value="employee">Employé IA</option>
                     </select>
                   </label>
 
@@ -3525,7 +3525,7 @@ export default function ProfileAgentsPage() {
 
                   <label className="grid gap-2">
                     <span className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--cs-ink-4)]">
-                      SensibilitÃ©
+                      Sensibilité
                     </span>
                     <select
                       value={quickRuleSensitivity}
@@ -3544,7 +3544,7 @@ export default function ProfileAgentsPage() {
 
                   <label className="grid gap-2">
                     <span className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--cs-ink-4)]">
-                      RÃ¨gle
+                      Règle
                     </span>
                     <textarea
                       value={quickRuleText}
@@ -3560,7 +3560,7 @@ export default function ProfileAgentsPage() {
                     onClick={() => addRuleFromText(quickRuleText)}
                     className="clone-liquid-button clone-liquid-button--dark min-h-11 px-5"
                   >
-                    Ajouter la rÃ¨gle
+                    Ajouter la règle
                     <Check className="h-4 w-4" />
                   </button>
                 </div>
@@ -3569,7 +3569,7 @@ export default function ProfileAgentsPage() {
               <section className="cs-panel p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="cs-eyebrow">RÃ¨gles actives</p>
+                    <p className="cs-eyebrow">Règles actives</p>
                     <h2 className="mt-3 text-[1.55rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
                       Configuration vivante.
                     </h2>
@@ -3602,11 +3602,11 @@ export default function ProfileAgentsPage() {
               <section className="cs-panel p-5">
                 <p className="cs-eyebrow">CloneTrace</p>
                 <h2 className="mt-3 text-[1.55rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
-                  Timeline de traÃ§abilitÃ©.
+                  Timeline de traçabilité.
                 </h2>
                 <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--cs-ink-3)]">
                   Le client doit comprendre qui a fait quoi, quand, pourquoi,
-                  avec quel statut et quel rÃ©sultat.
+                  avec quel statut et quel résultat.
                 </p>
 
                 <div className="mt-5 grid gap-3">
@@ -3629,7 +3629,7 @@ export default function ProfileAgentsPage() {
                               {item.title}
                             </p>
                             <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--cs-ink-4)]">
-                              {item.actor} Â· {item.time}
+                              {item.actor} · {item.time}
                             </span>
                           </div>
                           <p className="mt-2 text-sm leading-6 text-[var(--cs-ink-3)]">
@@ -3645,7 +3645,7 @@ export default function ProfileAgentsPage() {
               <section id="briefings" className="cs-panel scroll-mt-24 p-5">
                 <p className="cs-eyebrow">Briefings</p>
                 <h2 className="mt-3 text-[1.45rem] font-semibold tracking-[-0.05em] text-[var(--cs-ink-1)]">
-                  RÃ©sumÃ©s intelligents.
+                  Résumés intelligents.
                 </h2>
 
                 <div className="mt-5 grid gap-3">
@@ -3678,7 +3678,7 @@ export default function ProfileAgentsPage() {
                             {briefing.delivered}
                           </p>
                           <p className="text-[0.66rem] font-bold text-[var(--cs-ink-4)]">
-                            LivrÃ©s
+                            Livrés
                           </p>
                         </div>
                         <div className="rounded-[1rem] border border-white/55 bg-white/36 p-2 text-center">
@@ -3701,11 +3701,11 @@ export default function ProfileAgentsPage() {
                 <div>
                   <p className="cs-eyebrow">Technologies visibles</p>
                   <h2 className="mt-3 text-[1.65rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
-                    Couches vivantes du systÃ¨me.
+                    Couches vivantes du système.
                   </h2>
                   <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--cs-ink-3)]">
-                    Elles ne sont pas dÃ©coratives : elles affichent un Ã©tat, un
-                    rÃ´le, une activitÃ© rÃ©cente et peuvent recevoir des rÃ¨gles.
+                    Elles ne sont pas décoratives : elles affichent un état, un
+                    rôle, une activité récente et peuvent recevoir des règles.
                   </p>
                 </div>
 
@@ -3713,7 +3713,7 @@ export default function ProfileAgentsPage() {
                   href="/profile"
                   className="clone-liquid-button clone-liquid-button--dark"
                 >
-                  RÃ©glages profonds
+                  Réglages profonds
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -3732,7 +3732,7 @@ export default function ProfileAgentsPage() {
             <section className="cs-panel p-5">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <p className="cs-eyebrow">AccÃ¨s rapides</p>
+                  <p className="cs-eyebrow">Accès rapides</p>
                   <h2 className="mt-3 text-[1.45rem] font-semibold tracking-[-0.05em] text-[var(--cs-ink-1)]">
                     Naviguer sans casser le flux de travail.
                   </h2>
@@ -3740,7 +3740,7 @@ export default function ProfileAgentsPage() {
 
                 <div className="flex flex-wrap gap-2">
                   <Link href="/profile/messages" className="clone-liquid-button">
-                    Messagerie complÃ¨te
+                    Messagerie complète
                   </Link>
                   <Link href="/profile" className="clone-liquid-button">
                     Mon espace
@@ -3756,7 +3756,7 @@ export default function ProfileAgentsPage() {
                     onClick={() => void load(true)}
                     className="clone-liquid-button clone-liquid-button--dark"
                   >
-                    RafraÃ®chir
+                    Rafraîchir
                   </button>
                 </div>
               </div>

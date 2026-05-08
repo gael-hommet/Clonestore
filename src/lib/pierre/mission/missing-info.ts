@@ -49,7 +49,7 @@ function hasHour(value: string): boolean {
 }
 
 function hasFullName(value: string): boolean {
-  return /\b[A-ZÃƒâ€°ÃƒË†Ãƒâ‚¬Ãƒâ€šÃƒÅ ÃƒÅ½Ãƒâ€Ãƒâ€ºÃƒâ€žÃƒâ€¹ÃƒÂÃƒâ€“ÃƒÅ“][a-zÃƒÂ©ÃƒÂ¨Ãƒ ÃƒÂ¢ÃƒÂªÃƒÂ®ÃƒÂ´ÃƒÂ»ÃƒÂ¤ÃƒÂ«ÃƒÂ¯ÃƒÂ¶ÃƒÂ¼'-]+\s+[A-ZÃƒâ€°ÃƒË†Ãƒâ‚¬Ãƒâ€šÃƒÅ ÃƒÅ½Ãƒâ€Ãƒâ€ºÃƒâ€žÃƒâ€¹ÃƒÂÃƒâ€“ÃƒÅ“][a-zÃƒÂ©ÃƒÂ¨Ãƒ ÃƒÂ¢ÃƒÂªÃƒÂ®ÃƒÂ´ÃƒÂ»ÃƒÂ¤ÃƒÂ«ÃƒÂ¯ÃƒÂ¶ÃƒÂ¼'-]+\b/.test(
+  return /\b[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\s+[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\b/.test(
     value,
   );
 }
@@ -58,7 +58,7 @@ function hasJobTitle(corpus: string): boolean {
   return (
     corpus.includes("poste ") ||
     corpus.includes("intitule du poste") ||
-    corpus.includes("intitulÃƒÂ© du poste") ||
+    corpus.includes("intitulé du poste") ||
     corpus.includes("job title") ||
     corpus.includes("role ")
   );
@@ -94,8 +94,8 @@ const RULES: MissingFieldRule[] = [
     ],
     requiredWhen: () => true,
     isPresent: (_corpus, rawInput) => hasFullName(rawInput),
-    missingLabel: "Nom complet de la personne concernÃƒÂ©e manquant",
-    question: "Quel est le nom complet de la personne concernÃƒÂ©e ?",
+    missingLabel: "Nom complet de la personne concernée manquant",
+    question: "Quel est le nom complet de la personne concernée ?",
   },
   {
     key: "recipient_email",
@@ -108,31 +108,31 @@ const RULES: MissingFieldRule[] = [
     requiredWhen: () => true,
     isPresent: (_corpus, rawInput) => hasEmail(rawInput),
     missingLabel: "Adresse email destinataire manquante",
-    question: "Quelle est lÃ¢â‚¬â„¢adresse email du destinataire ?",
+    question: "Quelle est l’adresse email du destinataire ?",
   },
   {
     key: "interview_date",
     appliesTo: ["convocation_entretien"],
     requiredWhen: () => true,
     isPresent: (_corpus, rawInput) => hasDate(rawInput),
-    missingLabel: "Date dÃ¢â‚¬â„¢entretien manquante",
-    question: "Quelle est la date exacte de lÃ¢â‚¬â„¢entretien ?",
+    missingLabel: "Date d’entretien manquante",
+    question: "Quelle est la date exacte de l’entretien ?",
   },
   {
     key: "interview_hour",
     appliesTo: ["convocation_entretien"],
     requiredWhen: () => true,
     isPresent: (_corpus, rawInput) => hasHour(rawInput),
-    missingLabel: "Horaire dÃ¢â‚¬â„¢entretien manquant",
-    question: "Ãƒâ‚¬ quelle heure doit avoir lieu lÃ¢â‚¬â„¢entretien ?",
+    missingLabel: "Horaire d’entretien manquant",
+    question: "À quelle heure doit avoir lieu l’entretien ?",
   },
   {
     key: "job_title",
     appliesTo: ["offre_emploi", "onboarding"],
     requiredWhen: () => true,
     isPresent: (corpus) => hasJobTitle(corpus),
-    missingLabel: "IntitulÃƒÂ© du poste absent ou insuffisant",
-    question: "Quel est lÃ¢â‚¬â„¢intitulÃƒÂ© exact du poste ?",
+    missingLabel: "Intitulé du poste absent ou insuffisant",
+    question: "Quel est l’intitulé exact du poste ?",
   },
   {
     key: "location",
@@ -140,15 +140,15 @@ const RULES: MissingFieldRule[] = [
     requiredWhen: () => true,
     isPresent: (corpus) => hasLocation(corpus),
     missingLabel: "Lieu ou localisation manquants",
-    question: "Quel est le lieu ou la localisation Ãƒ  indiquer ?",
+    question: "Quel est le lieu ou la localisation à indiquer ?",
   },
   {
     key: "manager",
     appliesTo: ["onboarding"],
     requiredWhen: () => true,
     isPresent: (corpus) => hasManager(corpus),
-    missingLabel: "Responsable ou rÃƒÂ©fÃƒÂ©rent hiÃƒÂ©rarchique manquant",
-    question: "Quel est le nom du responsable ou du rÃƒÂ©fÃƒÂ©rent Ãƒ  mentionner ?",
+    missingLabel: "Responsable ou référent hiérarchique manquant",
+    question: "Quel est le nom du responsable ou du référent à mentionner ?",
   },
 ];
 

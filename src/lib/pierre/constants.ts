@@ -2,7 +2,7 @@ import type { PierreClassification, PierreTaskType } from "./types";
 
 export const PIERRE_NAME = "Pierre";
 
-export const PIERRE_PRODUCT_LABEL = "Assistant RH AutomatisÃ©";
+export const PIERRE_PRODUCT_LABEL = "Assistant RH Automatisé";
 
 export const PIERRE_ALLOWED_SCOPE = [
   "documents RH simples",
@@ -11,19 +11,19 @@ export const PIERRE_ALLOWED_SCOPE = [
   "convocations",
   "refus candidats",
   "relances",
-  "rappels de procÃ©dure",
+  "rappels de procédure",
   "notes RH internes",
   "comptes rendus simples",
-  "organisation de tÃ¢ches RH",
-  "suivi et continuitÃ© RH",
+  "organisation de tâches RH",
+  "suivi et continuité RH",
 ] as const;
 
 export const PIERRE_BLOCKED_SCOPE_KEYWORDS = [
   "licencier",
   "licenciement",
   "sanction disciplinaire",
-  "blÃ¢me",
-  "mise Ã  pied",
+  "blâme",
+  "mise à pied",
   "discrimination",
   "choix juridique",
   "fraude",
@@ -33,8 +33,8 @@ export const PIERRE_BLOCKED_SCOPE_KEYWORDS = [
 
 export const PIERRE_VALIDATION_KEYWORDS = [
   "attends ma validation",
-  "aprÃ¨s validation",
-  "Ã  valider",
+  "après validation",
+  "à valider",
   "soumets-moi",
   "avant envoi",
   "avant d'envoyer",
@@ -60,15 +60,15 @@ export const PIERRE_CLASSIFICATION_KEYWORDS: Array<{
   },
   {
     classification: "candidate_refusal",
-    keywords: ["refus", "refuser candidature", "refus candidat", "candidature refusÃ©e"],
+    keywords: ["refus", "refuser candidature", "refus candidat", "candidature refusée"],
   },
   {
     classification: "candidate_followup",
-    keywords: ["relance candidat", "relancer candidat", "sans rÃ©ponse candidat"],
+    keywords: ["relance candidat", "relancer candidat", "sans réponse candidat"],
   },
   {
     classification: "onboarding",
-    keywords: ["onboarding", "intÃ©gration", "message d'accueil", "arrivÃ©e lundi"],
+    keywords: ["onboarding", "intégration", "message d'accueil", "arrivée lundi"],
   },
   {
     classification: "internal_hr_communication",
@@ -76,15 +76,15 @@ export const PIERRE_CLASSIFICATION_KEYWORDS: Array<{
   },
   {
     classification: "procedure_reminder",
-    keywords: ["procÃ©dure", "rappel procÃ©dure", "rappel administratif", "consigne RH"],
+    keywords: ["procédure", "rappel procédure", "rappel administratif", "consigne RH"],
   },
   {
     classification: "interview_summary",
-    keywords: ["compte rendu", "synthÃ¨se entretien", "rÃ©sumÃ© entretien"],
+    keywords: ["compte rendu", "synthèse entretien", "résumé entretien"],
   },
   {
     classification: "document_request",
-    keywords: ["document", "prÃ©pare le document", "gÃ©nÃ¨re un document", "pdf"],
+    keywords: ["document", "prépare le document", "génère un document", "pdf"],
   },
   {
     classification: "planning",
@@ -92,7 +92,7 @@ export const PIERRE_CLASSIFICATION_KEYWORDS: Array<{
   },
   {
     classification: "followup_mission",
-    keywords: ["relance", "suis", "suivi", "si pas de rÃ©ponse", "rappelle-moi"],
+    keywords: ["relance", "suis", "suivi", "si pas de réponse", "rappelle-moi"],
   },
   {
     classification: "application",

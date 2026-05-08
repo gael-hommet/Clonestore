@@ -64,7 +64,7 @@ function buildDefaultSubject(payload: Record<string, unknown>) {
     safeString(payload.subject) ||
     safeString(payload.email_subject) ||
     safeString(payload.title) ||
-    "Message RH prÃ©parÃ© par Pierre"
+    "Message RH préparé par Pierre"
   );
 }
 
@@ -87,14 +87,14 @@ function buildDefaultBodyText(payload: Record<string, unknown>) {
     return [
       "Bonjour,",
       "",
-      "Pierre a prÃ©parÃ© ce message Ã  partir de la consigne suivante :",
+      "Pierre a préparé ce message à partir de la consigne suivante :",
       rawInput,
       "",
       "Merci.",
     ].join("\n");
   }
 
-  return "Bonjour,\n\nMessage prÃ©parÃ© par Pierre.\n\nMerci.";
+  return "Bonjour,\n\nMessage préparé par Pierre.\n\nMerci.";
 }
 
 export function buildPierreEmailPayload(input: {
@@ -130,7 +130,7 @@ export function buildPierreEmailPayload(input: {
   }
 
   if (to.length === 0) {
-    throw new Error("Aucun destinataire email valide nâ€™a Ã©tÃ© dÃ©tectÃ©.");
+    throw new Error("Aucun destinataire email valide n’a été détecté.");
   }
 
   const subject = buildDefaultSubject(payload);

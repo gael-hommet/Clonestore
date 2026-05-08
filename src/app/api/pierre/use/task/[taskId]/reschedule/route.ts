@@ -231,7 +231,7 @@ export async function POST(
       task_id: taskId,
       level: "info",
       event: "task_rescheduled",
-      message: reason || `La tÃ¢che a Ã©tÃ© replanifiÃ©e au ${parsed.toISOString()}.`,
+      message: reason || `La tâche a été replanifiée au ${parsed.toISOString()}.`,
       payload: {
         scheduled_for: parsed.toISOString(),
       },

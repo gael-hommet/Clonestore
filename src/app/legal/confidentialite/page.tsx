@@ -164,29 +164,29 @@ export default function ConfidentialitePage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="cs-pill">
                     <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-violet)]" />
-                    <span>Politique de confidentialitÃ©</span>
+                    <span>Politique de confidentialité</span>
                   </span>
 
                   <span className="cs-pill">
                     <Lock className="h-3.5 w-3.5 text-[var(--cs-success)]" />
-                    <span>ClartÃ©, contrÃ´le, transparence</span>
+                    <span>Clarté, contrôle, transparence</span>
                   </span>
                 </div>
 
                 <div className="space-y-4">
                   <h1 className="cs-display text-[clamp(2rem,3.5vw,4.6rem)] leading-[0.96]">
-                    Une confidentialitÃ© claire,
+                    Une confidentialité claire,
                     <br />
                     <span className="cs-gradient-text">
-                      Ã  la hauteur dâ€™un produit entreprise.
+                      à la hauteur d’un produit entreprise.
                     </span>
                   </h1>
 
                   <p className="max-w-3xl text-sm leading-7 text-[var(--cs-ink-3)] md:text-base">
-                    CloneStore traite des donnÃ©es pour fournir un systÃ¨me dâ€™employÃ©s IA
-                    destinÃ© aux entreprises. Cette page explique les catÃ©gories de donnÃ©es
-                    concernÃ©es, les usages, les protections, les droits utilisateurs et la
-                    logique de gouvernance appliquÃ©e au produit.
+                    CloneStore traite des données pour fournir un système d’employés IA
+                    destiné aux entreprises. Cette page explique les catégories de données
+                    concernées, les usages, les protections, les droits utilisateurs et la
+                    logique de gouvernance appliquée au produit.
                   </p>
                 </div>
 
@@ -209,28 +209,28 @@ export default function ConfidentialitePage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <InfoCard
                   title="Transparence"
-                  text="Les donnÃ©es traitÃ©es doivent rester comprÃ©hensibles : compte, entreprise, usage, missions, fichiers, messages, paramÃ¨tres et historiques."
+                  text="Les données traitées doivent rester compréhensibles : compte, entreprise, usage, missions, fichiers, messages, paramètres et historiques."
                   icon={<Eye className="h-4 w-4" />}
                   tone="violet"
                 />
 
                 <InfoCard
-                  title="ContrÃ´le"
-                  text="Lâ€™utilisateur doit pouvoir piloter son compte, ses informations, ses prÃ©fÃ©rences, ses accÃ¨s et les demandes relatives Ã  ses droits."
+                  title="Contrôle"
+                  text="L’utilisateur doit pouvoir piloter son compte, ses informations, ses préférences, ses accès et les demandes relatives à ses droits."
                   icon={<UserCheck className="h-4 w-4" />}
                   tone="green"
                 />
 
                 <InfoCard
-                  title="TraÃ§abilitÃ©"
-                  text="CloneStore valorise la visibilitÃ© des missions, dÃ©cisions, validations, actions, documents gÃ©nÃ©rÃ©s et Ã©vÃ©nements importants."
+                  title="Traçabilité"
+                  text="CloneStore valorise la visibilité des missions, décisions, validations, actions, documents générés et événements importants."
                   icon={<FileCheck2 className="h-4 w-4" />}
                   tone="blue"
                 />
 
                 <InfoCard
-                  title="SÃ©curitÃ©"
-                  text="Le service est pensÃ© pour un usage professionnel : accÃ¨s sÃ©curisÃ©s, gouvernance, journalisation utile et sÃ©paration logique des espaces."
+                  title="Sécurité"
+                  text="Le service est pensé pour un usage professionnel : accès sécurisés, gouvernance, journalisation utile et séparation logique des espaces."
                   icon={<Server className="h-4 w-4" />}
                   tone="rose"
                 />
@@ -241,36 +241,36 @@ export default function ConfidentialitePage() {
           <section className="cs-panel">
             <div className="p-6 md:p-7">
               <SectionTitle
-                kicker="Vue dâ€™ensemble"
+                kicker="Vue d’ensemble"
                 title="Ce que cette politique encadre"
-                text="CloneStore nâ€™est pas une simple interface de chat. Le produit peut traiter des demandes, documents, rÃ¨gles, historiques, prÃ©fÃ©rences et Ã©lÃ©ments de configuration liÃ©s Ã  lâ€™entreprise cliente."
+                text="CloneStore n’est pas une simple interface de chat. Le produit peut traiter des demandes, documents, règles, historiques, préférences et éléments de configuration liés à l’entreprise cliente."
               />
 
               <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <InfoCard
                   title="Qui traite"
-                  text="Lâ€™Ã©diteur du service CloneStore, tel quâ€™identifiÃ© dans les mentions lÃ©gales et les documents contractuels applicables."
+                  text="L’éditeur du service CloneStore, tel qu’identifié dans les mentions légales et les documents contractuels applicables."
                   icon={<ShieldCheck className="h-4 w-4" />}
                   tone="violet"
                 />
 
                 <InfoCard
-                  title="Quelles donnÃ©es"
-                  text="Compte, entreprise, missions, messages, documents, actions, paramÃ¨tres, historique, sÃ©curitÃ© et support."
+                  title="Quelles données"
+                  text="Compte, entreprise, missions, messages, documents, actions, paramètres, historique, sécurité et support."
                   icon={<Database className="h-4 w-4" />}
                   tone="blue"
                 />
 
                 <InfoCard
                   title="Pourquoi"
-                  text="Fournir le service, sÃ©curiser lâ€™usage, personnaliser lâ€™expÃ©rience, permettre le support et assurer la continuitÃ© opÃ©rationnelle."
+                  text="Fournir le service, sécuriser l’usage, personnaliser l’expérience, permettre le support et assurer la continuité opérationnelle."
                   icon={<Sparkles className="h-4 w-4" />}
                   tone="green"
                 />
 
                 <InfoCard
                   title="Quels droits"
-                  text="AccÃ¨s, rectification, suppression, limitation, opposition, portabilitÃ© lorsque applicable et demande dâ€™information."
+                  text="Accès, rectification, suppression, limitation, opposition, portabilité lorsque applicable et demande d’information."
                   icon={<Mail className="h-4 w-4" />}
                   tone="rose"
                 />
@@ -282,103 +282,103 @@ export default function ConfidentialitePage() {
             <div className="space-y-6">
               <LegalSection title="1. Responsable du traitement">
                 <p>
-                  Le responsable du traitement est lâ€™Ã©diteur du service CloneStore,
-                  identifiÃ© dans les mentions lÃ©gales, les conditions contractuelles ou les
-                  documents dâ€™abonnement applicables au client.
+                  Le responsable du traitement est l’éditeur du service CloneStore,
+                  identifié dans les mentions légales, les conditions contractuelles ou les
+                  documents d’abonnement applicables au client.
                 </p>
 
                 <p>
-                  Pour les entreprises clientes, certains traitements peuvent Ãªtre rÃ©alisÃ©s
-                  dans le cadre de lâ€™utilisation du service par leurs collaborateurs, dirigeants
-                  ou utilisateurs autorisÃ©s. Dans ce cas, lâ€™entreprise cliente peut Ã©galement
-                  dÃ©finir certaines finalitÃ©s internes liÃ©es Ã  son usage opÃ©rationnel.
+                  Pour les entreprises clientes, certains traitements peuvent être réalisés
+                  dans le cadre de l’utilisation du service par leurs collaborateurs, dirigeants
+                  ou utilisateurs autorisés. Dans ce cas, l’entreprise cliente peut également
+                  définir certaines finalités internes liées à son usage opérationnel.
                 </p>
               </LegalSection>
 
-              <LegalSection title="2. DonnÃ©es susceptibles dâ€™Ãªtre traitÃ©es">
+              <LegalSection title="2. Données susceptibles d’être traitées">
                 <p>
-                  Les catÃ©gories de donnÃ©es traitÃ©es dÃ©pendent des fonctionnalitÃ©s utilisÃ©es,
-                  des employÃ©s IA activÃ©s et des informations fournies volontairement dans
+                  Les catégories de données traitées dépendent des fonctionnalités utilisées,
+                  des employés IA activés et des informations fournies volontairement dans
                   CloneStore.
                 </p>
 
                 <BulletList
                   items={[
-                    "DonnÃ©es de compte : nom, prÃ©nom, adresse email, entreprise, rÃ´le, prÃ©fÃ©rences, identifiants techniques et accÃ¨s.",
-                    "DonnÃ©es dâ€™entreprise : nom de lâ€™entreprise, secteur, rÃ¨gles internes, prÃ©fÃ©rences, configuration, identitÃ© de messagerie, paramÃ¨tres dâ€™employÃ©s IA.",
-                    "DonnÃ©es dâ€™usage : actions rÃ©alisÃ©es, missions crÃ©Ã©es, tÃ¢ches, validations, statuts, historiques, journaux fonctionnels et Ã©vÃ©nements de traÃ§abilitÃ©.",
-                    "Contenus fournis : demandes, messages, fichiers, documents, emails, notes, piÃ¨ces jointes, textes RH, Ã©lÃ©ments opÃ©rationnels ou supports transmis au service.",
-                    "DonnÃ©es gÃ©nÃ©rÃ©es : rÃ©ponses, documents, synthÃ¨ses, emails, PDF, suggestions, logs, rÃ©sultats de missions et Ã©lÃ©ments produits par les employÃ©s IA.",
-                    "DonnÃ©es techniques : navigateur, informations de sÃ©curitÃ©, erreurs, logs applicatifs, donnÃ©es nÃ©cessaires au fonctionnement, Ã  la maintenance et Ã  la prÃ©vention des abus.",
+                    "Données de compte : nom, prénom, adresse email, entreprise, rôle, préférences, identifiants techniques et accès.",
+                    "Données d’entreprise : nom de l’entreprise, secteur, règles internes, préférences, configuration, identité de messagerie, paramètres d’employés IA.",
+                    "Données d’usage : actions réalisées, missions créées, tâches, validations, statuts, historiques, journaux fonctionnels et événements de traçabilité.",
+                    "Contenus fournis : demandes, messages, fichiers, documents, emails, notes, pièces jointes, textes RH, éléments opérationnels ou supports transmis au service.",
+                    "Données générées : réponses, documents, synthèses, emails, PDF, suggestions, logs, résultats de missions et éléments produits par les employés IA.",
+                    "Données techniques : navigateur, informations de sécurité, erreurs, logs applicatifs, données nécessaires au fonctionnement, à la maintenance et à la prévention des abus.",
                   ]}
                 />
               </LegalSection>
 
-              <LegalSection title="3. DonnÃ©es sensibles et contenus professionnels">
+              <LegalSection title="3. Données sensibles et contenus professionnels">
                 <p>
-                  CloneStore peut Ãªtre utilisÃ© dans des contextes professionnels sensibles,
-                  notamment RH, support client, opÃ©rations, documents internes, emails ou
-                  coordination dâ€™entreprise.
+                  CloneStore peut être utilisé dans des contextes professionnels sensibles,
+                  notamment RH, support client, opérations, documents internes, emails ou
+                  coordination d’entreprise.
                 </p>
 
                 <p>
-                  Lâ€™utilisateur doit Ã©viter de transmettre des donnÃ©es qui ne sont pas nÃ©cessaires
-                  Ã  la mission demandÃ©e. Lorsquâ€™un contenu sensible est utile au service, il doit
-                  Ãªtre traitÃ© dans un cadre proportionnÃ©, contrÃ´lÃ© et cohÃ©rent avec les rÃ¨gles de
-                  lâ€™entreprise cliente.
+                  L’utilisateur doit éviter de transmettre des données qui ne sont pas nécessaires
+                  à la mission demandée. Lorsqu’un contenu sensible est utile au service, il doit
+                  être traité dans un cadre proportionné, contrôlé et cohérent avec les règles de
+                  l’entreprise cliente.
                 </p>
 
                 <BulletList
                   items={[
-                    "Ne transmettre que les informations utiles Ã  la mission demandÃ©e.",
-                    "Ã‰viter les donnÃ©es excessives, non pertinentes ou inutiles.",
-                    "Utiliser les validations humaines prÃ©vues pour les sujets sensibles.",
-                    "Respecter les rÃ¨gles internes de confidentialitÃ© de lâ€™entreprise.",
+                    "Ne transmettre que les informations utiles à la mission demandée.",
+                    "Éviter les données excessives, non pertinentes ou inutiles.",
+                    "Utiliser les validations humaines prévues pour les sujets sensibles.",
+                    "Respecter les règles internes de confidentialité de l’entreprise.",
                   ]}
                 />
               </LegalSection>
 
-              <LegalSection title="4. FinalitÃ©s principales">
-                <p>Les donnÃ©es peuvent Ãªtre traitÃ©es pour les finalitÃ©s suivantes :</p>
+              <LegalSection title="4. Finalités principales">
+                <p>Les données peuvent être traitées pour les finalités suivantes :</p>
 
                 <BulletList
                   items={[
-                    "CrÃ©er, gÃ©rer et sÃ©curiser les comptes utilisateurs et les accÃ¨s entreprise.",
-                    "Permettre lâ€™utilisation des employÃ©s IA, des missions, des messages, des livrables, des fichiers et de la traÃ§abilitÃ© produit.",
-                    "Configurer les rÃ¨gles, prÃ©fÃ©rences, paramÃ¨tres, validations et Ã©lÃ©ments dâ€™identitÃ© liÃ©s Ã  lâ€™entreprise cliente.",
-                    "Produire des documents, emails, synthÃ¨ses, rÃ©ponses, tÃ¢ches ou recommandations Ã  partir des demandes formulÃ©es.",
-                    "Assurer lâ€™historique, la continuitÃ©, la reprise de contexte, le suivi des missions et la visibilitÃ© des actions.",
-                    "Fournir lâ€™assistance, lâ€™onboarding, lâ€™aide au choix dâ€™un employÃ© IA, le support et les rÃ©ponses aux questions.",
-                    "SÃ©curiser le service, prÃ©venir les abus, corriger les erreurs, maintenir la stabilitÃ© et amÃ©liorer la fiabilitÃ©.",
+                    "Créer, gérer et sécuriser les comptes utilisateurs et les accès entreprise.",
+                    "Permettre l’utilisation des employés IA, des missions, des messages, des livrables, des fichiers et de la traçabilité produit.",
+                    "Configurer les règles, préférences, paramètres, validations et éléments d’identité liés à l’entreprise cliente.",
+                    "Produire des documents, emails, synthèses, réponses, tâches ou recommandations à partir des demandes formulées.",
+                    "Assurer l’historique, la continuité, la reprise de contexte, le suivi des missions et la visibilité des actions.",
+                    "Fournir l’assistance, l’onboarding, l’aide au choix d’un employé IA, le support et les réponses aux questions.",
+                    "Sécuriser le service, prévenir les abus, corriger les erreurs, maintenir la stabilité et améliorer la fiabilité.",
                   ]}
                 />
               </LegalSection>
 
               <LegalSection title="5. Bases juridiques">
-                <p>Selon les traitements concernÃ©s, les bases juridiques peuvent inclure :</p>
+                <p>Selon les traitements concernés, les bases juridiques peuvent inclure :</p>
 
                 <BulletList
                   items={[
-                    "lâ€™exÃ©cution dâ€™un contrat ou de mesures prÃ©contractuelles liÃ©es au service CloneStore ;",
-                    "le respect dâ€™obligations lÃ©gales applicables ;",
-                    "lâ€™intÃ©rÃªt lÃ©gitime liÃ© Ã  la sÃ©curitÃ©, Ã  la prÃ©vention des abus, Ã  lâ€™amÃ©lioration du service, au support et Ã  la continuitÃ© opÃ©rationnelle ;",
-                    "le consentement lorsque celui-ci est requis, notamment pour certains cookies, prÃ©fÃ©rences ou traitements optionnels.",
+                    "l’exécution d’un contrat ou de mesures précontractuelles liées au service CloneStore ;",
+                    "le respect d’obligations légales applicables ;",
+                    "l’intérêt légitime lié à la sécurité, à la prévention des abus, à l’amélioration du service, au support et à la continuité opérationnelle ;",
+                    "le consentement lorsque celui-ci est requis, notamment pour certains cookies, préférences ou traitements optionnels.",
                   ]}
                 />
               </LegalSection>
 
               <LegalSection title="6. Fonctionnement IA et limites">
                 <p>
-                  Les employÃ©s IA de CloneStore peuvent analyser une demande, produire une rÃ©ponse,
-                  gÃ©nÃ©rer un document, prÃ©parer une action ou assister lâ€™utilisateur dans un contexte
+                  Les employés IA de CloneStore peuvent analyser une demande, produire une réponse,
+                  générer un document, préparer une action ou assister l’utilisateur dans un contexte
                   professionnel.
                 </p>
 
                 <p>
-                  Les employÃ©s IA ne doivent pas remplacer la validation humaine lorsquâ€™une dÃ©cision
-                  sensible, juridique, disciplinaire, contractuelle ou stratÃ©gique nÃ©cessite un contrÃ´le
-                  humain. CloneStore peut intÃ©grer des mÃ©canismes de validation, de blocage, de refus
-                  intelligent ou dâ€™escalade selon les cas dâ€™usage.
+                  Les employés IA ne doivent pas remplacer la validation humaine lorsqu’une décision
+                  sensible, juridique, disciplinaire, contractuelle ou stratégique nécessite un contrôle
+                  humain. CloneStore peut intégrer des mécanismes de validation, de blocage, de refus
+                  intelligent ou d’escalade selon les cas d’usage.
                 </p>
               </LegalSection>
             </div>
@@ -386,120 +386,120 @@ export default function ConfidentialitePage() {
             <div className="space-y-6">
               <LegalSection title="7. Partage, prestataires et sous-traitants">
                 <p>
-                  CloneStore peut faire appel Ã  des prestataires techniques nÃ©cessaires Ã  lâ€™exploitation
-                  du service, par exemple pour lâ€™hÃ©bergement, la base de donnÃ©es, lâ€™authentification,
-                  lâ€™envoi dâ€™emails transactionnels, le paiement, la sÃ©curitÃ©, lâ€™analyse technique ou
-                  certaines briques dâ€™infrastructure.
+                  CloneStore peut faire appel à des prestataires techniques nécessaires à l’exploitation
+                  du service, par exemple pour l’hébergement, la base de données, l’authentification,
+                  l’envoi d’emails transactionnels, le paiement, la sécurité, l’analyse technique ou
+                  certaines briques d’infrastructure.
                 </p>
 
                 <p>
-                  Les accÃ¨s des prestataires sont limitÃ©s Ã  ce qui est nÃ©cessaire au fonctionnement du
-                  service, Ã  sa sÃ©curitÃ©, Ã  sa maintenance ou Ã  lâ€™exÃ©cution des prestations prÃ©vues.
-                </p>
-              </LegalSection>
-
-              <LegalSection title="8. HÃ©bergement et transferts">
-                <p>
-                  Les donnÃ©es peuvent Ãªtre hÃ©bergÃ©es ou traitÃ©es par des prestataires situÃ©s dans
-                  diffÃ©rents pays selon lâ€™infrastructure retenue. Lorsque des transferts hors de lâ€™espace
-                  rÃ©glementaire applicable sont nÃ©cessaires, CloneStore sâ€™appuie sur les mÃ©canismes
-                  contractuels ou garanties prÃ©vues par la rÃ©glementation applicable.
-                </p>
-
-                <p>
-                  La liste prÃ©cise des sous-traitants, zones dâ€™hÃ©bergement ou garanties applicables peut
-                  Ãªtre communiquÃ©e ou prÃ©cisÃ©e dans les documents contractuels, les mentions lÃ©gales ou
-                  la documentation de sÃ©curitÃ©.
+                  Les accès des prestataires sont limités à ce qui est nécessaire au fonctionnement du
+                  service, à sa sécurité, à sa maintenance ou à l’exécution des prestations prévues.
                 </p>
               </LegalSection>
 
-              <LegalSection title="9. SÃ©curitÃ© et gouvernance">
+              <LegalSection title="8. Hébergement et transferts">
                 <p>
-                  CloneStore applique une logique de sÃ©curitÃ© adaptÃ©e Ã  un usage professionnel, avec une
-                  attention particuliÃ¨re portÃ©e aux accÃ¨s, Ã  la sÃ©paration des espaces, aux permissions
-                  et Ã  la traÃ§abilitÃ© utile.
+                  Les données peuvent être hébergées ou traitées par des prestataires situés dans
+                  différents pays selon l’infrastructure retenue. Lorsque des transferts hors de l’espace
+                  réglementaire applicable sont nécessaires, CloneStore s’appuie sur les mécanismes
+                  contractuels ou garanties prévues par la réglementation applicable.
+                </p>
+
+                <p>
+                  La liste précise des sous-traitants, zones d’hébergement ou garanties applicables peut
+                  être communiquée ou précisée dans les documents contractuels, les mentions légales ou
+                  la documentation de sécurité.
+                </p>
+              </LegalSection>
+
+              <LegalSection title="9. Sécurité et gouvernance">
+                <p>
+                  CloneStore applique une logique de sécurité adaptée à un usage professionnel, avec une
+                  attention particulière portée aux accès, à la séparation des espaces, aux permissions
+                  et à la traçabilité utile.
                 </p>
 
                 <BulletList
                   items={[
-                    "Authentification et gestion des accÃ¨s utilisateurs.",
-                    "SÃ©paration logique des comptes, entreprises, employÃ©s IA et donnÃ©es associÃ©es.",
-                    "ContrÃ´le des permissions selon le rÃ´le, lâ€™accÃ¨s ou lâ€™abonnement.",
-                    "Historique et journalisation des actions importantes lorsque cela est nÃ©cessaire.",
-                    "MÃ©canismes de validation humaine pour certaines actions sensibles.",
-                    "Surveillance technique, correction dâ€™erreurs, prÃ©vention des abus et maintien de la stabilitÃ©.",
-                    "Limitation des accÃ¨s internes aux besoins strictement nÃ©cessaires.",
+                    "Authentification et gestion des accès utilisateurs.",
+                    "Séparation logique des comptes, entreprises, employés IA et données associées.",
+                    "Contrôle des permissions selon le rôle, l’accès ou l’abonnement.",
+                    "Historique et journalisation des actions importantes lorsque cela est nécessaire.",
+                    "Mécanismes de validation humaine pour certaines actions sensibles.",
+                    "Surveillance technique, correction d’erreurs, prévention des abus et maintien de la stabilité.",
+                    "Limitation des accès internes aux besoins strictement nécessaires.",
                   ]}
                 />
               </LegalSection>
 
-              <LegalSection title="10. DurÃ©e de conservation">
+              <LegalSection title="10. Durée de conservation">
                 <p>
-                  Les donnÃ©es sont conservÃ©es pendant une durÃ©e cohÃ©rente avec les finalitÃ©s du service,
-                  la relation contractuelle, les obligations lÃ©gales applicables, les besoins de sÃ©curitÃ©,
-                  de preuve, de support, de traÃ§abilitÃ© et de continuitÃ© opÃ©rationnelle.
+                  Les données sont conservées pendant une durée cohérente avec les finalités du service,
+                  la relation contractuelle, les obligations légales applicables, les besoins de sécurité,
+                  de preuve, de support, de traçabilité et de continuité opérationnelle.
                 </p>
 
                 <p>
-                  Certaines donnÃ©es peuvent Ãªtre supprimÃ©es, archivÃ©es ou anonymisÃ©es lorsquâ€™elles ne sont
-                  plus utiles au service, lorsque lâ€™utilisateur en fait la demande dans un cadre applicable,
-                  ou lorsque la conservation nâ€™est plus justifiÃ©e.
+                  Certaines données peuvent être supprimées, archivées ou anonymisées lorsqu’elles ne sont
+                  plus utiles au service, lorsque l’utilisateur en fait la demande dans un cadre applicable,
+                  ou lorsque la conservation n’est plus justifiée.
                 </p>
               </LegalSection>
 
               <LegalSection title="11. Cookies et technologies similaires">
                 <p>
                   CloneStore peut utiliser des cookies ou technologies similaires pour assurer le
-                  fonctionnement du site, sÃ©curiser la connexion, mÃ©moriser certaines prÃ©fÃ©rences,
-                  mesurer lâ€™usage technique ou amÃ©liorer lâ€™expÃ©rience.
+                  fonctionnement du site, sécuriser la connexion, mémoriser certaines préférences,
+                  mesurer l’usage technique ou améliorer l’expérience.
                 </p>
 
                 <BulletList
                   items={[
-                    "Cookies nÃ©cessaires au fonctionnement, Ã  lâ€™authentification ou Ã  la sÃ©curitÃ©.",
-                    "Cookies de prÃ©fÃ©rences pour conserver certains rÃ©glages dâ€™interface.",
-                    "Mesures techniques dâ€™usage lorsque nÃ©cessaires pour amÃ©liorer le produit.",
-                    "Cookies optionnels soumis au consentement lorsque la rÃ©glementation lâ€™exige.",
+                    "Cookies nécessaires au fonctionnement, à l’authentification ou à la sécurité.",
+                    "Cookies de préférences pour conserver certains réglages d’interface.",
+                    "Mesures techniques d’usage lorsque nécessaires pour améliorer le produit.",
+                    "Cookies optionnels soumis au consentement lorsque la réglementation l’exige.",
                   ]}
                 />
               </LegalSection>
 
               <LegalSection title="12. Vos droits">
                 <p>
-                  Selon le cadre applicable, vous pouvez exercer plusieurs droits sur vos donnÃ©es.
+                  Selon le cadre applicable, vous pouvez exercer plusieurs droits sur vos données.
                 </p>
 
                 <BulletList
                   items={[
-                    "demander lâ€™accÃ¨s Ã  certaines donnÃ©es vous concernant ;",
-                    "demander la rectification ou la mise Ã  jour dâ€™informations inexactes ;",
+                    "demander l’accès à certaines données vous concernant ;",
+                    "demander la rectification ou la mise à jour d’informations inexactes ;",
                     "demander la suppression lorsque cela est juridiquement possible ;",
                     "demander la limitation de certains traitements ;",
-                    "vous opposer Ã  certains traitements lorsque le cadre le permet ;",
-                    "demander la portabilitÃ© de certaines donnÃ©es lorsque ce droit est applicable ;",
-                    "introduire une rÃ©clamation auprÃ¨s de lâ€™autoritÃ© compÃ©tente si nÃ©cessaire.",
+                    "vous opposer à certains traitements lorsque le cadre le permet ;",
+                    "demander la portabilité de certaines données lorsque ce droit est applicable ;",
+                    "introduire une réclamation auprès de l’autorité compétente si nécessaire.",
                   ]}
                 />
 
                 <p>
-                  Les demandes peuvent Ãªtre adressÃ©es via les canaux de contact indiquÃ©s par CloneStore,
-                  notamment depuis lâ€™espace client, le support ou les mentions lÃ©gales du service.
+                  Les demandes peuvent être adressées via les canaux de contact indiqués par CloneStore,
+                  notamment depuis l’espace client, le support ou les mentions légales du service.
                 </p>
               </LegalSection>
 
-              <LegalSection title="13. Mise Ã  jour de cette politique">
+              <LegalSection title="13. Mise à jour de cette politique">
                 <p>
-                  Cette politique peut Ã©voluer pour reflÃ©ter les changements du service, lâ€™ajout de
-                  nouvelles fonctionnalitÃ©s, lâ€™Ã©volution de lâ€™infrastructure, des obligations lÃ©gales ou
-                  des pratiques de sÃ©curitÃ©.
+                  Cette politique peut évoluer pour refléter les changements du service, l’ajout de
+                  nouvelles fonctionnalités, l’évolution de l’infrastructure, des obligations légales ou
+                  des pratiques de sécurité.
                 </p>
 
                 <BulletList
                   items={[
-                    "Ã©volution des employÃ©s IA et de leurs capacitÃ©s ;",
+                    "évolution des employés IA et de leurs capacités ;",
                     "ajout de nouvelles pages, cockpits, historiques, validations ou automatisations ;",
-                    "changement de prestataires, dâ€™hÃ©bergement ou dâ€™architecture technique ;",
-                    "renforcement des rÃ¨gles de sÃ©curitÃ©, gouvernance, support ou conformitÃ©.",
+                    "changement de prestataires, d’hébergement ou d’architecture technique ;",
+                    "renforcement des règles de sécurité, gouvernance, support ou conformité.",
                   ]}
                 />
               </LegalSection>
@@ -511,19 +511,19 @@ export default function ConfidentialitePage() {
               <div className="mx-auto w-fit">
                 <span className="cs-pill">
                   <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-violet)]" />
-                  <span>Encore une question sur la confidentialitÃ© ?</span>
+                  <span>Encore une question sur la confidentialité ?</span>
                 </span>
               </div>
 
               <h2 className="cs-heading mt-6 text-3xl md:text-5xl">
-                Demande une rÃ©ponse claire
+                Demande une réponse claire
                 <br />
-                plutÃ´t que de rester dans le doute.
+                plutôt que de rester dans le doute.
               </h2>
 
               <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--cs-ink-4)] md:text-base">
-                CloneStore doit rester lisible mÃªme sur les sujets sÃ©rieux :
-                donnÃ©es, accÃ¨s, IA, sÃ©curitÃ©, suppression, historique, support ou gouvernance.
+                CloneStore doit rester lisible même sur les sujets sérieux :
+                données, accès, IA, sécurité, suppression, historique, support ou gouvernance.
               </p>
 
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

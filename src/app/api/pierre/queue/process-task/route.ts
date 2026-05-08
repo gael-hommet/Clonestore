@@ -107,29 +107,29 @@ function buildDocumentPrompt(input: {
   companyMemory: Record<string, unknown> | null;
 }) {
   return `
-Tu es Pierre, employÃ© IA RH premium de CloneStore.
+Tu es Pierre, employé IA RH premium de CloneStore.
 
-Tu dois produire un document RH propre, exploitable et crÃ©dible.
+Tu dois produire un document RH propre, exploitable et crédible.
 
 Mission :
 ${input.requestText}
 
-RÃ©sumÃ© mission :
-${input.missionSummary ?? "Aucun rÃ©sumÃ©."}
+Résumé mission :
+${input.missionSummary ?? "Aucun résumé."}
 
-TÃ¢che :
+Tâche :
 ${input.taskTitle}
 
-MÃ©moire entreprise :
+Mémoire entreprise :
 ${JSON.stringify(input.companyMemory ?? {}, null, 2)}
 
-RÃ©ponds en JSON strict :
+Réponds en JSON strict :
 {
   "title": "titre",
   "type": "document_rh",
   "text": "contenu final",
   "html": "contenu html",
-  "summary": "rÃ©sumÃ© court"
+  "summary": "résumé court"
 }
 `.trim();
 }
@@ -141,28 +141,28 @@ function buildEmailPrompt(input: {
   companyMemory: Record<string, unknown> | null;
 }) {
   return `
-Tu es Pierre, employÃ© IA RH premium de CloneStore.
+Tu es Pierre, employé IA RH premium de CloneStore.
 
-Tu dois produire un email RH professionnel prÃªt Ã  Ãªtre relu.
+Tu dois produire un email RH professionnel prêt à être relu.
 
 Mission :
 ${input.requestText}
 
-RÃ©sumÃ© mission :
-${input.missionSummary ?? "Aucun rÃ©sumÃ©."}
+Résumé mission :
+${input.missionSummary ?? "Aucun résumé."}
 
-TÃ¢che :
+Tâche :
 ${input.taskTitle}
 
-MÃ©moire entreprise :
+Mémoire entreprise :
 ${JSON.stringify(input.companyMemory ?? {}, null, 2)}
 
-RÃ©ponds en JSON strict :
+Réponds en JSON strict :
 {
   "subject": "objet email",
   "text": "contenu texte",
   "html": "contenu html",
-  "summary": "rÃ©sumÃ© court"
+  "summary": "résumé court"
 }
 `.trim();
 }
@@ -287,7 +287,7 @@ async function generateEmailArtifact(
       metadata: {
         source: "process_task",
         summary: trimOrNull(parsed?.summary),
-        pending_reason: "Destinataires Ã  complÃ©ter ou validation Ã  dÃ©clencher avant envoi rÃ©el.",
+        pending_reason: "Destinataires à compléter ou validation à déclencher avant envoi réel.",
       },
     })
     .select("*")
@@ -338,7 +338,7 @@ export async function POST(request: NextRequest) {
       return json(
         {
           ok: false,
-          error: "TÃ¢che Pierre introuvable.",
+          error: "Tâche Pierre introuvable.",
         },
         404
       );
@@ -349,7 +349,7 @@ export async function POST(request: NextRequest) {
       return json({
         ok: true,
         processed: false,
-        message: "La tÃ¢che est dÃ©jÃ  terminÃ©e.",
+        message: "La tâche est déjà terminée.",
         task,
       });
     }
@@ -366,7 +366,7 @@ export async function POST(request: NextRequest) {
 
     if (lockError) throw lockError;
     if (!lockedTask?.id) {
-      throw new Error("Impossible de verrouiller la tÃ¢che.");
+      throw new Error("Impossible de verrouiller la tâche.");
     }
 
     const { data: mission, error: missionError } = await supabase
@@ -378,7 +378,7 @@ export async function POST(request: NextRequest) {
 
     if (missionError) throw missionError;
     if (!mission?.id) {
-      throw new Error("Mission introuvable pour la tÃ¢che.");
+      throw new Error("Mission introuvable pour la tâche.");
     }
 
     const { data: companyMemory, error: memoryError } = await supabase
@@ -395,7 +395,7 @@ export async function POST(request: NextRequest) {
       task_id: lockedTask.id,
       mission_id: mission.id,
       event: "task_execution_started",
-      message: "ExÃ©cution ciblÃ©e de la tÃ¢che dÃ©marrÃ©e.",
+      message: "Exécution ciblée de la tâche démarrée.",
       metadata: {
         type: lockedTask.type ?? null,
       },
@@ -434,7 +434,7 @@ export async function POST(request: NextRequest) {
       task_id: lockedTask.id,
       mission_id: mission.id,
       event: "task_execution_completed",
-      message: "ExÃ©cution ciblÃ©e de la tÃ¢che terminÃ©e.",
+      message: "Exécution ciblée de la tâche terminée.",
       metadata: {
         artifact_id: trimOrNull(artifact?.id),
         artifact_type:
@@ -458,7 +458,7 @@ export async function POST(request: NextRequest) {
     return json(
       {
         ok: false,
-        error: "Impossible de traiter cette tÃ¢che Pierre.",
+        error: "Impossible de traiter cette tâche Pierre.",
       },
       500
     );

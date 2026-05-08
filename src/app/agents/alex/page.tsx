@@ -78,7 +78,7 @@ export default function AlexPage() {
       setHasAlex(false);
       setLoading(false);
       setError(
-        "Supabase non configurÃ© : vÃ©rifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY (local + Vercel)."
+        "Supabase non configuré : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY (local + Vercel)."
       );
       return { ok: false, has: false };
     }
@@ -118,7 +118,7 @@ export default function AlexPage() {
       setLoading(false);
       return { ok: true, has };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Erreur accÃ¨s";
+      const msg = e instanceof Error ? e.message : "Erreur accès";
       setError(msg);
       setLoading(false);
       return { ok: false, has: false };
@@ -172,7 +172,7 @@ export default function AlexPage() {
           <Pill>
             <span className="inline-flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5" />
-              Clone CloneStore â€¢ Assistant commercial
+              Clone CloneStore • Assistant commercial
             </span>
           </Pill>
           <Pill>
@@ -198,14 +198,14 @@ export default function AlexPage() {
 
         <div className="space-y-3">
           <h1 className="text-4xl font-semibold tracking-tight">
-            Alex â€” lâ€™assistant commercial qui structure ton pipeline, prÃ©pare tes messages, et standardise ta vente
+            Alex — l’assistant commercial qui structure ton pipeline, prépare tes messages, et standardise ta vente
           </h1>
           <p className="text-muted-foreground leading-relaxed max-w-3xl">
             Alex transforme des notes brutes en actions commerciales claires : messages de prospection, relances,
-            scripts dâ€™appel, rÃ©ponses aux objections, et process de suivi.
+            scripts d’appel, réponses aux objections, et process de suivi.
             <span className="block mt-2">
-              En mode CloneOS/Router, Alex peut exÃ©cuter des routines autorisÃ©es : prÃ©parer des sÃ©quences,
-              demander une info manquante, gÃ©nÃ©rer un compte rendu, et dÃ©clencher des tÃ¢ches vers dâ€™autres clones.
+              En mode CloneOS/Router, Alex peut exécuter des routines autorisées : préparer des séquences,
+              demander une info manquante, générer un compte rendu, et déclencher des tâches vers d’autres clones.
             </span>
           </p>
         </div>
@@ -213,7 +213,7 @@ export default function AlexPage() {
         <div className="flex flex-col sm:flex-row gap-3">
           <Button asChild>
             <Link href="#acces">
-              AccÃ©der Ã  Alex <ArrowRight className="ml-2 h-4 w-4" />
+              Accéder à Alex <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline">
@@ -225,17 +225,17 @@ export default function AlexPage() {
           <Card
             icon={<Timer className="h-4 w-4" />}
             title="Gain de temps"
-            desc="Tu arrÃªtes de rÃ©Ã©crire tes messages. Alex sort des textes propres, cohÃ©rents, prÃªts Ã  envoyer."
+            desc="Tu arrêtes de réécrire tes messages. Alex sort des textes propres, cohérents, prêts à envoyer."
           />
           <Card
             icon={<Wand2 className="h-4 w-4" />}
             title="Standardisation"
-            desc="MÃªme niveau de qualitÃ© dans tes relances, scripts et rÃ©ponses â€” mÃªme quand tu es fatiguÃ©."
+            desc="Même niveau de qualité dans tes relances, scripts et réponses — même quand tu es fatigué."
           />
           <Card
             icon={<ShieldCheck className="h-4 w-4" />}
             title="Garde-fous"
-            desc="Alex nâ€™invente pas des promesses. Il suit tes rÃ¨gles et escalade si câ€™est sensible."
+            desc="Alex n’invente pas des promesses. Il suit tes règles et escalade si c’est sensible."
           />
         </div>
       </header>
@@ -248,49 +248,49 @@ export default function AlexPage() {
           <Card
             icon={<Workflow className="h-4 w-4" />}
             title="Routines commerciales"
-            desc="Relances, sÃ©quences, templates, suivi : Alex peut produire et maintenir ton systÃ¨me commercial."
+            desc="Relances, séquences, templates, suivi : Alex peut produire et maintenir ton système commercial."
           />
           <Card
             icon={<Layers className="h-4 w-4" />}
-            title="CoopÃ©ration"
-            desc="Alex peut dÃ©clencher dâ€™autres clones (ex : Emma pour support, Pierre pour docs) via Router."
+            title="Coopération"
+            desc="Alex peut déclencher d’autres clones (ex : Emma pour support, Pierre pour docs) via Router."
           />
           <Card
             icon={<ShieldCheck className="h-4 w-4" />}
-            title="TraÃ§abilitÃ©"
-            desc="Historique/log possible : actions, brouillons, dÃ©cisions proposÃ©es, et Ã©tapes suivantes."
+            title="Traçabilité"
+            desc="Historique/log possible : actions, brouillons, décisions proposées, et étapes suivantes."
           />
         </div>
 
         <div className="rounded-2xl border p-6 space-y-2">
           <p className="text-sm font-medium">Objectif</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Avoir un commercial â€œsystÃ¨mes & messagesâ€ : moins dâ€™impro, plus de process, et des livrables rÃ©pÃ©tables.
+            Avoir un commercial “systèmes & messages” : moins d’impro, plus de process, et des livrables répétables.
           </p>
         </div>
       </section>
 
       {/* EMAIL ENTREPRISE (DNS) */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Email entreprise (option) : Alex au nom de ta boÃ®te</h2>
+        <h2 className="text-xl font-semibold">Email entreprise (option) : Alex au nom de ta boîte</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           <Card
             icon={<Building2 className="h-4 w-4" />}
-            title="Adresse pro dÃ©diÃ©e"
-            desc="Connexion possible Ã  une adresse du domaine (ex : alex@tonentreprise.com / sales@tonentreprise.com) via DNS."
+            title="Adresse pro dédiée"
+            desc="Connexion possible à une adresse du domaine (ex : alex@tonentreprise.com / sales@tonentreprise.com) via DNS."
           />
           <Card
             icon={<AtSign className="h-4 w-4" />}
-            title="SÃ©quences prÃªtes"
-            desc="Alex prÃ©pare objets + messages + relances. Envoi automatique uniquement si tu lâ€™actives."
+            title="Séquences prêtes"
+            desc="Alex prépare objets + messages + relances. Envoi automatique uniquement si tu l’actives."
           />
         </div>
 
         <div className="rounded-2xl border p-6 space-y-2">
-          <p className="text-sm font-medium">RÃ©sultat</p>
+          <p className="text-sm font-medium">Résultat</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Un outbound plus propre, plus constant, avec moins de â€œtrousâ€ dans le suivi.
+            Un outbound plus propre, plus constant, avec moins de “trous” dans le suivi.
           </p>
         </div>
       </section>
@@ -303,29 +303,29 @@ export default function AlexPage() {
           <Card
             icon={<Plug className="h-4 w-4" />}
             title="CRM & outils"
-            desc="Connexion possible selon ton stack (via Router/Make/API) : suivi, tÃ¢ches, notes, exports."
+            desc="Connexion possible selon ton stack (via Router/Make/API) : suivi, tâches, notes, exports."
           />
           <Card
             icon={<ClipboardList className="h-4 w-4" />}
             title="Compte rendu"
-            desc="Ã€ partir de notes brutes : Alex sort un compte rendu + next steps + relances Ã  prÃ©voir."
+            desc="À partir de notes brutes : Alex sort un compte rendu + next steps + relances à prévoir."
           />
           <Card
             icon={<Target className="h-4 w-4" />}
             title="Qualification"
-            desc="Alex structure une qualification simple (besoin, urgence, budget, dÃ©cideur, objections)."
+            desc="Alex structure une qualification simple (besoin, urgence, budget, décideur, objections)."
           />
         </div>
 
         <div className="rounded-2xl border p-6 space-y-2">
           <p className="text-sm font-medium">Note</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Les intÃ©grations dÃ©pendent de ton outil. Sans connecteur direct, on passe par Router/Make ou API quand câ€™est possible.
+            Les intégrations dépendent de ton outil. Sans connecteur direct, on passe par Router/Make ou API quand c’est possible.
           </p>
         </div>
       </section>
 
-      {/* CAPACITÃ‰S */}
+      {/* CAPACITÉS */}
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Ce que Alex fait</h2>
 
@@ -338,17 +338,17 @@ export default function AlexPage() {
           <Card
             icon={<FileText className="h-4 w-4" />}
             title="Scripts & playbooks"
-            desc="Scripts dâ€™appel, rÃ©ponses aux objections, checklists, mini playbooks commerciaux."
+            desc="Scripts d’appel, réponses aux objections, checklists, mini playbooks commerciaux."
           />
           <Card
             icon={<ClipboardList className="h-4 w-4" />}
             title="Pipeline & process"
-            desc="Ã‰tapes, rÃ¨gles, suivi, tags. Alex tâ€™aide Ã  standardiser un pipeline simple et efficace."
+            desc="Étapes, règles, suivi, tags. Alex t’aide à standardiser un pipeline simple et efficace."
           />
           <Card
             icon={<BadgeCheck className="h-4 w-4" />}
-            title="CohÃ©rence"
-            desc="MÃªme niveau de qualitÃ©, mÃªmes rÃ¨gles, mÃªme structure dans tes Ã©changes commerciaux."
+            title="Cohérence"
+            desc="Même niveau de qualité, mêmes règles, même structure dans tes échanges commerciaux."
           />
         </div>
 
@@ -356,7 +356,7 @@ export default function AlexPage() {
           <p className="text-sm">
             <span className="font-medium">Alex ne fait pas :</span>{" "}
             <span className="text-muted-foreground">
-              promettre un rÃ©sultat garanti â€¢ inventer des donnÃ©es â€¢ envoyer automatiquement sans autorisation â€¢ fournir du conseil juridique formel.
+              promettre un résultat garanti • inventer des données • envoyer automatiquement sans autorisation • fournir du conseil juridique formel.
             </span>
           </p>
         </div>
@@ -370,9 +370,9 @@ export default function AlexPage() {
           <div className="rounded-2xl border p-6 space-y-3">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
-              â€œProspection : DRH PME 50-150 salariÃ©s. Message court, ton pro, objectif : call 15 min.â€
+              “Prospection : DRH PME 50-150 salariés. Message court, ton pro, objectif : call 15 min.”
             </p>
-            <p className="text-sm font-medium pt-2">RÃ©sultat</p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
             <p className="text-sm text-muted-foreground">
               3 variantes + objet + angle valeur + CTA simple.
             </p>
@@ -381,31 +381,31 @@ export default function AlexPage() {
           <div className="rounded-2xl border p-6 space-y-3">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
-              â€œRelance J+3 et J+7, sans Ãªtre lourd.â€
+              “Relance J+3 et J+7, sans être lourd.”
             </p>
-            <p className="text-sm font-medium pt-2">RÃ©sultat</p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
             <p className="text-sm text-muted-foreground">
-              SÃ©quence de relances courte + version â€œpolieâ€ + version â€œdirecteâ€.
+              Séquence de relances courte + version “polie” + version “directe”.
             </p>
           </div>
 
           <div className="rounded-2xl border p-6 space-y-3">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
-              â€œObjection : â€˜pas de budgetâ€™. RÃ©ponds et propose une option.â€
+              “Objection : ‘pas de budget’. Réponds et propose une option.”
             </p>
-            <p className="text-sm font-medium pt-2">RÃ©sultat</p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
             <p className="text-sm text-muted-foreground">
-              RÃ©ponse structurÃ©e + options + question de qualification.
+              Réponse structurée + options + question de qualification.
             </p>
           </div>
 
           <div className="rounded-2xl border p-6 space-y-3">
             <p className="text-sm font-medium">Brief</p>
             <p className="text-sm text-muted-foreground">
-              â€œNotes dâ€™appel â†’ compte rendu + next steps + relance Ã  prÃ©parer.â€
+              “Notes d’appel → compte rendu + next steps + relance à préparer.”
             </p>
-            <p className="text-sm font-medium pt-2">RÃ©sultat</p>
+            <p className="text-sm font-medium pt-2">Résultat</p>
             <p className="text-sm text-muted-foreground">
               CR propre + actions + brouillon de mail de suivi.
             </p>
@@ -415,51 +415,51 @@ export default function AlexPage() {
 
       {/* COMMENT */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Comment Ã§a marche</h2>
+        <h2 className="text-xl font-semibold">Comment ça marche</h2>
 
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border p-6 space-y-2">
-            <p className="text-sm font-medium">1) Tu fixes les rÃ¨gles</p>
+            <p className="text-sm font-medium">1) Tu fixes les règles</p>
             <p className="text-sm text-muted-foreground">
-              Ton, offre, cibles, objections, ce quâ€™on promet / ne promet pas.
+              Ton, offre, cibles, objections, ce qu’on promet / ne promet pas.
             </p>
           </div>
           <div className="rounded-2xl border p-6 space-y-2">
             <p className="text-sm font-medium">2) Alex produit</p>
             <p className="text-sm text-muted-foreground">
-              Messages, scripts, sÃ©quences, playbooks â€” prÃªts Ã  copier-coller.
+              Messages, scripts, séquences, playbooks — prêts à copier-coller.
             </p>
           </div>
           <div className="rounded-2xl border p-6 space-y-2">
             <p className="text-sm font-medium">3) Mode CloneOS (option)</p>
             <p className="text-sm text-muted-foreground">
-              DÃ©clencheurs Router : suivi, relances, tÃ¢ches, coopÃ©ration inter-clones.
+              Déclencheurs Router : suivi, relances, tâches, coopération inter-clones.
             </p>
           </div>
         </div>
       </section>
 
       <section className="rounded-2xl border p-6 space-y-3">
-        <h3 className="text-lg font-medium">3 modes dâ€™utilisation</h3>
+        <h3 className="text-lg font-medium">3 modes d’utilisation</h3>
 
         <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-2">
           <li>
-            <span className="font-medium text-foreground">Mode simple :</span> brief â†’ Alex te rend les messages/scrits.
+            <span className="font-medium text-foreground">Mode simple :</span> brief → Alex te rend les messages/scrits.
           </li>
           <li>
-            <span className="font-medium text-foreground">Mode systÃ¨me :</span> pipeline + templates + process commercial.
+            <span className="font-medium text-foreground">Mode système :</span> pipeline + templates + process commercial.
           </li>
           <li>
-            <span className="font-medium text-foreground">Mode CloneOS :</span> routines + coopÃ©ration via Router.
+            <span className="font-medium text-foreground">Mode CloneOS :</span> routines + coopération via Router.
           </li>
         </ul>
       </section>
 
-      {/* ACCÃˆS / CTA */}
+      {/* ACCÈS / CTA */}
       <section id="acces" className="rounded-2xl border p-8 space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold">AccÃ¨s Ã  Alex</h2>
+            <h2 className="text-xl font-semibold">Accès à Alex</h2>
             <p className="text-sm text-muted-foreground">
               Statut actuel : <span className="font-medium text-foreground">en construction</span>.
             </p>
@@ -471,7 +471,7 @@ export default function AlexPage() {
 
         {loading ? (
           <p className="text-sm text-muted-foreground">
-            VÃ©rification en coursâ€¦
+            Vérification en cours…
             {shouldPoll && <span> (post-paiement, attente activation...)</span>}
           </p>
         ) : hasAlex ? (
@@ -490,8 +490,8 @@ export default function AlexPage() {
           <>
             <p className="text-sm text-muted-foreground">
               {isLogged
-                ? "Alex nâ€™est pas encore disponible Ã  lâ€™achat. Tu peux dÃ©jÃ  poser des questions via lâ€™assistant."
-                : "Connecte-toi pour suivre lâ€™arrivÃ©e dâ€™Alex. En attendant, tu peux poser tes questions via lâ€™assistant."}
+                ? "Alex n’est pas encore disponible à l’achat. Tu peux déjà poser des questions via l’assistant."
+                : "Connecte-toi pour suivre l’arrivée d’Alex. En attendant, tu peux poser tes questions via l’assistant."}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -506,7 +506,7 @@ export default function AlexPage() {
               )}
 
               <Button variant="outline" onClick={() => checkAccess()}>
-                RafraÃ®chir lâ€™accÃ¨s
+                Rafraîchir l’accès
               </Button>
             </div>
           </>

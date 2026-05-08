@@ -18,9 +18,9 @@ function makeClassification(
 }
 
 describe("buildPierreTasks", () => {
-  it("construit une task email.send si email dÃ©tectÃ©", () => {
+  it("construit une task email.send si email détecté", () => {
     const tasks = buildPierreTasks({
-      rawInput: "Envoie un mail Ã  test@gmail.com",
+      rawInput: "Envoie un mail à test@gmail.com",
       classification: makeClassification({ asksEmail: true }),
       missingInfo: [],
       approvalRequired: false,
@@ -39,7 +39,7 @@ describe("buildPierreTasks", () => {
       missingInfo: [
         {
           key: "recipient_email",
-          question: "Quel est lâ€™email exact du destinataire ?",
+          question: "Quel est l’email exact du destinataire ?",
           expected_format: "email",
           required: true,
         },
@@ -53,9 +53,9 @@ describe("buildPierreTasks", () => {
     expect(tasks[0].status).toBe("blocked");
   });
 
-  it("construit une task document par dÃ©faut si ni email ni reminder", () => {
+  it("construit une task document par défaut si ni email ni reminder", () => {
     const tasks = buildPierreTasks({
-      rawInput: "PrÃ©pare un document RH",
+      rawInput: "Prépare un document RH",
       classification: makeClassification({ asksDocument: true }),
       missingInfo: [],
       approvalRequired: false,
@@ -67,7 +67,7 @@ describe("buildPierreTasks", () => {
 
   it("construit une task pdf.generate", () => {
     const tasks = buildPierreTasks({
-      rawInput: "GÃ©nÃ¨re un PDF",
+      rawInput: "Génère un PDF",
       classification: makeClassification({ asksPdf: true }),
       missingInfo: [],
       approvalRequired: false,
@@ -77,9 +77,9 @@ describe("buildPierreTasks", () => {
     expect(tasks.some((task) => task.type === "pdf.generate")).toBe(true);
   });
 
-  it("construit une task followup.schedule si reminder demandÃ©", () => {
+  it("construit une task followup.schedule si reminder demandé", () => {
     const tasks = buildPierreTasks({
-      rawInput: "Relance demain Ã  17h",
+      rawInput: "Relance demain à 17h",
       classification: makeClassification({ asksReminder: true }),
       missingInfo: [],
       approvalRequired: false,

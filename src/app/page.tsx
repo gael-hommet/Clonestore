@@ -38,44 +38,44 @@ type HomeSection = {
 };
 
 const sections: HomeSection[] = [
-  { key: "overview", label: "Accueil", eyebrow: "SystÃ¨me", icon: Sparkles },
-  { key: "employees", label: "EmployÃ©s IA", eyebrow: "Postes", icon: Users2 },
+  { key: "overview", label: "Accueil", eyebrow: "Système", icon: Sparkles },
+  { key: "employees", label: "Employés IA", eyebrow: "Postes", icon: Users2 },
   { key: "technologies", label: "Technologies", eyebrow: "Moteur", icon: BrainCircuit },
   { key: "cockpit", label: "Cockpit", eyebrow: "Pilotage", icon: Waypoints },
-  { key: "trust", label: "Confiance", eyebrow: "ContrÃ´le", icon: ShieldCheck },
+  { key: "trust", label: "Confiance", eyebrow: "Contrôle", icon: ShieldCheck },
 ];
 
 const employees = [
   {
     name: "Pierre",
-    role: "Poste RH opÃ©rationnel automatisÃ©",
+    role: "Poste RH opérationnel automatisé",
     status: "En construction",
     tone: "active",
-    text: "Documents RH, emails, relances, suivi, validations et continuitÃ© des missions RH.",
+    text: "Documents RH, emails, relances, suivi, validations et continuité des missions RH.",
     href: "/agents/pierre",
   },
   {
     name: "Clara",
     role: "Recrutement & coordination",
-    status: "BientÃ´t disponible",
+    status: "Bientôt disponible",
     tone: "soon",
-    text: "Analyse de candidatures, pipeline recrutement, coordination et synthÃ¨ses de shortlists.",
+    text: "Analyse de candidatures, pipeline recrutement, coordination et synthèses de shortlists.",
     href: "/agents/clara",
   },
   {
     name: "Emma",
     role: "Support & relation client",
-    status: "BientÃ´t disponible",
+    status: "Bientôt disponible",
     tone: "soon",
-    text: "RÃ©ponses support, suivi client, catÃ©gorisation, escalades et qualitÃ© de communication.",
+    text: "Réponses support, suivi client, catégorisation, escalades et qualité de communication.",
     href: "/agents/emma",
   },
   {
     name: "Noah",
     role: "Assistant direction",
-    status: "BientÃ´t disponible",
+    status: "Bientôt disponible",
     tone: "soon",
-    text: "SynthÃ¨ses, dÃ©cisions, prioritÃ©s, comptes rendus et pilotage quotidien.",
+    text: "Synthèses, décisions, priorités, comptes rendus et pilotage quotidien.",
     href: "/agents/noah",
   },
 ];
@@ -84,15 +84,15 @@ const technologies = [
   {
     name: "CloneOS",
     category: "Orchestration",
-    text: "Transforme une demande naturelle en missions, tÃ¢ches, dÃ©pendances, exÃ©cution et rÃ©sultat coordonnÃ©.",
+    text: "Transforme une demande naturelle en missions, tâches, dépendances, exécution et résultat coordonné.",
     icon: BrainCircuit,
     core: true,
     colorClass: "clone-tech-legend-dot--blue",
   },
   {
     name: "CloneADN",
-    category: "MÃ©moire entreprise",
-    text: "Encode le ton, les habitudes, les circuits humains, les styles et les prÃ©fÃ©rences opÃ©rationnelles.",
+    category: "Mémoire entreprise",
+    text: "Encode le ton, les habitudes, les circuits humains, les styles et les préférences opérationnelles.",
     icon: Fingerprint,
     core: true,
     colorClass: "clone-tech-legend-dot--orange",
@@ -107,16 +107,16 @@ const technologies = [
   },
   {
     name: "CloneTrace",
-    category: "TraÃ§abilitÃ©",
-    text: "Rend les actions visibles : historique, statuts, logs, dÃ©cisions, versions et continuitÃ©.",
+    category: "Traçabilité",
+    text: "Rend les actions visibles : historique, statuts, logs, décisions, versions et continuité.",
     icon: Workflow,
     core: true,
     colorClass: "clone-tech-legend-dot--violet",
   },
   {
     name: "CloneChat",
-    category: "Interface systÃ¨me",
-    text: "Oriente, explique, guide, diagnostique et sert de point dâ€™entrÃ©e naturel au systÃ¨me CloneStore.",
+    category: "Interface système",
+    text: "Oriente, explique, guide, diagnostique et sert de point d’entrée naturel au système CloneStore.",
     icon: Bot,
     core: true,
     colorClass: "clone-tech-legend-dot--sky",
@@ -124,23 +124,23 @@ const technologies = [
   {
     name: "CloneVoice",
     category: "Voix native",
-    text: "Permet de parler naturellement Ã  CloneStore et prÃ©pare le futur mode copilote vocal.",
+    text: "Permet de parler naturellement à CloneStore et prépare le futur mode copilote vocal.",
     icon: Mic2,
     core: true,
     colorClass: "clone-tech-legend-dot--gold",
   },
   {
     name: "ClonePolicy",
-    category: "RÃ¨gles",
-    text: "Transforme les rÃ¨gles dâ€™entreprise en comportement machine rÃ©ellement exÃ©cutable.",
+    category: "Règles",
+    text: "Transforme les règles d’entreprise en comportement machine réellement exécutable.",
     icon: ShieldCheck,
     core: false,
     colorClass: "clone-tech-legend-dot--blue",
   },
   {
     name: "CloneContinuum",
-    category: "ContinuitÃ©",
-    text: "Maintient les missions dans le temps : attentes, reprises, relances et rÃ©veils.",
+    category: "Continuité",
+    text: "Maintient les missions dans le temps : attentes, reprises, relances et réveils.",
     icon: Timer,
     core: false,
     colorClass: "clone-tech-legend-dot--violet",
@@ -148,23 +148,23 @@ const technologies = [
   {
     name: "CloneTrust",
     category: "Autonomie",
-    text: "DÃ©termine jusquâ€™oÃ¹ un employÃ© IA peut agir seul selon le contexte, le risque et les rÃ¨gles.",
+    text: "Détermine jusqu’où un employé IA peut agir seul selon le contexte, le risque et les règles.",
     icon: BadgeCheck,
     core: false,
     colorClass: "clone-tech-legend-dot--green",
   },
   {
     name: "CloneReview",
-    category: "QualitÃ©",
-    text: "Relit, critique et contrÃ´le les livrables avant sortie ou action sensible.",
+    category: "Qualité",
+    text: "Relit, critique et contrôle les livrables avant sortie ou action sensible.",
     icon: FileCheck2,
     core: false,
     colorClass: "clone-tech-legend-dot--sky",
   },
   {
     name: "CloneSignals",
-    category: "DÃ©clencheurs",
-    text: "RÃ©agit aux dÃ©lais, validations en attente, documents manquants et Ã©vÃ©nements mÃ©tier.",
+    category: "Déclencheurs",
+    text: "Réagit aux délais, validations en attente, documents manquants et événements métier.",
     icon: Zap,
     core: false,
     colorClass: "clone-tech-legend-dot--gold",
@@ -172,7 +172,7 @@ const technologies = [
   {
     name: "CloneLearn",
     category: "Apprentissage",
-    text: "AmÃ©liore progressivement CloneADN Ã  partir des corrections, validations et usages rÃ©currents.",
+    text: "Améliore progressivement CloneADN à partir des corrections, validations et usages récurrents.",
     icon: Sparkles,
     core: false,
     colorClass: "clone-tech-legend-dot--orange",
@@ -182,31 +182,31 @@ const technologies = [
 const coreLegend = technologies.filter((tech) => tech.core);
 
 const cockpitItems = [
-  "Vue claire des employÃ©s actifs et de leur pÃ©rimÃ¨tre.",
-  "Missions en cours, bloquÃ©es, planifiÃ©es ou terminÃ©es.",
-  "DÃ©cisions Ã  valider sans fouiller dans le systÃ¨me.",
+  "Vue claire des employés actifs et de leur périmètre.",
+  "Missions en cours, bloquées, planifiées ou terminées.",
+  "Décisions à valider sans fouiller dans le système.",
   "Historique exploitable pour reprendre rapidement le fil.",
 ];
 
 const trustItems = [
   {
     title: "Gouvernance",
-    text: "Les employÃ©s IA travaillent dans un pÃ©rimÃ¨tre dÃ©fini avec rÃ¨gles, permissions et refus.",
+    text: "Les employés IA travaillent dans un périmètre défini avec règles, permissions et refus.",
     icon: ShieldCheck,
   },
   {
-    title: "TraÃ§abilitÃ©",
-    text: "Les missions, dÃ©cisions, statuts et livrables restent visibles dans le temps.",
+    title: "Traçabilité",
+    text: "Les missions, décisions, statuts et livrables restent visibles dans le temps.",
     icon: Workflow,
   },
   {
-    title: "ContrÃ´le humain",
-    text: "Les sujets sensibles remontent Ã  lâ€™humain au lieu dâ€™Ãªtre exÃ©cutÃ©s aveuglÃ©ment.",
+    title: "Contrôle humain",
+    text: "Les sujets sensibles remontent à l’humain au lieu d’être exécutés aveuglément.",
     icon: Users2,
   },
   {
-    title: "RentabilitÃ©",
-    text: "La promesse reste simple : rÃ©duire le temps perdu, la charge mentale et les coÃ»ts opÃ©rationnels.",
+    title: "Rentabilité",
+    text: "La promesse reste simple : réduire le temps perdu, la charge mentale et les coûts opérationnels.",
     icon: BriefcaseBusiness,
   },
 ];
@@ -326,7 +326,7 @@ function TechnologyCard({ tech }: { tech: (typeof technologies)[number] }) {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-sm font-semibold text-[var(--cs-ink-1)]">{tech.name}</p>
-            {tech.core ? <span className="clone-mini-chip">mÃ¨re</span> : null}
+            {tech.core ? <span className="clone-mini-chip">mère</span> : null}
           </div>
 
           <p className="mt-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-[var(--cs-ink-4)]">
@@ -387,12 +387,12 @@ function CloneCoreOrbit() {
 
       <div className="clone-core-caption clone-core-caption--left">
         <span>Mission</span>
-        <strong>Demandes â†’ tÃ¢ches</strong>
+        <strong>Demandes → tâches</strong>
       </div>
 
       <div className="clone-core-caption clone-core-caption--right">
-        <span>ContrÃ´le</span>
-        <strong>RÃ¨gles â†’ trace</strong>
+        <span>Contrôle</span>
+        <strong>Règles → trace</strong>
       </div>
     </div>
   );
@@ -442,15 +442,15 @@ function CloneCockpitFlow() {
       <div className="clone-cockpit-flow">
         <div className="clone-flow-card clone-flow-card--active">
           <span>01</span>
-          <strong>Mission reÃ§ue</strong>
-          <p>Demande naturelle structurÃ©e par CloneOS.</p>
+          <strong>Mission reçue</strong>
+          <p>Demande naturelle structurée par CloneOS.</p>
         </div>
 
         <div className="clone-flow-connector" />
 
         <div className="clone-flow-card">
           <span>02</span>
-          <strong>RÃ¨gles appliquÃ©es</strong>
+          <strong>Règles appliquées</strong>
           <p>Validation, autonomie et contexte entreprise.</p>
         </div>
 
@@ -458,8 +458,8 @@ function CloneCockpitFlow() {
 
         <div className="clone-flow-card">
           <span>03</span>
-          <strong>ExÃ©cution suivie</strong>
-          <p>TÃ¢ches, livrables, statuts et historique.</p>
+          <strong>Exécution suivie</strong>
+          <p>Tâches, livrables, statuts et historique.</p>
         </div>
       </div>
     </LiquidGlass>
@@ -490,7 +490,7 @@ export default function HomePage() {
                 type="button"
                 onClick={() => setRailOpen((value) => !value)}
                 className="clone-rail-toggle"
-                aria-label={railOpen ? "RÃ©duire le rail" : "Ouvrir le rail"}
+                aria-label={railOpen ? "Réduire le rail" : "Ouvrir le rail"}
               >
                 {railOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </button>
@@ -551,11 +551,11 @@ export default function HomePage() {
                     <div className="flex flex-wrap gap-2">
                       <span className="cs-pill">
                         <Sparkles className="h-3.5 w-3.5 text-[#6f83ff]" />
-                        OS premium dâ€™employÃ©s IA
+                        OS premium d’employés IA
                       </span>
                       <span className="cs-pill">
                         <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
-                        GouvernÃ©, traÃ§able, pilotable
+                        Gouverné, traçable, pilotable
                       </span>
                     </div>
 
@@ -592,28 +592,28 @@ export default function HomePage() {
                               color: "transparent",
                             }}
                           >
-                            lâ€™argent.
+                            l’argent.
                           </span>
                         </span>
                       </h1>
 
                       <p className="clone-hero-text">
-                        CloneStore installe des employÃ©s IA spÃ©cialisÃ©s dans votre entreprise.
-                        Ils comprennent les demandes, structurent le travail, exÃ©cutent sous rÃ¨gles,
-                        gardent lâ€™historique et rendent le pilotage plus clair.
+                        CloneStore installe des employés IA spécialisés dans votre entreprise.
+                        Ils comprennent les demandes, structurent le travail, exécutent sous règles,
+                        gardent l’historique et rendent le pilotage plus clair.
                       </p>
                     </div>
 
                     <div className="clone-actions-row">
                       <ActionButton
                         href="/agents"
-                        label="DÃ©couvrir les employÃ©s"
+                        label="Découvrir les employés"
                         primary
                         icon={<ArrowRight className="h-4 w-4" />}
                       />
                       <ActionButton
                         href="/assistant"
-                        label="Parler Ã  CloneChat"
+                        label="Parler à CloneChat"
                         icon={<Bot className="h-4 w-4" />}
                       />
                       <ActionButton
@@ -624,9 +624,9 @@ export default function HomePage() {
                     </div>
 
                     <div className="clone-metrics-grid">
-                      <Metric value="24/7" label="DisponibilitÃ© opÃ©rationnelle" />
-                      <Metric value="TraÃ§able" label="Missions, statuts et historique" />
-                      <Metric value="ContrÃ´lÃ©" label="Validation humaine sur le sensible" />
+                      <Metric value="24/7" label="Disponibilité opérationnelle" />
+                      <Metric value="Traçable" label="Missions, statuts et historique" />
+                      <Metric value="Contrôlé" label="Validation humaine sur le sensible" />
                     </div>
                   </div>
 
@@ -642,9 +642,9 @@ export default function HomePage() {
               <LiquidGlass variant="panel" intensity="medium" className="clone-section-panel">
                 <div className="clone-section-head">
                   <SectionTitle
-                    eyebrow="EmployÃ©s IA"
-                    title="CloneStore ne tourne pas autour dâ€™un seul employÃ©."
-                    text="Chaque employÃ© IA est pensÃ© comme un poste automatisÃ© spÃ©cialisÃ©, avec son pÃ©rimÃ¨tre, ses limites, ses rÃ¨gles et son cockpit."
+                    eyebrow="Employés IA"
+                    title="CloneStore ne tourne pas autour d’un seul employé."
+                    text="Chaque employé IA est pensé comme un poste automatisé spécialisé, avec son périmètre, ses limites, ses règles et son cockpit."
                   />
 
                   <ActionButton
@@ -667,8 +667,8 @@ export default function HomePage() {
                 <div className="clone-tech-hero">
                   <SectionTitle
                     eyebrow="Technologies CloneStore"
-                    title="Un systÃ¨me complet, pas une collection de gadgets."
-                    text="Les briques CloneStore organisent la comprÃ©hension, la mÃ©moire, les validations, la traÃ§abilitÃ©, la continuitÃ©, la voix et lâ€™orchestration entre employÃ©s IA."
+                    title="Un système complet, pas une collection de gadgets."
+                    text="Les briques CloneStore organisent la compréhension, la mémoire, les validations, la traçabilité, la continuité, la voix et l’orchestration entre employés IA."
                   />
 
                   <CloneTechnologyConstellation />
@@ -687,8 +687,8 @@ export default function HomePage() {
                 <LiquidGlass variant="panel" intensity="medium" className="clone-section-panel">
                   <SectionTitle
                     eyebrow="Cockpit"
-                    title="Piloter lâ€™entreprise depuis une interface calme."
-                    text="Le dirigeant doit pouvoir ouvrir CloneStore sur ordinateur, tablette ou tÃ©lÃ©phone, voir les missions, les employÃ©s, les statuts et les prochaines dÃ©cisions sans perdre de temps."
+                    title="Piloter l’entreprise depuis une interface calme."
+                    text="Le dirigeant doit pouvoir ouvrir CloneStore sur ordinateur, tablette ou téléphone, voir les missions, les employés, les statuts et les prochaines décisions sans perdre de temps."
                   />
 
                   <div className="clone-cockpit-list">
@@ -710,8 +710,8 @@ export default function HomePage() {
                 <div className="clone-trust-grid">
                   <SectionTitle
                     eyebrow="Confiance entreprise"
-                    title="Puissant, mais jamais incontrÃ´lÃ©."
-                    text="CloneStore doit inspirer la maÃ®trise : actions encadrÃ©es, limites explicites, validation humaine sur le sensible, historique exploitable et lecture claire des responsabilitÃ©s."
+                    title="Puissant, mais jamais incontrôlé."
+                    text="CloneStore doit inspirer la maîtrise : actions encadrées, limites explicites, validation humaine sur le sensible, historique exploitable et lecture claire des responsabilités."
                   />
 
                   <div className="clone-trust-cards">
@@ -747,19 +747,19 @@ export default function HomePage() {
                 <div className="clone-final-ambient" aria-hidden="true" />
 
                 <div className="relative mx-auto max-w-4xl text-center">
-                  <p className="cs-eyebrow">Prochaine Ã©tape</p>
+                  <p className="cs-eyebrow">Prochaine étape</p>
                   <h2 className="cs-heading mt-4 text-[clamp(2.15rem,4vw,4.7rem)] leading-[0.98]">
-                    DÃ©couvrez les employÃ©s IA disponibles et en construction.
+                    Découvrez les employés IA disponibles et en construction.
                   </h2>
                   <p className="mx-auto mt-5 max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
-                    CloneStore avance vers un systÃ¨me complet de postes automatisÃ©s :
-                    RH, support, recrutement, direction, opÃ©rations et fonctions spÃ©cialisÃ©es.
+                    CloneStore avance vers un système complet de postes automatisés :
+                    RH, support, recrutement, direction, opérations et fonctions spécialisées.
                   </p>
 
                   <div className="mt-8 flex flex-wrap justify-center gap-3">
                     <ActionButton
                       href="/agents"
-                      label="DÃ©couvrir les employÃ©s"
+                      label="Découvrir les employés"
                       primary
                       icon={<ArrowRight className="h-4 w-4" />}
                     />

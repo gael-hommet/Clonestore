@@ -34,28 +34,28 @@ const AGENTS: Record<string, CheckoutAgent> = {
   pierre: {
     slug: "pierre",
     name: "Pierre",
-    role: "Poste RH opÃ©rationnel automatisÃ©",
-    price: "449â‚¬/mois",
+    role: "Poste RH opérationnel automatisé",
+    price: "449€/mois",
     available: true,
     pageHref: "/agents/pierre",
     description:
-      "Pierre automatise une large part du travail RH opÃ©rationnel : missions, documents, emails, relances, validations et traÃ§abilitÃ©.",
+      "Pierre automatise une large part du travail RH opérationnel : missions, documents, emails, relances, validations et traçabilité.",
     bullets: [
       "Mission RH libre",
       "Documents, emails et PDF",
-      "Relances et continuitÃ©",
+      "Relances et continuité",
       "Validation humaine sur le sensible",
     ],
   },
   clara: {
     slug: "clara",
     name: "Clara",
-    role: "Recrutement automatisÃ©",
+    role: "Recrutement automatisé",
     available: false,
     pageHref: "/agents/clara",
     description:
       "Clara structurera les candidatures, les shortlists, les suivis et la coordination recrutement.",
-    bullets: ["BientÃ´t disponible"],
+    bullets: ["Bientôt disponible"],
   },
   emma: {
     slug: "emma",
@@ -64,18 +64,18 @@ const AGENTS: Record<string, CheckoutAgent> = {
     available: false,
     pageHref: "/agents/emma",
     description:
-      "Emma prendra en charge les rÃ©ponses, le suivi client, la continuitÃ© relationnelle et les escalades.",
-    bullets: ["BientÃ´t disponible"],
+      "Emma prendra en charge les réponses, le suivi client, la continuité relationnelle et les escalades.",
+    bullets: ["Bientôt disponible"],
   },
   adrien: {
     slug: "adrien",
     name: "Adrien",
-    role: "Commandes & opÃ©rations",
+    role: "Commandes & opérations",
     available: false,
     pageHref: "/agents/adrien",
     description:
-      "Adrien suivra les commandes, les opÃ©rations, les prioritÃ©s et les points bloquants.",
-    bullets: ["BientÃ´t disponible"],
+      "Adrien suivra les commandes, les opérations, les priorités et les points bloquants.",
+    bullets: ["Bientôt disponible"],
   },
 };
 
@@ -153,7 +153,7 @@ function CheckoutFallback() {
         >
           <div className="flex items-center gap-3 text-sm font-semibold text-[var(--cs-ink-3)]">
             <Loader2 className="h-4 w-4 animate-spin text-[#6f83ff]" />
-            Chargement du checkoutâ€¦
+            Chargement du checkout…
           </div>
         </LiquidGlass>
       </div>
@@ -192,14 +192,14 @@ function CheckoutContent() {
         throw new Error(
           data?.error ||
             data?.message ||
-            "Impossible de dÃ©marrer le paiement pour le moment."
+            "Impossible de démarrer le paiement pour le moment."
         );
       }
 
       const checkoutUrl = data?.url || data?.checkout_url || data?.sessionUrl || null;
 
       if (!checkoutUrl) {
-        throw new Error("Aucune URL de paiement nâ€™a Ã©tÃ© renvoyÃ©e.");
+        throw new Error("Aucune URL de paiement n’a été renvoyée.");
       }
 
       window.location.href = checkoutUrl;
@@ -207,7 +207,7 @@ function CheckoutContent() {
       setError(
         err instanceof Error
           ? err.message
-          : "Impossible de dÃ©marrer le paiement pour le moment."
+          : "Impossible de démarrer le paiement pour le moment."
       );
       setIsLoading(false);
     }
@@ -232,7 +232,7 @@ function CheckoutContent() {
                   </span>
                   <span className="cs-pill">
                     <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
-                    SÃ©curisÃ©, clair, premium
+                    Sécurisé, clair, premium
                   </span>
                 </div>
 
@@ -246,25 +246,25 @@ function CheckoutContent() {
                   </h1>
 
                   <p className="max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
-                    Confirmez lâ€™employÃ© IA Ã  intÃ©grer dans votre entreprise, puis
-                    continuez vers le paiement sÃ©curisÃ©.
+                    Confirmez l’employé IA à intégrer dans votre entreprise, puis
+                    continuez vers le paiement sécurisé.
                   </p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
                   <GlassInfoCard
-                    title="EmployÃ© IA"
-                    text="Vous activez un poste automatisÃ©, pas une simple fonctionnalitÃ©."
+                    title="Employé IA"
+                    text="Vous activez un poste automatisé, pas une simple fonctionnalité."
                     icon={<BriefcaseBusiness className="h-4 w-4" />}
                   />
                   <GlassInfoCard
-                    title="AccÃ¨s privÃ©"
-                    text="AprÃ¨s validation, lâ€™accÃ¨s continue vers votre espace CloneStore."
+                    title="Accès privé"
+                    text="Après validation, l’accès continue vers votre espace CloneStore."
                     icon={<LockKeyhole className="h-4 w-4" />}
                   />
                   <GlassInfoCard
-                    title="Suite guidÃ©e"
-                    text="Configuration, cockpit et aide restent accessibles aprÃ¨s paiement."
+                    title="Suite guidée"
+                    text="Configuration, cockpit et aide restent accessibles après paiement."
                     icon={<Waypoints className="h-4 w-4" />}
                   />
                 </div>
@@ -282,7 +282,7 @@ function CheckoutContent() {
                   />
                   <ActionButton
                     href="/assistant"
-                    label="Demander Ã  CloneStore"
+                    label="Demander à CloneStore"
                     icon={<Bot className="h-4 w-4" />}
                   />
                 </div>
@@ -297,7 +297,7 @@ function CheckoutContent() {
                 <div className="space-y-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="cs-eyebrow">RÃ©sumÃ©</p>
+                      <p className="cs-eyebrow">Résumé</p>
                       <h2 className="mt-3 text-3xl font-semibold tracking-[-0.06em] text-[var(--cs-ink-1)]">
                         {agent.name}
                       </h2>
@@ -312,7 +312,7 @@ function CheckoutContent() {
                         agent.available ? "cs-status--success" : "cs-status--warn"
                       )}
                     >
-                      {agent.available ? "Disponible" : "Ã€ venir"}
+                      {agent.available ? "Disponible" : "À venir"}
                     </span>
                   </div>
 
@@ -343,7 +343,7 @@ function CheckoutContent() {
                         </div>
                       ) : (
                         <p className="text-sm font-medium text-[var(--cs-ink-3)]">
-                          Tarif Ã  venir.
+                          Tarif à venir.
                         </p>
                       )}
                     </div>
@@ -379,7 +379,7 @@ function CheckoutContent() {
                       {isLoading ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Redirectionâ€¦</span>
+                          <span>Redirection…</span>
                         </>
                       ) : (
                         <>

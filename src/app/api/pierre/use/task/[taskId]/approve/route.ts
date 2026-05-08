@@ -219,7 +219,7 @@ export async function POST(
       task_id: taskId,
       level: "info",
       event: "task_approved",
-      message: "La tÃ¢che a Ã©tÃ© approuvÃ©e et replacÃ©e en file dâ€™attente.",
+      message: "La tâche a été approuvée et replacée en file d’attente.",
       payload: null,
     });
 

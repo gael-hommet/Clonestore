@@ -162,7 +162,7 @@ export default function SignupPage() {
     () => ({
       length: password.length >= 8,
       upper: /\p{Lu}/u.test(password),
-      lower: /[a-zÃƒ -ÃƒÂ¶ÃƒÂ¸-ÃƒÂ¿]/.test(password),
+      lower: /[a-zà-öø-ÿ]/.test(password),
       number: /\d/.test(password),
       match: password.length > 0 && password === confirmPassword,
     }),
@@ -188,7 +188,7 @@ export default function SignupPage() {
 
     if (!supabase) {
       setError(
-        "Configuration Supabase manquante. VÃƒÂ©rifie les variables dÃ¢â‚¬â„¢environnement puis redÃƒÂ©marre le projet."
+        "Configuration Supabase manquante. Vérifie les variables d’environnement puis redémarre le projet."
       );
       return;
     }
@@ -221,12 +221,12 @@ export default function SignupPage() {
         return;
       }
 
-      setSuccess("Compte crÃƒÂ©ÃƒÂ©. VÃƒÂ©rifie ton email pour confirmer ton accÃƒÂ¨s.");
+      setSuccess("Compte créé. Vérifie ton email pour confirmer ton accès.");
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Impossible de crÃƒÂ©er le compte pour le moment."
+          : "Impossible de créer le compte pour le moment."
       );
     } finally {
       setIsLoading(false);
@@ -244,32 +244,32 @@ export default function SignupPage() {
               <div className="flex flex-wrap gap-2">
                 <GlassBadge
                   icon={<Sparkles className="h-3.5 w-3.5" />}
-                  label="CrÃƒÂ©ation de compte"
+                  label="Création de compte"
                 />
                 <GlassBadge
                   icon={<ShieldCheck className="h-3.5 w-3.5" />}
-                  label="EntrÃƒÂ©e sÃƒÂ©curisÃƒÂ©e"
+                  label="Entrée sécurisée"
                   tone="green"
                 />
               </div>
 
               <div className="max-w-3xl">
                 <h1 className="cs-heading text-[clamp(2.6rem,5.2vw,5.8rem)] leading-[0.94] tracking-[-0.07em]">
-                  CrÃƒÂ©ez votre
+                  Créez votre
                   <br />
                   <span className="cs-gradient-text">espace CloneStore.</span>
                 </h1>
 
                 <p className="mt-6 max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
-                  Un compte vous donne accÃƒÂ¨s au cockpit, aux employÃƒÂ©s IA activÃƒÂ©s,
-                  aux configurations et au pilotage de votre systÃƒÂ¨me.
+                  Un compte vous donne accès au cockpit, aux employés IA activés,
+                  aux configurations et au pilotage de votre système.
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-3">
                 <GlassLink
                   href="/login"
-                  label="DÃƒÂ©jÃƒ  un compte ?"
+                  label="Déjà un compte ?"
                   primary
                   icon={<ArrowRight className="h-4 w-4" />}
                 />
@@ -288,8 +288,8 @@ export default function SignupPage() {
               <div className="grid gap-3 sm:grid-cols-3">
                 {[
                   "Compte entreprise",
-                  "Cockpit privÃƒÂ©",
-                  "EmployÃƒÂ©s IA activables",
+                  "Cockpit privé",
+                  "Employés IA activables",
                 ].map((item) => (
                   <div
                     key={item}
@@ -314,7 +314,7 @@ export default function SignupPage() {
                     Inscription
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-[var(--cs-ink-3)]">
-                    Quelques informations suffisent pour crÃƒÂ©er lÃ¢â‚¬â„¢accÃƒÂ¨s.
+                    Quelques informations suffisent pour créer l’accès.
                   </p>
                 </div>
 
@@ -324,7 +324,7 @@ export default function SignupPage() {
                     icon={<UserRound className="h-4 w-4" />}
                     value={fullName}
                     onChange={setFullName}
-                    placeholder="PrÃƒÂ©nom Nom"
+                    placeholder="Prénom Nom"
                     autoComplete="name"
                   />
 
@@ -371,7 +371,7 @@ export default function SignupPage() {
 
                   <div className="liquid-glass liquid-glass--clear liquid-glass--soft rounded-[1.45rem] p-4">
                     <div className="grid gap-2 sm:grid-cols-2">
-                      <CheckItem ok={passwordChecks.length} text="8 caractÃƒÂ¨res minimum" />
+                      <CheckItem ok={passwordChecks.length} text="8 caractères minimum" />
                       <CheckItem ok={passwordChecks.upper} text="Une majuscule" />
                       <CheckItem ok={passwordChecks.lower} text="Une minuscule" />
                       <CheckItem ok={passwordChecks.number} text="Un chiffre" />
@@ -395,11 +395,11 @@ export default function SignupPage() {
                     {isLoading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>CrÃƒÂ©ationÃ¢â‚¬Â¦</span>
+                        <span>Création…</span>
                       </>
                     ) : (
                       <>
-                        <span>CrÃƒÂ©er mon compte</span>
+                        <span>Créer mon compte</span>
                         <ArrowRight className="h-4 w-4" />
                       </>
                     )}
@@ -407,7 +407,7 @@ export default function SignupPage() {
                 </form>
 
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/42 pt-4">
-                  <p className="text-sm text-[var(--cs-ink-4)]">Vous avez dÃƒÂ©jÃƒ  un compte ?</p>
+                  <p className="text-sm text-[var(--cs-ink-4)]">Vous avez déjà un compte ?</p>
                   <Link
                     href="/login"
                     className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--cs-ink-1)] transition hover:opacity-70"
@@ -425,12 +425,12 @@ export default function SignupPage() {
           {[
             {
               title: "Cockpit",
-              text: "LÃ¢â‚¬â„¢espace principal aprÃƒÂ¨s connexion.",
+              text: "L’espace principal après connexion.",
               icon: <Waypoints className="h-4 w-4" />,
             },
             {
-              title: "EmployÃƒÂ©s IA",
-              text: "Activation et accÃƒÂ¨s aux postes automatisÃƒÂ©s.",
+              title: "Employés IA",
+              text: "Activation et accès aux postes automatisés.",
               icon: <BriefcaseBusiness className="h-4 w-4" />,
             },
             {

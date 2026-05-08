@@ -86,7 +86,7 @@ function assertRouterAuth(req: Request, rawBody: string) {
 
 /**
  * =========================================
- * 3) Access check (Pierre configurÃ©)
+ * 3) Access check (Pierre configuré)
  * =========================================
  */
 async function assertPierreAccess(client_id: string) {
@@ -141,7 +141,7 @@ const RunSchema = z.object({
 });
 
 /**
- * generate output minimal (on valide le strict cÃ´tÃ© generate dÃ©jÃ )
+ * generate output minimal (on valide le strict côté generate déjà)
  */
 const GeneratedActionSchema = z.object({
   type: z.literal("call_execute"),

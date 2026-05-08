@@ -10,10 +10,10 @@ type PierreMissionComposerProps = {
 };
 
 const EXAMPLES = [
-  "Ã€ 17h tu envoies un mail Ã  recrutement@entreprise.fr pour confirmer lâ€™entretien de demain.",
-  "PrÃ©pare une convocation RH pour demain matin et attends ma validation avant envoi.",
-  "RÃ©Ã©cris ce courrier pour le rendre plus professionnel et plus rassurant.",
-  "CrÃ©e une relance si le candidat ne rÃ©pond pas ce soir.",
+  "À 17h tu envoies un mail à recrutement@entreprise.fr pour confirmer l’entretien de demain.",
+  "Prépare une convocation RH pour demain matin et attends ma validation avant envoi.",
+  "Réécris ce courrier pour le rendre plus professionnel et plus rassurant.",
+  "Crée une relance si le candidat ne répond pas ce soir.",
 ];
 
 export function PierreMissionComposer({
@@ -34,13 +34,13 @@ export function PierreMissionComposer({
           </div>
 
           <h1 className="max-w-4xl text-3xl font-semibold tracking-tight text-stone-900 md:text-5xl">
-            Lâ€™interface de commandement de Pierre
+            L’interface de commandement de Pierre
           </h1>
 
           <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600 md:text-base">
-            Parle Ã  Pierre comme Ã  un employÃ© RH. Il comprend la mission,
-            dÃ©coupe les tÃ¢ches, prÃ©pare les actions, demande une validation si
-            nÃ©cessaire, puis laisse des traces claires dans lâ€™historique.
+            Parle à Pierre comme à un employé RH. Il comprend la mission,
+            découpe les tâches, prépare les actions, demande une validation si
+            nécessaire, puis laisse des traces claires dans l’historique.
           </p>
         </div>
 
@@ -48,7 +48,7 @@ export function PierreMissionComposer({
           <textarea
             value={value}
             onChange={(event) => onChange(event.target.value)}
-            placeholder="Exemple : Ã  17h tu envoies un mail Ã  untel, tu prÃ©pares une convocation pour demain, puis tu attends ma validation avant envoi."
+            placeholder="Exemple : à 17h tu envoies un mail à untel, tu prépares une convocation pour demain, puis tu attends ma validation avant envoi."
             className="min-h-[220px] w-full resize-none rounded-[24px] border border-stone-200 bg-[#FCFBF8] px-5 py-5 text-base leading-8 text-stone-900 outline-none placeholder:text-stone-400 focus:border-violet-300 focus:bg-white"
           />
 
@@ -72,7 +72,7 @@ export function PierreMissionComposer({
               disabled={isSubmitting}
               className="inline-flex min-w-[260px] items-center justify-center rounded-2xl bg-violet-600 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? "Analyse en cours..." : "Confier la mission Ã  Pierre"}
+              {isSubmitting ? "Analyse en cours..." : "Confier la mission à Pierre"}
             </button>
           </div>
 

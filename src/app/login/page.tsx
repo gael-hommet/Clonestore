@@ -174,7 +174,7 @@ export default function LoginPage() {
   async function handlePasswordLogin() {
     if (!supabase) {
       setError(
-        "Configuration Supabase manquante. VÃ©rifie les variables dâ€™environnement puis redÃ©marre le projet."
+        "Configuration Supabase manquante. Vérifie les variables d’environnement puis redémarre le projet."
       );
       return;
     }
@@ -207,7 +207,7 @@ export default function LoginPage() {
   async function handleMagicLink() {
     if (!supabase) {
       setError(
-        "Configuration Supabase manquante. VÃ©rifie les variables dâ€™environnement puis redÃ©marre le projet."
+        "Configuration Supabase manquante. Vérifie les variables d’environnement puis redémarre le projet."
       );
       return;
     }
@@ -229,12 +229,12 @@ export default function LoginPage() {
 
       if (otpError) throw otpError;
 
-      setSuccess("Lien envoyÃ©. Ouvre ton email pour entrer dans CloneStore.");
+      setSuccess("Lien envoyé. Ouvre ton email pour entrer dans CloneStore.");
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Impossible dâ€™envoyer le lien magique pour le moment."
+          : "Impossible d’envoyer le lien magique pour le moment."
       );
     } finally {
       setIsLoading(false);
@@ -268,7 +268,7 @@ export default function LoginPage() {
                 />
                 <GlassBadge
                   icon={<ShieldCheck className="h-3.5 w-3.5" />}
-                  label="AccÃ¨s sÃ©curisÃ©"
+                  label="Accès sécurisé"
                   tone="green"
                 />
               </div>
@@ -281,7 +281,7 @@ export default function LoginPage() {
                 </h1>
 
                 <p className="mt-6 max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
-                  Connectez-vous pour retrouver vos employÃ©s IA, vos missions, vos
+                  Connectez-vous pour retrouver vos employés IA, vos missions, vos
                   validations et votre espace de pilotage CloneStore.
                 </p>
               </div>
@@ -289,7 +289,7 @@ export default function LoginPage() {
               <div className="flex flex-wrap gap-3">
                 <GlassLink
                   href="/signup"
-                  label="CrÃ©er un compte"
+                  label="Créer un compte"
                   primary
                   icon={<ArrowRight className="h-4 w-4" />}
                 />
@@ -307,8 +307,8 @@ export default function LoginPage() {
 
               <div className="grid gap-3 sm:grid-cols-3">
                 {[
-                  "Cockpit privÃ©",
-                  "EmployÃ©s IA",
+                  "Cockpit privé",
+                  "Employés IA",
                   "Missions & validations",
                 ].map((item) => (
                   <div
@@ -329,12 +329,12 @@ export default function LoginPage() {
             <div className="liquid-glass liquid-glass--panel liquid-glass--strong rounded-[2rem] p-5 md:p-6">
               <div className="space-y-6">
                 <div>
-                  <p className="cs-eyebrow">AccÃ¨s client</p>
+                  <p className="cs-eyebrow">Accès client</p>
                   <h2 className="mt-3 text-[2rem] font-semibold tracking-[-0.06em] text-[var(--cs-ink-1)]">
                     Connexion
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-[var(--cs-ink-3)]">
-                    Choisissez votre mÃ©thode dâ€™accÃ¨s.
+                    Choisissez votre méthode d’accès.
                   </p>
                 </div>
 
@@ -385,7 +385,7 @@ export default function LoginPage() {
                       <div className="flex gap-3">
                         <Mail className="mt-0.5 h-4 w-4 shrink-0 text-[#6f83ff]" />
                         <p className="text-sm leading-6 text-[var(--cs-ink-3)]">
-                          Un lien de connexion sera envoyÃ© directement Ã  cette adresse.
+                          Un lien de connexion sera envoyé directement à cette adresse.
                         </p>
                       </div>
                     </div>
@@ -407,7 +407,7 @@ export default function LoginPage() {
                     {isLoading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Connexionâ€¦</span>
+                        <span>Connexion…</span>
                       </>
                     ) : (
                       <>
@@ -428,7 +428,7 @@ export default function LoginPage() {
                     href="/signup"
                     className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--cs-ink-1)] transition hover:opacity-70"
                   >
-                    CrÃ©er un compte
+                    Créer un compte
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>

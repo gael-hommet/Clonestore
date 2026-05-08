@@ -13,46 +13,46 @@ export const AGENTS: AgentSpec[] = [
   {
     slug: "pierre",
     name: "Pierre",
-    role: "EmployÃ© IA RH opÃ©rationnel automatisÃ©",
+    role: "Employé IA RH opérationnel automatisé",
     forWho: [
       "Dirigeants de PME",
       "Responsables RH",
       "Office managers",
-      "Fondateurs sans RH dÃ©diÃ©",
+      "Fondateurs sans RH dédié",
       "Managers qui recrutent",
     ],
     does: [
-      "Comprend une demande RH libre et la transforme en mission structurÃ©e",
-      "RÃ©dige et standardise des documents RH prÃªts Ã  relire, valider ou envoyer",
-      "Produit convocations, refus, relances, onboarding, notes internes, courriers RH simples et synthÃ¨ses",
-      "PrÃ©pare des emails RH avec ton adaptÃ© selon lâ€™entreprise et le contexte",
-      "Peut gÃ©nÃ©rer des PDF propres Ã  partir du contenu actif",
-      "Demande les informations manquantes quand une demande nâ€™est pas suffisamment cadrÃ©e",
-      "Peut maintenir une continuitÃ© sur plusieurs tÃ¢ches et plusieurs Ã©tapes",
-      "Peut prÃ©parer des actions email selon le cadre dâ€™autonomie dÃ©fini",
-      "Peut sâ€™appuyer sur lâ€™Empreinte Entreprise pour aligner le ton, les rÃ¨gles et lâ€™identitÃ© dâ€™envoi",
-      "Laisse une trace exploitable dans lâ€™historique et la logique de mission",
+      "Comprend une demande RH libre et la transforme en mission structurée",
+      "Rédige et standardise des documents RH prêts à relire, valider ou envoyer",
+      "Produit convocations, refus, relances, onboarding, notes internes, courriers RH simples et synthèses",
+      "Prépare des emails RH avec ton adapté selon l’entreprise et le contexte",
+      "Peut générer des PDF propres à partir du contenu actif",
+      "Demande les informations manquantes quand une demande n’est pas suffisamment cadrée",
+      "Peut maintenir une continuité sur plusieurs tâches et plusieurs étapes",
+      "Peut préparer des actions email selon le cadre d’autonomie défini",
+      "Peut s’appuyer sur l’Empreinte Entreprise pour aligner le ton, les règles et l’identité d’envoi",
+      "Laisse une trace exploitable dans l’historique et la logique de mission",
     ],
     doesNot: [
       "Ne remplace pas un conseil juridique formel",
-      "Ne prend pas seul des dÃ©cisions disciplinaires sensibles",
-      "Nâ€™invente pas les informations absentes",
-      "Nâ€™est pas vendu comme moteur de scoring massif de CV",
+      "Ne prend pas seul des décisions disciplinaires sensibles",
+      "N’invente pas les informations absentes",
+      "N’est pas vendu comme moteur de scoring massif de CV",
     ],
     examples: [
-      "PrÃ©pare une convocation pour demain Ã  14h avec un ton professionnel et humain.",
-      "Relance ce candidat demain matin si je nâ€™ai pas de rÃ©ponse ce soir.",
-      "PrÃ©pare un mail dâ€™onboarding pour lâ€™arrivÃ©e de LÃ©a lundi.",
+      "Prépare une convocation pour demain à 14h avec un ton professionnel et humain.",
+      "Relance ce candidat demain matin si je n’ai pas de réponse ce soir.",
+      "Prépare un mail d’onboarding pour l’arrivée de Léa lundi.",
       "Refais ce message en plus humain et plus professionnel.",
-      "PrÃ©pare le PDF et garde le document prÃªt Ã  validation.",
+      "Prépare le PDF et garde le document prêt à validation.",
     ],
-    pricingNote: "449â‚¬/mois",
+    pricingNote: "449€/mois",
   },
 
   {
     slug: "clara",
     name: "Clara",
-    role: "EmployÃ© IA recrutement premium",
+    role: "Employé IA recrutement premium",
     forWho: [
       "Dirigeants",
       "Responsables recrutement",
@@ -60,13 +60,13 @@ export const AGENTS: AgentSpec[] = [
       "Managers qui recrutent beaucoup",
     ],
     does: [
-      "Positionnement cible : coordination recrutement, lecture candidats, shortlist et continuitÃ© de pipeline",
-      "Vision produit : absorber une part massive du travail opÃ©rationnel recrutement",
-      "Doit Ã  terme gÃ©rer plusieurs postes et plusieurs flux en parallÃ¨le",
+      "Positionnement cible : coordination recrutement, lecture candidats, shortlist et continuité de pipeline",
+      "Vision produit : absorber une part massive du travail opérationnel recrutement",
+      "Doit à terme gérer plusieurs postes et plusieurs flux en parallèle",
     ],
     doesNot: [
-      "Ne doit pas Ãªtre prÃ©sentÃ©e comme totalement finalisÃ©e tant que son niveau rÃ©el nâ€™est pas confirmÃ© dans le produit",
-      "Ne doit pas Ãªtre vendue comme disponible immÃ©diatement si ce nâ€™est pas le cas",
+      "Ne doit pas être présentée comme totalement finalisée tant que son niveau réel n’est pas confirmé dans le produit",
+      "Ne doit pas être vendue comme disponible immédiatement si ce n’est pas le cas",
     ],
     examples: [
       "En construction",
@@ -79,18 +79,18 @@ export const AGENTS: AgentSpec[] = [
   {
     slug: "emma",
     name: "Emma",
-    role: "EmployÃ© IA support & communication",
+    role: "Employé IA support & communication",
     forWho: [
       "Entreprises avec volume support",
       "Service client",
       "SAV",
-      "Ã‰quipes opÃ©rationnelles",
+      "Équipes opérationnelles",
     ],
     does: [
-      "Positionnement cible : rÃ©ponses, suivi, communication et continuitÃ© relationnelle",
+      "Positionnement cible : réponses, suivi, communication et continuité relationnelle",
     ],
     doesNot: [
-      "Ne doit pas Ãªtre prÃ©sentÃ©e comme finalisÃ©e si le produit rÃ©el ne lâ€™est pas encore",
+      "Ne doit pas être présentée comme finalisée si le produit réel ne l’est pas encore",
     ],
     examples: [
       "En construction",
@@ -103,17 +103,17 @@ export const AGENTS: AgentSpec[] = [
   {
     slug: "alex",
     name: "Alex",
-    role: "EmployÃ© IA opÃ©rations",
+    role: "Employé IA opérations",
     forWho: [
       "Managers",
       "PME",
-      "Ã‰quipes dâ€™exploitation",
+      "Équipes d’exploitation",
     ],
     does: [
-      "Positionnement cible : coordination dâ€™opÃ©rations structurÃ©es et suivi transverse",
+      "Positionnement cible : coordination d’opérations structurées et suivi transverse",
     ],
     doesNot: [
-      "Ne doit pas Ãªtre survendu tant que son produit rÃ©el nâ€™est pas prÃªt",
+      "Ne doit pas être survendu tant que son produit réel n’est pas prêt",
     ],
     examples: [
       "En construction",
@@ -126,7 +126,7 @@ export const AGENTS: AgentSpec[] = [
   {
     slug: "noah",
     name: "Noah",
-    role: "EmployÃ© IA assistant direction",
+    role: "Employé IA assistant direction",
     forWho: [
       "Dirigeants",
       "Managers",
@@ -134,11 +134,11 @@ export const AGENTS: AgentSpec[] = [
       "Structures avec forte charge de pilotage",
     ],
     does: [
-      "Positionnement cible : transformer des notes et des sujets flous en plans clairs, prioritÃ©s, dÃ©cisions et suivis",
+      "Positionnement cible : transformer des notes et des sujets flous en plans clairs, priorités, décisions et suivis",
       "Vision cible : comptes rendus, arbitrages, cadrage et pilotage plus lisible",
     ],
     doesNot: [
-      "Ne doit pas Ãªtre prÃ©sentÃ© comme complÃ¨tement prÃªt si ce nâ€™est pas rÃ©ellement confirmÃ©",
+      "Ne doit pas être présenté comme complètement prêt si ce n’est pas réellement confirmé",
     ],
     examples: [
       "En construction",
@@ -151,17 +151,17 @@ export const AGENTS: AgentSpec[] = [
   {
     slug: "adrien",
     name: "Adrien",
-    role: "EmployÃ© IA commandes & opÃ©rations",
+    role: "Employé IA commandes & opérations",
     forWho: [
       "Entreprises avec flux de commandes",
-      "OpÃ©rations",
+      "Opérations",
       "Back-office",
     ],
     does: [
-      "Positionnement cible : gÃ©rer les commandes avec fiabilitÃ©, rigueur et coÃ»t rÃ©duit",
+      "Positionnement cible : gérer les commandes avec fiabilité, rigueur et coût réduit",
     ],
     doesNot: [
-      "Ne doit pas Ãªtre prÃ©sentÃ© comme dÃ©jÃ  pleinement opÃ©rationnel sans confirmation produit",
+      "Ne doit pas être présenté comme déjà pleinement opérationnel sans confirmation produit",
     ],
     examples: [
       "En construction",
@@ -174,17 +174,17 @@ export const AGENTS: AgentSpec[] = [
   {
     slug: "lucas",
     name: "Lucas",
-    role: "EmployÃ© IA finance opÃ©rationnelle",
+    role: "Employé IA finance opérationnelle",
     forWho: [
       "Dirigeants",
       "Finance",
       "Administration",
     ],
     does: [
-      "Positionnement cible : flux finance, facturation, relances et lecture plus claire des opÃ©rations financiÃ¨res",
+      "Positionnement cible : flux finance, facturation, relances et lecture plus claire des opérations financières",
     ],
     doesNot: [
-      "Ne doit pas Ãªtre prÃ©sentÃ© comme prÃªt tant que le produit rÃ©el ne lâ€™est pas",
+      "Ne doit pas être présenté comme prêt tant que le produit réel ne l’est pas",
     ],
     examples: [
       "En construction",
@@ -197,17 +197,17 @@ export const AGENTS: AgentSpec[] = [
   {
     slug: "sophie",
     name: "Sophie",
-    role: "EmployÃ© IA direction administrative automatisÃ©e",
+    role: "Employé IA direction administrative automatisée",
     forWho: [
       "Dirigeants",
       "Administration",
       "Back-office",
     ],
     does: [
-      "Positionnement cible : absorber une part forte de lâ€™administratif et de la coordination interne",
+      "Positionnement cible : absorber une part forte de l’administratif et de la coordination interne",
     ],
     doesNot: [
-      "Ne doit pas Ãªtre prÃ©sentÃ©e comme active si elle nâ€™est pas rÃ©ellement disponible",
+      "Ne doit pas être présentée comme active si elle n’est pas réellement disponible",
     ],
     examples: [
       "En construction",

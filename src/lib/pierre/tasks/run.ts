@@ -99,7 +99,7 @@ export function decidePierreTaskRun(
     return {
       allowed: false,
       next_status: normalizedStatus,
-      reason: "La tÃ¢che est dÃ©jÃ  dans un Ã©tat terminal.",
+      reason: "La tâche est déjà dans un état terminal.",
       run_code: "TERMINAL_STATUS",
     };
   }
@@ -108,7 +108,7 @@ export function decidePierreTaskRun(
     return {
       allowed: false,
       next_status: "running",
-      reason: "La tÃ¢che est dÃ©jÃ  en cours dâ€™exÃ©cution.",
+      reason: "La tâche est déjà en cours d’exécution.",
       run_code: "ALREADY_RUNNING",
     };
   }
@@ -117,7 +117,7 @@ export function decidePierreTaskRun(
     return {
       allowed: false,
       next_status: "awaiting_approval",
-      reason: "La tÃ¢che attend une validation humaine explicite.",
+      reason: "La tâche attend une validation humaine explicite.",
       run_code: "AWAITING_APPROVAL",
     };
   }
@@ -126,7 +126,7 @@ export function decidePierreTaskRun(
     return {
       allowed: false,
       next_status: "awaiting_info",
-      reason: "La tÃ¢che attend encore des informations essentielles.",
+      reason: "La tâche attend encore des informations essentielles.",
       run_code: "AWAITING_INFO",
     };
   }
@@ -135,7 +135,7 @@ export function decidePierreTaskRun(
     return {
       allowed: false,
       next_status: "blocked",
-      reason: "La tÃ¢che est bloquÃ©e et doit Ãªtre dÃ©bloquÃ©e avant exÃ©cution.",
+      reason: "La tâche est bloquée et doit être débloquée avant exécution.",
       run_code: "BLOCKED",
     };
   }
@@ -144,7 +144,7 @@ export function decidePierreTaskRun(
     return {
       allowed: false,
       next_status: "scheduled",
-      reason: "La tÃ¢che est planifiÃ©e pour plus tard et ne doit pas encore dÃ©marrer.",
+      reason: "La tâche est planifiée pour plus tard et ne doit pas encore démarrer.",
       run_code: "SCHEDULED_FUTURE",
     };
   }
@@ -153,7 +153,7 @@ export function decidePierreTaskRun(
     return {
       allowed: false,
       next_status: "awaiting_approval",
-      reason: "La tÃ¢che requiert une validation humaine avant exÃ©cution.",
+      reason: "La tâche requiert une validation humaine avant exécution.",
       run_code: "AWAITING_APPROVAL",
     };
   }
@@ -162,7 +162,7 @@ export function decidePierreTaskRun(
     return {
       allowed: false,
       next_status: "awaiting_info",
-      reason: "Le payload de la tÃ¢che signale des informations manquantes.",
+      reason: "Le payload de la tâche signale des informations manquantes.",
       run_code: "AWAITING_INFO",
     };
   }
@@ -171,7 +171,7 @@ export function decidePierreTaskRun(
     return {
       allowed: false,
       next_status: normalizedStatus,
-      reason: "Le statut actuel nâ€™autorise pas un lancement immÃ©diat.",
+      reason: "Le statut actuel n’autorise pas un lancement immédiat.",
       run_code: "INVALID_STATUS",
     };
   }
@@ -179,7 +179,7 @@ export function decidePierreTaskRun(
   return {
     allowed: true,
     next_status: "running",
-    reason: "La tÃ¢che est autorisÃ©e Ã  dÃ©marrer maintenant.",
+    reason: "La tâche est autorisée à démarrer maintenant.",
     run_code: "NONE",
   };
 }

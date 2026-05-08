@@ -118,9 +118,9 @@ function normalizeRisk(value: unknown): RiskLevel {
 }
 
 function formatDate(value?: string | null) {
-  if (!value) return "â€”";
+  if (!value) return "—";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "â€”";
+  if (Number.isNaN(date.getTime())) return "—";
 
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
@@ -141,15 +141,15 @@ function statusLabel(status: TaskStatus) {
     case "awaiting_approval":
       return "Validation requise";
     case "scheduled":
-      return "PlanifiÃ©e";
+      return "Planifiée";
     case "blocked":
-      return "BloquÃ©e";
+      return "Bloquée";
     case "completed":
-      return "TerminÃ©e";
+      return "Terminée";
     case "cancelled":
-      return "AnnulÃ©e";
+      return "Annulée";
     case "failed":
-      return "Ã‰chec";
+      return "Échec";
     default:
       return "Inconnu";
   }
@@ -186,7 +186,7 @@ function riskLabel(risk: RiskLevel) {
     case "critical":
       return "Critique";
     default:
-      return "Non dÃ©fini";
+      return "Non défini";
   }
 }
 
@@ -359,7 +359,7 @@ function TaskExecutionCard({
             </div>
 
             <h3 className="mt-3 text-base font-semibold text-stone-900">
-              {asString(task.title) || asString(task.type) || "TÃ¢che sans titre"}
+              {asString(task.title) || asString(task.type) || "Tâche sans titre"}
             </h3>
 
             {asString(task.description) ? (
@@ -370,11 +370,11 @@ function TaskExecutionCard({
           </div>
 
           <div className="grid min-w-[210px] gap-2 text-right text-xs text-stone-500">
-            <div>CrÃ©Ã©e : {formatDate(task.created_at)}</div>
-            <div>MÃ j : {formatDate(task.updated_at)}</div>
-            {task.scheduled_for ? <div>PrÃ©vue : {formatDate(task.scheduled_for)}</div> : null}
-            {task.started_at ? <div>DÃ©marrÃ©e : {formatDate(task.started_at)}</div> : null}
-            {task.completed_at ? <div>TerminÃ©e : {formatDate(task.completed_at)}</div> : null}
+            <div>Créée : {formatDate(task.created_at)}</div>
+            <div>Màj : {formatDate(task.updated_at)}</div>
+            {task.scheduled_for ? <div>Prévue : {formatDate(task.scheduled_for)}</div> : null}
+            {task.started_at ? <div>Démarrée : {formatDate(task.started_at)}</div> : null}
+            {task.completed_at ? <div>Terminée : {formatDate(task.completed_at)}</div> : null}
           </div>
         </div>
 
@@ -384,12 +384,12 @@ function TaskExecutionCard({
             <div className="mt-3 flex flex-wrap gap-2">
               {signals.hasValidationSignal ? <SignalPill tone="warn">Validation humaine requise</SignalPill> : null}
               {signals.hasMissingInfoSignal ? <SignalPill tone="warn">Informations manquantes</SignalPill> : null}
-              {signals.hasScheduleSignal ? <SignalPill>Action planifiÃ©e</SignalPill> : null}
+              {signals.hasScheduleSignal ? <SignalPill>Action planifiée</SignalPill> : null}
               {!signals.hasValidationSignal &&
               !signals.hasMissingInfoSignal &&
               !signals.hasScheduleSignal &&
               !signals.hasBlockSignal ? (
-                <SignalPill tone="good">ExÃ©cutable proprement</SignalPill>
+                <SignalPill tone="good">Exécutable proprement</SignalPill>
               ) : null}
             </div>
           </div>
@@ -400,14 +400,14 @@ function TaskExecutionCard({
               {relatedDocument ? (
                 <div className="space-y-1">
                   <div className="font-medium text-stone-900">
-                    {asString(relatedDocument.title) || asString(relatedDocument.filename) || "Document liÃ©"}
+                    {asString(relatedDocument.title) || asString(relatedDocument.filename) || "Document lié"}
                   </div>
                   {asString(relatedDocument.status) ? (
                     <div className="text-xs text-stone-500">Statut : {asString(relatedDocument.status)}</div>
                   ) : null}
                 </div>
               ) : (
-                <span className="text-stone-500">Aucun document liÃ©.</span>
+                <span className="text-stone-500">Aucun document lié.</span>
               )}
             </div>
           </div>
@@ -418,14 +418,14 @@ function TaskExecutionCard({
               {relatedEmail ? (
                 <div className="space-y-1">
                   <div className="font-medium text-stone-900">
-                    {asString(relatedEmail.subject) || "Email liÃ©"}
+                    {asString(relatedEmail.subject) || "Email lié"}
                   </div>
                   {asString(relatedEmail.status) ? (
                     <div className="text-xs text-stone-500">Statut : {asString(relatedEmail.status)}</div>
                   ) : null}
                 </div>
               ) : (
-                <span className="text-stone-500">Aucun email liÃ©.</span>
+                <span className="text-stone-500">Aucun email lié.</span>
               )}
             </div>
           </div>
@@ -444,7 +444,7 @@ function TaskExecutionCard({
           <div className="rounded-[22px] border border-stone-200 bg-[#fcfaf6] px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <div className="text-[11px] uppercase tracking-[0.16em] text-stone-500">Derniers logs</div>
-              <div className="text-xs text-stone-400">{signals.linkedLogs.length} entrÃ©e(s)</div>
+              <div className="text-xs text-stone-400">{signals.linkedLogs.length} entrée(s)</div>
             </div>
 
             <div className="mt-3 space-y-2">
@@ -573,13 +573,13 @@ export default function PierreExecutionBoard({
   }, [logs]);
 
   const heartbeatText = useMemo(() => {
-    if (stats.running > 0) return "Pierre exÃ©cute actuellement des tÃ¢ches.";
+    if (stats.running > 0) return "Pierre exécute actuellement des tâches.";
     if (stats.awaitingApproval > 0) return "Des validations humaines sont requises.";
     if (stats.awaitingInfo > 0) return "Des informations sont attendues pour poursuivre.";
-    if (stats.blocked > 0 || stats.failed > 0) return "Le flux contient des blocages Ã  traiter.";
-    if (stats.queued > 0 || stats.scheduled > 0) return "Des tÃ¢ches sont prÃªtes ou planifiÃ©es.";
-    if (stats.completed > 0 && stats.total === stats.completed) return "Le cycle courant est proprement clÃ´turÃ©.";
-    return "Aucune exÃ©cution active pour le moment.";
+    if (stats.blocked > 0 || stats.failed > 0) return "Le flux contient des blocages à traiter.";
+    if (stats.queued > 0 || stats.scheduled > 0) return "Des tâches sont prêtes ou planifiées.";
+    if (stats.completed > 0 && stats.total === stats.completed) return "Le cycle courant est proprement clôturé.";
+    return "Aucune exécution active pour le moment.";
   }, [stats]);
 
   return (
@@ -588,14 +588,14 @@ export default function PierreExecutionBoard({
         <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div className="max-w-[980px]">
             <div className="text-[11px] uppercase tracking-[0.22em] text-stone-500">
-              Pilotage opÃ©rationnel
+              Pilotage opérationnel
             </div>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-stone-950">
-              Tableau dâ€™exÃ©cution Pierre
+              Tableau d’exécution Pierre
             </h2>
             <p className="mt-3 text-sm leading-7 text-stone-600">
-              Vue centralisÃ©e des tÃ¢ches actives, validations, blocages, rythme dâ€™exÃ©cution, signaux de
-              risque et artefacts liÃ©s Ã  la mission RH en cours.
+              Vue centralisée des tâches actives, validations, blocages, rythme d’exécution, signaux de
+              risque et artefacts liés à la mission RH en cours.
             </p>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -622,18 +622,18 @@ export default function PierreExecutionBoard({
             <div className="mt-3 text-base font-semibold text-stone-900">{heartbeatText}</div>
             <div className="mt-4 grid gap-2 text-sm text-stone-600">
               <div>Mission : {asString(mission?.title) || "Aucune mission active"}</div>
-              <div>Mise Ã  jour : {formatDate(mission?.updated_at || mission?.created_at || null)}</div>
+              <div>Mise à jour : {formatDate(mission?.updated_at || mission?.created_at || null)}</div>
               <div>Logs actifs : {logs.length}</div>
             </div>
           </div>
         </div>
 
         <div className="grid gap-3 xl:grid-cols-5">
-          <StatCard label="En cours" value={stats.running} hint="TÃ¢ches exÃ©cutÃ©es maintenant" tone={stats.running > 0 ? "good" : "default"} />
-          <StatCard label="Validation" value={stats.awaitingApproval} hint="Actions Ã  valider" tone={stats.awaitingApproval > 0 ? "warn" : "default"} />
-          <StatCard label="Infos requises" value={stats.awaitingInfo} hint="Ã‰lÃ©ments manquants" tone={stats.awaitingInfo > 0 ? "warn" : "default"} />
-          <StatCard label="Blocages" value={stats.blocked + stats.failed} hint="Erreurs ou arrÃªts" tone={stats.blocked + stats.failed > 0 ? "critical" : "default"} />
-          <StatCard label="TerminÃ©es" value={stats.completed} hint="TÃ¢ches clÃ´turÃ©es" tone={stats.completed > 0 ? "good" : "default"} />
+          <StatCard label="En cours" value={stats.running} hint="Tâches exécutées maintenant" tone={stats.running > 0 ? "good" : "default"} />
+          <StatCard label="Validation" value={stats.awaitingApproval} hint="Actions à valider" tone={stats.awaitingApproval > 0 ? "warn" : "default"} />
+          <StatCard label="Infos requises" value={stats.awaitingInfo} hint="Éléments manquants" tone={stats.awaitingInfo > 0 ? "warn" : "default"} />
+          <StatCard label="Blocages" value={stats.blocked + stats.failed} hint="Erreurs ou arrêts" tone={stats.blocked + stats.failed > 0 ? "critical" : "default"} />
+          <StatCard label="Terminées" value={stats.completed} hint="Tâches clôturées" tone={stats.completed > 0 ? "good" : "default"} />
         </div>
 
         <div className="grid gap-4 2xl:grid-cols-[1.1fr_1.1fr_1fr]">
@@ -641,7 +641,7 @@ export default function PierreExecutionBoard({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-[11px] uppercase tracking-[0.16em] text-stone-500">Flux prioritaire</div>
-                <div className="mt-2 text-lg font-semibold text-stone-900">ExÃ©cution immÃ©diate</div>
+                <div className="mt-2 text-lg font-semibold text-stone-900">Exécution immédiate</div>
               </div>
               <SignalPill>{lanes.running.length + lanes.approval.length + lanes.info.length}</SignalPill>
             </div>
@@ -649,7 +649,7 @@ export default function PierreExecutionBoard({
             <div className="mt-4 space-y-3">
               {[...lanes.running, ...lanes.approval, ...lanes.info].length === 0 ? (
                 <div className="rounded-[22px] border border-dashed border-stone-200 bg-[#fcfaf6] px-4 py-8 text-sm text-stone-500">
-                  Aucun point chaud immÃ©diat.
+                  Aucun point chaud immédiat.
                 </div>
               ) : (
                 [...lanes.running, ...lanes.approval, ...lanes.info].map((task, index) => (
@@ -669,7 +669,7 @@ export default function PierreExecutionBoard({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-[11px] uppercase tracking-[0.16em] text-stone-500">Queue logique</div>
-                <div className="mt-2 text-lg font-semibold text-stone-900">Ã€ exÃ©cuter ensuite</div>
+                <div className="mt-2 text-lg font-semibold text-stone-900">À exécuter ensuite</div>
               </div>
               <SignalPill>{lanes.queue.length}</SignalPill>
             </div>
@@ -677,7 +677,7 @@ export default function PierreExecutionBoard({
             <div className="mt-4 space-y-3">
               {lanes.queue.length === 0 ? (
                 <div className="rounded-[22px] border border-dashed border-stone-200 bg-[#fcfaf6] px-4 py-8 text-sm text-stone-500">
-                  Aucune tÃ¢che en file pour le moment.
+                  Aucune tâche en file pour le moment.
                 </div>
               ) : (
                 lanes.queue.map((task, index) => (
@@ -708,7 +708,7 @@ export default function PierreExecutionBoard({
               <div className="mt-4 space-y-3">
                 {lanes.blocked.length === 0 && recentCriticalLogs.length === 0 ? (
                   <div className="rounded-[22px] border border-dashed border-stone-200 bg-[#fcfaf6] px-4 py-8 text-sm text-stone-500">
-                    Aucun blocage majeur dÃ©tectÃ©.
+                    Aucun blocage majeur détecté.
                   </div>
                 ) : (
                   <>
@@ -720,12 +720,12 @@ export default function PierreExecutionBoard({
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <div className="text-sm font-semibold text-rose-900">
-                              {asString(task.title) || asString(task.type) || "TÃ¢che bloquÃ©e"}
+                              {asString(task.title) || asString(task.type) || "Tâche bloquée"}
                             </div>
                             <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-rose-800">
                               {asString(task.blocked_reason) ||
                                 asString(task.error_message) ||
-                                "Blocage dÃ©tectÃ© sans dÃ©tail supplÃ©mentaire."}
+                                "Blocage détecté sans détail supplémentaire."}
                             </div>
                           </div>
                           <div className="text-[11px] text-rose-700">{formatDate(task.updated_at || task.created_at)}</div>
@@ -759,8 +759,8 @@ export default function PierreExecutionBoard({
             <div className="rounded-[28px] border border-stone-200 bg-white/85 p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-[11px] uppercase tracking-[0.16em] text-stone-500">Cycle clÃ´turÃ©</div>
-                  <div className="mt-2 text-lg font-semibold text-stone-900">TerminÃ©es</div>
+                  <div className="text-[11px] uppercase tracking-[0.16em] text-stone-500">Cycle clôturé</div>
+                  <div className="mt-2 text-lg font-semibold text-stone-900">Terminées</div>
                 </div>
                 <SignalPill tone={stats.completed > 0 ? "good" : "default"}>{lanes.done.length}</SignalPill>
               </div>
@@ -768,7 +768,7 @@ export default function PierreExecutionBoard({
               <div className="mt-4 space-y-3">
                 {lanes.done.length === 0 ? (
                   <div className="rounded-[22px] border border-dashed border-stone-200 bg-[#fcfaf6] px-4 py-8 text-sm text-stone-500">
-                    Aucune tÃ¢che terminÃ©e dans ce cycle.
+                    Aucune tâche terminée dans ce cycle.
                   </div>
                 ) : (
                   lanes.done.slice(0, 6).map((task, index) => (
@@ -779,7 +779,7 @@ export default function PierreExecutionBoard({
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="text-sm font-semibold text-emerald-900">
-                            {asString(task.title) || asString(task.type) || "TÃ¢che terminÃ©e"}
+                            {asString(task.title) || asString(task.type) || "Tâche terminée"}
                           </div>
                           {asString(task.description) ? (
                             <div className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-emerald-800">

@@ -10,7 +10,7 @@ export default function Header() {
         <Link
           href="/"
           className="inline-flex items-center transition-opacity hover:opacity-95"
-          aria-label="Retour Ã  lâ€™accueil CloneStore"
+          aria-label="Retour à l’accueil CloneStore"
         >
           <Mark withWordmark />
         </Link>

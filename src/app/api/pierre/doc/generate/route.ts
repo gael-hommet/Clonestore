@@ -264,7 +264,7 @@ function normalizeDocType(value: string | null | undefined): string {
   if (type.includes("onboarding")) return "onboarding";
   if (type.includes("note")) return "note_rh";
   if (type.includes("procedure")) return "rappel_procedure";
-  if (type.includes("procÃ©dure")) return "rappel_procedure";
+  if (type.includes("procédure")) return "rappel_procedure";
   if (type.includes("compte")) return "compte_rendu";
   if (type.includes("courrier")) return "courrier_rh";
 
@@ -276,19 +276,19 @@ function inferTitle(body: GenerateDocumentBody, docType: string): string {
 
   switch (docType) {
     case "offre_emploi":
-      return "Offre dâ€™emploi";
+      return "Offre d’emploi";
     case "convocation_entretien":
-      return "Convocation dâ€™entretien";
+      return "Convocation d’entretien";
     case "refus_candidat":
       return "Refus de candidature";
     case "relance_rh":
       return "Relance RH";
     case "onboarding":
-      return "Document dâ€™onboarding";
+      return "Document d’onboarding";
     case "note_rh":
       return "Note RH";
     case "rappel_procedure":
-      return "Rappel de procÃ©dure";
+      return "Rappel de procédure";
     case "compte_rendu":
       return "Compte rendu RH";
     case "courrier_rh":
@@ -304,7 +304,7 @@ function inferRisk(instructions: string, docType: string): MissionRiskLevel {
   const criticalSignals = [
     "licenciement",
     "sanction disciplinaire",
-    "harcÃ¨lement",
+    "harcèlement",
     "harcelement",
     "contentieux",
     "prud'hommes",
@@ -313,10 +313,10 @@ function inferRisk(instructions: string, docType: string): MissionRiskLevel {
 
   const sensitiveSignals = [
     "avertissement",
-    "mise Ã  pied",
+    "mise à pied",
     "mise a pied",
     "conflit",
-    "absence injustifiÃ©e",
+    "absence injustifiée",
     "absence injustifiee",
     "salaire",
     "confidentiel",
@@ -425,12 +425,12 @@ function buildDocumentText(params: {
   const intro =
     language === "en"
       ? `This HR document was prepared by Pierre as a premium operational draft.`
-      : `Ce document RH a Ã©tÃ© prÃ©parÃ© par Pierre comme brouillon opÃ©rationnel premium.`;
+      : `Ce document RH a été préparé par Pierre comme brouillon opérationnel premium.`;
 
   const toneLine =
     language === "en"
       ? `Requested tone: ${tone}.`
-      : `Ton demandÃ© : ${tone}.`;
+      : `Ton demandé : ${tone}.`;
 
   const memoryTone = memory?.tone_guide
     ? language === "en"
@@ -444,7 +444,7 @@ function buildDocumentText(params: {
       : `Contexte : ${context}`
     : language === "en"
       ? `No additional context was provided.`
-      : `Aucun contexte complÃ©mentaire nâ€™a Ã©tÃ© fourni.`;
+      : `Aucun contexte complémentaire n’a été fourni.`;
 
   const mainBody =
     language === "en"
@@ -468,7 +468,7 @@ function buildDocumentText(params: {
           memoryTone,
           contextLine,
           `Instructions de mission : ${instructions}`,
-          `Note opÃ©rationnelle : ce brouillon doit rester modifiable, traÃ§able et soumis Ã  validation humaine quand nÃ©cessaire.`,
+          `Note opérationnelle : ce brouillon doit rester modifiable, traçable et soumis à validation humaine quand nécessaire.`,
         ]
           .filter(Boolean)
           .join("\n\n");
@@ -502,8 +502,8 @@ function buildDocumentHtml(params: {
 
   const subtitle =
     language === "en"
-      ? `HR premium draft Â· ${docType} Â· tone ${tone} Â· risk ${risk}`
-      : `Brouillon RH premium Â· ${docType} Â· ton ${tone} Â· risque ${risk}`;
+      ? `HR premium draft · ${docType} · tone ${tone} · risk ${risk}`
+      : `Brouillon RH premium · ${docType} · ton ${tone} · risque ${risk}`;
 
   return `
     <article>
@@ -649,7 +649,7 @@ export async function POST(request: NextRequest) {
     await insertMissionLogIfNeeded({
       supabaseAdmin,
       missionId: mission ? (mission.id as string) : null,
-      message: `Document gÃ©nÃ©rÃ© : ${title}`,
+      message: `Document généré : ${title}`,
       payload: {
         document_id: document.id,
         doc_type: docType,

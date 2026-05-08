@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { interpretPierreMission } from "@/lib/pierre/mission/interpret";
 
 describe("interpretPierreMission", () => {
-  it("dÃ©tecte une mission email simple", () => {
+  it("détecte une mission email simple", () => {
     const result = interpretPierreMission(
-      "Envoie un mail Ã  jean.dupont@gmail.com pour confirmer l'entretien."
+      "Envoie un mail à jean.dupont@gmail.com pour confirmer l'entretien."
     );
 
     expect(result.intent).toBe("rh_email");
@@ -14,9 +14,9 @@ describe("interpretPierreMission", () => {
     expect(result.missing_info.length).toBe(0);
   });
 
-  it("dÃ©tecte une mission document + email", () => {
+  it("détecte une mission document + email", () => {
     const result = interpretPierreMission(
-      "PrÃ©pare une convocation et envoie-la Ã  candidat@test.com"
+      "Prépare une convocation et envoie-la à candidat@test.com"
     );
 
     expect(result.intent).toBe("rh_doc_plus_email");
@@ -24,7 +24,7 @@ describe("interpretPierreMission", () => {
     expect(result.tasks.some((task) => task.type === "email.send")).toBe(true);
   });
 
-  it("dÃ©tecte une demande hors pÃ©rimÃ¨tre", () => {
+  it("détecte une demande hors périmètre", () => {
     const result = interpretPierreMission(
       "Lance une campagne massive de cold emailing"
     );
@@ -35,7 +35,7 @@ describe("interpretPierreMission", () => {
     expect(result.approval_required).toBe(true);
   });
 
-  it("dÃ©tecte missing_info quand un email est demandÃ© sans destinataire", () => {
+  it("détecte missing_info quand un email est demandé sans destinataire", () => {
     const result = interpretPierreMission(
       "Envoie un mail de convocation pour demain"
     );
@@ -46,9 +46,9 @@ describe("interpretPierreMission", () => {
     ).toBe(true);
   });
 
-  it("dÃ©tecte une rÃ©Ã©criture", () => {
+  it("détecte une réécriture", () => {
     const result = interpretPierreMission(
-      "RÃ©Ã©cris ce courrier pour le rendre plus pro"
+      "Réécris ce courrier pour le rendre plus pro"
     );
 
     expect(result.intent).toBe("rh_rewrite");

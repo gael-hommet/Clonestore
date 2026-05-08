@@ -141,23 +141,23 @@ function buildDocumentTitle(
 ): string {
   switch (classification) {
     case "offre_emploi":
-      return "Produire lâ€™offre dâ€™emploi";
+      return "Produire l’offre d’emploi";
     case "convocation_entretien":
-      return "RÃ©diger la convocation dâ€™entretien";
+      return "Rédiger la convocation d’entretien";
     case "refus_candidat":
-      return "RÃ©diger le refus candidat";
+      return "Rédiger le refus candidat";
     case "onboarding":
-      return "PrÃ©parer le document dâ€™onboarding";
+      return "Préparer le document d’onboarding";
     case "note_rh":
-      return "RÃ©diger la note RH";
+      return "Rédiger la note RH";
     case "rappel_procedure":
-      return "RÃ©diger le rappel de procÃ©dure";
+      return "Rédiger le rappel de procédure";
     case "compte_rendu":
-      return "RÃ©diger le compte rendu";
+      return "Rédiger le compte rendu";
     case "courrier_rh":
-      return "RÃ©diger le courrier RH";
+      return "Rédiger le courrier RH";
     case "communication_interne_rh":
-      return "RÃ©diger la communication RH interne";
+      return "Rédiger la communication RH interne";
     default:
       return "Produire le document RH";
   }
@@ -168,25 +168,25 @@ function buildDocumentDescription(
 ): string {
   switch (classification) {
     case "offre_emploi":
-      return "CrÃ©er une offre dâ€™emploi claire, crÃ©dible, structurÃ©e et alignÃ©e avec le ton de lâ€™entreprise.";
+      return "Créer une offre d’emploi claire, crédible, structurée et alignée avec le ton de l’entreprise.";
     case "convocation_entretien":
-      return "RÃ©diger une convocation dâ€™entretien propre, lisible, prÃ©cise et professionnelle.";
+      return "Rédiger une convocation d’entretien propre, lisible, précise et professionnelle.";
     case "refus_candidat":
-      return "RÃ©diger un refus candidat respectueux, humain et traÃ§able.";
+      return "Rédiger un refus candidat respectueux, humain et traçable.";
     case "onboarding":
-      return "PrÃ©parer un document dâ€™intÃ©gration clair, opÃ©rationnel et rassurant.";
+      return "Préparer un document d’intégration clair, opérationnel et rassurant.";
     case "note_rh":
       return "Structurer une note RH propre et facilement diffusable.";
     case "rappel_procedure":
-      return "RÃ©diger un rappel de procÃ©dure clair, ferme si nÃ©cessaire, et comprÃ©hensible.";
+      return "Rédiger un rappel de procédure clair, ferme si nécessaire, et compréhensible.";
     case "compte_rendu":
-      return "Formaliser un compte rendu RH exploitable, propre et traÃ§able.";
+      return "Formaliser un compte rendu RH exploitable, propre et traçable.";
     case "courrier_rh":
-      return "RÃ©diger un courrier RH formel, cohÃ©rent et maÃ®trisÃ©.";
+      return "Rédiger un courrier RH formel, cohérent et maîtrisé.";
     case "communication_interne_rh":
-      return "PrÃ©parer une communication interne RH claire et bien cadrÃ©e.";
+      return "Préparer une communication interne RH claire et bien cadrée.";
     default:
-      return "Produire un livrable RH premium Ã  partir de la mission libre.";
+      return "Produire un livrable RH premium à partir de la mission libre.";
   }
 }
 
@@ -195,17 +195,17 @@ function buildEmailTitle(
 ): string {
   switch (classification) {
     case "convocation_entretien":
-      return "PrÃ©parer lâ€™email de convocation";
+      return "Préparer l’email de convocation";
     case "refus_candidat":
-      return "PrÃ©parer lâ€™email de refus";
+      return "Préparer l’email de refus";
     case "relance_candidat":
-      return "PrÃ©parer lâ€™email de relance";
+      return "Préparer l’email de relance";
     case "onboarding":
-      return "PrÃ©parer lâ€™email dâ€™onboarding";
+      return "Préparer l’email d’onboarding";
     case "communication_interne_rh":
-      return "PrÃ©parer lâ€™email de communication interne";
+      return "Préparer l’email de communication interne";
     default:
-      return "PrÃ©parer lâ€™email RH";
+      return "Préparer l’email RH";
   }
 }
 
@@ -214,17 +214,17 @@ function buildEmailDescription(
 ): string {
   switch (classification) {
     case "convocation_entretien":
-      return "PrÃ©parer un email clair de convocation dâ€™entretien avec les informations pratiques nÃ©cessaires.";
+      return "Préparer un email clair de convocation d’entretien avec les informations pratiques nécessaires.";
     case "refus_candidat":
-      return "PrÃ©parer un email de refus candidat propre, respectueux et cohÃ©rent avec lâ€™image de lâ€™entreprise.";
+      return "Préparer un email de refus candidat propre, respectueux et cohérent avec l’image de l’entreprise.";
     case "relance_candidat":
-      return "PrÃ©parer un email de relance RH clair, poli et actionnable.";
+      return "Préparer un email de relance RH clair, poli et actionnable.";
     case "onboarding":
-      return "PrÃ©parer un email dâ€™intÃ©gration structurÃ© et rassurant.";
+      return "Préparer un email d’intégration structuré et rassurant.";
     case "communication_interne_rh":
-      return "PrÃ©parer un email interne RH lisible et directement diffusable.";
+      return "Préparer un email interne RH lisible et directement diffusable.";
     default:
-      return "PrÃ©parer un email RH traÃ§able, cohÃ©rent et contrÃ´lable.";
+      return "Préparer un email RH traçable, cohérent et contrôlable.";
   }
 }
 
@@ -293,13 +293,13 @@ export function buildMissionTasks(
     lower.includes("pdf") ||
     lower.includes("export") ||
     lower.includes("piece jointe") ||
-    lower.includes("piÃ¨ce jointe")
+    lower.includes("pièce jointe")
   ) {
     tasks.push({
       type: "generate_pdf",
-      title: "PrÃ©parer lâ€™export PDF",
+      title: "Préparer l’export PDF",
       description:
-        "GÃ©nÃ©rer un PDF propre Ã  partir du livrable RH final ou dâ€™un document joint Ã  une communication.",
+        "Générer un PDF propre à partir du livrable RH final ou d’un document joint à une communication.",
       status: commonStatus,
       approval_required: input.approval_required,
       risk_level: input.risk_level,
@@ -313,13 +313,13 @@ export function buildMissionTasks(
   if (
     lower.includes("relance") ||
     lower.includes("si pas de reponse") ||
-    lower.includes("si pas de rÃ©ponse")
+    lower.includes("si pas de réponse")
   ) {
     tasks.push({
       type: "schedule_follow_up",
-      title: "PrÃ©parer la relance RH",
+      title: "Préparer la relance RH",
       description:
-        "Programmer une relance propre, traÃ§able et contrÃ´lÃ©e si aucune rÃ©ponse nâ€™est obtenue.",
+        "Programmer une relance propre, traçable et contrôlée si aucune réponse n’est obtenue.",
       status:
         blockedByRefusal
           ? "blocked"
@@ -341,7 +341,7 @@ export function buildMissionTasks(
       type: "request_missing_info",
       title: "Demander les informations manquantes",
       description:
-        "Suspendre lâ€™exÃ©cution complÃ¨te tant que les informations essentielles Ã  une action RH propre et sÃ»re ne sont pas rÃ©unies.",
+        "Suspendre l’exécution complète tant que les informations essentielles à une action RH propre et sûre ne sont pas réunies.",
       status: "awaiting_info",
       approval_required: false,
       risk_level: input.risk_level,
@@ -359,7 +359,7 @@ export function buildMissionTasks(
       type: "block_mission",
       title: "Bloquer la mission",
       description:
-        "EmpÃªcher lâ€™exÃ©cution tant que la demande reste hors pÃ©rimÃ¨tre ou incompatible avec les rÃ¨gles de sÃ©curitÃ© RH de Pierre.",
+        "Empêcher l’exécution tant que la demande reste hors périmètre ou incompatible avec les règles de sécurité RH de Pierre.",
       status: "blocked",
       approval_required: true,
       risk_level: input.risk_level,
@@ -376,7 +376,7 @@ export function buildMissionTasks(
       type: "structure_mission",
       title: "Structurer la mission RH",
       description:
-        "CrÃ©er un cadre dâ€™exÃ©cution RH exploitable Ã  partir de la demande libre.",
+        "Créer un cadre d’exécution RH exploitable à partir de la demande libre.",
       status: commonStatus,
       approval_required: input.approval_required,
       risk_level: input.risk_level,

@@ -37,7 +37,7 @@ export async function rewritePierreDocument(
     safeString(payload.raw_input);
 
   if (!originalText) {
-    throw new Error("Aucun contenu Ã  rÃ©Ã©crire nâ€™a Ã©tÃ© trouvÃ© pour cette task.");
+    throw new Error("Aucun contenu à réécrire n’a été trouvé pour cette task.");
   }
 
   const companyName = safeString(payload.company_name) || null;
@@ -86,7 +86,7 @@ export async function rewritePierreDocument(
       throw new Error(
         typeof parsed.error === "string"
           ? parsed.error
-          : "Le moteur de rÃ©Ã©criture Pierre a Ã©chouÃ©."
+          : "Le moteur de réécriture Pierre a échoué."
       );
     }
 

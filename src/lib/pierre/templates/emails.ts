@@ -8,7 +8,7 @@ function greeting(tone: Tone, candidateName?: string) {
 }
 
 function signature(companyName?: string) {
-  return `${companyName || "Lâ€™Ã©quipe RH"}`;
+  return `${companyName || "L’équipe RH"}`;
 }
 
 export function rejectionEmailHTML(params: {
@@ -20,16 +20,16 @@ export function rejectionEmailHTML(params: {
 }) {
   const reasonLine = params.reason?.trim()
     ? `<p>${params.reason.trim()}</p>`
-    : `<p>AprÃ¨s Ã©tude attentive de votre candidature, nous avons dÃ©cidÃ© de poursuivre avec un autre profil.</p>`;
+    : `<p>Après étude attentive de votre candidature, nous avons décidé de poursuivre avec un autre profil.</p>`;
 
   return `
 <p>${greeting(params.tone, params.candidateName)}</p>
 
-<p>Merci pour lâ€™intÃ©rÃªt portÃ© au poste de <strong>${params.jobTitle || "ce poste"}</strong>.</p>
+<p>Merci pour l’intérêt porté au poste de <strong>${params.jobTitle || "ce poste"}</strong>.</p>
 
 ${reasonLine}
 
-<p>Nous vous remercions pour le temps consacrÃ© Ã  votre candidature et vous souhaitons une excellente continuation.</p>
+<p>Nous vous remercions pour le temps consacré à votre candidature et vous souhaitons une excellente continuation.</p>
 
 <p>Bien cordialement,<br/>${signature(params.companyName)}</p>
 `.trim();
@@ -51,22 +51,22 @@ export function inviteEmailHTML(params: {
       ? `${params.durationMinutes} min`
       : "45 min";
 
-  const location = params.interviewLocation || "en visioconfÃ©rence / sur site (Ã  confirmer)";
-  const date = params.interviewDate || "date Ã  confirmer";
-  const time = params.interviewTime || "heure Ã  confirmer";
+  const location = params.interviewLocation || "en visioconférence / sur site (à confirmer)";
+  const date = params.interviewDate || "date à confirmer";
+  const time = params.interviewTime || "heure à confirmer";
 
   return `
 <p>${greeting(params.tone, params.candidateName)}</p>
 
 <p>Merci pour votre candidature au poste de <strong>${params.jobTitle || "ce poste"}</strong>.</p>
 
-<p>Nous souhaiterions vous proposer un entretien le <strong>${date}</strong> Ã  <strong>${time}</strong> (${duration}).</p>
+<p>Nous souhaiterions vous proposer un entretien le <strong>${date}</strong> à <strong>${time}</strong> (${duration}).</p>
 
 <p><strong>Lieu / format :</strong> ${location}<br/>
 ${params.interviewers ? `<strong>Interlocuteurs :</strong> ${params.interviewers}<br/>` : ""}
 </p>
 
-<p>Merci de nous confirmer votre disponibilitÃ©, ou de proposer un autre crÃ©neau si besoin.</p>
+<p>Merci de nous confirmer votre disponibilité, ou de proposer un autre créneau si besoin.</p>
 
 <p>Bien cordialement,<br/>${signature(params.companyName)}</p>
 `.trim();
@@ -82,17 +82,17 @@ export function followupEmailHTML(params: {
   const slots =
     params.proposedSlots && params.proposedSlots.length
       ? `<ul>${params.proposedSlots.map((s) => `<li>${s}</li>`).join("")}</ul>`
-      : `<p>Voici deux crÃ©neaux possibles cette semaine (Ã  confirmer) :<br/>â€¢ Mardi 10h<br/>â€¢ Jeudi 15h</p>`;
+      : `<p>Voici deux créneaux possibles cette semaine (à confirmer) :<br/>• Mardi 10h<br/>• Jeudi 15h</p>`;
 
   return `
 <p>${greeting(params.tone, params.candidateName)}</p>
 
 <p>Je me permets de revenir vers vous concernant votre candidature au poste de <strong>${params.jobTitle || "ce poste"}</strong>.</p>
 
-<p>Seriez-vous disponible sur lâ€™un des crÃ©neaux suivants ?</p>
+<p>Seriez-vous disponible sur l’un des créneaux suivants ?</p>
 ${slots}
 
-<p>Si aucun ne convient, dites-nous vos disponibilitÃ©s et nous nous adapterons.</p>
+<p>Si aucun ne convient, dites-nous vos disponibilités et nous nous adapterons.</p>
 
 <p>Bien cordialement,<br/>${signature(params.companyName)}</p>
 `.trim();
@@ -113,7 +113,7 @@ export function onboardingEmailHTML(params: {
     params.documentsToBring && params.documentsToBring.length
       ? `<ul>${params.documentsToBring.map((d) => `<li>${d}</li>`).join("")}</ul>`
       : `<ul>
-<li>PiÃ¨ce dâ€™identitÃ©</li>
+<li>Pièce d’identité</li>
 <li>RIB</li>
 <li>Carte Vitale</li>
 <li>Justificatif de domicile</li>
@@ -124,17 +124,17 @@ export function onboardingEmailHTML(params: {
 
 <p>Bienvenue ! Nous sommes ravis de vous accueillir au poste de <strong>${params.jobTitle || "ce poste"}</strong>.</p>
 
-<p><strong>Date dâ€™arrivÃ©e :</strong> ${params.startDate || "Ã  confirmer"}${
-    params.startTime ? ` Ã  ${params.startTime}` : ""
+<p><strong>Date d’arrivée :</strong> ${params.startDate || "à confirmer"}${
+    params.startTime ? ` à ${params.startTime}` : ""
   }<br/>
-<strong>Lieu :</strong> ${params.location || "Ã  confirmer"}<br/>
+<strong>Lieu :</strong> ${params.location || "à confirmer"}<br/>
 ${params.contactName ? `<strong>Contact :</strong> ${params.contactName}<br/>` : ""}
 </p>
 
-<p>Pour prÃ©parer votre arrivÃ©e, merci de prÃ©voir :</p>
+<p>Pour préparer votre arrivée, merci de prévoir :</p>
 ${docs}
 
-<p>Si vous avez la moindre question dâ€™ici lÃ , vous pouvez rÃ©pondre Ã  ce message.</p>
+<p>Si vous avez la moindre question d’ici là, vous pouvez répondre à ce message.</p>
 
 <p>Bien cordialement,<br/>${signature(params.companyName)}</p>
 `.trim();

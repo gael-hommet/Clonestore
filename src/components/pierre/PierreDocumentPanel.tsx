@@ -44,9 +44,9 @@ function asString(value: unknown): string | null {
 }
 
 function formatDate(value?: string | null) {
-  if (!value) return "â€”";
+  if (!value) return "—";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "â€”";
+  if (Number.isNaN(date.getTime())) return "—";
 
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
@@ -131,13 +131,13 @@ function inferPreview(document: DocumentRecord) {
       .trim();
   }
 
-  return "Aucun aperÃ§u disponible.";
+  return "Aucun aperçu disponible.";
 }
 
 function normalizeTypeLabel(type: string) {
   const value = type.toLowerCase();
 
-  if (value.includes("offer") || value.includes("offre")) return "Offre dâ€™emploi";
+  if (value.includes("offer") || value.includes("offre")) return "Offre d’emploi";
   if (value.includes("convocation")) return "Convocation";
   if (value.includes("refus")) return "Refus";
   if (value.includes("relance")) return "Relance";
@@ -145,7 +145,7 @@ function normalizeTypeLabel(type: string) {
   if (value.includes("note")) return "Note RH";
   if (value.includes("courrier")) return "Courrier RH";
   if (value.includes("compte")) return "Compte rendu";
-  if (value.includes("procedure")) return "ProcÃ©dure";
+  if (value.includes("procedure")) return "Procédure";
   return "Document RH";
 }
 
@@ -263,13 +263,13 @@ export default function PierreDocumentPanel({
               Lecture premium des livrables RH
             </h2>
             <p className="mt-3 text-sm leading-7 text-stone-600">
-              Ce panneau doit permettre de parcourir, sÃ©lectionner et lire proprement les documents gÃ©nÃ©rÃ©s
-              par Pierre, avec une sensation de cockpit haut de gamme et non dâ€™outil SaaS bricolÃ©.
+              Ce panneau doit permettre de parcourir, sélectionner et lire proprement les documents générés
+              par Pierre, avec une sensation de cockpit haut de gamme et non d’outil SaaS bricolé.
             </p>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <Pill>{documents.length} document(s)</Pill>
-              {missionId ? <Pill>Mission liÃ©e</Pill> : <Pill>Aucun filtre mission</Pill>}
+              {missionId ? <Pill>Mission liée</Pill> : <Pill>Aucun filtre mission</Pill>}
               {selectedDocument ? (
                 <Pill tone={selectedStatus?.toLowerCase() === "failed" ? "critical" : selectedStatus?.toLowerCase() === "draft" ? "warn" : "good"}>
                   {selectedStatus}
@@ -279,14 +279,14 @@ export default function PierreDocumentPanel({
           </div>
 
           <div className="w-full max-w-[420px] rounded-[26px] border border-stone-200 bg-white/85 p-5">
-            <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Document sÃ©lectionnÃ©</div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Document sélectionné</div>
             <div className="mt-3 text-lg font-semibold text-stone-900">
               {selectedDocument ? inferTitle(selectedDocument) : "Aucun document"}
             </div>
             <div className="mt-3 text-sm leading-7 text-stone-700">
               {selectedDocument
-                ? "Le livrable sÃ©lectionnÃ© est affichÃ© avec sa structure, son contexte, son statut et un rendu lisible orientÃ© usage rÃ©el."
-                : "Aucun document nâ€™est actuellement disponible dans cette vue."}
+                ? "Le livrable sélectionné est affiché avec sa structure, son contexte, son statut et un rendu lisible orienté usage réel."
+                : "Aucun document n’est actuellement disponible dans cette vue."}
             </div>
           </div>
         </div>
@@ -296,7 +296,7 @@ export default function PierreDocumentPanel({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Liste des documents</div>
-                <div className="mt-2 text-lg font-semibold text-stone-900">BibliothÃ¨que de livrables</div>
+                <div className="mt-2 text-lg font-semibold text-stone-900">Bibliothèque de livrables</div>
               </div>
               <Pill>{sortedDocuments.length}</Pill>
             </div>
@@ -371,7 +371,7 @@ export default function PierreDocumentPanel({
             <div className="rounded-[28px] border border-stone-200 bg-white/85 p-5">
               {!selectedDocument ? (
                 <div className="flex min-h-[420px] items-center justify-center rounded-[24px] border border-dashed border-stone-200 bg-[#fcfaf6] text-sm text-stone-500">
-                  SÃ©lectionne un document pour afficher son contenu.
+                  Sélectionne un document pour afficher son contenu.
                 </div>
               ) : (
                 <div className="flex flex-col gap-5">
@@ -398,22 +398,22 @@ export default function PierreDocumentPanel({
                     </div>
 
                     <div className="grid min-w-[260px] gap-2 text-right text-xs text-stone-500">
-                      <div>CrÃ©Ã© : {formatDate(selectedDocument.created_at || null)}</div>
-                      <div>Mise Ã  jour : {formatDate(selectedDocument.updated_at || selectedDocument.created_at || null)}</div>
-                      <div>Mission : {asString(selectedDocument.mission_id) || "â€”"}</div>
-                      <div>TÃ¢che : {asString(selectedDocument.task_id) || "â€”"}</div>
+                      <div>Créé : {formatDate(selectedDocument.created_at || null)}</div>
+                      <div>Mise à jour : {formatDate(selectedDocument.updated_at || selectedDocument.created_at || null)}</div>
+                      <div>Mission : {asString(selectedDocument.mission_id) || "—"}</div>
+                      <div>Tâche : {asString(selectedDocument.task_id) || "—"}</div>
                     </div>
                   </div>
 
                   <div className="grid gap-3 xl:grid-cols-4">
                     <SmallMeta label="Type" value={normalizeTypeLabel(selectedType || "document_rh")} />
                     <SmallMeta label="Statut" value={selectedStatus || "unknown"} />
-                    <SmallMeta label="Mission liÃ©e" value={asString(selectedDocument.mission_id) || "â€”"} />
-                    <SmallMeta label="TÃ¢che liÃ©e" value={asString(selectedDocument.task_id) || "â€”"} />
+                    <SmallMeta label="Mission liée" value={asString(selectedDocument.mission_id) || "—"} />
+                    <SmallMeta label="Tâche liée" value={asString(selectedDocument.task_id) || "—"} />
                   </div>
 
                   <div className="rounded-[24px] border border-stone-200 bg-[#fcfaf6] px-5 py-5">
-                    <div className="text-[11px] uppercase tracking-[0.16em] text-stone-500">AperÃ§u texte</div>
+                    <div className="text-[11px] uppercase tracking-[0.16em] text-stone-500">Aperçu texte</div>
                     <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-stone-700">
                       {selectedPreview}
                     </div>
@@ -438,7 +438,7 @@ export default function PierreDocumentPanel({
 
             {selectedDocument && isObject(selectedDocument.metadata) ? (
               <div className="rounded-[28px] border border-stone-200 bg-white/85 p-5">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">MÃ©tadonnÃ©es utiles</div>
+                <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Métadonnées utiles</div>
                 <div className="mt-4 rounded-[24px] border border-stone-200 bg-[#fcfaf6] p-5">
                   <pre className="whitespace-pre-wrap break-words text-sm leading-7 text-stone-700">
                     {JSON.stringify(selectedDocument.metadata, null, 2)}

@@ -153,7 +153,7 @@ export async function upsertPierreCompanyMemory(
 
     if (error || !data) {
       throw new Error(
-        error?.message || "Impossible de mettre Ã  jour la mÃ©moire entreprise Pierre."
+        error?.message || "Impossible de mettre à jour la mémoire entreprise Pierre."
       );
     }
 
@@ -172,7 +172,7 @@ export async function upsertPierreCompanyMemory(
 
   if (error || !data) {
     throw new Error(
-      error?.message || "Impossible de crÃ©er la mÃ©moire entreprise Pierre."
+      error?.message || "Impossible de créer la mémoire entreprise Pierre."
     );
   }
 

@@ -25,12 +25,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing user_id or agent_slug" }, { status: 400 });
     }
 
-    // âœ… instanciation seulement Ã  lâ€™exÃ©cution (pas au build)
+    // ✅ instanciation seulement à l’exécution (pas au build)
     const stripe = getStripe();
     const supabase = getSupabaseAdmin();
 
-    // âš ï¸ Ici tu mets ta logique rÃ©elle dâ€™activation.
-    // Exemple simple : activer dans orders (Ã  adapter Ã  ton schÃ©ma)
+    // âš ️ Ici tu mets ta logique réelle d’activation.
+    // Exemple simple : activer dans orders (à adapter à ton schéma)
     const { error } = await supabase
       .from("orders")
       .upsert({ user_id, agent_slug, status: "active", ended_at: null }, { onConflict: "user_id,agent_slug" });

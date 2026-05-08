@@ -119,9 +119,9 @@ function detectIntent(value: string): string {
 
   if (
     lower.includes("prepare") ||
-    lower.includes("prÃƒÂ©pare") ||
+    lower.includes("prépare") ||
     lower.includes("redige") ||
-    lower.includes("rÃƒÂ©dige") ||
+    lower.includes("rédige") ||
     lower.includes("draft")
   ) {
     return "prepare_rh_deliverable";
@@ -151,7 +151,7 @@ function detectRisk(
   const criticalSignals = [
     "licenciement",
     "harcelement",
-    "harcÃƒÂ¨lement",
+    "harcèlement",
     "contentieux",
     "prud'hommes",
     "discrimination",
@@ -161,10 +161,10 @@ function detectRisk(
   const sensitiveSignals = [
     "avertissement",
     "mise a pied",
-    "mise Ãƒ  pied",
+    "mise à pied",
     "conflit",
     "absence injustifiee",
-    "absence injustifiÃƒÂ©e",
+    "absence injustifiée",
     "salaire",
     "confidentiel",
     "plainte",
@@ -189,10 +189,10 @@ function needsApproval(
 
   const approvalSignals = [
     "apres validation",
-    "aprÃƒÂ¨s validation",
+    "après validation",
     "avant envoi",
     "a valider",
-    "Ãƒ  valider",
+    "à valider",
     "validation manager",
     "validation humaine",
   ];
@@ -238,7 +238,7 @@ function detectMissingInfo(
   const questions: string[] = [];
 
   const hasPersonName =
-    /\b[A-ZÃƒâ€°ÃƒË†Ãƒâ‚¬Ãƒâ€šÃƒÅ ÃƒÅ½Ãƒâ€Ãƒâ€ºÃƒâ€žÃƒâ€¹ÃƒÂÃƒâ€“ÃƒÅ“][a-zÃƒÂ©ÃƒÂ¨Ãƒ ÃƒÂ¢ÃƒÂªÃƒÂ®ÃƒÂ´ÃƒÂ»ÃƒÂ¤ÃƒÂ«ÃƒÂ¯ÃƒÂ¶ÃƒÂ¼'-]+\s+[A-ZÃƒâ€°ÃƒË†Ãƒâ‚¬Ãƒâ€šÃƒÅ ÃƒÅ½Ãƒâ€Ãƒâ€ºÃƒâ€žÃƒâ€¹ÃƒÂÃƒâ€“ÃƒÅ“][a-zÃƒÂ©ÃƒÂ¨Ãƒ ÃƒÂ¢ÃƒÂªÃƒÂ®ÃƒÂ´ÃƒÂ»ÃƒÂ¤ÃƒÂ«ÃƒÂ¯ÃƒÂ¶ÃƒÂ¼'-]+\b/.test(
+    /\b[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\s+[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\b/.test(
       rawInput,
     );
   const hasEmail = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(rawInput);
@@ -246,13 +246,13 @@ function detectMissingInfo(
   const hasHour = /\b\d{1,2}h(\d{2})?\b/i.test(rawInput);
 
   if (classification === "convocation_entretien" && !hasDate) {
-    missing.push("Date dÃ¢â‚¬â„¢entretien manquante");
-    questions.push("Quelle est la date exacte de lÃ¢â‚¬â„¢entretien ?");
+    missing.push("Date d’entretien manquante");
+    questions.push("Quelle est la date exacte de l’entretien ?");
   }
 
   if (classification === "convocation_entretien" && !hasHour) {
-    missing.push("Horaire dÃ¢â‚¬â„¢entretien manquant");
-    questions.push("Ãƒâ‚¬ quelle heure doit avoir lieu lÃ¢â‚¬â„¢entretien ?");
+    missing.push("Horaire d’entretien manquant");
+    questions.push("À quelle heure doit avoir lieu l’entretien ?");
   }
 
   if (
@@ -265,8 +265,8 @@ function detectMissingInfo(
     ) &&
     !hasPersonName
   ) {
-    missing.push("Nom complet de la personne concernÃƒÂ©e manquant");
-    questions.push("Quel est le nom complet de la personne concernÃƒÂ©e ?");
+    missing.push("Nom complet de la personne concernée manquant");
+    questions.push("Quel est le nom complet de la personne concernée ?");
   }
 
   if (
@@ -278,12 +278,12 @@ function detectMissingInfo(
     !hasEmail
   ) {
     missing.push("Adresse email destinataire manquante");
-    questions.push("Quelle est lÃ¢â‚¬â„¢adresse email du destinataire ?");
+    questions.push("Quelle est l’adresse email du destinataire ?");
   }
 
   if (classification === "offre_emploi" && !lower.includes("poste")) {
-    missing.push("IntitulÃƒÂ© du poste absent ou insuffisant");
-    questions.push("Quel est lÃ¢â‚¬â„¢intitulÃƒÂ© exact du poste ?");
+    missing.push("Intitulé du poste absent ou insuffisant");
+    questions.push("Quel est l’intitulé exact du poste ?");
   }
 
   return { missing, questions };
@@ -299,7 +299,7 @@ function detectRefusals(
 
   if (classification === "hors_perimetre") {
     refusals.push(
-      "Demande hors pÃƒÂ©rimÃƒÂ¨tre RH contrÃƒÂ´lÃƒÂ© de Pierre : prospection commerciale, marketing massif ou usage non RH.",
+      "Demande hors périmètre RH contrôlé de Pierre : prospection commerciale, marketing massif ou usage non RH.",
     );
   }
 
@@ -312,7 +312,7 @@ function detectRefusals(
     )
   ) {
     refusals.push(
-      "Pierre ne peut pas exÃƒÂ©cuter seul une action critique RH sans validation humaine explicite.",
+      "Pierre ne peut pas exécuter seul une action critique RH sans validation humaine explicite.",
     );
   }
 
@@ -322,7 +322,7 @@ function detectRefusals(
     lower.includes("prends la decision juridique")
   ) {
     refusals.push(
-      "Pierre ne prend pas seul de dÃƒÂ©cision disciplinaire ou juridique.",
+      "Pierre ne prend pas seul de décision disciplinaire ou juridique.",
     );
   }
 
@@ -335,8 +335,8 @@ function buildSummary(
   risk: PierreMissionRiskLevel,
 ): string {
   const cleaned = rawInput.trim().replace(/\s+/g, " ");
-  const clipped = cleaned.length > 260 ? `${cleaned.slice(0, 257)}Ã¢â‚¬Â¦` : cleaned;
-  return `Mission RH classÃƒÂ©e "${classification}" avec niveau de risque "${risk}". Demande structurÃƒÂ©e Ãƒ  partir de : ${clipped}`;
+  const clipped = cleaned.length > 260 ? `${cleaned.slice(0, 257)}…` : cleaned;
+  return `Mission RH classée "${classification}" avec niveau de risque "${risk}". Demande structurée à partir de : ${clipped}`;
 }
 
 function buildTasks(params: {
@@ -363,7 +363,7 @@ function buildTasks(params: {
       type: "generate_document",
       title: "Produire le document RH",
       description:
-        "RÃƒÂ©diger un livrable RH premium cohÃƒÂ©rent avec la demande, la langue, le ton et le niveau de risque dÃƒÂ©tectÃƒÂ©s.",
+        "Rédiger un livrable RH premium cohérent avec la demande, la langue, le ton et le niveau de risque détectés.",
       status:
         interpretationBase.missing_info.length > 0
           ? "awaiting_info"
@@ -394,9 +394,9 @@ function buildTasks(params: {
   ) {
     tasks.push({
       type: "prepare_email",
-      title: "PrÃƒÂ©parer lÃ¢â‚¬â„¢email RH",
+      title: "Préparer l’email RH",
       description:
-        "PrÃƒÂ©parer un email traÃƒÂ§able, clair et conforme au cadre RH de lÃ¢â‚¬â„¢entreprise.",
+        "Préparer un email traçable, clair et conforme au cadre RH de l’entreprise.",
       status:
         interpretationBase.missing_info.length > 0
           ? "awaiting_info"
@@ -420,14 +420,14 @@ function buildTasks(params: {
   if (
     lower.includes("pdf") ||
     lower.includes("piece jointe") ||
-    lower.includes("piÃƒÂ¨ce jointe") ||
+    lower.includes("pièce jointe") ||
     lower.includes("export")
   ) {
     tasks.push({
       type: "generate_pdf",
-      title: "PrÃƒÂ©parer lÃ¢â‚¬â„¢export PDF",
+      title: "Préparer l’export PDF",
       description:
-        "GÃƒÂ©nÃƒÂ©rer un PDF propre Ãƒ  partir du document ou du contenu RH finalisÃƒÂ©.",
+        "Générer un PDF propre à partir du document ou du contenu RH finalisé.",
       status:
         interpretationBase.missing_info.length > 0
           ? "awaiting_info"
@@ -446,13 +446,13 @@ function buildTasks(params: {
   if (
     lower.includes("relance") ||
     lower.includes("si pas de reponse") ||
-    lower.includes("si pas de rÃƒÂ©ponse")
+    lower.includes("si pas de réponse")
   ) {
     tasks.push({
       type: "schedule_follow_up",
-      title: "PrÃƒÂ©parer une relance RH",
+      title: "Préparer une relance RH",
       description:
-        "Programmer une relance propre et traÃƒÂ§able si aucune rÃƒÂ©ponse nÃ¢â‚¬â„¢est obtenue.",
+        "Programmer une relance propre et traçable si aucune réponse n’est obtenue.",
       status:
         interpretationBase.approval_required || interpretationBase.missing_info.length > 0
           ? "awaiting_approval"
@@ -472,7 +472,7 @@ function buildTasks(params: {
       type: "request_missing_info",
       title: "Demander les informations manquantes",
       description:
-        "Bloquer lÃ¢â‚¬â„¢exÃƒÂ©cution complÃƒÂ¨te tant que les ÃƒÂ©lÃƒÂ©ments indispensables ne sont pas fournis.",
+        "Bloquer l’exécution complète tant que les éléments indispensables ne sont pas fournis.",
       status: "awaiting_info",
       approval_required: false,
       risk_level: interpretationBase.risk_level,
@@ -488,9 +488,9 @@ function buildTasks(params: {
   if (interpretationBase.refusals.length > 0) {
     tasks.push({
       type: "block_mission",
-      title: "Bloquer lÃ¢â‚¬â„¢exÃƒÂ©cution",
+      title: "Bloquer l’exécution",
       description:
-        "Bloquer la mission car la demande sort du cadre autorisÃƒÂ© ou requiert un arbitrage humain prÃƒÂ©alable.",
+        "Bloquer la mission car la demande sort du cadre autorisé ou requiert un arbitrage humain préalable.",
       status: "blocked",
       approval_required: true,
       risk_level: interpretationBase.risk_level,
@@ -507,7 +507,7 @@ function buildTasks(params: {
       type: "structure_mission",
       title: "Structurer la mission RH",
       description:
-        "CrÃƒÂ©er un cadre dÃ¢â‚¬â„¢exÃƒÂ©cution RH exploitable Ãƒ  partir de la demande libre.",
+        "Créer un cadre d’exécution RH exploitable à partir de la demande libre.",
       status:
         interpretationBase.missing_info.length > 0
           ? "awaiting_info"

@@ -91,12 +91,12 @@ function PaymentCard() {
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="cs-eyebrow">EmployÃ© IA</p>
+            <p className="cs-eyebrow">Employé IA</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.06em] text-[var(--cs-ink-1)]">
               Pierre
             </h2>
             <p className="mt-2 text-sm font-medium leading-6 text-[var(--cs-ink-3)]">
-              Poste RH opÃ©rationnel automatisÃ©
+              Poste RH opérationnel automatisé
             </p>
           </div>
 
@@ -117,7 +117,7 @@ function PaymentCard() {
 
             <div className="flex flex-wrap items-end gap-2">
               <span className="text-4xl font-semibold tracking-[-0.06em] text-[var(--cs-ink-1)]">
-                449â‚¬/mois
+                449€/mois
               </span>
               <span className="pb-1 text-xs font-medium text-[var(--cs-ink-4)]">
                 prix fondateur
@@ -134,8 +134,8 @@ function PaymentCard() {
             items={[
               "Mission RH libre",
               "Documents, emails et PDF",
-              "Relances, suivi et continuitÃ©",
-              "Historique et traÃ§abilitÃ©",
+              "Relances, suivi et continuité",
+              "Historique et traçabilité",
               "Validation humaine sur le sensible",
             ]}
           />
@@ -172,7 +172,7 @@ export default function PaiementPage() {
                   </span>
                   <span className="cs-pill">
                     <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
-                    Activation sÃ©curisÃ©e
+                    Activation sécurisée
                   </span>
                 </div>
 
@@ -181,13 +181,13 @@ export default function PaiementPage() {
                     Activez votre premier
                     <br />
                     <span className="bg-[linear-gradient(135deg,#151922_0%,#2d3446_46%,#667cff_100%)] bg-clip-text text-transparent">
-                      employÃ© IA.
+                      employé IA.
                     </span>
                   </h1>
 
                   <p className="max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
-                    CloneStore commence avec Pierre : un poste RH automatisÃ©,
-                    pilotable depuis le site, avec rÃ¨gles, continuitÃ© et traÃ§abilitÃ©.
+                    CloneStore commence avec Pierre : un poste RH automatisé,
+                    pilotable depuis le site, avec règles, continuité et traçabilité.
                   </p>
                 </div>
 
@@ -205,7 +205,7 @@ export default function PaiementPage() {
                   />
                   <ActionButton
                     href="/assistant"
-                    label="Demander Ã  CloneStore"
+                    label="Demander à CloneStore"
                     icon={<Bot className="h-4 w-4" />}
                   />
                 </div>
@@ -213,22 +213,22 @@ export default function PaiementPage() {
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   <MiniCard
                     title="Prix clair"
-                    text="Une offre lisible, sans parcours compliquÃ©."
+                    text="Une offre lisible, sans parcours compliqué."
                     icon={<CreditCard className="h-4 w-4" />}
                   />
                   <MiniCard
-                    title="Poste activÃ©"
-                    text="Vous activez un employÃ© IA opÃ©rationnel."
+                    title="Poste activé"
+                    text="Vous activez un employé IA opérationnel."
                     icon={<BriefcaseBusiness className="h-4 w-4" />}
                   />
                   <MiniCard
-                    title="AccÃ¨s privÃ©"
-                    text="Le paiement ouvre la suite vers lâ€™espace client."
+                    title="Accès privé"
+                    text="Le paiement ouvre la suite vers l’espace client."
                     icon={<LockKeyhole className="h-4 w-4" />}
                   />
                   <MiniCard
-                    title="SystÃ¨me"
-                    text="CloneOS, Trace et Guard encadrent lâ€™expÃ©rience."
+                    title="Système"
+                    text="CloneOS, Trace et Guard encadrent l’expérience."
                     icon={<FileCheck2 className="h-4 w-4" />}
                   />
                 </div>
@@ -248,10 +248,10 @@ export default function PaiementPage() {
                 <Sparkles className="mt-1 h-5 w-5 shrink-0 text-[#6f83ff]" />
                 <div>
                   <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
-                    AprÃ¨s paiement
+                    Après paiement
                   </p>
                   <p className="mt-2 text-sm leading-7 text-[var(--cs-ink-3)]">
-                    Vous Ãªtes redirigÃ© vers la confirmation, puis vers la
+                    Vous êtes redirigé vers la confirmation, puis vers la
                     configuration et le cockpit CloneStore.
                   </p>
                 </div>
@@ -267,11 +267,11 @@ export default function PaiementPage() {
                 <Waypoints className="mt-1 h-5 w-5 shrink-0 text-[#6f83ff]" />
                 <div>
                   <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
-                    Besoin dâ€™aide ?
+                    Besoin d’aide ?
                   </p>
                   <p className="mt-2 text-sm leading-7 text-[var(--cs-ink-3)]">
-                    CloneStore peut vous orienter avant lâ€™activation si vous
-                    hÃ©sitez sur le bon employÃ© IA.
+                    CloneStore peut vous orienter avant l’activation si vous
+                    hésitez sur le bon employé IA.
                   </p>
                 </div>
               </div>

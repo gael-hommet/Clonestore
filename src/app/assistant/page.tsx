@@ -36,15 +36,15 @@ const initialMessages: ChatMessage[] = [
     role: "assistant",
     time: "Maintenant",
     content:
-      "Bonjour, je suis CloneStore. Je peux vous aider Ã  comprendre le systÃ¨me, choisir un employÃ© IA, expliquer Pierre, le cockpit, le paiement, la sÃ©curitÃ©, les accÃ¨s ou vous orienter vers le bon espace.",
+      "Bonjour, je suis CloneStore. Je peux vous aider à comprendre le système, choisir un employé IA, expliquer Pierre, le cockpit, le paiement, la sécurité, les accès ou vous orienter vers le bon espace.",
   },
 ];
 
 const quickPrompts = [
-  "Quel employÃ© IA choisir pour les RH ?",
+  "Quel employé IA choisir pour les RH ?",
   "Explique-moi Pierre simplement.",
-  "Comment accÃ©der Ã  mon espace aprÃ¨s paiement ?",
-  "OÃ¹ voir mes missions et notifications ?",
+  "Comment accéder à mon espace après paiement ?",
+  "Où voir mes missions et notifications ?",
   "Comment fonctionne CloneVoice ?",
 ];
 
@@ -83,26 +83,26 @@ function getCloneStoreReply(input: string) {
   const value = input.toLowerCase();
 
   if (value.includes("pierre") || value.includes("rh") || value.includes("ressources")) {
-    return "Pour un besoin RH, lâ€™employÃ© le plus logique est Pierre. Il est pensÃ© comme un poste RH opÃ©rationnel automatisÃ© : documents, emails, relances, missions, validations et historique. Les sujets sensibles restent encadrÃ©s par validation humaine.";
+    return "Pour un besoin RH, l’employé le plus logique est Pierre. Il est pensé comme un poste RH opérationnel automatisé : documents, emails, relances, missions, validations et historique. Les sujets sensibles restent encadrés par validation humaine.";
   }
 
   if (value.includes("paiement") || value.includes("checkout") || value.includes("prix") || value.includes("tarif")) {
-    return "Le parcours est simple : vous choisissez lâ€™employÃ© IA, vous passez par le paiement, puis lâ€™accÃ¨s est ouvert dans votre espace CloneStore. Le cockpit permet ensuite de suivre les employÃ©s, les missions, les notifications et les validations.";
+    return "Le parcours est simple : vous choisissez l’employé IA, vous passez par le paiement, puis l’accès est ouvert dans votre espace CloneStore. Le cockpit permet ensuite de suivre les employés, les missions, les notifications et les validations.";
   }
 
-  if (value.includes("cockpit") || value.includes("mission") || value.includes("notification") || value.includes("mes employÃ©s")) {
-    return "Le cockpit global sert Ã  piloter CloneStore : dialogue central avec le systÃ¨me, accÃ¨s aux employÃ©s possÃ©dÃ©s, missions, validations, notifications internes, messagerie et raccourcis vers les cockpits spÃ©cialisÃ©s.";
+  if (value.includes("cockpit") || value.includes("mission") || value.includes("notification") || value.includes("mes employés")) {
+    return "Le cockpit global sert à piloter CloneStore : dialogue central avec le système, accès aux employés possédés, missions, validations, notifications internes, messagerie et raccourcis vers les cockpits spécialisés.";
   }
 
   if (value.includes("voice") || value.includes("voix") || value.includes("clonevoice")) {
-    return "CloneVoice est la couche vocale globale. Lâ€™objectif est de pouvoir parler Ã  CloneStore depuis le site, y compris depuis la homepage, puis transformer la demande en orientation, mission ou action contrÃ´lÃ©e.";
+    return "CloneVoice est la couche vocale globale. L’objectif est de pouvoir parler à CloneStore depuis le site, y compris depuis la homepage, puis transformer la demande en orientation, mission ou action contrôlée.";
   }
 
-  if (value.includes("sÃ©curitÃ©") || value.includes("rgpd") || value.includes("donnÃ©e") || value.includes("confidentiel")) {
-    return "CloneStore doit rester gouvernÃ© : pÃ©rimÃ¨tres par employÃ©, validations humaines sur les actions sensibles, traÃ§abilitÃ© via CloneTrace, rÃ¨gles via CloneGuard et contrÃ´le clair cÃ´tÃ© entreprise.";
+  if (value.includes("sécurité") || value.includes("rgpd") || value.includes("donnée") || value.includes("confidentiel")) {
+    return "CloneStore doit rester gouverné : périmètres par employé, validations humaines sur les actions sensibles, traçabilité via CloneTrace, règles via CloneGuard et contrôle clair côté entreprise.";
   }
 
-  return "Je peux vous orienter dans CloneStore : choix dâ€™un employÃ© IA, fonctionnement de Pierre, cockpit, paiement, accÃ¨s, sÃ©curitÃ©, support ou technologies comme CloneOS, CloneADN, CloneGuard, CloneTrace et CloneVoice.";
+  return "Je peux vous orienter dans CloneStore : choix d’un employé IA, fonctionnement de Pierre, cockpit, paiement, accès, sécurité, support ou technologies comme CloneOS, CloneADN, CloneGuard, CloneTrace et CloneVoice.";
 }
 
 export default function AssistantPage() {
@@ -157,13 +157,13 @@ export default function AssistantPage() {
             </span>
             <span className="cs-pill">
               <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
-              Assistance systÃ¨me
+              Assistance système
             </span>
           </div>
 
           <div className="clonechat-topbar-right">
             <Link href="/questions">Support</Link>
-            <Link href="/agents">EmployÃ©s IA</Link>
+            <Link href="/agents">Employés IA</Link>
           </div>
         </section>
 
@@ -177,8 +177,8 @@ export default function AssistantPage() {
               <h1>Comment puis-je vous aider ?</h1>
 
               <p>
-                Posez une question sur CloneStore, les employÃ©s IA, Pierre, le cockpit,
-                le paiement, la sÃ©curitÃ© ou le support.
+                Posez une question sur CloneStore, les employés IA, Pierre, le cockpit,
+                le paiement, la sécurité ou le support.
               </p>
 
               <div className="clonechat-suggestions">
@@ -247,7 +247,7 @@ export default function AssistantPage() {
               </div>
 
               <p className="clonechat-attachment-note">
-                Les fichiers et images seront exploitÃ©s plus tard par CloneStore pour analyser,
+                Les fichiers et images seront exploités plus tard par CloneStore pour analyser,
                 expliquer ou orienter le client dans son espace.
               </p>
             </LiquidGlass>
@@ -274,14 +274,14 @@ export default function AssistantPage() {
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={1}
-                placeholder="Demandez Ã  CloneStore..."
+                placeholder="Demandez à CloneStore..."
               />
 
               <button type="button" className="clonechat-icon-button" aria-label="Ajouter une image">
                 <FileImage className="h-5 w-5" />
               </button>
 
-              <button type="button" className="clonechat-icon-button" aria-label="Parler Ã  CloneStore">
+              <button type="button" className="clonechat-icon-button" aria-label="Parler à CloneStore">
                 <Mic2 className="h-5 w-5" />
               </button>
 

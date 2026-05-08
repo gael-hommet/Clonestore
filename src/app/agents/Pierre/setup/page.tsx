@@ -79,7 +79,7 @@ const DEFAULT_PAYLOAD: SetupPayload = {
     company_name: "",
     sector: "",
     company_size: "",
-    languages: "FranÃ§ais",
+    languages: "Français",
     hr_context: "",
   },
   people: {
@@ -91,7 +91,7 @@ const DEFAULT_PAYLOAD: SetupPayload = {
   },
   communication: {
     global_tone: "Professionnel et humain",
-    formality: "Ã‰quilibrÃ©",
+    formality: "Équilibré",
     pronoun_style: "Vouvoiement",
     candidate_style: "",
     manager_style: "",
@@ -576,9 +576,9 @@ export default function PierreSetupPage() {
   }, [form]);
 
   const completionLabel = useMemo(() => {
-    if (companyReadyScore <= 1) return "DÃ©but";
+    if (companyReadyScore <= 1) return "Début";
     if (companyReadyScore <= 3) return "En cours";
-    return "Bien avancÃ©";
+    return "Bien avancé";
   }, [companyReadyScore]);
 
   function updateSection<K extends keyof SetupPayload>(
@@ -615,20 +615,20 @@ export default function PierreSetupPage() {
         throw new Error(
           data?.error ||
             data?.message ||
-            "Impossible dâ€™enregistrer cette configuration pour le moment.",
+            "Impossible d’enregistrer cette configuration pour le moment.",
         );
       }
 
       setSaveState("success");
       setSaveMessage(
-        "Empreinte Entreprise enregistrÃ©e. Pierre peut maintenant sâ€™appuyer sur cette base de travail.",
+        "Empreinte Entreprise enregistrée. Pierre peut maintenant s’appuyer sur cette base de travail.",
       );
     } catch (error) {
       setSaveState("error");
       setSaveMessage(
         error instanceof Error
           ? error.message
-          : "Impossible dâ€™enregistrer cette configuration pour le moment.",
+          : "Impossible d’enregistrer cette configuration pour le moment.",
       );
     }
   }
@@ -648,7 +648,7 @@ export default function PierreSetupPage() {
                 </span>
                 <span className="cs-pill">
                   <BriefcaseBusiness className="h-3.5 w-3.5 text-[var(--cs-success)]" />
-                  <span>Setup maÃ®tre de Pierre</span>
+                  <span>Setup maître de Pierre</span>
                 </span>
               </div>
 
@@ -662,11 +662,11 @@ export default function PierreSetupPage() {
                 </h1>
 
                 <p className="max-w-3xl text-sm text-[var(--cs-ink-4)] md:text-base">
-                  Cette page ne doit pas Ãªtre un formulaire banal. Elle doit
-                  servir Ã  transmettre Ã  Pierre votre identitÃ©, votre ton, vos
-                  rÃ¨gles, vos valideurs, votre messagerie et votre maniÃ¨re de
-                  travailler, pour quâ€™il agisse comme votre entreprise et non
-                  comme une IA gÃ©nÃ©rique.
+                  Cette page ne doit pas être un formulaire banal. Elle doit
+                  servir à transmettre à Pierre votre identité, votre ton, vos
+                  règles, vos valideurs, votre messagerie et votre manière de
+                  travailler, pour qu’il agisse comme votre entreprise et non
+                  comme une IA générique.
                 </p>
               </div>
 
@@ -698,13 +698,13 @@ export default function PierreSetupPage() {
                 />
                 <InfoCard
                   title="Pilotage"
-                  text="Tout doit rester modifiable proprement Ã  tout moment."
+                  text="Tout doit rester modifiable proprement à tout moment."
                   icon={<UserCheck className="h-4 w-4" />}
                   tone="blue"
                 />
                 <InfoCard
                   title="Gouvernance"
-                  text="Autonomie, validation et identitÃ© doivent Ãªtre cadrÃ©es dÃ¨s le dÃ©part."
+                  text="Autonomie, validation et identité doivent être cadrées dès le départ."
                   icon={<ShieldCheck className="h-4 w-4" />}
                   tone="green"
                 />
@@ -717,7 +717,7 @@ export default function PierreSetupPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
-                        Avancement de lâ€™empreinte
+                        Avancement de l’empreinte
                       </p>
                       <p className="mt-1 text-sm text-[var(--cs-ink-4)]">
                         Une lecture simple de votre niveau de configuration.
@@ -734,7 +734,7 @@ export default function PierreSetupPage() {
                       />
                     </div>
                     <p className="text-xs text-[var(--cs-ink-4)]">
-                      {companyReadyScore}/5 Ã©lÃ©ments clÃ©s renseignÃ©s
+                      {companyReadyScore}/5 éléments clés renseignés
                     </p>
                   </div>
                 </div>
@@ -743,13 +743,13 @@ export default function PierreSetupPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <InfoCard
                   title="Modifiable"
-                  text="Lâ€™empreinte nâ€™est jamais figÃ©e. Elle doit Ã©voluer avec lâ€™entreprise."
+                  text="L’empreinte n’est jamais figée. Elle doit évoluer avec l’entreprise."
                   icon={<Clock3 className="h-4 w-4" />}
                   tone="violet"
                 />
                 <InfoCard
-                  title="Messagerie rÃ©elle"
-                  text="Pierre doit pouvoir Ãªtre branchÃ© Ã  une vraie identitÃ© email."
+                  title="Messagerie réelle"
+                  text="Pierre doit pouvoir être branché à une vraie identité email."
                   icon={<Mail className="h-4 w-4" />}
                   tone="blue"
                 />
@@ -758,16 +758,16 @@ export default function PierreSetupPage() {
               <div className="cs-card">
                 <div className="relative space-y-3">
                   <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
-                    Ã‰tat du chargement initial
+                    État du chargement initial
                   </p>
                   <p className="text-sm text-[var(--cs-ink-4)]">
                     {loadState === "loading"
-                      ? "Chargement de la configuration actuelleâ€¦"
+                      ? "Chargement de la configuration actuelle…"
                       : loadState === "success"
-                        ? "Configuration existante chargÃ©e si elle Ã©tait disponible."
+                        ? "Configuration existante chargée si elle était disponible."
                         : loadState === "error"
                           ? loadMessage || "Chargement impossible."
-                          : "Aucune erreur dÃ©tectÃ©e."}
+                          : "Aucune erreur détectée."}
                   </p>
                 </div>
               </div>
@@ -777,12 +777,12 @@ export default function PierreSetupPage() {
 
         <form onSubmit={handleSave} className="space-y-6">
           <FormSection
-            title="1. IdentitÃ© entreprise"
-            description="Le socle de Pierre : qui vous Ãªtes, dans quel contexte RH il travaille, et dans quelles langues il doit opÃ©rer."
+            title="1. Identité entreprise"
+            description="Le socle de Pierre : qui vous êtes, dans quel contexte RH il travaille, et dans quelles langues il doit opérer."
           >
             <div className="grid gap-4 md:grid-cols-2">
               <Field
-                label="Nom de lâ€™entreprise"
+                label="Nom de l’entreprise"
                 value={form.identity.company_name}
                 onChange={(value) => updateSection("identity", "company_name", value)}
                 placeholder="Exemple : Cultura"
@@ -799,7 +799,7 @@ export default function PierreSetupPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <SelectField
-                label="Taille dâ€™entreprise"
+                label="Taille d’entreprise"
                 value={form.identity.company_size}
                 onChange={(value) => updateSection("identity", "company_size", value)}
                 options={[
@@ -811,10 +811,10 @@ export default function PierreSetupPage() {
                 ]}
               />
               <Field
-                label="Langues utilisÃ©es"
+                label="Langues utilisées"
                 value={form.identity.languages}
                 onChange={(value) => updateSection("identity", "languages", value)}
-                placeholder="FranÃ§ais, anglaisâ€¦"
+                placeholder="Français, anglais…"
                 icon={<MessageSquareMore className="h-4 w-4" />}
               />
             </div>
@@ -823,24 +823,24 @@ export default function PierreSetupPage() {
               label="Contexte RH global"
               value={form.identity.hr_context}
               onChange={(value) => updateSection("identity", "hr_context", value)}
-              placeholder="DÃ©cris briÃ¨vement le contexte RH : volume de recrutement, structure, prioritÃ©s, contraintes, organisation actuelleâ€¦"
+              placeholder="Décris brièvement le contexte RH : volume de recrutement, structure, priorités, contraintes, organisation actuelle…"
             />
           </FormSection>
 
           <FormSection
             title="2. Organisation humaine et validations"
-            description="Pierre doit savoir qui pilote, qui valide, et comment les dÃ©cisions ou validations circulent dans lâ€™entreprise."
+            description="Pierre doit savoir qui pilote, qui valide, et comment les décisions ou validations circulent dans l’entreprise."
           >
             <div className="grid gap-4 md:grid-cols-2">
               <Field
-                label="Dirigeant / dÃ©cideur principal"
+                label="Dirigeant / décideur principal"
                 value={form.people.leader_name}
                 onChange={(value) => updateSection("people", "leader_name", value)}
-                placeholder="Nom du dÃ©cideur principal"
+                placeholder="Nom du décideur principal"
                 icon={<Users className="h-4 w-4" />}
               />
               <Field
-                label="Responsable RH / propriÃ©taire opÃ©rationnel"
+                label="Responsable RH / propriétaire opérationnel"
                 value={form.people.hr_owner_name}
                 onChange={(value) => updateSection("people", "hr_owner_name", value)}
                 placeholder="Nom du responsable RH"
@@ -849,10 +849,10 @@ export default function PierreSetupPage() {
             </div>
 
             <TextAreaField
-              label="Managers concernÃ©s"
+              label="Managers concernés"
               value={form.people.managers}
               onChange={(value) => updateSection("people", "managers", value)}
-              placeholder="Liste ou notes sur les managers concernÃ©s par Pierreâ€¦"
+              placeholder="Liste ou notes sur les managers concernés par Pierre…"
               rows={4}
             />
 
@@ -860,7 +860,7 @@ export default function PierreSetupPage() {
               label="Valideurs"
               value={form.people.validators}
               onChange={(value) => updateSection("people", "validators", value)}
-              placeholder="Qui valide quoi ? Noms, rÃ´les, cas concernÃ©sâ€¦"
+              placeholder="Qui valide quoi ? Noms, rôles, cas concernés…"
               rows={4}
             />
 
@@ -868,14 +868,14 @@ export default function PierreSetupPage() {
               label="Circuit de validation"
               value={form.people.validation_flow}
               onChange={(value) => updateSection("people", "validation_flow", value)}
-              placeholder="DÃ©cris le circuit : exemples de cas, ordre de validation, exceptions, dÃ©lais attendusâ€¦"
+              placeholder="Décris le circuit : exemples de cas, ordre de validation, exceptions, délais attendus…"
               rows={4}
             />
           </FormSection>
 
           <FormSection
             title="3. Communication et ton"
-            description="Câ€™est ici que Pierre apprend Ã  parler comme votre entreprise."
+            description="C’est ici que Pierre apprend à parler comme votre entreprise."
           >
             <div className="grid gap-4 md:grid-cols-3">
               <SelectField
@@ -884,21 +884,21 @@ export default function PierreSetupPage() {
                 onChange={(value) => updateSection("communication", "global_tone", value)}
                 options={[
                   "Professionnel et humain",
-                  "TrÃ¨s corporate",
+                  "Très corporate",
                   "Chaleureux et direct",
                   "Formel et prudent",
                   "Simple et accessible",
                 ]}
               />
               <SelectField
-                label="Niveau de formalitÃ©"
+                label="Niveau de formalité"
                 value={form.communication.formality}
                 onChange={(value) => updateSection("communication", "formality", value)}
                 options={[
-                  "Ã‰quilibrÃ©",
-                  "TrÃ¨s formel",
-                  "PlutÃ´t simple",
-                  "TrÃ¨s chaleureux",
+                  "Équilibré",
+                  "Très formel",
+                  "Plutôt simple",
+                  "Très chaleureux",
                 ]}
               />
               <SelectField
@@ -917,7 +917,7 @@ export default function PierreSetupPage() {
               label="Style candidat"
               value={form.communication.candidate_style}
               onChange={(value) => updateSection("communication", "candidate_style", value)}
-              placeholder="Comment Pierre doit-il sâ€™adresser aux candidats ?"
+              placeholder="Comment Pierre doit-il s’adresser aux candidats ?"
               rows={4}
             />
 
@@ -925,7 +925,7 @@ export default function PierreSetupPage() {
               label="Style manager"
               value={form.communication.manager_style}
               onChange={(value) => updateSection("communication", "manager_style", value)}
-              placeholder="Comment Pierre doit-il sâ€™adresser aux managers ?"
+              placeholder="Comment Pierre doit-il s’adresser aux managers ?"
               rows={4}
             />
 
@@ -939,22 +939,22 @@ export default function PierreSetupPage() {
           </FormSection>
 
           <FormSection
-            title="4. RÃ¨gles RH et pÃ©rimÃ¨tre autorisÃ©"
-            description="Pierre doit savoir ce quâ€™il fait souvent, ce quâ€™il peut faire, et ce quâ€™il ne doit jamais exÃ©cuter seul."
+            title="4. Règles RH et périmètre autorisé"
+            description="Pierre doit savoir ce qu’il fait souvent, ce qu’il peut faire, et ce qu’il ne doit jamais exécuter seul."
           >
             <TextAreaField
-              label="Documents rÃ©currents"
+              label="Documents récurrents"
               value={form.policy.recurring_documents}
               onChange={(value) => updateSection("policy", "recurring_documents", value)}
-              placeholder="Convocations, refus, relances, onboarding, rappels de procÃ©dureâ€¦"
+              placeholder="Convocations, refus, relances, onboarding, rappels de procédure…"
               rows={4}
             />
 
             <TextAreaField
-              label="RÃ¨gles rÃ©currentes"
+              label="Règles récurrentes"
               value={form.policy.recurring_rules}
               onChange={(value) => updateSection("policy", "recurring_rules", value)}
-              placeholder="DÃ©lais de relance, types de cas frÃ©quents, habitudes de fonctionnementâ€¦"
+              placeholder="Délais de relance, types de cas fréquents, habitudes de fonctionnement…"
               rows={4}
             />
 
@@ -968,10 +968,10 @@ export default function PierreSetupPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <TextAreaField
-                label="Actions autorisÃ©es"
+                label="Actions autorisées"
                 value={form.policy.allowed_actions}
                 onChange={(value) => updateSection("policy", "allowed_actions", value)}
-                placeholder="Ce que Pierre peut faire seul ou prÃ©parer."
+                placeholder="Ce que Pierre peut faire seul ou préparer."
                 rows={5}
               />
               <TextAreaField
@@ -985,29 +985,29 @@ export default function PierreSetupPage() {
           </FormSection>
 
           <FormSection
-            title="5. ParamÃ¨tres dâ€™autonomie"
-            description="Lâ€™autonomie doit Ãªtre puissante mais gouvernÃ©e."
+            title="5. Paramètres d’autonomie"
+            description="L’autonomie doit être puissante mais gouvernée."
           >
             <div className="grid gap-4 md:grid-cols-2">
               <ToggleField
-                label="PrÃ©parer sans envoyer par dÃ©faut"
-                description="Pierre peut prÃ©parer les documents et emails sans les envoyer automatiquement."
+                label="Préparer sans envoyer par défaut"
+                description="Pierre peut préparer les documents et emails sans les envoyer automatiquement."
                 checked={form.autonomy.can_prepare_only}
                 onChange={(checked) =>
                   updateSection("autonomy", "can_prepare_only", checked)
                 }
               />
               <ToggleField
-                label="Envoi dâ€™emails simples autorisÃ©"
-                description="Autoriser Pierre Ã  envoyer certains emails simples, si le cadre interne le permet."
+                label="Envoi d’emails simples autorisé"
+                description="Autoriser Pierre à envoyer certains emails simples, si le cadre interne le permet."
                 checked={form.autonomy.can_send_simple_emails}
                 onChange={(checked) =>
                   updateSection("autonomy", "can_send_simple_emails", checked)
                 }
               />
               <ToggleField
-                label="Relances automatiques autorisÃ©es"
-                description="Autoriser Pierre Ã  relancer automatiquement dans le cadre dÃ©fini."
+                label="Relances automatiques autorisées"
+                description="Autoriser Pierre à relancer automatiquement dans le cadre défini."
                 checked={form.autonomy.can_follow_up}
                 onChange={(checked) =>
                   updateSection("autonomy", "can_follow_up", checked)
@@ -1015,7 +1015,7 @@ export default function PierreSetupPage() {
               />
               <ToggleField
                 label="Validation humaine obligatoire sur le sensible"
-                description="Les cas sensibles remontent toujours avant exÃ©cution."
+                description="Les cas sensibles remontent toujours avant exécution."
                 checked={form.autonomy.human_validation_required_for_sensitive}
                 onChange={(checked) =>
                   updateSection(
@@ -1029,12 +1029,12 @@ export default function PierreSetupPage() {
           </FormSection>
 
           <FormSection
-            title="6. IdentitÃ© de messagerie"
-            description="Pierre doit paraÃ®tre rÃ©ellement intÃ©grÃ© Ã  lâ€™entreprise, avec une identitÃ© mail claire et contrÃ´lÃ©e."
+            title="6. Identité de messagerie"
+            description="Pierre doit paraître réellement intégré à l’entreprise, avec une identité mail claire et contrôlée."
           >
             <div className="grid gap-4 md:grid-cols-2">
               <Field
-                label="Adresse email liÃ©e"
+                label="Adresse email liée"
                 value={form.messaging.sender_email}
                 onChange={(value) => updateSection("messaging", "sender_email", value)}
                 placeholder="pierre@entreprise.com"
@@ -1042,7 +1042,7 @@ export default function PierreSetupPage() {
                 type="email"
               />
               <Field
-                label="Nom dâ€™affichage"
+                label="Nom d’affichage"
                 value={form.messaging.sender_display_name}
                 onChange={(value) =>
                   updateSection("messaging", "sender_display_name", value)
@@ -1065,36 +1065,36 @@ export default function PierreSetupPage() {
               label="Signature"
               value={form.messaging.signature}
               onChange={(value) => updateSection("messaging", "signature", value)}
-              placeholder="Signature email de Pierreâ€¦"
+              placeholder="Signature email de Pierre…"
               rows={4}
             />
 
             <TextAreaField
-              label="Politique dâ€™envoi"
+              label="Politique d’envoi"
               value={form.messaging.sending_policy}
               onChange={(value) => updateSection("messaging", "sending_policy", value)}
-              placeholder="Dans quels cas Pierre peut envoyer ? Dans quels cas il prÃ©pare seulement ?"
+              placeholder="Dans quels cas Pierre peut envoyer ? Dans quels cas il prépare seulement ?"
               rows={4}
             />
           </FormSection>
 
           <FormSection
-            title="7. MÃ©moire utile et rÃ©fÃ©rences"
-            description="Ajoute ici ce que Pierre doit garder en tÃªte pour mieux sâ€™aligner sur votre entreprise."
+            title="7. Mémoire utile et références"
+            description="Ajoute ici ce que Pierre doit garder en tête pour mieux s’aligner sur votre entreprise."
           >
             <TextAreaField
-              label="Formulations et phrases prÃ©fÃ©rÃ©es"
+              label="Formulations et phrases préférées"
               value={form.memory.preferred_phrases}
               onChange={(value) => updateSection("memory", "preferred_phrases", value)}
-              placeholder="Exemples de formulations, expressions, styles prÃ©fÃ©rÃ©sâ€¦"
+              placeholder="Exemples de formulations, expressions, styles préférés…"
               rows={4}
             />
 
             <TextAreaField
-              label="Notes de rÃ©fÃ©rence"
+              label="Notes de référence"
               value={form.memory.reference_notes}
               onChange={(value) => updateSection("memory", "reference_notes", value)}
-              placeholder="Informations importantes Ã  rÃ©utiliser rÃ©guliÃ¨rementâ€¦"
+              placeholder="Informations importantes à réutiliser régulièrement…"
               rows={5}
             />
 
@@ -1102,7 +1102,7 @@ export default function PierreSetupPage() {
               label="Templates / remarques utiles"
               value={form.memory.templates_notes}
               onChange={(value) => updateSection("memory", "templates_notes", value)}
-              placeholder="Notes sur les modÃ¨les de documents, habitudes dâ€™onboarding, rÃ¨gles de formeâ€¦"
+              placeholder="Notes sur les modèles de documents, habitudes d’onboarding, règles de forme…"
               rows={5}
             />
           </FormSection>
@@ -1116,11 +1116,11 @@ export default function PierreSetupPage() {
                   Enregistrement
                 </p>
                 <h3 className="cs-heading text-2xl">
-                  Enregistrer lâ€™Empreinte Entreprise de Pierre
+                  Enregistrer l’Empreinte Entreprise de Pierre
                 </h3>
                 <p className="max-w-2xl text-sm text-[var(--cs-ink-4)]">
                   Cette base doit ensuite nourrir Pierre, son comportement, sa
-                  mÃ©moire dâ€™entreprise, ses validations et ses futures missions.
+                  mémoire d’entreprise, ses validations et ses futures missions.
                 </p>
 
                 {saveMessage ? (
@@ -1152,7 +1152,7 @@ export default function PierreSetupPage() {
                   {saveState === "loading" ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Enregistrementâ€¦</span>
+                      <span>Enregistrement…</span>
                     </>
                   ) : (
                     <>
@@ -1176,27 +1176,27 @@ export default function PierreSetupPage() {
         <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
           <div className="cs-panel">
             <SectionTitle
-              kicker="Pourquoi cette page est stratÃ©gique"
-              title="Lâ€™onboarding de Pierre doit dÃ©jÃ  vendre sa profondeur."
-              text="Cette page doit montrer que Pierre ne sort pas de nulle part : il apprend le ton, les rÃ¨gles, la messagerie, lâ€™autonomie et le cadre de lâ€™entreprise."
+              kicker="Pourquoi cette page est stratégique"
+              title="L’onboarding de Pierre doit déjà vendre sa profondeur."
+              text="Cette page doit montrer que Pierre ne sort pas de nulle part : il apprend le ton, les règles, la messagerie, l’autonomie et le cadre de l’entreprise."
             />
 
             <div className="mt-6 grid gap-3">
               <InfoCard
                 title="Empreinte forte"
-                text="Pierre doit travailler comme votre entreprise, pas comme un modÃ¨le gÃ©nÃ©rique."
+                text="Pierre doit travailler comme votre entreprise, pas comme un modèle générique."
                 icon={<Sparkles className="h-4 w-4" />}
                 tone="violet"
               />
               <InfoCard
-                title="ContrÃ´le rÃ©el"
-                text="Le client doit sentir quâ€™il peut tout ajuster proprement."
+                title="Contrôle réel"
+                text="Le client doit sentir qu’il peut tout ajuster proprement."
                 icon={<ShieldCheck className="h-4 w-4" />}
                 tone="green"
               />
               <InfoCard
-                title="ContinuitÃ©"
-                text="Cette base conditionne ensuite la qualitÃ© des missions, des relances et des sorties."
+                title="Continuité"
+                text="Cette base conditionne ensuite la qualité des missions, des relances et des sorties."
                 icon={<FileText className="h-4 w-4" />}
                 tone="blue"
               />
@@ -1205,27 +1205,27 @@ export default function PierreSetupPage() {
 
           <div className="cs-panel">
             <SectionTitle
-              kicker="RÃ¨gle produit"
-              title="Ce nâ€™est pas un formulaire de plus. Câ€™est la matrice de Pierre."
-              text="Le client doit comprendre que ce quâ€™il remplit ici nourrit rÃ©ellement le comportement, les validations, la voix Ã©crite et le niveau dâ€™autonomie de Pierre."
+              kicker="Règle produit"
+              title="Ce n’est pas un formulaire de plus. C’est la matrice de Pierre."
+              text="Le client doit comprendre que ce qu’il remplit ici nourrit réellement le comportement, les validations, la voix écrite et le niveau d’autonomie de Pierre."
             />
 
             <div className="mt-6 grid gap-3">
               <InfoCard
                 title="CloneADN"
-                text="Lâ€™empreinte devient une base dâ€™alignement entreprise."
+                text="L’empreinte devient une base d’alignement entreprise."
                 icon={<Sparkles className="h-4 w-4" />}
                 tone="violet"
               />
               <InfoCard
                 title="CloneGuard"
-                text="Les validations et interdits doivent Ãªtre visibles et cadrÃ©s ici."
+                text="Les validations et interdits doivent être visibles et cadrés ici."
                 icon={<ShieldCheck className="h-4 w-4" />}
                 tone="rose"
               />
               <InfoCard
-                title="Messagerie rÃ©elle"
-                text="Lâ€™identitÃ© email de Pierre doit Ãªtre un vrai levier de crÃ©dibilitÃ©."
+                title="Messagerie réelle"
+                text="L’identité email de Pierre doit être un vrai levier de crédibilité."
                 icon={<Mail className="h-4 w-4" />}
                 tone="blue"
               />

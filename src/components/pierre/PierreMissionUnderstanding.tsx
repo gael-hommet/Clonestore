@@ -96,7 +96,7 @@ function riskLabel(risk: RiskLevel) {
     case "critical":
       return "Critique";
     default:
-      return "Non dÃ©fini";
+      return "Non défini";
   }
 }
 
@@ -114,9 +114,9 @@ function riskTone(risk: RiskLevel) {
 }
 
 function formatDate(value?: string | null) {
-  if (!value) return "â€”";
+  if (!value) return "—";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "â€”";
+  if (Number.isNaN(date.getTime())) return "—";
 
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
@@ -194,20 +194,20 @@ function inferMissionSummary(mission: MissionRecord | null | undefined, interpre
     interpretation?.summary ||
     asString(mission?.summary) ||
     asString(mission?.description) ||
-    "Pierre nâ€™a pas encore produit de rÃ©sumÃ© interprÃ©tÃ© pour cette mission."
+    "Pierre n’a pas encore produit de résumé interprété pour cette mission."
   );
 }
 
 function inferClassification(mission: MissionRecord | null | undefined, interpretation: ReturnType<typeof extractInterpretation>) {
-  return interpretation?.classification || asString(mission?.classification) || "Non classÃ©e";
+  return interpretation?.classification || asString(mission?.classification) || "Non classée";
 }
 
 function inferLanguage(mission: MissionRecord | null | undefined, interpretation: ReturnType<typeof extractInterpretation>) {
-  return interpretation?.language || asString(mission?.language) || "Non dÃ©fini";
+  return interpretation?.language || asString(mission?.language) || "Non défini";
 }
 
 function inferTone(mission: MissionRecord | null | undefined, interpretation: ReturnType<typeof extractInterpretation>) {
-  return interpretation?.tone || asString(mission?.tone) || "Non dÃ©fini";
+  return interpretation?.tone || asString(mission?.tone) || "Non défini";
 }
 
 function inferApprovalRequired(mission: MissionRecord | null | undefined, interpretation: ReturnType<typeof extractInterpretation>) {
@@ -222,7 +222,7 @@ function buildDetectedSubtasks(tasks: TaskRecord[], interpretedTasks: unknown[])
   const taskItems = tasks
     .map((task) => ({
       key: asString(task.id) || `task-${Math.random().toString(36).slice(2, 9)}`,
-      title: asString(task.title) || asString(task.type) || "Sous-tÃ¢che dÃ©tectÃ©e",
+      title: asString(task.title) || asString(task.type) || "Sous-tâche détectée",
       description: asString(task.description),
       status: asString(task.status) || "unknown",
       source: "task" as const,
@@ -247,7 +247,7 @@ function buildDetectedSubtasks(tasks: TaskRecord[], interpretedTasks: unknown[])
             asString(entry.title) ||
             asString(entry.label) ||
             asString(entry.type) ||
-            "Sous-tÃ¢che interprÃ©tÃ©e",
+            "Sous-tâche interprétée",
           description: asString(entry.description),
           status: asString(entry.status) || "detected",
           source: "interpretation" as const,
@@ -297,9 +297,9 @@ function classifyUnderstandingState({
 }) {
   if (risk === "critical") {
     return {
-      title: "Mission sensible sous contrÃ´le",
+      title: "Mission sensible sous contrôle",
       description:
-        "Pierre a compris une mission Ã  fort enjeu. Le traitement doit rester traÃ§able, encadrÃ© et potentiellement soumis Ã  validation humaine avant exÃ©cution.",
+        "Pierre a compris une mission à fort enjeu. Le traitement doit rester traçable, encadré et potentiellement soumis à validation humaine avant exécution.",
       tone: "critical" as const,
     };
   }
@@ -308,7 +308,7 @@ function classifyUnderstandingState({
     return {
       title: "Mission partiellement comprise",
       description:
-        "Pierre a structurÃ© la demande, mais des informations manquantes empÃªchent une exÃ©cution complÃ¨te ou sÃ»re sans clarification.",
+        "Pierre a structuré la demande, mais des informations manquantes empêchent une exécution complète ou sûre sans clarification.",
       tone: "warn" as const,
     };
   }
@@ -317,24 +317,24 @@ function classifyUnderstandingState({
     return {
       title: "Mission comprise avec validation requise",
       description:
-        "La demande est structurÃ©e et exploitable, mais certaines actions sensibles nÃ©cessitent un accord humain avant passage Ã  lâ€™exÃ©cution.",
+        "La demande est structurée et exploitable, mais certaines actions sensibles nécessitent un accord humain avant passage à l’exécution.",
       tone: "warn" as const,
     };
   }
 
   if (taskCount > 0) {
     return {
-      title: "Mission comprise et structurÃ©e",
+      title: "Mission comprise et structurée",
       description:
-        "Pierre a transformÃ© la demande RH en un plan lisible avec des sous-tÃ¢ches exploitables et un cadre opÃ©rationnel clair.",
+        "Pierre a transformé la demande RH en un plan lisible avec des sous-tâches exploitables et un cadre opérationnel clair.",
       tone: "good" as const,
     };
   }
 
   return {
-    title: "Mission en cours dâ€™analyse",
+    title: "Mission en cours d’analyse",
     description:
-      "Pierre dispose dâ€™Ã©lÃ©ments de comprÃ©hension, mais la structure opÃ©rationnelle reste encore lÃ©gÃ¨re ou incomplÃ¨te.",
+      "Pierre dispose d’éléments de compréhension, mais la structure opérationnelle reste encore légère ou incomplète.",
     tone: "default" as const,
   };
 }
@@ -457,15 +457,15 @@ export default function PierreMissionUnderstanding({
         <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div className="max-w-[980px]">
             <div className="text-[11px] uppercase tracking-[0.22em] text-stone-500">
-              ComprÃ©hension de mission
+              Compréhension de mission
             </div>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-stone-950">
-              Lecture structurÃ©e de la demande par Pierre
+              Lecture structurée de la demande par Pierre
             </h2>
             <p className="mt-3 text-sm leading-7 text-stone-600">
-              Ce bloc doit donner une sensation claire : Pierre ne se contente pas dâ€™afficher une demande,
-              il la comprend, la classe, en mesure le risque, repÃ¨re les manques et prÃ©pare une exÃ©cution
-              RH sÃ©rieuse sous contrÃ´le.
+              Ce bloc doit donner une sensation claire : Pierre ne se contente pas d’afficher une demande,
+              il la comprend, la classe, en mesure le risque, repère les manques et prépare une exécution
+              RH sérieuse sous contrôle.
             </p>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -507,12 +507,12 @@ export default function PierreMissionUnderstanding({
             )}
           >
             <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
-              Ã‰tat de comprÃ©hension
+              État de compréhension
             </div>
             <div className="mt-3 text-lg font-semibold text-stone-900">{understandingState.title}</div>
             <div className="mt-3 text-sm leading-7 text-stone-700">{understandingState.description}</div>
             <div className="mt-4 text-xs text-stone-500">
-              DerniÃ¨re mise Ã  jour : {formatDate(mission?.updated_at || mission?.created_at || null)}
+              Dernière mise à jour : {formatDate(mission?.updated_at || mission?.created_at || null)}
             </div>
           </div>
         </div>
@@ -530,12 +530,12 @@ export default function PierreMissionUnderstanding({
 
         <div className="grid gap-6 2xl:grid-cols-[1.2fr_0.9fr]">
           <div className="rounded-[28px] border border-stone-200 bg-white/85 p-5">
-            <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">RÃ©sumÃ© interprÃ©tÃ©</div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Résumé interprété</div>
             <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-stone-700">{summary}</div>
 
             {asString(interpretation?.intent) ? (
               <div className="mt-5 rounded-[22px] border border-stone-200 bg-[#fcfaf6] px-4 py-4">
-                <div className="text-[11px] uppercase tracking-[0.16em] text-stone-500">Intent dÃ©tectÃ©</div>
+                <div className="text-[11px] uppercase tracking-[0.16em] text-stone-500">Intent détecté</div>
                 <div className="mt-2 text-sm font-semibold text-stone-900">{asString(interpretation?.intent)}</div>
               </div>
             ) : null}
@@ -546,15 +546,15 @@ export default function PierreMissionUnderstanding({
               <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Validation</div>
               <div className="mt-3 text-sm leading-7 text-stone-700">
                 {approvalRequired
-                  ? "Cette mission comporte au moins une action qui doit rester sous validation humaine avant exÃ©cution complÃ¨te."
-                  : "Aucune validation globale obligatoire nâ€™a Ã©tÃ© dÃ©tectÃ©e Ã  ce stade pour la mission."}
+                  ? "Cette mission comporte au moins une action qui doit rester sous validation humaine avant exécution complète."
+                  : "Aucune validation globale obligatoire n’a été détectée à ce stade pour la mission."}
               </div>
             </div>
 
             <div className="rounded-[28px] border border-stone-200 bg-white/85 p-5">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Sous-tÃ¢ches dÃ©tectÃ©es</div>
+              <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Sous-tâches détectées</div>
               <div className="mt-3 text-2xl font-semibold text-stone-900">{detectedSubtasks.length}</div>
-              <div className="mt-1 text-xs text-stone-500">Structure opÃ©rationnelle visible</div>
+              <div className="mt-1 text-xs text-stone-500">Structure opérationnelle visible</div>
             </div>
           </div>
         </div>
@@ -564,7 +564,7 @@ export default function PierreMissionUnderstanding({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Informations manquantes</div>
-                <div className="mt-2 text-lg font-semibold text-stone-900">Ce quâ€™il manque pour sÃ©curiser lâ€™exÃ©cution</div>
+                <div className="mt-2 text-lg font-semibold text-stone-900">Ce qu’il manque pour sécuriser l’exécution</div>
               </div>
               <Pill tone={allMissingInfo.length + missingInfoQuestions.length > 0 ? "warn" : "good"}>
                 {allMissingInfo.length + missingInfoQuestions.length}
@@ -574,7 +574,7 @@ export default function PierreMissionUnderstanding({
             <div className="mt-4 grid gap-3">
               {allMissingInfo.length === 0 && missingInfoQuestions.length === 0 ? (
                 <div className="rounded-[22px] border border-emerald-200 bg-emerald-50 px-4 py-6 text-sm text-emerald-900">
-                  Aucune information manquante explicite nâ€™a Ã©tÃ© dÃ©tectÃ©e pour cette mission.
+                  Aucune information manquante explicite n’a été détectée pour cette mission.
                 </div>
               ) : (
                 <>
@@ -606,8 +606,8 @@ export default function PierreMissionUnderstanding({
           <div className="rounded-[28px] border border-stone-200 bg-white/85 p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Sous-tÃ¢ches dÃ©tectÃ©es</div>
-                <div className="mt-2 text-lg font-semibold text-stone-900">DÃ©coupage opÃ©rationnel</div>
+                <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Sous-tâches détectées</div>
+                <div className="mt-2 text-lg font-semibold text-stone-900">Découpage opérationnel</div>
               </div>
               <Pill>{detectedSubtasks.length}</Pill>
             </div>
@@ -615,7 +615,7 @@ export default function PierreMissionUnderstanding({
             <div className="mt-4 space-y-3">
               {detectedSubtasks.length === 0 ? (
                 <div className="rounded-[22px] border border-dashed border-stone-200 bg-[#fcfaf6] px-4 py-8 text-sm text-stone-500">
-                  Aucune sous-tÃ¢che claire nâ€™a encore Ã©tÃ© matÃ©rialisÃ©e.
+                  Aucune sous-tâche claire n’a encore été matérialisée.
                 </div>
               ) : (
                 detectedSubtasks.map((task, index) => (
@@ -634,7 +634,7 @@ export default function PierreMissionUnderstanding({
                       </div>
 
                       <div className="flex shrink-0 items-center gap-2">
-                        <Pill>{task.source === "task" ? "Task engine" : "InterprÃ©tation"}</Pill>
+                        <Pill>{task.source === "task" ? "Task engine" : "Interprétation"}</Pill>
                         <Pill tone="default">{task.status}</Pill>
                       </div>
                     </div>
@@ -647,11 +647,11 @@ export default function PierreMissionUnderstanding({
 
         <div className="grid gap-6 2xl:grid-cols-[1fr_1fr]">
           <div className="rounded-[28px] border border-stone-200 bg-white/85 p-5">
-            <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Chronologie de comprÃ©hension</div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Chronologie de compréhension</div>
             <div className="mt-4 space-y-3">
               {timelineSignals.length === 0 ? (
                 <div className="rounded-[22px] border border-dashed border-stone-200 bg-[#fcfaf6] px-4 py-8 text-sm text-stone-500">
-                  Aucun signal rÃ©cent de comprÃ©hension disponible.
+                  Aucun signal récent de compréhension disponible.
                 </div>
               ) : (
                 timelineSignals.map((log, index) => {
@@ -689,29 +689,29 @@ export default function PierreMissionUnderstanding({
           <div className="rounded-[28px] border border-stone-200 bg-white/85 p-5">
             <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Lecture produit</div>
             <div className="mt-3 text-sm leading-7 text-stone-700">
-              Pierre doit Ãªtre perÃ§u ici comme un vÃ©ritable employÃ© IA RH premium :
-              il comprend la demande libre, la reformule implicitement en mission structurÃ©e,
-              mesure le risque, remonte les validations nÃ©cessaires, repÃ¨re ce qui manque
-              et prÃ©pare un passage propre vers lâ€™exÃ©cution ou la clarification.
+              Pierre doit être perçu ici comme un véritable employé IA RH premium :
+              il comprend la demande libre, la reformule implicitement en mission structurée,
+              mesure le risque, remonte les validations nécessaires, repère ce qui manque
+              et prépare un passage propre vers l’exécution ou la clarification.
             </div>
 
             <div className="mt-5 grid gap-3">
               <div className="rounded-[22px] border border-stone-200 bg-[#fcfaf6] px-4 py-4">
                 <div className="text-[11px] uppercase tracking-[0.14em] text-stone-500">Mission</div>
                 <div className="mt-2 text-sm font-semibold text-stone-900">
-                  {asString(mission?.title) || "Sans titre structurÃ©"}
+                  {asString(mission?.title) || "Sans titre structuré"}
                 </div>
               </div>
 
               <div className="rounded-[22px] border border-stone-200 bg-[#fcfaf6] px-4 py-4">
-                <div className="text-[11px] uppercase tracking-[0.14em] text-stone-500">CrÃ©ation</div>
+                <div className="text-[11px] uppercase tracking-[0.14em] text-stone-500">Création</div>
                 <div className="mt-2 text-sm text-stone-700">
                   {formatDate(mission?.created_at || null)}
                 </div>
               </div>
 
               <div className="rounded-[22px] border border-stone-200 bg-[#fcfaf6] px-4 py-4">
-                <div className="text-[11px] uppercase tracking-[0.14em] text-stone-500">DerniÃ¨re mise Ã  jour</div>
+                <div className="text-[11px] uppercase tracking-[0.14em] text-stone-500">Dernière mise à jour</div>
                 <div className="mt-2 text-sm text-stone-700">
                   {formatDate(mission?.updated_at || mission?.created_at || null)}
                 </div>

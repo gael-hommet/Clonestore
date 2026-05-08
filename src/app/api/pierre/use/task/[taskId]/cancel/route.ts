@@ -221,7 +221,7 @@ export async function POST(
       task_id: taskId,
       level: "warning",
       event: "task_cancelled",
-      message: `La tÃ¢che a Ã©tÃ© annulÃ©e depuis le statut ${currentStatus}.`,
+      message: `La tâche a été annulée depuis le statut ${currentStatus}.`,
       payload: null,
     });
 

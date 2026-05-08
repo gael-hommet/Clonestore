@@ -9,7 +9,7 @@ import { LiquidGlassFilters } from "@/components/ui/LiquidGlassFilters";
 export const metadata: Metadata = {
   title: "CloneStore",
   description:
-    "CloneStore â€” gagnez du temps et de lâ€™argent avec des employÃ©s IA premium pour entreprises.",
+    "CloneStore — gagnez du temps et de l’argent avec des employés IA premium pour entreprises.",
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
@@ -23,7 +23,7 @@ const ORG_JSON_LD = {
   url: "https://clonestore.pro",
   logo: "https://clonestore.pro/icon-512.png",
   description:
-    "CloneStore aide les entreprises Ã  gagner du temps et de lâ€™argent avec des employÃ©s IA premium.",
+    "CloneStore aide les entreprises à gagner du temps et de l’argent avec des employés IA premium.",
 };
 
 export default function RootLayout({
@@ -90,7 +90,7 @@ export default function RootLayout({
                 </span>
 
                 <p>
-                  Â© {new Date().getFullYear()} CloneStore â€” gagnez du temps et de
+                  © {new Date().getFullYear()} CloneStore — gagnez du temps et de
                   l&apos;argent.
                 </p>
               </div>
@@ -100,7 +100,7 @@ export default function RootLayout({
                   href="/legal/confidentialite"
                   className="hover:text-[var(--cs-ink-1)]"
                 >
-                  ConfidentialitÃ©
+                  Confidentialité
                 </Link>
                 <Link href="/questions" className="hover:text-[var(--cs-ink-1)]">
                   Support

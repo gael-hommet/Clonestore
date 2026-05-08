@@ -320,13 +320,13 @@ function detectClassification(input: string): string {
   if (lower.includes("relance") || lower.includes("follow up")) {
     return "relance_rh";
   }
-  if (lower.includes("onboarding") || lower.includes("intÃƒÂ©gration")) {
+  if (lower.includes("onboarding") || lower.includes("intégration")) {
     return "onboarding";
   }
   if (lower.includes("note rh")) {
     return "note_rh";
   }
-  if (lower.includes("procÃƒÂ©dure") || lower.includes("procedure")) {
+  if (lower.includes("procédure") || lower.includes("procedure")) {
     return "rappel_procedure";
   }
   if (lower.includes("compte rendu") || lower.includes("compte-rendu")) {
@@ -353,9 +353,9 @@ function detectIntent(input: string): string {
     return "execute_rh_action";
   }
   if (
-    lower.includes("prÃƒÂ©pare") ||
+    lower.includes("prépare") ||
     lower.includes("prepare") ||
-    lower.includes("rÃƒÂ©dige") ||
+    lower.includes("rédige") ||
     lower.includes("redige") ||
     lower.includes("draft")
   ) {
@@ -380,23 +380,23 @@ function detectRisk(
   const criticalSignals = [
     "licenciement",
     "sanction disciplinaire",
-    "harcÃƒÂ¨lement",
+    "harcèlement",
     "harcelement",
     "plainte",
     "contentieux",
     "prud'hommes",
     "discrimination",
-    "rupture conventionnelle forcÃƒÂ©e",
+    "rupture conventionnelle forcée",
   ];
 
   const sensitiveSignals = [
     "avertissement",
-    "mise Ãƒ  pied",
+    "mise à pied",
     "mise a pied",
     "conflit",
-    "problÃƒÂ¨me salariÃƒÂ©",
+    "problème salarié",
     "probleme salarie",
-    "absence injustifiÃƒÂ©e",
+    "absence injustifiée",
     "absence injustifiee",
     "salaire",
     "confidentiel",
@@ -432,12 +432,12 @@ function needsApproval(
   if (risk === "critical") return true;
 
   const approvalSignals = [
-    "aprÃƒÂ¨s validation",
+    "après validation",
     "apres validation",
     "soumets moi avant envoi",
     "avant d'envoyer",
     "avant envoi",
-    "Ãƒ  valider",
+    "à valider",
     "a valider",
     "validation manager",
     "validation humaine",
@@ -498,7 +498,7 @@ function detectMissingInfo(
   const questions: string[] = [];
 
   const hasPersonName =
-    /\b[A-ZÃƒâ€°ÃƒË†Ãƒâ‚¬Ãƒâ€šÃƒÅ ÃƒÅ½Ãƒâ€Ãƒâ€ºÃƒâ€žÃƒâ€¹ÃƒÂÃƒâ€“ÃƒÅ“][a-zÃƒÂ©ÃƒÂ¨Ãƒ ÃƒÂ¢ÃƒÂªÃƒÂ®ÃƒÂ´ÃƒÂ»ÃƒÂ¤ÃƒÂ«ÃƒÂ¯ÃƒÂ¶ÃƒÂ¼'-]+\s+[A-ZÃƒâ€°ÃƒË†Ãƒâ‚¬Ãƒâ€šÃƒÅ ÃƒÅ½Ãƒâ€Ãƒâ€ºÃƒâ€žÃƒâ€¹ÃƒÂÃƒâ€“ÃƒÅ“][a-zÃƒÂ©ÃƒÂ¨Ãƒ ÃƒÂ¢ÃƒÂªÃƒÂ®ÃƒÂ´ÃƒÂ»ÃƒÂ¤ÃƒÂ«ÃƒÂ¯ÃƒÂ¶ÃƒÂ¼'-]+\b/.test(
+    /\b[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\s+[A-ZÉÈÀÂÊÎÔÛÄËÏÖÜ][a-zéèàâêîôûäëïöü'-]+\b/.test(
       input,
     );
 
@@ -507,13 +507,13 @@ function detectMissingInfo(
   const hasHour = /\b\d{1,2}h(\d{2})?\b/i.test(input);
 
   if (classification === "convocation_entretien" && !hasDate) {
-    missing.push("Date dÃ¢â‚¬â„¢entretien manquante");
-    questions.push("Quelle est la date exacte de lÃ¢â‚¬â„¢entretien ?");
+    missing.push("Date d’entretien manquante");
+    questions.push("Quelle est la date exacte de l’entretien ?");
   }
 
   if (classification === "convocation_entretien" && !hasHour) {
-    missing.push("Horaire dÃ¢â‚¬â„¢entretien manquant");
-    questions.push("Ãƒâ‚¬ quelle heure doit avoir lieu lÃ¢â‚¬â„¢entretien ?");
+    missing.push("Horaire d’entretien manquant");
+    questions.push("À quelle heure doit avoir lieu l’entretien ?");
   }
 
   if (
@@ -525,8 +525,8 @@ function detectMissingInfo(
     ) &&
     !hasPersonName
   ) {
-    missing.push("IdentitÃƒÂ© de la personne concernÃƒÂ©e manquante");
-    questions.push("Quel est le nom complet de la personne concernÃƒÂ©e ?");
+    missing.push("Identité de la personne concernée manquante");
+    questions.push("Quel est le nom complet de la personne concernée ?");
   }
 
   if (
@@ -538,12 +538,12 @@ function detectMissingInfo(
     !hasEmail
   ) {
     missing.push("Adresse email destinataire manquante");
-    questions.push("Quelle est lÃ¢â‚¬â„¢adresse email du destinataire ?");
+    questions.push("Quelle est l’adresse email du destinataire ?");
   }
 
   if (classification === "offre_emploi" && !lower.includes("poste")) {
-    missing.push("IntitulÃƒÂ© du poste absent ou insuffisant");
-    questions.push("Quel est lÃ¢â‚¬â„¢intitulÃƒÂ© exact du poste ?");
+    missing.push("Intitulé du poste absent ou insuffisant");
+    questions.push("Quel est l’intitulé exact du poste ?");
   }
 
   return {
@@ -558,9 +558,9 @@ function buildMissionSummary(
   risk: MissionRiskLevel,
 ): string {
   const base = input.trim().replace(/\s+/g, " ");
-  const clipped = base.length > 260 ? `${base.slice(0, 257)}Ã¢â‚¬Â¦` : base;
+  const clipped = base.length > 260 ? `${base.slice(0, 257)}…` : base;
 
-  return `Mission RH classÃƒÂ©e "${classification}" avec niveau de risque "${risk}". Demande structurÃƒÂ©e Ãƒ  partir de : ${clipped}`;
+  return `Mission RH classée "${classification}" avec niveau de risque "${risk}". Demande structurée à partir de : ${clipped}`;
 }
 
 function buildTasks(
@@ -587,7 +587,7 @@ function buildTasks(
       type: "generate_document",
       title: "Produire le document RH",
       description:
-        "RÃƒÂ©diger un livrable RH premium cohÃƒÂ©rent avec la demande, le ton voulu, la langue dÃƒÂ©tectÃƒÂ©e et les contraintes de risque.",
+        "Rédiger un livrable RH premium cohérent avec la demande, le ton voulu, la langue détectée et les contraintes de risque.",
       status:
         interpretation.missing_info.length > 0
           ? "awaiting_info"
@@ -618,9 +618,9 @@ function buildTasks(
   ) {
     tasks.push({
       type: "prepare_email",
-      title: "PrÃƒÂ©parer lÃ¢â‚¬â„¢email RH",
+      title: "Préparer l’email RH",
       description:
-        "PrÃƒÂ©parer un email clair, traÃƒÂ§able et cohÃƒÂ©rent avec la mission, prÃƒÂªt Ãƒ  ÃƒÂªtre validÃƒÂ© ou envoyÃƒÂ© selon le niveau de risque.",
+        "Préparer un email clair, traçable et cohérent avec la mission, prêt à être validé ou envoyé selon le niveau de risque.",
       status:
         interpretation.missing_info.length > 0
           ? "awaiting_info"
@@ -644,16 +644,16 @@ function buildTasks(
   if (
     lower.includes("pdf") ||
     lower.includes("export") ||
-    lower.includes("document Ãƒ  joindre") ||
+    lower.includes("document à joindre") ||
     lower.includes("document a joindre") ||
     lower.includes("piece jointe") ||
-    lower.includes("piÃƒÂ¨ce jointe")
+    lower.includes("pièce jointe")
   ) {
     tasks.push({
       type: "generate_pdf",
-      title: "PrÃƒÂ©parer lÃ¢â‚¬â„¢export PDF",
+      title: "Préparer l’export PDF",
       description:
-        "GÃƒÂ©nÃƒÂ©rer un PDF propre Ãƒ  partir du document ou du contenu RH finalisÃƒÂ©.",
+        "Générer un PDF propre à partir du document ou du contenu RH finalisé.",
       status:
         interpretation.missing_info.length > 0
           ? "awaiting_info"
@@ -671,14 +671,14 @@ function buildTasks(
 
   if (
     lower.includes("relance") ||
-    lower.includes("si pas de rÃƒÂ©ponse") ||
+    lower.includes("si pas de réponse") ||
     lower.includes("si pas de reponse")
   ) {
     tasks.push({
       type: "schedule_follow_up",
-      title: "PrÃƒÂ©parer une relance RH",
+      title: "Préparer une relance RH",
       description:
-        "Programmer une relance propre et traÃƒÂ§able si aucune rÃƒÂ©ponse nÃ¢â‚¬â„¢est obtenue.",
+        "Programmer une relance propre et traçable si aucune réponse n’est obtenue.",
       status:
         interpretation.approval_required || interpretation.missing_info.length > 0
           ? "awaiting_approval"
@@ -698,7 +698,7 @@ function buildTasks(
       type: "request_missing_info",
       title: "Demander les informations manquantes",
       description:
-        "Bloquer lÃ¢â‚¬â„¢exÃƒÂ©cution complÃƒÂ¨te tant que les ÃƒÂ©lÃƒÂ©ments indispensables Ãƒ  une action RH propre ne sont pas fournis.",
+        "Bloquer l’exécution complète tant que les éléments indispensables à une action RH propre ne sont pas fournis.",
       status: "awaiting_info",
       approval_required: false,
       risk_level: interpretation.risk_level,
@@ -716,7 +716,7 @@ function buildTasks(
       type: "structure_mission",
       title: "Structurer la mission RH",
       description:
-        "CrÃƒÂ©er un cadre dÃ¢â‚¬â„¢exÃƒÂ©cution RH exploitable Ãƒ  partir de la demande libre.",
+        "Créer un cadre d’exécution RH exploitable à partir de la demande libre.",
       status:
         interpretation.missing_info.length > 0
           ? "awaiting_info"
@@ -771,7 +771,7 @@ async function insertMission(
 ): Promise<DbRow> {
   const title =
     body.input.length > 120
-      ? `${body.input.slice(0, 117).trim()}Ã¢â‚¬Â¦`
+      ? `${body.input.slice(0, 117).trim()}…`
       : body.input || "Mission RH";
 
   const insertPayload = {
@@ -858,7 +858,7 @@ async function insertLogs(
       mission_id: missionId,
       level: "info",
       event: "mission_created",
-      message: "Mission crÃƒÂ©ÃƒÂ©e et structurÃƒÂ©e par Pierre.",
+      message: "Mission créée et structurée par Pierre.",
       payload: {
         classification: interpretation.classification,
         risk_level: interpretation.risk_level,
@@ -876,10 +876,10 @@ async function insertLogs(
       event: "mission_interpreted",
       message:
         interpretation.missing_info.length > 0
-          ? "Mission interprÃƒÂ©tÃƒÂ©e avec informations manquantes."
+          ? "Mission interprétée avec informations manquantes."
           : interpretation.approval_required
-            ? "Mission interprÃƒÂ©tÃƒÂ©e avec validation requise."
-            : "Mission interprÃƒÂ©tÃƒÂ©e et prÃƒÂªte pour exÃƒÂ©cution contrÃƒÂ´lÃƒÂ©e.",
+            ? "Mission interprétée avec validation requise."
+            : "Mission interprétée et prête pour exécution contrôlée.",
       payload: interpretation,
     },
   ];
@@ -890,7 +890,7 @@ async function insertLogs(
       task_id: task.id,
       level: "info",
       event: "task_created",
-      message: `TÃƒÂ¢che crÃƒÂ©ÃƒÂ©e : ${asString(task.title) || asString(task.type) || "task"}`,
+      message: `Tâche créée : ${asString(task.title) || asString(task.type) || "task"}`,
       payload: {
         task_type: asString(task.type),
         task_status: asString(task.status),
@@ -961,10 +961,10 @@ export async function POST(request: NextRequest) {
           role: "assistant",
           content:
             interpretation.missing_info.length > 0
-              ? "Mission comprise partiellement. Pierre a structurÃƒÂ© la demande mais a dÃƒÂ©tectÃƒÂ© des informations manquantes avant exÃƒÂ©cution complÃƒÂ¨te."
+              ? "Mission comprise partiellement. Pierre a structuré la demande mais a détecté des informations manquantes avant exécution complète."
               : interpretation.approval_required
-                ? "Mission comprise. Pierre a structurÃƒÂ© lÃ¢â‚¬â„¢action et positionnÃƒÂ© une validation humaine avant exÃƒÂ©cution sensible."
-                : "Mission comprise et structurÃƒÂ©e. Pierre a crÃƒÂ©ÃƒÂ© les tÃƒÂ¢ches nÃƒÂ©cessaires pour lancer le traitement RH.",
+                ? "Mission comprise. Pierre a structuré l’action et positionné une validation humaine avant exécution sensible."
+                : "Mission comprise et structurée. Pierre a créé les tâches nécessaires pour lancer le traitement RH.",
           created_at: new Date().toISOString(),
         },
       ],

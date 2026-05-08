@@ -79,17 +79,17 @@ export default function PaiementCancelPage() {
                 <div className="flex flex-wrap gap-2">
                   <span className="cs-pill">
                     <Undo2 className="h-3.5 w-3.5 text-[var(--cs-danger)]" />
-                    Paiement annulÃ©
+                    Paiement annulé
                   </span>
                   <span className="cs-pill">
                     <ShieldCheck className="h-3.5 w-3.5 text-[var(--cs-success)]" />
-                    Aucune action facturÃ©e
+                    Aucune action facturée
                   </span>
                 </div>
 
                 <div className="max-w-4xl space-y-5">
                   <h1 className="cs-heading text-[clamp(2.4rem,5vw,5.5rem)] leading-[0.94] tracking-[-0.065em]">
-                    Paiement annulÃ©.
+                    Paiement annulé.
                     <br />
                     <span className="bg-[linear-gradient(135deg,#151922_0%,#2d3446_46%,#667cff_100%)] bg-clip-text text-transparent">
                       Vous pouvez reprendre quand vous voulez.
@@ -97,8 +97,8 @@ export default function PaiementCancelPage() {
                   </h1>
 
                   <p className="max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
-                    Votre activation nâ€™a pas Ã©tÃ© finalisÃ©e. Vous pouvez revenir Ã  la
-                    boutique, reprendre le checkout ou demander de lâ€™aide Ã  CloneStore.
+                    Votre activation n’a pas été finalisée. Vous pouvez revenir à la
+                    boutique, reprendre le checkout ou demander de l’aide à CloneStore.
                   </p>
                 </div>
 
@@ -116,7 +116,7 @@ export default function PaiementCancelPage() {
                   />
                   <ActionButton
                     href="/assistant"
-                    label="Demander Ã  CloneStore"
+                    label="Demander à CloneStore"
                     icon={<Bot className="h-4 w-4" />}
                   />
                 </div>
@@ -130,13 +130,13 @@ export default function PaiementCancelPage() {
               >
                 <div className="space-y-4">
                   <MiniCard
-                    title="Rien nâ€™est perdu"
-                    text="Votre compte et votre navigation restent inchangÃ©s."
+                    title="Rien n’est perdu"
+                    text="Votre compte et votre navigation restent inchangés."
                     icon={<ShieldCheck className="h-4 w-4" />}
                   />
                   <MiniCard
-                    title="Paiement non finalisÃ©"
-                    text="Aucune activation nâ€™est confirmÃ©e tant que le paiement nâ€™est pas validÃ©."
+                    title="Paiement non finalisé"
+                    text="Aucune activation n’est confirmée tant que le paiement n’est pas validé."
                     icon={<CreditCard className="h-4 w-4" />}
                   />
                   <MiniCard

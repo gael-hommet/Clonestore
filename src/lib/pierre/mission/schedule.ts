@@ -72,7 +72,7 @@ function parseTodayLater(lower: string, now: Date): Date | null {
     !lower.includes("plus tard aujourd'hui") &&
     !lower.includes("plus tard aujourd hui") &&
     !lower.includes("cet apres midi") &&
-    !lower.includes("cet aprÃ¨s midi") &&
+    !lower.includes("cet après midi") &&
     !lower.includes("ce soir")
   ) {
     return null;
@@ -84,7 +84,7 @@ function parseTodayLater(lower: string, now: Date): Date | null {
     return clampToFuture(date, now);
   }
 
-  if (lower.includes("cet apres midi") || lower.includes("cet aprÃ¨s midi")) {
+  if (lower.includes("cet apres midi") || lower.includes("cet après midi")) {
     const date = new Date(now);
     date.setHours(15, 0, 0, 0);
     return clampToFuture(date, now);
@@ -125,7 +125,7 @@ export function detectMissionSchedule(
 
   const explicitTomorrow = parseTomorrow(lower, now);
   if (explicitTomorrow) {
-    reasons.push("La demande mentionne une exÃ©cution demain.");
+    reasons.push("La demande mentionne une exécution demain.");
     return {
       kind: "scheduled_tomorrow",
       scheduled_for: explicitTomorrow.toISOString(),
@@ -138,7 +138,7 @@ export function detectMissionSchedule(
 
   const explicitRelative = parseRelativeDelay(lower, now);
   if (explicitRelative) {
-    reasons.push("La demande contient un dÃ©lai relatif explicite.");
+    reasons.push("La demande contient un délai relatif explicite.");
     return {
       kind: "scheduled_specific_time",
       scheduled_for: explicitRelative.toISOString(),
@@ -164,7 +164,7 @@ export function detectMissionSchedule(
 
   const explicitToday = parseTodayLater(lower, now);
   if (explicitToday) {
-    reasons.push("La demande implique une exÃ©cution plus tard aujourdâ€™hui.");
+    reasons.push("La demande implique une exécution plus tard aujourd’hui.");
     return {
       kind: "scheduled_today",
       scheduled_for: explicitToday.toISOString(),
@@ -177,13 +177,13 @@ export function detectMissionSchedule(
 
   if (
     lower.includes("apres validation") ||
-    lower.includes("aprÃ¨s validation") ||
+    lower.includes("après validation") ||
     lower.includes("une fois valide") ||
-    lower.includes("une fois validÃ©") ||
+    lower.includes("une fois validé") ||
     lower.includes("une fois validee") ||
-    lower.includes("une fois validÃ©e")
+    lower.includes("une fois validée")
   ) {
-    reasons.push("La demande impose une validation prÃ©alable avant exÃ©cution.");
+    reasons.push("La demande impose une validation préalable avant exécution.");
     return {
       kind: "after_validation",
       scheduled_for: null,
@@ -196,9 +196,9 @@ export function detectMissionSchedule(
 
   if (
     lower.includes("si pas de reponse") ||
-    lower.includes("si pas de rÃ©ponse") ||
+    lower.includes("si pas de réponse") ||
     lower.includes("en l'absence de reponse") ||
-    lower.includes("en l'absence de rÃ©ponse")
+    lower.includes("en l'absence de réponse")
   ) {
     let follow_up_delay_hours: number | null = 48;
 
@@ -230,7 +230,7 @@ export function detectMissionSchedule(
   }
 
   if (requires_validation_before_execution) {
-    reasons.push("Aucune heure explicite, mais la validation humaine bloque lâ€™exÃ©cution immÃ©diate.");
+    reasons.push("Aucune heure explicite, mais la validation humaine bloque l’exécution immédiate.");
     return {
       kind: "after_validation",
       scheduled_for: null,
@@ -241,7 +241,7 @@ export function detectMissionSchedule(
     };
   }
 
-  reasons.push("Aucune contrainte temporelle explicite dÃ©tectÃ©e.");
+  reasons.push("Aucune contrainte temporelle explicite détectée.");
   return {
     kind: "immediate",
     scheduled_for: null,
