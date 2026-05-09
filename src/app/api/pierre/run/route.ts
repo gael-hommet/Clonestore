@@ -258,13 +258,17 @@ export async function POST(req: Request) {
   // 6) Build base url (same host)
   const origin = new URL(req.url).origin;
 
-  // IMPORTANT: on propage les headers HMAC au /generate et /execute
-  const forwardHeaders = {
+  // Propagate HMAC headers + worker secret to /generate and /execute
+  const forwardHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     "x-client-id": req.headers.get("x-client-id") || "",
     "x-timestamp": req.headers.get("x-timestamp") || "",
     "x-signature": req.headers.get("x-signature") || "",
   };
+  const workerSecretEnv = process.env.PIERRE_QUEUE_WORKER_SECRET;
+  if (workerSecretEnv) {
+    forwardHeaders["x-pierre-worker-secret"] = workerSecretEnv;
+  }
 
   // 7) Call generate
   const generateBody = { client_id, request_id, mission, payload };

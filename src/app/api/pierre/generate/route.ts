@@ -124,6 +124,13 @@ function extractBearerToken(request: NextRequest): string | null {
   return null;
 }
 
+function checkWorkerAuth(request: NextRequest): boolean {
+  const workerSecret = process.env.PIERRE_QUEUE_WORKER_SECRET;
+  if (!workerSecret) return true; // no secret configured — open by convention (same as other worker routes)
+  const provided = request.headers.get("x-pierre-worker-secret");
+  return provided === workerSecret;
+}
+
 async function resolveUser(supabase: SupabaseClient, request: NextRequest): Promise<User | null> {
   const token = extractBearerToken(request);
   if (!token) return null;
@@ -278,7 +285,13 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = getSupabaseAdmin();
+    const workerAuth = checkWorkerAuth(request);
     const user = await resolveUser(supabase, request);
+
+    if (!workerAuth && !user) {
+      return json({ ok: false, error: "Authentification requise." }, 401);
+    }
+
     const memory = await getCompanyMemory(supabase, user);
 
     const openai = getOpenAIClient();
