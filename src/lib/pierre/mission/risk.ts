@@ -1,3 +1,5 @@
+import type { PierreHrRiskLevel } from "../hr/contracts";
+
 export type PierreMissionRiskLevel = "normal" | "sensitive" | "critical";
 
 export type PierreRiskInput = {
@@ -13,6 +15,7 @@ export type PierreRiskResult = {
   reasons: string[];
   matched_signals: string[];
   warnings: string[];
+  hr_risk_level: PierreHrRiskLevel;
 };
 
 type RiskRule = {
@@ -142,6 +145,13 @@ function scoreRuleMatches(
     .filter((entry) => entry.matchedSignals.length > 0);
 }
 
+function toHrRiskLevel(risk: PierreMissionRiskLevel, blocked: boolean): PierreHrRiskLevel {
+  if (blocked) return "black";
+  if (risk === "critical") return "red";
+  if (risk === "sensitive") return "orange";
+  return "green";
+}
+
 export function assessMissionRisk(input: PierreRiskInput): PierreRiskResult {
   const corpus = buildCorpus(input);
   const classificationKey = normalizeText(input.classification || "");
@@ -216,6 +226,7 @@ export function assessMissionRisk(input: PierreRiskInput): PierreRiskResult {
     reasons: [...new Set(reasons)],
     matched_signals: [...new Set(matched_signals)],
     warnings: [...new Set(warnings)],
+    hr_risk_level: toHrRiskLevel(risk_level, blocked),
   };
 }
 export function detectPierreRiskLevel(input: string, _fallback?: unknown) {

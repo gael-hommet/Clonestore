@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  classifyPierreHrActionRequirement,
+  type PierreHrTaskKind,
+} from "../../../../../lib/pierre/hr/contracts";
 
 type DbRow = Record<string, unknown>;
 
@@ -563,6 +567,79 @@ function buildMissionSummary(
   return `Mission RH classée "${classification}" avec niveau de risque "${risk}". Demande structurée à partir de : ${clipped}`;
 }
 
+function routeClassificationToHrDomain(classification: string): string {
+  switch (classification) {
+    case "recrutement": return "recruitment_ops";
+    case "offre_emploi": return "hiring";
+    case "convocation_entretien": return "interview";
+    case "refus_candidat": return "recruitment_ops";
+    case "relance_rh": return "recruitment_ops";
+    case "onboarding": return "onboarding";
+    case "note_rh": return "internal_communication";
+    case "rappel_procedure": return "compliance_workflow";
+    case "compte_rendu": return "hr_helpdesk";
+    case "courrier_rh": return "employee_relations";
+    default: return "unknown";
+  }
+}
+
+function routeTaskKind(classification: string, taskType: string): PierreHrTaskKind | null {
+  if (taskType === "request_missing_info") return "demande_info";
+  if (taskType === "schedule_follow_up") return "relance";
+  if (taskType === "structure_mission") return "creation_tache";
+  if (taskType === "generate_pdf") return "document_rh";
+
+  if (taskType === "generate_document") {
+    switch (classification) {
+      case "convocation_entretien": return "trame_entretien";
+      case "onboarding": return "onboarding_prep";
+      case "note_rh": return "synthese_interne";
+      case "rappel_procedure": return "rapport_standard";
+      case "compte_rendu": return "compte_rendu";
+      case "courrier_rh": return "courrier_disciplinaire_prep";
+      default: return "document_rh";
+    }
+  }
+
+  if (taskType === "prepare_email") {
+    switch (classification) {
+      case "refus_candidat": return "refus_candidat_formel";
+      case "convocation_entretien": return "email_candidat";
+      case "relance_rh": return "email_candidat";
+      default: return "email_salarie";
+    }
+  }
+
+  return null;
+}
+
+function routeHrPayload(
+  classification: string,
+  taskType: string,
+  missionRisk: MissionRiskLevel,
+): Record<string, unknown> {
+  const hrDomain = routeClassificationToHrDomain(classification);
+  const hrRisk = missionRisk === "critical" ? "red" : missionRisk === "sensitive" ? "orange" : "green";
+  const kind = routeTaskKind(classification, taskType);
+
+  if (!kind) return { hr_domain: hrDomain, hr_risk_level: hrRisk };
+
+  const req = classifyPierreHrActionRequirement({
+    kind,
+    domain: hrDomain,
+    override_risk: hrRisk,
+  });
+
+  return {
+    hr_task_kind: kind,
+    hr_domain: hrDomain,
+    hr_risk_level: req.risk_level,
+    hr_action_class: req.action_class,
+    hr_approval_policy: req.approval_policy,
+    human_note: req.human_note,
+  };
+}
+
 function buildTasks(
   input: string,
   interpretation: MissionInterpretationBase,
@@ -602,6 +679,7 @@ function buildTasks(
         classification: interpretation.classification,
         language: interpretation.language,
         tone: interpretation.tone,
+        ...routeHrPayload(interpretation.classification, "generate_document", interpretation.risk_level),
       },
     });
   }
@@ -637,6 +715,7 @@ function buildTasks(
         language: interpretation.language,
         tone: interpretation.tone,
         scheduled_for: scheduledFor,
+        ...routeHrPayload(interpretation.classification, "prepare_email", interpretation.risk_level),
       },
     });
   }
@@ -665,6 +744,7 @@ function buildTasks(
       scheduled_for: null,
       payload: {
         source: "mission_engine",
+        ...routeHrPayload(interpretation.classification, "generate_pdf", interpretation.risk_level),
       },
     });
   }
@@ -689,6 +769,7 @@ function buildTasks(
       payload: {
         source: "mission_engine",
         conditional: true,
+        ...routeHrPayload(interpretation.classification, "schedule_follow_up", interpretation.risk_level),
       },
     });
   }
@@ -707,6 +788,7 @@ function buildTasks(
         source: "mission_engine",
         missing_info: interpretation.missing_info,
         questions: interpretation.missing_info_questions,
+        ...routeHrPayload(interpretation.classification, "request_missing_info", interpretation.risk_level),
       },
     });
   }
@@ -728,6 +810,7 @@ function buildTasks(
       scheduled_for: null,
       payload: {
         source: "mission_engine",
+        ...routeHrPayload(interpretation.classification, "structure_mission", interpretation.risk_level),
       },
     });
   }

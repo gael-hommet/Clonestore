@@ -4,6 +4,12 @@ import type {
 import type {
   PierreMissionRiskLevel,
 } from "./risk";
+import {
+  type PierreHrDomain,
+  type PierreHrRiskLevel,
+  type PierreHrTaskKind,
+  classifyPierreHrActionRequirement,
+} from "../hr/contracts";
 
 export type PierreMissionTaskStatus =
   | "pending"
@@ -34,6 +40,8 @@ export type PierreBuildTasksInput = {
   missing_info: string[];
   missing_info_questions: string[];
   refusals?: string[];
+  hr_domain?: PierreHrDomain;
+  hr_risk_level?: PierreHrRiskLevel;
 };
 
 function normalizeText(value: string): string {
@@ -228,6 +236,93 @@ function buildEmailDescription(
   }
 }
 
+function mapToHrTaskKind(
+  classification: PierreMissionClassification,
+  taskType: string,
+): PierreHrTaskKind | null {
+  if (taskType === "request_missing_info") return "demande_info";
+  if (taskType === "schedule_follow_up") return "relance";
+  if (taskType === "block_mission") return "decision_sanction";
+  if (taskType === "structure_mission") return "creation_tache";
+  if (taskType === "generate_pdf") return "document_rh";
+
+  if (taskType === "generate_document") {
+    switch (classification) {
+      case "convocation_entretien": return "trame_entretien";
+      case "onboarding": return "onboarding_prep";
+      case "note_rh": return "synthese_interne";
+      case "rappel_procedure": return "rapport_standard";
+      case "compte_rendu": return "compte_rendu";
+      case "courrier_rh": return "courrier_disciplinaire_prep";
+      case "communication_interne_rh": return "email_salarie";
+      case "demande_sensible": return "employee_relations_doc";
+      default: return "document_rh";
+    }
+  }
+
+  if (taskType === "prepare_email") {
+    switch (classification) {
+      case "refus_candidat": return "refus_candidat_formel";
+      case "convocation_entretien": return "email_candidat";
+      case "relance_candidat": return "email_candidat";
+      default: return "email_salarie";
+    }
+  }
+
+  return null;
+}
+
+type HrEnrichment = {
+  payload: Record<string, unknown>;
+  approval_required: boolean;
+  blocked: boolean;
+};
+
+function computeHrEnrichment(
+  classification: PierreMissionClassification,
+  taskType: string,
+  hrDomain: PierreHrDomain | undefined,
+  hrRisk: PierreHrRiskLevel | undefined,
+  baseApprovalRequired: boolean,
+): HrEnrichment {
+  const kind = mapToHrTaskKind(classification, taskType);
+
+  if (!kind) {
+    return {
+      payload: {
+        hr_domain: hrDomain ?? null,
+        hr_risk_level: hrRisk ?? null,
+      },
+      approval_required: baseApprovalRequired,
+      blocked: false,
+    };
+  }
+
+  const req = classifyPierreHrActionRequirement({
+    kind,
+    domain: hrDomain,
+    override_risk: hrRisk,
+  });
+
+  const hrForcesApproval =
+    req.approval_policy === "required" ||
+    req.approval_policy === "human_only" ||
+    req.blocked;
+
+  return {
+    payload: {
+      hr_task_kind: kind,
+      hr_domain: hrDomain ?? null,
+      hr_risk_level: req.risk_level,
+      hr_action_class: req.action_class,
+      hr_approval_policy: req.approval_policy,
+      human_note: req.human_note,
+    },
+    approval_required: baseApprovalRequired || hrForcesApproval,
+    blocked: req.blocked,
+  };
+}
+
 export function buildMissionTasks(
   input: PierreBuildTasksInput,
 ): PierreMissionTaskDraft[] {
@@ -246,12 +341,13 @@ export function buildMissionTasks(
   });
 
   if (classificationNeedsDocument(input.classification)) {
+    const hrDoc = computeHrEnrichment(input.classification, "generate_document", input.hr_domain, input.hr_risk_level, input.approval_required);
     tasks.push({
       type: "generate_document",
       title: buildDocumentTitle(input.classification),
       description: buildDocumentDescription(input.classification),
-      status: commonStatus,
-      approval_required: input.approval_required,
+      status: hrDoc.blocked ? "blocked" : commonStatus,
+      approval_required: hrDoc.approval_required,
       risk_level: input.risk_level,
       scheduled_for: null,
       payload: {
@@ -259,6 +355,7 @@ export function buildMissionTasks(
         classification: input.classification,
         language: input.language,
         tone: input.tone,
+        ...hrDoc.payload,
       },
     });
   }
@@ -270,12 +367,14 @@ export function buildMissionTasks(
     lower.includes("envoyer") ||
     lower.includes("send")
   ) {
+    const hrEmail = computeHrEnrichment(input.classification, "prepare_email", input.hr_domain, input.hr_risk_level, input.approval_required);
+    const emailStatus = hrEmail.blocked ? "blocked" : (commonStatus === "queued" && scheduledFor ? "scheduled" : commonStatus);
     tasks.push({
       type: "prepare_email",
       title: buildEmailTitle(input.classification),
       description: buildEmailDescription(input.classification),
-      status: commonStatus === "queued" && scheduledFor ? "scheduled" : commonStatus,
-      approval_required: input.approval_required,
+      status: emailStatus,
+      approval_required: hrEmail.approval_required,
       risk_level: input.risk_level,
       scheduled_for: scheduledFor,
       payload: {
@@ -284,6 +383,7 @@ export function buildMissionTasks(
         language: input.language,
         tone: input.tone,
         scheduled_for: scheduledFor,
+        ...hrEmail.payload,
       },
     });
   }
@@ -295,17 +395,19 @@ export function buildMissionTasks(
     lower.includes("piece jointe") ||
     lower.includes("pièce jointe")
   ) {
+    const hrPdf = computeHrEnrichment(input.classification, "generate_pdf", input.hr_domain, input.hr_risk_level, input.approval_required);
     tasks.push({
       type: "generate_pdf",
       title: "Préparer l’export PDF",
       description:
         "Générer un PDF propre à partir du livrable RH final ou d’un document joint à une communication.",
-      status: commonStatus,
-      approval_required: input.approval_required,
+      status: hrPdf.blocked ? "blocked" : commonStatus,
+      approval_required: hrPdf.approval_required,
       risk_level: input.risk_level,
       scheduled_for: null,
       payload: {
         source: "mission_engine",
+        ...hrPdf.payload,
       },
     });
   }
@@ -315,6 +417,7 @@ export function buildMissionTasks(
     lower.includes("si pas de reponse") ||
     lower.includes("si pas de réponse")
   ) {
+    const hrFollowup = computeHrEnrichment(input.classification, "schedule_follow_up", input.hr_domain, input.hr_risk_level, true);
     tasks.push({
       type: "schedule_follow_up",
       title: "Préparer la relance RH",
@@ -332,11 +435,13 @@ export function buildMissionTasks(
       payload: {
         source: "mission_engine",
         conditional: true,
+        ...hrFollowup.payload,
       },
     });
   }
 
   if (input.missing_info.length > 0) {
+    const hrMissing = computeHrEnrichment(input.classification, "request_missing_info", input.hr_domain, input.hr_risk_level, false);
     tasks.push({
       type: "request_missing_info",
       title: "Demander les informations manquantes",
@@ -350,11 +455,13 @@ export function buildMissionTasks(
         source: "mission_engine",
         missing_info: input.missing_info,
         questions: input.missing_info_questions,
+        ...hrMissing.payload,
       },
     });
   }
 
   if (refusals.length > 0) {
+    const hrBlock = computeHrEnrichment(input.classification, "block_mission", input.hr_domain, input.hr_risk_level, true);
     tasks.push({
       type: "block_mission",
       title: "Bloquer la mission",
@@ -367,23 +474,26 @@ export function buildMissionTasks(
       payload: {
         source: "mission_engine",
         refusals,
+        ...hrBlock.payload,
       },
     });
   }
 
   if (tasks.length === 0) {
+    const hrStruct = computeHrEnrichment(input.classification, "structure_mission", input.hr_domain, input.hr_risk_level, input.approval_required);
     tasks.push({
       type: "structure_mission",
       title: "Structurer la mission RH",
       description:
         "Créer un cadre d’exécution RH exploitable à partir de la demande libre.",
-      status: commonStatus,
-      approval_required: input.approval_required,
+      status: hrStruct.blocked ? "blocked" : commonStatus,
+      approval_required: hrStruct.approval_required,
       risk_level: input.risk_level,
       scheduled_for: null,
       payload: {
         source: "mission_engine",
         classification: input.classification,
+        ...hrStruct.payload,
       },
     });
   }

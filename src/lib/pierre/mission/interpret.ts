@@ -2,6 +2,12 @@ import {
   classifyMission,
   type PierreMissionClassification,
 } from "./classify";
+import {
+  type PierreHrDomain,
+  type PierreHrRiskLevel,
+  type PierreHrTaskKind,
+  classifyPierreHrActionRequirement,
+} from "../hr/contracts";
 
 export type PierreMissionRiskLevel = "normal" | "sensitive" | "critical";
 export type PierreMissionTaskStatus =
@@ -39,6 +45,8 @@ export type PierreMissionInterpretation = {
   missing_info: string[];
   missing_info_questions: string[];
   refusals: string[];
+  hr_domain: PierreHrDomain;
+  hr_risk_level: PierreHrRiskLevel;
   tasks: PierreMissionTaskDraft[];
   confidence: number;
   explainability: {
@@ -378,6 +386,7 @@ function buildTasks(params: {
         classification: interpretationBase.classification,
         language: interpretationBase.language,
         tone: interpretationBase.tone,
+        ...buildHrPayload(interpretationBase.classification, "generate_document", interpretationBase.hr_domain, interpretationBase.hr_risk_level),
       },
     });
   }
@@ -413,6 +422,7 @@ function buildTasks(params: {
         language: interpretationBase.language,
         tone: interpretationBase.tone,
         scheduled_for: scheduledFor,
+        ...buildHrPayload(interpretationBase.classification, "prepare_email", interpretationBase.hr_domain, interpretationBase.hr_risk_level),
       },
     });
   }
@@ -439,6 +449,7 @@ function buildTasks(params: {
       scheduled_for: null,
       payload: {
         source: "mission_engine",
+        ...buildHrPayload(interpretationBase.classification, "generate_pdf", interpretationBase.hr_domain, interpretationBase.hr_risk_level),
       },
     });
   }
@@ -463,6 +474,7 @@ function buildTasks(params: {
       payload: {
         source: "mission_engine",
         conditional: true,
+        ...buildHrPayload(interpretationBase.classification, "schedule_follow_up", interpretationBase.hr_domain, interpretationBase.hr_risk_level),
       },
     });
   }
@@ -481,6 +493,7 @@ function buildTasks(params: {
         source: "mission_engine",
         missing_info: interpretationBase.missing_info,
         questions: interpretationBase.missing_info_questions,
+        ...buildHrPayload(interpretationBase.classification, "request_missing_info", interpretationBase.hr_domain, interpretationBase.hr_risk_level),
       },
     });
   }
@@ -498,6 +511,7 @@ function buildTasks(params: {
       payload: {
         source: "mission_engine",
         refusals: interpretationBase.refusals,
+        ...buildHrPayload(interpretationBase.classification, "block_mission", interpretationBase.hr_domain, interpretationBase.hr_risk_level),
       },
     });
   }
@@ -519,11 +533,100 @@ function buildTasks(params: {
       scheduled_for: null,
       payload: {
         source: "mission_engine",
+        ...buildHrPayload(interpretationBase.classification, "structure_mission", interpretationBase.hr_domain, interpretationBase.hr_risk_level),
       },
     });
   }
 
   return tasks;
+}
+
+function mapClassificationToHrDomain(
+  c: PierreMissionClassification,
+): PierreHrDomain {
+  switch (c) {
+    case "recrutement": return "recruitment_ops";
+    case "candidature": return "hiring";
+    case "offre_emploi": return "hiring";
+    case "convocation_entretien": return "interview";
+    case "refus_candidat": return "recruitment_ops";
+    case "relance_candidat": return "recruitment_ops";
+    case "onboarding": return "onboarding";
+    case "communication_interne_rh": return "internal_communication";
+    case "rappel_procedure": return "compliance_workflow";
+    case "note_rh": return "internal_communication";
+    case "compte_rendu": return "hr_helpdesk";
+    case "courrier_rh": return "employee_relations";
+    case "mission_suivi": return "hr_helpdesk";
+    case "demande_sensible": return "sensitive_case";
+    case "hors_perimetre": return "unknown";
+    case "mission_rh_generale": return "unknown";
+  }
+}
+
+function missionRiskToHrRisk(risk: PierreMissionRiskLevel): PierreHrRiskLevel {
+  if (risk === "critical") return "red";
+  if (risk === "sensitive") return "orange";
+  return "green";
+}
+
+function toHrTaskKind(
+  classification: PierreMissionClassification,
+  taskType: string,
+): PierreHrTaskKind | null {
+  if (taskType === "request_missing_info") return "demande_info";
+  if (taskType === "schedule_follow_up") return "relance";
+  if (taskType === "block_mission") return "decision_sanction";
+  if (taskType === "structure_mission") return "creation_tache";
+  if (taskType === "generate_pdf") return "document_rh";
+
+  if (taskType === "generate_document") {
+    switch (classification) {
+      case "convocation_entretien": return "trame_entretien";
+      case "onboarding": return "onboarding_prep";
+      case "note_rh": return "synthese_interne";
+      case "rappel_procedure": return "rapport_standard";
+      case "compte_rendu": return "compte_rendu";
+      case "courrier_rh": return "courrier_disciplinaire_prep";
+      case "communication_interne_rh": return "email_salarie";
+      case "demande_sensible": return "employee_relations_doc";
+      default: return "document_rh";
+    }
+  }
+
+  if (taskType === "prepare_email") {
+    switch (classification) {
+      case "refus_candidat": return "refus_candidat_formel";
+      case "convocation_entretien": return "email_candidat";
+      case "relance_candidat": return "email_candidat";
+      default: return "email_salarie";
+    }
+  }
+
+  return null;
+}
+
+function buildHrPayload(
+  classification: PierreMissionClassification,
+  taskType: string,
+  hrDomain: PierreHrDomain,
+  hrRisk: PierreHrRiskLevel,
+): Record<string, unknown> {
+  const kind = toHrTaskKind(classification, taskType);
+  if (!kind) return { hr_domain: hrDomain, hr_risk_level: hrRisk };
+  const req = classifyPierreHrActionRequirement({
+    kind,
+    domain: hrDomain,
+    override_risk: hrRisk,
+  });
+  return {
+    hr_task_kind: kind,
+    hr_domain: hrDomain,
+    hr_risk_level: req.risk_level,
+    hr_action_class: req.action_class,
+    hr_approval_policy: req.approval_policy,
+    human_note: req.human_note,
+  };
 }
 
 export function interpretMission(
@@ -569,6 +672,8 @@ export function interpretMission(
     missing_info: missingInfo.missing,
     missing_info_questions: missingInfo.questions,
     refusals,
+    hr_domain: mapClassificationToHrDomain(classificationResult.classification),
+    hr_risk_level: missionRiskToHrRisk(riskLevel),
     confidence: classificationResult.confidence,
     explainability: {
       classification_reasons: classificationResult.reasons,
