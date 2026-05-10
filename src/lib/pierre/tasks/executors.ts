@@ -36,6 +36,7 @@ export type PierreExecutorFailure = {
     | "MISSING_PAYLOAD"
     | "MISSING_INFO"
     | "APPROVAL_REQUIRED"
+    | "HR_BLOCKED_ACTION"
     | "EXECUTION_ERROR";
   message: string;
   log: {
@@ -435,6 +436,43 @@ function executeStructureMission(
   );
 }
 
+/**
+ * Garde HR runtime : bloque toute action déclarée comme non-délégable à Pierre.
+ * Lit hr_action_class et hr_approval_policy depuis task.payload (injectés au Bloc 1).
+ * Retourne null si la tâche peut s'exécuter.
+ */
+function checkHrGate(task: PierreExecutorTask): PierreExecutorFailure | null {
+  const payload = isObject(task.payload) ? task.payload : null;
+  const hrActionClass = asString(payload?.hr_action_class);
+  const hrApprovalPolicy = asString(payload?.hr_approval_policy);
+  const hrRiskLevel = asString(payload?.hr_risk_level);
+  const humanNote = asString(payload?.human_note);
+  const hrTaskKind = asString(payload?.hr_task_kind);
+
+  const isHardBlocked =
+    hrActionClass === "blocked_without_human" ||
+    hrApprovalPolicy === "human_only";
+
+  if (!isHardBlocked) return null;
+
+  return buildFailure({
+    status: "blocked",
+    error_code: "HR_BLOCKED_ACTION",
+    event: "executor_hr_blocked",
+    level: "warning",
+    message:
+      humanNote ||
+      "Action réservée à la décision humaine : Pierre ne peut pas exécuter cette tâche seul.",
+    payload: {
+      task_id: task.id,
+      hr_action_class: hrActionClass,
+      hr_approval_policy: hrApprovalPolicy,
+      hr_risk_level: hrRiskLevel,
+      hr_task_kind: hrTaskKind,
+    },
+  });
+}
+
 export async function executePierreTask(
   task: PierreExecutorTask,
   context: PierreExecutorContext = {},
@@ -467,6 +505,9 @@ export async function executePierreTask(
       message: "Le type de tache est manquant.",
     });
   }
+
+  const hrGate = checkHrGate(task);
+  if (hrGate) return hrGate;
 
   switch (task.type) {
     case "generate_document":

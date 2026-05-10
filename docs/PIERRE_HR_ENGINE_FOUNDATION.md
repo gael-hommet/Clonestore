@@ -78,11 +78,9 @@ L'index est préconstruit (`Map<PierreHrTaskKind, ActionRule>`) pour lookup O(1)
 
 ## 3. Ce que ce fichier ne couvre pas encore
 
-- **Branchement dans les executors** (`executors.ts`) — les executors valident le statut mais pas encore la classe d'action HR
 - **Niveaux d'autonomie configurables par entreprise** — `PierreAutonomyLevel` est défini mais pas encore wired dans la mémoire entreprise
 - **Mapping `PierreHrTaskKind` ↔ `PierreTaskType`** — les kinds HR ne sont pas encore mappés aux types de tâche DB (`doc.generate`, `email.draft`, etc.)
 - **Persistance du domaine RH** dans `pierre_missions` ou `pierre_tasks` — `hr_domain` vit pour l'instant dans `payload_json`, pas de colonne dédiée
-- **Tests unitaires** du moteur RH — à créer dans `__tests__/`
 
 ---
 
@@ -137,13 +135,92 @@ L'index est préconstruit (`Map<PierreHrTaskKind, ActionRule>`) pour lookup O(1)
 
 ### Ce qui reste à faire (Bloc 2+)
 
-- **Branchement executors** : vérifier `hr_action_class !== "blocked_without_human"` avant exécution
 - **Autonomie entreprise** : lire `PierreAutonomyLevel` depuis la mémoire entreprise pour moduler `auto_executable`
-- **Tests unitaires** : `classifyPierreHrActionRequirement`, `mapClassificationToHrDomain`, `computeHrEnrichment`
 
 ---
 
-## 5. Comment ce fichier reste branché (post-Bloc 1)
+## 5. Bloc 2 — Runtime enforcement (2026-05-10)
+
+### Ce qui a changé
+
+Jusqu'au Bloc 1, la matrice HR était **informative** : les champs `hr_action_class`, `hr_approval_policy`, `hr_risk_level` étaient injectés dans `payload_json` lors de la construction des tâches, mais rien ne les vérifiait au moment de l'exécution. Un executor pouvait produire un livrable pour une action `blocked_without_human` si les champs étaient absents ou mal initialisés.
+
+Le Bloc 2 corrige cela : **la matrice HR est maintenant appliquée au runtime**, avant que tout executor ne s'exécute.
+
+### Garde HR dans `executors.ts`
+
+Nouvelle fonction `checkHrGate(task)` appelée dans `executePierreTask()` **après** la validation du statut et du type, **avant** le switch sur `task.type` :
+
+```typescript
+function checkHrGate(task: PierreExecutorTask): PierreExecutorFailure | null {
+  const hrActionClass = asString(payload?.hr_action_class);
+  const hrApprovalPolicy = asString(payload?.hr_approval_policy);
+
+  const isHardBlocked =
+    hrActionClass === "blocked_without_human" ||
+    hrApprovalPolicy === "human_only";
+
+  if (!isHardBlocked) return null;
+
+  return buildFailure({
+    status: "blocked",
+    error_code: "HR_BLOCKED_ACTION",
+    event: "executor_hr_blocked",
+    // ...
+  });
+}
+```
+
+**Déclencheurs** : `hr_action_class === "blocked_without_human"` OU `hr_approval_policy === "human_only"`. L'un ou l'autre suffit — défense en profondeur.
+
+**Résultat** : `ok: false`, `status: "blocked"`, `error_code: "HR_BLOCKED_ACTION"`, log structuré avec les 5 champs HR.
+
+Le log `payload` retourne : `task_id`, `hr_action_class`, `hr_approval_policy`, `hr_risk_level`, `hr_task_kind` — traçabilité complète pour l'audit.
+
+### Persistance dans `process-task.ts`
+
+Aucune modification nécessaire. `process-task.ts` gère déjà le cas `blocked` correctement :
+- Outcome `blocked` → log → DB status `"blocked"` → `blocked_reason` persisté
+- Ne remet jamais en `"completed"` — traduit `PierreExecutorSuccess` vers DB `"done"`
+- Gate `awaiting_approval` déjà présente avant l'appel à l'executor
+
+### Tests unitaires (`src/lib/pierre/__tests__/hr-contracts.test.ts`)
+
+29 tests couvrant :
+
+| Groupe | Tests |
+|---|---|
+| `normalizePierreHrDomain` | domaines valides, casse/espaces, inconnu → `"unknown"` |
+| `normalizePierreHrRiskLevel` | 4 couleurs natives, ponts low/medium/high, normal/sensitive/critical, blocked/forbidden/human_only, garbage → `"green"` |
+| `classifyPierreHrActionRequirement` — vert | `relance`, `demande_info` → auto_executable/none/green |
+| `classifyPierreHrActionRequirement` — orange | `email_salarie`, `onboarding_prep` → validation_recommended/recommended/orange |
+| `classifyPierreHrActionRequirement` — rouge | `contrat`, `remuneration` → validation_required/required/red |
+| `classifyPierreHrActionRequirement` — noir | `decision_licenciement`, `decision_sanction`, `interpretation_droit` → blocked/human_only/black/blocked:true |
+| `classifyPierreHrActionRequirement` — inconnu | → validation_required par prudence |
+| `override_risk` | black sur vert → risk_level black mais action_class validation_required (pas bloqué) ; green sur noir → reste noir ; red escalade ; orange no-op |
+| `executePierreTask` — HR gate | bloque `blocked_without_human`, bloque `human_only` sans action_class, bloque action noire quel que soit `type`, laisse passer vert/auto_executable, laisse passer sans payload HR, log.payload contient les 5 champs HR |
+
+Tous les tests passent. Runner : `npm test` (`vitest run src/lib/pierre/__tests__/hr-contracts.test.ts`).
+
+### Garanties désormais en place
+
+| Garantie | Mécanisme |
+|---|---|
+| Les actions `blocked_without_human` ne s'exécutent jamais | `checkHrGate()` retourne avant le switch |
+| `hr_approval_policy: "human_only"` bloque même sans `action_class` | Double condition dans `isHardBlocked` |
+| Les actions vertes/orange/rouge produisent toujours leurs livrables | La garde ne touche que les cas noirs |
+| Le log d'un blocage contient les 5 champs HR | `payload` structuré dans `buildFailure()` |
+| `process-task.ts` persiste correctement | Aucune modification nécessaire — déjà robuste |
+| Aucune régression sur les types publics | `"HR_BLOCKED_ACTION"` ajouté à l'union existante |
+
+### Ce qui reste à faire (Bloc 3+)
+
+- **Autonomie entreprise** : lire `PierreAutonomyLevel` depuis la mémoire entreprise pour moduler `auto_executable` (certaines actions vertes pourraient nécessiter validation selon la config)
+- **Tests des broken legacy** : `tasks.test.ts`, `interpret.test.ts`, `risk.test.ts`, `schedule.test.ts` — ces fichiers testent des APIs qui n'existent plus et sont exclus du `npm test` script. À remettre à jour dans un Bloc dédié.
+
+---
+
+## 6. Comment ce fichier reste branché (post-Bloc 1)
 
 ---
 
