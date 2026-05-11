@@ -207,11 +207,16 @@ export function buildPierreDefaultMemoryShape(
         default_tone: "professionnel",
         signature_name: "Pierre",
         approval_policy: "sensitive_only",
+        autonomy_level: "validation_smart",
       },
       legal_preferences: {
         contract_language: "fr",
         require_human_validation_for_sensitive_actions: true,
       },
+      // Bloc 4 — Employee Profile 360 Foundation
+      // Liste légère de salariés connus (max 200), stockée dans memory_json.
+      // Pas de table dédiée — aucune migration Supabase requise.
+      employees: [],
     },
     base
   );

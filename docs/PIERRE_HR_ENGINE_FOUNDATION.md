@@ -213,18 +213,217 @@ Tous les tests passent. Runner : `npm test` (`vitest run src/lib/pierre/__tests_
 | `process-task.ts` persiste correctement | Aucune modification nécessaire — déjà robuste |
 | Aucune régression sur les types publics | `"HR_BLOCKED_ACTION"` ajouté à l'union existante |
 
-### Ce qui reste à faire (Bloc 3+)
+### Ce qui reste à faire (Bloc 3)
 
-- **Autonomie entreprise** : lire `PierreAutonomyLevel` depuis la mémoire entreprise pour moduler `auto_executable` (certaines actions vertes pourraient nécessiter validation selon la config)
+- **Autonomie entreprise** : lire `PierreAutonomyLevel` depuis la mémoire entreprise pour moduler `auto_executable` — **fait dans le Bloc 3**
 - **Tests des broken legacy** : `tasks.test.ts`, `interpret.test.ts`, `risk.test.ts`, `schedule.test.ts` — ces fichiers testent des APIs qui n'existent plus et sont exclus du `npm test` script. À remettre à jour dans un Bloc dédié.
 
 ---
 
-## 6. Comment ce fichier reste branché (post-Bloc 1)
+## 6. Bloc 3 — Autonomie contrôlée (2026-05-10)
+
+### Ce qui a changé
+
+Les Blocs 1 et 2 garantissaient que les actions noires ne s'exécutent jamais. Mais jusqu'ici, toutes les actions non-noires (vert, orange, rouge) suivaient la même politique indépendamment de la configuration de l'entreprise. Une action verte (`auto_executable`) s'exécutait automatiquement pour toutes les entreprises, quelle que soit leur maturité RH ou leur tolérance au risque.
+
+Le Bloc 3 introduit le niveau d'autonomie comme variable de contrôle : **Pierre s'adapte à la politique de l'entreprise**, et non l'inverse.
+
+### `src/lib/pierre/hr/autonomy.ts` — couche pure de décision
+
+Nouvelle couche sans dépendances DB/UI. Expose deux fonctions :
+
+- `resolvePierreAutonomyLevel(value: unknown): PierreAutonomyLevel` — normalise n'importe quelle valeur inconnue vers un niveau valide, fallback `"validation_smart"`
+- `decidePierreHrExecutionPolicy(input): PierreAutonomyDecision` — combine `hr_action_class`, `hr_approval_policy` et `autonomy_level` pour produire une décision d'exécution complète
+
+**Type `PierreAutonomyDecision`** :
+```typescript
+{
+  autonomy_level: PierreAutonomyLevel;
+  can_execute: boolean;       // l'executor peut-il s'exécuter automatiquement ?
+  approval_required: boolean; // l'action doit-elle être relue par un humain ?
+  blocked: boolean;           // action non-délégable à Pierre ?
+  final_status_hint: "queued" | "awaiting_approval" | "blocked"; // statut DB suggéré
+  reason: string;
+  human_note: string;
+}
+```
+
+### Matrice autonomie × action
+
+| Niveau | Vert (`auto_executable`) | Orange (`validation_recommended`) | Rouge (`validation_required`) | Noir |
+|---|---|---|---|---|
+| `draft_only` | awaiting_approval | awaiting_approval | awaiting_approval | blocked |
+| `low_risk_execution` | **queued** (auto) | awaiting_approval | awaiting_approval | blocked |
+| `validation_smart` | **queued** (auto) | awaiting_approval | awaiting_approval | blocked |
+| `advanced_operations` | **queued** (auto) | **queued** (tracked) | awaiting_approval | blocked |
+| `enterprise_rules` | **queued** (auto) | **queued** (tracked) | awaiting_approval | blocked |
+
+**Cas `makeTracked` (advanced_operations + orange)** : `can_execute: true, approval_required: true, final_status_hint: "queued"`. L'executor produit le livrable, mais `approval_required: true` signale au processus aval qu'une relecture humaine est attendue avant diffusion.
+
+### Branchement dans `build-tasks.ts`
+
+- `PierreBuildTasksInput` enrichi avec `autonomy_level?: PierreAutonomyLevel`
+- `computeHrEnrichment()` appelle `decidePierreHrExecutionPolicy()` — la décision autonomie est combinée avec la classification HR : `finalBlocked = req.blocked || autonomyDecision.blocked`
+- Nouvelle fonction `autonomyAwareStatus()` remplace l'ancien `commonStatus` : respecte la priorité `blocked > awaiting_info > final_status_hint > scheduled/queued`
+- Payload enrichi avec : `autonomy_level`, `can_execute`, `autonomy_decision: {can_execute, approval_required, blocked}`, `autonomy_reason`
+
+### Branchement dans `use/submit/route.ts`
+
+- Nouvelle fonction `readAutonomyLevel(supabase, userId)` — lit `memory_json.hr_preferences.autonomy_level` → `memory_json.autonomy_level` → `preferences.autonomy_level`, fallback `"validation_smart"` sur toute erreur
+- Le handler `POST` appelle `readAutonomyLevel` après l'auth, avant `interpretMission`
+- `routeHrPayload()` enrichit chaque tâche avec `autonomy_level`, `can_execute`, `autonomy_decision`, `autonomy_reason`
+- `routeTaskStatus()` et `routeTaskApproval()` extraient les flags d'autonomie depuis le payload pour piloter le statut DB et `approval_required`
+- La réponse `meta` inclut `autonomyLevel` pour observabilité
+
+### Renforcement de `checkHrGate` dans `executors.ts`
+
+Trois niveaux de protection, dans l'ordre :
+
+1. **Gate 1 — HR hard-block** (inchangée) : `hr_action_class === "blocked_without_human"` ou `hr_approval_policy === "human_only"` → `"HR_BLOCKED_ACTION"`, `status: "blocked"`. Invariant, quel que soit le niveau d'autonomie.
+
+2. **Gate 2 — Autonomy decision block** : `payload.autonomy_decision.blocked === true` → `"AUTONOMY_BLOCKED"`, `status: "blocked"`. Décision explicite du moteur d'autonomie.
+
+3. **Gate 3 — can_execute sur tâches d'envoi** : `payload.can_execute === false` ET type dans `{email.send, send_email}` → `"AUTONOMY_BLOCKED"`, event `executor_autonomy_send_blocked`. **Les tâches de production de draft (doc.generate, email.draft, pdf.generate, etc.) passent toujours** — produire un draft est safe, envoyer sans autorisation ne l'est pas.
+
+`"AUTONOMY_BLOCKED"` ajouté à l'union `error_code` de `PierreExecutorFailure`.
+
+### Tests : `src/lib/pierre/__tests__/hr-autonomy.test.ts`
+
+46 nouveaux tests (75 au total avec `hr-contracts.test.ts`) :
+
+| Groupe | Tests |
+|---|---|
+| `resolvePierreAutonomyLevel` | niveaux valides, casse/espaces, inconnu → `"validation_smart"`, non-strings |
+| `decidePierreHrExecutionPolicy` — noir | 5 niveaux × 2 cas noirs = 10 tests, tous bloqués |
+| `draft_only` | vert/orange/rouge → tous awaiting_approval |
+| `low_risk_execution` | vert → queued, orange/rouge → awaiting_approval |
+| `validation_smart` | vert → queued, orange/rouge/inconnu → awaiting_approval |
+| `advanced_operations` | vert → queued, orange → tracked (can_execute:true, approval:true), rouge → awaiting |
+| `enterprise_rules` | même comportement que advanced_operations + noir reste noir |
+| Invariants cross-niveaux | résultat complet, approval:false quand blocked:true, can_execute:false quand blocked:true |
+| Gate 2 — autonomy_decision.blocked | bloque doc.generate, email.send ; log contient autonomy_level, hr_risk_level, hr_task_kind |
+| Gate 3 — can_execute + send | bloque email.send et send_email ; laisse passer doc.generate, email.draft, pdf.generate |
+| Ordre des gates | Gate 1 prend priorité sur Gate 2 ; tâche verte complète passe toutes les gates ; backward compat sans payload HR |
+
+### Garanties désormais en place
+
+| Garantie | Mécanisme |
+|---|---|
+| Les actions noires restent bloquées quel que soit le niveau d'autonomie | Gate 1 invariante, `decidePierreHrExecutionPolicy` vérifie avant le switch |
+| Pierre ne s'exécute pas au-delà du niveau d'autonomie configuré | `can_execute: false` → statut `awaiting_approval` empêche l'exécution via le gate de statut existant |
+| Les envois dangereux sont bloqués même quand can_execute manque d'être promu | Gate 3 : envoyer sans `can_execute: true` est refusé |
+| La production de drafts ne bloque jamais | Gate 3 ne s'applique qu'aux types `email.send` et `send_email` |
+| Fallback prudent sur toute erreur DB | `readAutonomyLevel` retourne `"validation_smart"` sur exception |
+| `process-task.ts` n'a pas besoin de modification | Les statuts `awaiting_approval`/`blocked` sont déjà gérés correctement |
+| Aucune migration DB | Autonomy fields vivent dans `payload_json` (jsonb existant) ; `autonomy_level` dans `memory_json.hr_preferences` |
+| Aucun type public cassé | `"AUTONOMY_BLOCKED"` est additionnel à l'union existante |
+
+### Ce qui reste à faire (Bloc 4+)
+
+- **Profile employé 360** : enrichir les payloads avec des données employé (contrat actuel, ancienneté, absences récentes) pour contextualiser automatiquement les actions RH
+- **Tests legacy** : `tasks.test.ts`, `interpret.test.ts`, `risk.test.ts`, `schedule.test.ts` — remettre à jour dans un Bloc dédié
+- **Règles entreprise configurables** : `enterprise_rules` délègue actuellement à `advanced_operations` — placeholder pour des overrides configurables par entreprise
 
 ---
 
-## 6. Pourquoi cette brique respecte la vision Pierre
+## 7. Bloc 4 — Employee Profile 360 Foundation (2026-05-11)
+
+### Principe
+
+Aucune migration Supabase. Les profils salariés sont stockés dans `pierre_company_memory.memory_json.employees[]` — un tableau jsonb existant, max 200 entrées. Les liens salarié ↔ missions/tâches/documents sont retrouvés via des requêtes jsonb `@>` (Postgres containment) sans index supplémentaire.
+
+### Fichiers créés / modifiés
+
+**`src/lib/pierre/hr/employee.ts`** — couche pure sans dépendance DB/UI
+
+Types :
+- `PierreContractType` — union des 7 types de contrat : `"cdi" | "cdd" | "alternance" | "stage" | "independant" | "interim" | "autre"`
+- `PierreEmployeeStatus` — `"active" | "inactive" | "onboarding" | "offboarding" | "unknown"`
+- `PierreEmployeeProfile` — profil complet (id, full_name, email, job_title, department, contract_type, date_entree, date_sortie, status, tags)
+- `PierreEmployeeContext` — projection légère pour injection dans les payloads de tâche (sans données sensibles)
+
+Fonctions pures :
+- `sanitizePierreEmployeeProfile(raw)` — valide et nettoie un profil entrant ; retourne null si `id` ou `full_name` manquants
+- `sanitizePierreEmployeeList(raw)` — max 200 profils, ignore les invalides silencieusement
+- `findPierreEmployeeById(employees, id)` — lookup insensible à la casse
+- `findPierreEmployeeByName(employees, name)` — match exact d'abord, partiel ensuite
+- `buildPierreEmployeeContext(profile)` — projection légère (exclut `job_title`)
+- `resolveEmployeeContext(employees, {employee_id?, employee_name?})` — résolution id-first, puis name
+- `enrichPayloadWithEmployeeContext(payload, context)` — spread immutable, ajoute `employee_context`
+
+**`src/lib/pierre/memory.ts`** — ajout de `employees: []` dans `buildPierreDefaultMemoryShape()`
+
+**`src/app/api/pierre/use/submit/route.ts`** — wiring employé dans le pipeline
+
+- `SubmitBody` enrichi avec `source`, `autonomy_level`, `employee_id`, `employee_name`
+- Nouvelle fonction `readEmployeeList(supabase, userId)` — lit `memory_json.employees` depuis `pierre_company_memory`
+- `POST` handler : appelle `resolveEmployeeContext` → `buildPierreEmployeeContext` → `enrichPayloadWithEmployeeContext` sur chaque tâche
+- `brain_output_json` et `context_snapshot_json` incluent `employee_context` si présent
+
+**`src/app/api/pierre/use/employee/[employeeId]/route.ts`** — nouvelle route GET
+
+Retourne un dossier salarié 360 calculé à la volée :
+
+```json
+{
+  "ok": true,
+  "employee": { "id": "...", "full_name": "...", "status": "active", ... },
+  "missions": [ ... ],
+  "tasks": [ ... ],
+  "documents": [ ... ],
+  "summary": {
+    "total_missions": 3,
+    "total_tasks": 12,
+    "tasks_by_status": { "ready": 8, "awaiting_approval": 4 },
+    "tasks_pending_approval": 4,
+    "last_mission_at": "2026-05-10T...",
+    ...
+  },
+  "meta": { "employeeId": "...", "userId": "...", "fetchedAt": "...", "counts": { ... } }
+}
+```
+
+Détail des requêtes :
+- `resolveEmployeeProfile()` : lit `pierre_company_memory.memory_json.employees[]`, trouve par id
+- `fetchEmployeeTasks()` : deux requêtes `@>` — `payload_json @> {employee_id}` ET `payload_json @> {employee_context: {employee_id}}` — dédupliquées par id
+- `fetchMissionsForTasks()` : `.in("id", missionIds)` sur `pierre_missions`
+- `fetchDocumentsForMissions()` : `.in("mission_id", missionIds)` sur `pierre_documents`
+
+Auth : Bearer + cookie, vérification `orders` (accès Pierre actif), 401/403/404 structurés.
+
+### Tests : `src/lib/pierre/__tests__/hr-employee.test.ts`
+
+48 nouveaux tests (123 au total avec les 3 fichiers) :
+
+| Groupe | Tests |
+|---|---|
+| `sanitizePierreEmployeeProfile` — valide | profil complet, profil minimal, tous les contract_type, tous les status, trim, limite tags 20, ignore tags non-string |
+| `sanitizePierreEmployeeProfile` — invalide | null, undefined, non-object, id manquant, full_name manquant, id vide, full_name vide, status inconnu → "unknown", contract_type inconnu → null, champs optionnels → null |
+| `sanitizePierreEmployeeList` | non-array → [], array vide, filtre invalides silencieusement, limite 200 |
+| `findPierreEmployeeById` | trouvé exact, insensible à la casse, trim whitespace, non trouvé, id vide, liste vide |
+| `findPierreEmployeeByName` | match exact insensible casse, priorité exact sur partiel, fallback partiel, match inverse, non trouvé, nom vide, liste vide |
+| `buildPierreEmployeeContext` | mapping complet, absence de job_title, champs null quand absents |
+| `resolveEmployeeContext` | id prioritaire sur name, fallback name, fallback name quand id introuvable, null si aucun résultat, null si inputs null, null sur liste vide |
+| `enrichPayloadWithEmployeeContext` | injecte employee_context, ne modifie pas le payload original, payload inchangé si context null, écrase employee_context existant |
+
+### Garanties désormais en place
+
+| Garantie | Mécanisme |
+|---|---|
+| Aucune migration Supabase | Profils dans `memory_json.employees[]` (jsonb existant) |
+| Links salarié ↔ tâches sans colonne dédiée | Requêtes jsonb `@>` Postgres |
+| Les payloads de tâche ne contiennent pas de données sensibles | `buildPierreEmployeeContext` exclut `job_title` et autres champs non-légers |
+| Le pipeline submit est résilient aux employés non trouvés | `resolveEmployeeContext` retourne null → aucun enrichissement, aucune erreur |
+| Isolation correcte des profils par tenant | Toutes les requêtes filtrent sur `user_id` |
+| Type safety complète | `tsc --noEmit` sans erreur ; 123/123 tests verts ; `npm run build` OK |
+
+---
+
+## 8. Comment ce fichier reste branché (post-Bloc 1)
+
+---
+
+## 8. Pourquoi cette brique respecte la vision Pierre
 
 Pierre est un **poste RH opérationnel**, pas un assistant conversationnel.
 

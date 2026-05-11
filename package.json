@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run src/lib/pierre/__tests__/hr-contracts.test.ts"
+    "test": "vitest run src/lib/pierre/__tests__/hr-contracts.test.ts src/lib/pierre/__tests__/hr-autonomy.test.ts src/lib/pierre/__tests__/hr-employee.test.ts"
   },
   "dependencies": {
     "@radix-ui/react-navigation-menu": "^1.2.14",
