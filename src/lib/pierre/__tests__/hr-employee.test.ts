@@ -11,6 +11,8 @@ import {
   upsertPierreEmployeeProfile,
   updatePierreEmployeeProfile,
   deletePierreEmployeeProfile,
+  detectEmployeeReferenceFromText,
+  buildEmployee360Summary,
   type PierreEmployeeProfile,
 } from "../hr/employee";
 
@@ -403,6 +405,29 @@ describe("enrichPayloadWithEmployeeContext", () => {
     expect(ec.employee_name).toBe("Alice Dupont");
   });
 
+  it("also injects flat employee_id and employee_name fields when context is provided", () => {
+    const payload = { action: "doc.generate" };
+    const ctx = resolveEmployeeContext(sampleEmployees, { employee_id: "emp-002" })!;
+    const enriched = enrichPayloadWithEmployeeContext(payload, ctx);
+    expect(enriched.employee_id).toBe("emp-002");
+    expect(enriched.employee_name).toBe("Bob Martin");
+  });
+
+  it("does not inject flat fields when context is null", () => {
+    const payload = { action: "doc.generate" };
+    const enriched = enrichPayloadWithEmployeeContext(payload, null);
+    expect("employee_id" in enriched).toBe(false);
+    expect("employee_name" in enriched).toBe(false);
+  });
+
+  it("flat fields match the employee_context block", () => {
+    const ctx = resolveEmployeeContext(sampleEmployees, { employee_id: "EMP-003" })!;
+    const enriched = enrichPayloadWithEmployeeContext({}, ctx);
+    const ec = enriched.employee_context as { employee_id: string; employee_name: string };
+    expect(enriched.employee_id).toBe(ec.employee_id);
+    expect(enriched.employee_name).toBe(ec.employee_name);
+  });
+
   it("returns an unchanged payload reference when context is null", () => {
     const payload = { action: "doc.generate" };
     const enriched = enrichPayloadWithEmployeeContext(payload, null);
@@ -633,5 +658,289 @@ describe("deletePierreEmployeeProfile", () => {
     const { employees, deleted } = deletePierreEmployeeProfile([], "emp-001");
     expect(deleted).toBe(false);
     expect(employees).toEqual([]);
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// detectEmployeeReferenceFromText
+// ══════════════════════════════════════════════════════════
+
+const detectionEmployees: PierreEmployeeProfile[] = [
+  { id: "det-001", full_name: "Alice Dupont", status: "active", tags: [] },
+  { id: "det-002", full_name: "Bob Martin",   status: "active", tags: [] },
+  { id: "det-003", full_name: "Carol Petit",  status: "active", tags: [] },
+  { id: "det-004", full_name: "Jean-Pierre Moreau", status: "active", tags: [] },
+];
+
+describe("detectEmployeeReferenceFromText — null / empty cases", () => {
+  it("returns null when input is empty", () => {
+    expect(detectEmployeeReferenceFromText("", detectionEmployees)).toBeNull();
+  });
+
+  it("returns null when input is whitespace only", () => {
+    expect(detectEmployeeReferenceFromText("   ", detectionEmployees)).toBeNull();
+  });
+
+  it("returns null when employees list is empty", () => {
+    expect(detectEmployeeReferenceFromText("Email pour Alice Dupont", [])).toBeNull();
+  });
+
+  it("returns null when no name matches", () => {
+    expect(
+      detectEmployeeReferenceFromText("Prepare a report for Zoe Unknown", detectionEmployees),
+    ).toBeNull();
+  });
+});
+
+describe("detectEmployeeReferenceFromText — exact match", () => {
+  it("finds an employee whose full_name appears verbatim in the text", () => {
+    const result = detectEmployeeReferenceFromText(
+      "Redige un email de bienvenue pour Alice Dupont.",
+      detectionEmployees,
+    );
+    expect(result!.id).toBe("det-001");
+  });
+
+  it("is case-insensitive for full_name match", () => {
+    const result = detectEmployeeReferenceFromText(
+      "Prepare un document pour ALICE DUPONT.",
+      detectionEmployees,
+    );
+    expect(result!.id).toBe("det-001");
+  });
+
+  it("matches when name is in lowercase", () => {
+    const result = detectEmployeeReferenceFromText(
+      "lettre pour bob martin asap",
+      detectionEmployees,
+    );
+    expect(result!.id).toBe("det-002");
+  });
+
+  it("finds the correct employee among multiple candidates", () => {
+    const result = detectEmployeeReferenceFromText(
+      "Convocation entretien Carol Petit semaine prochaine",
+      detectionEmployees,
+    );
+    expect(result!.id).toBe("det-003");
+  });
+});
+
+describe("detectEmployeeReferenceFromText — partial token match", () => {
+  it("matches when all name tokens appear scattered in text", () => {
+    const result = detectEmployeeReferenceFromText(
+      "Concernant le dossier de Dupont Alice pour son contrat",
+      detectionEmployees,
+    );
+    expect(result).not.toBeNull();
+    expect(result!.id).toBe("det-001");
+  });
+
+  it("handles hyphenated names via token splitting", () => {
+    const result = detectEmployeeReferenceFromText(
+      "Preparation du bilan annuel de Jean-Pierre Moreau",
+      detectionEmployees,
+    );
+    expect(result!.id).toBe("det-004");
+  });
+
+  it("prefers exact substring match over token match", () => {
+    const mixed: PierreEmployeeProfile[] = [
+      { id: "x1", full_name: "Ali", status: "active", tags: [] },
+      { id: "x2", full_name: "Alice Martin", status: "active", tags: [] },
+    ];
+    const result = detectEmployeeReferenceFromText(
+      "Contrat pour Alice Martin",
+      mixed,
+    );
+    expect(result!.id).toBe("x2");
+  });
+});
+
+describe("detectEmployeeReferenceFromText — edge cases", () => {
+  it("handles extra whitespace in input", () => {
+    const result = detectEmployeeReferenceFromText(
+      "Email  pour   Alice   Dupont",
+      detectionEmployees,
+    );
+    expect(result).not.toBeNull();
+  });
+
+  it("returns first exact match when two employees could match", () => {
+    const ambiguous: PierreEmployeeProfile[] = [
+      { id: "a1", full_name: "Martin Paul", status: "active", tags: [] },
+      { id: "a2", full_name: "Martin Sophie", status: "active", tags: [] },
+    ];
+    const result = detectEmployeeReferenceFromText(
+      "Relance pour Martin Paul",
+      ambiguous,
+    );
+    expect(result!.id).toBe("a1");
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// buildEmployee360Summary
+// ══════════════════════════════════════════════════════════
+
+const summaryEmployee: PierreEmployeeProfile = {
+  id: "sum-001",
+  full_name: "Alice Dupont",
+  status: "active",
+  contract_type: "cdi",
+  department: "RH",
+  tags: [],
+};
+
+describe("buildEmployee360Summary — basic counts", () => {
+  it("returns zero counts on empty arrays", () => {
+    const s = buildEmployee360Summary(summaryEmployee, [], [], []);
+    expect(s.total_missions).toBe(0);
+    expect(s.total_tasks).toBe(0);
+    expect(s.total_documents).toBe(0);
+    expect(s.total_logs).toBe(0);
+  });
+
+  it("counts missions, tasks, documents correctly", () => {
+    const missions  = [{ id: "m1", created_at: "2024-03-01T10:00:00Z" }];
+    const tasks     = [
+      { id: "t1", status: "done", approval_required: false, created_at: "2024-03-01T11:00:00Z" },
+      { id: "t2", status: "ready", approval_required: false, created_at: "2024-03-01T12:00:00Z" },
+    ];
+    const documents = [{ id: "d1", created_at: "2024-03-01T13:00:00Z" }];
+
+    const s = buildEmployee360Summary(summaryEmployee, missions, tasks, documents);
+    expect(s.total_missions).toBe(1);
+    expect(s.total_tasks).toBe(2);
+    expect(s.total_documents).toBe(1);
+  });
+
+  it("counts logs when provided", () => {
+    const logs = [
+      { id: "l1", created_at: "2024-03-01T09:00:00Z" },
+      { id: "l2", created_at: "2024-03-01T08:00:00Z" },
+    ];
+    const s = buildEmployee360Summary(summaryEmployee, [], [], [], logs);
+    expect(s.total_logs).toBe(2);
+  });
+
+  it("sets total_logs to 0 when logs not provided", () => {
+    const s = buildEmployee360Summary(summaryEmployee, [], [], []);
+    expect(s.total_logs).toBe(0);
+  });
+});
+
+describe("buildEmployee360Summary — tasks_by_status and approval counts", () => {
+  it("groups tasks by status correctly", () => {
+    const tasks = [
+      { id: "t1", status: "done",     approval_required: false },
+      { id: "t2", status: "done",     approval_required: false },
+      { id: "t3", status: "blocked",  approval_required: false },
+      { id: "t4", status: "ready",    approval_required: false },
+    ];
+    const s = buildEmployee360Summary(summaryEmployee, [], tasks, []);
+    expect(s.tasks_by_status.done).toBe(2);
+    expect(s.tasks_by_status.blocked).toBe(1);
+    expect(s.tasks_by_status.ready).toBe(1);
+  });
+
+  it("counts pending_approval_count correctly", () => {
+    const tasks = [
+      { id: "t1", status: "awaiting_approval", approval_required: true },
+      { id: "t2", status: "awaiting_approval", approval_required: true },
+      { id: "t3", status: "done",              approval_required: false },
+    ];
+    const s = buildEmployee360Summary(summaryEmployee, [], tasks, []);
+    expect(s.pending_approval_count).toBe(2);
+    expect(s.tasks_pending_approval).toBe(2);
+  });
+
+  it("counts blocked_count correctly", () => {
+    const tasks = [
+      { id: "t1", status: "blocked" },
+      { id: "t2", status: "blocked" },
+      { id: "t3", status: "ready" },
+    ];
+    const s = buildEmployee360Summary(summaryEmployee, [], tasks, []);
+    expect(s.blocked_count).toBe(2);
+  });
+
+  it("counts scheduled_count correctly", () => {
+    const tasks = [
+      { id: "t1", status: "scheduled" },
+      { id: "t2", status: "done" },
+    ];
+    const s = buildEmployee360Summary(summaryEmployee, [], tasks, []);
+    expect(s.scheduled_count).toBe(1);
+  });
+
+  it("handles tasks with unknown/missing status", () => {
+    const tasks = [
+      { id: "t1" },
+      { id: "t2", status: null },
+    ];
+    const s = buildEmployee360Summary(summaryEmployee, [], tasks, []);
+    expect(s.tasks_by_status.unknown).toBe(2);
+  });
+});
+
+describe("buildEmployee360Summary — last activity dates", () => {
+  it("picks the most recent created_at across missions/tasks/documents as last_activity_at", () => {
+    const missions  = [{ id: "m1", created_at: "2024-03-10T10:00:00Z" }];
+    const tasks     = [{ id: "t1", status: "done", created_at: "2024-03-12T10:00:00Z" }];
+    const documents = [{ id: "d1", created_at: "2024-03-11T10:00:00Z" }];
+
+    const s = buildEmployee360Summary(summaryEmployee, missions, tasks, documents);
+    expect(s.last_activity_at).toBe("2024-03-12T10:00:00Z");
+    expect(s.last_task_at).toBe("2024-03-12T10:00:00Z");
+    expect(s.last_mission_at).toBe("2024-03-10T10:00:00Z");
+    expect(s.last_document_at).toBe("2024-03-11T10:00:00Z");
+  });
+
+  it("sets all last_*_at to null when arrays are empty", () => {
+    const s = buildEmployee360Summary(summaryEmployee, [], [], []);
+    expect(s.last_mission_at).toBeNull();
+    expect(s.last_task_at).toBeNull();
+    expect(s.last_document_at).toBeNull();
+    expect(s.last_activity_at).toBeNull();
+  });
+
+  it("uses first element of each array as the most recent (arrays expected desc)", () => {
+    const missions = [
+      { id: "m1", created_at: "2024-05-01T00:00:00Z" },
+      { id: "m2", created_at: "2024-04-01T00:00:00Z" },
+    ];
+    const s = buildEmployee360Summary(summaryEmployee, missions, [], []);
+    expect(s.last_mission_at).toBe("2024-05-01T00:00:00Z");
+  });
+});
+
+describe("buildEmployee360Summary — employee fields", () => {
+  it("maps employee_name from full_name", () => {
+    const s = buildEmployee360Summary(summaryEmployee, [], [], []);
+    expect(s.employee_name).toBe("Alice Dupont");
+  });
+
+  it("maps employee_status from employee.status", () => {
+    const s = buildEmployee360Summary(summaryEmployee, [], [], []);
+    expect(s.employee_status).toBe("active");
+  });
+
+  it("maps contract_type and department from employee", () => {
+    const s = buildEmployee360Summary(summaryEmployee, [], [], []);
+    expect(s.contract_type).toBe("cdi");
+    expect(s.department).toBe("RH");
+  });
+
+  it("sets contract_type and department to null when absent", () => {
+    const minimal: PierreEmployeeProfile = {
+      id: "min-001",
+      full_name: "Min Imal",
+      status: "unknown",
+      tags: [],
+    };
+    const s = buildEmployee360Summary(minimal, [], [], []);
+    expect(s.contract_type).toBeNull();
+    expect(s.department).toBeNull();
   });
 });

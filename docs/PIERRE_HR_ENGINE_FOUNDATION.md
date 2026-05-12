@@ -547,6 +547,72 @@ Le script exécute dans l'ordre : créer salarié → lister → soumettre missi
 
 ---
 
+## 11. Bloc 6 — Employee 360 Backend Premium V1 (2026-05-12)
+
+### Nouvelles fonctions dans `hr/employee.ts`
+
+**`detectEmployeeReferenceFromText(input, employees)`**
+Détecte un salarié connu à partir d'un texte libre. Deux niveaux de matching :
+1. `full_name` apparaît verbatim dans le texte (insensible à la casse, vérification de frontières de mot pour éviter les faux positifs type "Ali" dans "Alice").
+2. Tous les tokens du nom (≥ 2 caractères) apparaissent dans le texte avec frontières de mot.
+
+Utilisée dans `submit/route.ts` comme fallback quand `employee_id` / `employee_name` ne resolvent pas.
+
+**`buildEmployee360Summary(employee, missions, tasks, documents, logs?)`**
+Fonction pure construisant un résumé 360° complet. Retourne :
+- `total_missions`, `total_tasks`, `total_documents`, `total_logs`
+- `tasks_by_status` (agrégat)
+- `pending_approval_count`, `blocked_count`, `scheduled_count`
+- `last_mission_at`, `last_task_at`, `last_document_at`, `last_activity_at`
+
+**`enrichPayloadWithEmployeeContext(payload, context)`** — mise à jour
+Ajoute désormais aussi les champs plats `employee_id` et `employee_name` en plus du bloc `employee_context`. Permet les requêtes `@> { employee_id: ... }` simples.
+
+**`Employee360Summary`** — nouveau type exporté.
+
+### Améliorations `submit/route.ts`
+
+- Import de `detectEmployeeReferenceFromText` et `buildPierreEmployeeContext`
+- Si `employee_id` est fourni mais non résolu : `employee_resolution_warning` injecté dans `brain_output_json` et `context_snapshot_json`
+- Fallback texte : si résolution par id/nom échoue, `detectEmployeeReferenceFromText` tente de retrouver le salarié dans le texte libre de la mission
+
+### Améliorations `employee/[employeeId]/route.ts`
+
+Nouveau champ **`timeline`** — tableau chronologique fusionné (missions + tâches + documents + logs), chaque item : `{ type, id, title, status, created_at, source_table }`.
+
+Nouveau champ **`logs`** — jusqu'à 100 logs liés à l'employé via :
+1. `pierre_task_logs.meta_json @> { employee_id }` (compatibilité future)
+2. `pierre_task_logs.mission_id in [missionIds]` (missions liées à l'employé)
+
+Résumé étendu — utilise désormais `buildEmployee360Summary` (fonction pure partagée). Ajoute : `pending_approval_count`, `blocked_count`, `scheduled_count`, `last_activity_at`.
+
+Meta `counts` étendu : `missions`, `tasks`, `documents`, `logs`, `timeline_items`.
+
+### Tests
+
+173 tests (141 → +32). Nouvelles suites :
+- `detectEmployeeReferenceFromText` — null/empty, exact match, partial token match, edge cases (14 tests)
+- `buildEmployee360Summary` — counts, status grouping, approval/blocked/scheduled, dates, employee fields (18 tests)
+- `enrichPayloadWithEmployeeContext` — 4 nouveaux tests vérifiant les champs plats `employee_id` / `employee_name`
+
+### Script terminal E2E
+
+`scripts/pierre-employee360-terminal-test.ps1` — réécrit en 10 étapes :
+1. Création salarié
+2. Liste salariés
+3. Submit mission avec `employee_id` + vérification champs plats dans payload
+4. Vue 360 — vérification `timeline`, `logs`, nouveaux champs summary
+5. PATCH salarié
+6. GET salarié unitaire (vérification patch)
+7. Submit mission via détection texte (sans `employee_id`)
+8. Vue 360 — détail timeline/logs
+9. DELETE salarié
+10. Vérification 404 après suppression
+
+`exit 1` automatique si un step critique échoue. Aucun secret en dur.
+
+---
+
 ## 10. Pourquoi cette brique respecte la vision Pierre
 
 Pierre est un **poste RH opérationnel**, pas un assistant conversationnel.

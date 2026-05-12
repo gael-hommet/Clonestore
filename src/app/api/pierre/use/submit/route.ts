@@ -14,6 +14,8 @@ import {
   type PierreEmployeeProfile,
   sanitizePierreEmployeeList,
   resolveEmployeeContext,
+  buildPierreEmployeeContext,
+  detectEmployeeReferenceFromText,
   enrichPayloadWithEmployeeContext,
 } from "../../../../../lib/pierre/hr/employee";
 
@@ -937,6 +939,7 @@ async function insertMission(
   body: SubmitBody,
   interpretation: MissionInterpretation,
   employeeContext: PierreEmployeeContext | null,
+  employeeWarning: string | null,
 ): Promise<DbRow> {
   const missionTitle =
     body.input.length > 120
@@ -974,10 +977,12 @@ async function insertMission(
       task_count: interpretation.tasks.length,
       task_types: interpretation.tasks.map((t) => t.type),
       ...(employeeContext ? { employee_context: employeeContext } : {}),
+      ...(employeeWarning ? { employee_resolution_warning: employeeWarning } : {}),
     },
     context_snapshot_json: {
       ...(isObject(body.context) ? body.context : {}),
       ...(employeeContext ? { employee_context: employeeContext } : {}),
+      ...(employeeWarning ? { employee_resolution_warning: employeeWarning } : {}),
     },
   };
 
@@ -1166,10 +1171,22 @@ export async function POST(request: NextRequest) {
 
     // Employee context : rÃ©solution depuis la liste mÃ©moire entreprise
     const employees = await readEmployeeList(supabaseAdmin, auth.userId);
-    const employeeContext = resolveEmployeeContext(employees, {
+    let employeeContext = resolveEmployeeContext(employees, {
       employee_id: body.employee_id,
       employee_name: body.employee_name,
     });
+
+    const employeeWarning =
+      body.employee_id && !employeeContext
+        ? `employee_id "${body.employee_id}" not found in registry`
+        : null;
+
+    if (!employeeContext && employees.length > 0) {
+      const detected = detectEmployeeReferenceFromText(body.input, employees);
+      if (detected) {
+        employeeContext = buildPierreEmployeeContext(detected);
+      }
+    }
 
     const interpretation = interpretMission(body.input, autonomyLevel);
 
@@ -1179,6 +1196,7 @@ export async function POST(request: NextRequest) {
       body,
       interpretation,
       employeeContext,
+      employeeWarning,
     );
 
     const tasks = await insertTasks(

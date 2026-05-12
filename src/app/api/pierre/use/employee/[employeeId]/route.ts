@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   sanitizePierreEmployeeList,
   findPierreEmployeeById,
+  buildEmployee360Summary,
   type PierreEmployeeProfile,
 } from "../../../../../../lib/pierre/hr/employee";
 
@@ -309,36 +310,115 @@ async function fetchDocumentsForMissions(
 }
 
 /**
- * Construit un résumé 360 calculé à la volée.
+ * Fetches logs linked to an employee — by meta_json containment OR by mission membership.
  */
-function buildSummary(
-  employee: PierreEmployeeProfile,
+async function fetchEmployeeLogs(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+  employeeId: string,
+  missionIds: string[],
+): Promise<DbRow[]> {
+  try {
+    const { data: direct } = await supabaseAdmin
+      .from("pierre_task_logs")
+      .select("id, mission_id, task_id, event_type, message, meta_json, created_at")
+      .eq("user_id", userId)
+      .eq("agent_slug", "pierre")
+      .contains("meta_json", { employee_id: employeeId })
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    const directRows = (direct ?? []) as DbRow[];
+
+    if (!missionIds.length) return directRows.slice(0, 100);
+
+    const { data: byMission } = await supabaseAdmin
+      .from("pierre_task_logs")
+      .select("id, mission_id, task_id, event_type, message, meta_json, created_at")
+      .eq("user_id", userId)
+      .eq("agent_slug", "pierre")
+      .in("mission_id", missionIds.slice(0, 50))
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    const byMissionRows = (byMission ?? []) as DbRow[];
+
+    const seen = new Set<string>();
+    const merged: DbRow[] = [];
+
+    for (const row of [...directRows, ...byMissionRows]) {
+      const id = asString(row.id);
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      merged.push(row);
+    }
+
+    return merged.slice(0, 100);
+  } catch {
+    return [];
+  }
+}
+
+type TimelineItem = {
+  type: "mission" | "task" | "document" | "log";
+  id: string;
+  title: string | null;
+  status: string | null;
+  created_at: string | null;
+  source_table: string;
+};
+
+/**
+ * Merges missions, tasks, documents and logs into a single chronological timeline.
+ */
+function buildTimeline(
   missions: DbRow[],
   tasks: DbRow[],
   documents: DbRow[],
-): Record<string, unknown> {
-  const tasksByStatus = tasks.reduce<Record<string, number>>((acc, t) => {
-    const s = asString(t.status) ?? "unknown";
-    acc[s] = (acc[s] ?? 0) + 1;
-    return acc;
-  }, {});
+  logs: DbRow[],
+): TimelineItem[] {
+  const items: TimelineItem[] = [
+    ...missions.map((m) => ({
+      type: "mission" as const,
+      id: asString(m.id) ?? "",
+      title: asString(m.mission_summary) ?? asString(m.raw_input) ?? null,
+      status: asString(m.status),
+      created_at: asString(m.created_at),
+      source_table: "pierre_missions",
+    })),
+    ...tasks.map((t) => ({
+      type: "task" as const,
+      id: asString(t.id) ?? "",
+      title: asString(t.title),
+      status: asString(t.status),
+      created_at: asString(t.created_at),
+      source_table: "pierre_tasks",
+    })),
+    ...documents.map((d) => ({
+      type: "document" as const,
+      id: asString(d.id) ?? "",
+      title: asString(d.title),
+      status: null,
+      created_at: asString(d.created_at),
+      source_table: "pierre_documents",
+    })),
+    ...logs.map((l) => ({
+      type: "log" as const,
+      id: asString(l.id) ?? "",
+      title: asString(l.message),
+      status: null,
+      created_at: asString(l.created_at),
+      source_table: "pierre_task_logs",
+    })),
+  ];
 
-  const pendingApproval = tasks.filter((t) => t.approval_required === true && t.status === "awaiting_approval").length;
-
-  return {
-    employee_name: employee.full_name,
-    employee_status: employee.status,
-    contract_type: employee.contract_type ?? null,
-    department: employee.department ?? null,
-    total_missions: missions.length,
-    total_tasks: tasks.length,
-    total_documents: documents.length,
-    tasks_by_status: tasksByStatus,
-    tasks_pending_approval: pendingApproval,
-    last_mission_at: missions[0] ? asString(missions[0].created_at) : null,
-    last_task_at: tasks[0] ? asString(tasks[0].created_at) : null,
-    last_document_at: documents[0] ? asString(documents[0].created_at) : null,
-  };
+  return items
+    .filter((item) => item.id)
+    .sort((a, b) => {
+      const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return db - da;
+    });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -381,7 +461,14 @@ export async function GET(
     const tasks = await fetchEmployeeTasks(supabaseAdmin, userId, employeeId);
     const missions = await fetchMissionsForTasks(supabaseAdmin, userId, tasks);
     const documents = await fetchDocumentsForMissions(supabaseAdmin, userId, missions);
-    const summary = buildSummary(employee, missions, tasks, documents);
+
+    const missionIds = missions
+      .map((m) => asString(m.id))
+      .filter((id): id is string => id !== null);
+
+    const logs = await fetchEmployeeLogs(supabaseAdmin, userId, employeeId, missionIds);
+    const summary = buildEmployee360Summary(employee, missions, tasks, documents, logs);
+    const timeline = buildTimeline(missions, tasks, documents, logs);
 
     return NextResponse.json({
       ok: true,
@@ -389,7 +476,9 @@ export async function GET(
       missions,
       tasks,
       documents,
+      logs: logs.slice(0, 100),
       summary,
+      timeline,
       meta: {
         employeeId,
         userId,
@@ -398,6 +487,8 @@ export async function GET(
           missions: missions.length,
           tasks: tasks.length,
           documents: documents.length,
+          logs: logs.length,
+          timeline_items: timeline.length,
         },
       },
     });

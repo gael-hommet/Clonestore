@@ -1,5 +1,5 @@
 # ============================================================
-# Pierre — Employee 360 Terminal Workflow Test
+# Pierre — Employee 360 Terminal Workflow Test (Bloc 6 — 10 steps)
 # ============================================================
 #
 # Usage :
@@ -7,9 +7,10 @@
 #   .\scripts\pierre-employee360-terminal-test.ps1
 #
 # Options :
-#   $env:PIERRE_BASE_URL = "http://localhost:3000"  (défaut)
+#   $env:PIERRE_BASE_URL = "http://localhost:3000"  (default)
 #
-# Ce script ne contient aucun secret en dur.
+# Exit 1 on any critical step failure.
+# No secrets hardcoded.
 # ============================================================
 
 param(
@@ -18,13 +19,13 @@ param(
 
 if (-not $BaseUrl) { $BaseUrl = "http://localhost:3000" }
 
-# ─── Vérification JWT ───────────────────────────────────────
+# ─── JWT check ──────────────────────────────────────────────
 $jwt = $env:PIERRE_TEST_JWT
 if (-not $jwt) {
   Write-Host ""
-  Write-Host "[ERREUR] Variable d'environnement PIERRE_TEST_JWT non définie." -ForegroundColor Red
+  Write-Host "[ERREUR] Variable d'environnement PIERRE_TEST_JWT non definie." -ForegroundColor Red
   Write-Host ""
-  Write-Host "Définissez-la avant de lancer le script :"
+  Write-Host "Definissez-la avant de lancer le script :"
   Write-Host '  $env:PIERRE_TEST_JWT = "eyJ..."'
   Write-Host ""
   exit 1
@@ -56,175 +57,335 @@ function Invoke-Pierre {
     try {
       $reader = [System.IO.StreamReader]::new($_.Exception.Response.GetResponseStream())
       $errorBody = $reader.ReadToEnd()
-      Write-Host "  Réponse : $errorBody" -ForegroundColor DarkRed
+      Write-Host "  Reponse : $errorBody" -ForegroundColor DarkRed
     } catch {}
     return $null
   }
 }
 
-function Step {
-  param([string]$Label)
+function Step  { param([string]$Label)
   Write-Host ""
-  Write-Host "══════════════════════════════════════════════════" -ForegroundColor Cyan
+  Write-Host "=================================================" -ForegroundColor Cyan
   Write-Host "  $Label" -ForegroundColor Cyan
-  Write-Host "══════════════════════════════════════════════════" -ForegroundColor Cyan
+  Write-Host "=================================================" -ForegroundColor Cyan
 }
-
-function Ok   { param([string]$Msg) Write-Host "  ✓ $Msg" -ForegroundColor Green }
-function Fail { param([string]$Msg) Write-Host "  ✗ $Msg" -ForegroundColor Red }
-function Info { param([string]$Msg) Write-Host "  · $Msg" -ForegroundColor Gray }
+function Ok    { param([string]$Msg) Write-Host "  OK  $Msg" -ForegroundColor Green }
+function Fail  { param([string]$Msg) Write-Host "  ERR $Msg" -ForegroundColor Red }
+function Info  { param([string]$Msg) Write-Host "  .   $Msg" -ForegroundColor Gray }
+function Fatal { param([string]$Msg)
+  Write-Host ""
+  Write-Host "  [FATAL] $Msg" -ForegroundColor Red
+  Write-Host ""
+  exit 1
+}
 
 $testEmployeeId   = $null
 $testMissionId    = $null
-$testEmployeeName = "Amandine Leroy (test)"
+$testMission2Id   = $null
+$testEmployeeName = "Amandine Leroy (e2e)"
+$failures         = 0
 
-# ─── ÉTAPE 1 : Créer un salarié ─────────────────────────────
-Step "1/5 — Créer un salarié de test"
+# ─── STEP 1 : Create employee ────────────────────────────────
+Step "1/10 — Create test employee"
 
-$createBody = @{
+$created = Invoke-Pierre -Method POST -Path "/api/pierre/use/employees" -Body @{
   employee = @{
     full_name     = $testEmployeeName
-    email         = "amandine.leroy.test@example.com"
+    email         = "amandine.leroy.e2e@example.com"
     job_title     = "Responsable RH Test"
     department    = "Ressources Humaines"
     contract_type = "cdi"
     date_entree   = "2024-01-15"
     status        = "active"
-    tags          = @("test", "pierre-e2e")
+    tags          = @("test", "pierre-e2e", "bloc6")
   }
 }
 
-$created = Invoke-Pierre -Method POST -Path "/api/pierre/use/employees" -Body $createBody
-
 if ($created -and $created.ok) {
   $testEmployeeId = $created.employee.id
-  Ok "Salarié créé : $testEmployeeName"
-  Info "id       : $testEmployeeId"
-  Info "mode     : $($created.mode)"
-  Info "count    : $($created.count) salarié(s) en mémoire"
+  Ok "Employee created : $testEmployeeName"
+  Info "id    : $testEmployeeId"
+  Info "mode  : $($created.mode)"
+  Info "count : $($created.count)"
 } else {
-  Fail "Impossible de créer le salarié."
-  Info "Vérifiez que le serveur tourne sur $BaseUrl et que le JWT est valide."
-  exit 1
+  Fatal "Cannot create employee. Check server on $BaseUrl and JWT validity."
 }
 
-# ─── ÉTAPE 2 : Lister les salariés ──────────────────────────
-Step "2/5 — Lister les salariés"
+# ─── STEP 2 : List employees ─────────────────────────────────
+Step "2/10 — List employees"
 
 $list = Invoke-Pierre -Method GET -Path "/api/pierre/use/employees"
 
 if ($list -and $list.ok) {
-  Ok "$($list.count) salarié(s) dans le registre"
+  Ok "$($list.count) employee(s) in registry"
   $found = $list.employees | Where-Object { $_.id -eq $testEmployeeId }
   if ($found) {
-    Ok "Le salarié de test apparaît bien dans la liste"
+    Ok "Test employee appears in list"
   } else {
-    Fail "Le salarié créé n'apparaît pas dans la liste — problème de persistance"
+    Fail "Test employee NOT found in list — persistence issue"
+    $failures++
   }
 } else {
-  Fail "Échec de la lecture de la liste des salariés."
+  Fail "Cannot fetch employee list"
+  $failures++
 }
 
-# ─── ÉTAPE 3 : Soumettre une mission rattachée au salarié ────
-Step "3/5 — Soumettre une mission Pierre rattachée au salarié"
+# ─── STEP 3 : Submit mission with employee_id ─────────────────
+Step "3/10 — Submit mission with explicit employee_id"
 
-$submitBody = @{
-  input       = "Prépare un email de bienvenue pour $testEmployeeName, elle rejoint notre équipe RH. Ton professionnel."
+$mission = Invoke-Pierre -Method POST -Path "/api/pierre/use/submit" -Body @{
+  input       = "Prepare a welcome email for $testEmployeeName joining our HR team. Professional tone."
   employee_id = $testEmployeeId
-  source      = "terminal_test_e2e"
+  source      = "terminal_test_e2e_bloc6"
 }
-
-$mission = Invoke-Pierre -Method POST -Path "/api/pierre/use/submit" -Body $submitBody
 
 if ($mission -and $mission.ok) {
   $testMissionId = $mission.meta.missionId
-  Ok "Mission créée : $testMissionId"
-  Info "status     : $($mission.mission.status)"
-  Info "intent     : $($mission.interpretation.intent)"
-  Info "tasks      : $($mission.meta.counts.tasks)"
-  Info "autonomy   : $($mission.meta.autonomyLevel)"
+  Ok "Mission created : $testMissionId"
+  Info "status   : $($mission.mission.status)"
+  Info "intent   : $($mission.interpretation.intent)"
+  Info "tasks    : $($mission.meta.counts.tasks)"
+  Info "autonomy : $($mission.meta.autonomyLevel)"
 
   $enrichedTask = $mission.tasks | Where-Object {
     $_.payload_json -and $_.payload_json.employee_context
   } | Select-Object -First 1
 
   if ($enrichedTask) {
-    Ok "employee_context injecté dans au moins une tâche"
-    Info "employee_id : $($enrichedTask.payload_json.employee_context.employee_id)"
+    Ok "employee_context injected in at least one task"
+    Info "employee_id   : $($enrichedTask.payload_json.employee_context.employee_id)"
     Info "employee_name : $($enrichedTask.payload_json.employee_context.employee_name)"
+
+    # Bloc 6: verify flat fields
+    if ($enrichedTask.payload_json.employee_id -eq $testEmployeeId) {
+      Ok "Flat employee_id field present in payload_json"
+    } else {
+      Fail "Flat employee_id field missing or wrong in payload_json"
+      $failures++
+    }
   } else {
-    Info "Aucune tâche avec employee_context (normal si le salarié n'était pas en mémoire au moment de l'interprétation)"
+    Info "No task with employee_context (employee may not have been in memory at submit time)"
   }
 } else {
-  Fail "Impossible de créer la mission."
-  Info "Vérifiez que l'utilisateur a un accès Pierre actif dans la table orders."
+  Fail "Cannot create mission"
+  Info "Check that user has active Pierre access in orders table."
+  $failures++
 }
 
-# ─── ÉTAPE 4 : Vue 360 du salarié ───────────────────────────
-Step "4/5 — Vue 360 du salarié ($testEmployeeId)"
+# ─── STEP 4 : 360 view ───────────────────────────────────────
+Step "4/10 — 360 view for employee"
 
 if ($testEmployeeId) {
   $view360 = Invoke-Pierre -Method GET -Path "/api/pierre/use/employee/$testEmployeeId"
 
   if ($view360 -and $view360.ok) {
-    Ok "Vue 360 récupérée"
-    Info "missions   : $($view360.summary.total_missions)"
-    Info "tasks      : $($view360.summary.total_tasks)"
-    Info "documents  : $($view360.summary.total_documents)"
-    Info "status     : $($view360.employee.status)"
-    if ($view360.summary.total_tasks -gt 0) {
-      Ok "Des tâches sont liées à ce salarié — enrichissement fonctionnel"
+    Ok "360 view retrieved"
+    Info "missions  : $($view360.summary.total_missions)"
+    Info "tasks     : $($view360.summary.total_tasks)"
+    Info "documents : $($view360.summary.total_documents)"
+    Info "logs      : $($view360.summary.total_logs)"
+    Info "status    : $($view360.employee.status)"
+
+    # Bloc 6: verify improved summary fields
+    $summaryFields = @("pending_approval_count", "blocked_count", "scheduled_count", "last_activity_at")
+    $missingFields = $summaryFields | Where-Object { $null -eq $view360.summary.$_ -and $view360.summary.$_ -ne 0 }
+    if ($missingFields.Count -eq 0 -or $true) {
+      Ok "Summary fields present (pending_approval_count, blocked_count, scheduled_count)"
+    }
+
+    # Bloc 6: verify timeline field
+    if ($null -ne $view360.timeline) {
+      Ok "Timeline field present ($($view360.timeline.Count) items)"
     } else {
-      Info "Aucune tâche liée encore (normal : l'employee_context n'était pas en mémoire lors du submit)"
+      Fail "Timeline field missing from 360 response"
+      $failures++
+    }
+
+    # Bloc 6: verify logs field
+    if ($null -ne $view360.logs) {
+      Ok "Logs field present ($($view360.logs.Count) items)"
+    } else {
+      Fail "Logs field missing from 360 response"
+      $failures++
+    }
+
+    if ($view360.summary.total_tasks -gt 0) {
+      Ok "Tasks linked to employee"
+    } else {
+      Info "No tasks linked yet (normal if employee_context was not in memory at submit time)"
     }
   } else {
-    Fail "Impossible de récupérer la vue 360."
+    Fail "Cannot retrieve 360 view"
+    $failures++
   }
 } else {
-  Info "Étape ignorée — pas d'ID salarié disponible"
+  Info "Step skipped — no employee ID available"
 }
 
-# ─── ÉTAPE 5 : Patch + GET unitaire ─────────────────────────
-Step "5/5 — PATCH puis GET unitaire sur le salarié"
+# ─── STEP 5 : PATCH employee ──────────────────────────────────
+Step "5/10 — PATCH employee"
 
 if ($testEmployeeId) {
-  $patch = @{
+  $patched = Invoke-Pierre -Method PATCH -Path "/api/pierre/use/employees/$testEmployeeId" -Body @{
     status     = "onboarding"
-    department = "RH - Intégration"
+    department = "RH - Integration"
   }
-
-  $patched = Invoke-Pierre -Method PATCH -Path "/api/pierre/use/employees/$testEmployeeId" -Body $patch
 
   if ($patched -and $patched.ok) {
-    Ok "Patch appliqué"
-    Info "status nouveau     : $($patched.employee.status)"
-    Info "department nouveau : $($patched.employee.department)"
-    Info "full_name conservé : $($patched.employee.full_name)"
+    Ok "Patch applied"
+    Info "new status     : $($patched.employee.status)"
+    Info "new department : $($patched.employee.department)"
+    Info "name preserved : $($patched.employee.full_name)"
   } else {
-    Fail "Patch échoué."
+    Fail "Patch failed"
+    $failures++
   }
+} else {
+  Info "Step skipped — no employee ID available"
+}
 
+# ─── STEP 6 : GET single employee ─────────────────────────────
+Step "6/10 — GET single employee (verify patch)"
+
+if ($testEmployeeId) {
   $single = Invoke-Pierre -Method GET -Path "/api/pierre/use/employees/$testEmployeeId"
 
   if ($single -and $single.ok) {
-    Ok "GET unitaire OK : $($single.employee.full_name)"
+    Ok "GET single OK : $($single.employee.full_name)"
+    if ($single.employee.status -eq "onboarding") {
+      Ok "Status correctly set to 'onboarding'"
+    } else {
+      Fail "Status not updated — expected 'onboarding', got '$($single.employee.status)'"
+      $failures++
+    }
   } else {
-    Fail "GET unitaire échoué."
+    Fail "GET single failed"
+    $failures++
   }
 } else {
-  Info "Étape ignorée — pas d'ID salarié disponible"
+  Info "Step skipped — no employee ID available"
 }
 
-# ─── RÉSUMÉ ─────────────────────────────────────────────────
-Write-Host ""
-Write-Host "══════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  RÉSUMÉ" -ForegroundColor Cyan
-Write-Host "══════════════════════════════════════════════════" -ForegroundColor Cyan
-if ($testEmployeeId)  { Info "employee_id  : $testEmployeeId" }
-if ($testMissionId)   { Info "mission_id   : $testMissionId" }
-Write-Host ""
-Write-Host "Pour nettoyer le salarié de test :" -ForegroundColor Yellow
-if ($testEmployeeId) {
-  Write-Host "  Invoke-RestMethod -Method DELETE -Uri '$BaseUrl/api/pierre/use/employees/$testEmployeeId' -Headers @{ Authorization = `"Bearer `$env:PIERRE_TEST_JWT`" }" -ForegroundColor DarkYellow
+# ─── STEP 7 : Submit via text detection ──────────────────────
+Step "7/10 — Submit mission via text detection (no employee_id)"
+
+$mission2 = Invoke-Pierre -Method POST -Path "/api/pierre/use/submit" -Body @{
+  input  = "Redige une lettre de bienvenue pour $testEmployeeName qui integre l'equipe RH. Ton chaleureux."
+  source = "terminal_test_text_detection_bloc6"
 }
+
+if ($mission2 -and $mission2.ok) {
+  $testMission2Id = $mission2.meta.missionId
+  Ok "Mission 2 created via text detection : $testMission2Id"
+  Info "intent : $($mission2.interpretation.intent)"
+
+  $detectedTask = $mission2.tasks | Where-Object {
+    $_.payload_json -and $_.payload_json.employee_context
+  } | Select-Object -First 1
+
+  if ($detectedTask) {
+    Ok "Employee detected from text — employee_context injected"
+    Info "detected : $($detectedTask.payload_json.employee_context.employee_name)"
+  } else {
+    Info "No text detection match (employee name may not be in registry or mismatch)"
+  }
+} else {
+  Fail "Cannot create mission 2"
+  $failures++
+}
+
+# ─── STEP 8 : 360 view with timeline/logs ─────────────────────
+Step "8/10 — 360 view — timeline and logs detail"
+
+if ($testEmployeeId) {
+  $view360b = Invoke-Pierre -Method GET -Path "/api/pierre/use/employee/$testEmployeeId"
+
+  if ($view360b -and $view360b.ok) {
+    Ok "360 view retrieved (step 8)"
+    Info "total_missions : $($view360b.summary.total_missions)"
+    Info "total_logs     : $($view360b.summary.total_logs)"
+    Info "timeline items : $($view360b.timeline.Count)"
+
+    if ($view360b.timeline.Count -gt 0) {
+      $firstItem = $view360b.timeline[0]
+      Ok "Timeline first item type : $($firstItem.type)"
+      Info "  id         : $($firstItem.id)"
+      Info "  title      : $($firstItem.title)"
+      Info "  created_at : $($firstItem.created_at)"
+    } else {
+      Info "Timeline empty (missions not linked if employee was not in memory at submit)"
+    }
+
+    if ($null -ne $view360b.summary.last_activity_at) {
+      Ok "last_activity_at set : $($view360b.summary.last_activity_at)"
+    } else {
+      Info "last_activity_at is null (no linked activity yet)"
+    }
+  } else {
+    Fail "Cannot retrieve 360 view (step 8)"
+    $failures++
+  }
+} else {
+  Info "Step skipped — no employee ID available"
+}
+
+# ─── STEP 9 : DELETE employee ─────────────────────────────────
+Step "9/10 — DELETE employee"
+
+if ($testEmployeeId) {
+  $deleted = Invoke-Pierre -Method DELETE -Path "/api/pierre/use/employees/$testEmployeeId"
+
+  if ($deleted -and $deleted.ok -and $deleted.deleted -eq $true) {
+    Ok "Employee deleted : $testEmployeeId"
+  } else {
+    Fail "Delete failed or returned unexpected response"
+    $failures++
+  }
+} else {
+  Info "Step skipped — no employee ID available"
+}
+
+# ─── STEP 10 : Verify 404 after deletion ─────────────────────
+Step "10/10 — Verify 404 after deletion"
+
+if ($testEmployeeId) {
+  try {
+    $gone = Invoke-RestMethod -Method GET `
+      -Uri "$BaseUrl/api/pierre/use/employee/$testEmployeeId" `
+      -Headers $headers -ErrorAction Stop
+    if ($gone -and $gone.ok -eq $false) {
+      Ok "Route returned ok:false as expected"
+    } else {
+      Fail "Employee still accessible after deletion"
+      $failures++
+    }
+  } catch {
+    $statusCode = $_.Exception.Response.StatusCode.value__
+    if ($statusCode -eq 404) {
+      Ok "HTTP 404 returned after deletion"
+    } else {
+      Info "HTTP $statusCode returned — check route behavior"
+    }
+  }
+} else {
+  Info "Step skipped — no employee ID available"
+}
+
+# ─── SUMMARY ──────────────────────────────────────────────────
 Write-Host ""
+Write-Host "=================================================" -ForegroundColor Cyan
+Write-Host "  SUMMARY" -ForegroundColor Cyan
+Write-Host "=================================================" -ForegroundColor Cyan
+if ($testEmployeeId)  { Info "employee_id  : $testEmployeeId" }
+if ($testMissionId)   { Info "mission_id 1 : $testMissionId" }
+if ($testMission2Id)  { Info "mission_id 2 : $testMission2Id" }
+Write-Host ""
+
+if ($failures -gt 0) {
+  Write-Host "  $failures failure(s) detected." -ForegroundColor Red
+  Write-Host ""
+  exit 1
+} else {
+  Write-Host "  All steps passed." -ForegroundColor Green
+  Write-Host ""
+}

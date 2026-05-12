@@ -2,8 +2,8 @@
  * Pierre HR Engine — Employee Profile 360 Foundation
  *
  * Couche pure sans dépendance DB/UI.
- * Les profils salariés sont stockés dans pierre_company_memory.memory_json.employees[]
- * — aucune table dédiée, pas de migration Supabase nécessaire pour le Bloc 4.
+ * Les profils salariés sont stockés dans pierre_company_memory.reusable_rh_context_json.employees[]
+ * — aucune table dédiée, pas de migration Supabase nécessaire.
  *
  * Limite : 200 salariés max par entreprise (cohérent avec sanitize existant).
  */
@@ -310,6 +310,140 @@ export function enrichPayloadWithEmployeeContext(
   if (!context) return payload;
   return {
     ...payload,
+    employee_id: context.employee_id,
+    employee_name: context.employee_name,
     employee_context: context,
+  };
+}
+
+// ══════════════════════════════════════════════════════════
+// TEXT DETECTION
+// ══════════════════════════════════════════════════════════
+
+/**
+ * Scans free text for a known employee full_name.
+ * Priority: exact substring match first, then all name tokens found.
+ * Pure function — no DB access, no side effects.
+ */
+export function detectEmployeeReferenceFromText(
+  input: string,
+  employees: PierreEmployeeProfile[],
+): PierreEmployeeProfile | null {
+  if (!input.trim() || !employees.length) return null;
+
+  const haystack = input.toLowerCase().replace(/\s+/g, " ");
+
+  function wordBoundary(text: string, start: number, end: number): boolean {
+    const before = start > 0 ? text[start - 1] : " ";
+    const after = end < text.length ? text[end] : " ";
+    return /[^a-z0-9]/i.test(before) && /[^a-z0-9]/i.test(after);
+  }
+
+  // Priority 1: full_name exact substring with word boundaries
+  for (const e of employees) {
+    const name = e.full_name.toLowerCase();
+    const idx = haystack.indexOf(name);
+    if (idx !== -1 && wordBoundary(haystack, idx, idx + name.length)) return e;
+  }
+
+  // Priority 2: all name tokens found with word boundaries
+  for (const e of employees) {
+    const tokens = e.full_name
+      .toLowerCase()
+      .split(/[\s'-]+/)
+      .filter((t) => t.length >= 2);
+    if (tokens.length === 0) continue;
+    const allFound = tokens.every((t) => {
+      const idx = haystack.indexOf(t);
+      return idx !== -1 && wordBoundary(haystack, idx, idx + t.length);
+    });
+    if (allFound) return e;
+  }
+
+  return null;
+}
+
+// ══════════════════════════════════════════════════════════
+// 360 SUMMARY
+// ══════════════════════════════════════════════════════════
+
+export type Employee360Summary = {
+  employee_name: string;
+  employee_status: PierreEmployeeStatus;
+  contract_type: PierreContractType | null;
+  department: string | null;
+  total_missions: number;
+  total_tasks: number;
+  total_documents: number;
+  total_logs: number;
+  tasks_by_status: Record<string, number>;
+  tasks_pending_approval: number;
+  pending_approval_count: number;
+  blocked_count: number;
+  scheduled_count: number;
+  last_mission_at: string | null;
+  last_task_at: string | null;
+  last_document_at: string | null;
+  last_activity_at: string | null;
+};
+
+/**
+ * Builds a typed 360° summary from employee + mission/task/document/log arrays.
+ * Purely functional — no DB access.
+ * Arrays must be sorted desc by created_at (first item = most recent).
+ */
+export function buildEmployee360Summary(
+  employee: PierreEmployeeProfile,
+  missions: Record<string, unknown>[],
+  tasks: Record<string, unknown>[],
+  documents: Record<string, unknown>[],
+  logs?: Record<string, unknown>[],
+): Employee360Summary {
+  const tasksByStatus = tasks.reduce<Record<string, number>>((acc, t) => {
+    const s = (typeof t.status === "string" ? t.status.trim() : null) ?? "unknown";
+    acc[s] = (acc[s] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const pendingApproval = tasks.filter(
+    (t) => t.approval_required === true && t.status === "awaiting_approval",
+  ).length;
+
+  const blockedCount = tasks.filter((t) => t.status === "blocked").length;
+  const scheduledCount = tasks.filter((t) => t.status === "scheduled").length;
+
+  const getAt = (row: Record<string, unknown>): string | null =>
+    typeof row.created_at === "string" ? row.created_at : null;
+
+  const lastMissionAt = missions[0] ? getAt(missions[0]) : null;
+  const lastTaskAt = tasks[0] ? getAt(tasks[0]) : null;
+  const lastDocAt = documents[0] ? getAt(documents[0]) : null;
+
+  const activityDates = [lastMissionAt, lastTaskAt, lastDocAt].filter(
+    (d): d is string => d !== null,
+  );
+  const lastActivityAt =
+    activityDates.length > 0
+      ? activityDates.reduce((latest, d) => (d > latest ? d : latest))
+      : null;
+
+  return {
+    employee_name: employee.full_name,
+    employee_status: employee.status,
+    contract_type: employee.contract_type ?? null,
+    department: employee.department ?? null,
+    total_missions: missions.length,
+    total_tasks: tasks.length,
+    total_documents: documents.length,
+    total_logs: logs?.length ?? 0,
+    tasks_by_status: tasksByStatus,
+    tasks_pending_approval: pendingApproval,
+    pending_approval_count: pendingApproval,
+    blocked_count: blockedCount,
+    scheduled_count: scheduledCount,
+    last_mission_at: lastMissionAt,
+    last_task_at: lastTaskAt,
+    last_document_at: lastDocAt,
+    last_activity_at: lastActivityAt,
   };
 }
