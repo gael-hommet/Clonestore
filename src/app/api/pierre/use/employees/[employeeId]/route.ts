@@ -3,14 +3,14 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   sanitizePierreEmployeeList,
   findPierreEmployeeById,
+  updatePierreEmployeeProfile,
+  deletePierreEmployeeProfile,
   type PierreEmployeeProfile,
 } from "../../../../../../lib/pierre/hr/employee";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════
-
-type DbRow = Record<string, unknown>;
 
 type JsonErrorExtra = { code?: string | null; details?: unknown };
 
@@ -24,8 +24,8 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 function asString(value: unknown): string | null {
   if (typeof value === "string") {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
+    const t = value.trim();
+    return t.length > 0 ? t : null;
   }
   return null;
 }
@@ -80,14 +80,12 @@ function tryReadBearerToken(request: NextRequest): string | null {
 }
 
 function tryReadSupabaseCookieToken(request: NextRequest): string | null {
-  const cookies = request.cookies.getAll();
-
   for (const key of ["sb-access-token", "supabase-access-token", "access-token"]) {
     const found = request.cookies.get(key)?.value;
     if (found) return found;
   }
 
-  for (const cookie of cookies) {
+  for (const cookie of request.cookies.getAll()) {
     if (!cookie.name.includes("auth-token")) continue;
     const raw = cookie.value;
     if (!raw) continue;
@@ -130,11 +128,7 @@ async function authenticateRequest(
   const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
 
   if (error || !data.user) {
-    throw {
-      status: 401,
-      message: "Unable to authenticate request.",
-      code: "AUTH_INVALID",
-    };
+    throw { status: 401, message: "Unable to authenticate request.", code: "AUTH_INVALID" };
   }
 
   return data.user.id;
@@ -160,189 +154,59 @@ async function hasPierreAccess(
 }
 
 // ═══════════════════════════════════════════════════════════
-// EMPLOYEE RESOLUTION
+// STOCKAGE — reusable_rh_context_json
 // ═══════════════════════════════════════════════════════════
 
-async function resolveEmployeeProfile(
+type MemoryRow = {
+  id: string;
+  reusable_rh_context_json: Record<string, unknown> | null;
+};
+
+async function readMemoryRow(
   supabaseAdmin: SupabaseClient,
   userId: string,
-  employeeId: string,
-): Promise<PierreEmployeeProfile | null> {
-  try {
-    const { data } = await supabaseAdmin
-      .from("pierre_company_memory")
-      .select("reusable_rh_context_json")
-      .eq("user_id", userId)
-      .eq("agent_slug", "pierre")
-      .maybeSingle();
+): Promise<MemoryRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from("pierre_company_memory")
+    .select("id, reusable_rh_context_json")
+    .eq("user_id", userId)
+    .eq("agent_slug", "pierre")
+    .maybeSingle();
 
-    if (!data || !isObject(data.reusable_rh_context_json)) return null;
-
-    const context = data.reusable_rh_context_json as Record<string, unknown>;
-    const employees = sanitizePierreEmployeeList(context.employees);
-
-    return findPierreEmployeeById(employees, employeeId);
-  } catch {
-    return null;
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// 360 AGGREGATION — requêtes jsonb sans migration
-// ═══════════════════════════════════════════════════════════
-
-/**
- * Cherche les tâches Pierre dont payload_json contient l'employee_id.
- * Utilise l'opérateur @> (jsonb containment) de Postgres — pas d'index requis
- * pour les volumes actuels (<10k tasks/user).
- */
-async function fetchEmployeeTasks(
-  supabaseAdmin: SupabaseClient,
-  userId: string,
-  employeeId: string,
-): Promise<DbRow[]> {
-  try {
-    // Cherche dans payload_json.employee_id (champ direct)
-    const { data: direct } = await supabaseAdmin
-      .from("pierre_tasks")
-      .select("id, mission_id, type, title, status, approval_required, execute_at, created_at, payload_json")
-      .eq("user_id", userId)
-      .eq("agent_slug", "pierre")
-      .contains("payload_json", { employee_id: employeeId })
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    // Cherche dans payload_json.employee_context.employee_id (champ structuré Bloc 4)
-    const { data: nested } = await supabaseAdmin
-      .from("pierre_tasks")
-      .select("id, mission_id, type, title, status, approval_required, execute_at, created_at, payload_json")
-      .eq("user_id", userId)
-      .eq("agent_slug", "pierre")
-      .contains("payload_json", { employee_context: { employee_id: employeeId } })
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    const directRows = (direct ?? []) as DbRow[];
-    const nestedRows = (nested ?? []) as DbRow[];
-
-    // Déduplique par id
-    const seen = new Set<string>();
-    const merged: DbRow[] = [];
-
-    for (const row of [...directRows, ...nestedRows]) {
-      const id = asString(row.id);
-      if (!id || seen.has(id)) continue;
-      seen.add(id);
-      merged.push(row);
-    }
-
-    return merged;
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Charge les missions liées aux tâches trouvées.
- */
-async function fetchMissionsForTasks(
-  supabaseAdmin: SupabaseClient,
-  userId: string,
-  tasks: DbRow[],
-): Promise<DbRow[]> {
-  if (!tasks.length) return [];
-
-  const missionIds = [
-    ...new Set(
-      tasks
-        .map((t) => asString(t.mission_id))
-        .filter((id): id is string => id !== null),
-    ),
-  ].slice(0, 50);
-
-  if (!missionIds.length) return [];
-
-  try {
-    const { data } = await supabaseAdmin
-      .from("pierre_missions")
-      .select("id, status, understanding_status, risk_level, approval_required, mission_summary, created_at, brain_output_json")
-      .eq("user_id", userId)
-      .in("id", missionIds)
-      .order("created_at", { ascending: false });
-
-    return (data ?? []) as DbRow[];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Charge les documents Pierre liés aux missions de l'employé.
- */
-async function fetchDocumentsForMissions(
-  supabaseAdmin: SupabaseClient,
-  userId: string,
-  missions: DbRow[],
-): Promise<DbRow[]> {
-  if (!missions.length) return [];
-
-  const missionIds = missions
-    .map((m) => asString(m.id))
-    .filter((id): id is string => id !== null)
-    .slice(0, 50);
-
-  if (!missionIds.length) return [];
-
-  try {
-    const { data } = await supabaseAdmin
-      .from("pierre_documents")
-      .select("id, mission_id, task_id, doc_type, title, source_kind, created_at")
-      .eq("user_id", userId)
-      .in("mission_id", missionIds)
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    return (data ?? []) as DbRow[];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Construit un résumé 360 calculé à la volée.
- */
-function buildSummary(
-  employee: PierreEmployeeProfile,
-  missions: DbRow[],
-  tasks: DbRow[],
-  documents: DbRow[],
-): Record<string, unknown> {
-  const tasksByStatus = tasks.reduce<Record<string, number>>((acc, t) => {
-    const s = asString(t.status) ?? "unknown";
-    acc[s] = (acc[s] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  const pendingApproval = tasks.filter((t) => t.approval_required === true && t.status === "awaiting_approval").length;
+  if (error) throw error;
+  if (!data) return null;
 
   return {
-    employee_name: employee.full_name,
-    employee_status: employee.status,
-    contract_type: employee.contract_type ?? null,
-    department: employee.department ?? null,
-    total_missions: missions.length,
-    total_tasks: tasks.length,
-    total_documents: documents.length,
-    tasks_by_status: tasksByStatus,
-    tasks_pending_approval: pendingApproval,
-    last_mission_at: missions[0] ? asString(missions[0].created_at) : null,
-    last_task_at: tasks[0] ? asString(tasks[0].created_at) : null,
-    last_document_at: documents[0] ? asString(documents[0].created_at) : null,
+    id: String(data.id),
+    reusable_rh_context_json: isObject(data.reusable_rh_context_json)
+      ? (data.reusable_rh_context_json as Record<string, unknown>)
+      : null,
   };
 }
 
+function extractEmployees(row: MemoryRow | null): PierreEmployeeProfile[] {
+  if (!row?.reusable_rh_context_json) return [];
+  return sanitizePierreEmployeeList(row.reusable_rh_context_json.employees);
+}
+
+async function persistEmployees(
+  supabaseAdmin: SupabaseClient,
+  row: MemoryRow,
+  nextEmployees: PierreEmployeeProfile[],
+): Promise<void> {
+  const currentContext = row.reusable_rh_context_json ?? {};
+  const nextContext = { ...currentContext, employees: nextEmployees };
+
+  const { error } = await supabaseAdmin
+    .from("pierre_company_memory")
+    .update({ reusable_rh_context_json: nextContext })
+    .eq("id", row.id);
+
+  if (error) throw error;
+}
+
 // ═══════════════════════════════════════════════════════════
-// GET HANDLER
+// GET — profil salarié unique
 // ═══════════════════════════════════════════════════════════
 
 export async function GET(
@@ -351,8 +215,7 @@ export async function GET(
 ) {
   try {
     const { employeeId } = await params;
-
-    if (!employeeId || !employeeId.trim()) {
+    if (!employeeId?.trim()) {
       return jsonError("Employee ID is required.", 400, { code: "EMPLOYEE_ID_REQUIRED" });
     }
 
@@ -361,14 +224,12 @@ export async function GET(
 
     const access = await hasPierreAccess(supabaseAdmin, userId);
     if (!access) {
-      return jsonError(
-        "Accès Pierre requis.",
-        403,
-        { code: "PIERRE_ACCESS_DENIED" },
-      );
+      return jsonError("Accès Pierre requis.", 403, { code: "PIERRE_ACCESS_DENIED" });
     }
 
-    const employee = await resolveEmployeeProfile(supabaseAdmin, userId, employeeId);
+    const row = await readMemoryRow(supabaseAdmin, userId);
+    const employees = extractEmployees(row);
+    const employee = findPierreEmployeeById(employees, employeeId);
 
     if (!employee) {
       return jsonError(
@@ -378,28 +239,140 @@ export async function GET(
       );
     }
 
-    const tasks = await fetchEmployeeTasks(supabaseAdmin, userId, employeeId);
-    const missions = await fetchMissionsForTasks(supabaseAdmin, userId, tasks);
-    const documents = await fetchDocumentsForMissions(supabaseAdmin, userId, missions);
-    const summary = buildSummary(employee, missions, tasks, documents);
+    return NextResponse.json({ ok: true, employee });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(
+        asString(error.message) || "Request failed.",
+        error.status as number,
+        { code: asString(error.code) },
+      );
+    }
+    const mapped = mapDbError(error);
+    return jsonError(mapped.message, 500, { code: mapped.code });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PATCH — mise à jour partielle d'un salarié
+// ═══════════════════════════════════════════════════════════
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ employeeId: string }> },
+) {
+  try {
+    const { employeeId } = await params;
+    if (!employeeId?.trim()) {
+      return jsonError("Employee ID is required.", 400, { code: "EMPLOYEE_ID_REQUIRED" });
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const userId = await authenticateRequest(request, supabaseAdmin);
+
+    const access = await hasPierreAccess(supabaseAdmin, userId);
+    if (!access) {
+      return jsonError("Accès Pierre requis.", 403, { code: "PIERRE_ACCESS_DENIED" });
+    }
+
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return jsonError("Corps JSON invalide.", 400, { code: "INVALID_JSON" });
+    }
+
+    const patch = isObject(rawBody) ? (rawBody as Record<string, unknown>) : {};
+
+    const row = await readMemoryRow(supabaseAdmin, userId);
+    const employees = extractEmployees(row);
+
+    const { employees: nextEmployees, employee } = updatePierreEmployeeProfile(
+      employees,
+      employeeId,
+      patch,
+    );
+
+    if (!employee) {
+      return jsonError(
+        `Aucun profil salarié trouvé pour l'identifiant : ${employeeId}`,
+        404,
+        { code: "EMPLOYEE_NOT_FOUND" },
+      );
+    }
+
+    if (!row) {
+      return jsonError("Mémoire entreprise introuvable.", 404, {
+        code: "MEMORY_NOT_FOUND",
+      });
+    }
+
+    await persistEmployees(supabaseAdmin, row, nextEmployees);
+
+    return NextResponse.json({ ok: true, employee });
+  } catch (error) {
+    if (isObject(error) && typeof error.status === "number") {
+      return jsonError(
+        asString(error.message) || "Request failed.",
+        error.status as number,
+        { code: asString(error.code) },
+      );
+    }
+    const mapped = mapDbError(error);
+    return jsonError(mapped.message, 500, { code: mapped.code });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// DELETE — supprime un salarié (conserve missions/tasks/docs)
+// ═══════════════════════════════════════════════════════════
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ employeeId: string }> },
+) {
+  try {
+    const { employeeId } = await params;
+    if (!employeeId?.trim()) {
+      return jsonError("Employee ID is required.", 400, { code: "EMPLOYEE_ID_REQUIRED" });
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const userId = await authenticateRequest(request, supabaseAdmin);
+
+    const access = await hasPierreAccess(supabaseAdmin, userId);
+    if (!access) {
+      return jsonError("Accès Pierre requis.", 403, { code: "PIERRE_ACCESS_DENIED" });
+    }
+
+    const row = await readMemoryRow(supabaseAdmin, userId);
+    const employees = extractEmployees(row);
+
+    const { employees: nextEmployees, deleted } = deletePierreEmployeeProfile(
+      employees,
+      employeeId,
+    );
+
+    if (!deleted) {
+      return jsonError(
+        `Aucun profil salarié trouvé pour l'identifiant : ${employeeId}`,
+        404,
+        { code: "EMPLOYEE_NOT_FOUND" },
+      );
+    }
+
+    if (!row) {
+      return jsonError("Mémoire entreprise introuvable.", 404, {
+        code: "MEMORY_NOT_FOUND",
+      });
+    }
+
+    await persistEmployees(supabaseAdmin, row, nextEmployees);
 
     return NextResponse.json({
       ok: true,
-      employee,
-      missions,
-      tasks,
-      documents,
-      summary,
-      meta: {
-        employeeId,
-        userId,
-        fetchedAt: new Date().toISOString(),
-        counts: {
-          missions: missions.length,
-          tasks: tasks.length,
-          documents: documents.length,
-        },
-      },
+      deleted: true,
+      employee_id: employeeId,
     });
   } catch (error) {
     if (isObject(error) && typeof error.status === "number") {
@@ -409,7 +382,6 @@ export async function GET(
         { code: asString(error.code) },
       );
     }
-
     const mapped = mapDbError(error);
     return jsonError(mapped.message, 500, { code: mapped.code });
   }

@@ -419,11 +419,135 @@ Auth : Bearer + cookie, vérification `orders` (accès Pierre actif), 401/403/40
 
 ---
 
-## 8. Comment ce fichier reste branché (post-Bloc 1)
+## 8. Bloc 5 — Employee registry API + terminal workflow (2026-05-11)
+
+### Contexte
+
+Le Bloc 4 a posé la fondation : types purs, stockage dans `memory_json`. L'audit de Bloc 5 a révélé que `memory_json` **n'existe pas** dans le schéma réel Supabase (`types.ts` source de vérité). La colonne jsonb réelle confirmée est `reusable_rh_context_json`. Tous les accès aux profils salariés ont été corrigés pour cibler cette colonne.
+
+### Correction du stockage (breaking fix silencieux)
+
+Avant : `pierre_company_memory.memory_json.employees[]` (colonne inexistante → reads silencieux → employees toujours `[]`).
+
+Après : `pierre_company_memory.reusable_rh_context_json.employees[]` (colonne jsonb réelle confirmée dans `types.ts`).
+
+Trois fichiers corrigés :
+- `submit/route.ts` — `readEmployeeList()` cible maintenant `reusable_rh_context_json` + filtre `agent_slug = "pierre"`
+- `employee/[employeeId]/route.ts` — `resolveEmployeeProfile()` idem
+- Les deux nouvelles routes utilisent directement `reusable_rh_context_json` dès la création
+
+### Fonctions pures ajoutées à `src/lib/pierre/hr/employee.ts`
+
+```typescript
+upsertPierreEmployeeProfile(employees, profile)
+  → { employees: PierreEmployeeProfile[]; mode: "created" | "updated" }
+
+updatePierreEmployeeProfile(employees, id, patch)
+  → { employees: PierreEmployeeProfile[]; employee: PierreEmployeeProfile | null }
+
+deletePierreEmployeeProfile(employees, id)
+  → { employees: PierreEmployeeProfile[]; deleted: boolean }
+```
+
+Toutes immutables, case-insensitive sur `id`, sans dépendance DB/UI.
+
+### Routes créées
+
+**`GET /api/pierre/use/employees`**
+```json
+{ "ok": true, "employees": [...], "count": 2, "meta": { "userId": "...", "fetchedAt": "..." } }
+```
+
+**`POST /api/pierre/use/employees`**
+```json
+body: { "employee": { "full_name": "Alice Dupont", "contract_type": "cdi", ... } }
+→ { "ok": true, "employee": {...}, "employees": [...], "count": 2, "mode": "created" }
+```
+- `id` auto-généré via `crypto.randomUUID()` si absent
+- Upsert par `id` : remplace si existant, ajoute si nouveau
+- Limite 200 employés
+
+**`GET /api/pierre/use/employees/[employeeId]`**
+```json
+→ { "ok": true, "employee": {...} }  // 404 si introuvable
+```
+
+**`PATCH /api/pierre/use/employees/[employeeId]`**
+```json
+body: { "status": "offboarding", "department": "Finance" }
+→ { "ok": true, "employee": { merged profile } }
+```
+Merge partiel — ne modifie que les champs fournis.
+
+**`DELETE /api/pierre/use/employees/[employeeId]`**
+```json
+→ { "ok": true, "deleted": true, "employee_id": "..." }
+// Ne supprime pas les missions/tasks/documents historiques
+```
+
+### Mécanique de stockage
+
+```
+pierre_company_memory
+  WHERE user_id = ? AND agent_slug = "pierre"
+  COLUMN reusable_rh_context_json = {
+    "employees": [ {...}, {...} ],
+    // autres clés préservées par merge
+  }
+```
+
+- **Lecture** : `.select("reusable_rh_context_json").eq("user_id", …).eq("agent_slug", "pierre")`
+- **Écriture** : spread `{ ...currentContext, employees: nextEmployees }` → update de `reusable_rh_context_json` uniquement
+- **Création** si aucune ligne : `.insert({ user_id, agent_slug: "pierre", reusable_rh_context_json: { employees: [emp] } })`
+- Les colonnes flat (`company_name`, `preferred_tone`, etc.) ne sont **jamais touchées**
+
+### Tests
+
+48 tests initiaux + 29 tests nouveaux = **171 tests au total** (3 fichiers).
+
+Nouvelles couvertures dans `hr-employee.test.ts` :
+
+| Groupe | Tests |
+|---|---|
+| `upsertPierreEmployeeProfile` — create | append, immutabilité, limite 200 |
+| `upsertPierreEmployeeProfile` — update | remplace par id, case-insensitive, préserve autres |
+| `updatePierreEmployeeProfile` | merge partiel, préserve champs, null si introuvable, null si invalide, immutabilité, case-insensitive |
+| `deletePierreEmployeeProfile` | supprime, false si introuvable, case-insensitive, immutabilité, dernier élément, liste vide |
+
+### Comment tester depuis le terminal
+
+```powershell
+# 1. Démarrer le serveur de dev
+npm run dev
+
+# 2. Définir le JWT (depuis les DevTools navigateur → Application → Cookies)
+$env:PIERRE_TEST_JWT = "eyJ..."
+
+# 3. Lancer le workflow complet
+.\scripts\pierre-employee360-terminal-test.ps1
+```
+
+Le script exécute dans l'ordre : créer salarié → lister → soumettre mission rattachée → vue 360 → patch + GET unitaire.
+
+### Limites actuelles
+
+- **200 salariés max** par entreprise (contrainte applicative, pas DB)
+- Pas de recherche full-text côté API (find by name fait côté client sur la liste retournée)
+- Le lien entre salarié et tâches repose sur `payload_json @>` (containment) — performant jusqu'à ~10k tâches/user, pas indexé
+- `agent_slug = "pierre"` requis pour lire la mémoire RH — les lignes créées via `company-memory/route.ts` sans agent_slug ne contiennent pas les salariés (orthogonal, pas de collision)
+
+### Prochaine étape recommandée
+
+- **Bloc 6** : Cockpit UI minimal — liste salariés, formulaire création, lien vers vue 360
+- Ou : endpoint de recherche salarié par nom (`GET /api/pierre/use/employees?q=alice`) pour faciliter le submit sans id connu
 
 ---
 
-## 8. Pourquoi cette brique respecte la vision Pierre
+## 9. Comment ce fichier reste branché (post-Bloc 1)
+
+---
+
+## 10. Pourquoi cette brique respecte la vision Pierre
 
 Pierre est un **poste RH opérationnel**, pas un assistant conversationnel.
 

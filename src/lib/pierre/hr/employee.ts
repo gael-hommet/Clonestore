@@ -227,6 +227,74 @@ export function resolveEmployeeContext(
 }
 
 // ══════════════════════════════════════════════════════════
+// REGISTRY — upsert / update / delete (applicatifs, sans DB)
+// ══════════════════════════════════════════════════════════
+
+/**
+ * Upsert applicatif : insère ou remplace l'employé par son id (case-insensitive).
+ * - Limite le tableau à 200 profils.
+ * - Immutable : retourne de nouveaux tableaux, ne mute pas l'entrée.
+ */
+export function upsertPierreEmployeeProfile(
+  employees: PierreEmployeeProfile[],
+  profile: PierreEmployeeProfile,
+): { employees: PierreEmployeeProfile[]; mode: "created" | "updated" } {
+  const needle = profile.id.toLowerCase();
+  const idx = employees.findIndex((e) => e.id.toLowerCase() === needle);
+
+  if (idx === -1) {
+    const next = [...employees, profile].slice(0, 200);
+    return { employees: next, mode: "created" };
+  }
+
+  const next = [...employees];
+  next[idx] = profile;
+  return { employees: next, mode: "updated" };
+}
+
+/**
+ * Patch partiel : merge uniquement les champs fournis sur l'employé existant.
+ * - Retourne employee: null si l'id est introuvable ou si le résultat est invalide.
+ * - Immutable.
+ */
+export function updatePierreEmployeeProfile(
+  employees: PierreEmployeeProfile[],
+  id: string,
+  patch: Record<string, unknown>,
+): { employees: PierreEmployeeProfile[]; employee: PierreEmployeeProfile | null } {
+  const needle = id.trim().toLowerCase();
+  const idx = employees.findIndex((e) => e.id.toLowerCase() === needle);
+
+  if (idx === -1) return { employees, employee: null };
+
+  const existing = employees[idx];
+  const merged = sanitizePierreEmployeeProfile({ ...existing, ...patch });
+
+  if (!merged) return { employees, employee: null };
+
+  const next = [...employees];
+  next[idx] = merged;
+  return { employees: next, employee: merged };
+}
+
+/**
+ * Suppression par id (case-insensitive).
+ * - deleted: true si un profil a été retiré, false si introuvable.
+ * - Immutable.
+ */
+export function deletePierreEmployeeProfile(
+  employees: PierreEmployeeProfile[],
+  id: string,
+): { employees: PierreEmployeeProfile[]; deleted: boolean } {
+  const needle = id.trim().toLowerCase();
+  const next = employees.filter((e) => e.id.toLowerCase() !== needle);
+  return {
+    employees: next,
+    deleted: next.length < employees.length,
+  };
+}
+
+// ══════════════════════════════════════════════════════════
 // PAYLOAD ENRICHMENT
 // ══════════════════════════════════════════════════════════
 

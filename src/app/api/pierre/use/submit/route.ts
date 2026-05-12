@@ -38,7 +38,7 @@ type SubmitBody = {
   context?: unknown;
 };
 
-// Niveau de risque logique (interne Ã  la route)
+// Niveau de risque logique (interne Ã  la route)
 type MissionRiskLevel = "normal" | "sensitive" | "critical";
 
 // Statut DB rÃ©el pour pierre_missions
@@ -327,7 +327,7 @@ async function authenticateRequest(
 }
 
 /**
- * VÃ©rifie que l'utilisateur a un accÃ¨s actif Ã  Pierre via la table orders.
+ * VÃ©rifie que l'utilisateur a un accÃ¨s actif Ã  Pierre via la table orders.
  */
 async function hasPierreAccess(
   supabaseAdmin: SupabaseClient,
@@ -359,22 +359,20 @@ async function readEmployeeList(
   try {
     const { data } = await supabaseAdmin
       .from("pierre_company_memory")
-      .select("memory_json")
+      .select("reusable_rh_context_json")
       .eq("user_id", userId)
-      .order("updated_at", { ascending: false })
-      .limit(1)
+      .eq("agent_slug", "pierre")
       .maybeSingle();
 
     if (!data) return [];
 
-    const memoryJson = isObject(data.memory_json)
-      ? (data.memory_json as Record<string, unknown>)
+    const context = isObject(data.reusable_rh_context_json)
+      ? (data.reusable_rh_context_json as Record<string, unknown>)
       : null;
 
-    if (!memoryJson) return [];
+    if (!context) return [];
 
-    const raw = memoryJson.employees;
-    return sanitizePierreEmployeeList(raw);
+    return sanitizePierreEmployeeList(context.employees);
   } catch {
     return [];
   }
@@ -496,7 +494,7 @@ function detectRisk(input: string, classification: string): MissionRiskLevel {
     "plainte", "contentieux", "prud'hommes", "discrimination", "rupture conventionnelle forcÃ©e",
   ];
   const sensitiveSignals = [
-    "avertissement", "mise Ã  pied", "mise a pied", "conflit",
+    "avertissement", "mise Ã  pied", "mise a pied", "conflit",
     "problÃ¨me salariÃ©", "probleme salarie", "absence injustifiÃ©e",
     "absence injustifiee", "salaire", "confidentiel", "dossier sensible",
   ];
@@ -519,7 +517,7 @@ function needsApproval(input: string, risk: MissionRiskLevel): boolean {
 
   const approvalSignals = [
     "aprÃ¨s validation", "apres validation", "soumets moi avant envoi",
-    "avant d'envoyer", "avant envoi", "Ã  valider", "a valider",
+    "avant d'envoyer", "avant envoi", "Ã  valider", "a valider",
     "validation manager", "validation humaine",
   ];
   if (approvalSignals.some((s) => lower.includes(s))) return true;
@@ -566,7 +564,7 @@ function detectMissingInfo(
   const missing: string[] = [];
   const questions: string[] = [];
 
-  const hasPersonName = /\b[A-ZÃ‰ÃˆÃ€Ã‚ÃŠÃŽÃ”Ã›Ã„Ã‹ÃÃ–Ãœ][a-zÃ©Ã¨Ã Ã¢ÃªÃ®Ã´Ã»Ã¤Ã«Ã¯Ã¶Ã¼'-]+\s+[A-ZÃ‰ÃˆÃ€Ã‚ÃŠÃŽÃ”Ã›Ã„Ã‹ÃÃ–Ãœ][a-zÃ©Ã¨Ã Ã¢ÃªÃ®Ã´Ã»Ã¤Ã«Ã¯Ã¶Ã¼'-]+\b/.test(input);
+  const hasPersonName = /\b[A-ZÃ‰ÃˆÃ€Ã‚ÃŠÃŽÃ”Ã›Ã„Ã‹ÃÃ–Ãœ][a-zÃ©Ã¨Ã Ã¢ÃªÃ®Ã´Ã»Ã¤Ã«Ã¯Ã¶Ã¼'-]+\s+[A-ZÃ‰ÃˆÃ€Ã‚ÃŠÃŽÃ”Ã›Ã„Ã‹ÃÃ–Ãœ][a-zÃ©Ã¨Ã Ã¢ÃªÃ®Ã´Ã»Ã¤Ã«Ã¯Ã¶Ã¼'-]+\b/.test(input);
   const hasEmail = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(input);
   const hasDate = /\b\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}\b/.test(input);
   const hasHour = /\b\d{1,2}h(\d{2})?\b/i.test(input);
@@ -610,7 +608,7 @@ function buildMissionSummary(
 ): string {
   const base = input.trim().replace(/\s+/g, " ");
   const clipped = base.length > 260 ? `${base.slice(0, 257)}â€¦` : base;
-  return `Mission RH classÃ©e "${classification}" avec niveau de risque "${risk}". Demande structurÃ©e Ã  partir de : ${clipped}`;
+  return `Mission RH classÃ©e "${classification}" avec niveau de risque "${risk}". Demande structurÃ©e Ã  partir de : ${clipped}`;
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -809,7 +807,7 @@ function buildTasks(
     tasks.push({
       type: "prepare_email",
       title: "PrÃ©parer l'email RH",
-      description: "PrÃ©parer un email clair, traÃ§able et cohÃ©rent avec la mission, prÃªt Ã  Ãªtre validÃ© ou envoyÃ© selon le niveau de risque.",
+      description: "PrÃ©parer un email clair, traÃ§able et cohÃ©rent avec la mission, prÃªt Ã  Ãªtre validÃ© ou envoyÃ© selon le niveau de risque.",
       status: routeTaskStatus(hrPayload, interpretation.missing_info.length, interpretation.approval_required, scheduledFor),
       approval_required: routeTaskApproval(hrPayload, interpretation.approval_required),
       risk_level: interpretation.risk_level,
@@ -826,14 +824,14 @@ function buildTasks(
 
   if (
     lower.includes("pdf") || lower.includes("export") ||
-    lower.includes("document Ã  joindre") || lower.includes("document a joindre") ||
+    lower.includes("document Ã  joindre") || lower.includes("document a joindre") ||
     lower.includes("piece jointe") || lower.includes("piÃ¨ce jointe")
   ) {
     const hrPayload = routeHrPayload(interpretation.classification, "generate_pdf", interpretation.risk_level, autonomyLevel);
     tasks.push({
       type: "generate_pdf",
       title: "PrÃ©parer l'export PDF",
-      description: "GÃ©nÃ©rer un PDF propre Ã  partir du document ou du contenu RH finalisÃ©.",
+      description: "GÃ©nÃ©rer un PDF propre Ã  partir du document ou du contenu RH finalisÃ©.",
       status: routeTaskStatus(hrPayload, interpretation.missing_info.length, interpretation.approval_required, null),
       approval_required: routeTaskApproval(hrPayload, interpretation.approval_required),
       risk_level: interpretation.risk_level,
@@ -869,7 +867,7 @@ function buildTasks(
     tasks.push({
       type: "request_missing_info",
       title: "Demander les informations manquantes",
-      description: "Bloquer l'exÃ©cution complÃ¨te tant que les Ã©lÃ©ments indispensables Ã  une action RH propre ne sont pas fournis.",
+      description: "Bloquer l'exÃ©cution complÃ¨te tant que les Ã©lÃ©ments indispensables Ã  une action RH propre ne sont pas fournis.",
       status: "awaiting_info",
       approval_required: false,
       risk_level: interpretation.risk_level,
@@ -888,7 +886,7 @@ function buildTasks(
     tasks.push({
       type: "structure_mission",
       title: "Structurer la mission RH",
-      description: "CrÃ©er un cadre d'exÃ©cution RH exploitable Ã  partir de la demande libre.",
+      description: "CrÃ©er un cadre d'exÃ©cution RH exploitable Ã  partir de la demande libre.",
       status: routeTaskStatus(hrPayload, interpretation.missing_info.length, interpretation.approval_required, null),
       approval_required: routeTaskApproval(hrPayload, interpretation.approval_required),
       risk_level: interpretation.risk_level,

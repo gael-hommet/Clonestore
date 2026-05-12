@@ -8,6 +8,9 @@ import {
   buildPierreEmployeeContext,
   resolveEmployeeContext,
   enrichPayloadWithEmployeeContext,
+  upsertPierreEmployeeProfile,
+  updatePierreEmployeeProfile,
+  deletePierreEmployeeProfile,
   type PierreEmployeeProfile,
 } from "../hr/employee";
 
@@ -423,5 +426,212 @@ describe("enrichPayloadWithEmployeeContext", () => {
     const enriched = enrichPayloadWithEmployeeContext(payload, ctx);
     const ec = enriched.employee_context as { employee_id: string };
     expect(ec.employee_id).toBe("emp-002");
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// upsertPierreEmployeeProfile
+// ══════════════════════════════════════════════════════════
+
+const baseList: PierreEmployeeProfile[] = [
+  { id: "emp-001", full_name: "Alice Dupont", status: "active", tags: [] },
+  { id: "emp-002", full_name: "Bob Martin", status: "inactive", tags: [] },
+];
+
+describe("upsertPierreEmployeeProfile — create", () => {
+  it("appends a new employee and returns mode 'created'", () => {
+    const newProfile: PierreEmployeeProfile = {
+      id: "emp-003",
+      full_name: "Carol Petit",
+      status: "onboarding",
+      tags: [],
+    };
+    const { employees, mode } = upsertPierreEmployeeProfile(baseList, newProfile);
+    expect(mode).toBe("created");
+    expect(employees.length).toBe(3);
+    expect(employees[2].id).toBe("emp-003");
+  });
+
+  it("does not mutate the original array", () => {
+    const original = [...baseList];
+    const newProfile: PierreEmployeeProfile = {
+      id: "emp-004",
+      full_name: "Dan Roux",
+      status: "active",
+      tags: [],
+    };
+    upsertPierreEmployeeProfile(baseList, newProfile);
+    expect(baseList.length).toBe(original.length);
+  });
+
+  it("limits the resulting list to 200 employees", () => {
+    const large = Array.from({ length: 199 }, (_, i) => ({
+      id: `emp-${i}`,
+      full_name: `Person ${i}`,
+      status: "active" as const,
+      tags: [],
+    }));
+    const newProfile: PierreEmployeeProfile = {
+      id: "emp-new",
+      full_name: "New Person",
+      status: "active",
+      tags: [],
+    };
+    const extraProfile: PierreEmployeeProfile = {
+      id: "emp-extra",
+      full_name: "Extra Person",
+      status: "active",
+      tags: [],
+    };
+    const { employees: at200 } = upsertPierreEmployeeProfile(large, newProfile);
+    expect(at200.length).toBe(200);
+    const { employees: capped } = upsertPierreEmployeeProfile(at200, extraProfile);
+    expect(capped.length).toBe(200);
+  });
+});
+
+describe("upsertPierreEmployeeProfile — update", () => {
+  it("replaces an existing employee by id and returns mode 'updated'", () => {
+    const updated: PierreEmployeeProfile = {
+      id: "emp-001",
+      full_name: "Alice Dupont-Updated",
+      status: "inactive",
+      tags: ["updated"],
+    };
+    const { employees, mode } = upsertPierreEmployeeProfile(baseList, updated);
+    expect(mode).toBe("updated");
+    expect(employees.length).toBe(2);
+    expect(employees[0].full_name).toBe("Alice Dupont-Updated");
+    expect(employees[0].status).toBe("inactive");
+  });
+
+  it("is case-insensitive on id comparison", () => {
+    const updated: PierreEmployeeProfile = {
+      id: "EMP-002",
+      full_name: "Bob Martin-Updated",
+      status: "active",
+      tags: [],
+    };
+    const { mode, employees } = upsertPierreEmployeeProfile(baseList, updated);
+    expect(mode).toBe("updated");
+    expect(employees[1].full_name).toBe("Bob Martin-Updated");
+  });
+
+  it("preserves other employees unchanged", () => {
+    const updated: PierreEmployeeProfile = {
+      id: "emp-001",
+      full_name: "Only Alice Changes",
+      status: "active",
+      tags: [],
+    };
+    const { employees } = upsertPierreEmployeeProfile(baseList, updated);
+    expect(employees[1].full_name).toBe("Bob Martin");
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// updatePierreEmployeeProfile
+// ══════════════════════════════════════════════════════════
+
+describe("updatePierreEmployeeProfile", () => {
+  it("merges patch fields onto existing employee", () => {
+    const { employees, employee } = updatePierreEmployeeProfile(
+      baseList,
+      "emp-001",
+      { status: "offboarding", department: "Finance" },
+    );
+    expect(employee).not.toBeNull();
+    expect(employee!.full_name).toBe("Alice Dupont");
+    expect(employee!.status).toBe("offboarding");
+    expect(employee!.department).toBe("Finance");
+    expect(employees[0].status).toBe("offboarding");
+  });
+
+  it("preserves existing fields not in the patch", () => {
+    const { employee } = updatePierreEmployeeProfile(
+      baseList,
+      "emp-001",
+      { department: "IT" },
+    );
+    expect(employee!.full_name).toBe("Alice Dupont");
+    expect(employee!.status).toBe("active");
+  });
+
+  it("returns employee: null when id is not found", () => {
+    const { employees, employee } = updatePierreEmployeeProfile(
+      baseList,
+      "emp-999",
+      { status: "inactive" },
+    );
+    expect(employee).toBeNull();
+    expect(employees.length).toBe(2);
+  });
+
+  it("returns employee: null when patch makes the profile invalid", () => {
+    const { employee } = updatePierreEmployeeProfile(
+      baseList,
+      "emp-001",
+      { full_name: "   " },
+    );
+    expect(employee).toBeNull();
+  });
+
+  it("does not mutate the original array", () => {
+    const original = [...baseList];
+    updatePierreEmployeeProfile(baseList, "emp-001", { status: "offboarding" });
+    expect(baseList[0].status).toBe(original[0].status);
+  });
+
+  it("is case-insensitive on id", () => {
+    const { employee } = updatePierreEmployeeProfile(
+      baseList,
+      "EMP-002",
+      { job_title: "Manager" },
+    );
+    expect(employee).not.toBeNull();
+    expect(employee!.job_title).toBe("Manager");
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// deletePierreEmployeeProfile
+// ══════════════════════════════════════════════════════════
+
+describe("deletePierreEmployeeProfile", () => {
+  it("removes the employee and returns deleted: true", () => {
+    const { employees, deleted } = deletePierreEmployeeProfile(baseList, "emp-001");
+    expect(deleted).toBe(true);
+    expect(employees.length).toBe(1);
+    expect(employees[0].id).toBe("emp-002");
+  });
+
+  it("returns deleted: false when id is not found", () => {
+    const { employees, deleted } = deletePierreEmployeeProfile(baseList, "emp-999");
+    expect(deleted).toBe(false);
+    expect(employees.length).toBe(2);
+  });
+
+  it("is case-insensitive on id", () => {
+    const { deleted } = deletePierreEmployeeProfile(baseList, "EMP-001");
+    expect(deleted).toBe(true);
+  });
+
+  it("does not mutate the original array", () => {
+    deletePierreEmployeeProfile(baseList, "emp-001");
+    expect(baseList.length).toBe(2);
+  });
+
+  it("returns an empty array when the last employee is deleted", () => {
+    const single: PierreEmployeeProfile[] = [
+      { id: "solo", full_name: "Solo Person", status: "active", tags: [] },
+    ];
+    const { employees } = deletePierreEmployeeProfile(single, "solo");
+    expect(employees).toEqual([]);
+  });
+
+  it("returns empty list unchanged on empty input", () => {
+    const { employees, deleted } = deletePierreEmployeeProfile([], "emp-001");
+    expect(deleted).toBe(false);
+    expect(employees).toEqual([]);
   });
 });
