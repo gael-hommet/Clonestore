@@ -3,11 +3,10 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   sanitizePierreEmployeeList,
   findPierreEmployeeById,
-  buildEmployee360Summary,
   buildEmployeeTimeline,
-  buildEmployeeInsights,
   type PierreEmployeeProfile,
-} from "../../../../../../lib/pierre/hr/employee";
+  type EmployeeTimelineItem,
+} from "../../../../../../../lib/pierre/hr/employee";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES
@@ -16,6 +15,13 @@ import {
 type DbRow = Record<string, unknown>;
 
 type JsonErrorExtra = { code?: string | null; details?: unknown };
+
+type GroupedEvents = {
+  missions: EmployeeTimelineItem[];
+  tasks: EmployeeTimelineItem[];
+  documents: EmployeeTimelineItem[];
+  logs: EmployeeTimelineItem[];
+};
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS
@@ -83,14 +89,12 @@ function tryReadBearerToken(request: NextRequest): string | null {
 }
 
 function tryReadSupabaseCookieToken(request: NextRequest): string | null {
-  const cookies = request.cookies.getAll();
-
   for (const key of ["sb-access-token", "supabase-access-token", "access-token"]) {
     const found = request.cookies.get(key)?.value;
     if (found) return found;
   }
 
-  for (const cookie of cookies) {
+  for (const cookie of request.cookies.getAll()) {
     if (!cookie.name.includes("auth-token")) continue;
     const raw = cookie.value;
     if (!raw) continue;
@@ -133,11 +137,7 @@ async function authenticateRequest(
   const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
 
   if (error || !data.user) {
-    throw {
-      status: 401,
-      message: "Unable to authenticate request.",
-      code: "AUTH_INVALID",
-    };
+    throw { status: 401, message: "Unable to authenticate request.", code: "AUTH_INVALID" };
   }
 
   return data.user.id;
@@ -191,21 +191,15 @@ async function resolveEmployeeProfile(
 }
 
 // ═══════════════════════════════════════════════════════════
-// 360 AGGREGATION — requêtes jsonb sans migration
+// DATA FETCHING
 // ═══════════════════════════════════════════════════════════
 
-/**
- * Cherche les tâches Pierre dont payload_json contient l'employee_id.
- * Utilise l'opérateur @> (jsonb containment) de Postgres — pas d'index requis
- * pour les volumes actuels (<10k tasks/user).
- */
 async function fetchEmployeeTasks(
   supabaseAdmin: SupabaseClient,
   userId: string,
   employeeId: string,
 ): Promise<DbRow[]> {
   try {
-    // Cherche dans payload_json.employee_id (champ direct)
     const { data: direct } = await supabaseAdmin
       .from("pierre_tasks")
       .select("id, mission_id, type, title, status, approval_required, execute_at, created_at, payload_json")
@@ -215,7 +209,6 @@ async function fetchEmployeeTasks(
       .order("created_at", { ascending: false })
       .limit(100);
 
-    // Cherche dans payload_json.employee_context.employee_id (champ structuré Bloc 4)
     const { data: nested } = await supabaseAdmin
       .from("pierre_tasks")
       .select("id, mission_id, type, title, status, approval_required, execute_at, created_at, payload_json")
@@ -228,7 +221,6 @@ async function fetchEmployeeTasks(
     const directRows = (direct ?? []) as DbRow[];
     const nestedRows = (nested ?? []) as DbRow[];
 
-    // Déduplique par id
     const seen = new Set<string>();
     const merged: DbRow[] = [];
 
@@ -245,9 +237,6 @@ async function fetchEmployeeTasks(
   }
 }
 
-/**
- * Charge les missions liées aux tâches trouvées.
- */
 async function fetchMissionsForTasks(
   supabaseAdmin: SupabaseClient,
   userId: string,
@@ -279,9 +268,6 @@ async function fetchMissionsForTasks(
   }
 }
 
-/**
- * Charge les documents Pierre liés aux missions de l'employé.
- */
 async function fetchDocumentsForMissions(
   supabaseAdmin: SupabaseClient,
   userId: string,
@@ -311,9 +297,6 @@ async function fetchDocumentsForMissions(
   }
 }
 
-/**
- * Fetches logs linked to an employee — by meta_json containment OR by mission membership.
- */
 async function fetchEmployeeLogs(
   supabaseAdmin: SupabaseClient,
   userId: string,
@@ -361,7 +344,6 @@ async function fetchEmployeeLogs(
   }
 }
 
-
 // ═══════════════════════════════════════════════════════════
 // GET HANDLER
 // ═══════════════════════════════════════════════════════════
@@ -377,16 +359,17 @@ export async function GET(
       return jsonError("Employee ID is required.", 400, { code: "EMPLOYEE_ID_REQUIRED" });
     }
 
+    // Parse ?limit param — default 50, max 200
+    const url = new URL(request.url);
+    const rawLimit = parseInt(url.searchParams.get("limit") ?? "50", 10);
+    const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 200) : 50;
+
     const supabaseAdmin = createAdminClient();
     const userId = await authenticateRequest(request, supabaseAdmin);
 
     const access = await hasPierreAccess(supabaseAdmin, userId);
     if (!access) {
-      return jsonError(
-        "Accès Pierre requis.",
-        403,
-        { code: "PIERRE_ACCESS_DENIED" },
-      );
+      return jsonError("Accès Pierre requis.", 403, { code: "PIERRE_ACCESS_DENIED" });
     }
 
     const employee = await resolveEmployeeProfile(supabaseAdmin, userId, employeeId);
@@ -408,30 +391,34 @@ export async function GET(
       .filter((id): id is string => id !== null);
 
     const logs = await fetchEmployeeLogs(supabaseAdmin, userId, employeeId, missionIds);
-    const summary = buildEmployee360Summary(employee, missions, tasks, documents, logs);
-    const timeline = buildEmployeeTimeline({ missions, tasks, documents, logs });
-    const insights = buildEmployeeInsights(summary, timeline);
+
+    const allEvents = buildEmployeeTimeline({ missions, tasks, documents, logs });
+    const events = allEvents.slice(0, limit);
+
+    const grouped: GroupedEvents = {
+      missions: events.filter((e) => e.type === "mission"),
+      tasks: events.filter((e) => e.type === "task"),
+      documents: events.filter((e) => e.type === "document"),
+      logs: events.filter((e) => e.type === "log"),
+    };
 
     return NextResponse.json({
       ok: true,
       employee,
-      missions,
-      tasks,
-      documents,
-      logs: logs.slice(0, 100),
-      summary,
-      timeline,
-      insights,
+      events,
+      grouped,
       meta: {
         employeeId,
         userId,
         fetchedAt: new Date().toISOString(),
+        limit,
+        total_events: allEvents.length,
         counts: {
-          missions: missions.length,
-          tasks: tasks.length,
-          documents: documents.length,
-          logs: logs.length,
-          timeline_items: timeline.length,
+          events: events.length,
+          missions: grouped.missions.length,
+          tasks: grouped.tasks.length,
+          documents: grouped.documents.length,
+          logs: grouped.logs.length,
         },
       },
     });

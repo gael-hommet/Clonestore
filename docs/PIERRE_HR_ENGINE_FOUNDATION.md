@@ -613,6 +613,108 @@ Meta `counts` étendu : `missions`, `tasks`, `documents`, `logs`, `timeline_item
 
 ---
 
+## 12. Bloc 7 — Employee 360 Operational History (2026-05-13)
+
+### Objectif
+
+Transformer le dossier salarié 360 en vraie brique opérationnelle RH : lien renforcé salarié↔mission↔tâches↔documents↔logs, vue 360 enrichie avec insights calculés côté serveur, traçabilité de la résolution d'employé dans les missions, endpoint dédié pour l'historique salarié.
+
+### Nouvelles fonctions dans `hr/employee.ts`
+
+**`normalizeEmployeeActivityDate(value)`** — valide et retourne une date ISO string, null sinon.
+
+**`buildEmployeeTimeline({ missions, tasks, documents, logs })`**
+Remplace la fonction locale `buildTimeline` dans `employee/[employeeId]/route.ts`. Retourne un `EmployeeTimelineItem[]` trié desc par `created_at`. Chaque item inclut désormais `mission_id` et `task_id` pour faciliter la navigation côté client.
+
+**`buildEmployeeInsights(summary, timeline, now?)`**
+Calcule sans IA les indicateurs opérationnels d'un salarié :
+- `has_pending_approvals`, `has_blocked_items`, `has_scheduled_followups`, `needs_attention`
+- `latest_activity_label` : label relatif humain ("Aujourd'hui", "Hier", "Il y a N jours", etc.)
+- `recommended_next_action` : action prioritaire suggérée basée sur l'état réel des tâches
+
+**Nouveau type `EmployeeTimelineItem`** — type exporté incluant `mission_id?` et `task_id?`.
+
+**Nouveau type `EmployeeInsights`** — type exporté.
+
+**`Employee360Summary` — champs ajoutés** :
+- `completed_or_done_count: number` — tâches au statut `"done"` ou `"completed"`
+- `last_log_at: string | null` — date du dernier log lié à l'employé
+
+### Améliorations `submit/route.ts`
+
+**`employee_resolution_source`** — nouveau champ injecté dans `brain_output_json` et `context_snapshot_json`. Valeurs possibles : `"explicit_id"` | `"explicit_name"` | `"text_detection"` | `"none"`.
+
+Logique de résolution réécrite pour distinguer précisément les trois chemins :
+1. `body.employee_id` fourni → `findPierreEmployeeById` → source = `"explicit_id"`
+2. `body.employee_name` fourni → `findPierreEmployeeByName` → source = `"explicit_name"`
+3. Fallback texte → `detectEmployeeReferenceFromText` → source = `"text_detection"`
+
+**Champs plats dans les JSON blobs** — `brain_output_json` et `context_snapshot_json` reçoivent désormais `employee_id`, `employee_name`, `employee_context` (quand résolu) + `employee_resolution_source` (toujours).
+
+**Warning étendu** — si `employee_name` est fourni mais non résolu, un warning est aussi ajouté (en plus du warning sur `employee_id`).
+
+Correction commentaire erroné dans `readEmployeeList` : `memory_json.employees[]` → `reusable_rh_context_json.employees[]`.
+
+### Améliorations `employee/[employeeId]/route.ts`
+
+- `buildTimeline` locale supprimée → remplacée par `buildEmployeeTimeline` importée de `hr/employee.ts`
+- Timeline items enrichis avec `mission_id` et `task_id`
+- Nouveau champ `insights` dans la réponse (calculé via `buildEmployeeInsights`)
+- Summary enrichi avec `completed_or_done_count` et `last_log_at`
+
+### Nouvelle route `GET /api/pierre/use/employee/[employeeId]/history`
+
+Endpoint dédié à l'historique opérationnel d'un salarié.
+
+```
+GET /api/pierre/use/employee/:employeeId/history?limit=50
+```
+
+- `?limit` configurable, défaut 50, max 200
+- Retourne `{ ok, employee, events, grouped, meta }`
+  - `events` : tableau chronologique flat (limite appliquée)
+  - `grouped` : `{ missions, tasks, documents, logs }` — sous-ensembles de `events` par type
+  - `meta.total_events` : nombre total d'événements avant troncature
+
+### Tests
+
+210 tests (173 → +37). Nouvelles suites dans `hr-employee.test.ts` :
+
+| Groupe | Tests |
+|---|---|
+| `buildEmployee360Summary` Bloc 7 — nouveaux champs | `completed_or_done_count`, `last_log_at` (6 tests) |
+| `normalizeEmployeeActivityDate` | valid, trimmed, null cases (5 tests) |
+| `buildEmployeeTimeline` — basic structure | types, source_table, mission_id, task_id, filtering (6 tests) |
+| `buildEmployeeTimeline` — sorting | ordre desc, null dates, title fallbacks (4 tests) |
+| `buildEmployeeInsights` — flags | has_pending, has_blocked, has_scheduled, needs_attention (7 tests) |
+| `buildEmployeeInsights` — recommended_next_action | 5 cas (5 tests) |
+| `buildEmployeeInsights` — latest_activity_label | today, hier, N jours, null (4 tests) |
+
+### Script terminal E2E
+
+`scripts/pierre-employee360-history-test.ps1` — 12 étapes :
+1. Création salarié (bloc7-e2e)
+2. Submit mission avec `employee_id` → vérification `employee_resolution_source = "explicit_id"`, champ plat `employee_id` dans `brain_output_json`
+3. Submit mission via détection texte → vérification `employee_resolution_source = "text_detection"`
+4. Submit mission avec `employee_name` → vérification `employee_resolution_source = "explicit_name"`
+5. Vue 360 — vérification `insights`, `completed_or_done_count`, `last_log_at`, `mission_id`/`task_id` dans timeline
+6. History endpoint (limit par défaut)
+7. History endpoint avec `?limit=5`
+8. PATCH salarié
+9. Vue 360 post-patch — vérification insights mis à jour
+10. History 404 pour salarié inconnu
+11. DELETE salarié
+12. Vérification 404 après suppression
+
+### Invariants respectés
+
+- Aucune migration Supabase nécessaire — tout repose sur `reusable_rh_context_json.employees[]`
+- `user_id + agent_slug = "pierre"` systématique sur toutes les requêtes
+- Fonctions pures sans DB dans `hr/employee.ts` — testables unitairement sans mock
+- `buildEmployeeTimeline` remplace exactement la fonction locale — pas de régression dans les tests E2E existants
+
+---
+
 ## 10. Pourquoi cette brique respecte la vision Pierre
 
 Pierre est un **poste RH opérationnel**, pas un assistant conversationnel.

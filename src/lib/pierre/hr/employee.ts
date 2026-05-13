@@ -385,6 +385,8 @@ export type Employee360Summary = {
   last_task_at: string | null;
   last_document_at: string | null;
   last_activity_at: string | null;
+  completed_or_done_count: number;
+  last_log_at: string | null;
 };
 
 /**
@@ -411,6 +413,9 @@ export function buildEmployee360Summary(
 
   const blockedCount = tasks.filter((t) => t.status === "blocked").length;
   const scheduledCount = tasks.filter((t) => t.status === "scheduled").length;
+  const completedOrDoneCount = tasks.filter(
+    (t) => t.status === "done" || t.status === "completed",
+  ).length;
 
   const getAt = (row: Record<string, unknown>): string | null =>
     typeof row.created_at === "string" ? row.created_at : null;
@@ -426,6 +431,8 @@ export function buildEmployee360Summary(
     activityDates.length > 0
       ? activityDates.reduce((latest, d) => (d > latest ? d : latest))
       : null;
+
+  const lastLogAt = logs?.[0] ? getAt(logs[0]) : null;
 
   return {
     employee_name: employee.full_name,
@@ -445,5 +452,162 @@ export function buildEmployee360Summary(
     last_task_at: lastTaskAt,
     last_document_at: lastDocAt,
     last_activity_at: lastActivityAt,
+    completed_or_done_count: completedOrDoneCount,
+    last_log_at: lastLogAt,
+  };
+}
+
+// ══════════════════════════════════════════════════════════
+// TIMELINE
+// ══════════════════════════════════════════════════════════
+
+export type EmployeeTimelineItem = {
+  type: "mission" | "task" | "document" | "log";
+  id: string;
+  mission_id: string | null;
+  task_id: string | null;
+  title: string | null;
+  status: string | null;
+  created_at: string | null;
+  source_table: string;
+};
+
+/**
+ * Normalizes an activity date value: returns the ISO string if valid, null otherwise.
+ */
+export function normalizeEmployeeActivityDate(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const d = new Date(trimmed);
+  return isNaN(d.getTime()) ? null : trimmed;
+}
+
+/**
+ * Merges missions, tasks, documents, and logs into a chronological timeline (desc).
+ * Pure function — no DB access.
+ */
+export function buildEmployeeTimeline(params: {
+  missions: Record<string, unknown>[];
+  tasks: Record<string, unknown>[];
+  documents: Record<string, unknown>[];
+  logs: Record<string, unknown>[];
+}): EmployeeTimelineItem[] {
+  const { missions, tasks, documents, logs } = params;
+
+  const items: EmployeeTimelineItem[] = [
+    ...missions.map((m) => ({
+      type: "mission" as const,
+      id: safeString(m.id, 128) ?? "",
+      mission_id: safeString(m.id, 128),
+      task_id: null,
+      title: safeString(m.mission_summary, 500) ?? safeString(m.raw_input, 500) ?? null,
+      status: safeString(m.status, 100),
+      created_at: safeString(m.created_at, 64),
+      source_table: "pierre_missions",
+    })),
+    ...tasks.map((t) => ({
+      type: "task" as const,
+      id: safeString(t.id, 128) ?? "",
+      mission_id: safeString(t.mission_id, 128),
+      task_id: safeString(t.id, 128),
+      title: safeString(t.title, 500),
+      status: safeString(t.status, 100),
+      created_at: safeString(t.created_at, 64),
+      source_table: "pierre_tasks",
+    })),
+    ...documents.map((d) => ({
+      type: "document" as const,
+      id: safeString(d.id, 128) ?? "",
+      mission_id: safeString(d.mission_id, 128),
+      task_id: safeString(d.task_id, 128),
+      title: safeString(d.title, 500),
+      status: null,
+      created_at: safeString(d.created_at, 64),
+      source_table: "pierre_documents",
+    })),
+    ...logs.map((l) => ({
+      type: "log" as const,
+      id: safeString(l.id, 128) ?? "",
+      mission_id: safeString(l.mission_id, 128),
+      task_id: safeString(l.task_id, 128),
+      title: safeString(l.message, 500),
+      status: null,
+      created_at: safeString(l.created_at, 64),
+      source_table: "pierre_task_logs",
+    })),
+  ];
+
+  return items
+    .filter((item) => item.id)
+    .sort((a, b) => {
+      const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return db - da;
+    });
+}
+
+// ══════════════════════════════════════════════════════════
+// INSIGHTS
+// ══════════════════════════════════════════════════════════
+
+export type EmployeeInsights = {
+  has_pending_approvals: boolean;
+  has_blocked_items: boolean;
+  has_scheduled_followups: boolean;
+  needs_attention: boolean;
+  latest_activity_label: string | null;
+  recommended_next_action: string | null;
+};
+
+/**
+ * Builds a server-computed insights object from summary + timeline.
+ * Pure function — no AI, no DB.
+ * Optional `now` parameter for testability (defaults to new Date()).
+ */
+export function buildEmployeeInsights(
+  summary: Employee360Summary,
+  _timeline: EmployeeTimelineItem[],
+  now?: Date,
+): EmployeeInsights {
+  const hasPendingApprovals = summary.pending_approval_count > 0;
+  const hasBlockedItems = summary.blocked_count > 0;
+  const hasScheduledFollowups = summary.scheduled_count > 0;
+  const needsAttention = hasPendingApprovals || hasBlockedItems;
+
+  let latestActivityLabel: string | null = null;
+  if (summary.last_activity_at) {
+    const ref = (now ?? new Date()).getTime();
+    const activityMs = new Date(summary.last_activity_at).getTime();
+    if (!isNaN(activityMs)) {
+      const diffDays = Math.floor((ref - activityMs) / (1000 * 60 * 60 * 24));
+      if (diffDays <= 0) latestActivityLabel = "Aujourd'hui";
+      else if (diffDays === 1) latestActivityLabel = "Hier";
+      else if (diffDays < 7) latestActivityLabel = `Il y a ${diffDays} jours`;
+      else if (diffDays < 30) latestActivityLabel = `Il y a ${Math.floor(diffDays / 7)} semaine(s)`;
+      else latestActivityLabel = `Il y a ${Math.floor(diffDays / 30)} mois`;
+    }
+  }
+
+  let recommendedNextAction: string | null = null;
+  if (hasPendingApprovals) {
+    recommendedNextAction = "Valider les tâches en attente d'approbation";
+  } else if (hasBlockedItems) {
+    recommendedNextAction = "Débloquer les tâches bloquées";
+  } else if (hasScheduledFollowups) {
+    recommendedNextAction = "Vérifier les relances planifiées";
+  } else if (summary.total_tasks > 0 && summary.completed_or_done_count === summary.total_tasks) {
+    recommendedNextAction = "Toutes les tâches sont terminées";
+  } else if (summary.total_tasks === 0) {
+    recommendedNextAction = "Créer une première mission pour ce salarié";
+  }
+
+  return {
+    has_pending_approvals: hasPendingApprovals,
+    has_blocked_items: hasBlockedItems,
+    has_scheduled_followups: hasScheduledFollowups,
+    needs_attention: needsAttention,
+    latest_activity_label: latestActivityLabel,
+    recommended_next_action: recommendedNextAction,
   };
 }

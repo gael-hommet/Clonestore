@@ -13,7 +13,8 @@ import {
   type PierreEmployeeContext,
   type PierreEmployeeProfile,
   sanitizePierreEmployeeList,
-  resolveEmployeeContext,
+  findPierreEmployeeById,
+  findPierreEmployeeByName,
   buildPierreEmployeeContext,
   detectEmployeeReferenceFromText,
   enrichPayloadWithEmployeeContext,
@@ -351,8 +352,8 @@ async function hasPierreAccess(
 }
 
 /**
- * Lit la liste des salariÃ©s depuis pierre_company_memory.memory_json.employees[].
- * Retourne [] silencieusement sur absence ou erreur â€” non bloquant.
+ * Lit la liste des salariés depuis pierre_company_memory.reusable_rh_context_json.employees[].
+ * Retourne [] silencieusement sur absence ou erreur — non bloquant.
  */
 async function readEmployeeList(
   supabaseAdmin: SupabaseClient,
@@ -940,6 +941,7 @@ async function insertMission(
   interpretation: MissionInterpretation,
   employeeContext: PierreEmployeeContext | null,
   employeeWarning: string | null,
+  employeeResolutionSource: "explicit_id" | "explicit_name" | "text_detection" | "none",
 ): Promise<DbRow> {
   const missionTitle =
     body.input.length > 120
@@ -976,12 +978,22 @@ async function insertMission(
       missing_info_questions: interpretation.missing_info_questions,
       task_count: interpretation.tasks.length,
       task_types: interpretation.tasks.map((t) => t.type),
-      ...(employeeContext ? { employee_context: employeeContext } : {}),
+      employee_resolution_source: employeeResolutionSource,
+      ...(employeeContext ? {
+        employee_id: employeeContext.employee_id,
+        employee_name: employeeContext.employee_name,
+        employee_context: employeeContext,
+      } : {}),
       ...(employeeWarning ? { employee_resolution_warning: employeeWarning } : {}),
     },
     context_snapshot_json: {
       ...(isObject(body.context) ? body.context : {}),
-      ...(employeeContext ? { employee_context: employeeContext } : {}),
+      employee_resolution_source: employeeResolutionSource,
+      ...(employeeContext ? {
+        employee_id: employeeContext.employee_id,
+        employee_name: employeeContext.employee_name,
+        employee_context: employeeContext,
+      } : {}),
       ...(employeeWarning ? { employee_resolution_warning: employeeWarning } : {}),
     },
   };
@@ -1169,24 +1181,48 @@ export async function POST(request: NextRequest) {
       ? resolvePierreAutonomyLevel(body.autonomy_level)
       : await readAutonomyLevel(supabaseAdmin, auth.userId);
 
-    // Employee context : rÃ©solution depuis la liste mÃ©moire entreprise
+    // Employee context : résolution depuis la liste mémoire entreprise
     const employees = await readEmployeeList(supabaseAdmin, auth.userId);
-    let employeeContext = resolveEmployeeContext(employees, {
-      employee_id: body.employee_id,
-      employee_name: body.employee_name,
-    });
+    let employeeContext: PierreEmployeeContext | null = null;
+    let employeeResolutionSource: "explicit_id" | "explicit_name" | "text_detection" | "none" = "none";
+    const employeeWarnings: string[] = [];
 
-    const employeeWarning =
-      body.employee_id && !employeeContext
-        ? `employee_id "${body.employee_id}" not found in registry`
-        : null;
+    if (body.employee_id) {
+      const found = findPierreEmployeeById(employees, body.employee_id);
+      if (found) {
+        employeeContext = buildPierreEmployeeContext(found);
+        employeeResolutionSource = "explicit_id";
+      } else {
+        employeeWarnings.push(`employee_id "${body.employee_id}" not found in registry`);
+        if (body.employee_name) {
+          const foundByName = findPierreEmployeeByName(employees, body.employee_name);
+          if (foundByName) {
+            employeeContext = buildPierreEmployeeContext(foundByName);
+            employeeResolutionSource = "explicit_name";
+          } else {
+            employeeWarnings.push(`employee_name "${body.employee_name}" not found in registry`);
+          }
+        }
+      }
+    } else if (body.employee_name) {
+      const found = findPierreEmployeeByName(employees, body.employee_name);
+      if (found) {
+        employeeContext = buildPierreEmployeeContext(found);
+        employeeResolutionSource = "explicit_name";
+      } else {
+        employeeWarnings.push(`employee_name "${body.employee_name}" not found in registry`);
+      }
+    }
 
     if (!employeeContext && employees.length > 0) {
       const detected = detectEmployeeReferenceFromText(body.input, employees);
       if (detected) {
         employeeContext = buildPierreEmployeeContext(detected);
+        employeeResolutionSource = "text_detection";
       }
     }
+
+    const employeeWarning = employeeWarnings.length > 0 ? employeeWarnings.join("; ") : null;
 
     const interpretation = interpretMission(body.input, autonomyLevel);
 
@@ -1197,6 +1233,7 @@ export async function POST(request: NextRequest) {
       interpretation,
       employeeContext,
       employeeWarning,
+      employeeResolutionSource,
     );
 
     const tasks = await insertTasks(

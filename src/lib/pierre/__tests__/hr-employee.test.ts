@@ -13,7 +13,11 @@ import {
   deletePierreEmployeeProfile,
   detectEmployeeReferenceFromText,
   buildEmployee360Summary,
+  buildEmployeeTimeline,
+  buildEmployeeInsights,
+  normalizeEmployeeActivityDate,
   type PierreEmployeeProfile,
+  type Employee360Summary,
 } from "../hr/employee";
 
 // ══════════════════════════════════════════════════════════
@@ -942,5 +946,329 @@ describe("buildEmployee360Summary — employee fields", () => {
     const s = buildEmployee360Summary(minimal, [], [], []);
     expect(s.contract_type).toBeNull();
     expect(s.department).toBeNull();
+  });
+});
+
+describe("buildEmployee360Summary — Bloc 7 new fields", () => {
+  const emp: PierreEmployeeProfile = {
+    id: "b7-001",
+    full_name: "Pierre Bloc7",
+    status: "active",
+    tags: [],
+  };
+
+  it("counts completed_or_done_count from tasks with status 'done'", () => {
+    const tasks = [
+      { id: "t1", status: "done" },
+      { id: "t2", status: "done" },
+      { id: "t3", status: "ready" },
+    ];
+    const s = buildEmployee360Summary(emp, [], tasks, []);
+    expect(s.completed_or_done_count).toBe(2);
+  });
+
+  it("counts completed_or_done_count from tasks with status 'completed'", () => {
+    const tasks = [
+      { id: "t1", status: "completed" },
+      { id: "t2", status: "done" },
+    ];
+    const s = buildEmployee360Summary(emp, [], tasks, []);
+    expect(s.completed_or_done_count).toBe(2);
+  });
+
+  it("returns completed_or_done_count 0 when no done/completed tasks", () => {
+    const tasks = [
+      { id: "t1", status: "ready" },
+      { id: "t2", status: "blocked" },
+    ];
+    const s = buildEmployee360Summary(emp, [], tasks, []);
+    expect(s.completed_or_done_count).toBe(0);
+  });
+
+  it("sets last_log_at from first log's created_at", () => {
+    const logs = [
+      { id: "l1", created_at: "2024-06-01T10:00:00Z" },
+      { id: "l2", created_at: "2024-05-01T10:00:00Z" },
+    ];
+    const s = buildEmployee360Summary(emp, [], [], [], logs);
+    expect(s.last_log_at).toBe("2024-06-01T10:00:00Z");
+  });
+
+  it("sets last_log_at to null when no logs provided", () => {
+    const s = buildEmployee360Summary(emp, [], [], []);
+    expect(s.last_log_at).toBeNull();
+  });
+
+  it("sets last_log_at to null when logs array is empty", () => {
+    const s = buildEmployee360Summary(emp, [], [], [], []);
+    expect(s.last_log_at).toBeNull();
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// normalizeEmployeeActivityDate
+// ══════════════════════════════════════════════════════════
+
+describe("normalizeEmployeeActivityDate", () => {
+  it("returns the ISO string for a valid date", () => {
+    expect(normalizeEmployeeActivityDate("2024-06-01T10:00:00Z")).toBe("2024-06-01T10:00:00Z");
+  });
+
+  it("returns the trimmed string for a valid date with spaces", () => {
+    expect(normalizeEmployeeActivityDate("  2024-06-01T10:00:00Z  ")).toBe("2024-06-01T10:00:00Z");
+  });
+
+  it("returns null for a non-string value", () => {
+    expect(normalizeEmployeeActivityDate(null)).toBeNull();
+    expect(normalizeEmployeeActivityDate(42)).toBeNull();
+    expect(normalizeEmployeeActivityDate(undefined)).toBeNull();
+  });
+
+  it("returns null for an empty string", () => {
+    expect(normalizeEmployeeActivityDate("")).toBeNull();
+    expect(normalizeEmployeeActivityDate("   ")).toBeNull();
+  });
+
+  it("returns null for an invalid date string", () => {
+    expect(normalizeEmployeeActivityDate("not-a-date")).toBeNull();
+    expect(normalizeEmployeeActivityDate("99999-99-99")).toBeNull();
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// buildEmployeeTimeline
+// ══════════════════════════════════════════════════════════
+
+describe("buildEmployeeTimeline — basic structure", () => {
+  it("returns empty array when all inputs are empty", () => {
+    const tl = buildEmployeeTimeline({ missions: [], tasks: [], documents: [], logs: [] });
+    expect(tl).toEqual([]);
+  });
+
+  it("includes missions with correct type and source_table", () => {
+    const tl = buildEmployeeTimeline({
+      missions: [{ id: "m1", mission_summary: "Mission 1", status: "active", created_at: "2024-01-01T00:00:00Z" }],
+      tasks: [], documents: [], logs: [],
+    });
+    expect(tl.length).toBe(1);
+    expect(tl[0].type).toBe("mission");
+    expect(tl[0].source_table).toBe("pierre_missions");
+    expect(tl[0].id).toBe("m1");
+    expect(tl[0].mission_id).toBe("m1");
+    expect(tl[0].task_id).toBeNull();
+  });
+
+  it("includes tasks with correct type, mission_id and task_id", () => {
+    const tl = buildEmployeeTimeline({
+      missions: [],
+      tasks: [{ id: "t1", mission_id: "m1", title: "Task 1", status: "ready", created_at: "2024-01-01T00:00:00Z" }],
+      documents: [], logs: [],
+    });
+    expect(tl[0].type).toBe("task");
+    expect(tl[0].source_table).toBe("pierre_tasks");
+    expect(tl[0].mission_id).toBe("m1");
+    expect(tl[0].task_id).toBe("t1");
+  });
+
+  it("includes documents with mission_id and task_id from row", () => {
+    const tl = buildEmployeeTimeline({
+      missions: [],
+      tasks: [],
+      documents: [{ id: "d1", mission_id: "m1", task_id: "t1", title: "Doc 1", created_at: "2024-01-01T00:00:00Z" }],
+      logs: [],
+    });
+    expect(tl[0].type).toBe("document");
+    expect(tl[0].source_table).toBe("pierre_documents");
+    expect(tl[0].mission_id).toBe("m1");
+    expect(tl[0].task_id).toBe("t1");
+    expect(tl[0].status).toBeNull();
+  });
+
+  it("includes logs with mission_id and task_id from row", () => {
+    const tl = buildEmployeeTimeline({
+      missions: [], tasks: [], documents: [],
+      logs: [{ id: "l1", mission_id: "m1", task_id: "t1", message: "Log event", created_at: "2024-01-01T00:00:00Z" }],
+    });
+    expect(tl[0].type).toBe("log");
+    expect(tl[0].source_table).toBe("pierre_task_logs");
+    expect(tl[0].title).toBe("Log event");
+    expect(tl[0].mission_id).toBe("m1");
+    expect(tl[0].task_id).toBe("t1");
+  });
+
+  it("filters out items with missing id", () => {
+    const tl = buildEmployeeTimeline({
+      missions: [{ id: "", mission_summary: "No ID", created_at: "2024-01-01T00:00:00Z" }],
+      tasks: [], documents: [], logs: [],
+    });
+    expect(tl.length).toBe(0);
+  });
+});
+
+describe("buildEmployeeTimeline — sorting", () => {
+  it("sorts items descending by created_at", () => {
+    const tl = buildEmployeeTimeline({
+      missions: [{ id: "m1", created_at: "2024-01-10T00:00:00Z" }],
+      tasks: [{ id: "t1", mission_id: "m1", created_at: "2024-01-15T00:00:00Z" }],
+      documents: [{ id: "d1", created_at: "2024-01-05T00:00:00Z" }],
+      logs: [],
+    });
+    expect(tl[0].id).toBe("t1");
+    expect(tl[1].id).toBe("m1");
+    expect(tl[2].id).toBe("d1");
+  });
+
+  it("places items with null created_at at the end", () => {
+    const tl = buildEmployeeTimeline({
+      missions: [{ id: "m1", created_at: "2024-01-10T00:00:00Z" }],
+      tasks: [{ id: "t1", mission_id: null, created_at: null }],
+      documents: [], logs: [],
+    });
+    expect(tl[0].id).toBe("m1");
+    expect(tl[1].id).toBe("t1");
+  });
+
+  it("uses mission_summary as title for missions", () => {
+    const tl = buildEmployeeTimeline({
+      missions: [{ id: "m1", mission_summary: "Summary text", created_at: "2024-01-01T00:00:00Z" }],
+      tasks: [], documents: [], logs: [],
+    });
+    expect(tl[0].title).toBe("Summary text");
+  });
+
+  it("falls back to raw_input as title when mission_summary is absent", () => {
+    const tl = buildEmployeeTimeline({
+      missions: [{ id: "m1", raw_input: "Raw input text", created_at: "2024-01-01T00:00:00Z" }],
+      tasks: [], documents: [], logs: [],
+    });
+    expect(tl[0].title).toBe("Raw input text");
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// buildEmployeeInsights
+// ══════════════════════════════════════════════════════════
+
+const baseSummary: Employee360Summary = {
+  employee_name: "Test Employee",
+  employee_status: "active",
+  contract_type: "cdi",
+  department: "RH",
+  total_missions: 2,
+  total_tasks: 3,
+  total_documents: 1,
+  total_logs: 2,
+  tasks_by_status: { done: 1, ready: 1, awaiting_approval: 1 },
+  tasks_pending_approval: 1,
+  pending_approval_count: 1,
+  blocked_count: 0,
+  scheduled_count: 0,
+  last_mission_at: "2024-06-01T10:00:00Z",
+  last_task_at: "2024-06-10T10:00:00Z",
+  last_document_at: null,
+  last_activity_at: "2024-06-10T10:00:00Z",
+  completed_or_done_count: 1,
+  last_log_at: "2024-06-08T10:00:00Z",
+};
+
+describe("buildEmployeeInsights — flags", () => {
+  it("sets has_pending_approvals true when pending_approval_count > 0", () => {
+    const insights = buildEmployeeInsights(baseSummary, []);
+    expect(insights.has_pending_approvals).toBe(true);
+  });
+
+  it("sets has_pending_approvals false when pending_approval_count is 0", () => {
+    const s: Employee360Summary = { ...baseSummary, pending_approval_count: 0, tasks_pending_approval: 0 };
+    const insights = buildEmployeeInsights(s, []);
+    expect(insights.has_pending_approvals).toBe(false);
+  });
+
+  it("sets has_blocked_items true when blocked_count > 0", () => {
+    const s: Employee360Summary = { ...baseSummary, pending_approval_count: 0, tasks_pending_approval: 0, blocked_count: 2 };
+    const insights = buildEmployeeInsights(s, []);
+    expect(insights.has_blocked_items).toBe(true);
+  });
+
+  it("sets has_scheduled_followups true when scheduled_count > 0", () => {
+    const s: Employee360Summary = { ...baseSummary, pending_approval_count: 0, tasks_pending_approval: 0, scheduled_count: 1 };
+    const insights = buildEmployeeInsights(s, []);
+    expect(insights.has_scheduled_followups).toBe(true);
+  });
+
+  it("sets needs_attention true when has_pending_approvals is true", () => {
+    const insights = buildEmployeeInsights(baseSummary, []);
+    expect(insights.needs_attention).toBe(true);
+  });
+
+  it("sets needs_attention true when has_blocked_items is true", () => {
+    const s: Employee360Summary = { ...baseSummary, pending_approval_count: 0, tasks_pending_approval: 0, blocked_count: 1 };
+    const insights = buildEmployeeInsights(s, []);
+    expect(insights.needs_attention).toBe(true);
+  });
+
+  it("sets needs_attention false when neither pending nor blocked", () => {
+    const s: Employee360Summary = { ...baseSummary, pending_approval_count: 0, tasks_pending_approval: 0, blocked_count: 0 };
+    const insights = buildEmployeeInsights(s, []);
+    expect(insights.needs_attention).toBe(false);
+  });
+});
+
+describe("buildEmployeeInsights — recommended_next_action", () => {
+  it("recommends approvals action when pending_approval_count > 0", () => {
+    const insights = buildEmployeeInsights(baseSummary, []);
+    expect(insights.recommended_next_action).toContain("approbation");
+  });
+
+  it("recommends unblocking when only blocked items", () => {
+    const s: Employee360Summary = { ...baseSummary, pending_approval_count: 0, tasks_pending_approval: 0, blocked_count: 1 };
+    const insights = buildEmployeeInsights(s, []);
+    expect(insights.recommended_next_action).toContain("bloqu");
+  });
+
+  it("recommends checking scheduled followups when only scheduled", () => {
+    const s: Employee360Summary = { ...baseSummary, pending_approval_count: 0, tasks_pending_approval: 0, scheduled_count: 1 };
+    const insights = buildEmployeeInsights(s, []);
+    expect(insights.recommended_next_action).toContain("relances");
+  });
+
+  it("returns first mission recommendation when no tasks", () => {
+    const s: Employee360Summary = { ...baseSummary, pending_approval_count: 0, tasks_pending_approval: 0, total_tasks: 0, completed_or_done_count: 0 };
+    const insights = buildEmployeeInsights(s, []);
+    expect(insights.recommended_next_action).toContain("première mission");
+  });
+
+  it("returns all-done message when all tasks are completed", () => {
+    const s: Employee360Summary = { ...baseSummary, pending_approval_count: 0, tasks_pending_approval: 0, total_tasks: 3, completed_or_done_count: 3 };
+    const insights = buildEmployeeInsights(s, []);
+    expect(insights.recommended_next_action).toContain("terminées");
+  });
+});
+
+describe("buildEmployeeInsights — latest_activity_label", () => {
+  it("returns 'Aujourd'hui' for activity today", () => {
+    const now = new Date("2024-06-15T12:00:00Z");
+    const s: Employee360Summary = { ...baseSummary, last_activity_at: "2024-06-15T08:00:00Z" };
+    const insights = buildEmployeeInsights(s, [], now);
+    expect(insights.latest_activity_label).toBe("Aujourd'hui");
+  });
+
+  it("returns 'Hier' for activity yesterday", () => {
+    const now = new Date("2024-06-15T12:00:00Z");
+    const s: Employee360Summary = { ...baseSummary, last_activity_at: "2024-06-14T08:00:00Z" };
+    const insights = buildEmployeeInsights(s, [], now);
+    expect(insights.latest_activity_label).toBe("Hier");
+  });
+
+  it("returns 'Il y a N jours' for activity within a week", () => {
+    const now = new Date("2024-06-15T12:00:00Z");
+    const s: Employee360Summary = { ...baseSummary, last_activity_at: "2024-06-12T08:00:00Z" };
+    const insights = buildEmployeeInsights(s, [], now);
+    expect(insights.latest_activity_label).toMatch(/Il y a \d+ jours/);
+  });
+
+  it("returns null when last_activity_at is null", () => {
+    const s: Employee360Summary = { ...baseSummary, last_activity_at: null };
+    const insights = buildEmployeeInsights(s, []);
+    expect(insights.latest_activity_label).toBeNull();
   });
 });
