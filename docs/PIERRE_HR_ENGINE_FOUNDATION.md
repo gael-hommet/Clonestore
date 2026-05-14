@@ -715,6 +715,158 @@ GET /api/pierre/use/employee/:employeeId/history?limit=50
 
 ---
 
+## 13. Bloc 8 — Real Execution + Artifacts RH V1 (2026-05-13)
+
+### Objectif
+
+Faire passer Pierre de "il comprend et structure" à "il exécute réellement des tâches RH autorisées et produit des artefacts exploitables". Toute exécution produit : `result_json` + logs + artefact persisté.
+
+### Nouveaux fichiers
+
+**`src/lib/pierre/tasks/artifacts.ts`** — couche pure sans DB ni async
+
+Types exportés :
+- `PierreArtifactKind` : `"document" | "email_draft" | "email_send" | "followup" | "missing_info" | "pdf_ready" | "internal_note"`
+- `PierreArtifactStatus` : `"generated" | "draft" | "sent" | "blocked" | "pending"`
+- `PierreTaskExecutionInput` — input d'un artifact builder : `{ task, employee?, mission?, company_memory?, now? }`
+- `PierreArtifact` — artefact produit : `{ kind, status, title, content_text, content_html, doc_type, to_json, cc_json, bcc_json, subject, scheduled_for, missing_fields, tags, domain }`
+- `PierreArtifactQuality` — score qualité : `{ score (0-100), has_content, has_title, has_recipient, has_employee_context, is_complete, warnings[] }`
+- `PierreTaskExecutionResult` — résultat complet : `{ ok, artifact_kind, artifact_status, artifact, quality, meta }`
+
+Fonctions exportées :
+- `inferPierreArtifactKind(taskType, payload_json?)` — mappe le type de tâche vers un artifact kind. Fallback par inspection du payload si type non reconnu.
+- `buildPierreDocumentArtifact(input)` — détection de domaine RH (onboarding/recrutement/absence/paie/disciplinaire/relance/général), contenu template par domaine, extrait le contenu existant de `payload_json` si présent.
+- `buildPierreEmailDraftArtifact(input)` — collecte destinataires (`to`, `recipient_email`, `employee.email`), déduplique, fallback template FR/EN.
+- `buildPierreFollowupArtifact(input)` — capture `scheduled_for`, titre incluant le nom salarié.
+- `buildPierreMissingInfoArtifact(input)` — extrait `missing_info` + `missing_fields` + `champs_manquants`, déduplique.
+- `buildPierrePdfReadyArtifact(input)` — identique au document mais `doc_type: "pdf_export"`.
+- `scorePierreArtifactQuality(artifact, input)` — score pondéré : 45 pts contenu, 20 pts titre, 20 pts destinataire (email), 15 pts contexte salarié. `is_complete` si score ≥ 75.
+- `buildPierreTaskExecutionResult(input)` — dispatcher central qui appelle le bon builder selon `inferPierreArtifactKind()`.
+
+**`src/lib/pierre/tasks/execute-task.ts`** — exécuteur DB-connecté
+
+Fonction principale :
+```typescript
+executePierreTaskWithPersistence(params: {
+  supabaseAdmin: SupabaseClient;
+  taskId: string;
+  userId: string;
+}): Promise<PierreExecutionPersistenceResult>
+```
+
+Pipeline d'exécution :
+1. Charge la tâche depuis `pierre_tasks` (`user_id + agent_slug = "pierre"`)
+2. Refuse si statut terminal : `done | cancelled | error | awaiting_approval`
+3. Charge la mémoire entreprise (`pierre_company_memory`) pour tone/langue
+4. Résout le contexte salarié depuis `payload_json.employee_context` ou `payload_json.employee_id`
+5. Passe le statut à `"running"` dans `pierre_tasks`
+6. Log `event_type: "task_execution_started"` (nouveau schéma)
+7. Appelle `executePierreTask()` depuis `executors.ts` (pure — HR gate + routage)
+8. Appelle `buildPierreTaskExecutionResult()` pour l'artefact riche + qualité
+9. Persiste l'artefact selon le kind :
+   - `document | pdf_ready | followup | missing_info` → `pierre_documents` (colonnes réelles : `user_id, agent_slug, mission_id, task_id, doc_type, title, text_content, html_content, source_kind: "task_execution", tags_json`)
+   - `email_draft | email_send` → `pierre_outbound_emails` (colonnes réelles : `user_id, agent_slug, mission_id, task_id, to_json, cc_json, bcc_json, subject, text_snapshot, html_snapshot, sender_profile_json, status`)
+10. Met à jour `pierre_tasks.status` (done/blocked/error/awaiting_approval) et `result_json`
+11. Log `event_type: "task_execution_completed" | "task_execution_failed"` (nouveau schéma)
+
+Type résultat :
+```typescript
+PierreExecutionPersistenceResult = {
+  ok: boolean;
+  task_id: string;
+  mission_id: string | null;
+  outcome: "completed" | "blocked" | "failed" | "awaiting_info" | "awaiting_approval";
+  artifact: { kind, status, document_id, email_id } | null;
+  execution_result: PierreTaskExecutionResult;
+  error?: string;
+  error_code?: string;
+}
+```
+
+### Route refactorisée
+
+**`POST /api/pierre/use/task/[taskId]/run`**
+
+Avant : `processPierreTask` (queue lib, logs vieux schéma `level/event/message/payload`).
+
+Après : `executePierreTaskWithPersistence` + `hasPierreAccess` de `@/lib/pierre/access`.
+
+Réponse enrichie :
+```json
+{
+  "ok": true,
+  "task_id": "...",
+  "mission_id": "...",
+  "outcome": "completed",
+  "artifact": {
+    "kind": "document",
+    "status": "generated",
+    "document_id": "...",
+    "email_id": null
+  },
+  "execution_result": {
+    "ok": true,
+    "artifact_kind": "document",
+    "artifact_status": "generated",
+    "artifact": { "title": "...", "content_text": "...", ... },
+    "quality": { "score": 80, "is_complete": true, ... },
+    "meta": { "task_id": "...", "domain": "onboarding", ... }
+  },
+  "meta": { "taskId": "...", "userId": "...", "fetchedAt": "..." }
+}
+```
+
+### Schéma de logs utilisé
+
+Nouveau schéma exclusivement (`event_type`, `message`, `meta_json`, `user_id`, `agent_slug`). Les routes existantes (`cancel`, `reschedule`, `approve`, `process-task`) conservent le vieux schéma (`level`, `event`, `message`, `payload`) — coexistence préservée.
+
+### Tests
+
+**`src/lib/pierre/__tests__/task-artifacts.test.ts`** — 78 nouveaux tests (288 au total).
+
+| Groupe | Tests |
+|---|---|
+| `inferPierreArtifactKind` | tous les types nommés, null, fallback payload (20 tests) |
+| `buildPierreDocumentArtifact` | kind/status, payload existant, titre, domaine, contexte salarié, tags, html (12 tests) |
+| `buildPierreEmailDraftArtifact` | kind send/draft, subject, recipients, déduplique, body existant (8 tests) |
+| `buildPierreFollowupArtifact` | kind, status, scheduled_for, titre salarié, doc_type, tags (6 tests) |
+| `buildPierreMissingInfoArtifact` | kind, status, extraction missing_fields, déduplication, doc_type (5 tests) |
+| `buildPierrePdfReadyArtifact` | kind, status, doc_type, payload existant, tags (5 tests) |
+| `scorePierreArtifactQuality` | score 0, has_content, has_title, has_employee_context, warning destinataire, score 100, is_complete (7 tests) |
+| `buildPierreTaskExecutionResult` | dispatch par type, ok flag, meta, domain, quality (15 tests) |
+
+`package.json` mis à jour : `task-artifacts.test.ts` ajouté au script `npm test`.
+
+### Script terminal E2E
+
+`scripts/pierre-real-execution-test.ps1` — 12 étapes :
+1. Submit mission doc.generate
+2. Fetch mission → récupère les task_ids
+3. `POST /run` sur la première tâche
+4. Vérifie la forme de la réponse (artifact + execution_result + quality)
+5. Vérifie le statut de la tâche en DB (GET /task/{id})
+6. Vérifie la présence de logs
+7. Vérifie la persistance de l'artefact (document ou email)
+8. Submit mission email.draft + run
+9. Re-run d'une tâche terminée → erreur gracieuse attendue
+10. Compatibilité Bloc 5 : `POST /api/pierre/doc/generate`
+11. Compatibilité Bloc 7 : `GET /api/pierre/use/employee/{id}`
+12. Rapport final PASS/FAIL
+
+### Invariants respectés
+
+| Invariant | Mécanisme |
+|---|---|
+| Blocs 5/6/7 non cassés | Aucune modification des routes `doc/generate`, `email/draft`, `email/send`, `employees`, `employee/[id]/history` |
+| Logs vieux schéma préservés | `cancel/reschedule/approve/process-task` inchangés |
+| Colonnes DB réelles uniquement | `pierre_documents` : pas de `status`/`metadata` non confirmés ; `pierre_outbound_emails` : `to_json/cc_json/bcc_json/text_snapshot/html_snapshot` |
+| Multi-tenant | `user_id + agent_slug = "pierre"` systématique |
+| Validation humaine non bypassée | HR gate de `executors.ts` appliquée avant tout executor ; `awaiting_approval` bloqué dans `execute-task.ts` |
+| Aucune email réel envoyé | `pierre_outbound_emails.status` = `"draft"` ou `"queued"` — pas de dispatch SMTP |
+| Fonctions pures testables | `artifacts.ts` : zéro DB, zéro async, 78 tests unitaires |
+
+---
+
 ## 10. Pourquoi cette brique respecte la vision Pierre
 
 Pierre est un **poste RH opérationnel**, pas un assistant conversationnel.
@@ -729,3 +881,214 @@ La matrice `PIERRE_ACTION_VALIDATION_MATRIX` incarne exactement cette distinctio
 Cette gradation n'est pas une limitation technique. C'est la **définition du rôle de Pierre** dans une organisation : autonomie calibrée, traçabilité complète, humain toujours en position de décision finale sur les sujets à enjeux.
 
 Un assistant ne connaît pas ses limites. Pierre, si.
+
+---
+
+## 14. Bloc 9 — HR Workflow Engine V1 (2026-05-14)
+
+### Objectif
+
+Jusqu'au Bloc 8, Pierre savait **exécuter** une tâche. Mais il ne savait pas encore **quelles tâches créer** à partir d'une demande libre. L'interprétation initiale de `submit/route.ts` était rudimentaire : classification par mots-clés, tâches génériques, sans domaine RH ni risque calibrés.
+
+Le Bloc 9 remplace entièrement cette interprétation par un **moteur de workflow RH pur** : 11 domaines, analyse de risque couleur, tâches structurées par domaine, validation humaine garantie là où elle est requise.
+
+---
+
+### `src/lib/pierre/hr/workflows.ts` — moteur pur sans DB ni async
+
+Module de ~1 000 lignes. Aucune dépendance DB, Next, ou Supabase. Entièrement testable unitairement.
+
+#### Types exportés
+
+| Type | Description |
+|---|---|
+| `PierreHrWorkflowDomain` | 11 domaines : `hiring`, `onboarding`, `absence`, `contract`, `payroll_prep`, `employee_file`, `training`, `interview`, `offboarding`, `sensitive_case`, `general_hr` |
+| `PierreHrWorkflowRiskLevel` | `"green" \| "orange" \| "red" \| "black"` |
+| `PierreHrWorkflowPriority` | `"low" \| "normal" \| "high" \| "urgent"` |
+| `PierreHrWorkflowMissingInfo` | `{ field, question, required }` |
+| `PierreHrWorkflowValidationPolicy` | `{ approval_required, approval_reason, blocked, can_execute_low_risk_tasks }` |
+| `PierreHrWorkflowNextAction` | `{ type: "provide_info" \| "validate" \| "execute" \| "escalate", description }` |
+| `PierreHrWorkflowTaskDraft` | `{ type, title, description, status, approval_required, execute_at, payload_json }` — `execute_at`, jamais `scheduled_for` |
+| `PierreHrWorkflowAnalysis` | Analyse complète produite par le moteur |
+| `PierreHrWorkflowPlan` | Plan complet prêt à être persisté en DB |
+
+#### Fonctions exportées
+
+- `extractPierreHrWorkflowSignals(input)` — retourne les signaux détectés dans le texte
+- `detectPierreHrWorkflowDomain(input, context?)` — priorité : sensitive_case > offboarding > contract > hiring > payroll_prep > absence > onboarding > employee_file > training > interview > general_hr
+- `detectPierreHrWorkflowRisk(input, domain, context?)` — baseline par domaine, escalade par signaux, jamais de réduction
+- `detectPierreHrWorkflowPriority(input, domain, risk?)` — urgent si black ou signal d'urgence, high si red ou payroll/offboarding, low sinon
+- `buildPierreHrMissingInfo(domain, input, employeeContext?)` — infos manquantes par domaine, supprime `employee_name` si "aucun salarié spécifique"
+- `buildPierreHrWorkflowTasks(analysis)` — 11 builders de tâches par domaine, enrichissement employee_context, reminder.create bloqué si infos requises manquantes
+- `mapPierreWorkflowTaskToDbTask(task)` — mappe vers le format DB réel : `execute_at` (pas `scheduled_for`)
+- `buildPierreHrWorkflowPlan(input, options?)` — plan complet prêt à persister
+- `explainPierreWorkflowPlan(plan)` — explication textuelle structurée
+
+#### Règles de statut des tâches par domaine
+
+| Domaine | Statut principal |
+|---|---|
+| `sensitive_case` | Toutes `awaiting_approval` |
+| `contract` | doc.generate + email.draft → `awaiting_approval` |
+| `payroll_prep` | doc.generate (synthèse) → `awaiting_approval` |
+| `offboarding` avec risque red/black | `awaiting_approval` |
+| Autres domaines | `ready` |
+| Reminder si infos requises manquantes | `blocked` |
+
+#### Blocked actions par domaine
+
+- `sensitive_case` : 5 actions bloquées (envoi direct, décision finale, notification externe, modification pièces, conclusions disciplinaires)
+- Risque `black` : 2 actions bloquées (décision irréversible, communication externe)
+- `contract` : 2 actions bloquées (signature sans validation, envoi direct)
+- `payroll_prep` : 1 action bloquée (transmission directe sans validation)
+
+---
+
+### `src/app/api/pierre/use/submit/route.ts` — intégration du moteur
+
+Réécriture complète. ~500 lignes (vs 1 304 avant). Toute la logique d'interprétation précédente supprimée.
+
+**Ce qui est supprimé :**
+- Fonctions : `detectLanguage`, `detectTone`, `detectClassification`, `detectIntent`, `detectRisk`, `needsApproval`, `detectScheduling`, `detectMissingInfo`, `buildMissionSummary`
+- Fonctions : `routeClassificationToHrDomain`, `routeTaskKind`, `routeHrPayload`, `routeTaskStatus`, `routeTaskApproval`, `buildTasks`, `interpretMission`
+- Types internes : `MissionRiskLevel`, `TaskLifecycleStatus`, `MissionTaskDraft`, `MissionInterpretationBase`, `MissionInterpretation`
+
+**Ce qui est conservé :**
+- Auth complète (Bearer + cookie Supabase)
+- `hasPierreAccess` (orders table)
+- `readEmployeeList`, `readAutonomyLevel`
+- Employee resolution pipeline (explicit_id → explicit_name → text_detection)
+- `insertMission`, `insertTasks`, `insertLogs` (mis à jour)
+- `normalizeBody`, `mapDbError`, `createAdminClient`
+
+**Mise à jour de `mapToDbRiskLevel` :**
+```
+green  → "low"
+orange → "medium"
+red    → "high"
+black  → "high"
+```
+
+**`insertMission` — champs `brain_output_json` enrichis :**
+```json
+{
+  "workflow_domain": "onboarding",
+  "workflow_priority": "normal",
+  "workflow_risk_level": "green",
+  "workflow_explanation": "...",
+  "approval_required": false,
+  "validation_policy": { ... },
+  "blocked_actions": [],
+  "recommended_next_action": { "type": "execute", "description": "..." },
+  "can_execute_low_risk_tasks": true,
+  "task_count": 4,
+  "task_types": ["doc.generate", "email.draft", "reminder.create", "followup.schedule"]
+}
+```
+
+**`insertTasks` — colonnes DB réelles :**
+```typescript
+{
+  mission_id, user_id, agent_slug: "pierre",
+  type: dbTask.type,       // canonical (doc.generate, email.draft, etc.)
+  title, description,
+  status,                  // "ready" | "awaiting_approval" | "blocked"
+  approval_required,
+  execute_at,              // JAMAIS scheduled_for
+  payload_json             // enrichi avec employee_context si présent
+}
+```
+
+**`insertLogs` — nouveaux event types :**
+
+| event_type | Condition |
+|---|---|
+| `mission_created` | Toujours |
+| `workflow_analyzed` | Toujours |
+| `human_validation_required` | Si `plan.approval_required = true` |
+| `missing_info_detected` | Si `plan.missing_info.length > 0` |
+| `sensitive_case_detected` | Si `plan.domain = "sensitive_case"` |
+| `task_created` | Par tâche créée |
+
+**Réponse — champs ajoutés / conservés :**
+
+```json
+{
+  "ok": true,
+  "mission": { ... },
+  "interpretation": {          // champ compat front-end conservé
+    "intent": "onboarding",
+    "summary": "[Intégration salarié / risque green] ...",
+    "risk_level": "green",
+    "approval_required": false,
+    "missing_info": [],
+    "missing_info_questions": []
+  },
+  "workflow_plan": { ... },    // nouveau — plan complet du moteur
+  "tasks": [ ... ],
+  "logs": [ ... ],
+  "threadEntries": [ ... ],
+  "meta": { ... }
+}
+```
+
+---
+
+### Tests
+
+**`src/lib/pierre/__tests__/hr-workflows.test.ts`** — 92 tests (380 au total).
+
+| Groupe | Tests |
+|---|---|
+| `extractPierreHrWorkflowSignals` | signaux hiring/absence/sensitive, déduplication, aucun signal (5 tests) |
+| `detectPierreHrWorkflowDomain` | 11 domaines depuis inputs naturels, priorité sensitive_case > offboarding, override contexte valide/invalide (13 tests) |
+| `detectPierreHrWorkflowRisk` | baseline par domaine, escalade black/red/orange, jamais réduit, override contexte (8 tests) |
+| `detectPierreHrWorkflowPriority` | urgent (black, signal), high (red, payroll), normal, low, sensitive_case toujours urgent (7 tests) |
+| `buildPierreHrMissingInfo` | 11 domaines, employee_context supprime employee_name, "aucun salarié spécifique", filtre email (14 tests) |
+| `buildPierreHrWorkflowTasks` | types canoniques uniquement, sensitive_case awaiting_approval, contract/payroll awaiting_approval, reminder.create bloqué si required, employee enrichment (10 tests) |
+| `mapPierreWorkflowTaskToDbTask` | execute_at présent, pas scheduled_for, statut préservé, ISO préservé (6 tests) |
+| `buildPierreHrWorkflowPlan` | 11 inputs typiques, sensitive_case approval/blocked_actions/validation_policy, types canoniques, missing_info, next_action, execute_at/no scheduled_for, autonomy_level/employee_context options (27 tests) |
+| `explainPierreWorkflowPlan` | non vide, mentionne tâches, blocked actions, missing info (4 tests) |
+
+`package.json` mis à jour : `hr-workflows.test.ts` ajouté au script `npm test`.
+
+---
+
+### Script terminal E2E
+
+**`scripts/pierre-workflow-engine-test.ps1`** — 15 étapes.
+
+| Étape | Domaine testé | Vérifications |
+|---|---|---|
+| 1 | `general_hr` | `workflow_plan` présent, log `workflow_analyzed` |
+| 2 | `onboarding` | domaine détecté |
+| 3 | `hiring` | domaine détecté, ≥ 2 tâches |
+| 4 | `absence` | domaine détecté, log `missing_info_detected` si infos manquantes |
+| 5 | `payroll_prep` | `approval_required=true`, log `human_validation_required` |
+| 6 | `sensitive_case` | `approval_required=true`, `blocked_actions ≥ 3`, `validation_policy.blocked=true`, log `sensitive_case_detected`, toutes tâches `awaiting_approval` |
+| 7 | `contract` | `approval_required=true`, `blocked_actions` présents |
+| 8 | `offboarding` | domaine détecté |
+| 9 | `interview` | domaine détecté |
+| 10 | Exécution réelle | Run d'une tâche `ready` depuis mission 1, vérification `ok=true` et `outcome` |
+| 11 | Compat front | Champ `interpretation` présent, `summary` non vide |
+| 12 | Schema logs | `event_type` présent sur tous les logs, pas de colonnes legacy |
+| 13 | Colonnes DB | Aucune tâche avec `scheduled_for` (colonne invalide) |
+| 14 | `training` | domaine détecté |
+| 15 | `employee_file` | domaine détecté |
+
+Compatible PowerShell 5 (no `??`, `?.`, `&&`). Aucun secret en dur.
+
+---
+
+### Invariants respectés
+
+| Invariant | Mécanisme |
+|---|---|
+| Validation humaine jamais bypassée | `sensitive_case` → toutes tâches `awaiting_approval` ; `contract`/`payroll_prep` → tâche principale `awaiting_approval` |
+| Aucune colonne DB inventée | `execute_at` (réel) — jamais `scheduled_for` ; `event_type`/`meta_json` — jamais `level`/`event`/`payload` |
+| Types de tâches canoniques uniquement | Le moteur ne produit que : `doc.generate`, `email.draft`, `followup.schedule`, `reminder.create` |
+| Multi-tenant | `user_id + agent_slug = "pierre"` systématique |
+| Blocs 5–8 non cassés | Aucune modification des routes `employees`, `employee/[id]`, `task/[id]/run`, `doc/generate`, `email/draft` |
+| Fonctions pures testables | `workflows.ts` : zéro DB, zéro async, 92 tests unitaires |
+| Aucun email réel envoyé | Les tâches `email.draft` créent un brouillon en DB — aucun dispatch SMTP |
+| Backward compat réponse API | Champ `interpretation` conservé avec les mêmes clés ; `tasks` toujours présent en top-level |
