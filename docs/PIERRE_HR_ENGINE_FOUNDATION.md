@@ -1091,4 +1091,124 @@ Compatible PowerShell 5 (no `??`, `?.`, `&&`). Aucun secret en dur.
 | Blocs 5–8 non cassés | Aucune modification des routes `employees`, `employee/[id]`, `task/[id]/run`, `doc/generate`, `email/draft` |
 | Fonctions pures testables | `workflows.ts` : zéro DB, zéro async, 92 tests unitaires |
 | Aucun email réel envoyé | Les tâches `email.draft` créent un brouillon en DB — aucun dispatch SMTP |
+
+---
+
+## 15. Bloc 10 — Pierre Continuity Engine V1 (2026-05-14)
+
+### Objectif
+
+Pierre n'est pas un chatbot — c'est un poste RH opérationnel. Une mission créée doit continuer à avancer même quand l'utilisateur ne revient pas. Le Bloc 10 ajoute le moteur de continuité : classification d'état, tableau de bord, plan d'action, et exécution automatique des tâches sûres.
+
+### Fichier central : `src/lib/pierre/hr/continuity.ts`
+
+Couche pure (zéro DB, zéro async). Prend des lignes DB brutes (`Record<string, unknown>`) et retourne des vues typées.
+
+**Types exportés**
+
+| Type | Rôle |
+|---|---|
+| `PierreMissionContinuityState` | État global d'une mission : `active \| stalled \| blocked \| awaiting_approval \| awaiting_info \| completed \| error \| cancelled` |
+| `PierreTaskContinuityState` | État d'une tâche : `runnable \| awaiting_approval \| blocked \| scheduled \| done \| error \| not_ready` |
+| `PierreTaskContinuitySlot` | Vue complète d'une tâche avec `is_safe_to_run`, `blocked_reason`, `execute_at` |
+| `PierreContinuityNextAction` | Prochaine action recommandée avec `type`, `label`, `task_ids` |
+| `PierreMissionContinuityInsight` | Insight complet d'une mission : compteurs, progress_pct, health_score, is_stalled |
+| `PierreContinuePlan` | Plan d'action : `safe_to_run[]`, `requires_human[]`, `blocked[]`, `summary` |
+| `PierreContinuityDashboard` | Vue agrégée multi-missions |
+
+**Fonctions exportées (12)**
+
+| Fonction | Description |
+|---|---|
+| `classifyTaskContinuityState(task, now?)` | Classe une tâche DB en état continuity |
+| `isTaskSafeToRun(task, now?)` | Vrai si exécution automatique possible (status ready\|retry, pas approval, pas email.send, execute_at passé) |
+| `buildTaskContinuitySlot(task, now?)` | Construit un `PierreTaskContinuitySlot` complet |
+| `computeMissionProgress(slots)` | Progression en % (0–100) selon tâches terminées |
+| `detectStalledMission(mission, slots, now?)` | Détecte si une mission est bloquée sans activité depuis > 3 jours |
+| `classifyMissionContinuityState(mission, slots, now?)` | État global de mission (priorité : cancelled > completed > error > blocked > awaiting_approval > awaiting_info > stalled > active) |
+| `buildContinuityRecommendedNextAction(slots)` | Prochaine action (priorité : run_tasks > approve_tasks > investigate_errors > provide_info > mission_complete > no_action) |
+| `scoreMissionContinuityHealth(insight)` | Score 0–100 (–15 par erreur, –10 par blocked, –5 par approbation, –20 si stalled) |
+| `buildMissionContinuityInsight(mission, tasks, options?)` | Insight complet d'une mission |
+| `buildContinuePlan(mission, tasks, options?)` | Plan d'action ordonné |
+| `selectNextRunnableTasks(tasks, options?)` | Sélectionne les N prochaines tâches sûres (tri priority desc, created_at asc) |
+| `buildContinuityDashboard(userId, missions, tasksByMissionId, options?)` | Dashboard multi-missions agrégé |
+
+**Règles de sécurité `isTaskSafeToRun`**
+
+- `status` doit être `ready` ou `retry`
+- `approval_required` doit être `false`
+- `type` ne doit PAS être `email.send` ou `send_email` (envoi manuel requis)
+- `execute_at` doit être `null` ou dans le passé
+
+### Nouvelles routes API
+
+| Route | Méthode | Description |
+|---|---|---|
+| `/api/pierre/use/continuity` | GET | Dashboard continuité multi-missions (50 missions max, tasks groupées) |
+| `/api/pierre/use/mission/[missionId]/continue` | POST | Plan de continuation pour une mission spécifique |
+| `/api/pierre/use/continuity/run-next` | POST | Lance les prochaines tâches sûres (max 5 par défaut, 10 max absolu) |
+
+**`/continuity` GET** : charge toutes les missions non-annulées + leurs tâches en 2 requêtes (missions puis tasks IN missionIds), groupe par mission_id, appelle `buildContinuityDashboard()`.
+
+**`/mission/[missionId]/continue` POST** : charge mission + tasks, retourne `{ insight, plan }`. Pas d'exécution automatique — consultation uniquement.
+
+**`/continuity/run-next` POST** : charge les tâches `ready|retry` (filtre DB), applique `selectNextRunnableTasks()`, appelle `executePierreTaskWithPersistence({ supabaseAdmin, taskId, userId })` pour chaque. Corps optionnel : `{ mission_id?, max? }`.
+
+### Modification : `mission/[missionId]/route.ts`
+
+Ajout de `continuity: { mission_insight, continue_plan }` à la réponse GET sans modifier la structure existante (`tasks`, `logs`, `documents`, `outbound_emails`, `pdfs`, `meta` inchangés).
+
+### Tests : `src/lib/pierre/__tests__/hr-continuity.test.ts`
+
+107 tests unitaires couvrant les 12 fonctions exportées :
+
+| Suite | Tests |
+|---|---|
+| `classifyTaskContinuityState` | 15 — tous statuts DB, approval_required, execute_at futur/passé |
+| `isTaskSafeToRun` | 11 — combinaisons status/type/approval/execute_at |
+| `buildTaskContinuitySlot` | 8 — blocked_reason, email.send, titre manquant |
+| `computeMissionProgress` | 5 — 0%, 50%, 100%, arrondi |
+| `detectStalledMission` | 7 — runnable, cancelled, vieux, récent, awaiting_approval ancien |
+| `classifyMissionContinuityState` | 11 — tous les états possibles |
+| `buildContinuityRecommendedNextAction` | 7 — priorité des 6 types d'action |
+| `scoreMissionContinuityHealth` | 7 — progress=100, total=0, erreurs, stalled, bornes 0/100 |
+| `buildMissionContinuityInsight` | 8 — compteurs, safe_task_ids, missing_info, health_score |
+| `buildContinuePlan` | 8 — run/approve/provide_info/investigate, email.send, summary |
+| `selectNextRunnableTasks` | 6 — filtrage, tri priority, limite max, execute_at futur |
+| `buildContinuityDashboard` | 6 — structure, compteurs, aggregation, recommended_next_action |
+
+Total tests : 472 (380 Blocs 1–9 + 92 Bloc 9 + 107 nouveau — vitest run).
+
+### Script E2E : `scripts/pierre-continuity-engine-test.ps1`
+
+14 étapes compatibles PowerShell 5 :
+
+| Étape | Test |
+|---|---|
+| 1 | GET /continuity sans token → 401 |
+| 2 | GET /continuity avec auth → dashboard valide |
+| 3 | Structure dashboard : champs obligatoires, types corrects |
+| 4 | POST /submit → mission onboarding créée |
+| 5 | GET /mission/{id} → champ `continuity` présent sans casser l'ancien shape |
+| 6 | Validation structure `mission_insight` (mission_id, state, progress_pct, health_score) |
+| 7 | POST /mission/{id}/continue → insight + plan + summary |
+| 8 | POST /continuity/run-next (mission_id) → ran + errors + meta |
+| 9 | POST /continuity/run-next (global) → ok=true |
+| 10 | POST /continuity/run-next sans token → 401 |
+| 11 | Dashboard mis à jour après exécutions |
+| 12 | Invariant : email.send jamais exécuté automatiquement |
+| 13 | POST /mission/fake-id/continue → 404 |
+| 14 | Logs utilisent `event_type` (nouveau schéma, pas `level`) |
+
+### Invariants respectés
+
+| Invariant | Mécanisme |
+|---|---|
+| `email.send` jamais auto-exécuté | `isTaskSafeToRun` : `SEND_TASK_TYPES = {email.send, send_email}` → retourne false |
+| `approval_required=true` jamais auto-exécuté | `isTaskSafeToRun` vérifie `approval_required` |
+| `execute_at` futur respecté | `isTaskSafeToRun` bloque si `execute_at > now` |
+| Aucune migration DB | Toutes les colonnes nécessaires existent (`execute_at`, `status`, `approval_required`) |
+| Blocs 5–9 non cassés | Aucune modification de `approve/cancel/reschedule/run/process-task` |
+| Schéma log respecté | Routes continuity n'émettent pas de logs (execute-task.ts le fait avec `event_type+meta_json`) |
+| Max exécutions limitées | `run-next` : 5 par défaut, 10 max absolu — pas de boucles infinies |
 | Backward compat réponse API | Champ `interpretation` conservé avec les mêmes clés ; `tasks` toujours présent en top-level |

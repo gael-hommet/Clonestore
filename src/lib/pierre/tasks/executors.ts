@@ -37,6 +37,7 @@ export type PierreExecutorFailure = {
     | "MISSING_INFO"
     | "APPROVAL_REQUIRED"
     | "HR_BLOCKED_ACTION"
+    | "AUTONOMY_BLOCKED"
     | "EXECUTION_ERROR";
   message: string;
   log: {
@@ -436,9 +437,15 @@ function executeStructureMission(
   );
 }
 
+// Task types that perform external send actions — blocked when can_execute is false.
+// Draft-producing types (doc.generate, email.draft, pdf.generate, etc.) are always safe to run.
+const SEND_TASK_TYPES = new Set(["email.send", "send_email"]);
+
 /**
- * Garde HR runtime : bloque toute action déclarée comme non-délégable à Pierre.
- * Lit hr_action_class et hr_approval_policy depuis task.payload (injectés au Bloc 1).
+ * Garde HR+autonomie runtime — trois niveaux de protection :
+ * 1. HR hard-block (blocked_without_human / human_only) — invariant, quel que soit le niveau d'autonomie
+ * 2. Autonomy decision block (autonomy_decision.blocked === true) — décision explicite du moteur d'autonomie
+ * 3. can_execute === false sur tâche d'envoi — bloque les envois dangereux, autorise la production de drafts
  * Retourne null si la tâche peut s'exécuter.
  */
 function checkHrGate(task: PierreExecutorTask): PierreExecutorFailure | null {
@@ -448,29 +455,82 @@ function checkHrGate(task: PierreExecutorTask): PierreExecutorFailure | null {
   const hrRiskLevel = asString(payload?.hr_risk_level);
   const humanNote = asString(payload?.human_note);
   const hrTaskKind = asString(payload?.hr_task_kind);
+  const autonomyLevel = asString(payload?.autonomy_level);
 
+  // Gate 1: hard HR block — non-délégable à Pierre, toujours bloqué
   const isHardBlocked =
     hrActionClass === "blocked_without_human" ||
     hrApprovalPolicy === "human_only";
 
-  if (!isHardBlocked) return null;
+  if (isHardBlocked) {
+    return buildFailure({
+      status: "blocked",
+      error_code: "HR_BLOCKED_ACTION",
+      event: "executor_hr_blocked",
+      level: "warning",
+      message:
+        humanNote ||
+        "Action réservée à la décision humaine : Pierre ne peut pas exécuter cette tâche seul.",
+      payload: {
+        task_id: task.id,
+        hr_action_class: hrActionClass,
+        hr_approval_policy: hrApprovalPolicy,
+        hr_risk_level: hrRiskLevel,
+        hr_task_kind: hrTaskKind,
+      },
+    });
+  }
 
-  return buildFailure({
-    status: "blocked",
-    error_code: "HR_BLOCKED_ACTION",
-    event: "executor_hr_blocked",
-    level: "warning",
-    message:
-      humanNote ||
-      "Action réservée à la décision humaine : Pierre ne peut pas exécuter cette tâche seul.",
-    payload: {
-      task_id: task.id,
-      hr_action_class: hrActionClass,
-      hr_approval_policy: hrApprovalPolicy,
-      hr_risk_level: hrRiskLevel,
-      hr_task_kind: hrTaskKind,
-    },
-  });
+  // Gate 2: autonomy decision block — le moteur d'autonomie a explicitement bloqué cette action
+  const autonomyDecision = isObject(payload?.autonomy_decision)
+    ? (payload.autonomy_decision as Record<string, unknown>)
+    : null;
+
+  if (autonomyDecision?.blocked === true) {
+    return buildFailure({
+      status: "blocked",
+      error_code: "AUTONOMY_BLOCKED",
+      event: "executor_autonomy_blocked",
+      level: "warning",
+      message:
+        humanNote ||
+        "Niveau d'autonomie insuffisant : Pierre ne peut pas exécuter cette action de manière autonome.",
+      payload: {
+        task_id: task.id,
+        autonomy_level: autonomyLevel,
+        hr_action_class: hrActionClass,
+        hr_risk_level: hrRiskLevel,
+        hr_task_kind: hrTaskKind,
+      },
+    });
+  }
+
+  // Gate 3: can_execute === false — bloque uniquement les envois dangereux.
+  // La production de drafts (doc.generate, email.draft, pdf.generate…) est toujours safe.
+  const isSendTask =
+    typeof task.type === "string" && SEND_TASK_TYPES.has(task.type);
+
+  if (payload?.can_execute === false && isSendTask) {
+    return buildFailure({
+      status: "blocked",
+      error_code: "AUTONOMY_BLOCKED",
+      event: "executor_autonomy_send_blocked",
+      level: "warning",
+      message:
+        humanNote ||
+        "Envoi bloqué par la politique d'autonomie : validation humaine requise avant tout envoi.",
+      payload: {
+        task_id: task.id,
+        autonomy_level: autonomyLevel,
+        hr_action_class: hrActionClass,
+        hr_risk_level: hrRiskLevel,
+        hr_task_kind: hrTaskKind,
+        task_type: task.type,
+      },
+    });
+  }
+
+  return null;
 }
 
 export async function executePierreTask(

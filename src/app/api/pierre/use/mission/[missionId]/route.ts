@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  buildMissionContinuityInsight,
+  buildContinuePlan,
+} from "../../../../../../lib/pierre/hr/continuity";
 
 type DbRow = Record<string, unknown>;
 
@@ -362,6 +366,10 @@ export async function GET(
 
     const pdfs = extractPdfCandidates(documents);
 
+    const now = new Date();
+    const missionInsight = buildMissionContinuityInsight(mission, tasks, { now });
+    const continuePlan = buildContinuePlan(mission, tasks, { now });
+
     return NextResponse.json({
       ok: true,
       mission,
@@ -371,10 +379,14 @@ export async function GET(
       documents,
       outbound_emails: outboundEmails,
       pdfs,
+      continuity: {
+        mission_insight: missionInsight,
+        continue_plan: continuePlan,
+      },
       meta: {
         missionId,
         userId: auth.userId,
-        fetchedAt: new Date().toISOString(),
+        fetchedAt: now.toISOString(),
         counts: {
           tasks: tasks.length,
           logs: logs.length,
