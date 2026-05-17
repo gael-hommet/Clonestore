@@ -1211,4 +1211,329 @@ Total tests : 472 (380 Blocs 1–9 + 92 Bloc 9 + 107 nouveau — vitest run).
 | Blocs 5–9 non cassés | Aucune modification de `approve/cancel/reschedule/run/process-task` |
 | Schéma log respecté | Routes continuity n'émettent pas de logs (execute-task.ts le fait avec `event_type+meta_json`) |
 | Max exécutions limitées | `run-next` : 5 par défaut, 10 max absolu — pas de boucles infinies |
+
+---
+
+## Bloc 10.5 — Pierre Continuity Engine Hardening Premium
+
+Date : 2026-05-14
+
+### Objectif
+
+Transformer la couche de continuité basique (Bloc 10) en un véritable moteur de pilotage RH opérationnel. Le moteur produit désormais des vues sectionnées, des digests narratifs en français, des résumés de logs/documents, des tâches de suivi automatiques et une traçabilité complète des exécutions run-next.
+
+### Nouveaux types (continuity.ts)
+
+| Type | Description |
+|---|---|
+| `PierreTaskTimeState` | `due_now \| overdue \| scheduled_future \| no_schedule` — état temporel d'une tâche par rapport à `execute_at` |
+| `PierreContinuitySectionKey` | 8 clés opérationnelles : `due_now, overdue, scheduled, awaiting_approval, blocked, failed, completed_recently, safe_to_run` |
+| `PierreContinuitySection` | `{ key, label, task_ids[], count }` — une section opérationnelle |
+| `PierreContinuityDigest` | `{ text: string; tone: "action" \| "waiting" \| "blocked" \| "complete" \| "neutral" }` — digest narratif français |
+| `PierreContinuityLogSummary` | `{ total, last_event_type, last_message, last_at }` — résumé compact des logs |
+| `PierreContinuityDocumentSummary` | `{ total, last_title, last_type, last_at }` — résumé compact des documents |
+
+### Nouvelles fonctions (continuity.ts)
+
+| Fonction | Signature | Description |
+|---|---|---|
+| `classifyTaskTimeState` | `(task, now?) → PierreTaskTimeState` | Classifie l'état temporel d'une tâche |
+| `isTaskCompletedRecently` | `(task, now?, windowMs?) → boolean` | Détecte si une tâche est terminée dans la fenêtre (défaut 24h) |
+| `buildMissionSections` | `(slots, now?) → PierreContinuitySection[]` | Groupe les slots en 8 sections opérationnelles |
+| `summarizeMissionLogs` | `(logs) → PierreContinuityLogSummary` | Résume une liste de logs (schéma `event_type+message`) |
+| `summarizeMissionDocuments` | `(documents) → PierreContinuityDocumentSummary` | Résume une liste de documents |
+| `buildMissionContinuityDigest` | `(insight, sections) → PierreContinuityDigest` | Génère le digest narratif français |
+| `buildDashboardSections` | `(missions, tasksByMissionId, now?) → PierreContinuitySection[]` | Sections agrégées multi-missions |
+| `buildFollowupTaskDraftsForContinue` | `(missionId, plan) → Record<string, unknown>[]` | Génère des tâches de suivi (`reminder.create`, `followup.schedule`) |
+
+### Enrichissements types existants
+
+- `PierreTaskContinuitySlot` : champ `updated_at?: string | null` (optionnel, pour `completed_recently`)
+- `PierreMissionContinuityInsight` : champs optionnels `sections?, digest?, log_summary?, document_summary?`
+- `PierreContinuityDashboardMissionEntry` : champs optionnels `digest?, log_summary?, document_summary?`
+- `PierreContinuityDashboard` : champ optionnel `sections?`
+
+### Enrichissements routes
+
+#### GET /api/pierre/use/continuity
+
+Nouveaux fetch parallèles : `pierre_task_logs` (200 derniers) + `pierre_documents` (100 derniers).
+
+Réponse enrichie :
+```json
+{
+  "ok": true,
+  "dashboard": { "...existing...", "sections": [...8 sections...] },
+  "sections": [...8 sections globales...],
+  "digest": "N tâches exécutables. M tâches en retard...",
+  "meta": { "...existing...", "logs_loaded": N, "documents_loaded": M }
+}
+```
+
+#### POST /api/pierre/use/mission/[id]/continue
+
+Nouveaux fetch : `pierre_task_logs` + `pierre_documents` pour la mission.
+
+Log émis : `mission_continue_plan_generated` (try/catch non-bloquant).
+
+Option `create_followups: true` dans le body : crée des tâches `reminder.create` / `followup.schedule` via `buildFollowupTaskDraftsForContinue`, émet log `continuity_followups_created`.
+
+Réponse enrichie :
+```json
+{
+  "ok": true,
+  "insight": { "...enriched...", "sections": [...], "digest": {...}, "log_summary": {...}, "document_summary": {...} },
+  "plan": { "...existing..." },
+  "followups_created": 0,
+  "meta": { "...existing...", "logs_count": N, "documents_count": M }
+}
+```
+
+#### POST /api/pierre/use/continuity/run-next
+
+`skipped` n'est plus `[]` — chaque entrée a `{ task_id, reason }` avec raison explicite :
+- `"Envoi d'email — déclenchement manuel requis"`
+- `"Approbation humaine requise"`
+- `"Planifiée pour une date future — exécution différée"`
+- `"Limite de tâches atteinte pour cette exécution"`
+
+Logs émis si `mission_id` fourni : `continuity_run_next_started` + `continuity_run_next_completed` (try/catch non-bloquants).
+
+`meta` enrichi : `skipped_count`.
+
+#### GET /api/pierre/use/mission/[id]
+
+`continuity` enrichi :
+```json
+{
+  "mission_insight": { "...enriched with sections, digest, log_summary, document_summary..." },
+  "continue_plan": { "..." },
+  "sections": [...8 sections...],
+  "digest": { "text": "...", "tone": "action" },
+  "log_summary": { "total": N, "last_event_type": "...", "last_message": "...", "last_at": "..." },
+  "document_summary": { "total": M, "last_title": "...", "last_type": "...", "last_at": "..." }
+}
+```
+
+### Tests
+
+| Fichier | Tests avant | Tests après | Delta |
+|---|---|---|---|
+| `hr-continuity.test.ts` | 99 | 170 | +71 |
+| Autres fichiers | 380 | 380 | 0 |
+| **Total** | **479** | **550** | **+71** |
+
+Fonctions testées (Bloc 10.5) : `classifyTaskTimeState`, `isTaskCompletedRecently`, `buildMissionSections`, `summarizeMissionLogs`, `summarizeMissionDocuments`, `buildMissionContinuityDigest`, `buildDashboardSections`, `buildFollowupTaskDraftsForContinue`, enrichissements `buildMissionContinuityInsight`.
+
+### Script E2E Hardening
+
+`scripts/pierre-continuity-hardening-test.ps1` — 16 étapes PS5 :
+
+| Étape | Test |
+|---|---|
+| 1 | GET /continuity sans token → 401 |
+| 2 | GET /continuity → sections + digest présents (v10.5) |
+| 3 | sections a exactement 8 entrées avec les bonnes clés |
+| 4 | POST /submit → mission onboarding créée |
+| 5 | GET /mission/{id} → continuity.sections + continuity.digest présents |
+| 6 | mission_insight.sections (8 entrées) + digest.text + digest.tone |
+| 7 | continuity.log_summary + document_summary présents |
+| 8 | POST /continue → insight.sections + digest + followups_created |
+| 9 | POST /continue avec create_followups=true → followups_created >= 0 |
+| 10 | POST /run-next → skipped enrichi avec task_id + reason |
+| 11 | POST /run-next global → ok=true + skipped présent |
+| 12 | Invariant : email.send jamais exécuté automatiquement |
+| 13 | POST /mission/fake-id/continue → 404 |
+| 14 | POST /run-next sans token → 401 |
+| 15 | GET /continuity → meta.logs_loaded + documents_loaded présents |
+| 16 | Logs utilisent event_type (nouveau schéma, pas level) |
+
+### Invariants Bloc 10.5
+
+| Invariant | Mécanisme |
+|---|---|
+| `email.send` et `send_email` jamais dans followups auto | `buildFollowupTaskDraftsForContinue` n'émet que `reminder.create` et `followup.schedule` |
+| `approval_required=false` sur tous les followups | Hard-codé dans les drafts |
+| Logs non-bloquants | Tous les `tryInsertLog` sont wrappés en try/catch |
+| Sections toujours 8 entrées | `buildMissionSections` et `buildDashboardSections` retournent toutes les 8 clés |
+| Digest a toujours `text` et `tone` | `buildMissionContinuityDigest` retourne les deux champs |
+| Skipped enrichi avec reason | `classifySkipReason` classe chaque candidat non-sélectionné |
+| Blocs 5–10 non cassés | Aucune modification de `approve/cancel/reschedule/run/process-task/continuity v1` |
 | Backward compat réponse API | Champ `interpretation` conservé avec les mêmes clés ; `tasks` toujours présent en top-level |
+
+---
+
+## Bloc 11 — Employee File 360 / Dossier Salarié Opérationnel
+
+Date : 2026-05-17
+
+### Objectif
+
+Construire un **dossier salarié 360 opérationnel** enrichissant chaque mission, tâche et artifact avec le contexte du salarié concerné. Ce n'est pas une vue UI — c'est une couche de données qui permet à Pierre de raisonner sur l'état du dossier d'un salarié à chaque étape de traitement.
+
+### Fichier principal
+
+**`src/lib/pierre/hr/employee-file.ts`** — module pur (pas de Supabase, pas de Next, pas d'async).
+
+Exporte :
+- **Types** : `PierreEmployeeFile360`, `PierreEmployeeFileSnapshot`, `PierreEmployeeFileIndex`, `PierreEmployeeFileProfile`, `PierreEmployeeIdentity`, et 10+ autres types
+- **Fonctions de profil** : `normalizeEmployeeFileProfile`, `resolveEmployeeIdentity`
+- **Matching** : `doesRowBelongToEmployee` — match fort (employee_id, email) + match moyen (nom complet, anti faux-positifs)
+- **Filtrage** : `filterEmployeeMissions`, `filterEmployeeTasks`, `filterEmployeeDocuments`, `filterEmployeeLogs`
+- **Analyse** : `classifyEmployeeFileRisk` (14 signaux, niveaux black/red/orange), `detectEmployeeMissingInfo`
+- **Construction** : `buildEmployeeTimeline`, `buildEmployeeFileSections`, `scoreEmployeeFileHealth`, `buildEmployeeNextActions`, `buildEmployeeFileDigest`
+- **Orchestration** : `buildEmployeeFile360`, `buildEmployeeFileSnapshot`, `buildEmployeeFileIndex`
+
+#### Invariant : ID déterministe
+
+`normalizeEmployeeFileProfile` génère un `employee_id` de fallback basé sur `simpleHash(nom + email)` — pas de `Date.now()`. Même entrée → même ID à travers les invocations.
+
+#### Signaux de risque (RISK_SIGNAL_DEFS)
+
+| Niveau | Exemples de codes |
+|--------|------------------|
+| black | `harcelement`, `discrimination`, `agression`, `prudhommes`, `faute_grave` |
+| red | `licenciement`, `rupture_conventionnelle`, `inaptitude`, `tache_bloquee`, `tache_error` |
+| orange | `offboarding_en_cours`, `onboarding_incomplet`, `info_manquante` |
+
+### Nouvelles routes
+
+| Route | Description |
+|-------|-------------|
+| `GET /api/pierre/use/employee/[employeeId]/file` | Dossier 360 complet d'un salarié |
+| `GET /api/pierre/use/employees/files` | Index global de tous les dossiers |
+
+### Routes enrichies
+
+| Route | Ajout Bloc 11 |
+|-------|---------------|
+| `GET /api/pierre/use/employee/[employeeId]` | `file_snapshot`, `file_digest`, `file_health`, `file_risk_level`, `file_endpoint` |
+| `GET /api/pierre/use/mission/[missionId]` | `employee_file: { available, employee_id, employee_name, snapshot }` |
+| `POST /api/pierre/use/submit` | Snapshot injecté dans `brain_output_json` + `context_snapshot_json` de la mission, et dans `payload_json` de chaque tâche |
+
+### Enrichissement artifacts / execute-task
+
+- **`artifacts.ts`** : `collectEmployeeFileTags(payload)` injecte `employee_file`, `employee:<id>`, `risk:<level>` dans les tags des artifacts document, email et followup quand `payload_json.employee_file_snapshot` est présent
+- **`execute-task.ts`** : `resultJson` inclut `employee_id`, `employee_name`, `employee_file_health_score`, `employee_file_risk_level` issus du snapshot stocké dans `payload_json`
+
+### Tests
+
+**`src/lib/pierre/__tests__/hr-employee-file.test.ts`** — 120+ tests couvrant :
+- normalizeEmployeeFileProfile (valid, deterministic ID, robustness)
+- resolveEmployeeIdentity
+- doesRowBelongToEmployee (direct, nested, email, name, anti false-positive)
+- filterEmployee* (missions/tasks/documents/logs)
+- classifyEmployeeFileRisk (black/red/orange/green, deduplication)
+- detectEmployeeMissingInfo (email, role, department, start_date)
+- buildEmployeeTimeline (sort desc, event types, null dates)
+- buildEmployeeFileSections (9 sections, counts)
+- scoreEmployeeFileHealth (penalties black/red/missing, score bounds)
+- buildEmployeeNextActions (no_action, urgent, blocked, approval)
+- buildEmployeeFileDigest (tones: complete/sensitive/blocked/waiting/action)
+- buildEmployeeFile360 (full object, filtering, status, sections)
+- buildEmployeeFileSnapshot (compact, open_tasks_count, pending_approval_count)
+- buildEmployeeFileIndex (files, totals, attention_required/sensitive/incomplete)
+- Pure module contract (synchronous, no async/Supabase/Next)
+
+### Script E2E
+
+**`scripts/pierre-employee-file360-test.ps1`** — 23 étapes PS5 (mis à jour Bloc 11.1), teste :
+1. 401 sans token
+2–4. GET /employees/files → index.files + index.totals
+5–11. GET /employee/[id]/file → profile, sections, digest, timeline, missing_info, risks
+12–13. POST /submit avec employee_id → GET mission → employee_file present
+14. GET /employee/[id] → file_snapshot present
+15. Logs schema : event_type + meta_json (pas level/event/payload)
+16. Tasks : execute_at (pas scheduled_for comme colonne DB)
+17. index.totals.employees === index.files.Count
+18. Snapshot structure complète (tous champs requis)
+19. file.health.score dans [0, 100]
+20. file.next_actions présent
+21. snapshot.health_score valide (range)
+22. snapshot.risk_level valeur valide (green/orange/red/black)
+23. Résumé PASS/FAIL
+
+### Invariants conservés
+
+| Invariant | Mécanisme Bloc 11 |
+|-----------|-------------------|
+| Colonne DB `execute_at` (pas `scheduled_for`) | Jamais utilisé dans les nouvelles routes ni dans employee-file.ts |
+| Logs : `event_type` + `message` + `meta_json` | Aucune nouvelle écriture de log dans les routes Bloc 11 |
+| `email.send` jamais auto-exécuté | Aucune logique d'exécution ajoutée |
+| `approval_required=true` jamais auto-exécuté | Aucune modification des gates d'exécution |
+| Blocs 1–10.5 non touchés | `approve/cancel/reschedule/process-task/continuity` non modifiés |
+| Module pur sans Supabase/Next | `employee-file.ts` ne dépend d'aucun module DB ou HTTP |
+| Salariés dans `pierre_company_memory.reusable_rh_context_json.employees` | Utilisé par toutes les nouvelles routes via `sanitizePierreEmployeeList` |
+
+### Limites
+
+- Pas d'UI pour le dossier salarié (hors scope Bloc 11)
+- Pas de nouvelle table Supabase, pas de migration DB
+- Le dossier 360 est construit en mémoire à partir des données existantes
+- `buildEmployeeFile360` utilise le filtrage par identity pour limiter les données aux rows du salarié concerné — avec de très gros volumes (>10k tasks), un index jsonb serait préférable
+- `normalizeEmployeeFileProfile` sans id/employee_id génère un ID basé sur nom+email — collision possible si deux salariés ont exactement le même nom et le même email
+
+---
+
+## Bloc 11.1 — Perfection Employee File 360 Premium (2026-05-17)
+
+### Objectif
+
+Solidifier le Bloc 11 avant de passer au Bloc 12 : robustesse totale, 141 tests, script E2E 23 étapes, module pur certifié sans aucun effet de bord non-déterministe.
+
+### Hardening `employee-file.ts`
+
+**Suppression de `crypto.randomUUID()`** — Les 4 fonctions internes de normalisation (`normalizeMission`, `normalizeTask`, `normalizeDocument`, `normalizeLog`) utilisaient `crypto.randomUUID()` comme fallback quand `row.id` est absent. Remplacé par des IDs déterministes basés sur `simpleHash` :
+
+| Fonction | ID fallback |
+|----------|-------------|
+| `normalizeMission` | `m_${simpleHash(summary + intent + created_at)}` |
+| `normalizeTask` | `t_${simpleHash(title + type + created_at)}` |
+| `normalizeDocument` | `d_${simpleHash(title + doc_type + created_at)}` |
+| `normalizeLog` | `l_${simpleHash(message + event_type + created_at)}` |
+
+**Déduplication timeline** — `buildEmployeeTimeline` maintient un `Set<string>` des IDs d'événements (`source_type:source_id`). Si le même row apparaît deux fois dans le même tableau d'entrée, un seul événement est créé.
+
+### Tests (+30 nouveaux → 141 total)
+
+**`hr-employee-file.test.ts`** passe de 111 à 141 tests répartis en 6 nouveaux groupes :
+
+| Groupe | Tests | Contenu |
+|--------|-------|---------|
+| `doesRowBelongToEmployee — context_snapshot_json and brain_output_json` | 5 | context_snapshot_json, brain_output_json nested employee_context, email nested, anti false-positive court nom, sans espace |
+| `classifyEmployeeFileRisk — black: prudhommes and faute grave` | 2 | prud'hommes → black, faute grave → black |
+| `classifyEmployeeFileRisk — red: rupture and offboarding profile` | 2 | rupture conventionnelle → red, statut profil offboarding → red |
+| `classifyEmployeeFileRisk — orange: absence and awaiting_approval` | 2 | absence → orange, awaiting_approval → orange |
+| `detectEmployeeMissingInfo — offboarding and absence` | 5 | end_date/offboarding, absence_details, contract_documents, guard contrat+docs, human_validation |
+| `buildEmployeeTimeline — event type inference` | 5 | document_generated, email_prepared, task_blocked, invalid date, déduplication |
+| `buildEmployeeFile360 — status cases` | 5 | sensitive/black, attention_required/red, incomplete/missing_required, digest sensitive, snapshot latest_event_at |
+| `buildEmployeeFileIndex — category arrays` | 4 | attention_required peuplé, sensitive peuplé, incomplete peuplé, rows malformés ignorés |
+
+### Script E2E (23 étapes)
+
+**Ajout des étapes 19–22 :**
+- Step 19 : `file.health.score` présent et dans `[0, 100]`
+- Step 20 : `file.next_actions` présent
+- Step 21 : `snapshot.health_score` dans `[0, 100]`
+- Step 22 : `snapshot.risk_level` parmi `green/orange/red/black`
+
+### Invariants confirmés Bloc 11.1
+
+- Aucun `crypto.randomUUID()` dans le module pur — 0 effet de bord non-déterministe
+- `simpleHash` : djb2, deterministe, stable entre appels
+- Timeline : déduplication par `${sourceType}:${sourceId}`
+- Toutes les routes : auth 401 + access 403 inchangés
+- `execute_at` (pas `scheduled_for`) confirmé dans toutes les routes
+- `event_type/message/meta_json` (pas `level/event/payload`) confirmé
+
+### Résultats finaux
+
+| Métrique | Bloc 11 | Bloc 11.1 |
+|----------|---------|-----------|
+| Tests hr-employee-file | 111 | **141** |
+| Tests total | 661 | **691** |
+| Fichiers test | 7 | 7 |
+| tsc errors | 0 | **0** |
+| Build | clean | **clean** |
+| `crypto.randomUUID()` dans module pur | 4 appels | **0** |
+| Steps E2E script | 19 | **23** |
