@@ -1,6 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { buildContinuityDashboard } from "../../../../../lib/pierre/hr/continuity";
+import {
+  buildContinuityDashboard,
+  type PierreContinuityDashboard,
+} from "../../../../../lib/pierre/hr/continuity";
+import {
+  buildPierreOperationalFeed,
+  buildFeedSummary,
+  buildPremiumFeedSummary,
+  buildOperationalCommandCenter,
+} from "../../../../../lib/pierre/hr/operational-feed";
+import {
+  buildMissionControlActionFromTask,
+  buildMissionControlMetrics,
+  buildMissionControlDigest,
+  buildMissionControlScaleProfile,
+  sortMissionControlActions,
+} from "../../../../../lib/pierre/hr/mission-control";
+import {
+  buildAuditTrailEvents,
+  buildAuditTrailDiagnostics,
+  scoreAuditTrailHealth,
+  buildAuditTrailDigest,
+  buildAuditTrailAlerts,
+} from "../../../../../lib/pierre/hr/audit-trail";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES
@@ -210,6 +233,80 @@ async function fetchTasksForMissions(
   return (data ?? []) as DbRow[];
 }
 
+async function fetchLogsForMissions(
+  supabaseAdmin: SupabaseClient,
+  missionIds: string[],
+): Promise<DbRow[]> {
+  if (missionIds.length === 0) return [];
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_task_logs")
+    .select("id, task_id, mission_id, event_type, message, created_at")
+    .in("mission_id", missionIds)
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (error) return [];
+  return (data ?? []) as DbRow[];
+}
+
+async function fetchDocumentsForMissions(
+  supabaseAdmin: SupabaseClient,
+  missionIds: string[],
+): Promise<DbRow[]> {
+  if (missionIds.length === 0) return [];
+
+  const { data, error } = await supabaseAdmin
+    .from("pierre_documents")
+    .select("id, mission_id, title, doc_type, created_at")
+    .in("mission_id", missionIds)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error) return [];
+  return (data ?? []) as DbRow[];
+}
+
+// ═══════════════════════════════════════════════════════════
+// DIGEST (global)
+// ═══════════════════════════════════════════════════════════
+
+function buildGlobalDigest(dashboard: PierreContinuityDashboard): string {
+  if (dashboard.missions_total === 0) {
+    return "Aucune mission active — le poste RH est en attente d'instructions.";
+  }
+
+  const sections = dashboard.sections ?? [];
+  const safeCount = sections.find((s) => s.key === "safe_to_run")?.count ?? 0;
+  const overdueCount = sections.find((s) => s.key === "overdue")?.count ?? 0;
+  const dueNowCount = sections.find((s) => s.key === "due_now")?.count ?? 0;
+  const approvalCount = sections.find((s) => s.key === "awaiting_approval")?.count ?? 0;
+  const blockedCount = sections.find((s) => s.key === "blocked")?.count ?? 0;
+  const failedCount = sections.find((s) => s.key === "failed")?.count ?? 0;
+
+  const parts: string[] = [];
+
+  if (dueNowCount > 0) parts.push(`${dueNowCount} tâche(s) à traiter maintenant.`);
+  if (overdueCount > 0) parts.push(`${overdueCount} tâche(s) en retard.`);
+  if (safeCount > 0) parts.push(`${safeCount} tâche(s) exécutable(s) automatiquement.`);
+  if (approvalCount > 0) parts.push(`${approvalCount} tâche(s) en attente d'approbation.`);
+  if (blockedCount > 0) parts.push(`${blockedCount} tâche(s) bloquée(s).`);
+  if (failedCount > 0) parts.push(`${failedCount} tâche(s) en erreur.`);
+  if (dashboard.missions_stalled > 0) {
+    parts.push(
+      `${dashboard.missions_stalled} mission(s) sans progression depuis plus de 3 jours.`,
+    );
+  }
+
+  if (parts.length === 0) {
+    parts.push(
+      `${dashboard.missions_total} mission(s) en cours — aucune action immédiate requise.`,
+    );
+  }
+
+  return parts.join(" ");
+}
+
 // ═══════════════════════════════════════════════════════════
 // GET HANDLER
 // ═══════════════════════════════════════════════════════════
@@ -230,9 +327,13 @@ export async function GET(request: NextRequest) {
       .map((m) => asString(m.id))
       .filter((id): id is string => id !== null);
 
-    const tasks = await fetchTasksForMissions(supabaseAdmin, userId, missionIds);
+    const [tasks, logs, documents] = await Promise.all([
+      fetchTasksForMissions(supabaseAdmin, userId, missionIds),
+      fetchLogsForMissions(supabaseAdmin, missionIds),
+      fetchDocumentsForMissions(supabaseAdmin, missionIds),
+    ]);
 
-    // Group tasks by mission_id
+    // Group tasks, logs, documents by mission_id
     const tasksByMissionId: Record<string, DbRow[]> = {};
     for (const task of tasks) {
       const mId = asString(task.mission_id);
@@ -241,22 +342,139 @@ export async function GET(request: NextRequest) {
       tasksByMissionId[mId].push(task);
     }
 
+    const logsByMissionId: Record<string, DbRow[]> = {};
+    for (const log of logs) {
+      const mId = asString(log.mission_id);
+      if (!mId) continue;
+      if (!logsByMissionId[mId]) logsByMissionId[mId] = [];
+      logsByMissionId[mId].push(log);
+    }
+
+    const documentsByMissionId: Record<string, DbRow[]> = {};
+    for (const doc of documents) {
+      const mId = asString(doc.mission_id);
+      if (!mId) continue;
+      if (!documentsByMissionId[mId]) documentsByMissionId[mId] = [];
+      documentsByMissionId[mId].push(doc);
+    }
+
     const now = new Date();
-    const dashboard = buildContinuityDashboard(
-      userId,
-      missions,
-      tasksByMissionId,
-      { now },
-    );
+    const dashboard = buildContinuityDashboard(userId, missions, tasksByMissionId, {
+      now,
+      logsByMissionId,
+      documentsByMissionId,
+    });
+
+    const digest = buildGlobalDigest(dashboard);
+
+    const operationalFeed = buildPierreOperationalFeed({ missions, tasks, documents, logs, now });
+    const operationalFeedSummary = buildFeedSummary(operationalFeed.items);
+    const premiumFeedSummary = buildPremiumFeedSummary(operationalFeed.items);
+    const commandCenter = buildOperationalCommandCenter(operationalFeed.items);
+    const commandCenterPreview = commandCenter.recommended_order.slice(0, 5);
+
+    // Mission control summary
+    const TERMINAL_STATUSES = new Set(["done", "cancelled"]);
+    const mcActions = tasks
+      .filter((t) => {
+        const s = asString(t.status)?.toLowerCase() ?? "";
+        return !TERMINAL_STATUSES.has(s);
+      })
+      .map((task) => {
+        try {
+          return buildMissionControlActionFromTask(task, now);
+        } catch {
+          return null;
+        }
+      })
+      .filter((a): a is NonNullable<typeof a> => a !== null);
+    const mcSortedActions = sortMissionControlActions(mcActions);
+    const mcMetrics = buildMissionControlMetrics({
+      actions: mcSortedActions,
+      missions: missions as Record<string, unknown>[],
+      snapshots: [],
+      continuityDashboard: dashboard,
+    });
+    const urgentCount = mcSortedActions.filter((a) => a.priority === "urgent").length;
+    const safeToRunCount = mcSortedActions.filter((a) => a.is_safe_to_run).length;
+    const pendingApprovals = mcSortedActions.filter((a) => a.type === "approve_task").length;
+    const blockers = mcSortedActions.filter((a) => a.is_blocking).length;
+    const sensitiveCount = mcSortedActions.filter((a) => a.is_sensitive).length;
+    const deliveriesCount = mcSortedActions.filter((a) => a.is_delivery).length;
+    const globalStatus =
+      sensitiveCount > 0 ? "sensitive" as const
+      : blockers > 0 ? "blocked" as const
+      : urgentCount > 0 ? "attention_required" as const
+      : mcSortedActions.length > 0 ? "active" as const
+      : "clear" as const;
+    const mcDigest = buildMissionControlDigest({
+      status: globalStatus,
+      urgentCount,
+      safeToRunCount,
+      pendingApprovals,
+      blockers,
+      sensitiveCount,
+      deliveries: deliveriesCount,
+    });
+    const missionControlSummary = {
+      status: globalStatus,
+      digest: mcDigest,
+      metrics: mcMetrics,
+      safe_to_run_count: safeToRunCount,
+      pending_approvals: pendingApprovals,
+      blockers,
+      sensitive_count: sensitiveCount,
+    };
+
+    const mcScaleProfile = buildMissionControlScaleProfile();
+    const mcPreview = {
+      status: globalStatus,
+      top_actions: mcSortedActions.slice(0, 5),
+      counts: {
+        safe_to_run: safeToRunCount,
+        needs_human: mcSortedActions.filter((a) => a.requires_human).length,
+        blockers,
+        sensitive: sensitiveCount,
+        deliveries: deliveriesCount,
+      },
+    };
+
+    // Audit trail summary
+    const auditEvents = buildAuditTrailEvents({ missions, tasks, documents, logs });
+    const auditDiag = buildAuditTrailDiagnostics(auditEvents);
+    const auditHealth = scoreAuditTrailHealth(auditEvents);
+    const auditDigestObj = buildAuditTrailDigest(auditEvents);
+    const auditAlerts = buildAuditTrailAlerts(auditEvents);
 
     return NextResponse.json({
       ok: true,
       dashboard,
+      sections: dashboard.sections ?? [],
+      digest,
+      operational_feed_summary: operationalFeedSummary,
+      premium_feed_summary: premiumFeedSummary,
+      command_center_preview: commandCenterPreview,
+      mission_control_summary: missionControlSummary,
+      mission_control: {
+        summary: missionControlSummary,
+        preview: mcPreview,
+        scale_profile: mcScaleProfile,
+      },
+      audit_trail_summary: {
+        diagnostics: auditDiag,
+        health: auditHealth,
+        digest: auditDigestObj,
+        alerts_count: auditAlerts.length,
+        critical_count: auditDiag.critical_count,
+        human_required_count: auditDiag.human_required_count,
+      },
       meta: {
         userId,
         fetchedAt: now.toISOString(),
         missions_loaded: missions.length,
         tasks_loaded: tasks.length,
+        logs_loaded: logs.length,
+        documents_loaded: documents.length,
       },
     });
   } catch (error) {

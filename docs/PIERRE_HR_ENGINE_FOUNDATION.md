@@ -1433,6 +1433,285 @@ Exporte :
 - buildEmployeeFile360 (full object, filtering, status, sections)
 - buildEmployeeFileSnapshot (compact, open_tasks_count, pending_approval_count)
 - buildEmployeeFileIndex (files, totals, attention_required/sensitive/incomplete)
+
+---
+
+## Bloc 13.1 — Mission Control Alignment & Completion
+
+**Date** : 2026-05-17  
+**Statut** : Production-ready (scale non load-testé)
+
+### Objectif
+
+Aligner le nom produit sur **Mission Control** (nom canonique), créer les routes canoniques `/api/pierre/use/mission-control/*`, enrichir toutes les routes existantes avec un bloc `mission_control`, préparer l'architecture cible 100 000+ entreprises.
+
+### Routes canoniques ajoutées
+
+| Route | Méthode | Description |
+|-------|---------|-------------|
+| `/api/pierre/use/mission-control` | GET | Dashboard Mission Control complet |
+| `/api/pierre/use/mission-control/run-plan` | GET | Plan d'exécution sûre (dry_run par défaut) |
+| `/api/pierre/use/mission-control/run-safe` | POST | Exécution sûre avec double vérification de sécurité |
+| `/api/pierre/use/mission-control/briefing` | POST | Briefing Mission Control (instant/daily/weekly) |
+
+Les routes `/dashboard/*` restent actives comme **alias de compatibilité** et redirigent vers les canoniques via `meta.canonical_route` et `meta.compatibility_route`.
+
+### Nouveaux types (mission-control.ts)
+
+| Type | Description |
+|------|-------------|
+| `PierreMissionControlScaleProfile` | Profil de capacité : cible 100 000+ clients, non load-testé |
+| `PierreMissionControlDataWindow` | Fenêtres de données : missions:300, tasks:500, docs:300, logs:500, safe_limit:10 |
+| `PierreMissionControlBriefing` | Briefing complet avec decisions_required, safe_actions, sensitive_cases, scale_profile |
+
+### Nouvelles fonctions (mission-control.ts)
+
+| Fonction | Description |
+|----------|-------------|
+| `buildMissionControlScaleProfile()` | Retourne le profil scale avec `validation_status: "not_load_tested"` |
+| `buildMissionControlDataWindow(overrides?)` | Fenêtres de données par défaut, surchargeables |
+| `buildMissionControlBriefing({dashboard, period, now})` | Construit un briefing MC depuis un dashboard complet |
+| `buildMissionControlPreview(dashboard)` | Vue résumée : status, headline, digest, top_actions (5), counts |
+
+### Routes enrichies (Bloc 13.1)
+
+| Route | Enrichissement |
+|-------|---------------|
+| `GET /dashboard` | `meta.canonical_route`, `meta.compatibility_route`, cap maxSafeActions 10 |
+| `GET /dashboard/run-plan` | `meta.canonical_route`, `meta.hard_max_tasks: 10` |
+| `POST /dashboard/execute-safe` | `meta.canonical_route`, `meta.safety_gate`, `meta.hard_max_tasks` |
+| `GET /messages` | `mission_control: { status, top_actions, counts }` |
+| `GET /messages/[category]` | `mission_control: { status, top_actions, counts, category_relevance }` |
+| `POST /messages/briefing` | `mission_control_briefing`, `mission_control_preview` |
+| `GET /mission/[missionId]` | `mission_control: { card, actions, next_action, is_blocked, requires_human, is_sensitive }` |
+| `GET /employee/[employeeId]/file` | `mission_control: { card, actions, next_action, requires_human, is_sensitive }` |
+| `GET /continuity` | `mission_control: { summary, preview, scale_profile }` (compatible avec l'existant `mission_control_summary`) |
+
+### Architecture Scale
+
+```
+target_active_clients: 100 000
+validated_active_clients: null
+validation_status: "not_load_tested"
+```
+
+**Architecture pensée pour 100 000+ entreprises actives.** Capacité non garantie sans load tests. Un Bloc Scale dédié est requis avant toute promesse technique ferme sur la montée en charge.
+
+Fenêtres de données (DataWindow) :
+- `missions_limit: 300`
+- `tasks_limit: 500`
+- `documents_limit: 300`
+- `logs_limit: 500`
+- `employees_limit: 500`
+- `safe_execution_hard_limit: 10`
+
+### Sécurité run-safe
+
+Double vérification à l'exécution dans `/mission-control/run-safe` :
+1. `buildMissionControlRunPlan` filtre les actions non sûres
+2. `BLOCKED_TASK_TYPES.has(taskType)` — blocage absolu `email.send`, `send_email`
+3. `isMissionControlSafeToRun` — re-vérification au moment de l'exécution
+
+### Indexes SQL (Bloc 13.1)
+
+Fichier : `supabase/sql/pierre_mission_control_indexes_v1.sql`
+
+Indexes ajoutés :
+- `pierre_tasks` : status+approval, priority desc, execute_at, error/blocked, approval pending
+- `pierre_missions` : risk_level, understanding_status, active missions
+- `pierre_task_logs` : event_type + created_at, mission grouping
+
+---
+
+## Bloc 14 — CloneGuard Runtime Governance
+
+### Vue d'ensemble
+
+CloneGuard est le moteur de gouvernance runtime de Pierre. Il évalue chaque action RH avant toute exécution automatique et catégorise le risque en 5 décisions : `allow`, `allow_with_warning`, `require_approval`, `block`, `refuse`.
+
+**Contrainte absolue** : aucune action sensible ne peut franchir la porte d'exécution automatique sans validation humaine.
+
+### Module pur (src/lib/pierre/hr/cloneguard.ts)
+
+Module 100% pur — zero Supabase, zero Next.js, zero effets de bord, zero async.
+
+**Types exportés** :
+- `PierreCloneGuardContext` — contexte d'une action : task_type, task_title, task_description, payload_json, approval_required, domain, risk_level_hint, text_corpus, now
+- `PierreCloneGuardEvaluation` — résultat complet : decision, risk_level, signals, matched_rules, allowed_to_auto_execute, requires_human, explanation, human_note, evaluated_at
+- `PierreCloneGuardPreview` — résumé léger : decision, risk_level, signal_count, top_signal, allowed_to_auto_execute, summary
+- `PierreCloneGuardAuditEvent` — événement d'audit : event_type + message + meta_json (jamais level/event/payload)
+
+**Fonctions exportées** :
+
+| Fonction | Rôle |
+|---|---|
+| `evaluatePierreCloneGuard(ctx)` | Évaluation complète — 24 règles |
+| `isCloneGuardAutoExecutable(ctx)` | Fast path — retourne false immédiatement pour types bloqués |
+| `applyCloneGuardToTask(task, eval)` | Enrichit une tâche sans la muter |
+| `buildCloneGuardAuditEvent(eval, ctx?)` | Construit l'événement d'audit |
+| `buildCloneGuardPreview(eval)` | Construit le preview léger |
+| `summarizeCloneGuardEvaluation(eval)` | Résumé textuel lisible |
+| `collectCloneGuardText(ctx)` | Collecte + normalise (NFD + diacritics) tous les textes |
+| `detectCloneGuardSignals(ctx, text?)` | Détecte les signaux de risque |
+
+### Hiérarchie des décisions
+
+```
+allow(0) < allow_with_warning(1) < require_approval(2) < block(3) < refuse(4)
+```
+
+La fonction `worstDecision` garantit l'escalade : plusieurs règles qui matchent n'améliorent jamais la décision.
+
+### 24 règles de politique (getPierreCloneGuardPolicyRules)
+
+**REFUSE (noir — non négociable)** :
+1. `harcelement_refuse` — harcèlement dans le texte
+2. `discrimination_refuse` — discrimination dans le texte
+3. `violence_refuse` — violence/agression dans le texte
+4. `prudhommes_refuse` — prud'hommes/contentieux dans le texte
+5. `faute_grave_refuse` — faute grave/lourde dans le texte
+6. `dismissal_action_refuse` — type `decision_licenciement` / `decision_discriminatoire` / juridique sensible
+7. `disciplinary_decision_refuse` — type `decision_sanction` / `resolution_conflit_humain`
+
+**BLOCK (exécution manuelle possible)** :
+8. `email_send_block` — type `email.send` ou `send_email` — jamais auto-exécuté
+9. `approval_required_block` — `approval_required=true`
+10. `judiciaire_block` — "judiciaire" dans le texte
+
+**REQUIRE_APPROVAL (rouge)** :
+11. `contract_action_require` — type `contrat`, `avenant`, `document_contractuel`
+12. `disciplinary_prep_require` — type `courrier_disciplinaire_prep`, `conflit_prelim`
+13. `absence_action_require` — type `absence_sensible`, `sujet_medical`, `offboarding_sensible`
+14. `payroll_action_require` — type `prepaie_prep`, `remuneration`
+15. `licenciement_text_require` — "licenci" dans le texte (hors dismissal_action)
+16. `rupture_conventionnelle_require` — "rupture_conv" dans le texte
+17. `offboarding_text_require` — "offboarding" dans le texte (hors dismissal_action)
+18. `risk_hint_red_require` — risk_level_hint red ou black
+
+**ALLOW_WITH_WARNING (orange)** :
+19. `email_draft_warn` — type `email.draft`
+20. `doc_generate_warn` — type `doc.generate`
+21. `validation_recommended_warn` — types recommandant relecture
+22. `sensitive_domain_warn` — domain `sensitive_case`
+23. `disciplinaire_text_warn` — "disciplin" dans texte (hors décision/prep identifié)
+24. `risk_hint_orange_warn` — risk_level_hint orange
+
+### allowed_to_auto_execute
+
+`false` si **l'une** des conditions suivantes est vraie :
+- `decision !== "allow"`
+- `task_type` est `email.send` ou `send_email`
+- `approval_required === true`
+- `risk_level` ≥ red
+
+### Normalisation de texte
+
+`collectCloneGuardText` applique NFD decomposition + suppression des diacritiques avant la détection de signaux. Ainsi "harcèlement" match le pattern `/harcel/`.
+
+### Signaux textuels (TEXT_SIGNAL_DEFS)
+
+| Pattern | Signal | Niveau |
+|---|---|---|
+| `harcel` | Harcèlement signalé | black |
+| `discrimin` | Discrimination signalée | black |
+| `agress\|violen` | Violence / Agression | black |
+| `prudhomm\|prud.?homm` | Prud'hommes | black |
+| `faute.?grave\|faute.?lourde` | Faute grave | black |
+| `licenci` | Licenciement | red |
+| `rupture.?conv` | Rupture conventionnelle | red |
+| `disciplin` | Disciplinaire | red |
+| `judiciaire` | Judiciaire | red |
+| `offboarding` | Offboarding sensible | red |
+| `critiqu` | Situation critique | red |
+
+### Routes API (Bloc 14)
+
+| Route | Méthode | Rôle |
+|---|---|---|
+| `/api/pierre/use/cloneguard/evaluate` | POST | Évaluation complète + audit log |
+| `/api/pierre/use/cloneguard/preview` | POST | Preview léger — pas d'audit |
+
+Les deux routes partagent `buildContextFromBody` qui mappe `{ action_kind, domain, input, mission, task, employee_file }` vers `PierreCloneGuardContext`.
+
+### Intégration dans les routes existantes
+
+CloneGuard est intégré dans :
+- **`/api/pierre/use/submit`** — évaluation sur le plan généré (domain, risk_level, approval_required)
+- **`execute-task.ts`** — porte d'exécution : refuse + block stoppent la tâche avec audit
+- **`/mission-control/run-safe`** — pre-flight `isCloneGuardAutoExecutable` sur chaque action
+- **`/mission-control/run-plan`** — annotation CloneGuard sur chaque action (`cgAnnotatedActions`)
+- **`/mission-control`** — `cloneguard.safe_actions_evaluated / blocked_in_safe`
+- **`/mission-control/briefing`** — `cloneguard.blocked_in_safe`
+- **`/continuity/run-next`** — porte CloneGuard dans la boucle + log `cloneguard_continuity_blocked`
+- **`/mission/[missionId]/continue`** — enrichissement de `safe_to_run` + log `cloneguard_continue_evaluated`
+- **`/mission/[missionId]`** — champ `cloneguard` dans la réponse mission
+- **`/employee/[employeeId]/file`** — `cloneguard_summary` sur les actions employé
+
+### Schéma d'audit (nouveau schéma Bloc 14)
+
+Tous les événements CloneGuard utilisent **exclusivement** :
+```
+event_type: "cloneguard_evaluation" | "cloneguard_execution_blocked" | "cloneguard_signal_detected"
+           | "cloneguard_manual_evaluation" | "cloneguard_continuity_blocked"
+           | "cloneguard_continue_evaluated"
+message: string (explication humaine)
+meta_json: { decision, risk_level, signal_count, signals, matched_rules, allowed_to_auto_execute, task_type?, domain? }
+```
+
+**Jamais** `level`, `event`, ni `payload` dans les logs CloneGuard.
+
+### Indexes SQL (Bloc 14)
+
+Fichier : `supabase/sql/pierre_cloneguard_indexes_v1.sql`
+
+9 indexes (IF NOT EXISTS — idempotent) :
+- `pierre_tasks` : approval_status, type_status, execute_at (partial), ready_retry (partial), payload_json GIN
+- `pierre_missions` : approval_risk, active_risk (partial), context_snapshot_json GIN
+- `pierre_task_logs` : event_type+created, cloneguard_events (partial sur les 6 event_types CloneGuard), meta_json GIN
+
+### Tests (Bloc 14)
+
+| Fichier | Tests | Couverture |
+|---|---|---|
+| `src/lib/pierre/__tests__/hr-cloneguard.test.ts` | 145 | 16 describe groups — toutes les fonctions exportées |
+| `src/lib/pierre/__tests__/hr-cloneguard-runtime.test.ts` | 81 | Pipeline runtime — context → evaluation → preview → audit |
+
+**Script E2E** : `scripts/pierre-cloneguard-runtime-test.ps1` — 47 steps, PS5 compatible.
+
+### Contraintes absolues
+
+1. Jamais `scheduled_for` — la colonne DB est `execute_at`
+2. Jamais `level/event/payload` dans pierre_task_logs — schéma : `event_type + message + meta_json`
+3. Jamais auto-exécuter : `email.send`, `send_email`, `approval_required=true`, CloneGuard red/black sans validation humaine, actions légales/disciplinaires/sensibles
+4. Le module pur `cloneguard.ts` n'a aucune dépendance Supabase/Next/async
+5. CloneGuard explique toujours pourquoi : authorize, require_validation, block, ou refuse
+6. `applyCloneGuardToTask` ne mute jamais l'objet d'origine
+- `pierre_documents` : status+doc_type, mission grouping
+- `pierre_company_memory` : updated_at desc (employee snapshot fetch)
+
+### Tests
+
+**`src/lib/pierre/__tests__/hr-mission-control.test.ts`** — **198 tests** couvrant :
+- Groupes 1-19 (Bloc 13) : isMissionControlSafeToRun, isMissionControlSensitive, isMissionControlBlocking, inferMissionControlActionType, classifyMissionControlQueue, buildMissionControlAction*(Task/Mission/Document/EmployeeSnapshot/FeedItem), buildMissionControlMissionCard, buildMissionControlEmployeeCard, buildMissionControlMetrics, buildMissionControlQueues, sortMissionControlActions, buildMissionControlDigest, buildMissionControlExecutiveBriefing, buildMissionControlRunPlan, buildMissionControlDashboard
+- Groupe 20 : **buildMissionControlScaleProfile** (6 tests)
+- Groupe 21 : **buildMissionControlDataWindow** (5 tests)
+- Groupe 22 : **buildMissionControlBriefing** (12 tests)
+- Groupe 23 : **buildMissionControlPreview** (10 tests)
+- Groupe 24 : **Security** — blocked types, approval gates, future execute_at, hard cap (8 tests)
+- Groupe 25 : **Robustness** — null/malformed inputs (12 tests)
+- Groupe 26 : **Scale architecture assertions** (7 tests)
+
+### Script E2E
+
+**`scripts/pierre-mission-control-test.ps1`** — **60 étapes** PS5 compatible :
+- Étapes 1-35 (Bloc 13) : routes /dashboard/*, /continuity
+- Étapes 36-43 : routes canoniques /mission-control (GET)
+- Étapes 44-46 : /mission-control/run-plan
+- Étapes 47-49 : /mission-control/run-safe
+- Étapes 50-53 : /mission-control/briefing
+- Étapes 54-56 : vérification canonical_route sur routes /dashboard/*
+- Étapes 57-59 : /continuity mission_control block
+- Étape 60 : period=daily honored
 - Pure module contract (synchronous, no async/Supabase/Next)
 
 ### Script E2E
@@ -1537,3 +1816,635 @@ Solidifier le Bloc 11 avant de passer au Bloc 12 : robustesse totale, 141 tests,
 | Build | clean | **clean** |
 | `crypto.randomUUID()` dans module pur | 4 appels | **0** |
 | Steps E2E script | 19 | **23** |
+
+---
+
+## Bloc 12 — Pierre Operational Feed / Messages / Alertes / Briefings
+
+**Objectif :** Fournir un feed opérationnel structuré (alertes, suivis, livraisons, briefings) exploitable directement par les intégrations externes ou futurs dashboards.
+
+### Module pur `src/lib/pierre/hr/operational-feed.ts`
+
+| Catégorie | Valeurs |
+|-----------|---------|
+| Categories | `alert`, `follow_up`, `delivery`, `briefing` |
+| Severités | `critical`, `warning`, `success`, `info` |
+| Priorités | `urgent`, `high`, `normal`, `low` |
+| Sources | `mission`, `task`, `document`, `log`, `employee_file`, `continuity` |
+| Périodes briefing | `instant`, `daily`, `weekly`, `monthly` |
+
+**16 fonctions exportées :**
+
+| Fonction | Rôle |
+|----------|------|
+| `normalizeFeedDate` | Normalise date depuis string/Date/timestamp → ISO string ou null |
+| `buildDeterministicFeedId` | ID déterministe `feed_${hash}` sans crypto.randomUUID() |
+| `inferFeedCategory` | Déduit la catégorie selon sourceType + contenu + keywords |
+| `inferFeedSeverity` | Déduit la sévérité |
+| `inferFeedPriority` | Déduit la priorité |
+| `buildFeedItemFromMission` | Item feed depuis une row mission |
+| `buildFeedItemFromTask` | Item feed depuis une row tâche |
+| `buildFeedItemFromDocument` | Item feed depuis une row document (delivery+success) |
+| `buildFeedItemFromLog` | Item feed depuis une row log (lit `event_type` — schéma correct) |
+| `buildFeedItemFromEmployeeFileSnapshot` | Item feed depuis snapshot salarié |
+| `dedupeFeedItems` | Déduplication par id — garde priorité la plus haute |
+| `sortFeedItems` | Tri : priorité desc → sévérité desc → action_required → date desc → title |
+| `buildFeedSummary` | Résumé agrégé (total + 4 catégories + 4 priorités + 4 sévérités + action_required) |
+| `buildFeedSections` | Toujours 4 sections dans l'ordre : alert → follow_up → delivery → briefing |
+| `buildOperationalBriefing` | Briefing narré avec stats, highlights, risks, next_actions |
+| `buildPierreOperationalFeed` | Point d'entrée principal — assemble tout |
+
+### Routes créées
+
+| Route | Méthode | Rôle |
+|-------|---------|------|
+| `/api/pierre/use/messages` | GET | Feed complet (filtres: limit, priority, severity, action_required, include_raw) |
+| `/api/pierre/use/messages/[category]` | GET | Feed filtré par categorie (400 + INVALID_MESSAGE_CATEGORY si invalide) |
+| `/api/pierre/use/messages/briefing` | POST | Génère un briefing + log `operational_briefing_generated` (non-bloquant) |
+
+### Routes enrichies
+
+| Route | Ajout |
+|-------|-------|
+| `GET /api/pierre/use/continuity` | `operational_feed_summary` |
+| `GET /api/pierre/use/mission/[missionId]` | `operational_messages: { items, summary }` |
+| `GET /api/pierre/use/employee/[employeeId]/file` | `operational_messages: { items, summary }` |
+
+### Tests `hr-operational-feed.test.ts` (138 tests)
+
+| Groupe | Tests |
+|--------|-------|
+| `normalizeFeedDate` | 7 |
+| `buildDeterministicFeedId` | 6 |
+| `inferFeedCategory` | 12 |
+| `inferFeedSeverity` | 9 |
+| `inferFeedPriority` | 9 |
+| `buildFeedItemFromMission` | 7 |
+| `buildFeedItemFromTask` | 9 |
+| `buildFeedItemFromDocument` | 6 |
+| `buildFeedItemFromLog` | 7 |
+| `buildFeedItemFromEmployeeFileSnapshot` | 9 |
+| `dedupeFeedItems` | 6 |
+| `sortFeedItems` | 7 |
+| `buildFeedSummary` | 6 |
+| `buildFeedSections` | 6 |
+| `buildOperationalBriefing` | 9 |
+| `buildPierreOperationalFeed` | 9 |
+| `Robustness` | 8 |
+| `Pure module contract` | 6 |
+
+### Script E2E `pierre-operational-feed-test.ps1` (25 étapes PS5)
+
+Étapes : GET /messages sans auth → 401, GET /messages avec auth → 200, feed/summary/sections présents, 4 catégories, GET /messages/alert|follow_up|delivery|briefing, catégorie invalide → 400, filtres limit/priority/action_required, POST /messages/briefing instant/daily/weekly/monthly, briefing.id commence par `brief_`, briefing.stats.total, meta.period, summary cohérence total=catégories, continuity inclut operational_feed_summary, mission soumiset détail avec operational_messages, items avec champs requis, PASS/FAIL.
+
+### Résultats finaux Bloc 12
+
+| Métrique | Bloc 11.1 | Bloc 12 |
+|----------|-----------|---------|
+| Tests hr-operational-feed | — | **138** |
+| Tests total | 691 | **829** |
+| Fichiers test | 7 | **8** |
+| tsc errors | 0 | **0** |
+| Build | clean | **clean** |
+| Routes créées | — | **3** |
+| Routes enrichies | — | **3** |
+
+---
+
+## Bloc 12.1 — Pierre Operational Feed Premium Hardening
+
+**Objectif :** Enrichir le feed opérationnel avec des champs premium (intent, action_target, is_sensitive, is_blocking, is_delivery, is_briefing, display_context, action_kind), corriger le bug de classification briefing/delivery, et fournir un centre de commandement opérationnel structuré.
+
+### Correction bug Bloc 12.1
+
+Dans `inferFeedCategory`, la vérification `delivery` (basée sur `eventType.includes("generated")`) était évaluée **avant** la vérification `briefing`. `operational_briefing_generated` contient les deux mots — `briefing` et `generated` — ce qui le classifiait incorrectement en `delivery`.
+
+**Fix :** L'ordre d'inférence est désormais : Alert → **Briefing** → Delivery → Follow_up.
+
+```
+// Avant (Bloc 12)
+if (eventType.includes("generated")) return "delivery";
+if (eventType.includes("briefing"))  return "briefing"; // jamais atteint pour operational_briefing_generated
+
+// Après (Bloc 12.1)
+if (eventType.includes("briefing"))  return "briefing"; // priorité correcte
+if (eventType.includes("generated")) return "delivery";
+```
+
+### Nouveaux types exportés
+
+| Type | Description |
+|------|-------------|
+| `PierreOperationalIntent` | 10 valeurs — intent opérationnel inféré de chaque item |
+| `PierreOperationalFeedActionKind` | 10 valeurs — type d'action recommandée |
+| `PierreOperationalFeedActionTarget` | Cible d'action avec href, method, ids |
+| `PierrePremiumFeedSummary` | Résumé premium avec headline, status, compteurs |
+| `PierreOperationalCommandCenter` | Centre de commandement avec listes catégorisées |
+
+### Nouveaux champs `PierreOperationalFeedItem`
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `intent` | `PierreOperationalIntent` | Intent opérationnel inféré |
+| `action_kind` | `PierreOperationalFeedActionKind` | Type d'action recommandée |
+| `action_target` | `PierreOperationalFeedActionTarget \| null` | Cible d'action cliquable |
+| `display_context` | `string \| null` | Libellé contextuel affiché |
+| `is_sensitive` | `boolean` | Item RH sensible |
+| `is_blocking` | `boolean` | Item bloquant une progression |
+| `is_delivery` | `boolean` | Item livraison d'artefact |
+| `is_briefing` | `boolean` | Item briefing périodique |
+
+### Nouvelles fonctions exportées
+
+| Fonction | Description |
+|----------|-------------|
+| `normalizeFeedCategoryAlias` | Normalise aliases FR/EN vers catégorie canonique |
+| `inferOperationalIntent` | Infère l'intent opérationnel d'un item |
+| `buildFeedActionTarget` | Construit la cible d'action avec href |
+| `buildFeedDisplayContext` | Construit le libellé contextuel d'affichage |
+| `buildPremiumFeedSummary` | Construit le résumé premium avec status global |
+| `buildOperationalCommandCenter` | Construit le centre de commandement |
+
+### Routes mises à jour
+
+| Route | Ajouts Bloc 12.1 |
+|-------|-----------------|
+| `GET /messages` | `premium_summary`, `command_center`, `inbox_counters`, `next_action`, `top_alert`, `latest_delivery`, `latest_briefing`; filtres: `category`, `employee_id`, `mission_id`, `task_id`, `intent`, `sensitive`, `blocking` |
+| `GET /messages/[category]` | Aliases FR (`alertes`, `suivis`, `livraisons`, `briefings`); `category_label`, `premium_summary`, `command_center` |
+| `POST /messages/briefing` | `premium_summary`, `command_center`, `feed_preview`; champs premium dans briefing |
+| `GET /continuity` | `premium_feed_summary`, `command_center_preview` |
+| `GET /mission/[id]` | `operational_premium_summary`, `operational_next_action` |
+| `GET /employee/[id]/file` | `operational_premium_summary`, `operational_next_action` |
+
+### Champs premium `PierreOperationalBriefing`
+
+| Champ | Type |
+|-------|------|
+| `executive_summary` | `string` |
+| `risk_summary` | `string \| null` |
+| `delivery_summary` | `string \| null` |
+| `followup_summary` | `string \| null` |
+| `validation_summary` | `string \| null` |
+| `recommended_next_actions` | `string[]` |
+| `employee_focus` | `string \| null` |
+| `mission_focus` | `string \| null` |
+
+### Tests Bloc 12.1 — groupes ajoutés
+
+| Groupe | Tests |
+|--------|-------|
+| `normalizeFeedCategoryAlias` | 14 |
+| `inferFeedCategory — bug fix Bloc 12.1` | 7 |
+| `inferOperationalIntent` | 15 |
+| `buildFeedActionTarget` | 10 |
+| `buildFeedDisplayContext` | 7 |
+| `Premium fields on feed item builders` | 10 |
+| `buildPremiumFeedSummary` | 10 |
+| `buildOperationalCommandCenter` | 10 |
+| `buildOperationalBriefing — premium fields` | 11 |
+| `buildPierreOperationalFeed — premium output` | 8 |
+| **Total nouveaux** | **102** |
+
+### Script E2E `pierre-operational-feed-test.ps1` (44 étapes PS5)
+
+44 étapes couvrant : auth, feed premium, aliases FR, filtres premium (sensitive, blocking, category, intent, employee_id), briefing premium fields (executive_summary, recommended_next_actions, premium_summary, feed_preview), routes enrichies (continuity premium_feed_summary, mission operational_premium_summary), items premium fields.
+
+### Résultats finaux Bloc 12.1
+
+| Métrique | Bloc 12 | Bloc 12.1 |
+|----------|---------|-----------|
+| Tests hr-operational-feed | 138 | **240** |
+| Tests total | 829 | **931** |
+| Fichiers test | 8 | **8** |
+| tsc errors | 0 | **0** |
+| Build | clean | **clean** |
+| Nouvelles fonctions exportées | — | **6** |
+| Nouveaux types exportés | — | **5** |
+| Champs premium item | — | **8** |
+
+---
+
+## Bloc 13 — Pierre Mission Control — Centre de pilotage opérationnel
+
+### Objectif
+
+Transformer tous les blocs existants (missions, tâches, continuité, dossier employé 360, feed opérationnel) en un vrai poste de commandement opérationnel RH. Pierre dit ce qu'il a fait, ce qui est prêt, ce qui nécessite validation, ce qui est bloqué, ce qui est sensible, ce qui est en retard, quelles livraisons sont disponibles, quels dossiers employés nécessitent attention, ce que Pierre recommande maintenant, ce qui peut être lancé automatiquement et ce qui ne doit jamais l'être sans humain.
+
+### Fichiers créés / modifiés
+
+| Fichier | Rôle |
+|---------|------|
+| `src/lib/pierre/hr/mission-control.ts` | Module pur — 14 types, 19 fonctions exportées |
+| `src/app/api/pierre/use/dashboard/route.ts` | GET /api/pierre/use/dashboard — tableau de bord complet |
+| `src/app/api/pierre/use/dashboard/run-plan/route.ts` | GET /api/pierre/use/dashboard/run-plan — plan d'exécution |
+| `src/app/api/pierre/use/dashboard/execute-safe/route.ts` | POST /api/pierre/use/dashboard/execute-safe — exécution des tâches sûres |
+| `src/app/api/pierre/use/continuity/route.ts` | Enrichi — ajout de `mission_control_summary` |
+| `src/lib/pierre/__tests__/hr-mission-control.test.ts` | 137 tests — toutes les fonctions exportées |
+| `scripts/pierre-mission-control-test.ps1` | Script E2E PS5 — 35 étapes |
+| `package.json` | `test` script — ajout de `hr-mission-control.test.ts` |
+
+### Types exportés (mission-control.ts)
+
+| Type | Description |
+|------|-------------|
+| `PierreMissionControlStatus` | `clear \| active \| attention_required \| blocked \| sensitive` |
+| `PierreMissionControlPriority` | `urgent \| high \| normal \| low` |
+| `PierreMissionControlQueueKey` | 11 clés de file d'attente |
+| `PierreMissionControlActionType` | 12 types d'action |
+| `PierreMissionControlSourceType` | 8 types de source |
+| `PierreMissionControlAction` | Action individuelle avec toutes les métadonnées |
+| `PierreMissionControlQueue` | File d'attente avec actions et compteur |
+| `PierreMissionControlMetric` | Métrique clé/valeur/severity |
+| `PierreMissionControlMissionCard` | Carte synthèse d'une mission |
+| `PierreMissionControlEmployeeCard` | Carte synthèse d'un dossier employé |
+| `PierreMissionControlExecutiveBriefing` | Briefing exécutif structuré |
+| `PierreMissionControlRunPlan` | Plan d'exécution des tâches sûres |
+| `PierreMissionControlDigest` | Digest avec tone et texte |
+| `PierreMissionControlDashboard` | Dashboard complet retourné par le GET /dashboard |
+
+### Fonctions exportées (mission-control.ts)
+
+| Fonction | Rôle |
+|----------|------|
+| `isMissionControlSafeToRun` | Vérifie si une tâche peut être lancée automatiquement |
+| `isMissionControlSensitive` | Détecte les indicateurs de sensibilité RH |
+| `isMissionControlBlocking` | Détecte les blocages actifs |
+| `inferMissionControlActionType` | Infère le type d'action d'une ligne DB |
+| `classifyMissionControlQueue` | Classe une action dans une file d'attente |
+| `buildMissionControlActionFromTask` | Construit une action depuis une tâche |
+| `buildMissionControlActionFromMission` | Construit une action depuis une mission |
+| `buildMissionControlActionFromDocument` | Construit une action depuis un document (livraison) |
+| `buildMissionControlActionFromEmployeeSnapshot` | Construit une action depuis un snapshot employé |
+| `buildMissionControlActionFromFeedItem` | Construit une action depuis un item de feed |
+| `buildMissionControlMissionCard` | Construit une carte synthèse mission |
+| `buildMissionControlEmployeeCard` | Construit une carte synthèse employé |
+| `buildMissionControlMetrics` | Calcule les métriques globales |
+| `buildMissionControlQueues` | Répartit les actions dans 11 files d'attente |
+| `sortMissionControlActions` | Trie les actions par priorité |
+| `buildMissionControlDigest` | Génère le digest opérationnel |
+| `buildMissionControlExecutiveBriefing` | Génère le briefing exécutif |
+| `buildMissionControlRunPlan` | Génère le plan d'exécution des tâches sûres |
+| `buildMissionControlDashboard` | Construit le tableau de bord complet |
+
+### Constantes de sécurité
+
+| Constante | Valeur |
+|-----------|--------|
+| `BLOCKED_TASK_TYPES` | `email.send`, `send_email` — jamais exécutés automatiquement |
+| `SAFE_RUN_STATUSES` | `ready`, `retry` |
+| `TERMINAL_STATUSES` | `done`, `cancelled` |
+| `NON_EXECUTABLE_STATUSES` | `done`, `cancelled`, `error`, `awaiting_approval` |
+| `SENSITIVE_KEYWORDS` | `/harcel\|licenci\|disciplin\|faute.?grave\|judiciaire\|prudhomm\|discrimin\|agress\|offboarding\|critiqu/` |
+
+### Routes Bloc 13
+
+| Route | Méthode | Description |
+|-------|---------|-------------|
+| `/api/pierre/use/dashboard` | GET | Tableau de bord complet — status, queues, actions, métriques, briefing |
+| `/api/pierre/use/dashboard/run-plan` | GET | Plan d'exécution — `?max=N&dry_run=false` |
+| `/api/pierre/use/dashboard/execute-safe` | POST | Exécution réelle des tâches sûres — body `{max: N}` |
+| `/api/pierre/use/continuity` | GET | Enrichi — ajout `mission_control_summary` |
+
+### Les 11 files d'attente (queues)
+
+| Clé | Description |
+|-----|-------------|
+| `do_now` | Actions urgentes à traiter immédiatement |
+| `safe_to_run` | Tâches exécutables automatiquement |
+| `approvals` | Validations humaines en attente |
+| `blocked` | Blocages actifs à résoudre |
+| `errors` | Erreurs à investiguer |
+| `sensitive` | Cas sensibles — revue humaine obligatoire |
+| `deliveries` | Livraisons disponibles |
+| `scheduled` | Tâches planifiées (execute_at futur) |
+| `waiting_info` | En attente d'information |
+| `employee_attention` | Dossiers employés nécessitant attention |
+| `monitoring` | Monitoring passif |
+
+### Tests Bloc 13 — groupes
+
+| Groupe | Tests |
+|--------|-------|
+| `isMissionControlSafeToRun` | 11 |
+| `isMissionControlSensitive` | 10 |
+| `isMissionControlBlocking` | 7 |
+| `inferMissionControlActionType` | 11 |
+| `classifyMissionControlQueue` | 12 |
+| `buildMissionControlActionFromTask` | 10 |
+| `buildMissionControlActionFromMission` | 6 |
+| `buildMissionControlActionFromDocument` | 4 |
+| `buildMissionControlActionFromEmployeeSnapshot` | 3 |
+| `buildMissionControlActionFromFeedItem` | 2 |
+| `buildMissionControlMissionCard` | 7 |
+| `buildMissionControlEmployeeCard` | 4 |
+| `buildMissionControlMetrics` | 6 |
+| `buildMissionControlQueues` | 5 |
+| `sortMissionControlActions` | 4 |
+| `buildMissionControlDigest` | 6 |
+| `buildMissionControlRunPlan` | 8 |
+| `buildMissionControlExecutiveBriefing` | 7 |
+| `buildMissionControlDashboard` | 14 |
+| **Total** | **137** |
+
+### Résultats finaux Bloc 13
+
+| Métrique | Bloc 12.1 | Bloc 13 |
+|----------|-----------|---------|
+| Tests hr-mission-control | — | **137** |
+| Tests total | 931 | **1068** |
+| Fichiers test | 8 | **9** |
+| tsc errors | 0 | **0** |
+| Build | clean | **clean** |
+| Nouveaux types exportés | — | **14** |
+| Nouvelles fonctions exportées | — | **19** |
+| Nouvelles routes | — | **3** |
+| Routes enrichies | — | **1** |
+
+---
+
+## Bloc 15 — ClonePolicy + CloneTrust + Governance Runtime (2026-05-18)
+
+### Objectif
+
+Ajouter une couche de gouvernance complète au moteur Pierre : trois modules purs qui s'empilent et prennent toujours la décision la plus stricte. Le résultat est un runtime d'exécution autonome calibré par règles d'entreprise, historique de confiance, et évaluation de risque.
+
+### Architecture des trois modules
+
+```
+CloneGuard (Bloc 14) — détection de signaux noirs/rouges
+    └─ ClonePolicy (Bloc 15.1) — règles d'entreprise (22 règles par défaut)
+        └─ CloneTrust (Bloc 15.2) — score de confiance 0-100, 6 niveaux d'autonomie
+            └─ Governance Runtime (Bloc 15.3) — orchestrateur final
+```
+
+**Invariant absolu : la décision la plus stricte gagne toujours.**
+
+Rang des décisions (0 = permissif → 5 = le plus strict) :
+- 0 : `allow`
+- 1 : `allow_with_warning`
+- 2 : `supervised` *(niveau governance uniquement)*
+- 3 : `require_approval`
+- 4 : `block`
+- 5 : `refuse`
+
+### ClonePolicy (`src/lib/pierre/hr/clonepolicy.ts`)
+
+Module pur. Applique les règles d'entreprise en plus de CloneGuard.
+
+**22 règles par défaut**, classées par sévérité :
+- **REFUSE** (système, non négociables) : harcèlement, discrimination, violence, licenciement abusif, litige juridique, prud'hommes
+- **BLOCK** : email.send/send_email, communication externe non autorisée, risque black, modification données sensibles masse
+- **REQUIRE_APPROVAL** : approval_required=true, risque red, licenciement, rémunération, cas disciplinaire, contrat de travail, données médicales
+- **ALLOW_WITH_WARNING** : candidat externe, domain sensitive_case, onboarding
+
+**Garanties** :
+- Les règles `source: "system"` ont `can_override: false`
+- ClonePolicy ne peut pas **affaiblir** CloneGuard (worst decision wins)
+- Les règles runtime passées dans le contexte s'ajoutent aux règles par défaut
+- Normalisation NFD locale (pas de dépendance cross-module)
+
+**Exports clés** : `evaluatePierreClonePolicy`, `buildClonePolicyPreview`, `buildClonePolicyAuditEvent`, `applyClonePolicyToTask`, `isClonePolicyAutoExecutable`, `buildDefaultClonePolicyRules`
+
+### CloneTrust (`src/lib/pierre/hr/clonetrust.ts`)
+
+Module pur. Calcule un score de confiance 0–100 et en dérive un niveau d'autonomie.
+
+**6 niveaux d'autonomie** :
+| Niveau | Décision produite |
+|--------|-------------------|
+| `manual_only` | `manual_only` |
+| `approval_first` | `approval_required` |
+| `supervised` | `supervised_execution` |
+| `limited_auto` | `supervised_execution` |
+| `standard_auto` | `auto_allowed` (si guard+policy OK) |
+| `high_trust` | `auto_allowed` (si guard+policy OK) |
+
+**Facteurs de score** :
+| Facteur | Plage |
+|---------|-------|
+| `company_trust_score` | -25 à +25 |
+| `historical_success_rate` | 0 à +20 |
+| `historical_task_count` | 0 à +10 |
+| `risk_level_penalty` | -40 à 0 |
+| `domain_penalty` | -15 à 0 |
+| `cloneguard_penalty` | -40 à 0 |
+| `clonepolicy_penalty` | -40 à 0 |
+| `task_type_penalty` | -20 à 0 |
+| `approval_required_flag` | -30 à 0 |
+
+**Hard blocks absolus** (ignorent le score) : email.send/send_email, cloneguard refuse/block, clonepolicy refuse/block, approval_required=true, risque black, employee_file_risk black.
+
+**Garanties** :
+- CloneTrust **ne peut pas affaiblir** CloneGuard ni ClonePolicy
+- `autonomy_level` cap restreint uniquement, ne booste jamais
+- `trust_score` clampé 0–100, jamais NaN
+
+**Exports clés** : `evaluatePierreCloneTrust`, `buildCloneTrustPreview`, `collectCloneTrustFactors`, `computeCloneTrustBaseScore`, `applyCloneTrustToTask`, `isCloneTrustAutoExecutable`
+
+### Governance Runtime (`src/lib/pierre/hr/governance.ts`)
+
+Orchestrateur pur. Combine les trois évaluateurs et retourne la décision finale.
+
+```typescript
+allowed_to_auto_execute =
+  guard.allowed_to_auto_execute &&
+  policy.allowed_to_auto_execute &&
+  trust.allowed_to_auto_execute &&
+  governanceDecision === "allow"
+```
+
+**Décision governance "supervised"** : niveau exclusif governance, mappé depuis CloneTrust `supervised_execution`. Positionné entre `allow_with_warning` et `require_approval`.
+
+**Évaluations pré-calculées** : le contexte accepte `guard_evaluation`, `policy_evaluation`, `trust_evaluation` pour éviter de recalculer ce qu'un caller a déjà évalué.
+
+**Exports clés** : `evaluateGovernance`, `buildGovernancePreview`, `buildGovernanceBriefing`, `buildGovernanceCard`, `applyGovernanceToTask`, `isGovernanceAutoExecutable`, `filterGovernanceSafeToRun`, `combineGovernanceDecisions`
+
+### Intégration dans les routes existantes
+
+| Route | Changement |
+|-------|-----------|
+| `submit/route.ts` | Governance évaluée après CloneGuard, snapshot dans `brain_output_json`, `governance: { evaluation, preview }` dans la réponse |
+| `execute-task.ts` | Gate governance après gate CloneGuard (step 5.5), log `governance_execution_blocked` si bloqué |
+| `continuity/run-next/route.ts` | Gate governance en boucle d'exécution, compteur `governance_blocked_count` |
+| `mission/[missionId]/continue/route.ts` | Évaluation governance par tâche, `governance_summary` dans la réponse |
+| `mission-control/route.ts` | `governance_card` dans la réponse, évaluation par action safe |
+| `mission-control/run-safe/route.ts` | Gate `isGovernanceAutoExecutable` avant exécution, `governance_summary` |
+| `mission-control/run-plan/route.ts` | Annotation `applyGovernanceToTask` sur chaque action, `governance_summary` |
+| `mission-control/briefing/route.ts` | Compteurs `govBriefingBlocked` et `govBriefingAutoAllowed`, `governance_summary` |
+| `mission/[missionId]/route.ts` | `governance: { evaluation, preview }` + `governance_card` dans `mission_control` |
+| `employee/[employeeId]/file/route.ts` | `governance_summary` basé sur `cgTopEval` et `snapshot.risk_level` |
+
+### Nouvelles routes canoniques
+
+| Route | Méthode | Description |
+|-------|---------|-------------|
+| `/api/pierre/use/governance/evaluate` | POST | Évaluation complète (evaluation + preview + briefing + card) |
+| `/api/pierre/use/governance/preview` | POST | Preview allégée + decision + allowed_to_auto_execute |
+| `/api/pierre/use/clonepolicy/evaluate` | POST | Évaluation ClonePolicy seule + audit log |
+| `/api/pierre/use/clonetrust/evaluate` | POST | Évaluation CloneTrust seule + audit log |
+
+### Index SQL
+
+`supabase/sql/pierre_governance_indexes_v1.sql` — 7 index pour :
+- Audit trail governance sur `pierre_task_logs` (event_types governance/clonepolicy/clonetrust)
+- `pierre_tasks.approval_required + status` pour eligibilité auto-exécution
+- `pierre_tasks.type + status` pour gate par type
+- `pierre_missions.risk_level + approval_required` pour contexte mission
+- `pierre_company_memory` lookup singleton par user
+
+### Tests Bloc 15
+
+| Fichier | Tests | Couverture |
+|---------|-------|-----------|
+| `hr-clonepolicy.test.ts` | ≥180 | Normalizers, rules, decisions, runtime rules, security invariants |
+| `hr-clonetrust.test.ts` | ≥150 | Normalizers, factors, score, hard blocks, autonomy caps, security |
+| `hr-governance.test.ts` | ≥160 | Decisions, evaluations, pre-computed, pipeline functions |
+| `hr-governance-runtime.test.ts` | ≥100 | Cross-module consistency, end-to-end, equivalence |
+
+**Script E2E** : `scripts/pierre-governance-runtime-test.ps1` — 55 étapes, PS5 compatible, teste les 4 nouvelles routes + intégrations + invariants de sécurité.
+
+### Résultats finaux Bloc 15
+
+| Métrique | Avant Bloc 15 | Bloc 15 |
+|----------|---------------|---------|
+| Modules purs nouveaux | — | **3** (clonepolicy, clonetrust, governance) |
+| Routes nouvelles | — | **4** |
+| Routes enrichies | — | **10** |
+| Fichiers test nouveaux | 11 | **15** |
+| Index SQL nouveaux | — | **7** |
+| tsc errors | 0 | **0** |
+| Build | clean | **clean** |
+
+---
+
+## Bloc 16 — Pierre Audit Trail & Observabilité
+
+### Objectif
+
+Couche d'audit trail unifiée pour toutes les décisions, exécutions et événements du moteur Pierre. Observabilité complète : trail d'événements, diagnostics, score de santé, alertes, export.
+
+### Module pur — `src/lib/pierre/hr/audit-trail.ts`
+
+Module autonome (aucune dépendance vers governance/cloneguard/supabase). Déterministe, sans effets de bord.
+
+**Types exportés** :
+- `PierreAuditTrailSource` — source de l'événement (mission, task, document, log, governance, cloneguard, …)
+- `PierreAuditTrailEventType` — type canonique d'événement (27 valeurs)
+- `PierreAuditTrailRiskLevel` — green / orange / red / black
+- `PierreAuditTrailSeverity` — info / notice / warning / action_required / blocked / critical
+- `PierreAuditTrailStatus` — ok / waiting / blocked / failed / completed / unknown
+- `PierreAuditTrailEvent` — événement central avec source, severity, risk_level, requires_human, governance/guard decisions
+- `PierreAuditTrailDiagnostics` — compteurs agrégés (critical, blocked, human_required, governance_block, auto_allowed)
+- `PierreAuditTrailHealth` — score 0–100 + label
+- `PierreAuditTrailDigest` — tone (ok/attention/blocked/critical) + texte lisible
+- `PierreAuditTrailAlert` — alerte structurée (level: info/warning/urgent/critical)
+- `PierreAuditTrailTimeline` — events + sections + diagnostics + health + digest
+
+**Fonctions exportées** :
+- `buildAuditTrailEvents(params)` — construit la liste complète d'événements depuis missions/tasks/documents/logs
+- `filterAuditTrailEvents(events, filter)` — filtre (mission_id, task_id, source, severity, requires_human, limit…)
+- `buildAuditTrailSections(events)` — sections par catégorie (critical, blocked, human_required, …)
+- `buildAuditTrailDiagnostics(events)` — compteurs agrégés
+- `scoreAuditTrailHealth(events)` — score de santé (pénalités : critical×20, governance_block×15, blocked×10, failed×8…)
+- `buildAuditTrailDigest(events)` — résumé tonalisé
+- `buildAuditTrailTimeline(events)` — timeline complète (events + sections + diagnostics + health + digest)
+- `buildAuditTrailAlerts(events)` — alertes triées par priorité
+- `summarizeAuditTrailEvent(event)` — phrase lisible pour un événement
+- `buildAuditTrailExport(params)` — export structuré avec metadata
+- `buildAuditTrailSnapshot(events, filter)` — snapshot filtré
+- Normalizers : `normalizeAuditTrailRiskLevel`, `normalizeAuditTrailSeverity`, `normalizeAuditTrailSource`, `inferAuditTrailEventType`, `inferAuditTrailSeverity`, `inferAuditTrailRiskLevel`, `normalizeAuditTrailEvent`
+
+**IDs déterministes** : `"at_" + djb2(source + ":" + source_id + ":" + event_type)` — pas de `crypto.randomUUID`.
+
+**Déduplication** : clé `source:source_id:event_type`, on garde l'entrée la plus récente.
+
+**Tri** : DESC par `created_at`, dates nulles en dernier.
+
+### Builders de logs purs — `src/lib/pierre/logs.ts`
+
+Ajout de 4 fonctions pures (no Supabase, no async) :
+
+| Fonction | event_type produit |
+|----------|--------------------|
+| `buildPierreAuditLogRow(params)` | paramétrable |
+| `buildGovernanceAuditLogRow(params)` | `governance_execution_blocked` ou `governance_evaluation` |
+| `buildExecutionAuditLogRow(params)` | `task_execution_completed` ou `task_execution_failed` |
+| `buildHumanRequiredLogRow(params)` | `human_action_required` |
+
+Invariant : toujours `{ user_id, agent_slug: "pierre", event_type, message, meta_json }`. Jamais `level`, `event`, ou `payload` dans `meta_json`.
+
+### Nouvelles routes — Audit Trail
+
+| Route | Méthode | Description |
+|-------|---------|-------------|
+| `/api/pierre/use/audit-trail` | GET | Trail complet (events, sections, diagnostics, health, digest, alerts) |
+| `/api/pierre/use/audit-trail/alerts` | GET | Alertes seules avec diagnostics et digest |
+| `/api/pierre/use/audit-trail/export` | GET | Export structuré avec scope et metadata |
+
+**Paramètres de filtre** : `mission_id`, `task_id`, `employee_id`, `source`, `severity`, `risk_level`, `requires_human`, `status`, `limit` (max 500).
+
+### Routes enrichies — `audit_trail_summary`
+
+| Route | Champ ajouté |
+|-------|-------------|
+| `mission/[missionId]/route.ts` | `audit_trail` (events + sections + diagnostics + health + digest + alerts) |
+| `employee/[employeeId]/file/route.ts` | `audit_trail_summary` |
+| `continuity/route.ts` | `audit_trail_summary` |
+| `mission-control/route.ts` | `audit_trail_summary` |
+| `messages/route.ts` | `audit_trail_summary` |
+
+Shape de `audit_trail_summary` :
+```json
+{
+  "diagnostics": { "total_events": 12, "critical_count": 0, "human_required_count": 1, ... },
+  "health": { "score": 87, "label": "Bon" },
+  "digest": { "tone": "attention", "text": "..." },
+  "alerts_count": 1,
+  "critical_count": 0,
+  "human_required_count": 1
+}
+```
+
+### Enrichissements runtime (Phase 7)
+
+| Route | Enrichissement |
+|-------|---------------|
+| `continuity/run-next/route.ts` | Import `buildExecutionAuditLogRow` — log non-bloquant par tâche exécutée (completed/failed) |
+| `mission-control/run-safe/route.ts` | Import `buildExecutionAuditLogRow` — log non-bloquant par tâche exécutée (completed/failed) |
+
+Pattern non-bloquant : `void Promise.resolve(supabase.from("pierre_task_logs").insert(row)).catch(() => {})`.
+
+### Index SQL — `supabase/sql/pierre_audit_trail_indexes_v1.sql`
+
+8 index pour les requêtes audit trail :
+- `idx_pierre_task_logs_audit_user` — (user_id, agent_slug, created_at DESC)
+- `idx_pierre_task_logs_audit_event` — (user_id, agent_slug, event_type, created_at DESC)
+- `idx_pierre_task_logs_audit_mission` — (mission_id, created_at DESC)
+- `idx_pierre_task_logs_audit_task` — (task_id, created_at DESC)
+- `idx_pierre_tasks_audit_status` — (user_id, agent_slug, status, created_at DESC)
+- `idx_pierre_tasks_audit_mission` — (user_id, agent_slug, mission_id, created_at DESC)
+- `idx_pierre_missions_audit_status` — (user_id, agent_slug, status, created_at DESC)
+- `idx_pierre_documents_audit_mission` — (user_id, agent_slug, mission_id, created_at DESC)
+
+### Tests Bloc 16
+
+| Fichier | Tests | Couverture |
+|---------|-------|-----------|
+| `hr-audit-trail.test.ts` | ≥190 | Normalizers, inference, buildAuditTrailEvents, filter, sections, diagnostics, health, digest, timeline, alerts, export, snapshot, security invariants |
+| `hr-audit-trail-runtime.test.ts` | ≥80 | Builders de logs (4 fonctions), invariants schema, pas de level/event/payload, sécurité (email.send/red/black/approval), résilience malformed data, shapes diagnostics/health/digest |
+
+**Script E2E** : `scripts/pierre-audit-trail-test.ps1` — 50 étapes, PS5 compatible, teste les 3 nouvelles routes + audit_trail_summary sur 4 routes + filtres + invariants de sécurité.
+
+### Résultats finaux Bloc 16
+
+| Métrique | Avant Bloc 16 | Bloc 16 |
+|----------|---------------|---------|
+| Module pur audit trail | — | **1** (audit-trail.ts) |
+| Builders de logs purs | — | **4** |
+| Routes nouvelles | — | **3** |
+| Routes enrichies | — | **5** |
+| Fichiers test nouveaux | 15 | **17** |
+| Index SQL nouveaux | — | **8** |
+| tsc errors | 0 | **0** |
+| Build | clean | **clean** |
+

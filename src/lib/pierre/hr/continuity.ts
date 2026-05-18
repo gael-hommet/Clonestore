@@ -1,9 +1,9 @@
 /**
- * Pierre Continuity Engine — Pure logic layer.
+ * Pierre Continuity Engine — Pure logic layer v10.5.
  * No DB, no async, no side effects.
  * Takes raw DB rows (Record<string, unknown>) and returns typed continuity views.
  * Classifies mission/task states, builds dashboards, generates continue plans,
- * and selects the next safe-to-run tasks.
+ * selects the next safe-to-run tasks, and produces RH operational digests.
  */
 
 // ═══════════════════════════════════════════════════════════
@@ -14,9 +14,57 @@ const SEND_TASK_TYPES = new Set(["email.send", "send_email"]);
 const TERMINAL_TASK_STATUSES = new Set(["done", "cancelled"]);
 const SAFE_RUN_STATUSES = new Set(["ready", "retry"]);
 const STALLED_THRESHOLD_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+const RECENTLY_COMPLETED_WINDOW_MS = 24 * 60 * 60 * 1000; // 24h
+const DUE_NOW_WINDOW_MS = 24 * 60 * 60 * 1000; // 24h
 
 // ═══════════════════════════════════════════════════════════
-// TYPES
+// TYPES — NEW (v10.5)
+// ═══════════════════════════════════════════════════════════
+
+export type PierreTaskTimeState =
+  | "due_now"
+  | "overdue"
+  | "scheduled_future"
+  | "no_schedule";
+
+export type PierreContinuitySectionKey =
+  | "due_now"
+  | "overdue"
+  | "scheduled"
+  | "awaiting_approval"
+  | "blocked"
+  | "failed"
+  | "completed_recently"
+  | "safe_to_run";
+
+export type PierreContinuitySection = {
+  key: PierreContinuitySectionKey;
+  label: string;
+  task_ids: string[];
+  count: number;
+};
+
+export type PierreContinuityDigest = {
+  text: string;
+  tone: "action" | "waiting" | "blocked" | "complete" | "neutral";
+};
+
+export type PierreContinuityLogSummary = {
+  total: number;
+  last_event_type: string | null;
+  last_message: string | null;
+  last_at: string | null;
+};
+
+export type PierreContinuityDocumentSummary = {
+  total: number;
+  last_title: string | null;
+  last_type: string | null;
+  last_at: string | null;
+};
+
+// ═══════════════════════════════════════════════════════════
+// TYPES — EXISTING (enhanced in v10.5)
 // ═══════════════════════════════════════════════════════════
 
 export type PierreMissionContinuityState =
@@ -63,26 +111,7 @@ export type PierreTaskContinuitySlot = {
   blocked_reason: string | null;
   execute_at: string | null;
   priority: number;
-};
-
-export type PierreMissionContinuityInsight = {
-  mission_id: string;
-  continuity_state: PierreMissionContinuityState;
-  progress_pct: number;
-  health_score: number;
-  total_count: number;
-  done_count: number;
-  runnable_count: number;
-  pending_approval_count: number;
-  blocked_count: number;
-  error_count: number;
-  scheduled_count: number;
-  has_missing_info: boolean;
-  is_stalled: boolean;
-  stalled_since: string | null;
-  recommended_next_action: PierreContinuityNextAction;
-  safe_task_ids: string[];
-  tasks: PierreTaskContinuitySlot[];
+  updated_at?: string | null; // v10.5
 };
 
 export type PierreContinueAction = {
@@ -111,6 +140,33 @@ export type PierreContinuityDashboardMissionEntry = {
   runnable_count: number;
   pending_approval_count: number;
   safe_task_ids: string[];
+  digest?: PierreContinuityDigest; // v10.5
+  log_summary?: PierreContinuityLogSummary; // v10.5
+  document_summary?: PierreContinuityDocumentSummary; // v10.5
+};
+
+export type PierreMissionContinuityInsight = {
+  mission_id: string;
+  continuity_state: PierreMissionContinuityState;
+  progress_pct: number;
+  health_score: number;
+  total_count: number;
+  done_count: number;
+  runnable_count: number;
+  pending_approval_count: number;
+  blocked_count: number;
+  error_count: number;
+  scheduled_count: number;
+  has_missing_info: boolean;
+  is_stalled: boolean;
+  stalled_since: string | null;
+  recommended_next_action: PierreContinuityNextAction;
+  safe_task_ids: string[];
+  tasks: PierreTaskContinuitySlot[];
+  sections?: PierreContinuitySection[]; // v10.5
+  digest?: PierreContinuityDigest; // v10.5
+  log_summary?: PierreContinuityLogSummary; // v10.5
+  document_summary?: PierreContinuityDocumentSummary; // v10.5
 };
 
 export type PierreContinuityDashboard = {
@@ -129,6 +185,7 @@ export type PierreContinuityDashboard = {
   total_safe_task_ids: string[];
   mission_entries: PierreContinuityDashboardMissionEntry[];
   recommended_next_action: PierreContinuityNextAction | null;
+  sections?: PierreContinuitySection[]; // v10.5
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -165,7 +222,33 @@ function asBool(v: unknown): boolean {
 }
 
 // ═══════════════════════════════════════════════════════════
-// EXPORTED FUNCTIONS
+// SECTION METADATA (internal)
+// ═══════════════════════════════════════════════════════════
+
+const SECTION_LABELS: Record<PierreContinuitySectionKey, string> = {
+  due_now: "À traiter maintenant",
+  overdue: "En retard",
+  scheduled: "Planifiées",
+  awaiting_approval: "En attente d'approbation",
+  blocked: "Bloquées",
+  failed: "En erreur",
+  completed_recently: "Terminées récemment (24h)",
+  safe_to_run: "Prêtes à exécuter",
+};
+
+const SECTION_ORDER: PierreContinuitySectionKey[] = [
+  "due_now",
+  "overdue",
+  "safe_to_run",
+  "awaiting_approval",
+  "blocked",
+  "failed",
+  "scheduled",
+  "completed_recently",
+];
+
+// ═══════════════════════════════════════════════════════════
+// EXPORTED FUNCTIONS — EXISTING
 // ═══════════════════════════════════════════════════════════
 
 /**
@@ -263,6 +346,7 @@ export function buildTaskContinuitySlot(
     blocked_reason: blockedReason,
     execute_at: asNullStr(task.execute_at),
     priority: asNum(task.priority, 50),
+    updated_at: asNullStr(task.updated_at), // v10.5
   };
 }
 
@@ -311,7 +395,7 @@ export function detectStalledMission(
 
 /**
  * Classifies the overall continuity state of a mission from its task slots.
- * Priority: cancelled > completed > error > blocked > awaiting_approval > awaiting_info > stalled > active
+ * Priority: cancelled > completed > error > awaiting_info > awaiting_approval > active > stalled > blocked
  */
 export function classifyMissionContinuityState(
   mission: Record<string, unknown>,
@@ -433,11 +517,16 @@ export function scoreMissionContinuityHealth(
 
 /**
  * Builds a full PierreMissionContinuityInsight for a single mission and its tasks.
+ * v10.5: also computes sections, digest, and optional log/document summaries.
  */
 export function buildMissionContinuityInsight(
   mission: Record<string, unknown>,
   tasks: Record<string, unknown>[],
-  options?: { now?: Date },
+  options?: {
+    now?: Date;
+    logs?: Record<string, unknown>[];
+    documents?: Record<string, unknown>[];
+  },
 ): PierreMissionContinuityInsight {
   const now = options?.now ?? new Date();
   const missionId = asStr(mission.id);
@@ -464,6 +553,8 @@ export function buildMissionContinuityInsight(
     .filter((s) => s.is_safe_to_run)
     .map((s) => s.task_id);
 
+  const sections = buildMissionSections(slots, now);
+
   const insight: PierreMissionContinuityInsight = {
     mission_id: missionId,
     continuity_state: continuityState,
@@ -482,9 +573,19 @@ export function buildMissionContinuityInsight(
     recommended_next_action: recommendedNextAction,
     safe_task_ids: safeTaskIds,
     tasks: slots,
+    sections,
   };
 
   insight.health_score = scoreMissionContinuityHealth(insight);
+  insight.digest = buildMissionContinuityDigest(insight, sections);
+
+  if (options?.logs !== undefined) {
+    insight.log_summary = summarizeMissionLogs(options.logs);
+  }
+  if (options?.documents !== undefined) {
+    insight.document_summary = summarizeMissionDocuments(options.documents);
+  }
+
   return insight;
 }
 
@@ -611,12 +712,18 @@ export function selectNextRunnableTasks(
 /**
  * Builds a full PierreContinuityDashboard across multiple missions.
  * tasksByMissionId: tasks grouped by mission_id (keyed by mission.id).
+ * v10.5: accepts optional logsByMissionId and documentsByMissionId for richer per-mission entries.
+ * v10.5: returns aggregated sections across all missions.
  */
 export function buildContinuityDashboard(
   userId: string,
   missions: Record<string, unknown>[],
   tasksByMissionId: Record<string, Record<string, unknown>[]>,
-  options?: { now?: Date },
+  options?: {
+    now?: Date;
+    logsByMissionId?: Record<string, Record<string, unknown>[]>;
+    documentsByMissionId?: Record<string, Record<string, unknown>[]>;
+  },
 ): PierreContinuityDashboard {
   const now = options?.now ?? new Date();
   const generatedAt = now.toISOString();
@@ -648,7 +755,11 @@ export function buildContinuityDashboard(
   for (const mission of missions) {
     const mId = asStr(mission.id);
     const tasks = tasksByMissionId[mId] ?? [];
-    const insight = buildMissionContinuityInsight(mission, tasks, { now });
+    const logs = options?.logsByMissionId ? options.logsByMissionId[mId] : undefined;
+    const documents = options?.documentsByMissionId
+      ? options.documentsByMissionId[mId]
+      : undefined;
+    const insight = buildMissionContinuityInsight(mission, tasks, { now, logs, documents });
 
     entries.push({
       mission_id: mId,
@@ -659,6 +770,9 @@ export function buildContinuityDashboard(
       runnable_count: insight.runnable_count,
       pending_approval_count: insight.pending_approval_count,
       safe_task_ids: insight.safe_task_ids,
+      digest: insight.digest,
+      log_summary: insight.log_summary,
+      document_summary: insight.document_summary,
     });
 
     for (const tid of insight.safe_task_ids) totalSafeTaskIds.push(tid);
@@ -700,6 +814,8 @@ export function buildContinuityDashboard(
     }
   }
 
+  const sections = buildDashboardSections(missions, tasksByMissionId, now);
+
   return {
     user_id: userId,
     generated_at: generatedAt,
@@ -716,5 +832,328 @@ export function buildContinuityDashboard(
     total_safe_task_ids: totalSafeTaskIds,
     mission_entries: entries,
     recommended_next_action: globalBestAction,
+    sections,
   };
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPORTED FUNCTIONS — NEW (v10.5)
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * Classifies the time state of a task based on its execute_at field relative to now.
+ * - overdue: execute_at is in the past
+ * - due_now: execute_at is within the next 24h
+ * - scheduled_future: execute_at is beyond 24h
+ * - no_schedule: no execute_at
+ */
+export function classifyTaskTimeState(
+  task: Record<string, unknown>,
+  now: Date = new Date(),
+): PierreTaskTimeState {
+  const executeAt = asNullStr(task.execute_at);
+  if (!executeAt) return "no_schedule";
+
+  const due = new Date(executeAt);
+  if (isNaN(due.getTime())) return "no_schedule";
+
+  const diff = due.getTime() - now.getTime();
+
+  if (diff < 0) return "overdue";
+  if (diff <= DUE_NOW_WINDOW_MS) return "due_now";
+  return "scheduled_future";
+}
+
+/**
+ * Returns true if a task was completed (done or cancelled) within the last windowMs milliseconds.
+ */
+export function isTaskCompletedRecently(
+  task: Record<string, unknown>,
+  now: Date = new Date(),
+  windowMs = RECENTLY_COMPLETED_WINDOW_MS,
+): boolean {
+  const status = asStr(task.status);
+  if (!TERMINAL_TASK_STATUSES.has(status)) return false;
+
+  const updatedAt = asNullStr(task.updated_at);
+  if (!updatedAt) return false;
+
+  const updated = new Date(updatedAt);
+  if (isNaN(updated.getTime())) return false;
+
+  return now.getTime() - updated.getTime() <= windowMs;
+}
+
+/**
+ * Groups task slots into the 8 operational sections for RH piloting.
+ * Returns all 8 sections (empty ones included for predictable structure).
+ * A slot can appear in multiple sections (e.g., due_now + safe_to_run).
+ */
+export function buildMissionSections(
+  slots: PierreTaskContinuitySlot[],
+  now: Date = new Date(),
+): PierreContinuitySection[] {
+  const buckets: Record<PierreContinuitySectionKey, string[]> = {
+    due_now: [],
+    overdue: [],
+    scheduled: [],
+    awaiting_approval: [],
+    blocked: [],
+    failed: [],
+    completed_recently: [],
+    safe_to_run: [],
+  };
+
+  for (const slot of slots) {
+    if (slot.is_safe_to_run) {
+      buckets.safe_to_run.push(slot.task_id);
+    }
+
+    if (slot.continuity_state === "awaiting_approval") {
+      buckets.awaiting_approval.push(slot.task_id);
+    } else if (slot.continuity_state === "blocked") {
+      buckets.blocked.push(slot.task_id);
+    } else if (slot.continuity_state === "error") {
+      buckets.failed.push(slot.task_id);
+    } else if (slot.continuity_state === "scheduled") {
+      buckets.scheduled.push(slot.task_id);
+    }
+
+    if (slot.continuity_state === "done" && slot.updated_at) {
+      const updated = new Date(slot.updated_at);
+      if (
+        !isNaN(updated.getTime()) &&
+        now.getTime() - updated.getTime() <= RECENTLY_COMPLETED_WINDOW_MS
+      ) {
+        buckets.completed_recently.push(slot.task_id);
+      }
+    }
+
+    if (slot.execute_at && slot.continuity_state !== "done") {
+      const due = new Date(slot.execute_at);
+      if (!isNaN(due.getTime())) {
+        const diff = due.getTime() - now.getTime();
+        if (diff < 0) {
+          buckets.overdue.push(slot.task_id);
+        } else if (diff <= DUE_NOW_WINDOW_MS) {
+          buckets.due_now.push(slot.task_id);
+        }
+      }
+    }
+  }
+
+  return SECTION_ORDER.map((key) => ({
+    key,
+    label: SECTION_LABELS[key],
+    task_ids: buckets[key],
+    count: buckets[key].length,
+  }));
+}
+
+/**
+ * Summarizes a list of pierre_task_logs rows into a compact PierreContinuityLogSummary.
+ * Uses the new log schema: event_type + message + meta_json.
+ */
+export function summarizeMissionLogs(
+  logs: Record<string, unknown>[],
+): PierreContinuityLogSummary {
+  if (logs.length === 0) {
+    return { total: 0, last_event_type: null, last_message: null, last_at: null };
+  }
+
+  const sorted = [...logs].sort((a, b) => {
+    const ta = asNullStr(a.created_at) ?? "";
+    const tb = asNullStr(b.created_at) ?? "";
+    return tb.localeCompare(ta);
+  });
+
+  const last = sorted[0];
+  return {
+    total: logs.length,
+    last_event_type: asNullStr(last.event_type),
+    last_message: asNullStr(last.message),
+    last_at: asNullStr(last.created_at),
+  };
+}
+
+/**
+ * Summarizes a list of pierre_documents rows into a compact PierreContinuityDocumentSummary.
+ */
+export function summarizeMissionDocuments(
+  documents: Record<string, unknown>[],
+): PierreContinuityDocumentSummary {
+  if (documents.length === 0) {
+    return { total: 0, last_title: null, last_type: null, last_at: null };
+  }
+
+  const sorted = [...documents].sort((a, b) => {
+    const ta = asNullStr(a.created_at) ?? "";
+    const tb = asNullStr(b.created_at) ?? "";
+    return tb.localeCompare(ta);
+  });
+
+  const last = sorted[0];
+  return {
+    total: documents.length,
+    last_title: asNullStr(last.title),
+    last_type: asNullStr(last.doc_type) ?? asNullStr(last.type),
+    last_at: asNullStr(last.created_at),
+  };
+}
+
+/**
+ * Builds a French RH narrative digest from a mission insight and its sections.
+ * Returns a short operational summary with a tone classification.
+ */
+export function buildMissionContinuityDigest(
+  insight: PierreMissionContinuityInsight,
+  sections: PierreContinuitySection[],
+): PierreContinuityDigest {
+  if (insight.progress_pct === 100) {
+    return {
+      text: "Mission complète — toutes les tâches sont terminées.",
+      tone: "complete",
+    };
+  }
+
+  const byKey = (key: PierreContinuitySectionKey) =>
+    sections.find((s) => s.key === key)?.count ?? 0;
+
+  const safeCount = byKey("safe_to_run");
+  const approvalCount = byKey("awaiting_approval");
+  const blockedCount = byKey("blocked");
+  const failedCount = byKey("failed");
+  const overdueCount = byKey("overdue");
+  const dueNowCount = byKey("due_now");
+
+  const parts: string[] = [];
+
+  if (dueNowCount > 0) {
+    parts.push(`${dueNowCount} tâche(s) à traiter maintenant.`);
+  }
+  if (overdueCount > 0) {
+    parts.push(`${overdueCount} tâche(s) en retard.`);
+  }
+  if (safeCount > 0) {
+    parts.push(`${safeCount} tâche(s) prête(s) à exécution automatique.`);
+  }
+  if (approvalCount > 0) {
+    parts.push(`${approvalCount} tâche(s) en attente d'approbation humaine.`);
+  }
+  if (blockedCount > 0) {
+    parts.push(`${blockedCount} tâche(s) bloquée(s) — informations manquantes.`);
+  }
+  if (failedCount > 0) {
+    parts.push(`${failedCount} tâche(s) en erreur — investigation requise.`);
+  }
+  if (insight.is_stalled) {
+    parts.push("Mission bloquée depuis plus de 3 jours — intervention recommandée.");
+  }
+
+  if (parts.length === 0) {
+    parts.push("Mission en cours — aucune action immédiate requise.");
+  }
+
+  parts.push(`Progression : ${insight.progress_pct}%.`);
+
+  let tone: PierreContinuityDigest["tone"] = "neutral";
+  if (safeCount > 0) {
+    tone = "action";
+  } else if (approvalCount > 0) {
+    tone = "waiting";
+  } else if (blockedCount > 0 || failedCount > 0) {
+    tone = "blocked";
+  }
+
+  return { text: parts.join(" "), tone };
+}
+
+/**
+ * Aggregates sections across all missions for the global continuity dashboard.
+ * Returns all 8 sections with cumulative task_ids from all missions.
+ */
+export function buildDashboardSections(
+  missions: Record<string, unknown>[],
+  tasksByMissionId: Record<string, Record<string, unknown>[]>,
+  now: Date = new Date(),
+): PierreContinuitySection[] {
+  const buckets: Record<PierreContinuitySectionKey, string[]> = {
+    due_now: [],
+    overdue: [],
+    scheduled: [],
+    awaiting_approval: [],
+    blocked: [],
+    failed: [],
+    completed_recently: [],
+    safe_to_run: [],
+  };
+
+  for (const mission of missions) {
+    const mId = asStr(mission.id);
+    const tasks = tasksByMissionId[mId] ?? [];
+    const slots = tasks.map((t) => buildTaskContinuitySlot(t, now));
+    const missionSections = buildMissionSections(slots, now);
+
+    for (const section of missionSections) {
+      for (const taskId of section.task_ids) {
+        buckets[section.key].push(taskId);
+      }
+    }
+  }
+
+  return SECTION_ORDER.map((key) => ({
+    key,
+    label: SECTION_LABELS[key],
+    task_ids: buckets[key],
+    count: buckets[key].length,
+  }));
+}
+
+/**
+ * Generates followup task drafts from a continue plan, suitable for DB insertion.
+ * Only creates tasks if there are blocked or requires_human task_ids.
+ * Followup types: reminder.create (for blocked), followup.schedule (for requires_human).
+ * Never creates email.send or approval_required tasks.
+ */
+export function buildFollowupTaskDraftsForContinue(
+  missionId: string,
+  plan: PierreContinuePlan,
+): Record<string, unknown>[] {
+  const drafts: Record<string, unknown>[] = [];
+
+  if (plan.blocked.length > 0) {
+    drafts.push({
+      mission_id: missionId,
+      type: "reminder.create",
+      title: `Relance — ${plan.blocked.length} tâche(s) bloquée(s) à débloquer`,
+      status: "ready",
+      approval_required: false,
+      execute_at: null,
+      priority: 40,
+      payload_json: {
+        source: "continuity_continue",
+        blocked_task_ids: plan.blocked,
+        reason: "Tâches bloquées détectées lors de la continuité de mission",
+      },
+    });
+  }
+
+  if (plan.requires_human.length > 0) {
+    drafts.push({
+      mission_id: missionId,
+      type: "followup.schedule",
+      title: `Suivi humain — ${plan.requires_human.length} tâche(s) en attente de validation`,
+      status: "ready",
+      approval_required: false,
+      execute_at: null,
+      priority: 35,
+      payload_json: {
+        source: "continuity_continue",
+        requires_human_task_ids: plan.requires_human,
+        reason: "Tâches nécessitant intervention humaine détectées lors de la continuité",
+      },
+    });
+  }
+
+  return drafts;
 }

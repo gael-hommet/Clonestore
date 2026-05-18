@@ -3,7 +3,17 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   buildMissionContinuityInsight,
   buildContinuePlan,
+  buildFollowupTaskDraftsForContinue,
 } from "../../../../../../../lib/pierre/hr/continuity";
+import {
+  evaluatePierreCloneGuard,
+  buildCloneGuardPreview,
+  type PierreCloneGuardRiskLevel,
+} from "../../../../../../../lib/pierre/hr/cloneguard";
+import {
+  evaluateGovernance,
+  buildGovernancePreview,
+} from "../../../../../../../lib/pierre/hr/governance";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES
@@ -193,6 +203,47 @@ async function fetchMissionTasks(
   return (data ?? []) as DbRow[];
 }
 
+async function fetchMissionLogs(
+  supabaseAdmin: SupabaseClient,
+  missionId: string,
+): Promise<DbRow[]> {
+  const { data } = await supabaseAdmin
+    .from("pierre_task_logs")
+    .select("id, task_id, mission_id, event_type, message, created_at")
+    .eq("mission_id", missionId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+  return (data ?? []) as DbRow[];
+}
+
+async function fetchMissionDocuments(
+  supabaseAdmin: SupabaseClient,
+  missionId: string,
+): Promise<DbRow[]> {
+  const { data } = await supabaseAdmin
+    .from("pierre_documents")
+    .select("id, mission_id, title, doc_type, created_at")
+    .eq("mission_id", missionId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  return (data ?? []) as DbRow[];
+}
+
+// ═══════════════════════════════════════════════════════════
+// LOG INSERTION (non-blocking)
+// ═══════════════════════════════════════════════════════════
+
+async function tryInsertLog(
+  supabaseAdmin: SupabaseClient,
+  row: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await supabaseAdmin.from("pierre_task_logs").insert(row);
+  } catch {
+    // Log insertion is non-blocking — never abort the response on log failure
+  }
+}
+
 // ═══════════════════════════════════════════════════════════
 // POST HANDLER
 // ═══════════════════════════════════════════════════════════
@@ -209,6 +260,17 @@ export async function POST(
       return jsonError("Mission id is required.", 400, { code: "MISSION_ID_REQUIRED" });
     }
 
+    // Parse body for optional create_followups flag
+    let createFollowups = false;
+    try {
+      const body: unknown = await request.json();
+      if (isObject(body)) {
+        createFollowups = body.create_followups === true;
+      }
+    } catch {
+      // No body or invalid JSON — defaults apply
+    }
+
     const supabaseAdmin = createAdminClient();
     const userId = await authenticateRequest(request, supabaseAdmin);
 
@@ -217,20 +279,142 @@ export async function POST(
       fetchMissionTasks(supabaseAdmin, missionId),
     ]);
 
+    const [logs, documents] = await Promise.all([
+      fetchMissionLogs(supabaseAdmin, missionId),
+      fetchMissionDocuments(supabaseAdmin, missionId),
+    ]);
+
     const now = new Date();
-    const insight = buildMissionContinuityInsight(mission, tasks, { now });
+    const insight = buildMissionContinuityInsight(mission, tasks, { now, logs, documents });
     const plan = buildContinuePlan(mission, tasks, { now });
+
+    // CloneGuard summary over safe_to_run plan actions
+    const missionText = [
+      asString(mission.mission_summary),
+      asString(mission.risk_level),
+    ].filter(Boolean).join(" ");
+
+    let cgEvaluatedCount = 0;
+    let cgBlockedCount = 0;
+    let cgApprovalRequiredCount = 0;
+    let cgHighestRisk: PierreCloneGuardRiskLevel = "green";
+    const RISK_RANK: Record<PierreCloneGuardRiskLevel, number> = { green: 0, orange: 1, red: 2, black: 3 };
+    let govBlockedCount = 0;
+    let govAutoAllowedCount = 0;
+
+    const cgEnrichedSafe = (Array.isArray(plan.safe_to_run) ? plan.safe_to_run : []).map((t) => {
+      const row = typeof t === "object" && t !== null ? (t as Record<string, unknown>) : {};
+      const cgEval = evaluatePierreCloneGuard({
+        task_type: asString(row.type),
+        task_title: asString(row.title),
+        approval_required: row.approval_required === true || row.approval_required === "true",
+        text_corpus: missionText,
+        now: now.toISOString(),
+      });
+      cgEvaluatedCount++;
+      if (cgEval.decision === "refuse" || cgEval.decision === "block") cgBlockedCount++;
+      if (cgEval.decision === "require_approval") cgApprovalRequiredCount++;
+      if (RISK_RANK[cgEval.risk_level] > RISK_RANK[cgHighestRisk]) cgHighestRisk = cgEval.risk_level;
+
+      const govEval = evaluateGovernance({
+        task_type: asString(row.type),
+        task_title: asString(row.title),
+        approval_required: row.approval_required === true || row.approval_required === "true",
+        text_corpus: missionText,
+        guard_evaluation: cgEval,
+        now: now.toISOString(),
+      });
+      if (govEval.decision === "refuse" || govEval.decision === "block") govBlockedCount++;
+      if (govEval.allowed_to_auto_execute) govAutoAllowedCount++;
+
+      return {
+        ...row,
+        cloneguard_preview: buildCloneGuardPreview(cgEval),
+        governance_preview: buildGovernancePreview(govEval),
+      };
+    });
+
+    // Log: plan + CloneGuard summary
+    await tryInsertLog(supabaseAdmin, {
+      mission_id: missionId,
+      user_id: userId,
+      event_type: "mission_continue_plan_generated",
+      message: `Plan de continuité généré — ${plan.safe_to_run.length} tâche(s) exécutable(s), ${plan.requires_human.length} requérant intervention humaine`,
+      meta_json: {
+        safe_to_run_count: plan.safe_to_run.length,
+        requires_human_count: plan.requires_human.length,
+        blocked_count: plan.blocked.length,
+        summary: plan.summary,
+      },
+    });
+    await tryInsertLog(supabaseAdmin, {
+      mission_id: missionId,
+      user_id: userId,
+      event_type: "cloneguard_continue_evaluated",
+      message: `CloneGuard — ${cgEvaluatedCount} action(s) évaluée(s), ${cgBlockedCount} bloquée(s), niveau max : ${cgHighestRisk}`,
+      meta_json: {
+        evaluated_count: cgEvaluatedCount,
+        blocked_count: cgBlockedCount,
+        approval_required_count: cgApprovalRequiredCount,
+        highest_risk_level: cgHighestRisk,
+      },
+    });
+
+    // Optionally create followup tasks
+    let followupsCreated = 0;
+    if (createFollowups) {
+      const drafts = buildFollowupTaskDraftsForContinue(missionId, plan);
+      if (drafts.length > 0) {
+        const toInsert = drafts.map((d) => ({
+          ...d,
+          user_id: userId,
+          agent_slug: "pierre",
+        }));
+        const { data: inserted, error: insertError } = await supabaseAdmin
+          .from("pierre_tasks")
+          .insert(toInsert)
+          .select("id");
+
+        if (!insertError && inserted) {
+          followupsCreated = inserted.length;
+
+          await tryInsertLog(supabaseAdmin, {
+            mission_id: missionId,
+            user_id: userId,
+            event_type: "continuity_followups_created",
+            message: `${followupsCreated} tâche(s) de suivi créée(s) automatiquement`,
+            meta_json: {
+              followup_task_ids: inserted.map((t: DbRow) => asString(t.id)),
+              draft_types: drafts.map((d) => asString(d.type)),
+            },
+          });
+        }
+      }
+    }
 
     return NextResponse.json({
       ok: true,
       mission_id: missionId,
       insight,
-      plan,
+      plan: { ...plan, safe_to_run: cgEnrichedSafe },
+      followups_created: followupsCreated,
+      cloneguard_summary: {
+        evaluated_count: cgEvaluatedCount,
+        blocked_count: cgBlockedCount,
+        approval_required_count: cgApprovalRequiredCount,
+        highest_risk_level: cgHighestRisk,
+      },
+      governance_summary: {
+        blocked_count: govBlockedCount,
+        auto_allowed_count: govAutoAllowedCount,
+      },
       meta: {
         missionId,
         userId,
         generatedAt: now.toISOString(),
         tasks_count: tasks.length,
+        logs_count: logs.length,
+        documents_count: documents.length,
         safe_to_run_count: plan.safe_to_run.length,
         requires_human_count: plan.requires_human.length,
         blocked_count: plan.blocked.length,

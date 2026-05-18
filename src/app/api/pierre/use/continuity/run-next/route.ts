@@ -5,6 +5,15 @@ import {
   executePierreTaskWithPersistence,
   type PierreExecutionPersistenceResult,
 } from "../../../../../../lib/pierre/tasks/execute-task";
+import {
+  evaluatePierreCloneGuard,
+} from "../../../../../../lib/pierre/hr/cloneguard";
+import {
+  evaluateGovernance,
+} from "../../../../../../lib/pierre/hr/governance";
+import {
+  buildExecutionAuditLogRow,
+} from "../../../../../../lib/pierre/logs";
 
 // ═══════════════════════════════════════════════════════════
 // CONSTANTS
@@ -12,6 +21,7 @@ import {
 
 const DEFAULT_MAX_TASKS = 5;
 const HARD_MAX_TASKS = 10;
+const SEND_TASK_TYPES = new Set(["email.send", "send_email"]);
 
 // ═══════════════════════════════════════════════════════════
 // TYPES
@@ -19,6 +29,18 @@ const HARD_MAX_TASKS = 10;
 
 type DbRow = Record<string, unknown>;
 type JsonErrorExtra = { code?: string | null; details?: unknown };
+
+type RunResult = {
+  task_id: string;
+  outcome: string;
+  ok: boolean;
+  error?: string;
+};
+
+type SkippedTask = {
+  task_id: string;
+  reason: string;
+};
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS
@@ -59,6 +81,28 @@ function mapDbError(error: unknown) {
   }
   if (error instanceof Error) return { message: error.message, code: null };
   return { message: "Unexpected database error.", code: null };
+}
+
+function classifySkipReason(task: DbRow, now: Date): string {
+  const taskType = asString(task.type) ?? "";
+  if (SEND_TASK_TYPES.has(taskType)) {
+    return "Envoi d'email — déclenchement manuel requis";
+  }
+
+  const approvalRequired = task.approval_required === true || task.approval_required === 1;
+  if (approvalRequired) {
+    return "Approbation humaine requise";
+  }
+
+  const executeAt = asString(task.execute_at);
+  if (executeAt) {
+    const due = new Date(executeAt);
+    if (!isNaN(due.getTime()) && due.getTime() > now.getTime()) {
+      return "Planifiée pour une date future — exécution différée";
+    }
+  }
+
+  return "Limite de tâches atteinte pour cette exécution";
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -210,6 +254,21 @@ async function fetchRunnableCandidates(
 }
 
 // ═══════════════════════════════════════════════════════════
+// LOG INSERTION (non-blocking)
+// ═══════════════════════════════════════════════════════════
+
+async function tryInsertLog(
+  supabaseAdmin: SupabaseClient,
+  row: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await supabaseAdmin.from("pierre_task_logs").insert(row);
+  } catch {
+    // Log insertion is non-blocking — never abort the response on log failure
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
 // POST HANDLER
 // ═══════════════════════════════════════════════════════════
 
@@ -232,35 +291,141 @@ export async function POST(request: NextRequest) {
     const candidates = await fetchRunnableCandidates(supabaseAdmin, userId, missionId);
     const selected = selectNextRunnableTasks(candidates, { max, now });
 
+    // Build enriched skipped list (candidates excluded from selection)
+    const selectedIds = new Set(
+      selected.map((t) => asString(t.id)).filter((id): id is string => id !== null),
+    );
+    const skipped: SkippedTask[] = candidates
+      .filter((t) => {
+        const tid = asString(t.id);
+        return tid !== null && !selectedIds.has(tid);
+      })
+      .map((t) => ({
+        task_id: asString(t.id) ?? "",
+        reason: classifySkipReason(t, now),
+      }));
+
     if (selected.length === 0) {
       return NextResponse.json({
         ok: true,
         ran: [],
         errors: [],
-        skipped: [],
+        skipped,
         meta: {
           userId,
           mission_id: missionId,
           candidates_found: candidates.length,
           selected_count: 0,
+          cloneguard_evaluated_count: 0,
+          cloneguard_blocked_count: 0,
+          governance_blocked_count: 0,
           triggered_at: now.toISOString(),
         },
       });
     }
 
-    type RunResult = {
-      task_id: string;
-      outcome: string;
-      ok: boolean;
-      error?: string;
-    };
+    const selectedTaskIds = selected.map((t) => asString(t.id)).filter(Boolean);
+
+    // Emit log: run-next started (only when scoped to a mission)
+    if (missionId) {
+      await tryInsertLog(supabaseAdmin, {
+        mission_id: missionId,
+        user_id: userId,
+        event_type: "continuity_run_next_started",
+        message: `Exécution automatique démarrée — ${selected.length} tâche(s) sélectionnée(s)`,
+        meta_json: {
+          selected_task_ids: selectedTaskIds,
+          max_requested: max,
+          candidates_found: candidates.length,
+        },
+      });
+    }
 
     const ran: RunResult[] = [];
     const errors: RunResult[] = [];
+    let cgEvaluatedCount = 0;
+    let cgBlockedCount = 0;
+    let govBlockedCount = 0;
 
     for (const task of selected) {
       const taskId = asString(task.id);
       if (!taskId) continue;
+
+      // CloneGuard gate — evaluate before execution
+      const cgCtx = {
+        task_type: asString(task.type),
+        task_title: asString(task.title),
+        approval_required: task.approval_required === true || task.approval_required === "true",
+        text_corpus: [asString(task.title), asString(task.type), asString(task.last_error)].filter(Boolean).join(" "),
+        now: now.toISOString(),
+      };
+      const cgEval = evaluatePierreCloneGuard(cgCtx);
+      cgEvaluatedCount++;
+
+      if (!cgEval.allowed_to_auto_execute) {
+        cgBlockedCount++;
+        const cgReason =
+          cgEval.decision === "refuse"
+            ? "CloneGuard: action refusée"
+            : cgEval.decision === "block"
+              ? "CloneGuard: action bloquée"
+              : "CloneGuard: validation humaine requise";
+        skipped.push({ task_id: taskId, reason: cgReason });
+        await tryInsertLog(supabaseAdmin, {
+          task_id: taskId,
+          mission_id: asString(task.mission_id),
+          user_id: userId,
+          agent_slug: "pierre",
+          event_type: "cloneguard_continuity_blocked",
+          message: `CloneGuard a bloqué la tâche "${asString(task.title) ?? taskId}" — ${cgEval.explanation}`,
+          meta_json: {
+            task_id: taskId,
+            mission_id: asString(task.mission_id),
+            decision: cgEval.decision,
+            risk_level: cgEval.risk_level,
+            allowed_to_auto_execute: cgEval.allowed_to_auto_execute,
+            signals: cgEval.signals,
+            matched_rules: cgEval.matched_rules,
+          },
+        });
+        continue;
+      }
+
+      // Governance pre-flight gate (passes cgEval to avoid re-running CloneGuard)
+      const govEval = evaluateGovernance({
+        task_type: asString(task.type),
+        task_title: asString(task.title),
+        approval_required: task.approval_required === true || task.approval_required === "true",
+        guard_evaluation: cgEval,
+        now: now.toISOString(),
+      });
+
+      if (govEval.decision === "refuse" || govEval.decision === "block") {
+        govBlockedCount++;
+        skipped.push({
+          task_id: taskId,
+          reason: `Gouvernance: ${govEval.decision} — ${govEval.explanation.slice(0, 80)}`,
+        });
+        await tryInsertLog(supabaseAdmin, {
+          task_id: taskId,
+          mission_id: asString(task.mission_id),
+          user_id: userId,
+          agent_slug: "pierre",
+          event_type: "governance_continuity_blocked",
+          message: `Gouvernance a bloqué la tâche "${asString(task.title) ?? taskId}" — ${govEval.explanation}`,
+          meta_json: {
+            task_id: taskId,
+            mission_id: asString(task.mission_id),
+            decision: govEval.decision,
+            risk_level: govEval.risk_level,
+            guard_decision: govEval.guard_decision,
+            policy_decision: govEval.policy_decision,
+            trust_decision: govEval.trust_decision,
+            allowed_to_auto_execute: govEval.allowed_to_auto_execute,
+          },
+        });
+        continue;
+      }
 
       try {
         const result: PierreExecutionPersistenceResult =
@@ -272,6 +437,9 @@ export async function POST(request: NextRequest) {
 
         if (result.ok) {
           ran.push({ task_id: taskId, outcome: result.outcome, ok: true });
+          void Promise.resolve(supabaseAdmin.from("pierre_task_logs").insert(
+            buildExecutionAuditLogRow({ user_id: userId, mission_id: asString(task.mission_id), task_id: taskId, task_type: asString(task.type), task_title: asString(task.title), outcome: "completed" }),
+          )).catch(() => {});
         } else {
           errors.push({
             task_id: taskId,
@@ -279,6 +447,9 @@ export async function POST(request: NextRequest) {
             ok: false,
             error: result.error ?? "Execution failed",
           });
+          void Promise.resolve(supabaseAdmin.from("pierre_task_logs").insert(
+            buildExecutionAuditLogRow({ user_id: userId, mission_id: asString(task.mission_id), task_id: taskId, task_type: asString(task.type), task_title: asString(task.title), outcome: "failed", error_message: result.error ?? undefined }),
+          )).catch(() => {});
         }
       } catch (execError) {
         const msg =
@@ -289,14 +460,34 @@ export async function POST(request: NextRequest) {
               : "Unknown execution error";
 
         errors.push({ task_id: taskId, outcome: "failed", ok: false, error: msg });
+        void Promise.resolve(supabaseAdmin.from("pierre_task_logs").insert(
+          buildExecutionAuditLogRow({ user_id: userId, mission_id: asString(task.mission_id), task_id: taskId, task_type: asString(task.type), task_title: asString(task.title), outcome: "failed", error_message: msg }),
+        )).catch(() => {});
       }
+    }
+
+    // Emit log: run-next completed (only when scoped to a mission)
+    if (missionId) {
+      await tryInsertLog(supabaseAdmin, {
+        mission_id: missionId,
+        user_id: userId,
+        event_type: "continuity_run_next_completed",
+        message: `Exécution automatique terminée — ${ran.length} réussi(es), ${errors.length} échec(s)`,
+        meta_json: {
+          ran_task_ids: ran.map((r) => r.task_id),
+          error_task_ids: errors.map((e) => e.task_id),
+          ran_count: ran.length,
+          error_count: errors.length,
+          skipped_count: skipped.length,
+        },
+      });
     }
 
     return NextResponse.json({
       ok: true,
       ran,
       errors,
-      skipped: [],
+      skipped,
       meta: {
         userId,
         mission_id: missionId,
@@ -304,6 +495,10 @@ export async function POST(request: NextRequest) {
         selected_count: selected.length,
         ran_count: ran.length,
         error_count: errors.length,
+        skipped_count: skipped.length,
+        cloneguard_evaluated_count: cgEvaluatedCount,
+        cloneguard_blocked_count: cgBlockedCount,
+        governance_blocked_count: govBlockedCount,
         triggered_at: now.toISOString(),
       },
     });

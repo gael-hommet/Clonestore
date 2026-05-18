@@ -8,6 +8,17 @@ import {
   type PierreTaskExecutionInput,
   type PierreTaskExecutionResult,
 } from "./artifacts";
+import {
+  evaluatePierreCloneGuard,
+  buildCloneGuardAuditEvent,
+} from "../hr/cloneguard";
+import {
+  evaluateGovernance,
+  buildGovernanceAuditEvent,
+} from "../hr/governance";
+import {
+  buildHumanRequiredLogRow,
+} from "../logs";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -320,10 +331,140 @@ export async function executePierreTaskWithPersistence(params: {
         }
       : null;
 
-  // 5. Set task to "running" in DB
+  // 5. CloneGuard gate — blocks absolute refusals and hard blocks before execution
+  const cgEval = evaluatePierreCloneGuard({
+    task_type: asString(taskRow.type),
+    task_title: asString(taskRow.title),
+    payload_json: isObject(payloadJson) ? payloadJson : null,
+    approval_required:
+      taskRow.approval_required === true || taskRow.approval_required === "true",
+    now: now.toISOString(),
+  });
+
+  if (cgEval.decision === "refuse" || cgEval.decision === "block") {
+    const cgAudit = buildCloneGuardAuditEvent(cgEval, {
+      task_type: asString(taskRow.type),
+      now: now.toISOString(),
+    });
+    await insertLog(supabaseAdmin, {
+      task_id: taskId,
+      mission_id: missionId,
+      user_id: userId,
+      event_type: cgAudit.event_type,
+      message: cgAudit.message,
+      meta_json: cgAudit.meta_json as Record<string, unknown>,
+    });
+    return {
+      ok: false,
+      task_id: taskId,
+      mission_id: missionId,
+      outcome: "blocked",
+      artifact: null,
+      execution_result: buildPierreTaskExecutionResult({
+        task: {
+          id: taskId,
+          type: asString(taskRow.type),
+          title: asString(taskRow.title),
+          payload_json: payloadJson,
+          mission_id: missionId,
+        },
+        now,
+      }),
+      error: cgEval.explanation,
+      error_code: "CLONEGUARD_BLOCKED",
+    };
+  }
+
+  // 5.5. Governance gate — CloneGuard + ClonePolicy + CloneTrust combined
+  const govEval = evaluateGovernance({
+    task_type: asString(taskRow.type),
+    task_title: asString(taskRow.title),
+    payload_json: isObject(payloadJson) ? payloadJson : null,
+    approval_required:
+      taskRow.approval_required === true || taskRow.approval_required === "true",
+    guard_evaluation: cgEval,
+    now: now.toISOString(),
+  });
+
+  if (govEval.decision === "refuse" || govEval.decision === "block") {
+    const govAudit = buildGovernanceAuditEvent(govEval, {
+      task_type: asString(taskRow.type),
+      mission_id: missionId,
+      now: now.toISOString(),
+    });
+    await insertLog(supabaseAdmin, {
+      task_id: taskId,
+      mission_id: missionId,
+      user_id: userId,
+      event_type: govAudit.event_type,
+      message: govAudit.message,
+      meta_json: govAudit.meta_json as Record<string, unknown>,
+    });
+    return {
+      ok: false,
+      task_id: taskId,
+      mission_id: missionId,
+      outcome: "blocked",
+      artifact: null,
+      execution_result: buildPierreTaskExecutionResult({
+        task: {
+          id: taskId,
+          type: asString(taskRow.type),
+          title: asString(taskRow.title),
+          payload_json: payloadJson,
+          mission_id: missionId,
+        },
+        now,
+      }),
+      error: govEval.explanation,
+      error_code: "GOVERNANCE_BLOCKED",
+    };
+  }
+
+  // 5.6. Human approval gate — require_approval and supervised decisions must never auto-execute
+  if (!govEval.allowed_to_auto_execute) {
+    const humanRow = buildHumanRequiredLogRow({
+      user_id: userId,
+      mission_id: missionId,
+      task_id: taskId,
+      task_type: asString(taskRow.type),
+      reason: govEval.explanation || "Approbation humaine requise.",
+      governance_decision: govEval.decision,
+      risk_level: govEval.risk_level,
+    });
+    await insertLog(supabaseAdmin, {
+      task_id: taskId,
+      mission_id: missionId,
+      user_id: userId,
+      event_type: humanRow.event_type,
+      message: humanRow.message,
+      meta_json: humanRow.meta_json,
+    });
+    return {
+      ok: false,
+      task_id: taskId,
+      mission_id: missionId,
+      outcome: "awaiting_approval",
+      artifact: null,
+      execution_result: buildPierreTaskExecutionResult({
+        task: {
+          id: taskId,
+          type: asString(taskRow.type),
+          title: asString(taskRow.title),
+          payload_json: payloadJson,
+          mission_id: missionId,
+        },
+        now,
+      }),
+      error: govEval.explanation,
+      error_code: "HUMAN_APPROVAL_REQUIRED",
+    };
+  }
+
+  // 6. Set task to "running" in DB
   await setTaskRunning(supabaseAdmin, taskId);
 
-  // 6. Log execution start
+  // 7. Log execution start
   await insertLog(supabaseAdmin, {
     task_id: taskId,
     mission_id: missionId,
@@ -337,7 +478,7 @@ export async function executePierreTaskWithPersistence(params: {
     },
   });
 
-  // 7. Build executor task — maps payload_json → payload (required by executors.ts)
+  // 8. Build executor task — maps payload_json → payload (required by executors.ts)
   const executorTask: PierreExecutorTask = {
     id: taskId,
     type: asString(taskRow.type),
@@ -348,10 +489,10 @@ export async function executePierreTaskWithPersistence(params: {
     scheduled_for: asString(taskRow.execute_at),
   };
 
-  // 8. Execute (pure — HR gate + routing)
+  // 9. Execute (pure — HR gate + routing)
   const executorOutcome = await executePierreTask(executorTask, { now });
 
-  // 9. Build rich artifact result (always computed, regardless of executor outcome)
+  // 10. Build rich artifact result (always computed, regardless of executor outcome)
   const executionInput: PierreTaskExecutionInput = {
     task: {
       id: taskId,
@@ -368,7 +509,7 @@ export async function executePierreTaskWithPersistence(params: {
 
   const executionResult = buildPierreTaskExecutionResult(executionInput);
 
-  // 10. Persist artifact when execution succeeded or produces a storable artifact
+  // 11. Persist artifact when execution succeeded or produces a storable artifact
   let documentId: string | null = null;
   let emailId: string | null = null;
 
@@ -408,9 +549,13 @@ export async function executePierreTaskWithPersistence(params: {
     }
   }
 
-  // 11. Determine final DB status and build result_json
+  // 12. Determine final DB status and build result_json
   const dbStatus = outcomeToDbStatus(executorOutcome);
   const outcomeLabel = outcomeToLabel(executorOutcome);
+
+  const fileSnap = isObject(payloadJson.employee_file_snapshot)
+    ? payloadJson.employee_file_snapshot
+    : null;
 
   const resultJson: Record<string, unknown> = {
     outcome: outcomeLabel,
@@ -421,6 +566,16 @@ export async function executePierreTaskWithPersistence(params: {
     document_id: documentId,
     email_id: emailId,
     generated_at: now.toISOString(),
+    employee_id: asString(payloadJson.employee_id) || asString(employee?.id) || null,
+    employee_name: asString(payloadJson.employee_name) || asString(employee?.name) || null,
+    ...(fileSnap
+      ? {
+          employee_file_health_score:
+            typeof fileSnap.health_score === "number" ? fileSnap.health_score : null,
+          employee_file_risk_level:
+            typeof fileSnap.risk_level === "string" ? fileSnap.risk_level : null,
+        }
+      : {}),
     ...(executorOutcome.ok
       ? {}
       : {
@@ -429,10 +584,10 @@ export async function executePierreTaskWithPersistence(params: {
         }),
   };
 
-  // 12. Update task with final status and result_json
+  // 13. Update task with final status and result_json
   await updateTaskResult(supabaseAdmin, taskId, dbStatus, resultJson);
 
-  // 13. Log result
+  // 14. Log result
   await insertLog(supabaseAdmin, {
     task_id: taskId,
     mission_id: missionId,

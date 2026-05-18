@@ -8,6 +8,10 @@ import {
   buildEmployeeInsights,
   type PierreEmployeeProfile,
 } from "../../../../../../lib/pierre/hr/employee";
+import {
+  buildEmployeeFile360,
+  buildEmployeeFileSnapshot,
+} from "../../../../../../lib/pierre/hr/employee-file";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES
@@ -412,6 +416,27 @@ export async function GET(
     const timeline = buildEmployeeTimeline({ missions, tasks, documents, logs });
     const insights = buildEmployeeInsights(summary, timeline);
 
+    let fileSnapshot = null;
+    let fileDigest = null;
+    let fileHealth = null;
+    let fileRiskLevel = null;
+    try {
+      const file360 = buildEmployeeFile360({
+        employee: employee as unknown as Record<string, unknown>,
+        missions,
+        tasks,
+        documents,
+        logs,
+      });
+      const snap = buildEmployeeFileSnapshot(file360);
+      fileSnapshot = snap;
+      fileDigest = file360.digest;
+      fileHealth = file360.health;
+      fileRiskLevel = file360.risk_level;
+    } catch {
+      // Non-bloquant : si le file360 échoue, la réponse de base reste valide
+    }
+
     return NextResponse.json({
       ok: true,
       employee,
@@ -422,6 +447,11 @@ export async function GET(
       summary,
       timeline,
       insights,
+      file_snapshot: fileSnapshot,
+      file_digest: fileDigest,
+      file_health: fileHealth,
+      file_risk_level: fileRiskLevel,
+      file_endpoint: `/api/pierre/use/employee/${employeeId}/file`,
       meta: {
         employeeId,
         userId,

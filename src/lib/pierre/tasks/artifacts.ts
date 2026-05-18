@@ -427,6 +427,24 @@ export function inferPierreArtifactKind(
   return "document";
 }
 
+function collectEmployeeFileTags(payload: Record<string, unknown>): string[] {
+  const tags: string[] = [];
+  const snap = isObject(payload.employee_file_snapshot) ? payload.employee_file_snapshot : null;
+  if (!snap) return tags;
+  tags.push("employee_file");
+  const empId =
+    typeof snap.employee_id === "string" && snap.employee_id.trim()
+      ? snap.employee_id.trim()
+      : null;
+  if (empId) tags.push(`employee:${empId}`);
+  const riskLevel =
+    typeof snap.risk_level === "string" && snap.risk_level.trim()
+      ? snap.risk_level.trim()
+      : null;
+  if (riskLevel && riskLevel !== "green") tags.push(`risk:${riskLevel}`);
+  return tags;
+}
+
 export function buildPierreDocumentArtifact(input: PierreTaskExecutionInput): PierreArtifact {
   const payload = input.task.payload_json ?? {};
   const domain = detectHRDomain(input);
@@ -445,9 +463,10 @@ export function buildPierreDocumentArtifact(input: PierreTaskExecutionInput): Pi
     asString(payload.document_html) ||
     textToHtml(content_text, title);
 
-  const tags = ["pierre", "document_rh", domain, docType].filter(
-    (t, i, arr) => Boolean(t) && arr.indexOf(t) === i,
-  );
+  const tags = [
+    "pierre", "document_rh", domain, docType,
+    ...collectEmployeeFileTags(payload),
+  ].filter((t, i, arr) => Boolean(t) && arr.indexOf(t) === i);
 
   return {
     kind: "document",
@@ -485,7 +504,10 @@ export function buildPierreEmailDraftArtifact(input: PierreTaskExecutionInput): 
     subject,
     scheduled_for: null,
     missing_fields: asStringArray(payload.missing_info),
-    tags: ["pierre", "email", isSend ? "email_send" : "email_draft"],
+    tags: [
+      "pierre", "email", isSend ? "email_send" : "email_draft",
+      ...collectEmployeeFileTags(payload),
+    ].filter((t, i, arr) => arr.indexOf(t) === i),
     domain: null,
   };
 }
@@ -535,7 +557,10 @@ export function buildPierreFollowupArtifact(input: PierreTaskExecutionInput): Pi
     subject: null,
     scheduled_for: scheduledFor,
     missing_fields: asStringArray(payload.missing_info),
-    tags: ["pierre", "relance", "followup"],
+    tags: [
+      "pierre", "relance", "followup",
+      ...collectEmployeeFileTags(payload),
+    ].filter((t, i, arr) => arr.indexOf(t) === i),
     domain: "followup",
   };
 }

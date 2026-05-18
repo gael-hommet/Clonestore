@@ -18,6 +18,22 @@ import {
   type PierreHrWorkflowPlan,
   type PierreHrWorkflowRiskLevel,
 } from "../../../../../lib/pierre/hr/workflows";
+import {
+  buildEmployeeFile360,
+  buildEmployeeFileSnapshot,
+  type PierreEmployeeFileSnapshot,
+} from "../../../../../lib/pierre/hr/employee-file";
+import {
+  evaluatePierreCloneGuard,
+  buildCloneGuardPreview,
+  type PierreCloneGuardEvaluation,
+} from "../../../../../lib/pierre/hr/cloneguard";
+import {
+  evaluateGovernance,
+  buildGovernancePreview,
+  buildGovernanceAuditEvent,
+  type PierreGovernanceEvaluation,
+} from "../../../../../lib/pierre/hr/governance";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -317,6 +333,86 @@ function normalizeBody(raw: unknown): SubmitBody {
   };
 }
 
+// ── Employee file snapshot (non-bloquant) ──────────────────────────────────
+
+async function tryBuildEmployeeFileSnapshot(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+  employeeId: string,
+  employeeRaw: Record<string, unknown>,
+): Promise<PierreEmployeeFileSnapshot | null> {
+  try {
+    const [
+      { data: directTasks },
+      { data: nestedTasks },
+    ] = await Promise.all([
+      supabaseAdmin
+        .from("pierre_tasks")
+        .select("id, mission_id, type, title, status, approval_required, execute_at, created_at, updated_at, payload_json, risk_level")
+        .eq("user_id", userId)
+        .eq("agent_slug", "pierre")
+        .contains("payload_json", { employee_id: employeeId })
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabaseAdmin
+        .from("pierre_tasks")
+        .select("id, mission_id, type, title, status, approval_required, execute_at, created_at, updated_at, payload_json, risk_level")
+        .eq("user_id", userId)
+        .eq("agent_slug", "pierre")
+        .contains("payload_json", { employee_context: { employee_id: employeeId } })
+        .order("created_at", { ascending: false })
+        .limit(100),
+    ]);
+
+    const seen = new Set<string>();
+    const tasks: Record<string, unknown>[] = [];
+    for (const row of [...(directTasks ?? []), ...(nestedTasks ?? [])]) {
+      const id = typeof row.id === "string" ? row.id : null;
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      tasks.push(row as Record<string, unknown>);
+    }
+
+    const missionIds = [
+      ...new Set(
+        tasks.map((t) => (typeof t.mission_id === "string" ? t.mission_id : null))
+          .filter((id): id is string => id !== null),
+      ),
+    ].slice(0, 50);
+
+    const [{ data: missions }, { data: logs }] = await Promise.all([
+      missionIds.length
+        ? supabaseAdmin
+            .from("pierre_missions")
+            .select("id, status, risk_level, approval_required, mission_summary, intent, created_at, updated_at, brain_output_json, context_snapshot_json")
+            .eq("user_id", userId)
+            .in("id", missionIds)
+            .order("created_at", { ascending: false })
+        : Promise.resolve({ data: [] }),
+      supabaseAdmin
+        .from("pierre_task_logs")
+        .select("id, mission_id, task_id, event_type, message, meta_json, created_at")
+        .eq("user_id", userId)
+        .eq("agent_slug", "pierre")
+        .contains("meta_json", { employee_id: employeeId })
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+
+    const file = buildEmployeeFile360({
+      employee: employeeRaw,
+      missions: (missions ?? []) as Record<string, unknown>[],
+      tasks,
+      documents: [],
+      logs: (logs ?? []) as Record<string, unknown>[],
+    });
+
+    return buildEmployeeFileSnapshot(file);
+  } catch {
+    return null;
+  }
+}
+
 // ── DB inserts ─────────────────────────────────────────────────────────────
 
 async function insertMission(
@@ -327,6 +423,8 @@ async function insertMission(
   employeeContext: PierreEmployeeContext | null,
   employeeWarning: string | null,
   employeeResolutionSource: "explicit_id" | "explicit_name" | "text_detection" | "none",
+  fileSnapshot: PierreEmployeeFileSnapshot | null,
+  governanceEvaluation: PierreGovernanceEvaluation | null,
 ): Promise<DbRow> {
   const missionTitle =
     body.input.length > 120
@@ -372,6 +470,20 @@ async function insertMission(
           }
         : {}),
       ...(employeeWarning ? { employee_resolution_warning: employeeWarning } : {}),
+      ...(fileSnapshot ? { employee_file_snapshot: fileSnapshot } : {}),
+      ...(governanceEvaluation
+        ? {
+            governance_snapshot: {
+              decision: governanceEvaluation.decision,
+              risk_level: governanceEvaluation.risk_level,
+              guard_decision: governanceEvaluation.guard_decision,
+              policy_decision: governanceEvaluation.policy_decision,
+              trust_decision: governanceEvaluation.trust_decision,
+              trust_level: governanceEvaluation.trust_level,
+              allowed_to_auto_execute: governanceEvaluation.allowed_to_auto_execute,
+            },
+          }
+        : {}),
     },
     context_snapshot_json: {
       ...(isObject(body.context) ? body.context : {}),
@@ -384,6 +496,7 @@ async function insertMission(
           }
         : {}),
       ...(employeeWarning ? { employee_resolution_warning: employeeWarning } : {}),
+      ...(fileSnapshot ? { employee_file_snapshot: fileSnapshot } : {}),
     },
   };
 
@@ -411,9 +524,14 @@ async function insertTasks(
   missionId: string,
   plan: PierreHrWorkflowPlan,
   employeeContext: PierreEmployeeContext | null,
+  fileSnapshot: PierreEmployeeFileSnapshot | null,
 ): Promise<DbRow[]> {
   const taskRows = plan.tasks.map((task) => {
     const dbTask = mapPierreWorkflowTaskToDbTask(task);
+    const basePayload = enrichPayloadWithEmployeeContext(dbTask.payload_json, employeeContext);
+    const payload_json = fileSnapshot
+      ? { ...basePayload, employee_file_snapshot: fileSnapshot }
+      : basePayload;
     return {
       mission_id: missionId,
       user_id: userId,
@@ -424,7 +542,7 @@ async function insertTasks(
       status: dbTask.status,
       approval_required: dbTask.approval_required,
       execute_at: dbTask.execute_at,
-      payload_json: enrichPayloadWithEmployeeContext(dbTask.payload_json, employeeContext),
+      payload_json,
     };
   });
 
@@ -648,11 +766,63 @@ export async function POST(request: NextRequest) {
 
     const employeeWarning = employeeWarnings.length > 0 ? employeeWarnings.join("; ") : null;
 
+    // Snapshot salarié 360 (non-bloquant — null si l'employé n'est pas résolu)
+    let fileSnapshot: import("../../../../../lib/pierre/hr/employee-file").PierreEmployeeFileSnapshot | null = null;
+    if (employeeContext?.employee_id) {
+      const empProfile = employees.find((e) => e.id === employeeContext?.employee_id);
+      if (empProfile) {
+        fileSnapshot = await tryBuildEmployeeFileSnapshot(
+          supabaseAdmin,
+          auth.userId,
+          employeeContext.employee_id,
+          empProfile as unknown as Record<string, unknown>,
+        );
+      }
+    }
+
     // Build workflow plan (replaces old interpretMission)
     const plan = buildPierreHrWorkflowPlan(body.input, {
       autonomy_level: autonomyLevel,
       employee_context: employeeContext ? { ...employeeContext } : null,
     });
+
+    // CloneGuard evaluation — pure, runs on the plan before any DB writes
+    const nowIso = new Date().toISOString();
+    let cloneguardEvaluation: PierreCloneGuardEvaluation | null = null;
+    try {
+      cloneguardEvaluation = evaluatePierreCloneGuard({
+        task_type: null,
+        task_title: null,
+        task_description: body.input,
+        domain: plan.domain,
+        risk_level_hint: plan.risk_level,
+        approval_required: plan.approval_required,
+        text_corpus: body.input,
+        autonomy_level: autonomyLevel,
+        now: nowIso,
+      });
+    } catch {
+      cloneguardEvaluation = null;
+    }
+
+    // Governance evaluation — combines CloneGuard + ClonePolicy + CloneTrust
+    let governanceEvaluation: PierreGovernanceEvaluation | null = null;
+    try {
+      governanceEvaluation = evaluateGovernance({
+        task_type: null,
+        task_title: null,
+        task_description: body.input,
+        domain: plan.domain,
+        risk_level_hint: plan.risk_level,
+        approval_required: plan.approval_required,
+        text_corpus: body.input,
+        autonomy_level: autonomyLevel,
+        guard_evaluation: cloneguardEvaluation ?? undefined,
+        now: nowIso,
+      });
+    } catch {
+      governanceEvaluation = null;
+    }
 
     const mission = await insertMission(
       supabaseAdmin,
@@ -662,6 +832,8 @@ export async function POST(request: NextRequest) {
       employeeContext,
       employeeWarning,
       employeeResolutionSource,
+      fileSnapshot,
+      governanceEvaluation,
     );
 
     const tasks = await insertTasks(
@@ -670,6 +842,7 @@ export async function POST(request: NextRequest) {
       mission.id as string,
       plan,
       employeeContext,
+      fileSnapshot,
     );
 
     const logs = await insertLogs(
@@ -679,6 +852,27 @@ export async function POST(request: NextRequest) {
       tasks,
       plan,
     );
+
+    // Non-blocking governance audit log
+    if (governanceEvaluation) {
+      const auditEvent = buildGovernanceAuditEvent(governanceEvaluation, {
+        task_type: null,
+        domain: plan.domain,
+        mission_id: mission.id as string,
+        now: nowIso,
+      });
+      void Promise.resolve(supabaseAdmin
+        .from("pierre_task_logs")
+        .insert({
+          mission_id: mission.id as string,
+          task_id: null,
+          user_id: auth.userId,
+          agent_slug: "pierre",
+          event_type: auditEvent.event_type,
+          message: auditEvent.message,
+          meta_json: auditEvent.meta_json,
+        })).catch(() => {});
+    }
 
     // Backward-compatible interpretation shape for front-end consumers
     const interpretation = {
@@ -693,6 +887,10 @@ export async function POST(request: NextRequest) {
       missing_info_questions: plan.missing_info_questions,
     };
 
+    const cloneguardPreview = cloneguardEvaluation
+      ? buildCloneGuardPreview(cloneguardEvaluation)
+      : null;
+
     return NextResponse.json({
       ok: true,
       mission,
@@ -700,6 +898,18 @@ export async function POST(request: NextRequest) {
       workflow_plan: plan,
       tasks,
       logs,
+      cloneguard: cloneguardEvaluation
+        ? {
+            evaluation: cloneguardEvaluation,
+            preview: cloneguardPreview,
+          }
+        : null,
+      governance: governanceEvaluation
+        ? {
+            evaluation: governanceEvaluation,
+            preview: buildGovernancePreview(governanceEvaluation),
+          }
+        : null,
       threadEntries: [
         {
           id: `assistant-${mission.id as string}`,
