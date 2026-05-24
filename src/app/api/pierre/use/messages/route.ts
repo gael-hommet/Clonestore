@@ -21,6 +21,10 @@ import {
   sanitizePierreEmployeeList,
 } from "../../../../../lib/pierre/hr/employee";
 import {
+  buildEmployeeActionsIndex,
+  buildEmployeeActionSummary,
+} from "../../../../../lib/pierre/hr/employee-actions";
+import {
   buildAuditTrailEvents,
   buildAuditTrailDiagnostics,
   scoreAuditTrailHealth,
@@ -460,6 +464,17 @@ export async function GET(request: NextRequest) {
         critical_count: msgAuditDiag.critical_count,
         human_required_count: msgAuditDiag.human_required_count,
       },
+      employee_actions_summary: (() => {
+        try {
+          const actIndex = buildEmployeeActionsIndex(
+            employees as unknown as Record<string, unknown>[],
+            missions as unknown as Record<string, unknown>[],
+            tasks as unknown as Record<string, unknown>[],
+          );
+          const allSugg = Object.values(actIndex).flatMap((p) => p.suggested_actions);
+          return buildEmployeeActionSummary(allSugg);
+        } catch { return null; }
+      })(),
       meta: {
         userId,
         fetchedAt: now.toISOString(),

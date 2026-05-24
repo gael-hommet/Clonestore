@@ -17,7 +17,8 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { getSupabase } from "@/lib/supabase";
+import { getSessionClient } from "@/lib/auth/session-client";
+import { resolvePostLoginRedirect } from "@/lib/auth/login-helpers";
 import { cn } from "@/lib/utils";
 
 type LoginMode = "password" | "magic";
@@ -153,9 +154,15 @@ function AlertBox({
   );
 }
 
+function getPostLoginPath(): string {
+  if (typeof window === "undefined") return resolvePostLoginRedirect(null);
+  const params = new URLSearchParams(window.location.search);
+  return resolvePostLoginRedirect(params.get("redirect"));
+}
+
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+  const supabase = useMemo(() => getSessionClient() as SupabaseClient | null, []);
 
   const [mode, setMode] = useState<LoginMode>("password");
   const [email, setEmail] = useState("");
@@ -191,7 +198,7 @@ export default function LoginPage() {
 
       if (signInError) throw signInError;
 
-      router.push("/profile");
+      router.push(getPostLoginPath());
       router.refresh();
     } catch (err) {
       setError(
@@ -217,8 +224,9 @@ export default function LoginPage() {
     setSuccess(null);
 
     try {
+      const postLoginPath = getPostLoginPath();
       const redirectTo =
-        typeof window !== "undefined" ? `${window.location.origin}/profile` : undefined;
+        typeof window !== "undefined" ? `${window.location.origin}${postLoginPath}` : undefined;
 
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email.trim(),

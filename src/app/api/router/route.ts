@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
+
+function createAnonDbClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon) throw new Error("Supabase not configured");
+  return createClient(url, anon, { auth: { persistSession: false } });
+}
 
 // âš ️ Mets ici l'URL EXACTE de ton webhook Make
 const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/u8nkxlkauyxlygy1r6p59rhmdk35ta4r";
@@ -54,7 +61,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = getSupabase();
+    const supabase = createAnonDbClient();
 
     // 2) Récupérer le client_id à partir du token
     const clientId = await getClientIdFromToken(supabase, token);

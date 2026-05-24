@@ -49,7 +49,8 @@ import {
 } from "lucide-react";
 
 import { AGENTS } from "@/lib/agent-catalog";
-import { getSupabase } from "@/lib/supabase";
+import { getSessionClient } from "@/lib/auth/session-client";
+import { useAuthGate } from "@/lib/auth/useAuthGate";
 import { cn } from "@/lib/utils";
 
 type OrderRow = {
@@ -1091,9 +1092,10 @@ function TechnologyCard({
 }
 
 export default function ProfileAgentsPage() {
+  const { authState } = useAuthGate();
   const supabase = useMemo(() => {
     try {
-      return getSupabase() as SupabaseClient;
+      return getSessionClient() as SupabaseClient;
     } catch {
       return null;
     }
@@ -2232,7 +2234,7 @@ export default function ProfileAgentsPage() {
     });
   }
 
-  if (loading) {
+  if (authState === "checking" || authState === "unauthenticated" || loading) {
     return (
       <main className="cs-page">
         <div className="cs-page-shell">

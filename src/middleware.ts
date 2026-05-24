@@ -23,8 +23,10 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // refresh session if needed
-  await supabase.auth.getUser();
+  // Refresh session cookie if needed. getSession() reads from cookie (~0ms when fresh,
+  // ~200ms only when JWT is expired and refresh token is used). getUser() would make
+  // a network call on every request — not needed here since API routes validate tokens.
+  await supabase.auth.getSession();
 
   return response;
 }

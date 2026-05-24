@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { getSupabase } from "@/lib/supabase";
+import { useEffect, useState } from "react";
+import { getSessionClient } from "@/lib/auth/session-client";
+import type { Session } from "@supabase/supabase-js";
 
 type AuthState = "loading" | "guest" | "authenticated";
 
@@ -15,36 +16,21 @@ export default function TopbarAuthSlot({
 }: TopbarAuthSlotProps) {
   const [authState, setAuthState] = useState<AuthState>("loading");
 
-  const supabase = useMemo(() => {
-    try {
-      return getSupabase();
-    } catch {
-      return null;
-    }
-  }, []);
-
   useEffect(() => {
     let mounted = true;
+    const client = getSessionClient();
 
-    async function load() {
-      if (!supabase) {
-        if (mounted) setAuthState("guest");
-        return;
-      }
-
-      const { data } = await supabase.auth.getUser();
+    // getSession() reads from cookie — no network round-trip, resolves in <1ms.
+    void client.auth.getSession().then(({ data }) => {
       if (!mounted) return;
-
-      setAuthState(data.user ? "authenticated" : "guest");
-    }
-
-    void load();
-
-    if (!supabase) return;
+      setAuthState(data.session?.user ? "authenticated" : "guest");
+    }).catch(() => {
+      if (mounted) setAuthState("guest");
+    });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = client.auth.onAuthStateChange((_event: string, session: Session | null) => {
       if (!mounted) return;
       setAuthState(session?.user ? "authenticated" : "guest");
     });
@@ -53,7 +39,7 @@ export default function TopbarAuthSlot({
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
   const isMobile = variant === "mobile";
   const wrapperClass = isMobile ? "grid gap-2" : "flex items-center gap-2";

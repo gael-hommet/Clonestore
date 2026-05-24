@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  renderPremiumDocument,
+  inferPremiumDocumentFamily,
+  buildDefaultPremiumDocumentConfig,
+  type PierrePremiumDocumentInput,
+} from "../../../../../lib/pierre/documents/premium-document-system";
 
 type DbRow = Record<string, unknown>;
 
@@ -555,21 +561,62 @@ async function insertDocument(params: {
   return data as DbRow;
 }
 
+function buildPremiumEnrichment(params: {
+  instructions: string;
+  context: string | null;
+  title: string;
+  docType: string;
+  missionId: string | null;
+}): Record<string, unknown> {
+  try {
+    const family = inferPremiumDocumentFamily({
+      doc_type: params.docType,
+      title: params.title,
+      instructions: params.instructions,
+    });
+    const config = buildDefaultPremiumDocumentConfig(null);
+    const input: PierrePremiumDocumentInput = {
+      family,
+      channel: "document",
+      title: params.title,
+      raw_content: [params.instructions, params.context].filter(Boolean).join("\n\n"),
+      variables: [],
+      mission: params.missionId ? { id: params.missionId } : null,
+    };
+    const result = renderPremiumDocument(input, config);
+    return {
+      quality_status: result.quality.status,
+      quality_score: result.quality.score,
+      risk_level: result.quality.risk_level,
+      document_family: family,
+      approval_required: result.quality.approval_required,
+      digest: result.digest,
+    };
+  } catch (_e) {
+    return {
+      quality_status: "needs_review",
+      quality_score: 50,
+      risk_level: "green",
+      document_family: "generic_hr",
+      approval_required: false,
+    };
+  }
+}
+
 async function insertMissionLogIfNeeded(params: {
   supabaseAdmin: SupabaseClient;
   missionId: string | null;
   message: string;
-  payload: Record<string, unknown>;
+  meta_json: Record<string, unknown>;
 }) {
-  const { supabaseAdmin, missionId, message, payload } = params;
+  const { supabaseAdmin, missionId, message, meta_json } = params;
   if (!missionId) return;
 
   const { error } = await supabaseAdmin.from("pierre_task_logs").insert({
     mission_id: missionId,
-    level: "info",
-    event: "document_generated_direct",
+    event_type: "document_generated_direct",
     message,
-    payload,
+    meta_json,
   });
 
   if (error) {
@@ -629,9 +676,19 @@ export async function POST(request: NextRequest) {
       risk,
     });
 
+    const missionId = mission ? (mission.id as string) : null;
+
+    const premium = buildPremiumEnrichment({
+      instructions: body.instructions,
+      context: body.context || null,
+      title,
+      docType,
+      missionId,
+    });
+
     const document = await insertDocument({
       supabaseAdmin,
-      missionId: mission ? (mission.id as string) : null,
+      missionId,
       title,
       docType,
       textContent,
@@ -642,29 +699,33 @@ export async function POST(request: NextRequest) {
         language,
         risk_level: risk,
         context: body.context || null,
-        mission_id: mission ? (mission.id as string) : null,
+        mission_id: missionId,
+        premium,
       },
     });
 
     await insertMissionLogIfNeeded({
       supabaseAdmin,
-      missionId: mission ? (mission.id as string) : null,
+      missionId,
       message: `Document généré : ${title}`,
-      payload: {
+      meta_json: {
         document_id: document.id,
         doc_type: docType,
         tone,
         language,
         risk_level: risk,
+        premium_quality_score: premium.quality_score,
+        premium_family: premium.document_family,
       },
     });
 
     return NextResponse.json({
       ok: true,
       document,
+      premium_enrichment: premium,
       meta: {
         fetchedAt: new Date().toISOString(),
-        missionId: mission ? (mission.id as string) : null,
+        missionId,
       },
     });
   } catch (error) {

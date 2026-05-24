@@ -2,6 +2,19 @@
 // Pure HR artifact builders — no DB, no async
 // ═══════════════════════════════════════════════════════════
 
+import {
+  renderPremiumDocument,
+  inferPremiumDocumentFamily,
+  buildDefaultPremiumDocumentConfig,
+  type PierrePremiumDocumentFamily,
+  type PierrePremiumDocumentRiskLevel,
+  type PierrePremiumDocumentInput,
+  normalizePierrePremiumDocumentKind,
+  buildPierreDocumentVariables,
+  renderPierrePremiumDocument,
+  buildPierrePremiumDocumentQualitySummary,
+} from "../documents/premium-document-system";
+
 // ── Types ────────────────────────────────────────────────────
 
 export type PierreArtifactKind =
@@ -67,6 +80,13 @@ export type PierreArtifact = {
   missing_fields: string[];
   tags: string[];
   domain: string | null;
+  // Premium enrichment (populated only when the premium engine is used)
+  document_family?: PierrePremiumDocumentFamily | null;
+  approval_required?: boolean | null;
+  risk_level?: PierrePremiumDocumentRiskLevel | null;
+  template_id?: string | null;
+  pdf_filename?: string | null;
+  premium_document?: Record<string, unknown> | null;
 };
 
 export type PierreTaskExecutionResult = {
@@ -382,6 +402,21 @@ function buildEmailParts(input: PierreTaskExecutionInput): {
   return { subject, body_text, body_html, to, cc, bcc };
 }
 
+// ── Premium task types ────────────────────────────────────────
+
+const PREMIUM_DOC_TASK_TYPES = new Set([
+  "doc.generate",
+  "document.generate",
+  "contract.generate",
+  "amendment.generate",
+  "onboarding.document",
+  "absence.document",
+  "prepayroll.summary",
+  "employee.summary",
+  "hr.document",
+  "document.prepare",
+]);
+
 // ── Exported artifact builders ────────────────────────────────
 
 export function inferPierreArtifactKind(
@@ -404,7 +439,16 @@ export function inferPierreArtifactKind(
   if (
     type === "doc.generate" ||
     type === "doc.rewrite" ||
-    type === "generate_document"
+    type === "generate_document" ||
+    type === "document.generate" ||
+    type === "contract.generate" ||
+    type === "amendment.generate" ||
+    type === "onboarding.document" ||
+    type === "absence.document" ||
+    type === "prepayroll.summary" ||
+    type === "employee.summary" ||
+    type === "hr.document" ||
+    type === "document.prepare"
   )
     return "document";
 
@@ -445,8 +489,220 @@ function collectEmployeeFileTags(payload: Record<string, unknown>): string[] {
   return tags;
 }
 
+function buildPierreDocumentArtifactBloc27(input: PierreTaskExecutionInput): PierreArtifact | null {
+  try {
+    const payload = input.task.payload_json ?? {};
+    const hasKind = typeof payload["document_kind"] === "string" && payload["document_kind"];
+    const hasTemplateId = typeof payload["template_id"] === "string" && payload["template_id"];
+    const isPremium = payload["premium_document"] === true;
+
+    if (!hasKind && !hasTemplateId && !isPremium) return null;
+
+    const kind = normalizePierrePremiumDocumentKind(payload["document_kind"] ?? payload["template_id"]);
+    const domain = detectHRDomain(input);
+    const docType = domainToDocType(domain, payload);
+
+    const variables = buildPierreDocumentVariables({
+      employee: isObject(input.employee) ? (input.employee as Record<string, unknown>) : null,
+      company: isObject(input.company_memory) ? (input.company_memory as Record<string, unknown>) : null,
+      mission: isObject(input.mission) ? (input.mission as Record<string, unknown>) : null,
+      extra: isObject(payload) ? payload : null,
+    });
+
+    const companyTemplates = (() => {
+      if (!isObject(input.company_memory)) return null;
+      const rh = input.company_memory["reusable_rh_context_json"];
+      if (!isObject(rh)) return null;
+      const tpl = rh["document_templates"];
+      return Array.isArray(tpl) ? (tpl as Record<string, unknown>[]) : null;
+    })();
+
+    // Extract CloneADN variables from company_memory
+    const cloneADNVariables = (() => {
+      try {
+        if (!isObject(input.company_memory)) return null;
+        const rh = input.company_memory["reusable_rh_context_json"];
+        if (!isObject(rh)) return null;
+        const adn = rh["clone_adn"];
+        if (!isObject(adn)) return null;
+        const identity = isObject(adn["company_identity"]) ? adn["company_identity"] as Record<string, unknown> : null;
+        const comm = isObject(adn["communication"]) ? adn["communication"] as Record<string, unknown> : null;
+        const doc = isObject(adn["document"]) ? adn["document"] as Record<string, unknown> : null;
+        const companyName = identity
+          ? (typeof identity["trade_name"] === "string" ? identity["trade_name"] : null) ??
+            (typeof identity["legal_name"] === "string" ? identity["legal_name"] : null)
+          : null;
+        return {
+          ...(companyName ? { company_name: companyName, company_legal_name: identity?.["legal_name"] } : {}),
+          ...(identity?.["sector"] ? { company_sector: identity["sector"] } : {}),
+          ...(identity?.["hr_contact_email"] ? { hr_contact_email: identity["hr_contact_email"] } : {}),
+          ...(comm?.["formal_closing"] ? { formal_closing: comm["formal_closing"] } : {}),
+          ...(comm?.["greeting_style"] ? { greeting_style: comm["greeting_style"] } : {}),
+          ...(doc?.["preferred_tone"] ? { document_tone: doc["preferred_tone"] } : {}),
+        };
+      } catch {
+        return null;
+      }
+    })();
+
+    const renderResult = renderPierrePremiumDocument({
+      kind,
+      variables,
+      company_profile: isObject(input.company_memory) ? (input.company_memory as Record<string, unknown>) : null,
+      employee_profile: isObject(input.employee) ? (input.employee as Record<string, unknown>) : null,
+      mission_context: isObject(input.mission) ? (input.mission as Record<string, unknown>) : null,
+      companyTemplates,
+      cloneADNVariables,
+    });
+
+    const quality = buildPierrePremiumDocumentQualitySummary(renderResult);
+    const missingRequired = renderResult.missing_variables.filter((v) => v.required).map((v) => v.key);
+
+    const tags = [
+      "pierre", "document_rh", "premium", "bloc27",
+      domain, docType, kind,
+      ...collectEmployeeFileTags(payload),
+    ].filter((t, i, arr) => Boolean(t) && arr.indexOf(t) === i);
+
+    return {
+      kind: "document",
+      status: renderResult.requires_human_validation ? "blocked" : "generated",
+      title: renderResult.title,
+      content_text: renderResult.content_text,
+      content_html: renderResult.content_html,
+      doc_type: docType,
+      to_json: [],
+      cc_json: [],
+      bcc_json: [],
+      subject: null,
+      scheduled_for: null,
+      missing_fields: missingRequired,
+      tags,
+      domain,
+      document_family: null,
+      approval_required: renderResult.requires_human_validation,
+      risk_level: renderResult.risk_level as PierrePremiumDocumentRiskLevel,
+      template_id: renderResult.template_id,
+      pdf_filename: null,
+      premium_document: quality,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function buildPierreDocumentArtifactPremium(input: PierreTaskExecutionInput): PierreArtifact {
+  const bloc27 = buildPierreDocumentArtifactBloc27(input);
+  if (bloc27) return bloc27;
+
+  const payload = input.task.payload_json ?? {};
+  const domain = detectHRDomain(input);
+  const docType = domainToDocType(domain, payload);
+
+  const familyContext: Record<string, unknown> = {
+    family: payload.document_family ?? payload.family ?? null,
+    doc_type: payload.doc_type ?? input.task.type ?? null,
+    type: input.task.type ?? null,
+    title: payload.title ?? input.task.title ?? null,
+    instructions: payload.instructions ?? payload.context ?? null,
+  };
+  const family = inferPremiumDocumentFamily(familyContext);
+
+  const config = buildDefaultPremiumDocumentConfig(
+    isObject(input.company_memory) ? input.company_memory : null,
+  );
+
+  const taskType = (input.task.type ?? "").toLowerCase().trim();
+  const channel =
+    taskType === "pdf.generate" || taskType === "generate_pdf"
+      ? "pdf"
+      : family === "followup"
+      ? "email"
+      : "document";
+
+  const raw_content =
+    asString(payload.text_content) ||
+    asString(payload.body_text) ||
+    asString(payload.document_text) ||
+    asString(payload.generated_document_text) ||
+    asString(payload.raw_input) ||
+    asString(payload.content) ||
+    null;
+
+  const premiumInput: PierrePremiumDocumentInput = {
+    family,
+    channel,
+    title:
+      asString(payload.title) ||
+      asString(payload.document_title) ||
+      asString(input.task.title) ||
+      null,
+    raw_content,
+    variables: [],
+    mission: isObject(input.mission) ? input.mission : null,
+    task: {
+      id: input.task.id,
+      type: input.task.type ?? null,
+      payload_json: payload,
+    },
+    employee_file: input.employee
+      ? (input.employee as Record<string, unknown>)
+      : null,
+    company_memory: isObject(input.company_memory) ? input.company_memory : null,
+    payload,
+  };
+
+  const result = renderPremiumDocument(premiumInput, config);
+
+  const tags = [
+    "pierre",
+    "document_rh",
+    "premium",
+    domain,
+    docType,
+    family,
+    ...collectEmployeeFileTags(payload),
+  ].filter((t, i, arr) => Boolean(t) && arr.indexOf(t) === i);
+
+  return {
+    kind: "document",
+    status: result.quality.status === "blocked" ? "blocked" : "generated",
+    title: result.rendered.title,
+    content_text: result.rendered.plain_text,
+    content_html: result.rendered.html,
+    doc_type: docType,
+    to_json: [],
+    cc_json: [],
+    bcc_json: [],
+    subject: null,
+    scheduled_for: null,
+    missing_fields: result.quality.missing_required_variables,
+    tags,
+    domain,
+    document_family: family,
+    approval_required: result.quality.approval_required,
+    risk_level: result.quality.risk_level,
+    template_id: result.rendered.metadata.template_id,
+    pdf_filename: result.rendered.pdf_filename,
+    premium_document: {
+      quality_status: result.quality.status,
+      quality_score: result.quality.score,
+      issues: result.quality.issues,
+      digest: result.digest,
+      selected_template_id: result.selected_template?.id ?? null,
+      variables_resolved: result.variables.length,
+    },
+  };
+}
+
 export function buildPierreDocumentArtifact(input: PierreTaskExecutionInput): PierreArtifact {
   const payload = input.task.payload_json ?? {};
+  const taskType = (input.task.type ?? "").toLowerCase().trim();
+
+  if (PREMIUM_DOC_TASK_TYPES.has(taskType)) {
+    return buildPierreDocumentArtifactPremium(input);
+  }
+
   const domain = detectHRDomain(input);
   const docType = domainToDocType(domain, payload);
 

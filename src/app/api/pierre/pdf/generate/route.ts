@@ -531,10 +531,9 @@ async function insertPdfLogIfNeeded(params: {
   const { error } = await supabaseAdmin.from("pierre_task_logs").insert({
     mission_id: missionId,
     task_id: taskId,
-    level: "info",
-    event: "pdf_generated_direct",
+    event_type: "pdf_generated_direct",
     message: "PDF Pierre genere depuis route directe.",
-    payload: {
+    meta_json: {
       pdf_document_id: pdfDocumentId,
       source_document_id: sourceDocumentId,
       generated_at: generatedAt,

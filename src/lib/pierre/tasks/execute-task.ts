@@ -19,6 +19,10 @@ import {
 import {
   buildHumanRequiredLogRow,
 } from "../logs";
+import {
+  classifyEmployeeActionRisk,
+  resolveEmployeeActionGovernance,
+} from "../hr/employee-actions";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -568,6 +572,18 @@ export async function executePierreTaskWithPersistence(params: {
     generated_at: now.toISOString(),
     employee_id: asString(payloadJson.employee_id) || asString(employee?.id) || null,
     employee_name: asString(payloadJson.employee_name) || asString(employee?.name) || null,
+    employee_action_type: asString(payloadJson.action_type),
+    employee_action_domain: asString(payloadJson.action_domain),
+    employee_action_governance: (() => {
+      const at = asString(payloadJson.action_type);
+      if (!at) return null;
+      try { return resolveEmployeeActionGovernance(at); } catch { return null; }
+    })(),
+    employee_action_risk: (() => {
+      const at = asString(payloadJson.action_type);
+      if (!at) return null;
+      try { return classifyEmployeeActionRisk(at); } catch { return null; }
+    })(),
     ...(fileSnap
       ? {
           employee_file_health_score:

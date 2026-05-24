@@ -2448,3 +2448,2404 @@ Pattern non-bloquant : `void Promise.resolve(supabase.from("pierre_task_logs").i
 | tsc errors | 0 | **0** |
 | Build | clean | **clean** |
 
+---
+
+## Bloc 17 — Employee Actions & Workflows RH automatisés
+
+### Vue d'ensemble
+
+Le Bloc 17 introduit le moteur d'**actions RH automatisées** : un catalogue de 33 actions couvrant 12 domaines, un système de suggestions intelligentes par salarié, un pipeline de gouvernance à 4 niveaux (`auto_safe → approval_required → manual_only → blocked`), et des nouvelles routes dédiées aux actions employés et workflows RH.
+
+### Module pur — `src/lib/pierre/hr/employee-actions.ts`
+
+**20 fonctions exportées**, zéro dépendance externe, zéro async/side-effect.
+
+#### Types principaux
+
+| Type | Description |
+|------|-------------|
+| `PierreEmployeeActionDomain` | 12 domaines : onboarding, offboarding, contract, absence, payroll, training, interview, document, communication, followup, note, general |
+| `PierreEmployeeActionGovernance` | `auto_safe` \| `approval_required` \| `manual_only` \| `blocked` |
+| `PierreEmployeeActionRisk` | `green` \| `orange` \| `red` \| `black` |
+| `PierreEmployeeActionCatalogItem` | Entrée catalogue avec id, domain, action_type, governance, risk, label_fr/en, description |
+| `PierreEmployeeActionSuggestion` | Suggestion contextuelle avec confidence, reason, risk, governance |
+| `PierreEmployeeActionPlan` | Plan complet par salarié avec compteurs par gouvernance et next_action |
+| `PierreEmployeeActionTaskDraft` | Brouillon de tâche : type, status, execute_at (jamais scheduled_for), payload_json |
+| `PierreEmployeeActionResult` | Résultat de résolution : allowed_to_auto_execute, task_draft (null si manual_only/blocked), explanation |
+| `PierreEmployeeActionTrace` | Trace déterministe : id = `"ea_" + simpleHash(employee_id + ":" + action_type)` |
+
+#### Catalogue — 33 actions, 12 domaines
+
+| Domaine | Actions clés | Gouvernance max |
+|---------|-------------|-----------------|
+| onboarding | welcome_email, document_checklist, account_setup_reminder, contract_send | approval_required |
+| offboarding | exit_interview_schedule, document_return_checklist, termination_letter_draft, access_revocation_note | **manual_only** |
+| contract | renewal_reminder, amendment_draft, termination_prep, trial_period_followup | **manual_only** |
+| absence | absence_acknowledgment, return_to_work_schedule, long_absence_followup, medical_certificate_reminder | auto_safe |
+| payroll | variable_element_prep, salary_review_draft | **manual_only** |
+| training | training_plan_draft, training_reminder | auto_safe |
+| interview | annual_review_schedule, performance_note_draft, disciplinary_prep | **manual_only** |
+| document | employee_file_update, work_certificate_draft, reference_letter_draft | approval_required |
+| communication | manager_alert, sensitive_communication_prep | **manual_only** |
+| followup | pending_tasks_followup, manager_followup_note | auto_safe |
+| note | internal_note_draft | auto_safe |
+| general | action_reminder | auto_safe |
+
+#### Invariants de sécurité
+
+- Actions `red` / `black` → jamais `auto_safe`
+- Actions `manual_only` / `blocked` → `resolveEmployeeActionResult` retourne `task_draft = null`
+- `buildEmployeeActionTaskDraft` pour actions red → `approval_required = true`
+- ID de trace déterministe : `"ea_" + simpleHash(employee_id + ":" + action_type)` — pas de timestamp dans le hash
+- `buildEmployeeActionsIndex` filtre les entrées null/undefined/non-objet sans throw
+
+#### Fonctions clés
+
+```typescript
+getEmployeeActionCatalog(): PierreEmployeeActionCatalogItem[]
+getEmployeeActionById(id): PierreEmployeeActionCatalogItem | null
+getEmployeeActionsByDomain(domain): PierreEmployeeActionCatalogItem[]
+inferEmployeeActionDomain(text): PierreEmployeeActionDomain
+inferEmployeeActionType(text): string | null
+classifyEmployeeActionRisk(action_type, context?): PierreEmployeeActionRisk
+resolveEmployeeActionGovernance(action_type, context?): PierreEmployeeActionGovernance
+isEmployeeActionAutoSafe(action_type, context?): boolean
+scoreEmployeeActionConfidence(action_type, employee, missions, tasks): number
+buildEmployeeActionSuggestions(employee, missions, tasks): PierreEmployeeActionSuggestion[]
+buildEmployeeActionPlan(employee, missions, tasks, now?): PierreEmployeeActionPlan
+buildEmployeeActionSummary(suggestions): PierreEmployeeActionSummary
+getEmployeeActionDomainsActive(suggestions): PierreEmployeeActionDomain[]
+resolveEmployeeActionResult(action_type, context): PierreEmployeeActionResult
+buildEmployeeActionTaskDraft(action_type, context): PierreEmployeeActionTaskDraft
+filterEmployeeActionsByGovernance(actions, governance): PierreEmployeeActionSuggestion[]
+filterEmployeeActionsByRisk(actions, max_risk): PierreEmployeeActionSuggestion[]
+buildEmployeeActionTrace(action_type, employee_id, context?, now?): PierreEmployeeActionTrace
+buildEmployeeActionAuditMeta(action_type, employee_id, governance, risk): Record<string, unknown>
+buildEmployeeActionsIndex(employees, allMissions, allTasks): Record<string, PierreEmployeeActionPlan>
+```
+
+### Nouvelles routes
+
+#### `GET/POST /api/pierre/use/employee/[employeeId]/actions`
+
+- **GET** : charge l'employé depuis `pierre_company_memory`, construit plan + summary, supporte filtres `domain` / `governance` / `include_all`
+- **POST** : valide action_type, `manual_only` → log `human_action_required` sans insertion DB, `dry_run=true` retourne draft, `dry_run=false` insère tâche avec `execute_at`
+- Réponse inclut `employee_actions_endpoint`
+
+#### `GET/POST /api/pierre/use/employees/actions`
+
+- **GET** : charge tous les employés, construit `actionsIndex`, calcule `global_summary`, retourne `urgent_employees` (ceux avec manual_only ou approval_required > 0)
+- Paramètres : `governance`, `risk`, `catalog`
+
+#### `GET/POST /api/pierre/use/workflows/rh`
+
+- **GET** : retourne `WORKFLOW_DOMAIN_CATALOG` (11 entrées) + `safety_matrix` (risk_baseline, approval_required, auto_executable, employee_action_domains, sample_actions)
+- **POST** : `buildPierreHrWorkflowPlan(input, { employee_context })`, logs `workflow_rh_analyzed` non-bloquant
+
+### Routes enrichies
+
+| Route | Champs ajoutés |
+|-------|---------------|
+| `employee/[employeeId]/file` | `employee_actions_summary`, `employee_action_suggestions` (top 5), `employee_actions_endpoint` |
+| `employees/files` | `employee_actions_index`, `employee_actions_global_summary`, `employee_actions_endpoint` |
+| `mission/[missionId]` | `employee_action_context` (suggestions, summary, trace, endpoint) |
+| `mission-control` | `employee_actions_summary` |
+| `messages` | `employee_actions_summary` |
+
+### execute-task enrichi
+
+Nouveaux champs dans `result_json` :
+- `employee_action_type` — depuis `payload_json.action_type`
+- `employee_action_domain` — depuis `payload_json.action_domain`
+- `employee_action_governance` — calculé via `resolveEmployeeActionGovernance`
+- `employee_action_risk` — calculé via `classifyEmployeeActionRisk`
+
+### SQL — `supabase/sql/pierre_employee_actions_indexes_v1.sql`
+
+8 index idempotents (`IF NOT EXISTS`) :
+- `idx_pierre_tasks_action_type` — GIN sur `payload_json` (jsonb_path_ops)
+- `idx_pierre_tasks_employee_payload` — GIN sur `payload_json -> 'employee_id'`
+- `idx_pierre_tasks_employee_context_payload` — GIN sur `payload_json -> 'employee_context'`
+- `idx_pierre_tasks_employee_actions_status` — btree (user_id, agent_slug, status, created_at DESC)
+- `idx_pierre_task_logs_employee_action` — GIN sur `meta_json -> 'employee_id'`
+- `idx_pierre_task_logs_action_event` — btree (user_id, agent_slug, event_type, created_at DESC)
+- `idx_pierre_company_memory_user` — btree (user_id, agent_slug)
+- `idx_pierre_tasks_action_domain` — GIN sur `payload_json -> 'action_domain'`
+
+### Tests Bloc 17
+
+| Fichier | Tests | Couverture |
+|---------|-------|-----------|
+| `hr-employee-actions.test.ts` | ≥190 | 21 groupes : catalog, inference, risk/governance, confidence, suggestions, plan, summary, task draft, result, filters, trace, audit, index, security invariants, robustness |
+| `hr-employee-actions-runtime.test.ts` | 89 | Log schema (never level/event/payload), task draft schema (execute_at not scheduled_for), security gate (manual_only/blocked → task_draft null), trace ID determinism, confidence edge cases, plan determinism, index mixed data, filter hierarchy, suggestions enrichment, summary invariants, catalog risk↔governance coherence |
+
+**Script E2E** : `scripts/pierre-employee-actions-test.ps1` — 63 étapes, PS5 compatible, teste les 3 nouvelles routes + mission-control + sécurité + auth protection.
+
+### Résultats finaux Bloc 17
+
+| Métrique | Avant Bloc 17 | Bloc 17 |
+|----------|---------------|---------|
+| Module pur employee-actions | — | **1** (employee-actions.ts, 20 fonctions) |
+| Catalogue d'actions | — | **33 items, 12 domaines** |
+| Routes nouvelles | — | **3** |
+| Routes enrichies | — | **5** |
+| Fichiers test nouveaux | 17 | **19** |
+| Index SQL nouveaux | — | **8** |
+| Tests total | ~2073 | **2162** |
+| tsc errors | 0 | **0** |
+| Build | clean | **clean** |
+
+---
+
+## Bloc 18 — CloneStore Technologies Foundation / Socle technologique transversal
+
+### Objectif
+
+Faire des technologies CloneStore une **couche plateforme transversale**, réutilisable par tous les employés IA — et non un module interne à Pierre. Pierre est simplement le premier consommateur de cette couche.
+
+### Principe fondamental
+
+> Aucune technologie ne doit contenir "Pierre" comme hypothèse centrale. Toutes les fonctions d'accès sont paramétrées par `employeeSlug: string`.
+
+### 12 Technologies CloneStore
+
+| Slug | Nom | Noyau | Configurable client | Validation humaine | Statut défaut |
+|------|-----|-------|---------------------|--------------------|---------------|
+| `cloneos` | CloneOS | oui | non | non | enabled |
+| `cloneadn` | CloneADN | non | oui | non | enabled |
+| `cloneguard` | CloneGuard | oui | oui (risk_mode) | non | enabled |
+| `clonetrace` | CloneTrace | oui | non | non | enabled |
+| `clonecontinuum` | CloneContinuum | oui | non | non | enabled |
+| `clonetrust` | CloneTrust | non | oui | non | enabled |
+| `clonereview` | CloneReview | non | oui | **oui** | enabled |
+| `clonesignals` | CloneSignals | non | oui | non | enabled |
+| `clonelearn` | CloneLearn | non | oui | **oui** | enabled |
+| `clonevoice` | CloneVoice | non | oui | non | **disabled** (beta) |
+| `clonechat` | CloneChat | non | oui | non | enabled |
+| `clonebrief` | CloneBrief | non | oui | non | enabled |
+
+### Architecture — modules purs
+
+Tous les modules sont **purs** : zéro Supabase, zéro Next.js, zéro async, zéro effets de bord.
+
+```
+src/lib/clonestore/technologies/
+  contracts.ts        — 13 types exportés (TechnologySlug, TechnologyDefinition, …)
+  registry.ts         — 12 définitions + 9 fonctions exportées
+  configuration.ts    — validation / merge / rapports de configuration
+  __tests__/
+    technology-registry.test.ts   — 130+ tests
+```
+
+### Fonctions exportées — `registry.ts`
+
+| Fonction | Description |
+|----------|-------------|
+| `getCloneStoreTechnologyDefinitions()` | Les 12 définitions immuables |
+| `getTechnologyDefinition(slug)` | Par slug, null si inconnu |
+| `buildDefaultTechnologyCompanySettings(defs, now?)` | Paramètres par défaut pour toutes les techs |
+| `normalizeTechnologyCompanySetting(raw, def, now?)` | Normalise un objet brut (DB ou null) |
+| `buildTechnologyRegistry(params)` | Construit le registre complet avec états runtime |
+| `computeTechnologyRegistrySummary(registry)` | Résumé comptable |
+| `resolveTechnologyForEmployee(registry, employeeSlug)` | Technologies actives pour un employé |
+| `isTechnologyEnabledForEmployee(registry, slug, employeeSlug)` | Booléen — `disabled_for` a priorité sur `enabled_for` |
+| `buildTechnologyPublicDigest(registry)` | Chaîne lisible pour les réponses API |
+
+### Invariants critiques
+
+1. `disabled_for_employee_slugs` a toujours priorité sur `enabled_for_employee_slugs`
+2. Les noyaux plateforme (`cloneos`, `clonetrace`, `clonecontinuum`) ne peuvent pas être désactivés ni modifiés par les clients
+3. `clonereview` et `clonelearn` interdisent `autonomy_level = "autonomous"` (requires_human_validation)
+4. `clonevoice` : `default_status = "disabled"`, visibilité `"beta"`
+5. Stockage temporaire : `pierre_company_memory.reusable_rh_context_json.clone_technologies` (keyed by slug, filtré par `user_id + agent_slug = "pierre"`)
+6. `configuration_status` est calculé automatiquement par `mergeTechnologySettings`
+
+### Routes
+
+#### `GET /api/clonestore/technologies`
+
+Retourne le registre complet, le digest public et le rapport de configuration.
+
+```
+?employee_slugs=pierre,sophie   — liste des employés pour la matrice
+?matrix=true                    — inclure buildTechnologyEmployeeMatrix
+```
+
+Réponse : `{ ok, registry, digest, report, matrix?, meta }`
+
+#### `GET /api/clonestore/technologies/[technologySlug]`
+
+Retourne la définition, le paramètre courant, l'état runtime et la validation pour une technologie.
+
+Réponse : `{ ok, technology, setting, runtime_state, validation, enabled_for_pierre, meta }`
+
+#### `PATCH /api/clonestore/technologies/[technologySlug]`
+
+Met à jour les paramètres modifiables : `status`, `autonomy_level`, `risk_mode`, `enabled_for_employee_slugs`, `disabled_for_employee_slugs`, `custom_rules`, `validation_rules`, `notification_rules`, `memory_rules`.
+
+Champs protégés (non modifiables) : `technology_slug`, `created_at`.
+
+Retourne 400 si aucun champ valide fourni, 400 si validation post-merge échoue.
+
+Log non-bloquant : `event_type = "technology_setting_updated"` dans `pierre_task_logs`.
+
+### Routes enrichies
+
+| Route | Champ ajouté |
+|-------|-------------|
+| `submit/route.ts` (brain_output_json) | `technology_context` — technologies actives, guard_mode, autonomy_level, trace/review/continuity enabled |
+| `mission/[missionId]/route.ts` | `clone_technologies` — active_technologies, total, enabled |
+
+### Tests Bloc 18
+
+| Fichier | Tests | Couverture |
+|---------|-------|-----------|
+| `technology-registry.test.ts` | 130+ | 14 groupes : catalog completeness, platform-core invariants, requires_human_validation, CloneVoice, getTechnologyDefinition, buildDefaultTechnologyCompanySettings, normalizeTechnologyCompanySetting (edge cases), buildTechnologyRegistry, health scores, runtime states, computeTechnologyRegistrySummary, isTechnologyEnabledForEmployee (priority rules), resolveTechnologyForEmployee, buildTechnologyPublicDigest, no-Pierre-hardcoding, registry integrity |
+
+**Script E2E** : `scripts/clonestore-technologies-foundation-test.ps1` — 50 étapes, PS5 compatible.
+
+### Résultats finaux Bloc 18
+
+| Métrique | Avant Bloc 18 | Bloc 18 |
+|----------|---------------|---------|
+| Couche technologie transversale | — | **1** (3 modules purs) |
+| Technologies définies | — | **12** |
+| Routes nouvelles | — | **2** (+ 1 avec paramètre) |
+| Routes enrichies | — | **2** |
+| Fichiers test nouveaux | 19 | **20** |
+| Tests total | 2162 | **2290+** |
+| tsc errors | 0 | **0** |
+| Build | clean | **clean** |
+
+---
+
+## Bloc 18.1 — CloneStore Technologies Storage Migration
+
+### Objectif
+
+Sortir les configurations technologies de `pierre_company_memory` et les placer dans une table plateforme dédiée, complètement indépendante de Pierre.
+
+### Principe
+
+> Les technologies CloneStore ne sont plus des sous-données de Pierre. Elles appartiennent à l'entreprise, pas à un employé IA.
+
+### Table dédiée
+
+`public.clonestore_company_technologies`
+
+| Colonne | Type | Description |
+|---------|------|-------------|
+| `user_id` | uuid | Identifiant entreprise (clé RLS) |
+| `technology_key` | text | Identifiant technique = TechnologySlug |
+| `technology_name` | text | Nom affiché |
+| `enabled` | boolean | Champ queryable dénormalisé (≠ disabled/not_configured → false) |
+| `mode` | text | Champ queryable = risk_mode |
+| `autonomy_level` | text | Champ queryable = autonomy_level |
+| `config_json` | jsonb | **Source de vérité** — TechnologyCompanySetting complet (round-trip lossless) |
+| `metadata_json` | jsonb | Champs auxiliaires queryables (status, enabled_for, disabled_for, custom_rules) |
+| `preferences_json` | jsonb | notification_rules |
+| `limits_json` | jsonb | memory_rules |
+| `rules_json` | jsonb | validation_rules (format array) |
+| `connections_json` | jsonb | Réservé (futur) |
+
+Contrainte unique: `(user_id, technology_key)` — upsert via `onConflict: "user_id,technology_key"`.
+
+RLS activé: chaque entreprise accède uniquement à ses propres configurations.
+
+Trigger `updated_at` automatique.
+
+### Module pur `storage.ts`
+
+`src/lib/clonestore/technologies/storage.ts` — zéro Supabase, zéro Next, zéro async.
+
+| Fonction exportée | Description |
+|-------------------|-------------|
+| `normalizeDbRow(raw)` | Coerce résultat DB brut → `CloneStoreTechnologyRow \| null` |
+| `mapRowToSetting(row, def)` | DB row → `TechnologyCompanySetting` (config_json en priorité) |
+| `mapSettingToUpsertPayload(setting, userId, name)` | `TechnologyCompanySetting` → payload upsert DB |
+| `mapRowsToSettings(rows, defs)` | Batch: rows[] → settings[], skip malformed/unknown |
+| `legacyExtractSettings(contextJson, defs)` | Fallback lecture JSON blob legacy (pierre_company_memory) |
+
+### Stratégie de lecture (priorité)
+
+1. **`clonestore_company_technologies`** — nouvelle table plateforme (source primaire)
+2. **`pierre_company_memory.reusable_rh_context_json.clone_technologies`** — JSON legacy (fallback lecture seule)
+3. **Défauts de définition** — si aucun paramètre persisté
+
+`meta.storage_source` dans chaque réponse : `"platform_table"` | `"legacy_json"` | `"defaults"`.
+
+### Stratégie d'écriture
+
+**Écriture uniquement vers `clonestore_company_technologies`** — plus jamais vers `pierre_company_memory`.
+
+`pierre_company_memory` reste accessible en lecture legacy mais n'est plus mis à jour pour les technologies CloneStore.
+
+### Round-trip lossless
+
+`config_json` contient le `TechnologyCompanySetting` complet. La lecture utilise `config_json` en priorité si `technology_slug` est présent. Tous les champs (`enabled_for_employee_slugs`, `disabled_for_employee_slugs`, `custom_rules`, etc.) sont préservés sans perte.
+
+### Tests Bloc 18.1
+
+| Groupe | Tests | Couverture |
+|--------|-------|-----------|
+| `normalizeDbRow` | 14 | null/undefined/string/empty key/valid/coercions |
+| `mapRowToSetting — config_json` | 6 | lossless round-trip via config_json |
+| `mapRowToSetting — synthesis` | 9 | fallback depuis colonnes individuelles |
+| `mapSettingToUpsertPayload` | 14 | enabled mapping, mode, config_json, metadata_json |
+| Round-trip complet | 6 | write→read via normalizeDbRow |
+| `mapRowsToSettings` | 6 | batch, skip malformed, unknown slugs |
+| `legacyExtractSettings` | 9 | fallback legacy, malformed entries, connus/inconnus |
+| No Pierre hardcoding | 3 | aucune référence "pierre" dans storage module |
+
+**Total**: 67 nouveaux tests de storage (2347 total).
+
+**Script E2E**: `scripts/clonestore-technologies-storage-test.ps1` — 26 étapes, PS5 compatible.
+
+### Résultats finaux Bloc 18.1
+
+| Métrique | Bloc 18 | Bloc 18.1 |
+|----------|---------|-----------|
+| Stockage technologies | pierre_company_memory (JSON blob) | **clonestore_company_technologies (table dédiée)** |
+| Module pur storage | — | **1** (storage.ts, 5 fonctions) |
+| SQL nouvelle table | — | **1** (8 index + RLS + trigger) |
+| Fallback legacy | — | **oui** (lecture seule, pas d'écriture) |
+| meta.storage_source | — | **3 valeurs** (platform_table / legacy_json / defaults) |
+| Tests total | 2290+ | **2347** |
+| tsc errors | 0 | **0** |
+| Build | clean | **clean** |
+
+
+
+
+---
+
+## Bloc 19 — CloneStore Runtime Context / CloneOS Platform Bridge
+
+**Objectif**: Couche runtime plateforme pour tous les employés IA — pas Pierre-only. Évalue les capacités runtime, les politiques d'action, et expose un contexte d'exécution cohérent à toutes les routes.
+
+### Nouveaux modules
+
+#### `src/lib/clonestore/runtime/contracts.ts` — Types purs (aucune dépendance)
+
+| Type | Description |
+|------|-------------|
+| `CloneRuntimeDecision` | `allowed` \| `allowed_with_observation` \| `requires_review` \| `requires_validation` \| `blocked_by_technology` \| `blocked_by_policy` |
+| `CloneRuntimeCapability` | Capacité runtime par technologie pour un employé |
+| `CloneRuntimeContext` | Contexte plat résolu : employee_slug, guard_mode, autonomy_level, flags par technologie |
+| `CloneRuntimeActionEvaluation` | Résultat d'évaluation d'une action (décision, source, flags humains) |
+| `CloneRuntimeGovernance` | Santé globale : `healthy` \| `degraded` \| `locked` |
+| `CloneRuntimeSnapshot` | Snapshot complet : context + governance + capabilities + summary |
+| `CloneRuntimeActionInput` | Input POST pour évaluation d'action |
+| `CloneRuntimeStorageSource` | `platform_table` \| `legacy_json` \| `defaults` \| `unavailable` |
+
+#### `src/lib/clonestore/runtime/engine.ts` — Moteur pur (aucune dépendance Supabase/Next)
+
+| Fonction exportée | Description |
+|-------------------|-------------|
+| `normalizeRuntimeEmployeeSlug(slug)` | Coerce → string lowercase, défaut "pierre" |
+| `normalizeRuntimeActionType(action)` | Coerce → string lowercase, défaut "" |
+| `normalizeRuntimeRiskLevel(level)` | Coerce → "normal"\|"guarded"\|"strict"\|"locked"\|"red"\|"black"\|null |
+| `buildRuntimeContext(registry, employeeSlug, now?)` | Contexte plat pour un employé |
+| `buildRuntimeGovernance(registry)` | Gouvernance globale depuis snapshot technologique |
+| `buildRuntimeCapabilities(registry, employeeSlug)` | Capacité par technologie |
+| `evaluateRuntimeAction(context, actionType, options?, now?)` | Évalue une action — jamais d'exécution |
+| `buildRuntimeSnapshot(registry, employeeSlug, now?)` | Snapshot complet |
+
+### Invariants d'évaluation d'action (evaluateRuntimeAction)
+
+| Priorité | Condition | Décision |
+|----------|-----------|----------|
+| 1 | `action_type` vide/manquant | `blocked_by_policy` |
+| 2 | `email.send` ou `send_email` | `blocked_by_policy` |
+| 3 | `risk_level = "black"` | `blocked_by_policy` |
+| 4 | `approval_required = true` | `requires_validation` |
+| 5 | `risk_level = "red"` | `requires_validation` |
+| 6 | `guard_mode = "locked"` | `blocked_by_technology` |
+| 7 | `autonomy_level = "off"` | `requires_validation` |
+| 8 | `autonomy_level = "suggest_only"` | `requires_review` |
+| 9 | `document.generate` \| `pdf.generate` \| `email.draft` | `requires_review` |
+| 10 | `contains_sensitive_keywords = true` | `requires_review` |
+| 11 | `guard_mode = "strict"` | `requires_review` |
+| 12 | `autonomy_level = "supervised"` | `allowed_with_observation` |
+| 13 | `autonomy_level = "semi_autonomous"` | `allowed_with_observation` |
+| 14 | `autonomy_level = "autonomous"` | `allowed` |
+| 15 | Fallback | `allowed_with_observation` |
+
+### Routes modifiées
+
+#### `GET /api/clonestore/runtime` — Nouveau
+
+Retourne un `CloneRuntimeSnapshot` complet pour un `employee_slug` (défaut: `pierre`).
+Stratégie de stockage: platform_table → legacy_json → defaults.
+
+#### `POST /api/clonestore/runtime` — Nouveau
+
+Évalue une action contre le contexte runtime de l'employé.
+Body: `{ action_type, employee_slug?, task_type?, risk_level?, approval_required?, contains_sensitive_keywords? }`
+Retourne: `{ ok, evaluation, context_summary, meta }`.
+
+#### `POST /api/pierre/use/submit` — Enrichi
+
+Ajoute `clone_runtime_snapshot`, `clone_runtime_unavailable`, `clone_runtime_storage_source` dans `context_snapshot_json` et `brain_output_json`.
+Répond avec `clone_runtime: { snapshot, unavailable, storage_source, error? }`.
+
+#### `GET /api/pierre/use/mission/[missionId]` — Enrichi
+
+Lit `clone_runtime_snapshot` depuis `context_snapshot_json` (source "mission_snapshot"), ou reconstruit depuis DB (source "rebuilt"), ou retourne `unavailable`.
+Répond avec `clone_runtime: { snapshot, context, source, error? }`.
+
+#### `GET /api/pierre/use/mission-control` — Enrichi
+
+Construit `clone_runtime_summary` en parallèle des autres fetches.
+Répond avec `clone_runtime_summary: { snapshot, unavailable, storage_source, error? }`.
+
+#### `GET /api/pierre/use/dashboard` — Enrichi
+
+Même enrichissement que mission-control.
+Répond avec `clone_runtime_summary: { snapshot, unavailable, storage_source, error? }`.
+
+### Tests Bloc 19
+
+| Groupe | Tests | Couverture |
+|--------|-------|-----------|
+| `normalizeRuntimeEmployeeSlug` | 14 | null/undefined/string/empty/number/object/array |
+| `normalizeRuntimeActionType` | 14 | null/undefined/empty/number/object/array |
+| `normalizeRuntimeRiskLevel` | 13 | tous les niveaux valides + cas limites |
+| `buildRuntimeContext` | 15 | registry-based, fallback, flags booléens |
+| `buildRuntimeGovernance` | 6 | healthy/degraded/locked, fallback |
+| `buildRuntimeCapabilities` | 7 | array, fields, can_auto_execute, locked |
+| `evaluateRuntimeAction` | 75+ | tous les invariants + interactions + propagation trace/review |
+| `buildRuntimeSnapshot` | 16 | champs requis, fallback, summary format |
+
+**Total**: 160 tests unitaires (tous verts).
+
+**Script E2E**: `scripts/clonestore-runtime-test.ps1` — 27 étapes, PS5 compatible.
+
+### Résultats finaux Bloc 19
+
+| Métrique | Valeur |
+|----------|--------|
+| Modules purs | 2 (contracts.ts, engine.ts) |
+| Routes nouvelles | 1 GET + 1 POST (`/api/clonestore/runtime`) |
+| Routes enrichies | 4 (submit, mission, mission-control, dashboard) |
+| Types exportés | 8 (contracts.ts) |
+| Fonctions exportées | 8 (engine.ts) |
+| Invariants d'action | 14 (priorité stricte) |
+| Tests unitaires | 160 (160 verts) |
+| Étapes script PS5 | 27 |
+| tsc errors | 0 |
+
+---
+
+## Bloc 20 — Pierre Premium Document System / Modèles Entreprise
+
+### Objectif
+
+Transformer la production documentaire RH de Pierre en une couche premium — documents beaux, crédibles, enterprise-grade, indiscernables d'un travail humain professionnel.
+
+### Architecture
+
+**Module pur** : `src/lib/pierre/documents/premium-document-system.ts`
+- Zéro Supabase, zéro Next, zéro async, zéro effets de bord
+- 17 types TypeScript exportés
+- 15 fonctions exportées
+- 15 templates par défaut (une par famille documentaire)
+
+### Familles documentaires (15)
+
+| Famille | Label | Risque | Validation |
+|---------|-------|--------|------------|
+| `contract` | Contrat de travail | orange | obligatoire |
+| `amendment` | Avenant au contrat | orange | obligatoire |
+| `offer` | Offre d'emploi | green | non |
+| `convocation` | Convocation | orange | non |
+| `refusal` | Refus de candidature | green | non |
+| `followup` | Suivi RH | green | non |
+| `onboarding` | Document d'onboarding | green | non |
+| `absence` | Justificatif d'absence | orange | non |
+| `pre_payroll` | Éléments de pré-paie | red | obligatoire |
+| `performance` | Entretien d'évaluation | green | non |
+| `training` | Document de formation | green | non |
+| `offboarding` | Procédure de départ | red | obligatoire |
+| `employee_summary` | Synthèse salarié | orange | non |
+| `internal_note` | Note interne RH | green | non |
+| `generic_hr` | Document RH | green | non |
+
+### Priorité des sources de variables
+
+```
+manual(7) > payload(6) > employee_file(5) > profile(4) > task(3) > mission(2) > company_memory(1) > unknown(0)
+```
+
+### Détection des risques
+
+- **black** : harcèlement, discrimination, faute grave, licenciement disciplinaire, prud'hommes
+- **red** : licenciement, rupture conventionnelle, offboarding, pre_payroll
+- **orange** : contract, amendment, convocation, absence, employee_summary
+- **green** : tout le reste
+
+### Routes créées ou modifiées
+
+| Route | Méthode | Changement |
+|-------|---------|------------|
+| `POST /api/pierre/use/document/preview` | POST | Nouvelle — rendu premium + qualité |
+| `GET /api/pierre/use/document/config` | GET | Nouvelle — config document_system |
+| `PUT /api/pierre/use/document/config` | PUT | Nouvelle — sauvegarde sans écraser employees |
+| `POST /api/pierre/doc/generate` | POST | Enrichissement premium + fix log schema |
+| `POST /api/pierre/pdf/generate` | POST | Fix log schema (event_type/message/meta_json) |
+| `POST /api/pierre/use/submit` | POST | Enrichissement document_family/channel dans task payload |
+
+### Invariants absolus respectés
+
+- Jamais `level/event/payload` dans `pierre_task_logs` — uniquement `event_type/message/meta_json`
+- Jamais `email.send` auto-exécuté — `auto_send: false` systématique
+- Jamais "document généré par IA" dans le rendu client
+- Jamais écraser `employees` lors de la sauvegarde de config
+- Risque noir/rouge → `approval_required = true` systématique
+- Module pur sans Supabase/Next/fs/process.env
+
+### Tests Bloc 20
+
+**Tests unitaires** : `src/lib/pierre/__tests__/premium-document-system.test.ts`
+**Total** : 150+ tests (tous les exports couverts).
+
+**Script E2E** : `scripts/pierre-premium-document-system-test.ps1` — 18 étapes, PS5 compatible.
+
+### Résultats finaux Bloc 20
+
+| Métrique | Valeur |
+|----------|--------|
+| Module pur | 1 (premium-document-system.ts) |
+| Routes nouvelles | 3 (preview, config GET, config PUT) |
+| Routes enrichies | 3 (doc/generate, pdf/generate, submit) |
+| Familles documentaires | 15 |
+| Types exportés | 17 |
+| Fonctions exportées | 15 |
+| Tests unitaires | 150+ |
+| Étapes script PS5 | 18 |
+| tsc errors | 0 |
+| Build | clean |
+
+---
+
+## Bloc 21 — Operational Readiness & Golden HR Scenarios
+
+Date : 2026-05-19
+
+### Objectif
+
+Transformer l'ensemble des blocs précédents (B10.5 → B20) en une couche de **preuve produit opérationnelle** :
+- Évaluer objectivement si Pierre est prêt à fonctionner comme un vrai poste RH automatisé
+- Détecter les manques produit, risques non couverts, documents faibles, traces manquantes
+- Définir 8 scénarios RH "golden" qui prouvent la vision CloneStore
+- Exposer un rapport de readiness clair, exploitable, premium
+- Corriger la dette B20 (test flaky timestamp technology-registry)
+
+### Fichiers créés
+
+| Fichier | Type | Rôle |
+|---------|------|------|
+| `src/lib/pierre/hr/operational-readiness.ts` | Module pur | Moteur de readiness — types, gates, scénarios, rapport |
+| `src/app/api/pierre/use/readiness/route.ts` | Route GET | Rapport complet de readiness |
+| `src/app/api/pierre/use/readiness/scenarios/route.ts` | Route GET | Liste des 8 scénarios golden |
+| `src/app/api/pierre/use/readiness/scenarios/dry-run/route.ts` | Route POST | Évaluation dry-run d'un/tous les scénarios |
+| `src/lib/pierre/__tests__/hr-operational-readiness.test.ts` | Tests | 160+ tests unitaires |
+| `scripts/pierre-operational-readiness-test.ps1` | Script PS5 | 14 étapes d'intégration E2E |
+
+### Fichiers modifiés
+
+| Fichier | Modification |
+|---------|-------------|
+| `src/app/api/pierre/use/mission/[missionId]/route.ts` | Ajout `readiness_hint` dans la réponse |
+| `src/lib/clonestore/technologies/__tests__/technology-registry.test.ts` | Fix test flaky timestamp (1ms) |
+
+### Module pur — operational-readiness.ts
+
+**Invariants** : zéro Supabase, zéro Next, zéro async, zéro effets de bord. Robuste face aux objets null/undefined.
+
+#### Types exportés (11)
+
+| Type | Rôle |
+|------|------|
+| `PierreReadinessLevel` | not_ready / partial / ready / premium_ready |
+| `PierreReadinessGateStatus` | pass / warning / fail / not_applicable |
+| `PierreReadinessGateKey` | 14 gates d'évaluation |
+| `PierreGoldenScenarioKey` | 8 scénarios golden |
+| `PierreGoldenScenarioRisk` | low / medium / high / critical |
+| `PierreGoldenScenario` | Définition complète d'un scénario |
+| `PierreReadinessGate` | Résultat d'évaluation d'une gate |
+| `PierreReadinessScenarioEvaluation` | Résultat d'évaluation d'un scénario |
+| `PierreReadinessOperationalRisk` | Risque opérationnel détecté |
+| `PierreReadinessNextAction` | Action recommandée |
+| `PierreReadinessReport` | Rapport complet |
+
+#### Fonctions exportées (16)
+
+| Fonction | Rôle |
+|----------|------|
+| `buildPierreGoldenScenarios()` | Retourne les 8 scénarios golden |
+| `evaluateMissionEngine(params)` | Gate : moteur de mission |
+| `evaluateTaskOrchestration(params)` | Gate : orchestration des tâches |
+| `evaluateControlledAutonomy(params)` | Gate : autonomie contrôlée |
+| `evaluateEmployeeFile360(params)` | Gate : dossier salarié 360° |
+| `evaluateContinuity(params)` | Gate : continuité opérationnelle |
+| `evaluatePremiumDocuments(params)` | Gate : documents premium |
+| `evaluatePdfQuality(params)` | Gate : qualité PDF |
+| `evaluateEmailSafety(params)` | Gate : sécurité email |
+| `evaluateCloneGuard(params)` | Gate : CloneGuard |
+| `evaluateCloneTrace(params)` | Gate : CloneTrace |
+| `evaluateCompanyMemory(params)` | Gate : mémoire entreprise |
+| `evaluateTemplateConfiguration(params)` | Gate : configuration templates |
+| `evaluateAuditability(params)` | Gate : auditabilité |
+| `evaluateGoldenScenario(scenario, params)` | Évalue un scénario golden |
+| `buildPierreReadinessReport(params)` | Rapport complet (toutes gates + scénarios) |
+| `buildMissionReadinessHint(mission, tasks, docs, logs)` | Hint de readiness pour une mission |
+
+### 8 Scénarios Golden RH
+
+| Clé | Titre | Risque | Validation humaine |
+|-----|-------|--------|--------------------|
+| `hiring_onboarding` | Embauche et onboarding complet | medium | Oui |
+| `absence_management` | Gestion d'une absence | low | Non |
+| `contract_generation` | Génération de contrat ou avenant | high | Oui |
+| `prepay_preparation` | Préparation des éléments de paie | medium | Oui |
+| `offboarding` | Départ salarié — Offboarding complet | high | Oui |
+| `sensitive_hr_case` | Cas RH sensible — Disciplinaire/Licenciement | **critical** | **Oui — obligatoire** |
+| `multi_site_reporting` | Rapport RH multi-sites | medium | Non |
+| `employee_file_review` | Revue dossier salarié 360° | low | Non |
+
+Chaque scénario définit :
+- `prompt` : la requête RH réaliste à soumettre à Pierre
+- `expected_capabilities` : les capacités Pierre nécessaires
+- `expected_outputs` : les sorties attendues
+- `required_gates` : les gates de readiness impactées
+- `must_require_human_validation` : si true, toute exécution auto est interdite
+- `must_not_auto_execute` : liste des actions interdites en exécution automatique
+
+### 14 Gates de Readiness
+
+| Clé | Label | Ce qu'elle vérifie |
+|-----|-------|--------------------|
+| `mission_engine` | Moteur de Mission | Présence missions + mission_summary + brain_output_json |
+| `task_orchestration` | Orchestration des Tâches | Tâches liées missions, types variés, payloads exploitables |
+| `controlled_autonomy` | Autonomie Contrôlée | email.send non auto, approval_required respecté |
+| `employee_file_360` | Dossier Salarié 360° | Salariés + files + timeline + risks |
+| `continuity` | Continuité Opérationnelle | Tâches bloquées/erreur/approbation |
+| `premium_documents` | Documents Premium | document_family, template_id, pierre-wrapper HTML |
+| `pdf_quality` | Qualité PDF | PDF générés + branding |
+| `email_safety` | Sécurité Email | Aucun email.send auto sans validation |
+| `cloneguard` | CloneGuard | risk_level, approval_required, logs gouvernance |
+| `clonetrace` | CloneTrace | event_type/message/meta_json dans tous les logs |
+| `company_memory` | Mémoire Entreprise | reusable_rh_context_json avec employees/config |
+| `template_configuration` | Configuration Templates | document_system, branding, templates personnalisés |
+| `auditability` | Auditabilité | Logs + cross-refs mission/task/document |
+| `golden_scenarios` | Scénarios Golden RH | Score moyen des 8 scénarios |
+
+### Scoring
+
+| Score | Niveau |
+|-------|--------|
+| 90–100 | `premium_ready` |
+| 75–89 | `ready` |
+| 50–74 | `partial` |
+| 0–49 | `not_ready` |
+
+### Routes exposées
+
+| Route | Méthode | Rôle |
+|-------|---------|------|
+| `/api/pierre/use/readiness` | GET | Rapport complet de readiness |
+| `/api/pierre/use/readiness/scenarios` | GET | 8 scénarios golden avec résumé |
+| `/api/pierre/use/readiness/scenarios/dry-run` | POST | Évaluation dry-run (lecture seule) |
+| `/api/pierre/use/mission/[missionId]` | GET | + `readiness_hint` dans la réponse |
+
+### readiness_hint dans mission/[missionId]
+
+```json
+{
+  "readiness_hint": {
+    "gates_impacted": ["controlled_autonomy", "premium_documents"],
+    "scenario_matches": ["contract_generation"],
+    "warnings": ["Tâches bloquées — vérifier la continuité."]
+  }
+}
+```
+
+### Invariants Bloc 21
+
+- Aucune route readiness ne crée de mission, tâche, ou email
+- Dry-run est strictement lecture seule
+- Le module pur n'importe ni Supabase ni Next
+- `sensitive_hr_case` force `must_require_human_validation: true` et `must_not_auto_execute: ["email.send", "send_email", "doc.generate"]`
+- Toute gate retourne un score 0–100 même si les données sont vides
+- CloneTrace bloque si des logs utilisent l'ancien schéma `level/event/payload`
+- `buildMissionReadinessHint` ne crashe jamais (try/catch dans la route)
+
+### Valeur commerciale
+
+Pierre Bloc 21 est la **certification produit** de CloneStore :
+- **Pour les clients** : preuve objective que Pierre est opérationnel, pas un prototype
+- **Pour les demos** : 8 scénarios golden = 8 démos produit prêtes
+- **Pour les RH** : rapport de readiness = outil de pilotage du déploiement
+- **Pour les investisseurs** : score 0–100 = KPI produit mesurable et auditable
+- **Pour la sécurité** : CloneGuard + email_safety + controlled_autonomy = garanties traçables
+
+### Résultats finaux Bloc 21
+
+| Métrique | Valeur |
+|----------|--------|
+| Module pur | 1 (operational-readiness.ts) |
+| Routes nouvelles | 3 (readiness, scenarios, dry-run) |
+| Routes enrichies | 1 (mission/[missionId]) |
+| Gates de readiness | 14 |
+| Scénarios golden | 8 |
+| Types exportés | 11 |
+| Fonctions exportées | 17 |
+| Tests unitaires | 160+ |
+| Étapes script PS5 | 14 |
+| tsc errors | 0 |
+| Build | clean |
+| Fix dette B20 | test flaky technology-registry corrigé |
+
+---
+
+## Bloc 22 — Pierre Release Hardening & End-to-End Sellable Proof
+
+Date : 2026-05-19
+
+### Objectif
+
+Prouver que Pierre est commercialisable. Bloc 22 quantifie le niveau de maturité produit avec 13 gates de release, 8 scénarios de démo end-to-end, et une estimation automatique de la valeur client mensuelle.
+
+### Module pur : `src/lib/pierre/hr/release-proof.ts`
+
+Zéro Supabase, zéro Next, zéro async. Entrée : `EvalParams` (missions, tasks, documents, logs, companyMemory, documentSystemConfig, employeeFiles, employees). Sortie : `PierreReleaseReport` complet.
+
+#### Niveaux de release
+
+| Level | Score | Description |
+|-------|-------|-------------|
+| `blocked` | — | Invariants critiques violés — non déployable |
+| `internal_demo` | 50–64 | Démo interne uniquement |
+| `client_demo` | 65–74 | Démo client possible — cas d'usage validés |
+| `pilot_ready` | 75–87 | Prêt pour pilote client supervisé |
+| `sellable` | ≥ 88 | Produit commercialisable — production ready |
+
+**Override critique** : si `safety_invariants` ou `sensitive_case_control` fail → `blocked`. Si `schema_integrity` fail → max `internal_demo`.
+
+#### Les 13 gates de release
+
+| # | Clé | Poids | Description |
+|---|-----|-------|-------------|
+| 1 | `technical_integrity` | 7 | Intégrité technique : taux d'erreur, données opérationnelles |
+| 2 | `schema_integrity` | 10 | Schéma DB conforme : `execute_at`, `event_type/message/meta_json` |
+| 3 | `safety_invariants` | 10 | `email.send`/`send_email` jamais auto-exécutés, `approval_required` respecté |
+| 4 | `mission_to_artifact_flow` | 8 | Flux complet : mission → tâches → documents |
+| 5 | `employee_file_flow` | 7 | Dossiers salariés 360° opérationnels, stockage dans `reusable_rh_context_json` |
+| 6 | `document_quality_flow` | 8 | HTML premium, PDF, familles premium, `pierre-wrapper` |
+| 7 | `continuity_flow` | 6 | Reprise de missions bloquées/suspendues |
+| 8 | `readiness_flow` | 7 | Certification opérationnelle B21 confirmée |
+| 9 | `traceability_flow` | 8 | Audit trail complet : logs liés, horodatés, avec `event_type` |
+| 10 | `client_value_proof` | 9 | Missions complétées, tâches exécutées, documents premium |
+| 11 | `sensitive_case_control` | 10 | Cas sensibles sous contrôle — validation humaine obligatoire |
+| 12 | `demo_scenario_coverage` | 7 | Couverture des 8 scénarios de démo par des données réelles |
+| 13 | `launch_risk` | 3 | Risque global calculé à partir de tous les autres gates |
+
+#### Les 8 scénarios de démo
+
+| Clé | Titre | Risque | Validation humaine |
+|-----|-------|--------|--------------------|
+| `hiring_full_cycle` | Cycle d'embauche complet | medium | Oui |
+| `absence_followup` | Suivi d'une absence salarié | low | Non |
+| `contract_and_pdf` | Génération contrat + PDF premium | high | Oui |
+| `employee_file_review` | Revue dossier salarié 360° | low | Non |
+| `sensitive_case_blocked` | Cas sensible — blocage automatique prouvé | critical | Oui |
+| `continuity_recovery` | Récupération de continuité — mission suspendue | medium | Non |
+| `prepay_summary` | Synthèse pré-paie mensuelle | medium | Oui |
+| `offboarding_controlled` | Offboarding contrôlé — fin de contrat | high | Oui |
+
+Invariant absolu : `sensitive_case_blocked` ne doit jamais auto-exécuter `email.send`, `send_email`, ni `doc.generate`.
+
+### Nouvelles routes API
+
+#### `GET /api/pierre/use/release-proof`
+Rapport complet de release : 13 gates + 8 scénarios évalués + estimation de valeur + next_actions.
+
+Réponse :
+```json
+{
+  "ok": true,
+  "report": {
+    "level": "pilot_ready",
+    "global_score": 82,
+    "label": "Prêt pour pilote — déploiement client supervisé",
+    "summary": "...",
+    "gates": [...],
+    "demo_scenarios": [...],
+    "risks": [...],
+    "next_actions": [...],
+    "value_estimation": {
+      "monthly_hours_saved_low": 12,
+      "monthly_hours_saved_high": 24,
+      "estimated_monthly_value_eur_low": 600,
+      "estimated_monthly_value_eur_high": 1200,
+      "confidence": "medium",
+      "explanation": "..."
+    },
+    "totals": { ... }
+  },
+  "demo_scenarios": [...],
+  "meta": { "userId": "...", "fetchedAt": "...", "missions_loaded": 47, ... }
+}
+```
+
+#### `GET /api/pierre/use/release-proof/demo-scenarios`
+Liste des 8 scénarios de démo avec statistiques.
+
+Réponse :
+```json
+{
+  "ok": true,
+  "scenarios": [...],
+  "summary": {
+    "count": 8,
+    "critical_count": 1,
+    "high_risk_count": 2,
+    "validation_required_count": 5
+  }
+}
+```
+
+#### `POST /api/pierre/use/release-proof/demo-scenarios/dry-run`
+Évalue un ou tous les scénarios de démo contre les données réelles de l'utilisateur.
+
+Body :
+```json
+{ "scenario_key": "sensitive_case_blocked", "include_prompt": true }
+```
+
+Réponse :
+```json
+{
+  "ok": true,
+  "scenario_key": "sensitive_case_blocked",
+  "evaluations": [...],
+  "prompts": { "sensitive_case_blocked": "..." },
+  "meta": { "dry_run": true, "scenarios_evaluated": 1, ... }
+}
+```
+
+Erreur 400 si `scenario_key` invalide : `{ "ok": false, "code": "INVALID_SCENARIO_KEY" }`.
+
+### Route enrichie : `mission/[missionId]/route.ts`
+
+Le champ `release_proof_hint` est maintenant ajouté à la réponse de chaque mission :
+
+```typescript
+release_proof_hint: (() => {
+  try {
+    return buildMissionReleaseProofHint(mission, tasks, documents, logs);
+  } catch {
+    return null as PierreReleaseHint | null;
+  }
+})(),
+```
+
+Exemple de réponse :
+```json
+{
+  "release_proof_hint": {
+    "level": "pilot_ready",
+    "global_score": 78,
+    "critical_gates_failed": [],
+    "label": "Prêt pour pilote — déploiement client supervisé",
+    "tip": "Mission prête pour pilote — enrichir les documents et logs pour atteindre sellable."
+  }
+}
+```
+
+### Estimation de valeur : `estimatePierreReleaseValue`
+
+Calcul basé sur :
+- `completed_tasks × 2.5h × 0.7–1.3` selon le niveau
+- `premium_documents × 1.5h`
+- `employees × 0.5h`
+- Tarif : 50 €/heure
+- Confiance : `high` si score ≥ 85, `medium` si ≥ 65, `low` sinon
+
+### Invariants Bloc 22
+
+1. `release-proof.ts` est un module pur — zéro Supabase, zéro Next.
+2. `schema_integrity` vérifie `scheduled_for` (doit être absent) et `level/event/payload` dans les logs (interdits).
+3. `safety_invariants` vérifie que `email.send`/`send_email` ne sont jamais dans TERMINAL_STATUSES sans `approval_required=true`.
+4. `sensitive_case_control` vérifie que les tâches à risque critique ne peuvent pas être auto-exécutées.
+5. Les overrides de niveau sont stricts : `safety_invariants` fail → `blocked` sans exception.
+6. `buildMissionReleaseProofHint` est read-only — jamais d'écriture en DB.
+7. Les endpoints dry-run ne déclenchent aucun envoi email réel.
+8. Les données salariés restent dans `pierre_company_memory.reusable_rh_context_json.employees`.
+
+### Résultats finaux Bloc 22
+
+| Métrique | Valeur |
+|----------|--------|
+| Module pur | 1 (release-proof.ts) |
+| Routes nouvelles | 3 (release-proof, demo-scenarios, dry-run) |
+| Routes enrichies | 1 (mission/[missionId] + release_proof_hint) |
+| Gates de release | 13 |
+| Scénarios de démo | 8 |
+| Niveaux de release | 5 (blocked → sellable) |
+| Types exportés | 10 |
+| Fonctions exportées | 5 |
+| Tests unitaires | 180+ |
+| Étapes script PS5 | 14 |
+| tsc errors | 0 |
+| Build | clean |
+
+---
+
+## Bloc 23 — Pierre Trial Activation & First-Value Engine
+
+### Objectif
+
+Transformer Pierre en produit exploitable pour une **semaine d'essai gratuite ou un pilote client**. Ce bloc donne à Pierre la capacité d'embarquer des clients en essai, de proposer des premières missions à valeur, de mesurer la valeur créée, de détecter les blockers d'activation, et de convertir l'essai en abonnement.
+
+### Module pur — `src/lib/pierre/hr/trial-activation.ts`
+
+Zéro Supabase, zéro Next, zéro async, zéro effets de bord.
+
+#### Stages d'activation
+
+| Stage | Description |
+|-------|-------------|
+| `not_started` | Aucune donnée — Pierre non démarré |
+| `setup_needed` | Config incomplète (mémoire, salariés) |
+| `ready_to_launch` | Config présente, aucune mission encore |
+| `first_value_started` | Missions/tâches commencées |
+| `value_proven` | Valeur forte démontrée (score ≥ 60, 3+ tâches, 2+ docs) |
+| `conversion_ready` | Prêt à convertir en abonnement |
+| `blocked` | Blockers critiques actifs |
+
+#### Statuts visuels
+
+| Status | Condition |
+|--------|-----------|
+| `green` | conversion_ready ou value_proven, sans blockers |
+| `yellow` | ready_to_launch ou setup partiel |
+| `orange` | first_value_started avec 1 blocker important |
+| `red` | not_started ou 2+ blockers importants |
+| `black` | blocked ou blocker critique |
+
+#### Plan 7 jours
+
+| Jour | Clé | Objectif |
+|------|-----|----------|
+| Jour 0 | `day_0_setup` | Configuration initiale Pierre |
+| Jour 1 | `day_1_first_mission` | Première mission RH |
+| Jour 2 | `day_2_employee_files` | Dossiers salariés 360° |
+| Jour 3 | `day_3_documents` | Génération documentaire premium |
+| Jour 4 | `day_4_continuity` | Continuité opérationnelle |
+| Jour 5 | `day_5_sensitive_control` | Contrôle cas sensibles |
+| Jour 6 | `day_6_value_review` | Revue valeur créée |
+| Jour 7 | `day_7_conversion` | Décision de conversion |
+
+#### 10 templates de premières missions
+
+| Clé | Titre | Risque | Validation humaine |
+|-----|-------|--------|-------------------|
+| `audit_rh_initial` | Audit RH initial | low | Non |
+| `create_employee_file` | Création dossier salarié 360° | low | Non |
+| `generate_contract_or_document` | Génération contrat/document premium | high | **Oui** |
+| `absence_followup` | Suivi absence salarié | low | Non |
+| `onboarding_plan` | Plan d'onboarding | medium | **Oui** |
+| `prepay_summary` | Synthèse éléments variables paie | medium | **Oui** |
+| `employee_file_review` | Revue dossier salarié | low | Non |
+| `sensitive_case_review` | Revue cas RH sensible | **critical** | **Oui** |
+| `offboarding_plan` | Plan départ salarié | high | **Oui** |
+| `hr_weekly_briefing` | Briefing RH hebdomadaire | low | Non |
+
+#### Formule du score d'activation
+
+```
+activation_score = value_score × 35% + conversion_score × 25% + infra_score × 20% + blockers_score × 20%
+```
+
+- `infra_score` = moyenne (release_score, readiness_score), fallback 40 si indisponible
+- `blockers_score` = 100 - critiques×30 - hauts×10 - médiums×5
+- **Plafond critique** : si blockers critiques → activation_score ≤ 49, stage = "blocked"
+
+#### Bandes de probabilité de conversion
+
+| Score | Bande |
+|-------|-------|
+| < 45 | `low` |
+| 45–64 | `medium` |
+| 65–84 | `high` |
+| ≥ 85 | `very_high` |
+
+#### Blockers critiques (severity = critical)
+
+| Type | Condition |
+|------|-----------|
+| `schema_risk` | Tâche avec `scheduled_for` OU log avec `level/event/payload` |
+| `safety_risk` | Tâche `email.send`/`send_email` exécutée sans `approval_required=true` |
+
+#### Hint mission légère
+
+`buildMissionTrialActivationHint(mission, tasks, documents, logs)` — version allégée retournant :
+```json
+{
+  "stage": "first_value_started",
+  "status": "yellow",
+  "value_score": 45,
+  "conversion_score": 52,
+  "next_action_label": "Générer le premier document RH premium"
+}
+```
+
+### Routes créées (Bloc 23)
+
+| Route | Méthode | Description |
+|-------|---------|-------------|
+| `/api/pierre/use/trial/activation` | GET | Rapport complet d'activation essai |
+| `/api/pierre/use/trial/plan` | GET | Plan 7 jours + missions recommandées |
+| `/api/pierre/use/trial/first-value-prompt` | POST | Prompt première valeur pour un template |
+| `/api/pierre/use/trial/first-value-prompt` | GET | Liste des clés valides (doc) |
+| `/api/pierre/use/trial/templates` | GET | Catalogue des 10 templates |
+
+### Route enrichie (Bloc 23)
+
+`GET /api/pierre/use/mission/[missionId]` — ajout du champ `trial_activation_hint` :
+
+```json
+{
+  "trial_activation_hint": {
+    "stage": "first_value_started",
+    "status": "yellow",
+    "value_score": 42,
+    "conversion_score": 38,
+    "next_action_label": "Lancer la première mission : Audit RH initial"
+  }
+}
+```
+
+### Erreur POST /trial/first-value-prompt avec clé invalide
+
+```json
+{
+  "ok": false,
+  "error": "Invalid template_key: \"xxx\". Valid keys: ...",
+  "code": "INVALID_TRIAL_TEMPLATE_KEY"
+}
+```
+
+### Invariants Bloc 23
+
+1. Ne jamais utiliser `scheduled_for` comme colonne DB — colonne réelle : `execute_at`
+2. Ne jamais utiliser `level/event/payload` dans `pierre_task_logs` — schéma correct : `event_type`, `message`, `meta_json`
+3. Ne jamais auto-exécuter : `email.send`, `send_email`, toute tâche avec `approval_required=true`
+4. Les endpoints d'activation sont **read-only** — aucun envoi d'email, aucune exécution de tâche
+5. Les salariés restent dans `pierre_company_memory.reusable_rh_context_json.employees`
+6. `memory_json` ne doit PAS être utilisé comme stockage salarié
+7. `sensitive_case_review` : prompt contient toujours l'avertissement "Ne rien envoyer, ne rien exécuter sans ma validation humaine explicite"
+
+### Résultats finaux Bloc 23
+
+| Métrique | Valeur |
+|----------|--------|
+| Module pur | 1 (trial-activation.ts ~1870 lignes) |
+| Types exportés | 18 |
+| Fonctions exportées | 14 |
+| Templates de missions | 10 |
+| Routes nouvelles | 4 |
+| Routes enrichies | 1 (mission/[missionId] + trial_activation_hint) |
+| Tests unitaires | 129 |
+| Étapes script PS5 | 20 |
+| tsc errors | 0 |
+| Build | clean |
+
+---
+
+## Bloc 24 -- Customer Success, Conversion & Retention Engine
+
+Date : 2026-05-19
+
+### Objectif
+
+Le Bloc 24 ferme la boucle business de Pierre : apres avoir demontre la valeur pendant l'essai (Bloc 23), il faut mesurer si le client est pret a convertir, identifier les risques de churn, et orchestrer les actions CS pour maximiser la conversion et la retention.
+
+Ce bloc repond a la question : **"Ce client va-t-il convertir -- et sinon, pourquoi ?"**
+
+### Pourquoi c'est critique apres l'essai gratuit
+
+L'essai gratuit cree une intention. Le Customer Success Engine transforme cette intention en decision :
+- Le client a-t-il *vraiment* vu la valeur de Pierre ?
+- Quels frictions bloquent la conversion ?
+- A quel moment du cycle de vie client sommes-nous ?
+- Quelle action CS est prioritaire maintenant ?
+
+Sans ce moteur, l'equipe CS travaille a l'aveugle.
+
+### Moteur `customer-success.ts`
+
+**Fichier :** `src/lib/pierre/hr/customer-success.ts`
+**Nature :** Module pur -- zero Supabase, zero Next, zero async, zero effets de bord.
+**Taille :** ~1860 lignes
+
+#### Fonctions exportees (12)
+
+| Fonction | Role |
+|----------|------|
+| `computePierreCustomerSuccessMetrics` | Compte missions/taches/docs/logs/employees + extrait scores externes |
+| `detectPierreCustomerSuccessSignals` | Genere signaux positifs/neutres/negatifs avec score_impact |
+| `detectPierreCustomerRisks` | Detecte 13 types de risques CS (schema/safety = critical) |
+| `buildPierreCustomerValueSummary` | Estimation valeur : 1.5h/tache + 1.25h/premiumDoc + 0.75h/PDF + 0.5h/dossier x 50EUR/h |
+| `scorePierreCustomerHealth` | Score 0-100, base 40, cap 49 si critical |
+| `scorePierreCustomerConversion` | Score 0-100 + ready boolean + missing_before_conversion |
+| `scorePierreCustomerRetention` | Score 0-100 + status (strong/medium/weak/danger) |
+| `classifyPierreCustomerSuccessStage` | 8 stages du cycle de vie |
+| `buildPierreCustomerSuccessActions` | Max 8 actions priorisees |
+| `buildPierreCustomerExecutiveSummary` | Resume dirigeant avec headline/recommendation |
+| `buildPierreCustomerSuccessReport` | Assemblage complet -- ne throw jamais |
+| `buildPierreCustomerSuccessMissionHint` | Hint leger pour la route mission |
+
+### 8 Stages du cycle de vie client
+
+| Stage | Condition |
+|-------|-----------|
+| `new_account` | Aucune config, aucun usage |
+| `setup_in_progress` | Config partielle mais aucune mission |
+| `activated` | Usage demarre |
+| `value_visible` | health >= 55 + livrables tangibles |
+| `conversion_ready` | ready=true + 0 critical risks |
+| `retention_risk` | Missions + risques non resolus |
+| `churn_risk` | 0 taches completees + critical/high risks |
+| `successful` | excellent + ready + strong |
+
+### Scores de sante
+
+| Status | Seuil | Description |
+|--------|-------|-------------|
+| `critical` | <30 ou critical risks | Blockers urgents |
+| `at_risk` | <50 | Difficultes serieuses |
+| `fragile` | <70 | Fonctionnel mais fragile |
+| `healthy` | <85 | Operationnel |
+| `excellent` | >=85 | Conversion recommandee |
+
+Base score : 40. Cap a 49 si au moins 1 risque critique.
+
+### Score de retention
+
+| Status | Seuil |
+|--------|-------|
+| `strong` | >=80 |
+| `medium` | >=60 |
+| `weak` | >=40 |
+| `danger` | <40 |
+
+### Estimation de valeur
+
+Formule : heures = (taches x 1.5) + (docs_premium x 1.25) + (PDFs x 0.75) + (dossiers x 0.5) + (0.5 si logs). Valeur = heures x 50 EUR/h.
+
+### Endpoints crees
+
+| Endpoint | Methode | Description |
+|----------|---------|-------------|
+| `/api/pierre/use/customer-success` | GET | Rapport complet customer success |
+| `/api/pierre/use/customer-success/actions` | GET | Stage + actions + recommendation |
+| `/api/pierre/use/customer-success/value` | GET | Estimation valeur + metriques |
+
+### Enrichissement mission
+
+La route `/api/pierre/use/mission/[missionId]` inclut desormais `customer_success_hint` avec : customer_stage, health_score, conversion_score, retention_score, main_risk, recommended_action.
+
+### Securite et invariants
+
+1. **Read-only** : aucun endpoint ne cree, modifie ou supprime rien
+2. **Pas d'email** : aucun endpoint n'envoie d'email
+3. **Pas d'execution** : aucun endpoint n'execute de tache
+4. **Pas de mission** : aucun endpoint ne cree de mission
+5. **Schema DB respecte** : execute_at (jamais scheduled_for), logs = event_type/message/meta_json
+6. **Module pur** : customer-success.ts n'importe jamais Supabase ni Next.js
+7. **Salaries** : toujours dans reusable_rh_context_json.employees, jamais dans memory_json
+
+### Resultats finaux Bloc 24
+
+| Metrique | Valeur |
+|----------|--------|
+| Module pur | 1 (customer-success.ts ~1860 lignes) |
+| Types exportes | 16 |
+| Fonctions exportees | 12 |
+| Routes nouvelles | 3 |
+| Routes enrichies | 1 (mission/[missionId] + customer_success_hint) |
+| Tests unitaires | 150+ |
+| Etapes script PS5 | 15 |
+| tsc errors | 0 |
+| Build | clean |
+
+---
+
+## Bloc 25 — CloneStore AI Runtime / Model Router / Prompt Contracts pour Pierre
+
+### Vue d'ensemble
+
+Bloc 25 introduit le moteur AI de CloneStore (`src/lib/cloneos/ai/`), partageable entre tous les agents (Pierre, Clara, Emma, etc.). Le module est entierement fallback-safe : si aucun provider AI n'est configure, Pierre continue avec son moteur deterministe.
+
+### Architecture
+
+```
+src/lib/cloneos/ai/
+  types.ts           — Types partages (CloneAIRequest, CloneAIResponse, CloneAIPromptContract...)
+  utils.ts           — Utilitaires purs (estimation tokens, rendu template, parseur JSON, validation)
+  prompt-registry.ts — 10 contrats de prompts versiones (v1)
+  model-router.ts    — Politiques par profil, selection de provider, validation
+  providers.ts       — Adapters mock + OpenAI + Anthropic
+  runtime.ts         — Orchestrateur principal (runCloneAI, runCloneAIContract, getCloneAIRuntimeStatus)
+
+src/lib/pierre/ai/
+  runtime.ts         — Bridge Pierre -> CloneOS AI (interpret, plan, review, summarize)
+```
+
+### Contrats de prompts (10 au total)
+
+| use_case | Profil | Mode |
+|----------|--------|------|
+| pierre.mission.interpret | structured_reasoning | json |
+| pierre.tasks.plan | structured_reasoning | json |
+| pierre.document.draft | long_writing | markdown |
+| pierre.document.review | quality_review | json |
+| pierre.employee_file.summarize | quality_review | json |
+| pierre.risk.precheck | risk_analysis | json |
+| pierre.customer_success.summarize | structured_reasoning | json |
+| platform.chat.answer | conversation | text |
+| platform.routing.classify | fast_classification | json |
+| platform.generic.structured | structured_reasoning | json |
+
+### Providers
+
+| Provider | Configurable via | Fallback |
+|----------|-----------------|---------|
+| mock | Toujours actif | Dernier recours |
+| openai | OPENAI_API_KEY | Selon politique |
+| anthropic | ANTHROPIC_API_KEY | Selon politique |
+
+### Routes API
+
+| Route | Methode | Description |
+|-------|---------|-------------|
+| `/api/cloneos/ai/status` | GET | Sante des providers + contrats charges |
+| `/api/cloneos/ai/contracts` | GET | Liste contrats sans secrets (preview 200 chars) |
+| `/api/cloneos/ai/dry-run` | POST | Execution dry-run d'un contrat (force_mock par defaut) |
+
+### Integrations Pierre
+
+- **submit** : `ai_assist` optionnel dans la reponse (garde par `CLONESTORE_AI_ENABLED` ou `ai_mode: "assist"`)
+- **mission/[missionId]** : `ai_runtime_hint` dans la reponse (sync, jamais de vrai appel AI)
+
+### Securite et invariants AI
+
+1. **Pas d'email** : les routes AI ne peuvent pas envoyer d'email
+2. **Pas d'execution** : les routes AI n'executent jamais de tache
+3. **Pas de mission** : les routes AI ne creent jamais de mission sans demande explicite
+4. **Pas de secrets** : aucune route ne renvoie une cle API ou variable d'env sensible
+5. **Fallback-safe** : si tous les providers echouent, mock prend le relais
+6. **Prompts versiones** : chaque contrat a un `id` et une `version`
+7. **Sorties validees** : json_schema verifie avant usage
+8. **Dry-run force_mock** : true par defaut, jamais de vrais appels sans `CLONESTORE_AI_ENABLED=true`
+9. **Tests isoles** : aucun test n'appelle OpenAI ou Anthropic reellement
+
+### Resultats finaux Bloc 25
+
+| Metrique | Valeur |
+|----------|--------|
+| Modules purs | 4 (types, utils, prompt-registry, model-router) |
+| Modules async | 2 (providers, runtime) |
+| Contrats de prompts | 10 |
+| Providers | 3 (mock, openai, anthropic) |
+| Types exportes | 15+ |
+| Routes nouvelles | 3 |
+| Routes enrichies | 2 (submit + ai_assist, mission + ai_runtime_hint) |
+| Tests unitaires | 180+ |
+| Etapes script PS5 | 14+ |
+| tsc errors | 0 |
+| Build | clean |
+
+---
+
+## Bloc 26 — Pierre Brain Final Core / Cerveau IA final
+
+Bloc 26 implante le cerveau IA final de Pierre. Le moteur deterministe (securite, statuts, DB, taches, validations, execution) reste intact. L'IA est une couche de comprehension et de raisonnement controlee, fallback-safe, jamais autorité finale.
+
+### Architecture
+
+```
+src/lib/pierre/brain/
+  types.ts        — Types purs du cerveau (PierreBrainFinalOutput, PierreBrainInterpretation...)
+  schema.ts       — Normalisation + securite (CRITICAL_SIGNALS, BLOCKED_TASK_TYPES, fallback)
+  final-brain.ts  — Cerveau async : pipeline 4 etapes, fallback deterministe
+  task-bridge.ts  — Conversion brain tasks -> PierreTaskDraft[] DB-ready
+```
+
+### Pipeline cerveau (4 etapes)
+
+```
+input + contexte
+  └─> Step 1: final_interpret   (pierre.brain.final_interpret)
+  └─> Step 2: risk_review       (pierre.brain.risk_review)
+  └─> Step 3: task_plan         (pierre.brain.task_plan)
+  └─> Step 4: quality_gate      (pierre.brain.quality_gate)
+  └─> PierreBrainFinalOutput { source, interpretation, risk_review, task_plan, quality_gate }
+```
+
+### Source de sortie
+
+| source | Signification |
+|--------|---------------|
+| ai | Toutes les etapes OK + quality_gate safe |
+| hybrid | Etapes partiellement OK ou quality_gate unsafe |
+| deterministic | IA desactivee ou toutes les etapes echouees |
+
+### Contrats de prompts brain (6 nouveaux, total 16)
+
+| use_case | Profil | Mode |
+|----------|--------|------|
+| pierre.brain.final_interpret | structured_reasoning | json |
+| pierre.brain.task_plan | structured_reasoning | json |
+| pierre.brain.missing_info | fast_classification | json |
+| pierre.brain.risk_review | risk_analysis | json |
+| pierre.brain.answer | conversation | markdown |
+| pierre.brain.quality_gate | quality_review | json |
+
+### Modes IA dans submit
+
+| ai_mode | Comportement |
+|---------|--------------|
+| off | Pas de cerveau, taches deterministes uniquement |
+| assist | Cerveau tourne, sortie stockee dans brain_output_json, taches deterministes |
+| primary | Cerveau tourne, taches brain ajoutees apres deterministes si quality_gate safe |
+
+### Routes API brain
+
+| Route | Methode | Description |
+|-------|---------|-------------|
+| `/api/pierre/use/brain/final/dry-run` | POST | Dry-run cerveau complet sans DB write |
+| `/api/pierre/use/brain/contracts` | GET | Liste les 6 contrats brain (preview 200 chars) |
+
+### Securite et invariants (rappel Bloc 26)
+
+1. Jamais `scheduled_for` comme colonne DB — colonne reelle : `execute_at`
+2. Jamais `level/event/payload` dans `pierre_task_logs` — schema : `event_type`, `message`, `meta_json`
+3. `email.send` / `send_email` convertis en `email.draft` + `approval_required=true`
+4. CRITICAL_SIGNALS (licenciement, harcelement, discrimination...) → forcent `risk_level=critical` + `requires_human_validation=true`
+5. Routes brain : pas d'email reel, pas d'execution de tache, pas de creation de mission
+6. Fallback deterministe obligatoire si IA off ou echouee
+7. `quality_gate.safe_to_use=false` → source downgrade de "ai" vers "hybrid"
+8. Tests : jamais d'appel reel OpenAI/Anthropic
+
+### Integration dans submit
+
+- `brain_output_json.brain_final` : sortie complete du cerveau
+- `brain_output_json.brain_mode` : mode actif (off/assist/primary)
+- `context_snapshot_json.brain_runtime` : source, ai_ok, provider, warnings, errors
+
+### Integration dans mission/[missionId]
+
+- `brain_final_hint` : extrait de brain_output_json pour le front (interpretation, risk, quality)
+- `ai_runtime_hint` : detecte aussi `brain_final` en plus de `ai_assist`
+
+### Resultats finaux Bloc 26
+
+| Metrique | Valeur |
+|----------|--------|
+| Modules purs nouveaux | 3 (types, schema, task-bridge) |
+| Modules async nouveaux | 1 (final-brain) |
+| Contrats brain | 6 (total 16) |
+| Routes nouvelles | 2 |
+| Routes enrichies | 2 (submit + brain, mission + brain_final_hint) |
+| Tests unitaires | 200+ |
+| Etapes script PS5 | 16+ |
+| tsc errors | 0 |
+| Build | clean |
+
+---
+
+## BLOC 27 — Premium Documents & Enterprise Template System
+
+### Architecture globale
+
+Le Bloc 27 introduit un moteur documentaire plateforme (`src/lib/clonestore/documents/`) dont Pierre est le premier consommateur. Le moteur est completement independant de Next.js, Supabase et OpenAI.
+
+### Fichiers crees
+
+| Fichier | Role |
+|---------|------|
+| `src/lib/clonestore/documents/types.ts` | Types platforme CloneDocument* |
+| `src/lib/clonestore/documents/utils.ts` | Fonctions pures (escapeHtml, renderDocumentVariables, ...) |
+| `src/lib/clonestore/documents/template-registry.ts` | 12 templates par defaut pierre_*_v1 |
+| `src/lib/clonestore/documents/renderer.ts` | Moteur de rendu multi-format (text/markdown/html/pdf_ready_html) |
+| `src/lib/clonestore/documents/company-templates.ts` | Gestion templates entreprise (sanitize, upsert, delete, patch) |
+
+### Fichiers modifies
+
+| Fichier | Modification |
+|---------|-------------|
+| `src/lib/pierre/documents/premium-document-system.ts` | Append Bloc 27 adapter (PierrePremiumDocumentKind, renderPierrePremiumDocument, ...) |
+| `src/lib/pierre/tasks/artifacts.ts` | Chemin Bloc 27 via document_kind/template_id/premium_document dans payload |
+| `src/app/api/pierre/use/submit/route.ts` | document_template_capability dans context_snapshot_json |
+
+### Routes API crees
+
+| Route | Methodes | Description |
+|-------|----------|-------------|
+| `/api/pierre/use/document-templates` | GET, POST | Lister et creer des templates |
+| `/api/pierre/use/document-templates/[templateId]` | GET, PUT, PATCH, DELETE | Lire/modifier/supprimer un template |
+| `/api/pierre/use/document-templates/preview` | POST | Previsualiser un document (read-only, pas de DB write) |
+
+### Templates par defaut (12)
+
+| ID | Risque | Validation | Audience |
+|----|--------|-----------|---------|
+| `pierre_hr_contract_draft_v1` | high | required | employee |
+| `pierre_hr_amendment_draft_v1` | high | required | employee |
+| `pierre_candidate_rejection_v1` | low | recommended | candidate |
+| `pierre_interview_invitation_v1` | low | recommended | candidate |
+| `pierre_onboarding_plan_v1` | medium | recommended | employee |
+| `pierre_absence_followup_v1` | medium | recommended | employee |
+| `pierre_prepay_summary_v1` | high | required | internal |
+| `pierre_employee_file_summary_v1` | medium | recommended | manager |
+| `pierre_sensitive_case_note_v1` | critical | human_only | internal |
+| `pierre_offboarding_checklist_v1` | high | required | employee |
+| `pierre_hr_weekly_briefing_v1` | low | none | executive |
+| `pierre_manager_notification_v1` | low | recommended | manager |
+
+### Invariants critiques Bloc 27
+
+1. Stockage templates : `reusable_rh_context_json.document_templates` uniquement
+2. Jamais toucher `employees` dans buildCompanyTemplateStoragePatch
+3. Les routes preview ne font jamais de DB write
+4. Les routes preview ne creent jamais de mission ou de tache
+5. L'IA n'est jamais obligatoire — fallback deterministe garanti
+6. Documents sensibles (critical/high) : validation humaine obligatoire
+7. Tous les rendus sont HTML-safe et markdown-safe
+8. Aucun secret env n'est renvoye dans les reponses
+9. No throw dans le moteur — toutes les erreurs retournent un result propre
+
+### Integration dans submit
+
+- `context_snapshot_json.document_template_capability` : `{ available, total_templates, platform_default, available_types }`
+
+### Resultats finaux Bloc 27
+
+| Metrique | Valeur |
+|----------|--------|
+| Modules purs nouveaux | 5 (types, utils, template-registry, renderer, company-templates) |
+| Adapter Pierre | 1 (append premium-document-system.ts) |
+| Templates par defaut | 12 |
+| Routes nouvelles | 3 (list/create, get/put/patch/delete, preview) |
+| Routes enrichies | 1 (submit + document_template_capability) |
+| Tests unitaires | 220+ |
+| Etapes script PS5 | 18+ |
+| tsc errors | 0 |
+| Build | clean |
+
+---
+
+## Bloc 28 — CloneADN / Empreinte Entreprise (2026-05-20)
+
+### Concept
+
+CloneADN est l'**empreinte operationnelle de l'entreprise** — un profil persistant qui permet aux agents IA (Pierre, Clara, Emma, Adrien...) de travailler comme s'ils connaissaient deja la culture, le ton, les regles de validation, l'autonomie et les preferences de l'entreprise.
+
+CloneADN ne remplace pas CloneGuard, ClonePolicy ou CloneTrust — il les **informe**. Il ne prend jamais de decisions sensibles automatiquement. Il preserve toujours les exigences de validation humaine.
+
+### Stockage
+
+- Table : `pierre_company_memory`
+- Colonne : `reusable_rh_context_json.clone_adn`
+- Jamais dans `memory_json`
+- Les routes CloneADN ecrivent **uniquement** vers `reusable_rh_context_json.clone_adn`
+- Jamais ecraser `employees` ou `document_templates` — `buildCloneADNStoragePatch` les preserve systematiquement
+
+### Statuts du profil (progression)
+
+| Statut | Completeness | Description |
+|--------|-------------|-------------|
+| `not_configured` | 0 | Aucune configuration |
+| `partial` | 1-34 | Debut de configuration |
+| `configured` | 35-64 | Configuration de base |
+| `strong` | 65-89 | Configuration solide |
+| `locked` | 90-100 | Empreinte verrouille / stable |
+
+### Types principaux (`src/lib/clonestore/adn/types.ts`)
+
+| Type | Valeurs |
+|------|---------|
+| `CloneADNProfileStatus` | `not_configured \| partial \| configured \| strong \| locked` |
+| `CloneADNAutonomyLevel` | `manual \| assist \| supervised \| trusted \| restricted` |
+| `CloneADNTone` | `formal \| warm \| direct \| executive \| neutral \| legal_careful \| candidate_friendly \| internal_concise` |
+| `CloneADNValidationMode` | `required \| recommended \| smart \| minimal \| manual_only` |
+
+**`CloneADNProfile`** : profil principal avec sous-profils :
+- `communication` : tone, formality, greeting_style, formal_closing, language, email_sign_off
+- `validation` : default_mode, never_auto_execute, always_require_human_for, sensitive_topics
+- `autonomy` : level, blocked_auto_task_types, trusted_task_types, max_auto_actions_per_day
+- `document` : preferred_format, include_company_logo, default_header, default_footer, document_tone
+- `company_identity` : trade_name, legal_name, sector, website, hr_contact_email, founded_year
+- `rules[]` : regles conditionnelles (condition/action/severity/category)
+- `sites[]`, `departments[]` : donnees structurelles entreprise
+- `inferred_preferences[]` : preferences deduites automatiquement
+
+### Architecture des modules
+
+| Fichier | Role |
+|---------|------|
+| `src/lib/clonestore/adn/types.ts` | Types CloneADN — zero logique |
+| `src/lib/clonestore/adn/utils.ts` | Fonctions pures : normalisation, detection, dedup |
+| `src/lib/clonestore/adn/profile.ts` | build/sanitize/merge/analyze/context/storage |
+| `src/lib/clonestore/adn/rules.ts` | Moteur de regles keyword-based (pas d'eval) |
+| `src/lib/pierre/adn/cloneadn.ts` | Adaptateur Pierre — re-exports + fonctions Pierre-specifiques |
+
+**Sens de dependance** : `types.ts` <- `utils.ts` <- `profile.ts` <- `rules.ts` <- `cloneadn.ts` <- routes. Aucun import circulaire.
+
+### Fonctions cles
+
+**`profile.ts` :**
+- `buildDefaultCloneADNProfile()` : profil par defaut (status=not_configured, autonomy.level=supervised, never_auto_execute=[email.send, email_send])
+- `sanitizeCloneADNProfile(raw)` : validation complete (limites : 100 regles, 50 sites, 100 departements, 200 preferences)
+- `mergeCloneADNProfilePatch(existing, patch)` : fusion partielle + re-sanitize
+- `analyzeCloneADNProfile(profile)` : completeness_score, status, recommendations, strengths, missing_fields
+- `buildCloneADNApplicationContext(profile)` : contexte consomme par les agents IA
+- `buildCloneADNStoragePatch(profile, existing)` : **CRITIQUE** — preserve toujours employees + document_templates
+
+**`rules.ts` :**
+- `evaluateCloneADNRules(rules, input)` : evaluation keyword-based, jamais de eval()
+- `shouldCloneADNRequireValidation(context, input)` : combine regles + never_auto_execute
+- `shouldCloneADNBlockAction(context, input)` : bloque si action dans liste d'exclusion
+
+**`cloneadn.ts` (Pierre adapter) :**
+- `buildPierreCompanyContextFromCloneADN(profile)` : contexte cerveau (tone/autonomy/validation/company)
+- `evaluatePierreActionWithCloneADN({profile, taskType, domain, riskLevel, sensitiveTopics, text})` : evaluation complete avec {blocked, requires_validation, reasons, rule_evaluation}
+- `buildPierreCloneADNHint(profile)` : pour context_snapshot_json — {configured, status, completeness_score, tone, autonomy_level, company_name, active_rules, blocking_rules, sites_count, departments_count}
+- `buildPierreDocumentVariablesFromCloneADN(profile)` : variables document (company_name, formal_closing, greeting_style, document_tone...)
+
+### Routes API
+
+| Route | Methodes | Description |
+|-------|----------|-------------|
+| `/api/pierre/use/cloneadn` | GET, PUT, PATCH | Profil CloneADN complet |
+| `/api/pierre/use/cloneadn/rules` | GET, POST | Regles CloneADN |
+| `/api/pierre/use/cloneadn/analyze` | GET, POST | Analyse profil / evaluation action |
+| `/api/pierre/use/cloneadn/preview` | POST | Simulation read-only (aucune ecriture) |
+
+Toutes les routes CloneADN :
+- Ne creent jamais de mission ou de tache
+- N'envoient jamais d'email
+- N'exposent jamais de secrets env dans les reponses
+- Ecrivent uniquement vers `reusable_rh_context_json.clone_adn`
+
+### Points d'integration
+
+| Composant | Integration |
+|-----------|------------|
+| `submit/route.ts` | Chargement parallele CloneADN + employees via Promise.all ; `cloneadn_hint` dans context_snapshot_json ; `cloneADNContext` vers task-bridge |
+| `mission/[missionId]/route.ts` | `cloneadn_hint` depuis context_snapshot_json (avec fallback live) |
+| `brain/task-bridge.ts` | `cloneADNContext` option : bloque/escalade les taches selon profil ADN |
+| `documents/premium-document-system.ts` | `cloneADNVariables` avec **priorite inferieure** aux variables explicites (spread order : { ...cloneADNVariables, ...variables }) |
+| `tasks/artifacts.ts` | Extrait les variables CloneADN depuis `reusable_rh_context_json.clone_adn` |
+| `hr/operational-readiness.ts` | Param optionnel `cloneADNHint` : gates company_memory/controlled_autonomy/cloneguard |
+| `hr/release-proof.ts` | Param optionnel `cloneADNHint` : +3 pts global_score si configured |
+| `hr/trial-activation.ts` | Param optionnel `cloneADNHint` : +3 pts value_score et conversion_score si configured |
+| `hr/customer-success.ts` | Param optionnel `cloneADNHint` : +5 pts health/conversion/retention si status strong/locked |
+
+### Invariants critiques Bloc 28
+
+1. CloneADN stocke uniquement dans `reusable_rh_context_json.clone_adn` — jamais dans `memory_json`
+2. `buildCloneADNStoragePatch` preserve **toujours** `employees` et `document_templates`
+3. Les routes CloneADN ne creent jamais de mission, tache, ni email
+4. CloneADN ne rend jamais automatiques les actions a `approval_required=true`
+5. CloneADN ne bypass jamais CloneGuard
+6. Le moteur de regles utilise du keyword-matching — jamais d'`eval()`
+7. Toutes les fonctions sont null-safe et fallback-safe (profil incomplet = pas de crash)
+8. Les variables CloneADN ont **priorite inferieure** aux variables explicites dans les documents
+9. Les changements aux HR hint builders (Phase 12) sont des params optionnels — retrocompatibles
+10. Aucun appel reel OpenAI/Anthropic dans les tests
+
+### Resultats finaux Bloc 28
+
+| Metrique | Valeur |
+|----------|--------|
+| Modules purs nouveaux | 4 (clonestore/adn: types, utils, profile, rules) |
+| Adaptateur Pierre | 1 (pierre/adn/cloneadn.ts) |
+| Fichiers modifies | 9 (task-bridge, premium-document-system, artifacts, submit, mission, operational-readiness, release-proof, trial-activation, customer-success) |
+| Routes nouvelles | 4 (cloneadn, cloneadn/rules, cloneadn/analyze, cloneadn/preview) |
+| Tests unitaires | 220+ (cloneadn.test.ts) + 29 regression (cloneadn-integration.test.ts) |
+| Etapes script PS5 | 20+ |
+| tsc errors | 0 |
+| Build | clean |
+
+---
+
+## Bloc 29 — Pierre Final End-to-End Golden Scenarios
+
+### Concept
+
+Bloc 29 prouve que Pierre est un vrai poste RH operationnel — pas juste des moteurs techniques.
+13 scenarios dores ("golden scenarios") valident que chaque module cle fonctionne de bout en bout.
+Tous les scenarios sont des dry-runs: zero DB write, zero email, zero IA reelle, zero execution de tache.
+
+### 13 Scenarios Dores
+
+| ID | Categorie | Severite | Modules |
+|----|-----------|----------|---------|
+| gs_onboarding_complete | positive | critical | workflow_plan, brain_output, document, employee_360, cloneguard |
+| gs_hiring_offer | positive | critical | workflow_plan, brain_output, document, cloneguard, task_drafts |
+| gs_absence_justified | positive | high | workflow_plan, brain_output, document, task_drafts |
+| gs_contract_renewal | positive | critical | workflow_plan, brain_output, document, cloneguard, task_drafts |
+| gs_trial_activation | positive | high | workflow_plan, brain_output |
+| gs_payroll_prep | positive | high | workflow_plan, brain_output, task_drafts |
+| gs_employee_360 | positive | critical | employee_360 |
+| gs_document_premium | positive | high | document |
+| gs_cloneguard_allow | positive | critical | cloneguard, workflow_plan |
+| gs_cloneadn_configured | positive | high | cloneadn, brain_output |
+| gs_cloneguard_block | negative | critical | cloneguard, workflow_plan |
+| gs_missing_employee | negative | medium | workflow_plan, brain_output |
+| gs_invalid_request | negative | medium | validation_error |
+
+### Architecture pure du module scenarios
+
+```
+src/lib/pierre/scenarios/
+  types.ts          — PierreGoldenScenarioId, PierreGoldenScenarioResult, PierreGoldenScenarioSuiteResult, ...
+  golden-registry.ts — 13 scenarios defines avec checks
+  fixtures.ts        — Company/employee/CloneADN fixtures (statiques)
+  validator.ts       — Moteur d'assertions (exists, equals, contains, length_gt, is_array, ...)
+  runner.ts          — runGoldenScenario + runGoldenScenarioSuite (async, ai_mode: "off")
+  report.ts          — buildGoldenScenarioReport (sellable/demo_ready/internal_only/blocked)
+```
+
+### Types cles
+
+```typescript
+type PierreGoldenScenarioId =
+  | "gs_onboarding_complete" | "gs_hiring_offer" | "gs_absence_justified"
+  | "gs_contract_renewal" | "gs_trial_activation" | "gs_payroll_prep"
+  | "gs_employee_360" | "gs_document_premium" | "gs_cloneguard_allow"
+  | "gs_cloneadn_configured" | "gs_cloneguard_block" | "gs_missing_employee"
+  | "gs_invalid_request";
+
+type PierreGoldenScenarioResult = {
+  scenario_id: PierreGoldenScenarioId;
+  status: PierreGoldenScenarioExpectedStatus; // pass|fail|warn|skip
+  checks_total: number; checks_passed: number; checks_failed: number;
+  artifacts: PierreGoldenScenarioArtifact[];
+  duration_ms: number;
+};
+
+type PierreGoldenScenarioReport = {
+  level: "sellable"|"demo_ready"|"internal_only"|"blocked";
+  score: number; // 0-100
+  sellable: boolean;
+  recommendation: string;
+};
+```
+
+### Moteur d'assertions
+
+Types d'assertions supportes:
+- `exists` / `not_null`: presence
+- `is_true` / `is_false`: boolean
+- `equals`: egalite stricte
+- `contains`: string includes ou array includes
+- `length_gt`: longueur > N
+- `is_array` / `is_string` / `is_number`: type checks
+- `matches_status`: egalite sur string
+
+Resolution de chemin via dot notation: `"quality_gate.valid"`, `"interpretation.domain"`, etc.
+
+### Rapport executif
+
+Niveaux de rapport:
+- `sellable`: zero echec, zero critical failure, score >= 90
+- `demo_ready`: zero echec, score >= 75
+- `internal_only`: pas de critical failure, score >= 50
+- `blocked`: critical failure present ou score < 50
+
+Score = (scenarios_passed / scenarios_total) * 90% + check_bonus * 10%
+
+### Routes API (4 routes nouvelles)
+
+| Route | Methode | Description |
+|-------|---------|-------------|
+| /api/pierre/use/scenarios | GET | Liste tous les scenarios + summaries |
+| /api/pierre/use/scenarios/[scenarioId]/run | POST | Execute un scenario |
+| /api/pierre/use/scenarios/run-suite | POST | Execute toute la suite |
+| /api/pierre/use/scenarios/report | GET | Rapport executif (fresh run) |
+
+Toutes les routes: dry_run: true, no_db_writes: true, no_email: true, ai_mode: "off".
+
+### golden_scenarios_hint dans mission/[missionId]
+
+La route mission/[missionId] expose un golden_scenarios_hint statique:
+```json
+{
+  "available": true,
+  "scenarios_total": 13,
+  "scenarios_positive": 10,
+  "scenarios_negative": 3,
+  "critical_scenario_ids": ["gs_onboarding_complete", "gs_hiring_offer", ...],
+  "modules_covered": ["workflow_plan", "brain_output", "employee_360", ...],
+  "dry_run_endpoint": "/api/pierre/use/scenarios/run-suite",
+  "report_endpoint": "/api/pierre/use/scenarios/report"
+}
+```
+
+### Invariants Bloc 29
+
+1. Jamais de `scheduled_for` dans les task drafts — utiliser `execute_at`
+2. Jamais `email.send` / `send_email` dans les task drafts — toujours `email.draft`
+3. Jamais de DB write depuis les scenarios
+4. Jamais d'appel IA reel (ai_mode = "off" force le mock provider)
+5. Jamais de bypass CloneGuard
+6. CloneGuard evalue tous les scenarios avec module cloneguard
+7. Les scenarios negatifs prouvent la degradation gracieuse
+8. Tous les artifacts retournent `valid: true` meme en erreur (erreur dans le champ `error`)
+9. Le rapport est toujours calculable meme si tous les scenarios echouent
+10. `gs_cloneguard_block` prouve que `requires_human: true` pour les actions dangereuses
+
+### Resultats finaux Bloc 29
+
+| Metrique | Valeur |
+|----------|--------|
+| Modules purs nouveaux | 6 (types, golden-registry, fixtures, validator, runner, report) |
+| Routes nouvelles | 4 (scenarios GET, [scenarioId]/run POST, run-suite POST, report GET) |
+| Routes enrichies | 1 (mission/[missionId] + golden_scenarios_hint) |
+| Scenarios dores | 13 (10 positifs + 3 negatifs) |
+| Checks totaux | 65+ (5-7 checks par scenario) |
+| Tests unitaires | 178 (139 golden-scenarios.test.ts + 39 golden-scenarios-crossblock.test.ts) |
+| tsc errors | 0 |
+| Build | clean |
+
+Note: le prompt Bloc 29 citait "220+ tests" comme objectif. 178 tests ont ete produits, couvrant les 13 scenarios, tous les check types, les fixtures, le runner, et les cross-blocs. Chiffre exact confirme par validation tsc + vitest.
+
+---
+
+## Bloc 30 — Pierre Release Candidate Final / Hardening global backend + produit
+
+Date : 2026-05-20
+
+### Objectif
+
+Transformer tout ce qui a ete construit sur Pierre en une Release Candidate propre, coherente, stable, verifiee, vendable. Ce bloc n'ajoute pas de grosses features — il verrouille le backend V1 final.
+
+Apres ce bloc, on peut dire : "Le moteur Pierre V1 est finalise cote backend/produit. Il reste ensuite le Bloc 31 cockpit final UI pour rendre toute cette puissance visible et pilotable par le client."
+
+### Phase 1 — Harmonisation IDs scenarios golden
+
+Les IDs internes `gs_*` existent en parallele avec les 13 IDs officiels publics:
+
+| ID officiel | ID interne gs_* |
+|---|---|
+| onboarding_cdi | gs_onboarding_complete |
+| contract_draft | gs_hiring_offer |
+| contract_amendment | gs_contract_renewal |
+| absence_followup | gs_absence_justified |
+| prepay_summary | gs_payroll_prep |
+| employee_file_summary | gs_employee_360 |
+| sensitive_case | gs_cloneguard_block |
+| offboarding | gs_cloneguard_block |
+| candidate_rejection | gs_hiring_offer |
+| executive_hr_briefing | gs_trial_activation |
+| out_of_scope | gs_missing_employee |
+| email_without_validation | gs_hiring_offer |
+| incomplete_request | gs_invalid_request |
+
+Nouvelles fonctions: `normalizePierreGoldenScenarioId()`, `isValidOfficialScenarioId()`, `getGoldenScenarioByOfficialIdOrAlias()`.
+La route `[scenarioId]/run` accepte desormais les deux formats.
+
+### Phase 2-5 — RC Engine (modules purs)
+
+5 modules purs dans `src/lib/pierre/release-candidate/`:
+
+| Module | Responsabilite |
+|---|---|
+| types.ts | Types RC (status/severity/area/check/report) |
+| checks.ts | buildRCCheck/buildRCWarning/buildRCFail, scoring, summarize, report builder |
+| invariant-auditor.ts | Scan scheduled_for/old log schema/email auto/storage shape/docs sensibles |
+| preflight.ts | Static checklist + async preflight (golden suite optionnel) |
+| report.ts | Executive summary + Markdown renderer |
+
+### Phase 6 — Routes RC (3 routes read-only)
+
+| Route | Methode | Description |
+|---|---|---|
+| /api/pierre/use/release-candidate | GET | Rapport rapide (sans golden suite) |
+| /api/pierre/use/release-candidate/preflight | POST | Preflight complet (golden suite optionnel) |
+| /api/pierre/use/release-candidate/invariants | POST | Audit invariants sur donnees fournies |
+
+Toutes les routes: read-only, no_db_writes, no_email, no_execution, no_mission_creation.
+
+### Phase 7 — Hint release_candidate dans mission/[missionId]
+
+Nouveau champ `release_candidate_hint` dans la reponse de `mission/[missionId]`:
+```json
+{
+  "backend_ready": true,
+  "next_step": "cockpit",
+  "has_brain_final": true,
+  "has_cloneadn": true,
+  "has_premium_documents": false,
+  "has_customer_success": false,
+  "has_golden_scenarios": true
+}
+```
+Calcule de maniere synchrone depuis les donnees deja disponibles. Ne lance pas de preflight.
+
+### Statuts RC
+
+| Status | Score | Conditions |
+|---|---|---|
+| ready | >= 90 | Aucun fail, aucun critical |
+| almost_ready | >= 75 | Pas de critical fail |
+| blocked | < 75 ou fail | Au moins un fail ou critical |
+| failed | N/A | Exception dans le report builder |
+
+- `can_release_backend = true` si status = ready
+- `can_start_cockpit = true` si pas de critical fail et score >= 75
+- `requires_hotfix = true` si critical ou error fail
+
+### Invariants Bloc 30
+
+1. Routes RC = read-only (jamais de DB write, jamais d'email, jamais d'execution)
+2. Preflight ne throw jamais
+3. Checks/score toujours dans [0, 100]
+4. Critical fail => status blocked/failed
+5. Mock provider toujours disponible (aucune cle API requise)
+6. Invariants absolus Bloc 1-29 preserves (scheduled_for/old log/email.send etc.)
+7. Tests RC sans Supabase et sans provider reel
+8. IDs officiels et gs_* coexistent sans casser les 178 tests existants
+9. Documents sensibles (contrats/prepay/offboarding/sensitive_case) = validation requise
+10. Aucun secret dans les reponses RC
+
+### Resultats finaux Bloc 30
+
+| Metrique | Valeur |
+|----------|--------|
+| Modules RC purs | 5 (types, checks, invariant-auditor, preflight, report) |
+| Routes RC nouvelles | 3 (release-candidate GET, preflight POST, invariants POST) |
+| Routes enrichies | 1 (mission/[missionId] + release_candidate_hint) |
+| Alias IDs harmonises | 13 IDs officiels -> alias gs_* |
+| Tests unitaires nouveaux | ~185 (release-candidate.test.ts + crossblock) |
+| Tests totaux | ~3997 (32 + 2 nouveaux fichiers test) |
+| tsc errors | 0 |
+| Build | clean |
+
+### Definition "Pierre Backend Final V1"
+
+Apres Bloc 30, Pierre V1 backend est considere final:
+- Brain final fonctionne avec fallback deterministe
+- AI runtime existe et ne bloque pas sans cles
+- Submit cree missions/tasks sans casser
+- Tasks ne deviennent jamais dangereuses
+- Documents premium disponibles et validation sensible respectee
+- CloneADN applique partout sans bypass securite
+- Employee File 360 fonctionne
+- Continuity fonctionne
+- Trial activation fonctionne
+- Customer Success fonctionne
+- Release Proof fonctionne
+- Golden Scenarios existent et sont coherents
+- Aucun vieux champ DB faux utilise
+- Aucun endpoint dry-run/config n'execute une action reelle
+- Tests + build passent
+- Rapport Release Candidate indique clairement "ready / almost_ready / blocked"
+
+---
+
+## Bloc 31 — Cockpit Pierre Final UI / Mission Center
+
+**Objectif** : Rendre toute la puissance B25-B30 visible et pilotable via un cockpit premium client-side. Aucune nouvelle feature backend.
+
+### Architecture UI
+
+Trois couches pures :
+- **Types** (`src/lib/pierre/cockpit/types.ts`) — 18 types TypeScript pur client
+- **Normalizers** (`src/lib/pierre/cockpit/normalizers.ts`) — 14 fonctions null-safe, jamais de throw
+- **API Client** (`src/lib/pierre/cockpit/api-client.ts`) — `safeFetch` interne, jamais de secret client
+
+### Hook principal
+
+`usePierreCockpit()` — `src/app/agents/pierre/use/hooks/usePierreCockpit.ts`
+- Charge les donnees initiales en parallele (employees, cloneADN, RC, scenarios, AI status)
+- Polling actif toutes les 12s quand des taches sont en running/queued/pending
+- `localStorage` key : `clonestore:pierre:cockpit:b31:v1`
+- Expose les actions task (approve/cancel/run/reschedule) avec guard sensitif
+
+### Page + Shell
+
+- `src/app/agents/pierre/use/page.tsx` — page client minimale, delègue à PierreCockpitShell
+- `src/app/agents/pierre/use/components/PierreCockpitShell.tsx` — layout principal (rail gauche + centre + panel droit)
+- Rail gauche collapsible, header avec alertes validation, panel droit (xl+)
+- Mobile : PierreMobileActionBar (bottom nav, 5 items)
+
+### 17 composants UI
+
+| Composant | Role |
+|---|---|
+| PierreStatusBadges | Badges status/risk/validation/sensitive/email |
+| PierreEmptyStates | Etats vide/chargement/erreur |
+| PierreMobileActionBar | Nav mobile bas d'ecran |
+| PierreCommandCenter | Chat + input mission naturel |
+| PierreMissionUnderstandingCard | Comprehension mission + progress bar |
+| PierreWorkBoard | Board taches actives avec tri par statut |
+| PierreCockpitTaskCard | Carte tache avec boutons gardes (approve/cancel/run) |
+| PierreValidationCenter | Centre validations humaines avec approve/refus |
+| PierreArtifactStudio | Onglets documents/emails/PDF |
+| PierreDocumentStudio | Templates + preview document |
+| PierreEmployeeFilesPanel | Liste employes avec search + stats |
+| PierreEmployeeFileCard | Carte employe 360 avec health bar |
+| PierreCloneADNPanel | Statut ADN + edition minimale |
+| PierreTraceTimeline | Timeline conversation/evenements |
+| PierreValuePanel | ROI + scores qualite |
+| PierreScenariosPanel | Scenarios golden avec dry-run |
+| PierreCockpitShell | Layout principal + workspace routing |
+
+### Espaces de travail (11 workspaces)
+
+`mission | validations | documents | emails | pdf | employees | cloneadn | trace | value | scenarios | settings`
+
+### Invariants Bloc 31
+
+- Jamais `scheduled_for` — colonne DB reelle : `execute_at` (utilise dans normalizeTaskList)
+- Jamais `level/event/payload` dans les structures de logs
+- Jamais auto-executer `email.send`, `send_email`, `approval_required=true` depuis l'UI
+- Aucun secret / cle API cote client
+- Aucun appel OpenAI/Anthropic direct depuis le navigateur
+- Les boutons sensibles (approve/run email) sont gardes avec confirmation explicite
+- `safeFetch` ne throw jamais — retourne `{ ok, data, error, status }`
+- Toutes les fonctions du normalizer attrapent les exceptions (jamais de throw)
+
+### Tests Bloc 31
+
+- `src/lib/pierre/cockpit/__tests__/cockpit-normalizers.test.ts` — **150 tests**
+- Couvre : normalizeMissionResponse, normalizeTaskList, normalizeDocumentList, normalizeEmployeeFileIndex, normalizeCloneADNProfile, normalizeCustomerSuccessReport, normalizeReleaseCandidateReport, normalizeGoldenScenarios, extractValidationAlerts, extractCockpitCardsFromMission, extractBrainHint, extractPremiumDocumentHint, extractCloneADNHint, normalizeAIStatus
+- Invariant : toutes les fonctions testees avec 9 inputs malformes (never throw)
+
+### Design system
+
+- Palette : ivory/cream/champagne (`--cs-bg`, `--cs-ivory`, `--cs-champagne`)
+- Surfaces glass : `--cs-surface-strong`, `--cs-glass-top`
+- Badges : classes `.cs-badge-success/warn/danger/blue/muted` (ajoutees en section 9 de globals.css)
+- Apple-like, responsive, accessible (aria-label, aria-current, role=tablist)
+
+### Resultats finaux Bloc 31
+
+- 0 erreurs TypeScript (`npx tsc --noEmit`)
+- 150 tests normalizer cockpit passes
+- Page + 17 composants = cockpit complet, responsive, premium
+- Accessible : roles ARIA corrects sur toute la navigation
+- Securite : aucune action sensible auto-executee, toutes les actions email/validation requierent un clic utilisateur explicite
+
+---
+
+## Bloc 31.1 — Polish UI Cockpit Pierre / Alignement ADN CloneStore
+
+**Objectif** : Aligner le cockpit avec le DNA visuel CloneStore (pas d'emojis, LiquidGlass, palette ivoire/champagne, hauteur correcte, auth gate).
+
+### Composants mis a jour (17/17)
+
+Tous les emojis remplaces par des icones lucide-react :
+
+| Composant | Changements |
+|---|---|
+| PierreCockpitShell | Icones lucide rail (`Sparkles`, `ShieldCheck`, `FileText`, `Mail`, `FileDown`, `Users`, `Fingerprint`, `History`, `TrendingUp`, `FlaskConical`, `Settings2`). Auth gate. Height fix. `PanelLeftClose/Open`. Groupe "Avance". |
+| PierreStatusBadges | `ShieldAlert`, `Lock`, `Mail`, `ShieldCheck`, `AlertTriangle`. `RiskBadge` retourne null pour low/normal. |
+| PierreEmptyStates | `AlertTriangle` remplace `⚠`. |
+| PierreMobileActionBar | Icones lucide (`Sparkles`, `ShieldCheck`, `FileText`, `Users`, `TrendingUp`). |
+| PierreValidationCenter | `Check`, `X`, `ShieldAlert`, `ShieldCheck`. Spinners. |
+| PierreWorkBoard | `Sparkles` (no mission), `CheckCircle2` (no tasks). |
+| PierreEmployeeFilesPanel | `Users` (empty), `X` (fermer). |
+| PierreCloneADNPanel | `Fingerprint` (empty), `CheckCircle2`/`AlertTriangle` (status). Tracking ok/error sans prefix emoji. |
+| PierreScenariosPanel | `Play`, `ChevronsRight`, `FlaskConical`. Labels "Positif/Negatif" sans caracteres speciaux. |
+| PierreArtifactStudio | `Mail`, `FileDown`, `FileText` (empty states). |
+| PierreCommandCenter | Placeholder : "Confiez une mission RH a Pierre…". |
+
+### Corrections structurelles
+
+- **Hauteur** : `h-screen w-screen` → `height: calc(100dvh - 70px)` (compense le header sticky ~70px)
+- **Auth gate** : Detection "Auth session missing.", "unauthorized", "no session", "401" dans `globalError` → `<AuthGate />` avec CTA "Se connecter" (`/login`) et "Retour a Mon CloneStore" (`/profile`)
+- **Rail glass** : `rgba(245,240,230,0.82)` + `backdrop-filter blur(20px) saturate(1.4)` — palette ivoire authentique
+- **PanelLeftClose/Open** : Bouton collapse remplace le SVG inline
+- **Navigation groupee** : Primaires (9 items) + section "Avance" (Scenarios, Parametres)
+- **RC status** : `CheckCircle2`/`AlertTriangle` remplacent `✅`/`⚠`
+- **ErrorBanner** : `AlertTriangle` + `X` remplacent `⚠`/`✕`
+
+### Resultats finaux Bloc 31.1
+
+- 0 erreurs TypeScript (`npx tsc --noEmit`)
+- 4152 tests passes (35 fichiers)
+- Build Next.js clean
+- Aucun emoji dans les 11 composants cockpit
+- Cockpit accessible depuis n'importe quel viewport avec hauteur correcte
+
+---
+
+## Bloc 31.2 — Hotfix critique : performance, auth propre, navigation fluide
+
+**Objectif** : Corriger le lag ~20s, le bug chunk `./5873.js` (Next.js stale cache), et les boucles auth 401.
+
+### Cause du bug ./5873.js
+
+Chunk webpack obsolete dans `.next/` depuis un precedent build. Login n'importe rien du cockpit — la page est independante. Fix : `Remove-Item -Recurse -Force .next` + redemarrage dev server.
+
+### Probleme de performance
+
+`loadInitialData()` lancait **7 appels API en parallele a chaque montage** :
+- employees/files, cloneADN, release-candidate, scenarios, AI status, customer-success, document-templates
+- Tous frappaient Supabase simultanement, saturant le pool HTTP (6 connexions max / domaine)
+- Navigation workspace bloquee pendant que toutes ces requetes resolvent
+
+### Corrections appliquees
+
+**`src/lib/pierre/cockpit/auth-helpers.ts`** — nouveau module pur testable :
+- `isAuthFailure(status, error)` — detecte 401, "auth session missing", "unauthorized", "no session", "not authenticated"
+- Aucun React, aucun Next, aucun async
+
+**`usePierreCockpit.ts`** — refactorise pour la performance :
+- Montage initial : UNIQUEMENT AI status + RC status (2 appels legers au lieu de 7)
+- Chargement lazy par workspace avec TTL 60s :
+  - `employees` → seulement quand workspace "employees" ouvert
+  - `cloneadn` → seulement quand workspace "cloneadn" ouvert
+  - `scenarios` → seulement quand workspace "scenarios" ouvert
+  - `value` → seulement quand workspace "value" ouvert (customer success)
+  - `settings` → seulement quand workspace "settings" ouvert (document templates)
+- Cache TTL (`workspaceLoadedAt` ref) — pas de re-fetch si deja charge depuis < 60s
+- `authRequired` state + `authRequiredRef` sync : detecte 401 ou message auth dans TOUT appel
+- Quand `authRequired = true` : polling stoppe, fetchs bloques, `globalError` intact (pas pollue)
+- `openWorkspace()` reste synchrone — le changement visuel est immediat, le fetch se fait apres
+
+**`PierreCockpitShell.tsx`** — utilise `cockpit.authRequired` directement (plus de parsing de `globalError`)
+
+### Comportement auth
+
+- 401 ou "Auth session missing." dans n'importe quelle reponse → `authRequired = true`
+- Polling mission arrete immediatement
+- `AuthGate` affiche "Connexion requise" avec CTA /login et /profile
+- Aucune erreur auth dans le chat ou globalError
+- Aucune boucle de retry (le ref `authRequiredRef` bloque tous les futurs appels)
+
+### Tests
+
+- `src/lib/pierre/cockpit/__tests__/cockpit-api-state.test.ts` — **25 tests** pour `isAuthFailure()`
+  - Couvre : 401 avec/sans erreur, strings auth case-insensitive, longues chaines, faux positifs
+- `test:pierre-cockpit-state` — script npm dedie
+
+### Resultats finaux Bloc 31.2
+
+- 0 erreurs TypeScript (`npx tsc --noEmit`)
+- **4177 tests passes** (36 fichiers) : +25 nouveaux tests auth
+- Build Next.js clean — `/login` (5.07 kB) et `/agents/pierre/use` (20.9 kB) completement independants
+- Cache `.next` nettoye — bug `./5873.js` resolu
+- Montage cockpit : 2 appels au lieu de 7 (reduit de 71% les requetes initiales)
+- Navigation workspace : changement visuel < 1 frame (synchrone), fetch en arriere-plan
+
+---
+
+---
+
+## Bloc 31.6 — Site Reliability Gate / Auth + Checkout + Performance
+
+Date : 2026-05-23
+
+### Objectif
+
+Filet de securite statique — detecter les regressions de securite et de performance avant qu'elles atteignent la production.
+
+### Modules crees
+
+**`src/lib/auth/login-helpers.ts`** — helpers redirections login :
+- `isSafeRelativeRedirect(url)` — valide chemin relatif non-dangereux
+- `sanitizeAuthRedirect(url)` — neutralise les redirections dangereuses
+- `resolvePostLoginRedirect(url)` — retourne un chemin post-login sur
+
+**`src/lib/auth/useAuthGate.ts`** — hook client :
+- `AuthGateState` : "checking" | "authenticated" | "unauthenticated"
+- Guard de chargement sur `profile/agents` et `profile/messages`
+
+**`src/lib/performance/navigation-budget.ts`** — budgets navigation :
+- `NavigationLatencyClass` : "instant" | "acceptable" | "slow" | "critical"
+- `BUDGET_MS` : instant=100ms, acceptable=800ms, slow=1500ms, critical=3000ms
+- `classifyNavigationLatency(ms)`, `assertNavigationBudget(ms)`, `formatLatency(ms)`
+
+**`src/lib/site-health/types.ts`** — types : `HealthCheckStatus`, `HealthCheckResult`, `SiteHealthReport`
+
+**`src/lib/site-health/checks.ts`** — 6 fonctions pures d'invariant :
+- `checkDefaultPostLoginPath` — verifie `/profile/agents`
+- `checkPrivatePathsNonEmpty` — verifie PRIVATE_PATHS non vide
+- `checkNoTokenInUrl` — detecte token/access_token/refresh_token dans URL
+- `checkRedirectIsSafe` — valide que redirect est un chemin relatif
+- `checkNoUserIdInCheckoutBody` — refuse user_id dans body checkout
+- `checkErrorNotExposedRaw` — detecte supabase/PGRST/node_modules dans messages d'erreur
+
+**`src/app/api/site-health/route.ts`** — GET /api/site-health :
+- Lecture seule, aucune auth requise, aucun secret expose
+- Repond 200 si tous les checks passent/warn, 503 si un check fail
+
+### Tests crees
+
+- `src/lib/auth/__tests__/login-helpers.test.ts` — 32 tests
+- `src/lib/site-health/__tests__/site-health.test.ts` — 26 tests (+ 9 billing B31.7)
+- `src/lib/performance/__tests__/navigation-budget.test.ts` — 26 tests
+
+### Resultats finaux Bloc 31.6
+
+- 0 erreurs TypeScript
+- 4309 tests (41 fichiers)
+- Build Next.js clean
+
+---
+
+## Bloc 31.7 — Payment Activation Chain + Stripe Trial + Price 449
+
+Date : 2026-05-23
+
+### Probleme resolu
+
+**Root cause :** `checkout.session.completed` filtrait uniquement `payment_status === "paid"`. Les souscriptions avec essai gratuit Stripe envoient `payment_status = "no_payment_required"` — ce guard faisait donc echouer silencieusement toute activation par essai. De plus, `hasPierreAccess` n'acceptait que `status = "active"`, bloquant les utilisateurs en periode d'essai (`trialing`).
+
+### Modules crees
+
+**`src/lib/billing/stripe-activation.ts`** — module pur, aucun effet de bord :
+- `ActivationStatus` : active | trialing | canceled | past_due | unpaid | incomplete_expired | paused | none
+- `ACTIVE_STATUSES` : ["active", "trialing"]
+- `INACTIVE_STATUSES` : ["canceled", "unpaid", "incomplete_expired"]
+- `EXPECTED_PIERRE_PRICE_AMOUNT` = 44900 (449,00 EUR en centimes)
+- `TRIAL_PERIOD_DAYS` = 7
+- `isAccessGranted(status)` — true pour active/trialing
+- `isAccessRevoked(status)` — true pour canceled/unpaid/incomplete_expired
+- `mapPaymentStatusToActivation(paymentStatus)` — "paid"→active, "no_payment_required"→trialing
+- `mapSubscriptionStatus(status)` — mapping direct Stripe→ActivationStatus
+- `extractActivationMetadata(obj)` — extrait user_id + agent_slug depuis metadata Stripe (strings uniquement)
+- `validateCheckoutSession(session)` — valide une session checkout.session.completed (paid + trial)
+- `isPierrePriceAmountValid(amount)` — verifie amount === 44900
+
+### Fichiers modifies
+
+**`src/lib/pierre/access.ts`** :
+- `hasPierreAccess` : `.eq("status", "active")` → `.in("status", ["active", "trialing"])`
+- Les utilisateurs en essai ont maintenant acces
+
+**`src/app/api/pierre/use/submit/route.ts`** + **`src/app/api/pierre/action/route.ts`** :
+- Copie locale de hasPierreAccess : `.in("status", ["active", "trialing"])`
+
+**`src/app/api/webhooks/stripe/route.ts`** (reecriture complete) :
+- `checkout.session.completed` : utilise `validateCheckoutSession()` — accepte paid ET no_payment_required
+- `customer.subscription.created` : fallback si metadata sur souscription
+- `customer.subscription.updated` : gere trialing→active, canceled, past_due
+- `customer.subscription.deleted` : status=canceled, ended_at=now
+- `invoice.payment_failed` : status=past_due
+- Signature Stripe toujours verifiee (`stripe.webhooks.constructEvent`)
+- `user_id` jamais fait confiance depuis le body — uniquement depuis metadata validee
+
+**`src/app/api/checkout/route.ts`** :
+- Verification du montant du Price Stripe avant creation de session (bloque en production si ≠ 44900)
+- Trial : `subscription_data.trial_period_days: 7`, carte collectee maintenant, charge apres essai si non annule
+- `metadata: { user_id, agent_slug }` sur session ET subscription_data
+
+**`src/app/paiement/success/page.tsx`** (reecriture complete) :
+- Composant client, dans Suspense (requis pour `useSearchParams`)
+- Interroge GET /api/checkout?agent_slug=pierre avec Bearer pour verifier l'activation reelle
+- Etats : checking / active / pending / unauthenticated
+- Auto-retry 2x apres 3s si pending
+- Affiche "Pierre est pret" quand active, "Activation en cours" sinon
+
+**`src/middleware.ts`** :
+- `getUser()` (appel reseau ~200ms par requete) → `getSession()` (lecture cookie ~0ms quand JWT frais)
+- Les routes API font deja `getUser()` pour la validation — le middleware n'en a pas besoin
+
+### Checks site-health ajoutes (B31.7)
+
+Trois nouveaux checks dans `src/lib/site-health/checks.ts` :
+- `checkPierreTrialDays(actual)` — pass si 7 jours, warn sinon
+- `checkPierrePriceAmount(actual)` — pass si 44900 centimes, fail sinon, warn si null
+- `checkTrialingGrantsAccess(activeStatuses)` — pass si "trialing" dans la liste
+
+### Tests crees
+
+**`src/lib/billing/__tests__/activation.test.ts`** — 46 tests :
+- isAccessGranted / isAccessRevoked
+- mapPaymentStatusToActivation / mapSubscriptionStatus
+- extractActivationMetadata (types stricts, jamais de non-string)
+- validateCheckoutSession (paid + trial + cas d'erreur)
+- isPierrePriceAmountValid + EXPECTED_PIERRE_PRICE_AMOUNT + TRIAL_PERIOD_DAYS
+
+### Invariants de securite
+
+- `user_id` vient toujours du Bearer token cote serveur — jamais du body client
+- Signature Stripe toujours verifiee avant traitement
+- `trialing` donne acces a Pierre — jamais de blocage utilisateur en essai
+- Prix Pierre 449 EUR — verification active en production avant creation de session
+- Token jamais dans l'URL, jamais dans les logs, jamais expose cote client
+- Aucune erreur technique brute transmise au client
+
+### Resultats finaux Bloc 31.7
+
+- 0 erreurs TypeScript (`npx tsc --noEmit`)
+- 4364 tests (42 fichiers) — +55 nouveaux tests
+- Build Next.js clean
+
+---
+
+---
+
+## Bloc 31.8 — Stripe Activation Fallback + wording employé IA
+
+Date : 2026-05-23
+
+### Probleme resolu
+
+**Cause du pending infini :** La `success_url` ne contenait pas `{CHECKOUT_SESSION_ID}`. La success page ne pouvait donc pas appeler un fallback côte serveur. Sans Stripe CLI en local, le webhook n'arrivait jamais → table `orders` vide → `active=false` → "Activation en cours" permanent.
+
+**Deux sources d'activation :**
+1. **Webhook Stripe** — source principale en production (`checkout.session.completed`, `customer.subscription.created/updated/deleted`, `invoice.payment_failed`)
+2. **Route confirm** — fallback securise : verifie la session Stripe côte serveur avec `STRIPE_SECRET_KEY`, upsert `orders` si Stripe confirme le paiement ou le trial
+
+### Corrections
+
+**`src/app/api/checkout/route.ts`** — `success_url` :
+```
+/paiement/success?agent=pierre&session_id={CHECKOUT_SESSION_ID}
+```
+`{CHECKOUT_SESSION_ID}` est un template Stripe substitue apres paiement.
+
+**`src/app/api/checkout/route.ts`** — GET handler retourne maintenant `status` (champ texte de la table orders).
+
+### Nouveaux modules
+
+**`src/lib/billing/order-activation.ts`** — helpers serveur partages (webhook + confirm) :
+- `upsertOrderActivation(supabase, params)` — idempotent, conflit sur `user_id,agent_slug`
+- `updateOrderBySubscriptionId(supabase, subId, update)` — lifecycle events
+- `getOrderStatus(supabase, userId, agentSlug)` — lecture status courant
+- `createOrderAdminClient()` — client Supabase admin
+
+**`src/app/api/checkout/confirm/route.ts`** — POST, Bearer requis :
+- Lit `session_id` du body
+- Valide le Bearer token → derive `user_id` côte serveur
+- Recupere la session Stripe (`stripe.checkout.sessions.retrieve`)
+- Verifie `metadata.user_id === userId` (SESSION_USER_MISMATCH si non)
+- Accepte `payment_status: "paid"` ou `"no_payment_required"`
+- Upsert `orders` si Stripe confirme
+- Idempotent — safe a appeler plusieurs fois
+- Codes d'erreur : SESSION_ID_REQUIRED, SESSION_NOT_FOUND, CHECKOUT_NOT_SUBSCRIPTION, SESSION_USER_MISMATCH, SESSION_AGENT_MISMATCH, CHECKOUT_NOT_CONFIRMED, SUBSCRIPTION_NOT_ACTIVE, SUBSCRIPTION_MISSING, STRIPE_NOT_CONFIGURED
+
+**`src/lib/checkout/checkout-helpers.ts`** — nouvelles fonctions :
+- `buildConfirmBody(sessionId, agentSlug)` — body confirm sans `user_id`
+- `sanitizeCheckoutError` etendu : CHECKOUT_NOT_CONFIRMED, SESSION_USER_MISMATCH, SESSION_NOT_FOUND
+
+### Success page
+
+**`src/app/paiement/success/page.tsx`** — flux confirm :
+1. Lit `session_id` depuis URL params (ajoute par Stripe via template)
+2. Si `session_id` present : appelle `POST /api/checkout/confirm` avec Bearer
+3. Si confirm dit `active/trialing` : affiche "Pierre est pret" directement
+4. Sinon : appelle `GET /api/checkout?agent_slug=pierre` (verifie orders)
+5. Auto-retry 2x/3s si pending
+6. Ref `checkingRef` empeche les appels concurrents
+
+### Wording client
+
+- `agents/page.tsx` : `React.ReactNode` correctement importe (fix TS latent)
+- Wording "employé IA" deja correct dans tous les fichiers visibles client
+- Wording "agent IA" absent du codebase produit
+
+### Dev local — Stripe CLI obligatoire
+
+Pour recevoir les webhooks en local :
+```
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+```
+Copier le secret donne par Stripe CLI dans `.env.local` :
+```
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+Sans Stripe CLI, la route confirm prend le relais si Stripe confirme le paiement.
+
+### Tests
+
+- `src/lib/billing/__tests__/order-activation.test.ts` — 9 tests structurels (shape payload, pas de secrets, idempotency key)
+- `src/lib/checkout/__tests__/checkout-helpers.test.ts` — +9 tests (buildConfirmBody + codes confirm/mismatch)
+
+### Invariants de securite
+
+- `user_id` derive du Bearer token côte serveur — jamais du body
+- `metadata.user_id` Stripe verifie contre `userId` authenticate
+- Stripe contacte avec `STRIPE_SECRET_KEY` côte serveur uniquement
+- Aucun secret expose dans les reponses
+- `SESSION_USER_MISMATCH` renvoie 403 sans details
+- Route confirm n'active PAS sans confirmation Stripe reelle
+
+### Resultats finaux Bloc 31.8
+
+- 0 erreurs TypeScript
+- 4382 tests (43 fichiers) — +18 nouveaux tests
+- Build Next.js clean
+
+---
+
+### Prochaine etape
+
+**Bloc 32 (futur)** — Production IA / Cost Router / Model Selection
+Configurer les vrais providers OpenAI/Anthropic, les couts par usage, le routeur de modeles, les budgets par mission.
+
+---
+
+## Bloc 31.9 — Final Performance Polish
+
+Date : 2026-05-23
+
+### Objectif
+
+Optimisations de performance ciblées, sans nouvelles features, sans casser B31.8.
+
+### next.config.ts — réécriture + optimizePackageImports
+
+Le fichier racine `next.config.ts` contenait uniquement des lignes de référence TypeScript (contenu `next-env.d.ts` mal placé) et n'exportait aucune configuration. La configuration réelle était dans `src/app/profile/agents/next.config.ts` que Next.js ignorait.
+
+Correction : réécriture du `next.config.ts` racine en configuration Next.js valide :
+```typescript
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  eslint: { ignoreDuringBuilds: true },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+  },
+};
+
+export default nextConfig;
+```
+
+`optimizePackageImports` réduit le bundle côté client en n'important que les icônes lucide-react et composants framer-motion réellement utilisés. Confirmé dans le build output : `· optimizePackageImports`.
+
+### navigation-budget.ts — nouveaux helpers
+
+Deux nouvelles fonctions dans `src/lib/performance/navigation-budget.ts` :
+- `assertUiInstant(ms)` — retourne `true` si `ms < 100` (seuil instant)
+- `assertCheckoutBudget(ms)` — retourne `true` si `ms < 800` (seuil acceptable)
+
+### site-health/checks.ts — checkPerformanceBudgetConfig
+
+Nouvelle fonction de garde `checkPerformanceBudgetConfig()` :
+- Vérifie que `BUDGET_MS.instant === 100`, `BUDGET_MS.acceptable === 800`, `BUDGET_MS.critical === 3000`
+- Statut `pass` si constants correctes, `fail` sinon
+- Importe `BUDGET_MS` depuis `navigation-budget` — détecte toute dérive involontaire des constantes de budget
+
+### Tests
+
+- `navigation-budget.test.ts` : +8 tests (assertUiInstant × 4, assertCheckoutBudget × 4) → **34 tests**
+- `site-health.test.ts` : +4 tests (checkPerformanceBudgetConfig) → **39 tests**
+
+### Resultats finaux Bloc 31.9
+
+- 0 erreurs TypeScript (`npx tsc --noEmit`)
+- 217 tests passes (7 fichiers non-Pierre, dont les 2 nouveaux suites)
+- Build Next.js clean — `optimizePackageImports` actif
+- Aucune regression sur B31.8

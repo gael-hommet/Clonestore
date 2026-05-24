@@ -37,6 +37,52 @@ import {
   buildAuditTrailTimeline,
   buildAuditTrailAlerts,
 } from "../../../../../../lib/pierre/hr/audit-trail";
+import {
+  buildEmployeeActionSuggestions,
+  buildEmployeeActionSummary,
+  buildEmployeeActionTrace,
+} from "../../../../../../lib/pierre/hr/employee-actions";
+import {
+  getCloneStoreTechnologyDefinitions,
+  buildDefaultTechnologyCompanySettings,
+  buildTechnologyRegistry,
+} from "../../../../../../lib/clonestore/technologies/registry";
+import {
+  mapRowsToSettings,
+  legacyExtractSettings,
+} from "../../../../../../lib/clonestore/technologies/storage";
+import {
+  buildRuntimeSnapshot,
+} from "../../../../../../lib/clonestore/runtime/engine";
+import type { CloneRuntimeSnapshot } from "../../../../../../lib/clonestore/runtime/contracts";
+import {
+  buildMissionReadinessHint,
+  type PierreReadinessHint,
+} from "../../../../../../lib/pierre/hr/operational-readiness";
+import {
+  buildMissionReleaseProofHint,
+  type PierreReleaseHint,
+} from "../../../../../../lib/pierre/hr/release-proof";
+import {
+  buildMissionTrialActivationHint,
+  type PierreTrialActivationHint,
+} from "../../../../../../lib/pierre/hr/trial-activation";
+import {
+  buildPierreCustomerSuccessMissionHint,
+} from "../../../../../../lib/pierre/hr/customer-success";
+import {
+  getCloneAIRuntimeStatus,
+} from "../../../../../../lib/cloneos/ai/runtime";
+import {
+  readPierreCloneADNFromReusableContext,
+  buildPierreCloneADNHint,
+} from "../../../../../../lib/pierre/adn/cloneadn";
+import {
+  getGoldenScenarioRegistry,
+  getPositiveScenarios,
+  getNegativeScenarios,
+  getCriticalScenarios,
+} from "../../../../../../lib/pierre/scenarios/golden-registry";
 
 type DbRow = Record<string, unknown>;
 
@@ -468,6 +514,63 @@ async function buildMissionEmployeeFile(
   }
 }
 
+type MissionCloneRuntime = {
+  snapshot: CloneRuntimeSnapshot | null;
+  context: CloneRuntimeSnapshot["context"] | null;
+  source: "mission_snapshot" | "rebuilt" | "unavailable";
+  error?: string;
+};
+
+async function buildMissionCloneRuntime(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+  mission: DbRow,
+): Promise<MissionCloneRuntime> {
+  try {
+    const ctxJson = isObject(mission.context_snapshot_json) ? mission.context_snapshot_json : null;
+    const cached = ctxJson ? ctxJson.clone_runtime_snapshot : null;
+    if (isObject(cached) && isObject((cached as Record<string, unknown>).context)) {
+      const snap = cached as unknown as CloneRuntimeSnapshot;
+      return { snapshot: snap, context: snap.context, source: "mission_snapshot" };
+    }
+
+    const defs = getCloneStoreTechnologyDefinitions();
+    const { data: tableData } = await supabaseAdmin
+      .from("clonestore_company_technologies")
+      .select("*")
+      .eq("user_id", userId);
+
+    let dbSettings = tableData && tableData.length > 0
+      ? mapRowsToSettings(tableData, defs)
+      : [];
+
+    if (dbSettings.length === 0) {
+      const { data: legacyData } = await supabaseAdmin
+        .from("pierre_company_memory")
+        .select("reusable_rh_context_json")
+        .eq("user_id", userId)
+        .eq("agent_slug", "pierre")
+        .maybeSingle();
+      if (legacyData && isObject(legacyData.reusable_rh_context_json)) {
+        dbSettings = legacyExtractSettings(legacyData.reusable_rh_context_json as Record<string, unknown>, defs);
+      }
+    }
+
+    const defaults = buildDefaultTechnologyCompanySettings(defs);
+    const mergedSettings = defs.map((def) => {
+      const db = dbSettings.find((s) => s.technology_slug === def.slug);
+      return db ?? defaults.find((s) => s.technology_slug === def.slug)!;
+    });
+
+    const registry = buildTechnologyRegistry({ definitions: defs, rawSettings: mergedSettings });
+    const snapshot = buildRuntimeSnapshot(registry, "pierre", new Date().toISOString());
+    return { snapshot, context: snapshot.context, source: "rebuilt" };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Runtime indisponible.";
+    return { snapshot: null, context: null, source: "unavailable", error: msg };
+  }
+}
+
 function extractPdfCandidates(documents: DbRow[]): DbRow[] {
   return documents.filter((document) => {
     const docType = (asString(document.doc_type) || "").toLowerCase();
@@ -528,6 +631,8 @@ export async function GET(
       documents,
       logs,
     );
+
+    const cloneRuntime = await buildMissionCloneRuntime(supabaseAdmin, auth.userId, mission);
 
     const operationalFeed = buildPierreOperationalFeed({
       missions: [mission],
@@ -649,6 +754,202 @@ export async function GET(
         digest: auditTimeline.digest,
         alerts: auditAlerts,
       },
+      employee_action_context: (() => {
+        try {
+          if (!employeeFile.available || !employeeFile.employee_id) return null;
+          const empRow: Record<string, unknown> = {
+            id: employeeFile.employee_id,
+            full_name: employeeFile.employee_name ?? employeeFile.employee_id,
+            status: null,
+            contract_type: null,
+            department: null,
+          };
+          const suggestions = buildEmployeeActionSuggestions(empRow, [mission], tasks);
+          const summary = buildEmployeeActionSummary(suggestions);
+          const trace = buildEmployeeActionTrace("general.action_reminder", employeeFile.employee_id);
+          return {
+            employee_id: employeeFile.employee_id,
+            employee_name: employeeFile.employee_name,
+            suggestions: suggestions.slice(0, 5),
+            summary,
+            trace,
+            employee_actions_endpoint: `/api/pierre/use/employee/${employeeFile.employee_id}/actions`,
+          };
+        } catch { return null; }
+      })(),
+      clone_runtime: {
+        snapshot: cloneRuntime.snapshot,
+        context: cloneRuntime.context,
+        source: cloneRuntime.source,
+        ...(cloneRuntime.error ? { error: cloneRuntime.error } : {}),
+      },
+      readiness_hint: (() => {
+        try {
+          return buildMissionReadinessHint(mission, tasks, documents, logs);
+        } catch {
+          return null as PierreReadinessHint | null;
+        }
+      })(),
+      release_proof_hint: (() => {
+        try {
+          return buildMissionReleaseProofHint(mission, tasks, documents, logs);
+        } catch {
+          return null as PierreReleaseHint | null;
+        }
+      })(),
+      trial_activation_hint: (() => {
+        try {
+          return buildMissionTrialActivationHint(mission, tasks, documents, logs);
+        } catch {
+          return null as PierreTrialActivationHint | null;
+        }
+      })(),
+      customer_success_hint: (() => {
+        try {
+          return buildPierreCustomerSuccessMissionHint({ mission, tasks, documents, logs });
+        } catch {
+          return {
+            customer_stage: "activated" as const,
+            health_score: 50,
+            conversion_score: 50,
+            retention_score: 50,
+            main_risk: null,
+            recommended_action: null,
+          };
+        }
+      })(),
+      ai_runtime_hint: (() => {
+        try {
+          const status = getCloneAIRuntimeStatus();
+          const missionBrainOutput = typeof mission.brain_output_json === "object" && mission.brain_output_json !== null
+            ? (mission.brain_output_json as Record<string, unknown>)
+            : null;
+          return {
+            available: true,
+            providers: status.providers,
+            contracts_count: status.prompt_contracts_count,
+            mission_ai_assist_present: !!(missionBrainOutput && ("ai_assist" in missionBrainOutput || "brain_final" in missionBrainOutput)),
+          };
+        } catch {
+          return {
+            available: false,
+            providers: [],
+            contracts_count: 0,
+            mission_ai_assist_present: false,
+          };
+        }
+      })(),
+      cloneadn_hint: (() => {
+        try {
+          // Read CloneADN hint stored at mission creation time in context_snapshot_json
+          const ctx = isObject(mission.context_snapshot_json) ? mission.context_snapshot_json : null;
+          const storedHint = ctx ? ctx["cloneadn_hint"] : null;
+          if (storedHint && isObject(storedHint)) return storedHint;
+          // Fallback: try reading live CloneADN from company memory if stored in context
+          const rh = ctx ? ctx["reusable_rh_context_json"] : null;
+          if (isObject(rh)) {
+            const profile = readPierreCloneADNFromReusableContext(rh);
+            return buildPierreCloneADNHint(profile);
+          }
+          return null;
+        } catch {
+          return null;
+        }
+      })(),
+      brain_final_hint: (() => {
+        try {
+          const brain = isObject(mission.brain_output_json) ? mission.brain_output_json : null;
+          if (!brain) return null;
+          const brainFinal = getNestedObject(brain, "brain_final");
+          if (!brainFinal) return null;
+          const brainMode = asString(brain.brain_mode);
+          const qualityGate = getNestedObject(brainFinal, "quality_gate");
+          const interpretation = getNestedObject(brainFinal, "interpretation");
+          const riskReview = getNestedObject(brainFinal, "risk_review");
+          return {
+            available: true,
+            source: asString(brainFinal.source),
+            ai_enabled: Boolean(brainFinal.ai_enabled),
+            ai_ok: Boolean(brainFinal.ai_ok),
+            provider: asString(brainFinal.provider),
+            brain_mode: brainMode,
+            interpretation_intent: interpretation ? asString(interpretation.intent) : null,
+            interpretation_domain: interpretation ? asString(interpretation.domain) : null,
+            interpretation_summary: interpretation ? asString(interpretation.summary) : null,
+            requires_human_validation: interpretation ? Boolean(interpretation.requires_human_validation) : false,
+            risk_level: riskReview ? asString(riskReview.risk_level) : null,
+            approval_required: riskReview ? Boolean(riskReview.approval_required) : false,
+            quality_valid: qualityGate ? Boolean(qualityGate.valid) : false,
+            quality_safe: qualityGate ? Boolean(qualityGate.safe_to_use) : false,
+            quality_score: qualityGate && typeof qualityGate.score === "number" ? qualityGate.score : 0,
+          };
+        } catch {
+          return null;
+        }
+      })(),
+      golden_scenarios_hint: (() => {
+        try {
+          const registry = getGoldenScenarioRegistry();
+          const positive = getPositiveScenarios();
+          const negative = getNegativeScenarios();
+          const critical = getCriticalScenarios();
+          return {
+            available: true,
+            scenarios_total: registry.length,
+            scenarios_positive: positive.length,
+            scenarios_negative: negative.length,
+            scenarios_critical: critical.length,
+            critical_scenario_ids: critical.map((s) => s.id),
+            modules_covered: Array.from(
+              new Set(registry.flatMap((s) => s.modules)),
+            ),
+            dry_run_endpoint: "/api/pierre/use/scenarios/run-suite",
+            report_endpoint: "/api/pierre/use/scenarios/report",
+          };
+        } catch {
+          return null;
+        }
+      })(),
+      release_candidate_hint: (() => {
+        try {
+          const brain = isObject(mission.brain_output_json) ? mission.brain_output_json : null;
+          const ctx = isObject(mission.context_snapshot_json) ? mission.context_snapshot_json : null;
+          const hasBrainFinal = !!(brain && getNestedObject(brain, "brain_final"));
+          const cloneadnHint = ctx ? ctx["cloneadn_hint"] : null;
+          const hasCloneADN = !!(cloneadnHint && isObject(cloneadnHint) && (cloneadnHint as Record<string, unknown>)["is_configured"] === true);
+          const hasPremiumDocuments = (documents ?? []).some((d: DbRow) => {
+            const payload = isObject(d.payload_json) ? d.payload_json : {};
+            return Boolean(payload.template_id) || Boolean(payload.document_kind) || Boolean(d.doc_type);
+          });
+          const hasGoldenScenarios = (() => {
+            try {
+              const reg = getGoldenScenarioRegistry();
+              return reg.length >= 13;
+            } catch { return false; }
+          })();
+          const hasCustomerSuccess = !!(
+            tasks.some((t: DbRow) => {
+              const tp = typeof t.type === "string" ? t.type : "";
+              return tp.includes("customer") || tp.includes("onboarding");
+            }) || documents.length > 0
+          );
+          const backend_ready = hasBrainFinal || hasGoldenScenarios;
+          const next_step: "cockpit" | "hotfix" | "review" =
+            backend_ready && hasGoldenScenarios ? "cockpit" :
+            !hasBrainFinal ? "hotfix" : "review";
+          return {
+            backend_ready,
+            next_step,
+            has_brain_final: hasBrainFinal,
+            has_cloneadn: hasCloneADN,
+            has_premium_documents: hasPremiumDocuments,
+            has_customer_success: hasCustomerSuccess,
+            has_golden_scenarios: hasGoldenScenarios,
+          };
+        } catch {
+          return null;
+        }
+      })(),
       meta: {
         missionId,
         userId: auth.userId,

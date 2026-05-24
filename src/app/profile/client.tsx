@@ -18,7 +18,7 @@ import {
   Sparkles,
   Wrench,
 } from "lucide-react";
-import { getSupabase } from "@/lib/supabase";
+import { getSessionClient } from "@/lib/auth/session-client";
 import { AGENTS, type AgentSpec } from "@/lib/agent-catalog";
 import {
   ProfileActionLink,
@@ -198,7 +198,7 @@ function EmployeeCard({
 }
 
 export default function ProfileAgentsClient() {
-  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+  const supabase = useMemo(() => getSessionClient() as SupabaseClient | null, []);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useMemo, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowRight,
@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   CreditCard,
   Loader2,
+  LogIn,
   LockKeyhole,
   ShieldCheck,
   Sparkles,
@@ -17,6 +18,8 @@ import {
 } from "lucide-react";
 
 import { LiquidGlass } from "@/components/ui/LiquidGlass";
+import { getSessionClient } from "@/lib/auth/session-client";
+import { buildCheckoutAuthHeaders, sanitizeCheckoutError } from "@/lib/checkout/checkout-helpers";
 import { cn } from "@/lib/utils";
 
 type CheckoutAgent = {
@@ -163,43 +166,122 @@ function CheckoutFallback() {
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
+
+  // ── Checkout target ──────────────────────────────────────────
+  const rawSlug =
+    searchParams.get("agent")?.toLowerCase() ??
+    searchParams.get("agent_slug")?.toLowerCase() ??
+    "pierre";
+  const agent = useMemo(() => AGENTS[rawSlug] ?? AGENTS.pierre, [rawSlug]);
+
+  // ── Session state ────────────────────────────────────────────
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+
+  // ── Access state ─────────────────────────────────────────────
+  const [alreadyActive, setAlreadyActive] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
+
+  // ── Checkout state ───────────────────────────────────────────
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const agentSlug = searchParams.get("agent")?.toLowerCase() || "pierre";
-  const agent = useMemo(() => AGENTS[agentSlug] ?? AGENTS.pierre, [agentSlug]);
+  // ── On mount: check session then proactively check access ────
+  useEffect(() => {
+    async function init() {
+      try {
+        const { data } = await getSessionClient().auth.getSession();
+        const token = data.session?.access_token ?? null;
+        setSessionToken(token);
+        setSessionChecked(true);
 
+        if (token && agent.available) {
+          setStatusLoading(true);
+          try {
+            const headers = buildCheckoutAuthHeaders(token);
+            if (headers) {
+              const res = await fetch(
+                `/api/checkout?agent_slug=${encodeURIComponent(agent.slug)}`,
+                { headers },
+              );
+              if (res.ok) {
+                const status = (await res.json()) as { active?: boolean } | null;
+                if (status?.active) setAlreadyActive(true);
+              }
+            }
+          } catch {
+            // status check is non-blocking
+          } finally {
+            setStatusLoading(false);
+          }
+        }
+      } catch {
+        setSessionChecked(true);
+      }
+    }
+
+    void init();
+  }, [agent.slug, agent.available]);
+
+  // ── Handle checkout button click ──────────────────────────────
   async function handleCheckout() {
     if (!agent.available || isLoading) return;
+
+    if (!sessionToken) {
+      setError("Connexion requise pour continuer le paiement.");
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          agent_slug: agent.slug,
-        }),
-      });
-
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
-            data?.message ||
-            "Impossible de démarrer le paiement pour le moment."
-        );
+      const headers = buildCheckoutAuthHeaders(sessionToken);
+      if (!headers) {
+        setError("Connexion requise pour continuer le paiement.");
+        setIsLoading(false);
+        return;
       }
 
-      const checkoutUrl = data?.url || data?.checkout_url || data?.sessionUrl || null;
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ agent_slug: agent.slug }),
+      });
+
+      const data = (await response.json().catch(() => null)) as Record<
+        string,
+        unknown
+      > | null;
+
+      // Already active — show cockpit CTA instead of redirecting to Stripe
+      if (data?.already_active === true) {
+        setAlreadyActive(true);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!response.ok) {
+        const code = typeof data?.code === "string" ? data.code : null;
+        const rawError = typeof data?.error === "string" ? data.error : null;
+
+        // Auth expired mid-flow — clear session, show auth gate
+        if (code === "AUTH_REQUIRED" || code === "AUTH_INVALID") {
+          setSessionToken(null);
+          setIsLoading(false);
+          return;
+        }
+
+        throw new Error(sanitizeCheckoutError(code, rawError));
+      }
+
+      const checkoutUrl =
+        (data?.url as string | null | undefined) ??
+        (data?.checkout_url as string | null | undefined) ??
+        null;
 
       if (!checkoutUrl) {
-        throw new Error("Aucune URL de paiement n’a été renvoyée.");
+        throw new Error("Aucune URL de paiement n'a été renvoyée.");
       }
 
       window.location.href = checkoutUrl;
@@ -207,10 +289,127 @@ function CheckoutContent() {
       setError(
         err instanceof Error
           ? err.message
-          : "Impossible de démarrer le paiement pour le moment."
+          : "Impossible de démarrer le paiement pour le moment.",
       );
       setIsLoading(false);
     }
+  }
+
+  // ── Render checkout action zone ──────────────────────────────
+  function renderAction() {
+    // Session check in progress
+    if (!sessionChecked || statusLoading) {
+      return (
+        <button
+          type="button"
+          disabled
+          className="clone-liquid-button clone-liquid-button--dark min-h-12 w-full pointer-events-none opacity-60"
+        >
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span>Vérification…</span>
+        </button>
+      );
+    }
+
+    // Already active — direct cockpit access
+    if (alreadyActive) {
+      return (
+        <div className="grid gap-3">
+          <LiquidGlass
+            variant="clear"
+            intensity="soft"
+            className="rounded-[1.5rem] border border-[rgba(21,130,96,0.22)] p-4"
+          >
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--cs-success)]" />
+              <p className="text-sm font-semibold text-[var(--cs-success)]">
+                Pierre est déjà actif sur votre compte.
+              </p>
+            </div>
+          </LiquidGlass>
+          <ActionButton
+            href="/agents/pierre/use"
+            label="Accéder au cockpit Pierre"
+            primary
+            icon={<ArrowRight className="h-4 w-4" />}
+          />
+        </div>
+      );
+    }
+
+    // Not authenticated — auth gate
+    if (!sessionToken) {
+      const loginHref = `/login?redirect=${encodeURIComponent(`/checkout?agent=${agent.slug}`)}`;
+      return (
+        <div className="grid gap-3">
+          <LiquidGlass
+            variant="clear"
+            intensity="soft"
+            className="rounded-[1.5rem] border border-[rgba(111,131,255,0.22)] p-4"
+          >
+            <p className="text-sm leading-6 text-[var(--cs-ink-3)]">
+              Connectez-vous pour activer {agent.name} et continuer vers le paiement.
+            </p>
+          </LiquidGlass>
+          <Link
+            href={loginHref}
+            className="clone-liquid-button clone-liquid-button--dark min-h-12 w-full"
+          >
+            <LogIn className="h-4 w-4" />
+            <span>Se connecter pour continuer</span>
+          </Link>
+          <ActionButton
+            href="/agents"
+            label="Retour boutique"
+            icon={<Sparkles className="h-4 w-4" />}
+          />
+        </div>
+      );
+    }
+
+    // Agent not available for purchase
+    if (!agent.available) {
+      return (
+        <div className="grid gap-3">
+          <ActionButton
+            href="/checkout?agent=pierre"
+            label="Commencer avec Pierre"
+            primary
+            icon={<ArrowRight className="h-4 w-4" />}
+          />
+          <ActionButton
+            href="/assistant"
+            label="Demander conseil"
+            icon={<Bot className="h-4 w-4" />}
+          />
+        </div>
+      );
+    }
+
+    // Normal checkout flow
+    return (
+      <button
+        type="button"
+        onClick={() => { void handleCheckout(); }}
+        disabled={isLoading}
+        className={cn(
+          "clone-liquid-button clone-liquid-button--dark min-h-12 w-full",
+          isLoading && "pointer-events-none opacity-75",
+        )}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Redirection…</span>
+          </>
+        ) : (
+          <>
+            <span>Continuer vers le paiement</span>
+            <ArrowRight className="h-4 w-4" />
+          </>
+        )}
+      </button>
+    );
   }
 
   return (
@@ -246,7 +445,7 @@ function CheckoutContent() {
                   </h1>
 
                   <p className="max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
-                    Confirmez l’employé IA à intégrer dans votre entreprise, puis
+                    Confirmez l'employé IA à intégrer dans votre entreprise, puis
                     continuez vers le paiement sécurisé.
                   </p>
                 </div>
@@ -259,7 +458,7 @@ function CheckoutContent() {
                   />
                   <GlassInfoCard
                     title="Accès privé"
-                    text="Après validation, l’accès continue vers votre espace CloneStore."
+                    text="Après validation, l'accès continue vers votre espace CloneStore."
                     icon={<LockKeyhole className="h-4 w-4" />}
                   />
                   <GlassInfoCard
@@ -309,7 +508,7 @@ function CheckoutContent() {
                     <span
                       className={cn(
                         "cs-status",
-                        agent.available ? "cs-status--success" : "cs-status--warn"
+                        agent.available ? "cs-status--success" : "cs-status--warn",
                       )}
                     >
                       {agent.available ? "Disponible" : "À venir"}
@@ -366,43 +565,7 @@ function CheckoutContent() {
                     </LiquidGlass>
                   ) : null}
 
-                  {agent.available ? (
-                    <button
-                      type="button"
-                      onClick={handleCheckout}
-                      disabled={isLoading}
-                      className={cn(
-                        "clone-liquid-button clone-liquid-button--dark min-h-12 w-full",
-                        isLoading && "pointer-events-none opacity-75"
-                      )}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Redirection…</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Continuer vers le paiement</span>
-                          <ArrowRight className="h-4 w-4" />
-                        </>
-                      )}
-                    </button>
-                  ) : (
-                    <div className="grid gap-3">
-                      <ActionButton
-                        href="/checkout?agent=pierre"
-                        label="Commencer avec Pierre"
-                        primary
-                        icon={<ArrowRight className="h-4 w-4" />}
-                      />
-                      <ActionButton
-                        href="/assistant"
-                        label="Demander conseil"
-                        icon={<Bot className="h-4 w-4" />}
-                      />
-                    </div>
-                  )}
+                  {renderAction()}
                 </div>
               </LiquidGlass>
             </div>

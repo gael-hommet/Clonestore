@@ -41,7 +41,8 @@ import {
 
 import { LiquidGlass } from "@/components/ui/LiquidGlass";
 import { AGENTS } from "@/lib/agent-catalog";
-import { getSupabase } from "@/lib/supabase";
+import { getSessionClient } from "@/lib/auth/session-client";
+import { useAuthGate } from "@/lib/auth/useAuthGate";
 import { cn } from "@/lib/utils";
 
 type OrderRow = {
@@ -500,9 +501,11 @@ function EmptyState({
 }
 
 export default function ProfileMessagesPage() {
+  const { authState } = useAuthGate();
+
   const supabase = useMemo(() => {
     try {
-      return getSupabase() as SupabaseClient;
+      return getSessionClient() as SupabaseClient;
     } catch {
       return null;
     }
@@ -866,7 +869,7 @@ export default function ProfileMessagesPage() {
                 </button>
               </div>
 
-              {loading ? (
+              {authState === "checking" || authState === "unauthenticated" || loading ? (
                 <div className="grid min-h-[420px] place-items-center">
                   <div className="flex items-center gap-3 text-[var(--cs-ink-3)]">
                     <Loader2 className="h-5 w-5 animate-spin text-[#667cff]" />

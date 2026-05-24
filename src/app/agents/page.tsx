@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -91,7 +91,7 @@ function ActionButton({
   href: string;
   label: string;
   primary?: boolean;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 }) {
   return (
     <Link

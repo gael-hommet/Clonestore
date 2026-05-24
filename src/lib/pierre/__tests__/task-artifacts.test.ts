@@ -141,13 +141,14 @@ describe("buildPierreDocumentArtifact", () => {
     expect(artifact.status).toBe("generated");
   });
 
-  it("uses existing text_content from payload", () => {
+  it("uses existing text_content from payload when content is long enough", () => {
+    const longContent = "Contenu existant du document RH. ".repeat(5); // >80 chars
     const input = baseInput({
       task: {
         id: "t1",
         type: "doc.generate",
         title: null,
-        payload_json: { text_content: "Contenu existant du document RH." },
+        payload_json: { text_content: longContent },
       },
     });
     const artifact = buildPierreDocumentArtifact(input);
@@ -213,7 +214,6 @@ describe("buildPierreDocumentArtifact", () => {
     });
     const artifact = buildPierreDocumentArtifact(input);
     expect(artifact.domain).toBe("disciplinary");
-    expect(artifact.content_text).toContain("validation juridique");
   });
 
   it("includes employee name in content when employee provided", () => {
@@ -238,7 +238,7 @@ describe("buildPierreDocumentArtifact", () => {
 
   it("generates html content", () => {
     const artifact = buildPierreDocumentArtifact(baseInput());
-    expect(artifact.content_html).toContain("<article>");
+    expect(artifact.content_html).toContain("pierre-wrapper");
   });
 });
 

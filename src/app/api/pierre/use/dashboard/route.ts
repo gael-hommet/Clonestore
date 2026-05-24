@@ -18,6 +18,20 @@ import {
 import {
   sanitizePierreEmployeeList,
 } from "../../../../../lib/pierre/hr/employee";
+import {
+  getCloneStoreTechnologyDefinitions,
+  buildDefaultTechnologyCompanySettings,
+  buildTechnologyRegistry,
+} from "../../../../../lib/clonestore/technologies/registry";
+import {
+  mapRowsToSettings,
+  legacyExtractSettings,
+} from "../../../../../lib/clonestore/technologies/storage";
+import {
+  buildRuntimeSnapshot,
+} from "../../../../../lib/clonestore/runtime/engine";
+import type { TechnologyCompanySetting } from "../../../../../lib/clonestore/technologies/contracts";
+import type { CloneRuntimeSnapshot } from "../../../../../lib/clonestore/runtime/contracts";
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -257,6 +271,68 @@ function buildEmployeeSnapshots(
   }
 }
 
+// ── CloneOS Runtime summary helper ────────────────────────
+
+type CloneRuntimeSummary = {
+  snapshot: CloneRuntimeSnapshot | null;
+  unavailable: boolean;
+  storage_source: "platform_table" | "legacy_json" | "defaults" | "unavailable";
+  error: string | null;
+};
+
+async function tryBuildCloneRuntimeSummaryForPierre(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+  now: string,
+): Promise<CloneRuntimeSummary> {
+  try {
+    const defs = getCloneStoreTechnologyDefinitions();
+    let settings: TechnologyCompanySetting[];
+    let source: CloneRuntimeSummary["storage_source"];
+
+    const { data: tableData, error: tableError } = await supabaseAdmin
+      .from("clonestore_company_technologies")
+      .select("*")
+      .eq("user_id", userId);
+
+    if (!tableError && tableData && tableData.length > 0) {
+      settings = mapRowsToSettings(tableData as DbRow[], defs);
+      source = "platform_table";
+    } else {
+      const { data: legacyData } = await supabaseAdmin
+        .from("pierre_company_memory")
+        .select("reusable_rh_context_json")
+        .eq("user_id", userId)
+        .eq("agent_slug", "pierre")
+        .maybeSingle();
+
+      if (legacyData && isObject(legacyData.reusable_rh_context_json)) {
+        settings = legacyExtractSettings(
+          legacyData.reusable_rh_context_json as Record<string, unknown>,
+          defs,
+        );
+        source = settings.length > 0 ? "legacy_json" : "defaults";
+      } else {
+        settings = [];
+        source = "defaults";
+      }
+    }
+
+    const defaults = buildDefaultTechnologyCompanySettings(defs);
+    const mergedSettings: TechnologyCompanySetting[] = defs.map((def) => {
+      const db = settings.find((s) => s.technology_slug === def.slug);
+      return db ?? defaults.find((s) => s.technology_slug === def.slug)!;
+    });
+
+    const registry = buildTechnologyRegistry({ definitions: defs, rawSettings: mergedSettings });
+    const snapshot = buildRuntimeSnapshot(registry, "pierre", now);
+    return { snapshot, unavailable: false, storage_source: source, error: null };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Runtime unavailable.";
+    return { snapshot: null, unavailable: true, storage_source: "unavailable", error: msg };
+  }
+}
+
 // ── GET /api/pierre/use/dashboard ─────────────────────────
 
 export async function GET(request: NextRequest) {
@@ -276,12 +352,13 @@ export async function GET(request: NextRequest) {
     const now = new Date();
 
     // Fetch all data in parallel
-    const [missions, tasks, documents, logs, employees] = await Promise.all([
+    const [missions, tasks, documents, logs, employees, cloneRuntime] = await Promise.all([
       fetchMissions(supabaseAdmin, userId),
       fetchTasks(supabaseAdmin, userId),
       fetchDocuments(supabaseAdmin, userId),
       fetchLogs(supabaseAdmin, userId),
       fetchEmployees(supabaseAdmin, userId),
+      tryBuildCloneRuntimeSummaryForPierre(supabaseAdmin, userId, now.toISOString()),
     ]);
 
     // Build employee snapshots + employee feed items
@@ -338,6 +415,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       dashboard,
+      clone_runtime_summary: {
+        snapshot: cloneRuntime.snapshot,
+        unavailable: cloneRuntime.unavailable,
+        storage_source: cloneRuntime.storage_source,
+        ...(cloneRuntime.error ? { error: cloneRuntime.error } : {}),
+      },
       meta: {
         canonical_route: "/api/pierre/use/mission-control",
         compatibility_route: "/api/pierre/use/dashboard",

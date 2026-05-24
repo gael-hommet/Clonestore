@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getSupabase } from "@/lib/supabase";
+import { getSessionClient } from "@/lib/auth/session-client";
 import { Button } from "@/components/ui/button";
 import {
   Sparkles,
@@ -58,7 +58,7 @@ function Card({
 }
 
 export default function NoahPage() {
-  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+  const supabase = useMemo(() => getSessionClient() as SupabaseClient | null, []);
 
   const [loading, setLoading] = useState(true);
   const [isLogged, setIsLogged] = useState(false);

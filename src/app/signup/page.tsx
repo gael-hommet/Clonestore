@@ -19,7 +19,7 @@ import {
   Waypoints,
 } from "lucide-react";
 
-import { getSupabase } from "@/lib/supabase";
+import { getSessionClient } from "@/lib/auth/session-client";
 import { cn } from "@/lib/utils";
 
 function GlassLink({
@@ -146,7 +146,7 @@ function AlertBox({
 
 export default function SignupPage() {
   const router = useRouter();
-  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+  const supabase = useMemo(() => getSessionClient() as SupabaseClient | null, []);
 
   const [fullName, setFullName] = useState("");
   const [companyName, setCompanyName] = useState("");

@@ -51,7 +51,8 @@ import {
   applyCloneAppearance,
   type CloneAppearance,
 } from "@/lib/appearance";
-import { getSupabase } from "@/lib/supabase";
+import { getSessionClient } from "@/lib/auth/session-client";
+import { useRequireAuth } from "@/lib/auth/useRequireAuth";
 import { cn } from "@/lib/utils";
 import { AGENTS } from "@/lib/agent-catalog";
 
@@ -708,8 +709,9 @@ function EmployeeMiniCard({ order }: { order: OrderRow }) {
 }
 
 export default function ProfilePage() {
+  useRequireAuth();
   const router = useRouter();
-  const supabase = useMemo(() => getSupabase() as SupabaseClient | null, []);
+  const supabase = useMemo(() => getSessionClient() as SupabaseClient | null, []);
 
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [loading, setLoading] = useState(true);
@@ -1136,7 +1138,7 @@ export default function ProfilePage() {
     if (!supabase) return;
 
     await supabase.auth.signOut();
-    router.push("/");
+    router.push("/login");
     router.refresh();
   }
 

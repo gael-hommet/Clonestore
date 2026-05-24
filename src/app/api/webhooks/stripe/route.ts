@@ -1,6 +1,17 @@
+// src/app/api/webhooks/stripe/route.ts
+// B31.7 — Stripe webhook handler. Source of truth for Supabase order activation.
+// Handles: checkout.session.completed (paid + trial), subscription.created,
+//          subscription.updated, subscription.deleted, invoice.payment_failed.
+
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import {
+  validateCheckoutSession,
+  mapSubscriptionStatus,
+  isAccessGranted,
+  isAccessRevoked,
+} from "@/lib/billing/stripe-activation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,59 +43,66 @@ function getString(obj: Record<string, unknown>, key: string): string | null {
   return typeof v === "string" ? v : null;
 }
 
-function getMetadata(obj: Record<string, unknown>): Record<string, unknown> | null {
+function getMetadata(obj: Record<string, unknown>): Record<string, string> | null {
   const meta = obj["metadata"];
-  return isRecord(meta) ? meta : null;
+  if (!isRecord(meta)) return null;
+  const result: Record<string, string> = {};
+  for (const [k, v] of Object.entries(meta)) {
+    if (typeof v === "string") result[k] = v;
+  }
+  return result;
 }
 
-async function upsertActive(args: {
+function getNumber(obj: Record<string, unknown>, key: string): number | null {
+  const v = obj[key];
+  return typeof v === "number" ? v : null;
+}
+
+// ── DB helpers ──────────────────────────────────────────────────
+
+async function upsertOrderStatus(args: {
   user_id: string;
   agent_slug: string;
+  status: string;
   subId: string;
   customerId: string | null;
+  trial_end?: number | null;
+  current_period_end?: number | null;
 }) {
   const sb = getSupabaseAdmin();
   const now = new Date().toISOString();
 
+  const payload: Record<string, unknown> = {
+    user_id: args.user_id,
+    agent_slug: args.agent_slug,
+    status: args.status,
+    started_at: now,
+    ended_at: null,
+    stripe_subscription_id: args.subId,
+    stripe_customer_id: args.customerId,
+  };
+
   const { error } = await sb
     .from("orders")
-    .upsert(
-      {
-        user_id: args.user_id,
-        agent_slug: args.agent_slug,
-        status: "active",
-        started_at: now,
-        ended_at: null,
-        stripe_subscription_id: args.subId,
-        stripe_customer_id: args.customerId,
-      },
-      { onConflict: "user_id,agent_slug" }
-    );
+    .upsert(payload, { onConflict: "user_id,agent_slug" });
 
   if (error) throw new Error(error.message);
 }
 
-async function setCancelledBySubId(subId: string) {
+async function updateOrderBySubId(
+  subId: string,
+  update: Record<string, unknown>
+) {
   const sb = getSupabaseAdmin();
-  const now = new Date().toISOString();
-
   const { error } = await sb
     .from("orders")
-    .update({ status: "cancelled", ended_at: now })
+    .update(update)
     .eq("stripe_subscription_id", subId);
 
   if (error) throw new Error(error.message);
 }
 
-async function setPastDueBySubId(subId: string) {
-  const sb = getSupabaseAdmin();
-  const { error } = await sb
-    .from("orders")
-    .update({ status: "past_due" })
-    .eq("stripe_subscription_id", subId);
-
-  if (error) throw new Error(error.message);
-}
+// ── Main webhook handler ────────────────────────────────────────
 
 export async function POST(req: Request) {
   try {
@@ -105,62 +123,121 @@ export async function POST(req: Request) {
       return json(400, { error: msg });
     }
 
-    // ✅ 0) CHECKOUT COMPLETED = source de vérité
+    // ── checkout.session.completed ─────────────────────────────
+    // Handles both immediate payment (paid) and trial (no_payment_required).
     if (event.type === "checkout.session.completed") {
       const obj: unknown = event.data.object;
-      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+      if (!isRecord(obj)) return json(200, { received: true });
 
-      const mode = getString(obj, "mode"); // "subscription"
-      const payment_status = getString(obj, "payment_status"); // "paid"
-      const subId = getString(obj, "subscription");
-      const customerId = getString(obj, "customer");
+      const validation = validateCheckoutSession(obj);
 
-      const meta = getMetadata(obj);
-      const user_id = meta && typeof meta["user_id"] === "string" ? (meta["user_id"] as string) : null;
-      const agent_slug = meta && typeof meta["agent_slug"] === "string" ? (meta["agent_slug"] as string) : null;
-
-      // On active seulement si paiement OK + subscription id présent
-      if (mode === "subscription" && payment_status === "paid" && subId && user_id && agent_slug) {
-        await upsertActive({ user_id, agent_slug, subId, customerId });
+      if (!validation.valid || !validation.user_id || !validation.agent_slug || !validation.subscription_id) {
+        console.log("[webhook] checkout.session.completed skipped:", validation.reason ?? "invalid");
+        return json(200, { received: true, skipped: true, reason: validation.reason });
       }
 
-      return json(200, { received: true, type: event.type, subId, payment_status });
+      await upsertOrderStatus({
+        user_id: validation.user_id,
+        agent_slug: validation.agent_slug,
+        status: validation.status,
+        subId: validation.subscription_id,
+        customerId: getString(obj, "customer"),
+      });
+
+      return json(200, {
+        received: true,
+        type: event.type,
+        status: validation.status,
+        sub: validation.subscription_id,
+      });
     }
 
-    // ✅ 1) SUBSCRIPTION updated : utile pour past_due / etc.
-    if (event.type === "customer.subscription.updated") {
+    // ── customer.subscription.created ─────────────────────────
+    // Fallback: fires after checkout for some Stripe configurations.
+    if (event.type === "customer.subscription.created") {
       const obj: unknown = event.data.object;
-      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+      if (!isRecord(obj)) return json(200, { received: true });
 
       const subId = getString(obj, "id");
-      const status = getString(obj, "status");
-      if (!subId) return json(200, { received: true, note: "Missing subscription id" });
+      const stripeStatus = getString(obj, "status");
+      const customerId = getString(obj, "customer");
+      const status = mapSubscriptionStatus(stripeStatus);
 
-      if (status === "past_due") {
-        await setPastDueBySubId(subId);
+      if (!subId || !isAccessGranted(status)) {
+        return json(200, { received: true, skipped: true, reason: `status=${stripeStatus}` });
+      }
+
+      // Try to get user_id/agent_slug from subscription metadata
+      const meta = getMetadata(obj);
+      const user_id = meta?.["user_id"] ?? null;
+      const agent_slug = meta?.["agent_slug"] ?? null;
+
+      if (!user_id || !agent_slug) {
+        // metadata missing on subscription — checkout.session.completed should cover this
+        return json(200, { received: true, skipped: true, reason: "No metadata on subscription" });
+      }
+
+      await upsertOrderStatus({
+        user_id,
+        agent_slug,
+        status,
+        subId,
+        customerId,
+        trial_end: getNumber(obj, "trial_end"),
+        current_period_end: getNumber(obj, "current_period_end"),
+      });
+
+      return json(200, { received: true, type: event.type, status, subId });
+    }
+
+    // ── customer.subscription.updated ─────────────────────────
+    // Handles: trial→active, active→past_due, active→canceled, etc.
+    if (event.type === "customer.subscription.updated") {
+      const obj: unknown = event.data.object;
+      if (!isRecord(obj)) return json(200, { received: true });
+
+      const subId = getString(obj, "id");
+      const stripeStatus = getString(obj, "status");
+      const status = mapSubscriptionStatus(stripeStatus);
+
+      if (!subId) return json(200, { received: true, skipped: true, reason: "Missing sub ID" });
+
+      if (isAccessGranted(status)) {
+        // Keep order active/trialing
+        await updateOrderBySubId(subId, { status, ended_at: null });
+      } else if (isAccessRevoked(status)) {
+        const now = new Date().toISOString();
+        await updateOrderBySubId(subId, { status, ended_at: now });
+      } else if (status === "past_due") {
+        await updateOrderBySubId(subId, { status: "past_due" });
       }
 
       return json(200, { received: true, type: event.type, subId, status });
     }
 
-    // ✅ 2) SUBSCRIPTION DELETED
+    // ── customer.subscription.deleted ─────────────────────────
     if (event.type === "customer.subscription.deleted") {
       const obj: unknown = event.data.object;
-      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+      if (!isRecord(obj)) return json(200, { received: true });
 
       const subId = getString(obj, "id");
-      if (subId) await setCancelledBySubId(subId);
+      if (subId) {
+        const now = new Date().toISOString();
+        await updateOrderBySubId(subId, { status: "canceled", ended_at: now });
+      }
 
       return json(200, { received: true, type: event.type, subId });
     }
 
-    // ✅ 3) PAYMENT FAILED => past_due
+    // ── invoice.payment_failed ─────────────────────────────────
     if (event.type === "invoice.payment_failed") {
       const obj: unknown = event.data.object;
-      if (!isRecord(obj)) return json(200, { received: true, note: "Invalid object" });
+      if (!isRecord(obj)) return json(200, { received: true });
 
       const subId = getString(obj, "subscription");
-      if (subId) await setPastDueBySubId(subId);
+      if (subId) {
+        await updateOrderBySubId(subId, { status: "past_due" });
+      }
 
       return json(200, { received: true, type: event.type, subId });
     }
@@ -168,27 +245,7 @@ export async function POST(req: Request) {
     return json(200, { received: true, type: event.type });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Webhook failed";
+    console.error("[webhook] error:", msg);
     return json(500, { error: msg });
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

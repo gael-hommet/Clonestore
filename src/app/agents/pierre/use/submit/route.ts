@@ -234,7 +234,7 @@ async function hasPierreAccess(supabase: SupabaseClient, userId: string) {
     .select("id,status")
     .eq("user_id", userId)
     .eq("agent_slug", "pierre")
-    .eq("status", "active")
+    .in("status", ["active", "trialing"])
     .maybeSingle();
 
   if (error) {

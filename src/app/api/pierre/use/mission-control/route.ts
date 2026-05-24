@@ -31,6 +31,24 @@ import {
   type PierreEmployeeFileSnapshot,
 } from "../../../../../lib/pierre/hr/employee-file";
 import { sanitizePierreEmployeeList } from "../../../../../lib/pierre/hr/employee";
+import {
+  buildEmployeeActionsIndex,
+  buildEmployeeActionSummary,
+} from "../../../../../lib/pierre/hr/employee-actions";
+import {
+  getCloneStoreTechnologyDefinitions,
+  buildDefaultTechnologyCompanySettings,
+  buildTechnologyRegistry,
+} from "../../../../../lib/clonestore/technologies/registry";
+import {
+  mapRowsToSettings,
+  legacyExtractSettings,
+} from "../../../../../lib/clonestore/technologies/storage";
+import {
+  buildRuntimeSnapshot,
+} from "../../../../../lib/clonestore/runtime/engine";
+import type { TechnologyCompanySetting } from "../../../../../lib/clonestore/technologies/contracts";
+import type { CloneRuntimeSnapshot } from "../../../../../lib/clonestore/runtime/contracts";
 
 type DbRow = Record<string, unknown>;
 type JsonErrorExtra = { code?: string | null; details?: unknown };
@@ -164,6 +182,68 @@ function buildEmployeeSnapshots(
   } catch (_e) { /* skip malformed row */ return { snapshots: [], feedItems: [] }; }
 }
 
+// ── CloneOS Runtime summary helper ────────────────────────
+
+type CloneRuntimeSummary = {
+  snapshot: CloneRuntimeSnapshot | null;
+  unavailable: boolean;
+  storage_source: "platform_table" | "legacy_json" | "defaults" | "unavailable";
+  error: string | null;
+};
+
+async function tryBuildCloneRuntimeSummaryForPierre(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+  now: string,
+): Promise<CloneRuntimeSummary> {
+  try {
+    const defs = getCloneStoreTechnologyDefinitions();
+    let settings: TechnologyCompanySetting[];
+    let source: CloneRuntimeSummary["storage_source"];
+
+    const { data: tableData, error: tableError } = await supabaseAdmin
+      .from("clonestore_company_technologies")
+      .select("*")
+      .eq("user_id", userId);
+
+    if (!tableError && tableData && tableData.length > 0) {
+      settings = mapRowsToSettings(tableData as DbRow[], defs);
+      source = "platform_table";
+    } else {
+      const { data: legacyData } = await supabaseAdmin
+        .from("pierre_company_memory")
+        .select("reusable_rh_context_json")
+        .eq("user_id", userId)
+        .eq("agent_slug", "pierre")
+        .maybeSingle();
+
+      if (legacyData && isObject(legacyData.reusable_rh_context_json)) {
+        settings = legacyExtractSettings(
+          legacyData.reusable_rh_context_json as Record<string, unknown>,
+          defs,
+        );
+        source = settings.length > 0 ? "legacy_json" : "defaults";
+      } else {
+        settings = [];
+        source = "defaults";
+      }
+    }
+
+    const defaults = buildDefaultTechnologyCompanySettings(defs);
+    const mergedSettings: TechnologyCompanySetting[] = defs.map((def) => {
+      const db = settings.find((s) => s.technology_slug === def.slug);
+      return db ?? defaults.find((s) => s.technology_slug === def.slug)!;
+    });
+
+    const registry = buildTechnologyRegistry({ definitions: defs, rawSettings: mergedSettings });
+    const snapshot = buildRuntimeSnapshot(registry, "pierre", now);
+    return { snapshot, unavailable: false, storage_source: source, error: null };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Runtime unavailable.";
+    return { snapshot: null, unavailable: true, storage_source: "unavailable", error: msg };
+  }
+}
+
 // ── GET /api/pierre/use/mission-control ───────────────────
 
 export async function GET(request: NextRequest) {
@@ -182,12 +262,13 @@ export async function GET(request: NextRequest) {
     const dataWindow = buildMissionControlDataWindow();
     const scaleProfile = buildMissionControlScaleProfile();
 
-    const [missions, tasks, documents, logs, employees] = await Promise.all([
+    const [missions, tasks, documents, logs, employees, cloneRuntime] = await Promise.all([
       fetchMissions(supabaseAdmin, userId, dataWindow.missions_limit),
       fetchTasks(supabaseAdmin, userId, dataWindow.tasks_limit),
       fetchDocuments(supabaseAdmin, userId, dataWindow.documents_limit),
       fetchLogs(supabaseAdmin, userId, dataWindow.logs_limit),
       fetchEmployees(supabaseAdmin, userId),
+      tryBuildCloneRuntimeSummaryForPierre(supabaseAdmin, userId, now.toISOString()),
     ]);
 
     const { snapshots: employeeSnapshots, feedItems: employeeFeedItems } =
@@ -290,6 +371,23 @@ export async function GET(request: NextRequest) {
         alerts_count: mcAuditAlerts.length,
         critical_count: mcAuditDiag.critical_count,
         human_required_count: mcAuditDiag.human_required_count,
+      },
+      employee_actions_summary: (() => {
+        try {
+          const actIndex = buildEmployeeActionsIndex(
+            employees as unknown as Record<string, unknown>[],
+            missions as unknown as Record<string, unknown>[],
+            tasks as unknown as Record<string, unknown>[],
+          );
+          const allSugg = Object.values(actIndex).flatMap((p) => p.suggested_actions);
+          return buildEmployeeActionSummary(allSugg);
+        } catch { return null; }
+      })(),
+      clone_runtime_summary: {
+        snapshot: cloneRuntime.snapshot,
+        unavailable: cloneRuntime.unavailable,
+        storage_source: cloneRuntime.storage_source,
+        ...(cloneRuntime.error ? { error: cloneRuntime.error } : {}),
       },
       meta: {
         canonical_route: "/api/pierre/use/mission-control",

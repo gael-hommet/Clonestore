@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { sanitizePierreEmployeeList } from "../../../../../../lib/pierre/hr/employee";
 import { buildEmployeeFileIndex } from "../../../../../../lib/pierre/hr/employee-file";
+import { buildEmployeeActionsIndex, buildEmployeeActionSummary } from "../../../../../../lib/pierre/hr/employee-actions";
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -245,9 +246,17 @@ export async function GET(request: NextRequest) {
 
     const index = buildEmployeeFileIndex(employees, missions, tasks, documents, logs);
 
+    const rawEmployees = employees as unknown as Record<string, unknown>[];
+    const actionsIndex = buildEmployeeActionsIndex(rawEmployees, missions, tasks);
+    const allSuggestions = Object.values(actionsIndex).flatMap((p) => p.suggested_actions);
+    const actionsGlobalSummary = buildEmployeeActionSummary(allSuggestions);
+
     return NextResponse.json({
       ok: true,
       index,
+      employee_actions_index: actionsIndex,
+      employee_actions_global_summary: actionsGlobalSummary,
+      employee_actions_endpoint: "/api/pierre/use/employees/actions",
       meta: {
         userId,
         fetchedAt: new Date().toISOString(),

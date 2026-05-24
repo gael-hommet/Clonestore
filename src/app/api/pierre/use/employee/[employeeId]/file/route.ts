@@ -34,6 +34,11 @@ import {
   buildAuditTrailDigest,
   buildAuditTrailAlerts,
 } from "../../../../../../../lib/pierre/hr/audit-trail";
+import {
+  buildEmployeeActionSuggestions,
+  buildEmployeeActionSummary,
+  buildEmployeeActionPlan,
+} from "../../../../../../../lib/pierre/hr/employee-actions";
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -506,6 +511,34 @@ export async function GET(
           return null;
         }
       })(),
+      employee_actions_summary: (() => {
+        try {
+          const empRow = {
+            id: employeeId,
+            full_name: employee.full_name,
+            status: employee.status,
+            contract_type: employee.contract_type ?? null,
+            department: employee.department ?? null,
+          } as Record<string, unknown>;
+          const suggestions = buildEmployeeActionSuggestions(empRow, missions, tasks);
+          return buildEmployeeActionSummary(suggestions);
+        } catch { return null; }
+      })(),
+      employee_action_suggestions: (() => {
+        try {
+          const empRow = {
+            id: employeeId,
+            full_name: employee.full_name,
+            status: employee.status,
+            contract_type: employee.contract_type ?? null,
+            department: employee.department ?? null,
+          } as Record<string, unknown>;
+          return buildEmployeeActionPlan(
+            empRow, missions, tasks, now,
+          ).suggested_actions.slice(0, 5);
+        } catch { return []; }
+      })(),
+      employee_actions_endpoint: `/api/pierre/use/employee/${employeeId}/actions`,
       meta: {
         userId,
         fetchedAt: now.toISOString(),

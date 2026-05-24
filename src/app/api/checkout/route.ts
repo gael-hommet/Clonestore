@@ -1,73 +1,229 @@
-import { NextResponse } from "next/server";
+// src/app/api/checkout/route.ts
+// Checkout session creation — B31.4.
+// user_id is ALWAYS derived from the Bearer token. Never trusted from the body.
+// agent_slug comes from body (POST) or query param (GET).
+
+import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getBaseUrl } from "@/lib/base-url";
+import { hasPierreAccess } from "@/lib/pierre/access";
+import { normalizeAgentSlug } from "@/lib/checkout/checkout-helpers";
+import { EXPECTED_PIERRE_PRICE_AMOUNT, TRIAL_PERIOD_DAYS } from "@/lib/billing/stripe-activation";
+import { getOrderStatus } from "@/lib/billing/order-activation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
-  return new Stripe(key, { apiVersion: "2025-11-17.clover" });
+// ── Supabase admin ──────────────────────────────────────────────
+
+function createAdminClient(): SupabaseClient {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase environment is not configured.");
+  }
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
+
+function tryReadBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+  const [scheme, token] = authHeader.split(" ");
+  if (!scheme || !token || scheme.toLowerCase() !== "bearer") return null;
+  return token.trim() || null;
+}
+
+async function authenticate(
+  request: NextRequest,
+  supabaseAdmin: SupabaseClient,
+): Promise<string> {
+  const token = tryReadBearerToken(request);
+  if (!token) {
+    throw { status: 401, code: "AUTH_REQUIRED", message: "Connexion requise pour continuer." };
+  }
+  const { data, error } = await supabaseAdmin.auth.getUser(token);
+  if (error || !data.user) {
+    throw { status: 401, code: "AUTH_INVALID", message: "Session invalide. Veuillez vous reconnecter." };
+  }
+  return data.user.id;
+}
+
+// ── Stripe ──────────────────────────────────────────────────────
+
+function getStripeClient(): Stripe | null {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) return null;
+  return new Stripe(key, { apiVersion: "2025-11-17.clover" as Stripe.LatestApiVersion });
+}
+
+function getPriceId(agentSlug: string): string | null {
+  if (agentSlug === "pierre") return process.env.STRIPE_PRICE_PIERRE ?? null;
+  if (agentSlug === "clara") return process.env.STRIPE_PRICE_CLARA ?? null;
+  return null;
+}
+
+// ── Helpers ─────────────────────────────────────────────────────
 
 function json(status: number, data: unknown) {
   return NextResponse.json(data, { status });
 }
 
-type Body = {
-  user_id: string;
-  agent_slug: string;
-};
-
-function getPriceId(agentSlug: string) {
-  // adapte si tu as plusieurs prix
-  if (agentSlug === "pierre") return process.env.STRIPE_PRICE_PIERRE;
-  if (agentSlug === "clara") return process.env.STRIPE_PRICE_CLARA;
-  return null;
+function jsonError(status: number, message: string, code: string) {
+  return NextResponse.json({ ok: false, error: message, code }, { status });
 }
 
-export async function POST(req: Request) {
+type AuthError = { status: number; code: string; message: string };
+
+function isAuthError(e: unknown): e is AuthError {
+  return typeof e === "object" && e !== null && "status" in e && "code" in e;
+}
+
+// ── GET /api/checkout?agent_slug=pierre ─────────────────────────
+// Proactive access status check. Bearer required. No side effects.
+
+export async function GET(request: NextRequest) {
   try {
-    const body = (await req.json()) as Partial<Body>;
-    const user_id = typeof body.user_id === "string" ? body.user_id : null;
-    const agent_slug = typeof body.agent_slug === "string" ? body.agent_slug : null;
+    const supabaseAdmin = createAdminClient();
+    const userId = await authenticate(request, supabaseAdmin);
 
-    if (!user_id || !agent_slug) return json(400, { error: "Missing user_id/agent_slug" });
+    const rawSlug = request.nextUrl.searchParams.get("agent_slug");
+    const agentSlug = normalizeAgentSlug(rawSlug);
 
-    const priceId = getPriceId(agent_slug);
-    if (!priceId) return json(400, { error: "Missing Stripe price for agent" });
+    if (!agentSlug) {
+      return jsonError(400, "Employé IA introuvable.", "AGENT_SLUG_REQUIRED");
+    }
 
-    const stripe = getStripe();
+    let active = false;
+    let orderStatus = "none";
+    if (agentSlug === "pierre") {
+      const res = await hasPierreAccess(supabaseAdmin, userId);
+      active = res.ok;
+      if (active) {
+        const order = await getOrderStatus(supabaseAdmin, userId, agentSlug);
+        orderStatus = order?.status ?? "active";
+      }
+    }
+
+    return json(200, {
+      ok: true,
+      agent_slug: agentSlug,
+      active,
+      status: orderStatus,
+      can_checkout: !active,
+      redirect_url: active ? "/agents/pierre/use" : null,
+    });
+  } catch (e) {
+    if (isAuthError(e)) return jsonError(e.status, e.message, e.code);
+    const msg = e instanceof Error ? e.message : "Erreur serveur";
+    return jsonError(500, msg, "SERVER_ERROR");
+  }
+}
+
+// ── POST /api/checkout ──────────────────────────────────────────
+// Creates a Stripe checkout session. Bearer required. user_id from token only.
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabaseAdmin = createAdminClient();
+    const userId = await authenticate(request, supabaseAdmin);
+
+    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+    const rawSlug = typeof body.agent_slug === "string" ? body.agent_slug : null;
+    const agentSlug = normalizeAgentSlug(rawSlug);
+
+    if (!agentSlug) {
+      return jsonError(400, "Employé IA introuvable.", "AGENT_SLUG_REQUIRED");
+    }
+
+    // Check if already active — avoids duplicate checkout
+    if (agentSlug === "pierre") {
+      const res = await hasPierreAccess(supabaseAdmin, userId);
+      if (res.ok) {
+        return json(200, {
+          ok: true,
+          already_active: true,
+          redirect_url: "/agents/pierre/use",
+        });
+      }
+    }
+
+    // Stripe must be configured
+    const stripe = getStripeClient();
+    if (!stripe) {
+      return json(503, {
+        ok: false,
+        code: "STRIPE_NOT_CONFIGURED",
+        error: "Le paiement n'est pas encore configuré sur cet environnement.",
+      });
+    }
+
+    const priceId = getPriceId(agentSlug);
+    if (!priceId) {
+      return json(400, {
+        ok: false,
+        code: "PRICE_NOT_CONFIGURED",
+        error: "Aucun tarif configuré pour cet employé IA.",
+      });
+    }
+
+    // Verify price amount matches expected (449 EUR for pierre).
+    // Stripe Price amounts are immutable — create a new Price in the dashboard if wrong.
+    if (agentSlug === "pierre") {
+      try {
+        const price = await stripe.prices.retrieve(priceId);
+        const amount = price.unit_amount ?? null;
+        if (amount !== EXPECTED_PIERRE_PRICE_AMOUNT) {
+          console.warn(
+            `[checkout] PRICE_MISMATCH: expected ${EXPECTED_PIERRE_PRICE_AMOUNT} cents, got ${amount} for ${priceId}`
+          );
+          const isProd = process.env.NODE_ENV === "production";
+          if (isProd) {
+            return json(400, {
+              ok: false,
+              code: "PRICE_MISMATCH",
+              error: "Le tarif Pierre n'est pas correctement configuré sur cet environnement.",
+            });
+          }
+        }
+      } catch (priceErr) {
+        console.warn("[checkout] Could not verify price amount:", priceErr instanceof Error ? priceErr.message : priceErr);
+        // Non-blocking in dev/test — proceed with checkout
+      }
+    }
+
     const base = getBaseUrl();
+    // {CHECKOUT_SESSION_ID} is a Stripe template variable — substituted with the real ID after payment.
+    const success_url = new URL(
+      `/paiement/success?agent=${agentSlug}&session_id={CHECKOUT_SESSION_ID}`,
+      base
+    ).toString();
+    const cancel_url = new URL(`/paiement/cancel?agent=${agentSlug}`, base).toString();
 
-    const success_url = new URL("/paiement/success", base).toString();
-    const cancel_url = new URL("/paiement/cancel", base).toString();
-
+    // user_id comes from the validated Bearer token — never from client body
+    // trial_period_days: 7 — card collected now, charged after trial unless cancelled
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
       success_url,
       cancel_url,
-      // IMPORTANT : metadata sur subscription (fiable pour webhooks)
       subscription_data: {
-        metadata: { user_id, agent_slug },
+        trial_period_days: TRIAL_PERIOD_DAYS,
+        metadata: { user_id: userId, agent_slug: agentSlug },
       },
-      metadata: { user_id, agent_slug },
+      metadata: { user_id: userId, agent_slug: agentSlug },
     });
 
-    if (!session.url) return json(500, { error: "No checkout url" });
-    return json(200, { url: session.url });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Checkout error";
-    return json(500, { error: msg });
+    if (!session.url) {
+      return jsonError(500, "Impossible de créer la session de paiement.", "STRIPE_SESSION_ERROR");
+    }
+
+    return json(200, { ok: true, url: session.url });
+  } catch (e) {
+    if (isAuthError(e)) return jsonError(e.status, e.message, e.code);
+    const msg = e instanceof Error ? e.message : "Erreur serveur";
+    return jsonError(500, msg, "SERVER_ERROR");
   }
 }
-
-
-
-
-
-
-
-

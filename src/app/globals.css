@@ -5488,3 +5488,26 @@ body {
 body {
   overflow-y: auto;
 }
+
+/* =========================================================
+   9. PIERRE COCKPIT B31 — BADGE SYSTEM
+   ========================================================= */
+
+.cs-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 9px;
+  border-radius: var(--cs-radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.cs-badge-success { color: var(--cs-success); background: var(--cs-success-bg); }
+.cs-badge-warn    { color: var(--cs-warn);    background: var(--cs-warn-bg); }
+.cs-badge-danger  { color: var(--cs-danger);  background: var(--cs-danger-bg); }
+.cs-badge-blue    { color: var(--cs-blue);    background: var(--cs-blue-soft); }
+.cs-badge-muted   { color: var(--cs-ink-4);   background: rgba(0,0,0,0.055); }
