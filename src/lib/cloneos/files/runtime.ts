@@ -12,7 +12,7 @@ import { getFileConfig, isFileDisabled } from "./config";
 import { detectFileKind, guessMimeType } from "./mime";
 import { validateFileSecurity, sanitizeFilename } from "./security";
 import { computeChecksum, makeFileId, buildStoragePath } from "./fingerprint";
-import { extractFileText } from "./extraction";
+import { extractFileTextAsync } from "./extraction";
 import { classifyHrFile } from "./classification";
 import { buildFileAttachDecision } from "./attachment";
 import {
@@ -165,7 +165,7 @@ export async function processFileIntake(params: {
   // 6. Extract text
   traceEvents.push(buildFileExtractionStartedEvent(fileRecord));
 
-  const extraction = extractFileText(kind, params.content, params.filename, config);
+  const extraction = await extractFileTextAsync(kind, params.content, params.filename, config);
   const extractionStatus: FileExtractionStatus = extraction.ok ? "done" : "failed";
 
   fileRecord.extraction_status = extractionStatus;

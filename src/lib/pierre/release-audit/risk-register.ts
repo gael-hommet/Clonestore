@@ -1,0 +1,191 @@
+// src/lib/pierre/release-audit/risk-register.ts
+// B36 — Gap register: honest list of what Pierre cannot do yet.
+// Pure, synchronous, no DB.
+
+import type { PierreGapEntry, PierreAuditArea, PierreLaunchCriticality } from "./types";
+
+function gap(
+  id: string,
+  area: PierreAuditArea,
+  criticality: PierreLaunchCriticality,
+  title: string,
+  description: string,
+  impact: string,
+  mitigation: string | null,
+  is_blocking_verdict: boolean,
+): PierreGapEntry {
+  return { id, area, criticality, title, description, impact, mitigation, is_blocking_verdict };
+}
+
+// ── Gap register ──────────────────────────────────────────────────────────────
+
+export function buildGapRegister(): PierreGapEntry[] {
+  return [
+    // ── Real providers — HIGH but not blocker (can launch with manual workaround) ──
+
+    gap(
+      "gap_real_email",
+      "email_send",
+      "medium",
+      "Resend provider foundation ready — live API key not yet configured",
+      "B37 adds a full Resend email adapter (resend.ts) with dry-run mode, sandbox redirect, domain guard, and key validation. The adapter is integrated into the channel runtime via a provider router. However, no real email has been sent because RESEND_API_KEY is not configured in CI and EMAIL_SEND_LIVE=false by default.",
+      "Pierre still cannot send real emails autonomously. The infrastructure is ready — connecting the live key is now a configuration step, not an engineering step.",
+      "Set CHANNEL_RUNTIME_MODE=production, EMAIL_PROVIDER=resend, RESEND_API_KEY, EMAIL_SEND_LIVE=true in production .env. Verify SPF/DKIM for sending domain. Test with RESEND_SANDBOX_TO first.",
+      false,
+    ),
+
+    gap(
+      "gap_real_file_extraction",
+      "files",
+      "medium",
+      "PDF/DOCX/XLSX extraction foundation added (B37) — OCR still missing for scanned documents",
+      "B37 adds real extractors: pdf-parse for PDF, mammoth for DOCX, xlsx (SheetJS) for XLSX. Extraction is now real for text-based documents. Scanned PDFs (image-only, no embedded text layer) still return a warning 'OCR requis' and no text.",
+      "Pierre can now read text-based PDFs, DOCX, and XLSX files. Scanned PDF documents (like old contracts) still cannot be read without OCR.",
+      "Real extraction is now active. For scanned PDFs: add Tesseract.js or a cloud OCR service in V2. For now, Pierre reads modern digital documents correctly.",
+      false,
+    ),
+
+    gap(
+      "gap_real_sms",
+      "real_providers",
+      "medium",
+      "Real SMS provider not connected",
+      "SMS channels (B33) are mocked. No Twilio, Vonage, or equivalent is connected.",
+      "Pierre cannot send SMS notifications. Not critical for initial HR use case — email-first launch is viable.",
+      "Low priority for v1 launch. Add SMS provider in v1.1 if customer feedback requires it.",
+      false,
+    ),
+
+    // ── HRIS integrations — MEDIUM, not blocker ────────────────────────────────
+
+    gap(
+      "gap_hris_sync",
+      "real_providers",
+      "medium",
+      "No HRIS connector (BambooHR, Silae, Lucca, etc.)",
+      "Pierre has no integration adapter for any HRIS or payroll software. Employee data must be provided via API or entered in Pierre's own data layer.",
+      "Clients using Silae, BambooHR, or Lucca cannot sync employee data automatically. Manual data entry or CSV import required.",
+      "Build a Silae/BambooHR webhook adapter as post-launch priority. For launch, API-first is acceptable.",
+      false,
+    ),
+
+    gap(
+      "gap_payroll_sync",
+      "real_providers",
+      "medium",
+      "No direct payroll software integration or DSN generation",
+      "Payroll prep in Pierre generates a summary document, but does not transmit variables to any payroll software, and does not generate DSN (Déclaration Sociale Nominative).",
+      "HR managers must manually transfer payroll variables to their payroll tool after reviewing Pierre's summary.",
+      "Position Pierre as 'payroll assistant' not 'payroll engine' in marketing. DSN is a V2 feature.",
+      false,
+    ),
+
+    // ── Legal / compliance ─────────────────────────────────────────────────────
+
+    gap(
+      "gap_legal_templates",
+      "documents",
+      "medium",
+      "HR templates not legally certified",
+      "Premium document templates exist and cover common HR cases (CDI, CDD, amendment, etc.) but have no third-party legal certification or compliance stamp.",
+      "Risk of client using a template that is not compliant with their specific collective agreement (CCN) or recent labor law changes.",
+      "Add a disclaimer: 'Modèles fournis à titre indicatif. Vérification juridique recommandée.' Partner with an HR law firm for certification in V2.",
+      false,
+    ),
+
+    gap(
+      "gap_esign",
+      "documents",
+      "medium",
+      "No electronic signature (eSign) integration",
+      "No DocuSign, Yousign, or equivalent is integrated. Contracts generated by Pierre cannot be sent for e-signature.",
+      "All contracts must be printed and physically signed, or HR manager must manually upload to an eSign tool.",
+      "Position as 'document generation' not 'contract signing.' Add Yousign in V2 for French market.",
+      false,
+    ),
+
+    gap(
+      "gap_calendar",
+      "real_providers",
+      "medium",
+      "No calendar integration for scheduling",
+      "Pierre cannot schedule interviews, trial end reminders, or offboarding dates in any calendar (Google Calendar, Outlook, etc.).",
+      "All date-based reminders are text-only. HR manager must manually create calendar events.",
+      "Add .ics file generation or Google Calendar API in V2. For launch: Pierre writes the dates, HR creates the events.",
+      false,
+    ),
+
+    // ── UI ─────────────────────────────────────────────────────────────────────
+
+    gap(
+      "gap_ui_e2e",
+      "ui_cockpit",
+      "high",
+      "No end-to-end browser test for cockpit UI",
+      "The Pierre cockpit has unit tests for normalizers and API state, but no Playwright or Cypress test proves the user flow end-to-end in a real browser.",
+      "Visual bugs, form interactions, or navigation flows may be broken without being caught by the test suite.",
+      "Run manual test of critical paths (mission submit, mission view, employee file, document download) before first client demo.",
+      false,
+    ),
+
+    // ── AI runtime ────────────────────────────────────────────────────────────
+
+    gap(
+      "gap_ai_quality",
+      "ai_runtime",
+      "medium",
+      "Real AI response quality not benchmarked",
+      "The AI runtime (OpenAI/Anthropic) is mocked in tests. Pierre's actual output quality — mission interpretation, task generation, email drafts — has not been tested against real HR scenarios with real API calls.",
+      "Pierre may interpret ambiguous instructions incorrectly or generate poor drafts in production.",
+      "Run a closed pilot with 5-10 real HR missions before commercial launch. Measure quality manually.",
+      false,
+    ),
+
+    // ── Missing workflows ──────────────────────────────────────────────────────
+
+    gap(
+      "gap_workflow_training",
+      "hr_workflows",
+      "low",
+      "Training and CPF management not covered",
+      "Workflows wf_training_plan and wf_interview_scheduling have score 1/4. No CPF platform, OPCO connector, or training budget tracking.",
+      "Pierre cannot help with training plan mandates (Entretien Professionnel, CPF) beyond domain classification.",
+      "Exclude from V1 feature list. Add in V2.",
+      false,
+    ),
+
+    gap(
+      "gap_workflow_reporting",
+      "hr_workflows",
+      "low",
+      "HR reporting and KPI dashboard not covered",
+      "wf_reporting has score 1/4. No report generation engine, no charts, no BDES integration.",
+      "Pierre cannot produce HR dashboards or statutory reports.",
+      "Exclude from V1 feature list. Mention as roadmap item.",
+      false,
+    ),
+
+    gap(
+      "gap_workflow_multi_site",
+      "hr_workflows",
+      "low",
+      "Multi-site coordination minimal",
+      "wf_multi_site_coordination has score 1/4. Pierre scopes per company_id but has no site-specific rule differentiation.",
+      "Companies with multiple sites cannot define different HR rules per site.",
+      "Multi-site is a V2 feature for larger clients. Not needed for SME launch.",
+      false,
+    ),
+  ];
+}
+
+export function filterBlockingGaps(gaps: PierreGapEntry[]): PierreGapEntry[] {
+  return gaps.filter((g) => g.is_blocking_verdict || g.criticality === "blocker");
+}
+
+export function filterHighGaps(gaps: PierreGapEntry[]): PierreGapEntry[] {
+  return gaps.filter((g) => g.criticality === "high" && !g.is_blocking_verdict);
+}
+
+export function filterGapsByArea(gaps: PierreGapEntry[], area: PierreAuditArea): PierreGapEntry[] {
+  return gaps.filter((g) => g.area === area);
+}

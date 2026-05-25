@@ -153,7 +153,7 @@ function extractTextFromImage(filename: string, sizeBytes: number): FileExtracti
   };
 }
 
-// ── Main entry point ──────────────────────────────────────────────────────────
+// ── Sync entry point (backward compatible — used by tests + old callers) ──────
 
 export function extractFileText(
   kind: FileKind,
@@ -188,6 +188,77 @@ export function extractFileText(
     }
 
     // pdf, docx, doc, xlsx, email_attachment, unknown → mock extraction
+    return extractTextMock(kind, filename, sizeBytes);
+  } catch (err) {
+    return {
+      ok: false,
+      text: null,
+      preview: null,
+      page_count: null,
+      word_count: null,
+      table_count: null,
+      detected_dates: [],
+      detected_people: [],
+      detected_companies: [],
+      detected_amounts: [],
+      warnings: [],
+      error: err instanceof Error ? err.message : "Erreur d'extraction inconnue.",
+    };
+  }
+}
+
+// ── Async entry point (B37 — real extractors for pdf/docx/xlsx) ───────────────
+
+export async function extractFileTextAsync(
+  kind: FileKind,
+  content: string | Buffer,
+  filename: string,
+  config: FileConfig,
+): Promise<FileExtractionResult> {
+  const sizeBytes = Buffer.isBuffer(content) ? content.length : Buffer.byteLength(content, "utf8");
+  const previewChars = config.text_preview_chars;
+  const logText = config.log_extracted_text;
+
+  try {
+    // text and csv: real sync extraction (wrapped in promise)
+    if (kind === "text") {
+      const text = Buffer.isBuffer(content) ? content.toString("utf8") : content;
+      const result = extractTextFromPlain(text, previewChars);
+      return logText ? result : { ...result, text: null };
+    }
+
+    if (kind === "csv") {
+      const text = Buffer.isBuffer(content) ? content.toString("utf8") : content;
+      const result = extractTextFromCsv(text, previewChars);
+      return logText ? result : { ...result, text: null };
+    }
+
+    if (kind === "image") {
+      return extractTextFromImage(filename, sizeBytes);
+    }
+
+    // Real async extraction for pdf/docx/xlsx
+    const buffer = Buffer.isBuffer(content) ? content : Buffer.from(content, "utf8");
+
+    if (kind === "pdf") {
+      const { extractTextFromPdf } = await import("./extractors/pdf");
+      const result = await extractTextFromPdf(buffer, { previewChars, logText });
+      return result;
+    }
+
+    if (kind === "docx" || kind === "doc") {
+      const { extractTextFromDocx } = await import("./extractors/docx");
+      const result = await extractTextFromDocx(buffer, { previewChars, logText });
+      return result;
+    }
+
+    if (kind === "xlsx") {
+      const { extractTextFromXlsx } = await import("./extractors/xlsx");
+      const result = await extractTextFromXlsx(buffer, { previewChars, logText });
+      return result;
+    }
+
+    // email_attachment, unknown → mock
     return extractTextMock(kind, filename, sizeBytes);
   } catch (err) {
     return {

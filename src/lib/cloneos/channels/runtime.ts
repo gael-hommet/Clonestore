@@ -22,7 +22,7 @@ import {
   buildInboundReceivedEvent,
 } from "./events";
 import { normalizeInboundMessage, routeInboundEnvelope } from "./routing";
-import { getProviderForMode } from "./providers/mock";
+import { getActiveChannelProvider } from "./providers/router";
 import type { ChannelProviderAdapter } from "./providers/types";
 
 export type { InboundRoutingDecision };
@@ -107,7 +107,7 @@ export async function sendChannelMessage(params: {
   }
 
   // 5. Resolve provider
-  const provider = params.provider ?? getProviderForMode(mode);
+  const provider = params.provider ?? getActiveChannelProvider(mode);
 
   traceEvents.push(buildSendAttemptEvent(identity, envelope, { mode, warnings: guard.warnings }));
 
