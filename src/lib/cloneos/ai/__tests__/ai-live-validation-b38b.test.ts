@@ -16,7 +16,7 @@ import {
 import { scoreLiveValidationResult, detectHardFails, redactOutputExcerpt } from "../live-validation/scoring";
 import { createCostTracker, formatCostCents, formatCostEuros, summarizeCosts } from "../live-validation/cost-report";
 import { buildLiveValidationReport } from "../live-validation/report";
-import { runDryValidation } from "../live-validation/runner";
+import { runDryValidation, assertLiveProviderWasRealOpenAI, B38BLiveProviderError } from "../live-validation/runner";
 import type { LiveValidationScenario, LiveValidationResult, B38BConfig } from "../live-validation/types";
 import type { CloneAIResponse } from "../types";
 
@@ -696,5 +696,170 @@ describe("B38B.1 live runner infra", () => {
     const pkg = JSON.parse(readRoot("package.json")) as { scripts: Record<string, string> };
     const b38bTestScript = pkg.scripts["test:b38b"] ?? "";
     expect(b38bTestScript).not.toContain("live-cli");
+  });
+});
+
+// ── B38B.2 — Anti fake-live protection ───────────────────────────────────────
+// Verifies that live mode cannot silently score mock responses as real OpenAI
+// output. No real API calls. No key required.
+
+describe("B38B.2 — assertLiveProviderWasRealOpenAI", () => {
+  // A1: throws when provider is "mock"
+  it("throws B38BLiveProviderError when provider is mock", () => {
+    expect(() => assertLiveProviderWasRealOpenAI({ provider: "mock" })).toThrow(B38BLiveProviderError);
+  });
+
+  // A2: the thrown error is exactly B38BLiveProviderError class
+  it("thrown error is instance of B38BLiveProviderError", () => {
+    let caught: unknown;
+    try {
+      assertLiveProviderWasRealOpenAI({ provider: "mock" });
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(B38BLiveProviderError);
+  });
+
+  // A3: error.name is "B38BLiveProviderError" (not generic "Error")
+  it("error.name is B38BLiveProviderError", () => {
+    let caught: unknown;
+    try {
+      assertLiveProviderWasRealOpenAI({ provider: "mock" });
+    } catch (e) {
+      caught = e;
+    }
+    expect((caught as Error).name).toBe("B38BLiveProviderError");
+  });
+
+  // A4: error message references the mock provider value
+  it("error message contains 'mock'", () => {
+    let caught: unknown;
+    try {
+      assertLiveProviderWasRealOpenAI({ provider: "mock" });
+    } catch (e) {
+      caught = e;
+    }
+    expect((caught as Error).message).toContain("mock");
+  });
+
+  // A5: error message warns this is a fake live run (not actual OpenAI)
+  it("error message warns about fake live / not actually used", () => {
+    let caught: unknown;
+    try {
+      assertLiveProviderWasRealOpenAI({ provider: "mock" });
+    } catch (e) {
+      caught = e;
+    }
+    const msg = (caught as Error).message.toLowerCase();
+    expect(msg.includes("fake") || msg.includes("not actually") || msg.includes("fallback")).toBe(true);
+  });
+
+  // A6: does NOT throw for "openai" provider
+  it("does NOT throw when provider is openai", () => {
+    expect(() => assertLiveProviderWasRealOpenAI({ provider: "openai" })).not.toThrow();
+  });
+
+  // A7: does NOT throw for "blocked" provider (cost shield blocked — valid live state)
+  it("does NOT throw when provider is blocked", () => {
+    expect(() => assertLiveProviderWasRealOpenAI({ provider: "blocked" })).not.toThrow();
+  });
+
+  // A8: does NOT throw for "skipped" provider (cost cap reached — valid live state)
+  it("does NOT throw when provider is skipped", () => {
+    expect(() => assertLiveProviderWasRealOpenAI({ provider: "skipped" })).not.toThrow();
+  });
+});
+
+describe("B38B.2 — Runner structure (file contracts)", () => {
+  const root = resolve(__dirname, "../../../../..");
+
+  function readRoot(file: string): string {
+    return readFileSync(resolve(root, file), "utf-8");
+  }
+
+  function readSrc(rel: string): string {
+    return readFileSync(resolve(root, "src", rel), "utf-8");
+  }
+
+  // B1: runOpenAIProviderSmokeTest is exported from runner.ts
+  it("runner.ts exports runOpenAIProviderSmokeTest", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/runner.ts");
+    expect(content).toContain("export async function runOpenAIProviderSmokeTest");
+  });
+
+  // B2: assertLiveProviderWasRealOpenAI is exported
+  it("runner.ts exports assertLiveProviderWasRealOpenAI", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/runner.ts");
+    expect(content).toContain("export function assertLiveProviderWasRealOpenAI");
+  });
+
+  // B3: B38BLiveProviderError class is defined in runner.ts
+  it("runner.ts defines B38BLiveProviderError", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/runner.ts");
+    expect(content).toContain("B38BLiveProviderError");
+    expect(content).toContain("extends Error");
+  });
+
+  // B4: runLiveValidation calls runOpenAIProviderSmokeTest (smoke before scenarios)
+  it("runLiveValidation calls runOpenAIProviderSmokeTest", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/runner.ts");
+    expect(content).toContain("await runOpenAIProviderSmokeTest(config)");
+  });
+
+  // B5: runner.ts references hard_stop_on_hard_fail (hard stop on budget protection)
+  it("runner.ts contains hard_stop_on_hard_fail check", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/runner.ts");
+    expect(content).toContain("hard_stop_on_hard_fail");
+  });
+
+  // B6: live-cli.ts does NOT contain "Calling OpenAI" before smoke confirmed
+  it("live-cli.ts no longer says 'Calling OpenAI' before smoke test", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/live-cli.ts");
+    expect(content).not.toContain('"  Calling OpenAI..."');
+  });
+});
+
+describe("B38B.2 — Pierre system contract (file contracts)", () => {
+  const root = resolve(__dirname, "../../../../..");
+
+  function readSrc(rel: string): string {
+    return readFileSync(resolve(root, "src", rel), "utf-8");
+  }
+
+  // C1: PIERRE_B38B_SYSTEM_CONTRACT is exported (not internal-only)
+  it("runner.ts exports PIERRE_B38B_SYSTEM_CONTRACT", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/runner.ts");
+    expect(content).toContain("export const PIERRE_B38B_SYSTEM_CONTRACT");
+  });
+
+  // C2: contract includes requires_human_validation field (critical Pierre safety field)
+  it("contract contains requires_human_validation", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/runner.ts");
+    expect(content).toContain("requires_human_validation");
+  });
+
+  // C3: contract includes risk_level field
+  it("contract contains risk_level", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/runner.ts");
+    expect(content).toContain("risk_level");
+  });
+
+  // C4: contract explicitly handles sensitive/disciplinary cases (licenciement)
+  it("contract mentions licenciement or disciplinaire (sensitive case rule)", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/runner.ts");
+    expect(content.includes("licenciement") || content.includes("disciplinaire")).toBe(true);
+  });
+
+  // C5: contract prohibits auto-send (email without approval)
+  it("contract prohibits auto-send of email without approval", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/runner.ts");
+    expect(content.includes("email") || content.includes("approbation")).toBe(true);
+  });
+
+  // C6: buildScenarioAiRequest injects system role message
+  it("buildScenarioAiRequest uses system role message", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/runner.ts");
+    expect(content).toContain('role: "system"');
+    expect(content).toContain("PIERRE_B38B_SYSTEM_CONTRACT");
   });
 });

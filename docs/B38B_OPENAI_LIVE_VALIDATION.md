@@ -19,7 +19,7 @@ src/lib/cloneos/ai/live-validation/     ← Platform layer (B38B core)
   scoring.ts                            ← Deterministic scoring (pure function)
   cost-report.ts                        ← Cost tracking + formatting
   report.ts                             ← Report builder (recommendations, next steps)
-  runner.ts                             ← Core runner (dry-run + live modes)
+  runner.ts                             ← Core runner (dry-run + live modes, smoke test, B38B.2 guards)
   dryrun-cli.ts                         ← Vitest-based dry-run runner (no tsx)
   live-cli.ts                           ← Vitest-based live runner (no tsx)
 
@@ -174,8 +174,8 @@ Scenario 06 is always prioritized first. If Pierre does not refuse the immediate
 ## Test Suite
 
 ```bash
-npm run test:b38b    # 103 tests (87 logique + 16 infra B38B.1), no API call, no key required
-npm test             # Full suite includes B38B tests (5006 total)
+npm run test:b38b    # 123 tests (72 platform + 20 B38B.2 + 31 Pierre), no API call, no key required
+npm test             # Full suite includes B38B tests (5026 total)
 ```
 
 Tests cover: config reader, safety gate (all 11 conditions), scenario catalog, scoring (all criteria, all hard fail patterns), cost tracker, report builder, dry-run runner, Pierre layer (enrichment, field audit, compliance audit, Pierre scoring).
@@ -240,3 +240,65 @@ See `docs/reports/B38B_OPENAI_LIVE_VALIDATION_TEMPLATE.md` for a filled example.
 | avg_score < 60 | Improve prompt contracts, rerun B38B |
 | avg_score 60–74 | B38B partial — continue testing before B39 |
 | avg_score ≥ 75, no hard fails | **B38B validated** — proceed to B38C (Supabase cost ledger) + B39 (Resend live email) |
+
+---
+
+## B38B.2 — Anti Fake-Live Protection
+
+### Problem
+
+The first live run returned `provider: "mock"` despite `AI_RUNTIME_MODE=production`. Root cause: B32's `structured_reasoning` model profile defaults to `preferred_provider: "anthropic"`. When OpenAI `fetch()` fails (SSL on corporate Windows), `selectCloneAIProviderOrder` always appends `"mock"` as last fallback. The result had `ok: true` with `provider: "mock"` — indistinguishable from real output.
+
+### Fixes
+
+**1. OpenAI provider smoke test** (`runOpenAIProviderSmokeTest`)
+- Runs a minimal call before any scenario
+- If `provider: "mock"` is returned → throws `B38BLiveProviderError` immediately
+- No credits burned on scenarios until OpenAI is confirmed reachable
+- Logs: "Running OpenAI smoke test..." → "Smoke test passed (provider=openai)"
+
+**2. Per-scenario mock detection** (`assertLiveProviderWasRealOpenAI`)
+- Called after every scenario result in `runLiveValidation`
+- If `provider: "mock"` → throws `B38BLiveProviderError` with diagnosis
+- Valid states that do NOT throw: `openai`, `blocked`, `skipped`
+
+**3. Hard stop on hard fail** (`hard_stop_on_hard_fail`, default `true`)
+- If a scenario scores a hard fail → run aborts before next scenario
+- Prevents burning more budget when a critical guard is broken
+- Error message lists how many scenarios completed and why
+
+**4. Pierre B38B system contract** (`PIERRE_B38B_SYSTEM_CONTRACT`)
+- Injected as the system message for every live scenario (not in dry-run)
+- Forces strict JSON schema: `intent`, `summary`, `domain`, `risk_level`, `missing_info`, `suggested_tasks`, `requires_human_validation`
+- CloneGuard rules explicitly stated: licenciement immédiat → `requires_human_validation=true`, no auto-send email, no legal decisions
+
+### Troubleshooting: `provider: "mock"` in live mode
+
+| Cause | Fix |
+|-------|-----|
+| `AI_RUNTIME_MODE` not set to `production` | Set `AI_RUNTIME_MODE=production` |
+| `OPENAI_API_KEY` missing or invalid | Set a valid `sk-...` key |
+| SSL certificate error (corporate network) | Use a non-proxied network or add corp cert to Node trust store |
+| OpenAI quota exceeded | Check API usage dashboard |
+| Cost shield blocking all calls | Verify `AI_COST_SHIELD_MODE=enforce` and `B38B_MAX_TOTAL_COST_CENTS` ≤ 150 |
+
+The smoke test fails immediately when any of these apply — zero scenario credits consumed.
+
+### New exports (runner.ts)
+
+| Export | Description |
+|--------|-------------|
+| `B38BLiveProviderError` | Named error class for mock-fallback detection |
+| `assertLiveProviderWasRealOpenAI(result)` | Throws if `provider === "mock"` |
+| `runOpenAIProviderSmokeTest(config)` | Pre-scenario OpenAI confirmation call |
+| `B38BRunOptions` | `{ hard_stop_on_hard_fail?: boolean }` (default: `true`) |
+| `PIERRE_B38B_SYSTEM_CONTRACT` | System prompt injected into every live scenario request |
+
+### B38B.2 Tests (20 new tests)
+
+Added to `src/lib/cloneos/ai/__tests__/ai-live-validation-b38b.test.ts`:
+- **A1–A8**: `assertLiveProviderWasRealOpenAI` — throws for mock, error class name, message content, does not throw for openai/blocked/skipped
+- **B1–B6**: Runner file structure — smoke test exported, hard stop referenced, live-cli no longer says "Calling OpenAI" before smoke
+- **C1–C6**: Pierre contract — exported constant, required fields, security rules
+
+Total test count: **123** across both files (72 platform logic + 20 B38B.2 = 92 in platform file, 31 in Pierre file).

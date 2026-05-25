@@ -145,9 +145,11 @@ describe("B38B Live OpenAI Validation", () => {
     console.log(`  Scenarios  : ${scenarios.length}`);
     console.log(`  Est. cost  : ~${formatCostCents(estimatedTotal)} (${formatCostEuros(estimatedTotal)})`);
     console.log(`  Cost cap   : ${config.max_total_cost_cents}¢`);
-    console.log("  Calling OpenAI...\n");
+    console.log("");
 
     try {
+      // runLiveValidation runs smoke test first, then scenarios.
+      // Smoke test logs "Running OpenAI smoke test..." and "Smoke test passed" before any scenario.
       report = await runLiveValidation(config, scenarios);
     } catch (err) {
       setupError = err instanceof Error ? err : new Error(String(err));
