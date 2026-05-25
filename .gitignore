@@ -45,3 +45,6 @@ _checkpoint-build-ok-*
 _checkpoint-build-ok-*.zip
 _backups_ts/
 
+
+# B38B — Local validation reports (never commit)
+.local-reports/
