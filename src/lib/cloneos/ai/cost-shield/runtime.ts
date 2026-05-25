@@ -114,6 +114,85 @@ export function buildStaticDemoResponse(
   };
 }
 
+// ── B38C: withAiCostShieldAndLedger ──────────────────────────────────────────
+// Wraps withAiCostShield with persistent ledger recording.
+// Records estimated before call, actual after success, blocked/failed on error.
+// Derives ledger event input from the shield request (no duplicate params).
+// The AiCostLedger is injected — never imported globally here.
+// B38A tests are unaffected (they don't use this function).
+
+import type { AiCostLedger, AiCostLedgerWriteInput } from "../cost-ledger/types";
+import { redactSensitiveMetadata } from "../cost-ledger/summaries";
+
+export async function withAiCostShieldAndLedger<T>(
+  request: AiCostShieldRequest,
+  context: AiCostShieldContext,
+  fn: () => Promise<T>,
+  ledger: AiCostLedger,
+): Promise<T | BlockedAiResponse> {
+  const decision = evaluateAiCostShield(request, context);
+
+  const eventBase: AiCostLedgerWriteInput = {
+    company_id: request.company_id,
+    user_id: request.user_id,
+    agent_slug: request.agent_slug,
+    employee_slug: request.employee_slug,
+    mission_id: request.mission_id,
+    task_id: request.task_id,
+    provider: request.provider,
+    model: request.model,
+    use_case: request.use_case,
+    access_level: request.access_level,
+    input_tokens: request.input_token_estimate,
+    output_tokens: request.max_output_tokens,
+    estimated_cost_cents: decision.estimated_cost_cents,
+    actual_cost_cents: 0,
+    is_live: true,
+    is_demo: request.is_demo,
+    is_public: request.is_public,
+    is_paid_customer: request.is_paid_customer,
+    metadata: redactSensitiveMetadata(request.metadata ?? {}),
+    cost_shield_decision_status: decision.status,
+  };
+
+  if (!decision.allowed) {
+    try {
+      await ledger.recordBlocked(eventBase);
+    } catch (e) {
+      console.warn("[B38C] recordBlocked failed:", e instanceof Error ? e.message : String(e));
+    }
+    return buildBlockedAiResponse(decision, request.use_case);
+  }
+
+  // Record estimated before AI call
+  try {
+    await ledger.recordEstimated(eventBase);
+  } catch (e) {
+    console.warn("[B38C] recordEstimated failed:", e instanceof Error ? e.message : String(e));
+  }
+
+  try {
+    const result = await fn();
+
+    // Record actual after success
+    try {
+      await ledger.recordActual(eventBase);
+    } catch (e) {
+      console.warn("[B38C] recordActual failed:", e instanceof Error ? e.message : String(e));
+    }
+
+    return result;
+  } catch (err) {
+    // Record failed event on provider error
+    try {
+      await ledger.recordActual({ ...eventBase, actual_cost_cents: 0 });
+    } catch (e) {
+      console.warn("[B38C] recordActual(failed) failed:", e instanceof Error ? e.message : String(e));
+    }
+    throw err;
+  }
+}
+
 // ── Re-exports for convenience ────────────────────────────────────────────────
 
 export { evaluateAiCostShield } from "./decision";
