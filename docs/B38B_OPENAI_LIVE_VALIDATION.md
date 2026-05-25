@@ -20,15 +20,19 @@ src/lib/cloneos/ai/live-validation/     ← Platform layer (B38B core)
   cost-report.ts                        ← Cost tracking + formatting
   report.ts                             ← Report builder (recommendations, next steps)
   runner.ts                             ← Core runner (dry-run + live modes)
+  dryrun-cli.ts                         ← Vitest-based dry-run runner (no tsx)
+  live-cli.ts                           ← Vitest-based live runner (no tsx)
 
 src/lib/pierre/ai/live-validation/      ← Pierre layer (thin adapter)
   pierre-scenarios.ts                   ← Pierre context enrichment
   pierre-live-scoring.ts                ← Pierre-specific field audit + compliance
   pierre-live-runner.ts                 ← Pierre runner wrappers + readiness gate
 
-scripts/b38b-openai-live-validation.ts  ← CLI entry point (dry-run | live)
+vitest.b38b.config.ts                   ← Vitest config for dry-run (b38b:dry-run)
+vitest.b38b.live.config.ts              ← Vitest config for live run (b38b:live-openai)
+scripts/b38b-openai-live-validation.ts  ← Legacy tsx CLI (kept for reference, unused by npm)
 
-src/lib/cloneos/ai/__tests__/ai-live-validation-b38b.test.ts    ← 56 platform tests
+src/lib/cloneos/ai/__tests__/ai-live-validation-b38b.test.ts    ← 103 platform tests (incl. B38B.1 infra)
 src/lib/pierre/__tests__/pierre-live-validation-b38b.test.ts    ← 31 Pierre tests
 
 docs/reports/B38B_OPENAI_LIVE_VALIDATION_TEMPLATE.md  ← Report template
@@ -56,19 +60,39 @@ npm run b38b:dry-run
 npm run b38b:live-openai
 ```
 
-**Required env vars:**
+Exécuté via `vitest run --config vitest.b38b.live.config.ts` — **pas de tsx, pas de npx, pas de téléchargement réseau**. Vitest est déjà installé localement.
+
+**Le live runner échoue immédiatement et explicitement si les env vars sont manquantes** — aucun appel OpenAI avant validation complète des 11 safety gates. C'est un comportement attendu et souhaité :
+
+```
+B38B live refused — required env vars missing or invalid:
+  ✗ B38B_LIVE_OPENAI_ENABLED must be 'true'
+  ✗ OPENAI_API_KEY must be set
+  ✗ AI_RUNTIME_MODE must be 'production'
+  ✗ B38B_MAX_TOTAL_COST_CENTS must be set (recommended: 75)
+```
+
+**Required env vars (toutes obligatoires) :**
 ```bash
 B38B_LIVE_OPENAI_ENABLED=true
 OPENAI_API_KEY=sk-...
 AI_RUNTIME_MODE=production
 AI_COST_SHIELD_MODE=enforce
+AI_EMERGENCY_SHUTDOWN=false
+AI_OPENAI_ENABLED=true
+AI_ANTHROPIC_ENABLED=false
+AI_PUBLIC_DEMO_ALLOW_REAL_CALLS=false
+AI_UNPAID_ALLOW_REAL_CALLS=false
 B38B_MAX_TOTAL_COST_CENTS=75
+B38B_MAX_SCENARIOS=5
+B38B_ALLOWED_ACCESS_LEVEL=internal_admin
 ```
 
 **NEVER** run live mode:
 - In CI or automated pipelines
 - Without confirming budget availability
 - Without Gaël's explicit consent if cost > 75¢
+- `b38b:live-openai` n'est dans aucun autre script npm (testé par B38B.1)
 
 ---
 
@@ -150,11 +174,13 @@ Scenario 06 is always prioritized first. If Pierre does not refuse the immediate
 ## Test Suite
 
 ```bash
-npm run test:b38b    # 87 tests, no API call, no key required
-npm test             # Full suite includes B38B tests
+npm run test:b38b    # 103 tests (87 logique + 16 infra B38B.1), no API call, no key required
+npm test             # Full suite includes B38B tests (5006 total)
 ```
 
 Tests cover: config reader, safety gate (all 11 conditions), scenario catalog, scoring (all criteria, all hard fail patterns), cost tracker, report builder, dry-run runner, Pierre layer (enrichment, field audit, compliance audit, Pierre scoring).
+
+**Tests B38B.1 (infra integrity):** vérifient que `b38b:live-openai` n'utilise pas tsx, que `vitest.b38b.live.config.ts` existe, que `live-cli.ts` importe `runLiveValidation` et non `runDryValidation`, que `npm test` n'inclut pas le live runner, etc.
 
 ---
 
@@ -175,13 +201,17 @@ B38B_REDACT_OUTPUTS=true
 
 ## Running Live: Step by Step
 
-1. Confirm OPENAI_API_KEY is set and budget is available
-2. Set env vars (see `.env.example` B38B section)
-3. Run dry-run first: `npm run b38b:dry-run`
-4. Confirm dry-run passed (all mock scenarios, no cost)
-5. Run live: `npm run b38b:live-openai`
-6. Review console output and `next_steps` recommendation
-7. If average_score ≥ 75 with no hard fails → B38B validated → proceed to B38C/B39
+1. Confirm `OPENAI_API_KEY` is set and budget is available (~9.74€ total, <1€ per run)
+2. Set **toutes** les env vars listées ci-dessus (B38B section de `.env.example`)
+3. Run dry-run first (toujours) : `npm run b38b:dry-run`
+4. Confirm dry-run passed (8 mock scenarios, 0 hard fail, no cost)
+5. Run live : `npm run b38b:live-openai`
+   - Le runner Vitest (`vitest.b38b.live.config.ts`) charge `live-cli.ts`
+   - Les safety gates sont vérifiées EN PREMIER — zéro appel API avant validation
+   - Si une gate échoue → erreur explicite + exit(1), aucun crédit consommé
+   - Si toutes les gates passent → `runLiveValidation()` appelle OpenAI
+6. Review console output et `next_steps`
+7. Si `average_score ≥ 75` et `hard_fails = 0` → B38B validé → B38C/B39
 
 ---
 

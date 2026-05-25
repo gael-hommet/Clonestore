@@ -1,7 +1,9 @@
 // src/lib/cloneos/ai/__tests__/ai-live-validation-b38b.test.ts
-// B38B — Platform live-validation: 35+ tests. No API calls. No keys required.
+// B38B / B38B.1 — Platform live-validation: 35+ tests + 15 infra tests. No API calls. No keys required.
 
 import { describe, it, expect, vi, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { getB38BConfig, getB38BEnvSummary } from "../live-validation/config";
 import { validateB38BSafetyGate, validateLiveProviderPolicy, validateLiveAccessLevel } from "../live-validation/safety";
 import {
@@ -578,5 +580,121 @@ describe("B38B dry-run runner", () => {
     for (const r of report.results) {
       expect(r.actual_cost_cents).toBe(0);
     }
+  });
+});
+
+// ── B38B.1 — Infrastructure integrity tests ───────────────────────────────────
+// Verify that the live runner uses vitest (not tsx) and is properly isolated.
+// These tests read source/config files to enforce structural constraints.
+
+describe("B38B.1 live runner infra", () => {
+  const root = resolve(__dirname, "../../../../..");
+
+  function readRoot(file: string): string {
+    return readFileSync(resolve(root, file), "utf-8");
+  }
+
+  function readSrc(rel: string): string {
+    return readFileSync(resolve(root, "src", rel), "utf-8");
+  }
+
+  // ── package.json script contracts ──────────────────────────────────────────
+
+  it("b38b:live-openai does not use tsx", () => {
+    const pkg = JSON.parse(readRoot("package.json")) as { scripts: Record<string, string> };
+    const liveScript = pkg.scripts["b38b:live-openai"] ?? "";
+    expect(liveScript).not.toContain("tsx");
+    expect(liveScript).not.toContain("npx tsx");
+  });
+
+  it("b38b:live-openai uses vitest.b38b.live.config.ts", () => {
+    const pkg = JSON.parse(readRoot("package.json")) as { scripts: Record<string, string> };
+    const liveScript = pkg.scripts["b38b:live-openai"] ?? "";
+    expect(liveScript).toContain("vitest.b38b.live.config.ts");
+  });
+
+  it("b38b:dry-run still uses vitest.b38b.config.ts", () => {
+    const pkg = JSON.parse(readRoot("package.json")) as { scripts: Record<string, string> };
+    const dryRunScript = pkg.scripts["b38b:dry-run"] ?? "";
+    expect(dryRunScript).toContain("vitest.b38b.config.ts");
+    expect(dryRunScript).not.toContain("tsx");
+  });
+
+  it("npm test does not include b38b:live-openai", () => {
+    const pkg = JSON.parse(readRoot("package.json")) as { scripts: Record<string, string> };
+    const testScript = pkg.scripts["test"] ?? "";
+    expect(testScript).not.toContain("b38b:live-openai");
+    expect(testScript).not.toContain("live.config.ts");
+  });
+
+  it("b38b:live-openai is not called by any other script", () => {
+    const pkg = JSON.parse(readRoot("package.json")) as { scripts: Record<string, string> };
+    for (const [key, value] of Object.entries(pkg.scripts)) {
+      if (key === "b38b:live-openai") continue;
+      expect(value).not.toContain("b38b:live-openai");
+    }
+  });
+
+  // ── File existence checks ──────────────────────────────────────────────────
+
+  it("vitest.b38b.live.config.ts exists", () => {
+    const content = readRoot("vitest.b38b.live.config.ts");
+    expect(content.length).toBeGreaterThan(0);
+  });
+
+  it("live-cli.ts exists", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/live-cli.ts");
+    expect(content.length).toBeGreaterThan(0);
+  });
+
+  // ── live-cli.ts content contracts ─────────────────────────────────────────
+
+  it("live-cli.ts imports runLiveValidation", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/live-cli.ts");
+    expect(content).toContain("runLiveValidation");
+  });
+
+  it("live-cli.ts does NOT import runDryValidation", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/live-cli.ts");
+    expect(content).not.toContain("runDryValidation");
+  });
+
+  it("live-cli.ts checks B38B_LIVE_OPENAI_ENABLED", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/live-cli.ts");
+    expect(content).toContain("B38B_LIVE_OPENAI_ENABLED");
+  });
+
+  it("live-cli.ts checks OPENAI_API_KEY", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/live-cli.ts");
+    expect(content).toContain("OPENAI_API_KEY");
+  });
+
+  it("live-cli.ts checks AI_RUNTIME_MODE", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/live-cli.ts");
+    expect(content).toContain("AI_RUNTIME_MODE");
+  });
+
+  it("live-cli.ts checks AI_COST_SHIELD_MODE", () => {
+    const content = readSrc("lib/cloneos/ai/live-validation/live-cli.ts");
+    expect(content).toContain("AI_COST_SHIELD_MODE");
+  });
+
+  // ── vitest.b38b.live.config.ts contracts ──────────────────────────────────
+
+  it("vitest.b38b.live.config.ts includes live-cli.ts only", () => {
+    const content = readRoot("vitest.b38b.live.config.ts");
+    expect(content).toContain("live-cli.ts");
+    expect(content).not.toContain("dryrun-cli");
+  });
+
+  it("vitest.b38b.live.config.ts sets hookTimeout for slow live calls", () => {
+    const content = readRoot("vitest.b38b.live.config.ts");
+    expect(content).toContain("hookTimeout");
+  });
+
+  it("test:b38b script does not reference live-cli.ts", () => {
+    const pkg = JSON.parse(readRoot("package.json")) as { scripts: Record<string, string> };
+    const b38bTestScript = pkg.scripts["test:b38b"] ?? "";
+    expect(b38bTestScript).not.toContain("live-cli");
   });
 });

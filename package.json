@@ -38,7 +38,7 @@
     "test:b38a": "vitest run src/lib/cloneos/ai/__tests__/ai-cost-shield-b38a.test.ts src/lib/pierre/__tests__/pierre-cost-shield-b38a.test.ts",
     "test:b38b": "vitest run src/lib/cloneos/ai/__tests__/ai-live-validation-b38b.test.ts src/lib/pierre/__tests__/pierre-live-validation-b38b.test.ts",
     "b38b:dry-run": "vitest run --config vitest.b38b.config.ts",
-    "b38b:live-openai": "npx tsx scripts/b38b-openai-live-validation.ts --live"
+    "b38b:live-openai": "vitest run --config vitest.b38b.live.config.ts"
   },
   "dependencies": {
     "@radix-ui/react-navigation-menu": "^1.2.14",
