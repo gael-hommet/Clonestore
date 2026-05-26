@@ -1,5 +1,8 @@
+// src/app/api/billing/activate/route.ts
+// B41 FIX: user_id ALWAYS resolved from Bearer token — NEVER from request body.
+// Previous version accepted user_id from body (critical security vulnerability).
+
 import { NextResponse } from "next/server";
-import { getStripe } from "@/lib/stripe";
 import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
@@ -10,30 +13,67 @@ function getSupabaseAdmin() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
   if (!key) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
-
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+    // 1. Extract Bearer token — ONLY from Authorization header
+    const authHeader =
+      req.headers.get("authorization") ||
+      req.headers.get("Authorization") ||
+      "";
 
-    const user_id = typeof body.user_id === "string" ? body.user_id : null;
-    const agent_slug = typeof body.agent_slug === "string" ? body.agent_slug : null;
-
-    if (!user_id || !agent_slug) {
-      return NextResponse.json({ error: "Missing user_id or agent_slug" }, { status: 400 });
+    if (!authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Authentification requise. Token Bearer manquant." },
+        { status: 401 },
+      );
     }
 
-    // ✅ instanciation seulement à l’exécution (pas au build)
-    const stripe = getStripe();
+    const token = authHeader.slice("Bearer ".length).trim();
+    if (!token) {
+      return NextResponse.json(
+        { error: "Token Bearer vide." },
+        { status: 401 },
+      );
+    }
+
     const supabase = getSupabaseAdmin();
 
-    // âš ️ Ici tu mets ta logique réelle d’activation.
-    // Exemple simple : activer dans orders (à adapter à ton schéma)
+    // 2. Validate token — user_id comes from Supabase auth, NEVER from body
+    const { data, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !data.user) {
+      return NextResponse.json(
+        { error: "Token invalide ou expiré." },
+        { status: 401 },
+      );
+    }
+
+    const user_id = data.user.id; // Server-resolved, never from client
+
+    // 3. agent_slug from body (non-sensitive — does not affect identity)
+    const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+    const agent_slug =
+      typeof body.agent_slug === "string" && body.agent_slug.trim()
+        ? body.agent_slug.trim()
+        : null;
+
+    if (!agent_slug) {
+      return NextResponse.json(
+        { error: "agent_slug requis dans le body." },
+        { status: 400 },
+      );
+    }
+
+    // 4. Activate (user_id from server auth, never from client body)
     const { error } = await supabase
       .from("orders")
-      .upsert({ user_id, agent_slug, status: "active", ended_at: null }, { onConflict: "user_id,agent_slug" });
+      .upsert(
+        { user_id, agent_slug, status: "active", ended_at: null },
+        { onConflict: "user_id,agent_slug" },
+      );
 
     if (error) throw new Error(error.message);
 
@@ -43,4 +83,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
-
