@@ -1,5 +1,5 @@
 // src/lib/pierre/cockpit/types.ts
-// Pierre Cockpit B31 — Pure client types.
+// Pierre Cockpit B31 + B40 — Pure client types.
 // No Supabase, no Next, no async, no side effects.
 
 export type PierreCockpitWorkspace =
@@ -188,4 +188,72 @@ export type PierreCockpitAIStatus = {
   mockAvailable: boolean;
   providersCount: number;
   contractsCount: number;
+};
+
+// ── B40: Cockpit State Machine ────────────────────────────────────────────────
+
+export type PierreCockpitState =
+  | "loading"             // Initial load in progress
+  | "ready"               // Cockpit operational
+  | "blocked_not_active"  // Pierre not activated (no order)
+  | "blocked_not_paid"    // Order expired or cancelled
+  | "blocked_no_company"  // No company_id resolvable from session
+  | "blocked_no_access"   // Authenticated but access denied (wrong role/plan)
+  | "degraded"            // Partial data — some services failed but cockpit usable
+  | "error";              // Fatal unrecoverable error
+
+// ── B40: Tenant Context ───────────────────────────────────────────────────────
+
+export type PierreTenantContext = {
+  organization_id: string | null;
+  company_id: string | null;     // Resolved server-side — never trusted from client
+  user_id: string | null;
+  access_level: "anonymous" | "logged_unpaid" | "trial" | "paid_customer" | "internal_admin";
+  active_agent_slug: "pierre";
+  owns_pierre: boolean;          // has active/trialing order for pierre
+  pierre_enabled: boolean;       // owns_pierre AND not emergency_shutdown
+  source: "supabase_auth" | "mock_test" | "unknown";
+};
+
+// ── B40: Budget Status ────────────────────────────────────────────────────────
+
+export type PierreBudgetStatus = {
+  ai_mode: "disabled" | "mock" | "production";
+  daily_used_cents: number | null;
+  daily_cap_cents: number | null;
+  monthly_used_cents: number | null;
+  monthly_cap_cents: number | null;
+  shield_active: boolean;
+  emergency_shutdown: boolean;
+  budget_ok: boolean;            // true when below caps
+};
+
+// ── B40: Runtime Mode Summary ─────────────────────────────────────────────────
+
+export type PierreRuntimeModes = {
+  ai_mode: string;               // mock | production | disabled
+  email_mode: string;            // mock | dry_run | sandbox | live
+  email_send_live: boolean;
+  file_mode: string;             // mock | local | production
+  channel_mode: string;          // mock | disabled | production
+};
+
+// ── B40: Cockpit Snapshot ─────────────────────────────────────────────────────
+
+export type PierreCockpitSnapshot = {
+  tenant: PierreTenantContext;
+  state: PierreCockpitState;
+  current_mission: PierreCockpitMissionSummary | null;
+  missions: PierreCockpitMissionSummary[];
+  tasks: PierreCockpitTaskSummary[];
+  validations: PierreCockpitValidationSummary[];
+  deliverables: PierreCockpitDocumentSummary[];
+  timeline: PierreCockpitMessage[];
+  memory_summary: PierreCockpitCloneADNSummary;
+  channel_status: { email_mode: string; email_live: boolean };
+  budget_status: PierreBudgetStatus;
+  runtime_modes: PierreRuntimeModes;
+  warnings: string[];
+  next_actions: string[];
+  generated_at: string;          // ISO timestamp
 };

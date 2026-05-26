@@ -1,5 +1,5 @@
 // src/lib/pierre/cockpit/normalizers.ts
-// Pierre Cockpit B31 — Null-safe normalizers for API responses.
+// Pierre Cockpit B31 + B40 — Null-safe normalizers for API responses.
 // No Supabase, no Next, no window, no async. Never throws.
 
 import type {
@@ -489,6 +489,35 @@ export function extractCockpitCardsFromMission(
   } catch {
     return [];
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+// B40 — TENANT FILTERING (multi-tenant isolation)
+// ══════════════════════════════════════════════════════════════
+
+// Filter a list of items by company_id when the field is present.
+// If the field is absent, the server already scoped it — pass through.
+export function filterByCompanyId<T extends Record<string, unknown>>(
+  items: T[],
+  companyId: string | null | undefined,
+): T[] {
+  if (!companyId) return [];
+  return items.filter((item) => {
+    const itemCompany = asStr(item.company_id ?? item.organization_id ?? "");
+    return !itemCompany || itemCompany === companyId;
+  });
+}
+
+// Validate that a snapshot response belongs to the expected user.
+// Returns false if a different user_id is present (cross-tenant leak detected).
+export function validateSnapshotOwnership(
+  raw: unknown,
+  expectedUserId: string,
+): boolean {
+  if (!isObject(raw)) return false;
+  const uid = asStr(raw.user_id ?? raw.owner_id ?? "");
+  if (!uid) return true; // No user_id field — server-scoped, assume ok
+  return uid === expectedUserId;
 }
 
 // ══════════════════════════════════════════════════════════════
