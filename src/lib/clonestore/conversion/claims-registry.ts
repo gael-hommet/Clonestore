@@ -1,166 +1,197 @@
-// BLOC 3 — Claims registry + evidence matrix.
+// BLOC 3 — Claims registry conforme LeadForge db9b166.
 //
-// Chaque claim LeadForge est auditée côté CloneStore :
-//   - VERIFIED_PRODUCT_FACT : preuve produit observable (fichier, comportement).
-//   - PENDING_CLONESTORE_PRODUCT_VERIFICATION : preuve attendue, surface ne peut
-//     pas l'exposer comme vérité — formulation prudente exigée.
-//   - PROHIBITED_ON_SURFACE : ne peut apparaître sur aucune surface activable.
-//
-// Un linter pur (`claims-linter.ts`) vérifie ensuite que les surfaces ne contiennent
-// pas de claim pending présentée comme vérité.
+// Réimplémentation littérale de `services/conversion/claims.py:_SEED_CLAIMS` :
+// 8 claims, 9-status enum, distinction REAL_ACTIVATABLE vs SHADOW_ALLOWED.
+// Le linter (`claims-linter.ts`) accepte les mêmes modes que LeadForge :
+//   mode='shadow'           → autorise pending product/timing
+//   mode='real_activation'  → REFUSE pending (fail closed)
 
-import type { ClaimId } from "./contract";
-
-export type ClaimStatus =
-  | "VERIFIED_PRODUCT_FACT"
-  | "PENDING_CLONESTORE_PRODUCT_VERIFICATION"
-  | "PROHIBITED_ON_SURFACE";
-
-export type Surface =
-  | "landing"
-  | "demo"
-  | "diagnostic"
-  | "result"
-  | "pricing"
-  | "faq"
-  | "checkout_copy"
-  | "success";
+import type { ClaimId, ClaimStatus, Surface } from "./contract";
+import {
+  REAL_ACTIVATABLE_CLAIM_STATUSES,
+  SHADOW_ALLOWED_CLAIM_STATUSES,
+  SURFACE_ALLOWED_CLAIMS,
+} from "./contract";
 
 export interface ClaimRecord {
   readonly id: ClaimId;
+  readonly text: string;
   readonly status: ClaimStatus;
-  /** Texte autorisé sur les surfaces — toujours prudent quand pending. */
-  readonly authorizedText: string;
-  /** Preuves produit (chemins fichier / scripts de check / comportements). */
-  readonly evidence: readonly string[];
-  /** Surfaces où la claim peut apparaître (texte autorisé). */
-  readonly allowedSurfaces: readonly Surface[];
-  /** Limites explicites — toujours visibles à proximité de la claim. */
-  readonly limitations: readonly string[];
-  /** Version du contrat LeadForge — figée. */
-  readonly contractVersion: string;
+  readonly scope: string;
+  readonly evidence: string;
+  readonly productSource: string;
+  readonly validatedAt: string;
+  readonly owner: string;
+  readonly limitations: string;
 }
 
-const CONTRACT_VERSION_REF = "1.0.0";
-
 export const CLAIMS_REGISTRY: Readonly<Record<ClaimId, ClaimRecord>> = Object.freeze({
+  price_monthly: {
+    id: "price_monthly",
+    text: "449 €/mois",
+    status: "VERIFIED_PRICE",
+    scope: "pricing",
+    evidence: "internal_pricing",
+    productSource: "product_pricing",
+    validatedAt: "2026-06-22",
+    owner: "founder",
+    limitations: "",
+  },
   pierre_is_role: {
     id: "pierre_is_role",
-    status: "VERIFIED_PRODUCT_FACT",
-    authorizedText:
-      "Pierre est un poste RH opérationnel : il reçoit une mission, la structure en tâches, prépare les livrables et conserve l'état.",
-    evidence: [
-      "src/lib/pierre/cockpit/api-client.ts",
-      "src/lib/pierre/v1/",
-      "src/lib/clonestore/runtime-integration/",
-    ],
-    allowedSurfaces: ["landing", "demo", "result", "faq"],
-    limitations: [
-      "Les décisions managériales, juridiques et disciplinaires finales restent humaines.",
-    ],
-    contractVersion: CONTRACT_VERSION_REF,
+    text: "Pierre est un poste RH opérationnel automatisé (assistant IA transparent), pas un chatbot",
+    status: "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
+    scope: "landing",
+    evidence: "requires_clonestore_product_verification",
+    productSource: "CloneOS",
+    validatedAt: "2026-06-22",
+    owner: "founder",
+    limitations: "à vérifier sur le produit CloneStore réel avant activation",
   },
   human_validation: {
     id: "human_validation",
-    status: "VERIFIED_PRODUCT_FACT",
-    authorizedText:
-      "Toute action sensible est bloquée par CloneGuard et reste en attente jusqu'à validation humaine explicite.",
-    evidence: [
-      "src/lib/clonestore/guard/",
-      "src/lib/pierre/__tests__/hr-cloneguard.test.ts",
-      "src/lib/pierre/__tests__/hr-cloneguard-runtime.test.ts",
-    ],
-    allowedSurfaces: ["landing", "demo", "result", "faq", "checkout_copy", "pricing"],
-    limitations: [
-      "Le périmètre des actions sensibles dépend des règles CloneADN de l'entreprise.",
-    ],
-    contractVersion: CONTRACT_VERSION_REF,
+    text: "Les actions sensibles passent par une validation humaine (CloneGuard)",
+    status: "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
+    scope: "landing",
+    evidence: "requires_clonestore_product_verification",
+    productSource: "CloneGuard",
+    validatedAt: "2026-06-22",
+    owner: "founder",
+    limitations: "périmètre des actions sensibles à vérifier sur le produit réel avant activation",
   },
   traceability: {
     id: "traceability",
-    status: "VERIFIED_PRODUCT_FACT",
-    authorizedText:
-      "Chaque étape est enregistrée dans CloneTrace : actor, timestamp, statut, événements, artefacts, prochaine action.",
-    evidence: [
-      "src/lib/clonestore/trace/",
-      "src/lib/pierre/__tests__/hr-audit-trail.test.ts",
-      "src/lib/pierre/__tests__/hr-audit-trail-runtime.test.ts",
-    ],
-    allowedSurfaces: ["landing", "demo", "result", "faq"],
-    limitations: [
-      "La conservation pour audit dépend du contrat de service de l'entreprise.",
-    ],
-    contractVersion: CONTRACT_VERSION_REF,
+    text: "Chaque action est tracée et inspectable (CloneTrace)",
+    status: "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
+    scope: "landing",
+    evidence: "requires_clonestore_product_verification",
+    productSource: "CloneTrace",
+    validatedAt: "2026-06-22",
+    owner: "founder",
+    limitations: "à vérifier sur le produit CloneStore réel avant activation",
   },
   company_adaptation: {
     id: "company_adaptation",
+    text: "Pierre s'adapte au fonctionnement de l'entreprise (CloneADN)",
     status: "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
-    authorizedText:
-      "Pierre s'appuie sur l'Empreinte Entreprise et CloneADN pour adapter ton, approbateurs et modèles.",
-    evidence: [
-      "src/lib/clonestore/enterprise-footprint/",
-      "src/lib/clonestore/adn/",
-      "src/lib/pierre/__tests__/cloneadn-integration.test.ts",
-    ],
-    allowedSurfaces: ["landing", "demo", "result", "faq"],
-    limitations: [
-      "L'adaptation reste partielle tant que l'Empreinte n'a pas été remplie. Aucune omniscience.",
-    ],
-    contractVersion: CONTRACT_VERSION_REF,
+    scope: "demo",
+    evidence: "requires_clonestore_product_verification",
+    productSource: "CloneADN",
+    validatedAt: "2026-06-22",
+    owner: "founder",
+    limitations: "à vérifier sur le produit CloneStore réel avant activation",
+  },
+  volume_estimate: {
+    id: "volume_estimate",
+    text:
+      "Estimation d'un volume d'opérations RH traitable, en fourchette, à partir de vos hypothèses visibles et modifiables",
+    status: "ASSUMPTION_REQUIRES_DISCLOSURE",
+    scope: "diagnostic",
+    evidence: "diagnostic_formula",
+    productSource: "diagnostic_model",
+    validatedAt: "2026-06-22",
+    owner: "founder",
+    limitations: "aucune économie financière sans coût fourni par l'utilisateur; aucun résultat garanti",
   },
   recurring_work: {
     id: "recurring_work",
-    status: "VERIFIED_PRODUCT_FACT",
-    authorizedText:
-      "Brief → analyse → mission → tâches → document/email → validation → trace : Pierre couvre ce cycle pour les tâches RH récurrentes.",
-    evidence: [
-      "src/lib/pierre/__tests__/golden-scenarios.test.ts",
-      "src/lib/pierre/__tests__/release-candidate.test.ts",
-    ],
-    allowedSurfaces: ["landing", "demo", "result"],
-    limitations: [
-      "Hors périmètre : décisions managériales, conseil juridique, paie certifiée.",
-    ],
-    contractVersion: CONTRACT_VERSION_REF,
+    text:
+      "Pierre prend en charge du travail RH opérationnel récurrent (brief → missions → documents/emails → validation → trace)",
+    status: "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
+    scope: "email",
+    evidence: "requires_clonestore_product_verification",
+    productSource: "CloneOS",
+    validatedAt: "2026-06-22",
+    owner: "founder",
+    limitations: "à vérifier sur le produit CloneStore réel avant activation",
   },
-  pierre_price_449: {
-    id: "pierre_price_449",
-    status: "VERIFIED_PRODUCT_FACT",
-    authorizedText: "449 € HT / mois — accès complet à Pierre.",
-    evidence: [
-      "src/lib/billing/stripe-activation.ts:EXPECTED_PIERRE_PRICE_AMOUNT=44900",
-      "src/lib/clonestore/conversion/contract.ts:PIERRE_PRICE_AMOUNT_CENTS",
-    ],
-    allowedSurfaces: ["landing", "demo", "pricing", "faq", "checkout_copy", "result"],
-    limitations: [],
-    contractVersion: CONTRACT_VERSION_REF,
+  demo_timing: {
+    id: "demo_timing",
+    text: "durée de la démonstration",
+    status: "PENDING_DEMO_TIMING_MEASUREMENT",
+    scope: "demo",
+    evidence: "requires_measured_demo_timing",
+    productSource: "diagnostic_model",
+    validatedAt: "2026-06-22",
+    owner: "founder",
+    limitations: "aucune durée promise tant qu'elle n'est pas mesurée sur la vraie démo",
   },
 });
 
 export function getClaim(id: ClaimId): ClaimRecord {
-  const claim = CLAIMS_REGISTRY[id];
-  if (!claim) throw new Error(`Claim inconnue: ${id}`);
-  return claim;
+  const c = CLAIMS_REGISTRY[id];
+  if (!c) throw new Error(`Claim inconnue: ${id}`);
+  return c;
 }
 
-export function listClaimsByStatus(status: ClaimStatus): readonly ClaimRecord[] {
-  return Object.values(CLAIMS_REGISTRY).filter((c) => c.status === status);
+export function isActivatable(id: ClaimId): boolean {
+  const c = CLAIMS_REGISTRY[id];
+  if (!c) return false;
+  return REAL_ACTIVATABLE_CLAIM_STATUSES.has(c.status);
+}
+
+export function isShadowAllowed(id: ClaimId): boolean {
+  const c = CLAIMS_REGISTRY[id];
+  if (!c) return false;
+  return SHADOW_ALLOWED_CLAIM_STATUSES.has(c.status);
+}
+
+export function claimAllowedOnSurface(id: ClaimId, surface: Surface): boolean {
+  const allowed = SURFACE_ALLOWED_CLAIMS[surface] ?? [];
+  return allowed.includes(id);
 }
 
 export interface EvidenceMatrixEntry {
   claimId: ClaimId;
   status: ClaimStatus;
+  scope: string;
   surfaces: readonly Surface[];
-  evidence: readonly string[];
-  limitations: readonly string[];
+  evidence: string;
+  productSource: string;
+  limitations: string;
+  realActivatable: boolean;
+  shadowAllowed: boolean;
 }
 
 export function buildEvidenceMatrix(): readonly EvidenceMatrixEntry[] {
-  return Object.values(CLAIMS_REGISTRY).map((c) => ({
+  return (Object.values(CLAIMS_REGISTRY) as ClaimRecord[]).map((c) => ({
     claimId: c.id,
     status: c.status,
-    surfaces: c.allowedSurfaces,
+    scope: c.scope,
+    surfaces: (Object.entries(SURFACE_ALLOWED_CLAIMS) as [Surface, readonly string[]][])
+      .filter(([, claims]) => claims.includes(c.id))
+      .map(([s]) => s),
     evidence: c.evidence,
+    productSource: c.productSource,
     limitations: c.limitations,
+    realActivatable: REAL_ACTIVATABLE_CLAIM_STATUSES.has(c.status),
+    shadowAllowed: SHADOW_ALLOWED_CLAIM_STATUSES.has(c.status),
   }));
+}
+
+export function auditClaims(): {
+  total: number;
+  byStatus: Record<string, number>;
+  realActivatableIds: readonly ClaimId[];
+  shadowAllowedIds: readonly ClaimId[];
+  pendingProductIds: readonly ClaimId[];
+  pendingTimingIds: readonly ClaimId[];
+} {
+  const records = Object.values(CLAIMS_REGISTRY) as ClaimRecord[];
+  const byStatus: Record<string, number> = {};
+  for (const r of records) byStatus[r.status] = (byStatus[r.status] ?? 0) + 1;
+  return {
+    total: records.length,
+    byStatus,
+    realActivatableIds: records.filter((r) => isActivatable(r.id)).map((r) => r.id).sort(),
+    shadowAllowedIds: records.filter((r) => isShadowAllowed(r.id)).map((r) => r.id).sort(),
+    pendingProductIds: records
+      .filter((r) => r.status === "PENDING_CLONESTORE_PRODUCT_VERIFICATION")
+      .map((r) => r.id)
+      .sort(),
+    pendingTimingIds: records
+      .filter((r) => r.status === "PENDING_DEMO_TIMING_MEASUREMENT")
+      .map((r) => r.id)
+      .sort(),
+  };
 }

@@ -1,97 +1,122 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   computeAttributionSignature,
   issueAttributionToken,
   parseAttributionToken,
+  safeProspectToken,
   tokenFingerprint,
   verifyAttributionToken,
 } from "../attribution-token";
 
-const VALID_TOKEN_ID = "a1b2c3d4e5f60718293a4b5c6d7e8f90";
+const FIXTURE = JSON.parse(
+  readFileSync(join(__dirname, "..", "fixtures", "leadforge-contract-db9b166.json"), "utf8"),
+) as {
+  token_vectors: {
+    fixture_secret_utf8: string;
+    valid: { token_id: string; signature_hex: string; public_token: string; expected_valid: boolean };
+    tampered_signature: { public_token: string; expected_valid: boolean; expected_reason: string };
+    tampered_token_id: { public_token: string; expected_valid: boolean; expected_reason: string };
+    malformed_no_dot: { public_token: string; expected_valid: boolean; expected_reason: string };
+    malformed_empty: { public_token: string; expected_valid: boolean; expected_reason: string };
+  };
+};
 
-describe("BLOC 3 — attribution token", () => {
+const SECRET = FIXTURE.token_vectors.fixture_secret_utf8;
+
+describe("BLOC 3 — attribution token (compat Python LeadForge db9b166)", () => {
   beforeEach(() => {
-    // En dev/test, fallback secret intégré. On le rend déterministe.
-    delete process.env.CLONESTORE_CONVERSION_ATTRIBUTION_SECRET;
-    delete process.env.CLONESTORE_FOUNDER_RESERVATION_COOKIE_SECRET;
+    delete process.env.LEADFORGE_ATTRIBUTION_SIGNING_KEY;
   });
 
-  it("issueAttributionToken produit un token signé vérifiable", () => {
-    const token = issueAttributionToken(VALID_TOKEN_ID, 1);
-    expect(token).not.toBeNull();
-    const verification = verifyAttributionToken(token!);
+  it("test vector valide produit par Python LeadForge → accepté par TS CloneStore", () => {
+    const v = FIXTURE.token_vectors.valid;
+    const verification = verifyAttributionToken(v.public_token, { secret: SECRET });
     expect(verification.ok).toBe(true);
-    expect(verification.tokenId).toBe(VALID_TOKEN_ID);
-    expect(verification.keyVersion).toBe(1);
+    expect(verification.tokenId).toBe(v.token_id);
+    expect(verification.reason).toBe("ok");
   });
 
-  it("refuse une signature modifiée (timing-safe)", () => {
-    const token = issueAttributionToken(VALID_TOKEN_ID, 1)!;
-    // On flip le dernier caractère significatif de la signature.
-    const tampered = token.slice(0, -1) + (token.endsWith("A") ? "B" : "A");
-    const verification = verifyAttributionToken(tampered);
+  it("compute signature TS = signature Python (HMAC-SHA256 hex)", () => {
+    const v = FIXTURE.token_vectors.valid;
+    const sig = computeAttributionSignature(v.token_id, SECRET);
+    expect(sig).toBe(v.signature_hex);
+  });
+
+  it("test vector signature modifiée → refusé en temps constant", () => {
+    const v = FIXTURE.token_vectors.tampered_signature;
+    const verification = verifyAttributionToken(v.public_token, { secret: SECRET });
     expect(verification.ok).toBe(false);
-    expect(verification.reason).toBe("signature_mismatch");
-    expect(verification.tokenId).toBeNull();
+    expect(verification.reason).toBe("bad_signature");
   });
 
-  it("refuse un token de forme invalide", () => {
-    expect(verifyAttributionToken("not-a-token").ok).toBe(false);
-    expect(verifyAttributionToken("v1.short.sig").ok).toBe(false);
-    expect(verifyAttributionToken("").ok).toBe(false);
-    expect(verifyAttributionToken(null as unknown as string).ok).toBe(false);
-    expect(verifyAttributionToken(undefined as unknown as string).ok).toBe(false);
-  });
-
-  it("refuse un keyVersion incorrect (signature ne reconstruit pas)", () => {
-    const token = issueAttributionToken(VALID_TOKEN_ID, 1)!;
-    const parts = token.split(".");
-    const forged = `v2.${parts[1]}.${parts[2]}`;
-    const verification = verifyAttributionToken(forged);
+  it("test vector token_id modifié → refusé", () => {
+    const v = FIXTURE.token_vectors.tampered_token_id;
+    const verification = verifyAttributionToken(v.public_token, { secret: SECRET });
     expect(verification.ok).toBe(false);
+    expect(verification.reason).toBe("bad_signature");
   });
 
-  it("parse renvoie null sur formats hors gabarit", () => {
-    expect(parseAttributionToken("v1." + "x".repeat(31) + ".sig123")).toBeNull(); // tokenId 31 hex
-    expect(parseAttributionToken("v0." + VALID_TOKEN_ID + ".aaaaaaaaaaaaaaaaaaaaaaaaa")).toBeNull();
-    expect(parseAttributionToken("v1." + VALID_TOKEN_ID + ".!!@@##")).toBeNull(); // sig non base64url
+  it("test vector malformed (pas de point / vide) → refusé", () => {
+    for (const v of [FIXTURE.token_vectors.malformed_no_dot, FIXTURE.token_vectors.malformed_empty]) {
+      const verification = verifyAttributionToken(v.public_token, { secret: SECRET });
+      expect(verification.ok).toBe(false);
+      expect(verification.reason).toBe("malformed");
+    }
   });
 
-  it("computeAttributionSignature stable", () => {
-    const a = computeAttributionSignature(VALID_TOKEN_ID, 1);
-    const b = computeAttributionSignature(VALID_TOKEN_ID, 1);
-    expect(a).toBe(b);
-    expect(a).not.toBeNull();
+  it("mauvais secret → refusé", () => {
+    const v = FIXTURE.token_vectors.valid;
+    const verification = verifyAttributionToken(v.public_token, { secret: "another-secret" });
+    expect(verification.ok).toBe(false);
+    expect(verification.reason).toBe("bad_signature");
   });
 
-  it("computeAttributionSignature change avec keyVersion", () => {
-    const a = computeAttributionSignature(VALID_TOKEN_ID, 1);
-    const b = computeAttributionSignature(VALID_TOKEN_ID, 2);
-    expect(a).not.toBe(b);
+  it("secret manquant en production → secret_missing", () => {
+    const prev = process.env.NODE_ENV;
+    try {
+      // @ts-expect-error — test override
+      process.env.NODE_ENV = "production";
+      const verification = verifyAttributionToken(FIXTURE.token_vectors.valid.public_token);
+      expect(verification.ok).toBe(false);
+      expect(verification.reason).toBe("secret_missing");
+    } finally {
+      // @ts-expect-error — restore
+      process.env.NODE_ENV = prev;
+    }
   });
 
-  it("fingerprint SHA-256 stable et dépendant de keyVersion+tokenId", () => {
-    const fp1 = tokenFingerprint(VALID_TOKEN_ID, 1);
-    const fp2 = tokenFingerprint(VALID_TOKEN_ID, 1);
-    const fp3 = tokenFingerprint(VALID_TOKEN_ID, 2);
+  it("parseAttributionToken rejette tout sauf 40 hex + 64 hex", () => {
+    expect(parseAttributionToken("not.a.token")).toBeNull();
+    expect(parseAttributionToken("abcd.ef")).toBeNull();
+    expect(parseAttributionToken("g".repeat(40) + "." + "0".repeat(64))).toBeNull(); // g non-hex
+    expect(parseAttributionToken("0".repeat(40) + "." + "0".repeat(64))).toEqual({
+      tokenId: "0".repeat(40),
+      signatureHex: "0".repeat(64),
+    });
+  });
+
+  it("tokenFingerprint stable et dépendant du token_id", () => {
+    const fp1 = tokenFingerprint("a".repeat(40));
+    const fp2 = tokenFingerprint("a".repeat(40));
+    const fp3 = tokenFingerprint("b".repeat(40));
     expect(fp1).toBe(fp2);
     expect(fp1).not.toBe(fp3);
     expect(fp1).toMatch(/^[0-9a-f]{64}$/);
   });
 
-  it("en production, aucun secret = pas de signature calculée", () => {
-    const prevEnv = process.env.NODE_ENV;
-    try {
-      // @ts-expect-error — assignation pour test
-      process.env.NODE_ENV = "production";
-      const sig = computeAttributionSignature(VALID_TOKEN_ID, 1);
-      expect(sig).toBeNull();
-      const verification = verifyAttributionToken(`v1.${VALID_TOKEN_ID}.aaaaaaaaaaaaaaaaaaaaaaaa`);
-      expect(verification.ok).toBe(false);
-      expect(verification.reason).toBe("secret_missing");
-    } finally {
-      // @ts-expect-error — restauration
-      process.env.NODE_ENV = prevEnv;
-    }
+  it("issueAttributionToken roundtrip", () => {
+    const token = issueAttributionToken("a".repeat(40), { secret: SECRET });
+    expect(token).not.toBeNull();
+    expect(verifyAttributionToken(token!, { secret: SECRET }).ok).toBe(true);
+  });
+
+  it("safeProspectToken réduit au token_id, refuse les emails", () => {
+    const v = FIXTURE.token_vectors.valid;
+    expect(safeProspectToken(v.public_token)).toBe(v.token_id);
+    expect(safeProspectToken("leak@example.com")).toBe("");
+    expect(safeProspectToken("")).toBe("");
+    expect(safeProspectToken(v.token_id)).toBe(v.token_id);
   });
 });

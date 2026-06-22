@@ -1,198 +1,175 @@
-// BLOC 3 — Diagnostic RH déterministe.
+// BLOC 3 — Diagnostic RH déterministe, conforme LeadForge db9b166.
 //
-// Calcul pur, inspectable, sans appel IA, sans email obligatoire, sans donnée
-// sensible. Le résultat est exprimé en niveau qualitatif + fourchettes
-// d'estimation accompagnées des hypothèses. Aucune économie financière sans
-// coût horaire saisi explicitement par l'utilisateur.
+// Réimplémentation littérale de `services/conversion/diagnostic.py:compute`.
+// Identique inputs → identique outputs (testé par les golden vectors de la
+// fixture LeadForge dans `__tests__/bloc3-parity.test.ts`).
+//
+// Aucune économie financière n'est calculée sans coût horaire fourni
+// EXPLICITEMENT par l'utilisateur.
 
-import { DIAGNOSTIC_VERSION } from "./contract";
-import type { DiagnosticDraft, DiagnosticResult } from "./types";
+import {
+  DIAGNOSTIC_DEFAULT_ASSUMPTIONS,
+  PIERRE_PRICE_EUR,
+} from "./contract";
+import type {
+  DiagnosticAnswers,
+  DiagnosticAssumptions,
+  DiagnosticResult,
+} from "./types";
 
-// Volumes attendus pour les questions (validation déjà faite dans validation.ts).
-type Answers = Record<string, string | number | readonly string[] | null>;
+type Answers = DiagnosticAnswers & { readonly [extra: string]: unknown };
+const AUTONOMY = new Set(["low", "medium", "high"] as const);
 
-interface Bands {
-  headcount: number;        // effectif central de la tranche
-  rh_team_size: number;     // taille équipe RH centrale
-  monthly_hires: number;    // central tranche recrutement
-  monthly_onboardings: number;
-  recurring_ops_volume: number; // central tranche
-  autonomy_target: "fully" | "supervised" | "human_first";
-  validation_requirements: "high" | "medium" | "low";
-}
-
-const HEADCOUNT_BANDS: Record<string, number> = {
-  "1-9": 5,
-  "10-49": 25,
-  "50-249": 100,
-  "250-999": 500,
-  "1000+": 1500,
-};
-
-const RH_TEAM_BANDS: Record<string, number> = {
-  "0": 0.5,
-  "1": 1,
-  "2-5": 3,
-  "6-15": 9,
-  "16+": 20,
-};
-
-const HIRES_BANDS: Record<string, number> = {
-  "0-1": 1,
-  "2-5": 3,
-  "6-15": 10,
-  "16-40": 25,
-  "40+": 60,
-};
-
-const OPS_BANDS: Record<string, number> = {
-  low: 8,
-  medium: 25,
-  high: 70,
-  very_high: 160,
-};
-
-function asBand<T>(value: unknown, bands: Record<string, number>, fallback: number): number {
-  if (typeof value === "string" && bands[value] !== undefined) return bands[value];
-  if (typeof value === "number" && Number.isFinite(value)) return Math.max(0, value);
+function intAt(answers: Answers, key: string, fallback = 0): number {
+  const v = (answers as Record<string, unknown>)[key];
+  if (typeof v === "number" && Number.isFinite(v)) return Math.max(0, Math.trunc(v));
+  if (typeof v === "string" && v.trim().length > 0) {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : fallback;
+  }
   return fallback;
 }
 
-function parseAutonomy(value: unknown): Bands["autonomy_target"] {
-  if (value === "fully" || value === "supervised" || value === "human_first") return value;
-  return "supervised";
+function boolAt(answers: Answers, key: string, fallback = true): boolean {
+  const v = (answers as Record<string, unknown>)[key];
+  if (typeof v === "boolean") return v;
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (["yes", "true", "1", "oui"].includes(s)) return true;
+    if (["no", "false", "0", "non"].includes(s)) return false;
+  }
+  return fallback;
 }
 
-function parseValidation(value: unknown): Bands["validation_requirements"] {
-  if (value === "high" || value === "medium" || value === "low") return value;
+function autonomyAt(answers: Answers): "low" | "medium" | "high" {
+  const v = (answers as Record<string, unknown>)["autonomy_level"];
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (AUTONOMY.has(s as "low" | "medium" | "high")) return s as "low" | "medium" | "high";
+  }
   return "medium";
 }
 
-function extractBands(answers: Answers): Bands {
+function band(baseOps: number, share: number, minutesPerOperation: number) {
+  const ops = baseOps * share;
+  const hours = (ops * minutesPerOperation) / 60.0;
   return {
-    headcount: asBand(answers["headcount"], HEADCOUNT_BANDS, 25),
-    rh_team_size: asBand(answers["rh_team_size"], RH_TEAM_BANDS, 1),
-    monthly_hires: asBand(answers["monthly_hires"], HIRES_BANDS, 3),
-    monthly_onboardings: asBand(answers["monthly_onboardings"], HIRES_BANDS, 3),
-    recurring_ops_volume: asBand(answers["recurring_ops_volume"], OPS_BANDS, 25),
-    autonomy_target: parseAutonomy(answers["autonomy_target"]),
-    validation_requirements: parseValidation(answers["validation_requirements"]),
+    automatable_ops_month: Math.round(ops),
+    operational_hours_month: Math.round(hours * 10) / 10,
   };
 }
 
-// Heures économisées estimées par mois — bornes prudentes.
-// On compte 20 min par opération récurrente, 1h par embauche admin, 1h30 par onboarding.
-function estimateSavedHours(b: Bands): { low: number; central: number; high: number } {
-  const ops = b.recurring_ops_volume * (20 / 60);
-  const hires = b.monthly_hires * 1.0;
-  const onboardings = b.monthly_onboardings * 1.5;
-  const central = round1(ops + hires + onboardings);
-
-  // L'autonomie demandée influence la part déléguée (0.4 à 0.7).
-  const factor = b.autonomy_target === "fully" ? 0.7 : b.autonomy_target === "supervised" ? 0.55 : 0.4;
-  const validationPenalty = b.validation_requirements === "high" ? 0.85 : 1.0;
-  const adjusted = central * factor * validationPenalty;
-
-  const low = round1(adjusted * 0.7);
-  const high = round1(adjusted * 1.2);
-  return { low, central: round1(adjusted), high };
+export interface DiagnosticInput {
+  answers: Answers;
+  assumptions?: Partial<DiagnosticAssumptions>;
+  /**
+   * Coût horaire UNIQUEMENT si fourni par l'utilisateur — sinon aucune
+   * économie financière n'est rendue (cf. LeadForge contrat §4).
+   */
+  monthly_cost_eur?: number | null;
 }
 
-function compatibilityLevel(b: Bands): { level: DiagnosticResult["compatibilityLevel"]; reasons: string[] } {
-  const reasons: string[] = [];
-  // Forte compatibilité quand : volume opérations > 15/mois, équipe RH ≥ 1, autonomie ≥ supervised.
-  const hasVolume = b.recurring_ops_volume >= 15 || b.monthly_hires + b.monthly_onboardings >= 5;
-  const hasTeam = b.rh_team_size >= 1;
-  const wantsAutomation = b.autonomy_target !== "human_first";
+/**
+ * Re-implémentation littérale de diagnostic.compute. Le résultat est
+ * comparé byte-à-byte avec la fixture LeadForge dans les tests.
+ */
+export function compute(input: DiagnosticInput): DiagnosticResult {
+  const a: DiagnosticAssumptions = {
+    ...DIAGNOSTIC_DEFAULT_ASSUMPTIONS,
+    ...(input.assumptions ?? {}),
+  };
+  const answers = input.answers ?? {};
+  const hires = intAt(answers as Answers, "monthly_hires");
+  const onoff = intAt(answers as Answers, "monthly_on_offboardings");
+  const declaredOps = intAt(answers as Answers, "monthly_docs_emails_ops");
+  const autonomy = autonomyAt(answers as Answers);
+  const validation = boolAt(answers as Answers, "validation_required", true);
 
-  if (hasVolume && hasTeam && wantsAutomation) {
-    reasons.push("volume_opérationnel_suffisant", "équipe_RH_présente", "autonomie_compatible");
-    if (b.validation_requirements === "high") reasons.push("validation_renforcée_compatible_avec_pierre");
-    return { level: "high", reasons };
-  }
-  if (!hasVolume) reasons.push("volume_opérationnel_faible");
-  if (!hasTeam) reasons.push("aucune_équipe_RH_dédiée");
-  if (!wantsAutomation) reasons.push("autonomie_demandée_très_humaine");
-  if (b.recurring_ops_volume >= 5 || hasTeam) {
-    return { level: "partial", reasons };
-  }
-  return { level: "limited", reasons };
-}
+  const derivedOps = hires * a.ops_per_hire + onoff * a.ops_per_on_offboarding;
+  const baseOps = Math.max(declaredOps, derivedOps);
 
-function suggestedMissions(b: Bands): string[] {
-  const out: string[] = [];
-  if (b.monthly_onboardings > 0) out.push("Pré-onboarding et checklists d'arrivée");
-  if (b.monthly_hires > 0) out.push("Convocations, suivi candidats, briefs managers");
-  if (b.recurring_ops_volume >= 15) out.push("Réponses RH récurrentes (absences, attestations, justificatifs)");
-  if (b.recurring_ops_volume >= 25) out.push("Relances et suivis d'échéances RH");
-  if (b.headcount >= 50) out.push("Synthèses hebdomadaires opérationnelles");
-  return out.length > 0 ? out : ["Brouillons RH structurés à valider"];
-}
+  const volume = {
+    low: band(baseOps, a.automatable_share_low, a.minutes_per_operation),
+    central: band(baseOps, a.automatable_share_central, a.minutes_per_operation),
+    high: band(baseOps, a.automatable_share_high, a.minutes_per_operation),
+  };
 
-function humanControls(b: Bands): string[] {
-  const out = [
-    "Décisions disciplinaires et sanctions",
-    "Signature de contrats et avenants",
-    "Décisions de recrutement finales",
+  const missions: string[] = [
+    "Préparation de documents RH",
+    "Emails RH récurrents",
+    "Suivi des validations",
+    "Traçabilité",
   ];
-  if (b.validation_requirements === "high") out.push("Validation manager avant tout envoi externe");
-  return out;
-}
+  if (hires > 0) missions.push("Support onboarding/recrutement opérationnel");
 
-function defaultHypotheses(b: Bands): string[] {
-  return [
-    `Effectif ~${Math.round(b.headcount)} personnes (tranche déclarée).`,
-    `Équipe RH ~${b.rh_team_size} ETP (tranche déclarée).`,
-    `Volume mensuel d'opérations récurrentes estimé central : ${b.recurring_ops_volume}.`,
-    "Durée par opération récurrente : ~20 minutes hors validation humaine.",
-    "Onboarding administratif : ~1h30 par arrivée.",
-    "Recrutement administratif : ~1h par embauche (hors entretiens).",
-  ];
-}
+  const autonomyBonus = autonomy === "low" ? 0 : autonomy === "medium" ? 10 : 20;
+  const opsBonus = Math.min(40, Math.floor(baseOps / 5));
+  const score = Math.min(100, 40 + opsBonus + autonomyBonus);
+  const compatibility: "low" | "medium" | "high" =
+    score >= 75 ? "high" : score >= 55 ? "medium" : "low";
 
-function defaultLimitations(): string[] {
-  return [
-    "Estimation, pas une garantie. Dépend du périmètre réellement confié à Pierre.",
-    "Pierre ne remplace pas un avocat ni un logiciel de paie certifié.",
-    "Les décisions sensibles restent humaines, ce qui borne mécaniquement l'automatisation.",
-  ];
-}
+  const result: DiagnosticResult = {
+    operational_load: {
+      declared_ops_month: declaredOps,
+      derived_ops_month: derivedOps,
+      base_ops_month: baseOps,
+      hr_team_size: intAt(answers as Answers, "hr_team_size"),
+    },
+    recommended_missions: [...missions],
+    priorities: missions.slice(0, 3),
+    compatibility,
+    compatibility_score: score,
+    actions_requiring_validation: validation
+      ? [
+          "Communication externe sensible",
+          "Documents contractuels",
+          "Toute action marquée sensible",
+        ]
+      : ["Toute action marquée sensible"],
+    volume_estimate: volume,
+    assumptions: a,
+    formulas: {
+      derived_ops_month:
+        "monthly_hires*ops_per_hire + monthly_on_offboardings*ops_per_on_offboarding",
+      base_ops_month: "max(declared_ops, derived_ops)",
+      automatable_ops: "base_ops * automatable_share",
+      operational_hours: "automatable_ops * minutes_per_operation / 60",
+    },
+    limits: [
+      "Fourchettes, pas une prédiction exacte",
+      "Aucun résultat garanti",
+      "Aucune économie financière sans coût fourni",
+      "Hypothèses modifiables",
+    ],
+    price_comparison: { pierre_eur_month: PIERRE_PRICE_EUR },
+    next_steps: [
+      "Voir la démonstration",
+      "Activer Pierre — 449 €/mois",
+      "Réserver 15 minutes (optionnel)",
+    ],
+    financial_saving: null,
+  };
 
-export function computeDiagnostic(draft: DiagnosticDraft): DiagnosticResult {
-  const bands = extractBands(draft.answers);
-  const saved = estimateSavedHours(bands);
-  const compat = compatibilityLevel(bands);
-
-  // Estimation financière UNIQUEMENT si l'utilisateur a fourni un coût horaire.
-  let financial: DiagnosticResult["estimatedFinancialRangeEur"] = null;
-  if (typeof draft.hourlyCostHypothesis === "number" && Number.isFinite(draft.hourlyCostHypothesis) && draft.hourlyCostHypothesis > 0) {
-    const cost = Math.min(500, draft.hourlyCostHypothesis);
-    financial = {
-      low: round1(saved.low * cost),
-      central: round1(saved.central * cost),
-      high: round1(saved.high * cost),
+  // Économie financière UNIQUEMENT si l'utilisateur a fourni un coût horaire.
+  if (
+    input.monthly_cost_eur !== null &&
+    input.monthly_cost_eur !== undefined &&
+    Number.isFinite(input.monthly_cost_eur) &&
+    input.monthly_cost_eur > 0
+  ) {
+    const hourly = input.monthly_cost_eur;
+    const centralHours = volume.central.operational_hours_month;
+    const central = Math.round(centralHours * hourly);
+    return {
+      ...result,
+      financial_saving: {
+        basis: "user_supplied_hourly_cost",
+        hourly_cost_eur: hourly,
+        central_monthly_saving_eur: central,
+        vs_pierre_eur_month: PIERRE_PRICE_EUR,
+        note: "fourchette indicative à partir de votre coût; aucun résultat garanti",
+      },
     };
   }
-
-  const hypotheses = defaultHypotheses(bands);
-  if (draft.hourlyCostHypothesis && draft.hourlyCostHypothesis > 0) {
-    hypotheses.push(`Coût horaire saisi par l'utilisateur : ${draft.hourlyCostHypothesis} €.`);
-  }
-
-  return {
-    version: draft.version ?? DIAGNOSTIC_VERSION,
-    compatibilityLevel: compat.level,
-    compatibilityReasonCodes: compat.reasons,
-    suggestedMissions: suggestedMissions(bands),
-    humanControls: humanControls(bands),
-    estimatedSavedHoursPerMonth: saved,
-    estimatedFinancialRangeEur: financial,
-    hypotheses,
-    limitations: defaultLimitations(),
-  };
-}
-
-function round1(n: number): number {
-  if (!Number.isFinite(n)) return 0;
-  return Math.round(n * 10) / 10;
+  return result;
 }

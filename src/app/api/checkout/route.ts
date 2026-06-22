@@ -11,6 +11,13 @@ import { hasPierreAccess } from "@/lib/pierre/access";
 import { normalizeAgentSlug } from "@/lib/checkout/checkout-helpers";
 import { EXPECTED_PIERRE_PRICE_AMOUNT, TRIAL_PERIOD_DAYS } from "@/lib/billing/stripe-activation";
 import { getOrderStatus } from "@/lib/billing/order-activation";
+// BLOC 3 — pont conversion (additif, ne change pas l'auth/billing existante).
+import { readConversionSessionId } from "@/lib/clonestore/conversion/session";
+import {
+  bridgeCheckoutStarted,
+  buildConversionCheckoutMetadata,
+} from "@/lib/clonestore/conversion/checkout-bridge";
+import { getConversionSession, isConversionBackendAvailable } from "@/lib/clonestore/conversion/storage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -202,6 +209,32 @@ export async function POST(request: NextRequest) {
     ).toString();
     const cancel_url = new URL(`/paiement/cancel?agent=${agentSlug}`, base).toString();
 
+    // ── BLOC 3 : conversion metadata + bridge (additif, non bloquant) ───
+    // Source = cookie signé `cs_conversion_session`. Aucune valeur lue depuis
+    // le body navigateur. Si pas de session conversion : checkout normal sans
+    // metadata marketing (visiteur organique).
+    const conversionSessionId = readConversionSessionId(request.headers.get("cookie"));
+    const conversionSession = conversionSessionId && isConversionBackendAvailable()
+      ? getConversionSession(conversionSessionId)
+      : null;
+    const baseMetadata: Record<string, string> = { user_id: userId, agent_slug: agentSlug };
+    let finalMetadata = baseMetadata;
+    if (conversionSession) {
+      const built = buildConversionCheckoutMetadata({
+        conversionSessionId: conversionSession.id,
+        userId,
+        agentSlug,
+      });
+      if (built.ok) {
+        finalMetadata = { ...baseMetadata, ...built.metadata };
+        // additionally include the conversion_session_id as a key so the
+        // webhook bridge can recover the link.
+        finalMetadata.conversion_session_id = conversionSession.id;
+      }
+      // best-effort : émettre checkout_started côté serveur (idempotent).
+      bridgeCheckoutStarted({ sessionId: conversionSession.id, userId, tenantId: null });
+    }
+
     // user_id comes from the validated Bearer token — never from client body
     // trial_period_days: 7 — card collected now, charged after trial unless cancelled
     const session = await stripe.checkout.sessions.create({
@@ -211,9 +244,9 @@ export async function POST(request: NextRequest) {
       cancel_url,
       subscription_data: {
         trial_period_days: TRIAL_PERIOD_DAYS,
-        metadata: { user_id: userId, agent_slug: agentSlug },
+        metadata: finalMetadata,
       },
-      metadata: { user_id: userId, agent_slug: agentSlug },
+      metadata: finalMetadata,
     });
 
     if (!session.url) {

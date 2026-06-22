@@ -1,15 +1,18 @@
-// BLOC 3 — API diagnostic RH (calcul serveur déterministe).
+// BLOC 3 — API diagnostic RH (LeadForge-compatible).
 //
-// POST : reçoit les réponses, valide, calcule, renvoie le résultat.
-// Aucune donnée sensible n'est acceptée (cf. sanitizeDiagnosticAnswers).
-// Pas d'email obligatoire pour obtenir le résultat.
+// POST : reçoit les réponses, sanitize (refuse les champs interdits), calcule
+//        DÉTERMINISTIQUEMENT via `compute()` (identique au Python LeadForge),
+//        renvoie le résultat. Aucune donnée sensible. Aucun email obligatoire.
 
 import { NextResponse, type NextRequest } from "next/server";
 import { sanitizeDiagnosticAnswers } from "@/lib/clonestore/conversion/validation";
-import { computeDiagnostic } from "@/lib/clonestore/conversion/diagnostic";
-import { DIAGNOSTIC_VERSION } from "@/lib/clonestore/conversion/contract";
+import { compute } from "@/lib/clonestore/conversion/diagnostic";
 import { readConversionSessionId } from "@/lib/clonestore/conversion/session";
-import { updateConversionSession, recordConversionEvent } from "@/lib/clonestore/conversion/storage";
+import {
+  isConversionBackendAvailable,
+  recordConversionEvent,
+  updateConversionSession,
+} from "@/lib/clonestore/conversion/storage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,37 +35,35 @@ export async function POST(request: NextRequest) {
     return json(400, { ok: false, error: "invalid_payload" });
   }
   const b = body as Record<string, unknown>;
-  const answers = b.answers;
-  const hourlyCostRaw = b.hourly_cost_eur;
-  const sanitization = sanitizeDiagnosticAnswers(answers);
+  const sanitization = sanitizeDiagnosticAnswers(b.answers);
   if (!sanitization.ok) {
     return json(422, { ok: false, error: "diagnostic_invalid", details: sanitization.errors });
   }
 
-  let hourlyCost: number | null = null;
-  if (typeof hourlyCostRaw === "number" && Number.isFinite(hourlyCostRaw) && hourlyCostRaw > 0) {
-    hourlyCost = Math.min(500, hourlyCostRaw);
+  let hourly: number | null = null;
+  const hourlyRaw = b.hourly_cost_eur;
+  if (typeof hourlyRaw === "number" && Number.isFinite(hourlyRaw) && hourlyRaw > 0) {
+    hourly = Math.min(500, hourlyRaw);
   }
 
-  const result = computeDiagnostic({
-    version: DIAGNOSTIC_VERSION,
+  const result = compute({
     answers: sanitization.cleaned,
-    hourlyCostHypothesis: hourlyCost,
+    monthly_cost_eur: hourly,
   });
 
-  // Si une session de conversion est présente, on avance son étape et on
-  // émet un événement serveur. Sinon, on calcule simplement le résultat.
+  // Si une session conversion est présente ET que le backend est disponible :
+  // on avance l'étape et on émet l'évènement.
   const cookieHeader = request.headers.get("cookie");
   const sessionId = readConversionSessionId(cookieHeader);
-  if (sessionId) {
+  if (sessionId && isConversionBackendAvailable()) {
     updateConversionSession(sessionId, { stage: "diagnostic_completed" });
     recordConversionEvent({
       sessionId,
-      eventId: "diagnostic_completed",
+      eventType: "diagnostic_completed",
       idempotencyKey: `diag_completed:${sessionId}:${Date.now().toString(36).slice(-6)}`,
       metadata: {
-        compatibility: result.compatibilityLevel,
-        has_financial: result.estimatedFinancialRangeEur !== null,
+        compatibility: result.compatibility,
+        missions_count: result.recommended_missions.length,
       },
     });
   }

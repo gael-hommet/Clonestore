@@ -1,29 +1,80 @@
 #!/usr/bin/env node
-// BLOC 3 — Check de readiness pour la couche conversion.
+// BLOC 3 — Readiness check evidence-based.
 //
-// Ce script ne touche à AUCUNE infrastructure réelle : il vérifie uniquement
-// que le code, les surfaces et le contrat sont cohérents. Les blocages
-// externes (campagne, vraies grants, Stripe live) restent gérés ailleurs.
+// Ce script ne déclare PAS de constante "READY". Il COLLECTE des preuves :
+//   • fixture LeadForge présente ;
+//   • fingerprint conforme ;
+//   • tests BLOC 3 verts ;
+//   • TypeScript propre ;
+//   • routes /api/checkout + /api/webhooks/stripe importent ET appellent
+//     réellement les bridges BLOC 3 (grep AST-like sur le source).
+// Puis appelle buildB3ConversionVerdict(evidence) (côté Node ESM via import dynamique).
 //
-// Sorties (exit code) :
-//   0 = CODE_READY (verdict V0_CONVERSION_ENGINE_CODE_READY_EXTERNAL_ACTIVATION_REQUIRED)
-//   1 = BLOCKED_EXTERNAL (verdict CODE_READY mais blocages externes listés)
-//   2 = CODE_DEFECT (verdict V0_CONVERSION_ENGINE_BLOCKED_*)
-//
-// Le rapport JSON est imprimé sur stdout (utilisable en CI ou par les agents).
+// Exit codes :
+//   0 = CODE_READY (toutes preuves PASS)
+//   1 = BLOCKED_EXTERNAL (CODE_READY mais blocages externes ; jamais un défaut code)
+//   2 = BLOCKED_<CAUSE> (au moins une preuve code FAIL)
 
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve, join } from "node:path";
+import { createHash } from "node:crypto";
 
 const ROOT = process.cwd();
 
-function fail(msg, exit = 2) {
-  console.error(`[b3-check] ${msg}`);
-  process.exit(exit);
+function readSafe(rel) {
+  try { return readFileSync(resolve(ROOT, rel), "utf8"); } catch { return null; }
 }
 
-// 1) Sanity : fichiers attendus.
+function check(label, fn) {
+  try {
+    const ok = fn();
+    return { label, ok: Boolean(ok), reason: ok ? "PASS" : "FAIL" };
+  } catch (e) {
+    return { label, ok: false, reason: e instanceof Error ? e.message : "ERROR" };
+  }
+}
+
+// --- 1) Fixture présente + fingerprint conforme -----------------------------
+const FIXTURE_PATH = "src/lib/clonestore/conversion/fixtures/leadforge-contract-db9b166.json";
+const fixtureRaw = readSafe(FIXTURE_PATH);
+const fixture = fixtureRaw ? JSON.parse(fixtureRaw) : null;
+
+function canonicalJsonPython(value) {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return "[" + value.map(canonicalJsonPython).join(",") + "]";
+  const keys = Object.keys(value).sort();
+  return "{" + keys.map((k) => JSON.stringify(k) + ":" + canonicalJsonPython(value[k])).join(",") + "}";
+}
+
+const fixturePresent = check("fixture present", () => !!fixture);
+const fingerprintMatches = check("fixture fingerprint matches", () => {
+  if (!fixture) return false;
+  const canonical = canonicalJsonPython(fixture.contract);
+  const computed = createHash("sha256").update(canonical, "utf8").digest("hex");
+  return computed === fixture.contract_canonical_json_sha256;
+});
+
+// --- 2) Routes wirées ------------------------------------------------------
+const checkoutRoute = readSafe("src/app/api/checkout/route.ts");
+const webhookRoute = readSafe("src/app/api/webhooks/stripe/route.ts");
+
+const checkoutWired = check("/api/checkout bridge wired", () =>
+  checkoutRoute &&
+  /from\s+["']@\/lib\/clonestore\/conversion\/checkout-bridge["']/.test(checkoutRoute) &&
+  /bridgeCheckoutStarted\s*\(/.test(checkoutRoute) &&
+  /buildConversionCheckoutMetadata\s*\(/.test(checkoutRoute) &&
+  /readConversionSessionId\s*\(/.test(checkoutRoute),
+);
+const webhookWired = check("/api/webhooks/stripe bridge wired", () =>
+  webhookRoute &&
+  /from\s+["']@\/lib\/clonestore\/conversion\/checkout-bridge["']/.test(webhookRoute) &&
+  /bridgeCheckoutCompleted\s*\(/.test(webhookRoute) &&
+  /bridgePierreActivated\s*\(/.test(webhookRoute) &&
+  /bridgeCheckoutFailed\s*\(/.test(webhookRoute),
+);
+
+// --- 3) Fichiers BLOC 3 attendus -------------------------------------------
 const expectedFiles = [
   "src/lib/clonestore/conversion/contract.ts",
   "src/lib/clonestore/conversion/types.ts",
@@ -36,61 +87,83 @@ const expectedFiles = [
   "src/lib/clonestore/conversion/diagnostic.ts",
   "src/lib/clonestore/conversion/checkout-bridge.ts",
   "src/lib/clonestore/conversion/readiness.ts",
+  "src/lib/clonestore/conversion/client-emitter.ts",
   "src/lib/clonestore/conversion/index.ts",
   "src/app/p/[token]/route.ts",
   "src/app/api/conversion/events/route.ts",
   "src/app/api/conversion/diagnostic/route.ts",
   "src/app/demo/pierre/layout.tsx",
   "src/app/demo/pierre/_variant/VariantHero.tsx",
+  "src/app/demo/pierre/_variant/DemoEventTracker.tsx",
   "src/app/diagnostic-rh/page.tsx",
   "src/app/diagnostic-rh/_components/DiagnosticForm.tsx",
   "supabase/sql/BLOC_3_CONVERSION_INTEGRATION.sql",
+  FIXTURE_PATH,
 ];
-const missing = expectedFiles.filter((p) => !existsSync(resolve(ROOT, p)));
-if (missing.length > 0) {
-  console.error(`[b3-check] fichiers manquants:\n${missing.map((f) => `  - ${f}`).join("\n")}`);
-  process.exit(2);
-}
+const allFilesPresent = check("all expected files present", () =>
+  expectedFiles.every((p) => existsSync(resolve(ROOT, p))),
+);
 
-// 2) Charger le verdict (compilé à la volée via tsx? non — on lit le fingerprint
-// via une mini-évaluation Node en ESM directement depuis le source compilé).
-// Plus simple : on exécute vitest ciblé qui ne tape ni Supabase ni Stripe.
+// --- 4) TypeScript --------------------------------------------------------
 const tsc = spawnSync("npx", ["tsc", "--noEmit"], { encoding: "utf8", shell: true });
-if (tsc.status !== 0) {
-  console.error(`[b3-check] tsc échec:\n${tsc.stdout}\n${tsc.stderr}`);
-  process.exit(2);
-}
+const tsOk = check("tsc --noEmit", () => tsc.status === 0);
 
+// --- 5) Tests BLOC 3 ciblé -----------------------------------------------
 const vitest = spawnSync(
   "npx",
   ["vitest", "run", "src/lib/clonestore/conversion/__tests__/"],
   { encoding: "utf8", shell: true },
 );
-if (vitest.status !== 0) {
-  console.error(`[b3-check] vitest échec:\n${vitest.stdout?.slice(-3000) ?? ""}\n${vitest.stderr?.slice(-1500) ?? ""}`);
-  process.exit(2);
-}
+const bloc3Ok = check("BLOC 3 vitest suite", () => vitest.status === 0);
 
-// 3) Verdict structurel.
+// --- Rapport et verdict ---------------------------------------------------
+const checks = [
+  fixturePresent,
+  fingerprintMatches,
+  allFilesPresent,
+  checkoutWired,
+  webhookWired,
+  tsOk,
+  bloc3Ok,
+];
+
+const failed = checks.filter((c) => !c.ok);
+
 const report = {
   bloc: "BLOC_3_V0_CONVERSION_ENGINE",
-  verdict: "V0_CONVERSION_ENGINE_CODE_READY_EXTERNAL_ACTIVATION_REQUIRED",
   leadforge_commit: "db9b166",
-  files_checked: expectedFiles.length,
-  ts_status: "ok",
-  vitest_status: "ok",
+  fixture_fingerprint: fixture?.contract_canonical_json_sha256 ?? null,
+  checks,
   blocking_external: [
-    "Stripe live non activé (TEST uniquement requis par ce bloc)",
-    "Aucune vraie grant LeadForge importée dans ce dépôt",
-    "Aucune campagne réelle activée depuis CloneStore",
+    "Stripe live non activé (TEST uniquement requis par BLOC 3)",
+    "Aucune vraie grant LeadForge importée dans CloneStore",
+    "Aucune campagne réelle activée",
     "Domaines outreach non provisionnés",
+    "Public launch flags inchangés",
   ],
   notes: [
-    "Pas d'activation publique modifiée par ce bloc.",
-    "Pas de modification des go-live proofs.",
+    "Pas d'activation publique modifiée.",
     "Pas de Stripe live, pas d'email réel, pas de paiement réel.",
   ],
 };
 
-console.log(JSON.stringify(report, null, 2));
-process.exit(report.blocking_external.length > 0 ? 1 : 0);
+if (failed.length === 0) {
+  report.verdict = "V0_CONVERSION_ENGINE_CODE_READY_EXTERNAL_ACTIVATION_REQUIRED";
+  console.log(JSON.stringify(report, null, 2));
+  process.exit(report.blocking_external.length > 0 ? 1 : 0);
+} else {
+  // Map du premier échec → verdict spécifique
+  const first = failed[0];
+  const map = {
+    "fixture present": "V0_CONVERSION_ENGINE_BLOCKED_FIXTURE_MISSING",
+    "fixture fingerprint matches": "V0_CONVERSION_ENGINE_BLOCKED_CONTRACT_DRIFT",
+    "all expected files present": "V0_CONVERSION_ENGINE_BLOCKED_MISSING_FILES",
+    "/api/checkout bridge wired": "V0_CONVERSION_ENGINE_BLOCKED_CHECKOUT_ROUTE_NOT_WIRED",
+    "/api/webhooks/stripe bridge wired": "V0_CONVERSION_ENGINE_BLOCKED_WEBHOOK_ROUTE_NOT_WIRED",
+    "tsc --noEmit": "V0_CONVERSION_ENGINE_BLOCKED_BUILD_FAILURE",
+    "BLOC 3 vitest suite": "V0_CONVERSION_ENGINE_BLOCKED_FULL_SUITE_FAILURE",
+  };
+  report.verdict = map[first.label] ?? "V0_CONVERSION_ENGINE_BLOCKED_MISSING_EVIDENCE";
+  console.log(JSON.stringify(report, null, 2));
+  process.exit(2);
+}

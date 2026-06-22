@@ -1,77 +1,116 @@
 import { describe, it, expect } from "vitest";
-import { CLAIMS_REGISTRY, buildEvidenceMatrix, listClaimsByStatus } from "../claims-registry";
-import { lintSurfaceCopy } from "../claims-linter";
+import { CLAIMS_REGISTRY, auditClaims, buildEvidenceMatrix, isActivatable, isShadowAllowed, claimAllowedOnSurface } from "../claims-registry";
+import { lintContent, lintReport } from "../claims-linter";
 
-describe("BLOC 3 — claims registry", () => {
-  it("toutes les claims VERIFIED_PRODUCT_FACT ont au moins une pièce d'evidence", () => {
-    for (const c of Object.values(CLAIMS_REGISTRY)) {
-      if (c.status === "VERIFIED_PRODUCT_FACT") {
-        expect(c.evidence.length).toBeGreaterThan(0);
-        expect(c.authorizedText.length).toBeGreaterThan(0);
-      }
+describe("BLOC 3 — claims registry (conforme LeadForge db9b166)", () => {
+  it("8 claims exactes (alignées avec _SEED_CLAIMS Python)", () => {
+    expect(Object.keys(CLAIMS_REGISTRY).sort()).toEqual([
+      "company_adaptation",
+      "demo_timing",
+      "human_validation",
+      "pierre_is_role",
+      "price_monthly",
+      "recurring_work",
+      "traceability",
+      "volume_estimate",
+    ]);
+  });
+
+  it("price_monthly = VERIFIED_PRICE, activatable en real", () => {
+    expect(CLAIMS_REGISTRY.price_monthly.status).toBe("VERIFIED_PRICE");
+    expect(isActivatable("price_monthly")).toBe(true);
+    expect(isShadowAllowed("price_monthly")).toBe(true);
+  });
+
+  it("volume_estimate = ASSUMPTION_REQUIRES_DISCLOSURE, activatable", () => {
+    expect(CLAIMS_REGISTRY.volume_estimate.status).toBe("ASSUMPTION_REQUIRES_DISCLOSURE");
+    expect(isActivatable("volume_estimate")).toBe(true);
+  });
+
+  it("pierre_is_role/human_validation/traceability/company_adaptation/recurring_work = PENDING_CLONESTORE_PRODUCT_VERIFICATION", () => {
+    for (const id of ["pierre_is_role", "human_validation", "traceability", "company_adaptation", "recurring_work"] as const) {
+      expect(CLAIMS_REGISTRY[id].status).toBe("PENDING_CLONESTORE_PRODUCT_VERIFICATION");
+      expect(isActivatable(id)).toBe(false);
+      expect(isShadowAllowed(id)).toBe(true);
     }
   });
 
-  it("buildEvidenceMatrix retourne 6 entrées", () => {
-    expect(buildEvidenceMatrix().length).toBe(6);
+  it("demo_timing = PENDING_DEMO_TIMING_MEASUREMENT, non activatable", () => {
+    expect(CLAIMS_REGISTRY.demo_timing.status).toBe("PENDING_DEMO_TIMING_MEASUREMENT");
+    expect(isActivatable("demo_timing")).toBe(false);
   });
 
-  it("liste les claims pending", () => {
-    const pending = listClaimsByStatus("PENDING_CLONESTORE_PRODUCT_VERIFICATION");
-    // company_adaptation est conservé pending tant que l'Empreinte produit n'est pas
-    // entièrement reflétée dans la démo publique.
-    expect(pending.map((c) => c.id)).toContain("company_adaptation");
+  it("claimAllowedOnSurface respecte SURFACE_ALLOWED_CLAIMS", () => {
+    expect(claimAllowedOnSurface("price_monthly", "pricing")).toBe(true);
+    expect(claimAllowedOnSurface("volume_estimate", "pricing")).toBe(false);
+    expect(claimAllowedOnSurface("volume_estimate", "diagnostic")).toBe(true);
+    expect(claimAllowedOnSurface("company_adaptation", "demo")).toBe(true);
+  });
+
+  it("buildEvidenceMatrix expose tous les attributs LeadForge", () => {
+    const matrix = buildEvidenceMatrix();
+    expect(matrix.length).toBe(8);
+    const price = matrix.find((m) => m.claimId === "price_monthly")!;
+    expect(price.realActivatable).toBe(true);
+    expect(price.shadowAllowed).toBe(true);
+  });
+
+  it("auditClaims retourne les bons counts par statut", () => {
+    const audit = auditClaims();
+    expect(audit.total).toBe(8);
+    expect(audit.realActivatableIds).toEqual(["price_monthly", "volume_estimate"]);
+    expect(audit.pendingProductIds.length).toBe(5);
+    expect(audit.pendingTimingIds).toEqual(["demo_timing"]);
   });
 });
 
-describe("BLOC 3 — claims linter", () => {
-  it("détecte une fausse promesse temporelle", () => {
-    const report = lintSurfaceCopy({ surface: "landing", text: "Pierre prépare votre RH en deux minutes." });
-    expect(report.ok).toBe(false);
-    expect(report.issues.some((i) => i.code === "FAKE_DURATION_PROMISE")).toBe(true);
+describe("BLOC 3 — claims linter (conforme claims.py:lint_content)", () => {
+  it("détecte certification ISO", () => {
+    const issues = lintContent({ text: "Solution certifiée ISO 27001" });
+    expect(issues).toContain("fake_certification");
   });
 
-  it("détecte une garantie", () => {
-    const report = lintSurfaceCopy({ surface: "pricing", text: "Satisfaction garantie pour vos équipes RH." });
-    expect(report.ok).toBe(false);
-    expect(report.issues.some((i) => i.code === "FAKE_GUARANTEE")).toBe(true);
+  it("détecte ROI inventé", () => {
+    const issues = lintContent({ text: "+42% de productivité RH garanti" });
+    expect(issues.some((i) => i.startsWith("guaranteed_roi") || i === "guaranteed_roi")).toBe(true);
   });
 
-  it("détecte un faux 100% automatique", () => {
-    const r = lintSurfaceCopy({ surface: "demo", text: "Pierre est 100% automatique sur l'absentéisme." });
-    expect(r.issues.some((i) => i.code === "FAKE_FULL_AUTOMATION")).toBe(true);
+  it("détecte 100% autonome", () => {
+    const issues = lintContent({ text: "Pierre est 100% autonome" });
+    expect(issues).toContain("fully_autonomous");
   });
 
-  it("détecte un ROI inventé", () => {
-    const r = lintSurfaceCopy({ surface: "result", text: "+42% de productivité RH constatés." });
-    expect(r.issues.some((i) => i.code === "FAKE_ROI")).toBe(true);
+  it("détecte fausse urgence / discount", () => {
+    expect(lintContent({ text: "Offre limitée — dépêchez-vous !" })).toContain("artificial_urgency");
+    expect(lintContent({ text: "Essai gratuit 7 jours" })).toContain("invented_discount");
   });
 
-  it("détecte une certification ISO non prouvée", () => {
-    const r = lintSurfaceCopy({ surface: "landing", text: "Solution certifiée ISO 27001 et conforme HDS." });
-    expect(r.issues.some((i) => i.code === "FAKE_CERTIFICATION")).toBe(true);
+  it("détecte prix divergent (199€/mois)", () => {
+    const issues = lintContent({ text: "Pierre à 199€/mois" });
+    expect(issues.some((i) => i === "wrong_price:199")).toBe(true);
   });
 
-  it("détecte un drift de prix", () => {
-    const r = lintSurfaceCopy({ surface: "pricing", text: "Découvrez Pierre à 499 € /mois." });
-    expect(r.issues.some((i) => i.code === "PRICE_DRIFT")).toBe(true);
+  it("accepte le prix correct 449 €/mois", () => {
+    const issues = lintContent({ text: "Pierre à 449 €/mois" });
+    expect(issues.some((i) => i.startsWith("wrong_price"))).toBe(false);
   });
 
-  it("accepte un texte propre 449 €", () => {
-    const r = lintSurfaceCopy({
-      surface: "pricing",
-      text: "Pierre — 449 € HT/mois. Validation humaine obligatoire pour les actes sensibles.",
-      referencedClaimIds: ["pierre_price_449", "human_validation"],
+  it("mode real_activation refuse les claims pending", () => {
+    const r = lintReport({
+      text: "Pierre s'adapte à votre entreprise (CloneADN).",
+      claimIds: ["company_adaptation"],
+      mode: "real_activation",
+    });
+    expect(r.ok).toBe(false);
+    expect(r.issues.some((i) => i.startsWith("non_activatable_claim:company_adaptation"))).toBe(true);
+  });
+
+  it("mode shadow accepte les claims pending", () => {
+    const r = lintReport({
+      text: "Pierre s'adapte à votre entreprise.",
+      claimIds: ["company_adaptation"],
+      mode: "shadow",
     });
     expect(r.ok).toBe(true);
-  });
-
-  it("refuse une claim sur une surface où elle n'est pas autorisée", () => {
-    const r = lintSurfaceCopy({
-      surface: "checkout_copy",
-      text: "Pierre s'adapte à votre entreprise.",
-      referencedClaimIds: ["company_adaptation"],
-    });
-    expect(r.issues.some((i) => i.code === "CLAIM_NOT_ALLOWED_ON_SURFACE")).toBe(true);
   });
 });

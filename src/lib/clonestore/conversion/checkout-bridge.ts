@@ -1,32 +1,36 @@
-// BLOC 3 — Pont Checkout / Webhook.
+// BLOC 3 — Pont Checkout / Webhook conforme contrat LeadForge db9b166.
 //
-// Module ADDITIF : ne remplace pas /api/checkout ni /api/webhooks/stripe, ne
-// duplique ni l'auth, ni le billing engine, ni le onboarding. Il fournit
-// uniquement des helpers purs que les routes existantes peuvent appeler côté
-// serveur après leurs propres garde-fous (idempotency, signature, etc.).
-//
-// Les helpers :
-//   • `buildConversionCheckoutMetadata` — prépare une metadata Stripe
-//     limitée à l'allowlist contractuelle (cf. contract.ts) et sans bearer/PII.
-//   • `bridgeCheckoutStarted` — émet l'événement serveur `checkout_started`
-//     attaché à la session de conversion lue dans le cookie signé.
-//   • `bridgeCheckoutCompleted` — émet `checkout_completed` à partir d'une
-//     metadata Stripe vérifiée (webhook-side, fail-closed sur signature/preuve).
-//
-// Aucun appel direct à Stripe ; aucun accès au navigateur ; aucun accès cross-tenant.
+// Module ADDITIF appelé par les routes Phase E existantes.
+// La metadata Stripe ne contient JAMAIS :
+//   • le bearer complet (token_id.signature)
+//   • un email de prospect
+//   • un SIREN
+//   • un secret
+// Cf. clonestore_contract.py:CHECKOUT_METADATA_FIELDS.
 
-import { FUNNEL_VERSION } from "./contract";
+import { CHECKOUT_METADATA_FIELDS, FUNNEL_VERSION } from "./contract";
 import { sanitizeCheckoutMetadata } from "./validation";
-import { recordConversionEvent, updateConversionSession, getConversionSession } from "./storage";
+import { safeProspectToken } from "./attribution-token";
+import {
+  recordConversionEvent,
+  updateConversionSession,
+  getConversionSession,
+  isConversionBackendAvailable,
+} from "./storage";
 import type { ConversionSession } from "./types";
 
 export interface ConversionMetadataInput {
-  conversion_session_id: string;
-  user_id: string;
-  agent_slug: string;
-  order_id?: string | null;
-  tenant_id?: string | null;
-  founder_reservation_id?: string | null;
+  conversionSessionId: string;
+  userId: string;
+  agentSlug: string;
+  orderId?: string | null;
+  tenantId?: string | null;
+  founderReservationId?: string | null;
+  /**
+   * Token public complet présent en cookie/back-channel (jamais en URL).
+   * Sera RÉDUIT à token_id (avant le ".") avant insertion en metadata.
+   */
+  prospectTokenRaw?: string | null;
 }
 
 export interface BuiltCheckoutMetadata {
@@ -35,23 +39,38 @@ export interface BuiltCheckoutMetadata {
   errors: readonly string[];
 }
 
+/**
+ * Construit la metadata Stripe SANS PII ni bearer. Inclut uniquement les
+ * 5 clés LeadForge (`prospect_token, campaign, cohort, variant, funnel_version`)
+ * + les clés CloneStore (`user_id, agent_slug, order_id, tenant_id,
+ * founder_reservation_id`) — toutes validées par l'allowlist.
+ */
 export function buildConversionCheckoutMetadata(input: ConversionMetadataInput): BuiltCheckoutMetadata {
-  const session = getConversionSession(input.conversion_session_id);
+  const session = getConversionSession(input.conversionSessionId);
+  const variant = session?.variant ?? "VARIANT_ORGANIC";
   const base: Record<string, string> = {
-    user_id: input.user_id,
-    agent_slug: input.agent_slug,
-    conversion_session_id: input.conversion_session_id,
-    funnel_version: FUNNEL_VERSION,
-    conversion_variant: session?.variant ?? "VARIANT_ORGANIC",
+    // Allowlist LeadForge
+    variant,
+    funnel_version: session?.funnelVersion ?? FUNNEL_VERSION,
+    // Allowlist CloneStore (additionnelle, autorisée par validation.ts)
+    user_id: input.userId,
+    agent_slug: input.agentSlug,
   };
-  if (input.order_id) base.order_id = input.order_id;
-  if (input.tenant_id) base.tenant_id = input.tenant_id;
-  if (input.founder_reservation_id) base.founder_reservation_id = input.founder_reservation_id;
-  if (session?.campaign) base.conversion_campaign = session.campaign;
-  if (session?.cohort) base.conversion_cohort = session.cohort;
+  if (session?.campaign) base.campaign = session.campaign;
+  if (session?.cohort) base.cohort = session.cohort;
+  if (input.orderId) base.order_id = input.orderId;
+  if (input.tenantId) base.tenant_id = input.tenantId;
+  if (input.founderReservationId) base.founder_reservation_id = input.founderReservationId;
+  if (input.prospectTokenRaw) {
+    const reduced = safeProspectToken(input.prospectTokenRaw);
+    if (reduced) base.prospect_token = reduced;
+  }
   const sanitized = sanitizeCheckoutMetadata(base);
   return { ok: sanitized.ok, metadata: sanitized.cleaned, errors: sanitized.errors };
 }
+
+// Export les noms de champs LeadForge pour permettre aux tests d'audit.
+export const LEADFORGE_CHECKOUT_METADATA_FIELDS = CHECKOUT_METADATA_FIELDS;
 
 export interface BridgeCheckoutEventResult {
   ok: boolean;
@@ -65,6 +84,7 @@ export function bridgeCheckoutStarted(args: {
   userId: string;
   tenantId?: string | null;
 }): BridgeCheckoutEventResult {
+  if (!isConversionBackendAvailable()) return { ok: false, reason: "backend_unavailable" };
   const existing = getConversionSession(args.sessionId);
   if (!existing) return { ok: false, reason: "session_not_found" };
   const session = updateConversionSession(args.sessionId, {
@@ -76,13 +96,9 @@ export function bridgeCheckoutStarted(args: {
   if (!session) return { ok: false, reason: "session_update_failed" };
   recordConversionEvent({
     sessionId: args.sessionId,
-    eventId: "checkout_started",
+    eventType: "checkout_started",
     idempotencyKey: `checkout_started:${args.sessionId}:${args.orderId ?? "no_order"}`,
-    metadata: {
-      variant: session.variant,
-      cohort: session.cohort ?? null,
-      campaign: session.campaign ?? null,
-    },
+    metadata: { stage: "checkout_pending" },
   });
   return { ok: true, session };
 }
@@ -91,43 +107,62 @@ export function bridgeCheckoutCompleted(args: {
   metadata: Readonly<Record<string, string>>;
   orderId?: string | null;
 }): BridgeCheckoutEventResult {
-  const sessionId = args.metadata["conversion_session_id"];
-  if (!sessionId) return { ok: false, reason: "session_id_missing" };
-  const session = getConversionSession(sessionId);
+  if (!isConversionBackendAvailable()) return { ok: false, reason: "backend_unavailable" };
+  // La session est portée par metadata (server-side only — vérité)
+  const reducedToken = safeProspectToken(args.metadata["prospect_token"] ?? "");
+  const conversionSessionId =
+    args.metadata["conversion_session_id"] ??
+    args.metadata["session_id"] ??
+    "";
+  if (!conversionSessionId) return { ok: false, reason: "session_id_missing" };
+  const session = getConversionSession(conversionSessionId);
   if (!session) return { ok: false, reason: "session_not_found" };
-  // L'utilisateur authentifié doit correspondre à la session (si attaché). On
-  // ne change pas l'user_id ici — c'est la route checkout qui l'a déjà fait.
   if (args.metadata["user_id"] && session.userId && args.metadata["user_id"] !== session.userId) {
     return { ok: false, reason: "user_mismatch" };
   }
-  const updated = updateConversionSession(sessionId, {
+  const updated = updateConversionSession(conversionSessionId, {
     stage: "checkout_completed",
     orderId: args.orderId ?? session.orderId ?? null,
   });
   if (!updated) return { ok: false, reason: "session_update_failed" };
   recordConversionEvent({
-    sessionId,
-    eventId: "checkout_completed",
-    idempotencyKey: `checkout_completed:${sessionId}:${args.orderId ?? "no_order"}`,
-    metadata: {
-      variant: updated.variant,
-      cohort: updated.cohort ?? null,
-      campaign: updated.campaign ?? null,
-    },
+    sessionId: conversionSessionId,
+    eventType: "checkout_completed",
+    idempotencyKey: `checkout_completed:${conversionSessionId}:${args.orderId ?? "no_order"}`,
+    prospectToken: reducedToken,
+    metadata: { stage: "checkout_completed" },
   });
   return { ok: true, session: updated };
 }
 
+export function bridgeCheckoutFailed(args: {
+  sessionId: string;
+  reason: string;
+  orderId?: string | null;
+}): BridgeCheckoutEventResult {
+  if (!isConversionBackendAvailable()) return { ok: false, reason: "backend_unavailable" };
+  const session = getConversionSession(args.sessionId);
+  if (!session) return { ok: false, reason: "session_not_found" };
+  recordConversionEvent({
+    sessionId: args.sessionId,
+    eventType: "checkout_failed",
+    idempotencyKey: `checkout_failed:${args.sessionId}:${args.orderId ?? "no_order"}`,
+    metadata: { reason: args.reason.slice(0, 100) },
+  });
+  return { ok: true, session };
+}
+
 export function bridgePierreActivated(args: { sessionId: string }): BridgeCheckoutEventResult {
+  if (!isConversionBackendAvailable()) return { ok: false, reason: "backend_unavailable" };
   const existing = getConversionSession(args.sessionId);
   if (!existing) return { ok: false, reason: "session_not_found" };
   const session = updateConversionSession(args.sessionId, { stage: "activated" });
   if (!session) return { ok: false, reason: "session_update_failed" };
   recordConversionEvent({
     sessionId: args.sessionId,
-    eventId: "pierre_activated",
+    eventType: "pierre_activated",
     idempotencyKey: `pierre_activated:${args.sessionId}`,
-    metadata: { variant: session.variant },
+    metadata: { stage: "activated" },
   });
   return { ok: true, session };
 }

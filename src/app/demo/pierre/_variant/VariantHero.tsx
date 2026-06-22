@@ -65,6 +65,8 @@ export function VariantHero({ variant }: { variant: VariantId | "VARIANT_ORGANIC
           <div className="flex flex-wrap gap-3 pt-1">
             <Link
               href={copy.primary_cta.href}
+              data-conversion-cta="purchase"
+              data-cta-name={`variant_hero_primary_${variant}`}
               className="inline-flex h-11 items-center gap-2 rounded-full bg-[var(--cs-violet)] px-6 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5"
             >
               <span>{copy.primary_cta.label}</span>
@@ -72,6 +74,8 @@ export function VariantHero({ variant }: { variant: VariantId | "VARIANT_ORGANIC
             </Link>
             <Link
               href={copy.secondary_cta.href}
+              data-conversion-cta="assistance"
+              data-cta-name={`variant_hero_secondary_${variant}`}
               className="inline-flex h-11 items-center gap-2 rounded-full border border-[rgba(255,255,255,0.72)] bg-[linear-gradient(180deg,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.56)_100%)] px-5 text-sm font-semibold text-[var(--cs-ink-2)] shadow-[0_10px_30px_rgba(31,41,55,0.06),inset_0_1px_0_rgba(255,255,255,0.82)] transition-all hover:-translate-y-0.5"
             >
               {copy.secondary_cta.label}

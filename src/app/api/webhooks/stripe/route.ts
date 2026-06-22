@@ -12,6 +12,13 @@ import {
   isAccessGranted,
   isAccessRevoked,
 } from "@/lib/billing/stripe-activation";
+// BLOC 3 — pont conversion (additif, ne change pas la signature / ordre / DB).
+import {
+  bridgeCheckoutCompleted,
+  bridgeCheckoutFailed,
+  bridgePierreActivated,
+} from "@/lib/clonestore/conversion/checkout-bridge";
+import { isConversionBackendAvailable } from "@/lib/clonestore/conversion/storage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -144,6 +151,17 @@ export async function POST(req: Request) {
         customerId: getString(obj, "customer"),
       });
 
+      // ── BLOC 3 : pont conversion (additif, best-effort) ─────────
+      // N'agit QUE si la metadata Stripe contient conversion_session_id
+      // ET le backend conversion est disponible. Idempotent, ne bloque pas.
+      const meta = getMetadata(obj);
+      if (meta?.["conversion_session_id"] && isConversionBackendAvailable()) {
+        bridgeCheckoutCompleted({ metadata: meta, orderId: validation.subscription_id });
+        if (isAccessGranted(validation.status)) {
+          bridgePierreActivated({ sessionId: meta["conversion_session_id"] });
+        }
+      }
+
       return json(200, {
         received: true,
         type: event.type,
@@ -237,6 +255,16 @@ export async function POST(req: Request) {
       const subId = getString(obj, "subscription");
       if (subId) {
         await updateOrderBySubId(subId, { status: "past_due" });
+      }
+
+      // BLOC 3 : pont conversion failed (best-effort, ne bloque pas).
+      const meta = getMetadata(obj);
+      if (meta?.["conversion_session_id"] && isConversionBackendAvailable()) {
+        bridgeCheckoutFailed({
+          sessionId: meta["conversion_session_id"],
+          reason: "invoice.payment_failed",
+          orderId: subId,
+        });
       }
 
       return json(200, { received: true, type: event.type, subId });

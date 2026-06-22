@@ -13,6 +13,7 @@ import {
 } from "@/lib/clonestore/conversion/session";
 import { getConversionSession } from "@/lib/clonestore/conversion/storage";
 import { VariantHero } from "./_variant/VariantHero";
+import { DemoEventTracker } from "./_variant/DemoEventTracker";
 
 export const metadata: Metadata = {
   title: "Démo Pierre — CloneStore",
@@ -39,6 +40,7 @@ export default async function DemoPierreLayout({ children }: { children: React.R
         <VariantHero variant={variant} />
       )}
       {children}
+      <DemoEventTracker />
     </>
   );
 }

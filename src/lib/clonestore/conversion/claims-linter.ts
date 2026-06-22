@@ -1,147 +1,109 @@
-// BLOC 3 — Linter pur de claims sur surfaces marketing.
+// BLOC 3 — Claim linter conforme `services/conversion/claims.py:lint_content`.
 //
-// Détecte les formulations interdites tant qu'une preuve produit n'est pas validée.
-// Pas de promesse "deux minutes", pas de ROI inventé, pas de fake certification,
-// pas de "garantie", pas de "100% automatique", pas de claim pending présentée
-// comme vérité, pas de témoignage / faux logo / faux client.
+// Refus de motifs interdits (testimonial/logo/certif/ROI/etc.) et de prix
+// divergent. Deux modes :
+//   mode='shadow'           : autorise les claims pending (previews internes)
+//   mode='real_activation'  : refuse toute claim non REAL_ACTIVATABLE (fail closed)
 
-import { CLAIMS_REGISTRY } from "./claims-registry";
-import type { Surface } from "./claims-registry";
+import {
+  CLAIM_IDS,
+  ClaimId,
+  PIERRE_PRICE_EUR,
+} from "./contract";
+import { isActivatable, isShadowAllowed } from "./claims-registry";
 
-// Motifs interdits sur TOUTES les surfaces activables (regex insensibles à la casse).
-const FORBIDDEN_GENERIC: readonly { pattern: RegExp; code: string; message: string }[] = [
+export type LintMode = "shadow" | "real_activation";
+
+interface ForbiddenPattern {
+  code: string;
+  pattern: RegExp;
+}
+
+// Cf. claims.py:_FORBIDDEN_PATTERNS (réimplémentation 1:1).
+const FORBIDDEN_PATTERNS: readonly ForbiddenPattern[] = [
+  { code: "fake_testimonial", pattern: /«[^»]{0,120}»\s*[—-]\s*\w+|"[^"]{0,120}"\s*[—-]\s*(DRH|CEO|client)/gi },
   {
-    pattern: /\b(en|sous)\s*(une|1|2|deux|3|trois|cinq|5|dix|10)\s*minute/i,
-    code: "FAKE_DURATION_PROMISE",
-    message: "Promesse temporelle non prouvée par un benchmark conservé.",
+    code: "fake_customer_logo",
+    pattern:
+      /(ils nous font confiance|nos clients|déjà adopté par|trusted by|rejoint par|utilisé par .* entreprises)/gi,
+  },
+  { code: "fake_user_count", pattern: /\b(\d[\d\s.,]{2,})\s*(clients|entreprises|utilisateurs|DRH)\b/gi },
+  { code: "fake_certification", pattern: /\b(certifié|certification|ISO\s?\d+|SOC\s?2|agréé)\b/gi },
+  {
+    code: "guaranteed_roi",
+    pattern:
+      /(ROI garanti|garantie de résultat|économisez\s+\d|gagnez\s+\d+\s*(h|heures|%)|\d+\s*%\s*(de\s+)?(gain|économie|temps|productivité))/gi,
   },
   {
-    pattern: /\bgarantie?\b/i,
-    code: "FAKE_GUARANTEE",
-    message: "Aucune garantie autorisée sans pièce contractuelle vérifiée.",
+    code: "dept_replacement_guarantee",
+    pattern: /(remplace(z)?\s+(votre|le)\s+département|supprime(z)?\s+votre\s+équipe RH)/gi,
   },
   {
-    pattern: /\b100\s*%?\s*automatique\b/i,
-    code: "FAKE_FULL_AUTOMATION",
-    message: "Pierre n'est pas 100% automatique : validation humaine obligatoire.",
+    code: "fully_autonomous",
+    pattern: /(100\s*%\s*autonome|totalement autonome|sans aucune intervention|aucune supervision)/gi,
+  },
+  { code: "zero_error", pattern: /(z[ée]ro erreur|sans erreur|jamais d'erreur|infaillible)/gi },
+  { code: "rgpd_final_legal", pattern: /(100\s*%\s*conforme RGPD|conformité RGPD garantie|validé juridiquement)/gi },
+  {
+    code: "artificial_urgency",
+    pattern: /(offre limitée|plus que \d+ places|derniers jours|expire dans|dépêchez|seulement aujourd'hui)/gi,
   },
   {
-    pattern: /\b(\d{1,3}(?:[,.]\d+)?)\s*%\s+(?:de\s+)?(?:productiv|gain|économ|économie)/i,
-    code: "FAKE_ROI",
-    message: "ROI chiffré sans modèle justifié et hypothèses visibles.",
-  },
-  {
-    pattern: /\b(?:certifié|ISO\s*\d{3,5}|RGPD\s+certifié|HDS\b)/i,
-    code: "FAKE_CERTIFICATION",
-    message: "Certification déclarée sans preuve dans le contrat — interdit.",
-  },
-  {
-    pattern: /\b(?:nos|de)\s+clients?\s+(?:disent|nous\s+disent|témoignent)/i,
-    code: "FAKE_TESTIMONIAL_LEADIN",
-    message: "Témoignage client invoqué sans pièce vérifiable — interdit.",
-  },
-  {
-    pattern: /\b(?:offre|prix)\s+limit[ée]e?\b/i,
-    code: "FAKE_SCARCITY",
-    message: "Faux badge d'urgence — interdit.",
-  },
-  {
-    pattern: /\bavocat\s+intégré\b/i,
-    code: "FAKE_LEGAL_CAPABILITY",
-    message: "Pierre n'est pas avocat — claim interdite.",
-  },
-  {
-    pattern: /\bsignature\s+(?:juridiquement|légalement)\s+contraignante\b/i,
-    code: "FAKE_BINDING_SIGNATURE",
-    message: "Pierre ne signe pas de document contractuel.",
+    code: "invented_discount",
+    pattern: /(-\s?\d+\s*%|remise|réduction|promo|gratuit pendant|essai gratuit|7 jours)/gi,
   },
 ];
 
-// Tarif autorisé : 449 € HT/mois. Un autre tarif marketing visible est un drift.
-const PRICE_PATTERN = /\b(\d{2,4})\s*€\s*(HT\s*)?\/?\s*mois\b/i;
-
-export interface LintIssue {
-  surface: Surface;
-  code: string;
-  message: string;
-  excerpt: string;
-}
-
-export interface LintReport {
-  ok: boolean;
-  issues: readonly LintIssue[];
-}
+const PRICE_RE = /(?<!\d)(\d{2,4})\s*(?:€|eur)\s*(?:\/?\s*mois|\/?\s*mo)\b/gi;
 
 export interface LintInput {
-  surface: Surface;
-  /** Texte combiné de la surface (titres, sous-titres, FAQ, CTA, etc.). */
+  surface?: string;
   text: string;
-  /** Liste des claim ids effectivement référencées par la surface (pour audit pending). */
-  referencedClaimIds?: readonly string[];
+  claimIds?: readonly string[];
+  mode?: LintMode;
 }
 
-export function lintSurfaceCopy(input: LintInput): LintReport {
-  const issues: LintIssue[] = [];
+/** Retourne une liste de codes de violations ([] = clean). */
+export function lintContent(input: LintInput): string[] {
+  const issues: string[] = [];
   const text = input.text ?? "";
-  for (const rule of FORBIDDEN_GENERIC) {
-    const match = text.match(rule.pattern);
-    if (match) {
-      issues.push({
-        surface: input.surface,
-        code: rule.code,
-        message: rule.message,
-        excerpt: excerpt(text, match.index ?? 0),
-      });
+  const mode = input.mode ?? "shadow";
+
+  for (const { code, pattern } of FORBIDDEN_PATTERNS) {
+    pattern.lastIndex = 0; // reset les regex /g
+    if (pattern.test(text)) issues.push(code);
+  }
+
+  PRICE_RE.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = PRICE_RE.exec(text)) !== null) {
+    const n = Number(m[1]);
+    if (Number.isFinite(n) && n !== PIERRE_PRICE_EUR) {
+      issues.push(`wrong_price:${m[1]}`);
     }
   }
-  // Cohérence prix : si un montant /mois apparaît, il doit être 449 €.
-  let priceMatch: RegExpExecArray | null;
-  const priceRe = new RegExp(PRICE_PATTERN, "gi");
-  while ((priceMatch = priceRe.exec(text)) !== null) {
-    const cents = Number(priceMatch[1]);
-    if (Number.isFinite(cents) && cents !== 449) {
-      issues.push({
-        surface: input.surface,
-        code: "PRICE_DRIFT",
-        message: `Tarif marketing divergent du contrat (${cents} € au lieu de 449 €).`,
-        excerpt: excerpt(text, priceMatch.index),
-      });
-    }
-  }
-  // Claims pending référencées sur surface activable.
-  for (const claimId of input.referencedClaimIds ?? []) {
-    const claim = (CLAIMS_REGISTRY as Record<string, { status: string; allowedSurfaces: readonly Surface[] }>)[claimId];
-    if (!claim) {
-      issues.push({
-        surface: input.surface,
-        code: "CLAIM_UNKNOWN",
-        message: `Claim référencée mais inconnue: ${claimId}`,
-        excerpt: claimId,
-      });
+
+  for (const cid of input.claimIds ?? []) {
+    if (!(CLAIM_IDS as readonly string[]).includes(cid)) {
+      issues.push(`unknown_claim:${cid}`);
       continue;
     }
-    if (!claim.allowedSurfaces.includes(input.surface)) {
-      issues.push({
-        surface: input.surface,
-        code: "CLAIM_NOT_ALLOWED_ON_SURFACE",
-        message: `Claim ${claimId} non autorisée sur la surface ${input.surface}.`,
-        excerpt: claimId,
-      });
-    }
-    if (claim.status === "PROHIBITED_ON_SURFACE") {
-      issues.push({
-        surface: input.surface,
-        code: "CLAIM_PROHIBITED",
-        message: `Claim ${claimId} interdite sur les surfaces marketing.`,
-        excerpt: claimId,
-      });
+    const permitted = mode === "shadow" ? isShadowAllowed : isActivatable;
+    if (!permitted(cid as ClaimId)) {
+      const label = mode === "real_activation" ? "non_activatable_claim" : "non_shadow_claim";
+      issues.push(`${label}:${cid}`);
     }
   }
-  return { ok: issues.length === 0, issues };
+  return issues;
 }
 
-function excerpt(text: string, index: number): string {
-  const start = Math.max(0, index - 24);
-  const end = Math.min(text.length, index + 60);
-  return text.slice(start, end).replace(/\s+/g, " ").trim();
+export type LintReport = {
+  ok: boolean;
+  issues: readonly string[];
+};
+
+/** Helper wrapper qui renvoie un rapport. */
+export function lintReport(input: LintInput): LintReport {
+  const issues = lintContent(input);
+  return { ok: issues.length === 0, issues };
 }

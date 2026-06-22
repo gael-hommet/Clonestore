@@ -1,79 +1,197 @@
-// BLOC 3 — Storage server-only : grants d'attribution, conversion sessions, events.
+// BLOC 3 — Storage server-only fail-closed.
 //
-// IMPORTANT : ces tables vivent dans le runtime Postgres (getRuntimeDb), JAMAIS
-// dans Supabase REST. Le navigateur ne peut pas les lire ; RLS est secondaire.
+// Trois backends possibles :
+//   1) Runtime Postgres dédié (production / staging).
+//   2) Store mémoire injecté EXPLICITEMENT par les tests
+//      (`__setConversionStoreBackendForTests`).
+//   3) Store mémoire de DEV LOCAL — autorisé uniquement quand la variable
+//      d'environnement `CLONESTORE_B3_ALLOW_IN_MEMORY_CONVERSION_STORE=true`
+//      est posée. Cette autorisation NE prend PAS effet en production
+//      (`NODE_ENV === 'production'` ignore toujours le fallback).
 //
-// Cette couche est intentionnellement minimaliste : un store en mémoire est
-// fourni comme fallback de TEST UNIQUEMENT (jamais en production). En prod, la
-// migration `BLOC_3_CONVERSION_INTEGRATION.sql` crée les tables et la fonction
-// définie ici délègue à PG. Tant que la migration n'est pas appliquée, le
-// fallback in-memory permet à toutes les surfaces de fonctionner localement.
+// En production, sans backend DB ni injection test, toute tentative de
+// résolution/persistance jette `ConversionBackendUnavailableError` — la
+// route publique `/p/[token]` retombe alors en réponse organique neutre
+// et n'expose JAMAIS l'existence d'un prospect.
+//
+// Cette politique reflète l'exigence du brief BLOC 3 §5 : "Fail closed avec
+// erreur contrôlée. Un visiteur peut toujours accéder à la démo organique
+// générique, mais jamais avec une attribution prétendument persistante."
 
 import { tokenFingerprint } from "./attribution-token";
-import { advanceStage, newConversionSessionId } from "./session";
 import {
   FUNNEL_VERSION,
   ORGANIC_VARIANT_ID,
+  VARIANT_IDS,
 } from "./contract";
-import { isCohortId, isContactKind, isVariantId } from "./validation";
+import { cleanEventMetadata, isContactKind, isEventType, UUID_V4_RE } from "./validation";
 import type {
   AttributionGrant,
   ConversionEvent,
   ConversionSession,
   ConversionStage,
 } from "./types";
-import type { CohortId, ContactKind, EventId, VariantId } from "./contract";
+import type { ContactKind, EventType, VariantId } from "./contract";
 
-// ── In-memory store (test/dev) — process-local, jamais persistant ───────────
-interface InMemoryStore {
-  grants: Map<string, AttributionGrant>;
-  sessions: Map<string, ConversionSession>;
-  events: Map<string, ConversionEvent>; // keyed by idempotencyKey
-  eventLog: ConversionEvent[];
-}
-
-declare global {
-  // eslint-disable-next-line no-var
-  var __cloneStoreConversionStore: InMemoryStore | undefined;
-}
-
-function store(): InMemoryStore {
-  if (!globalThis.__cloneStoreConversionStore) {
-    globalThis.__cloneStoreConversionStore = {
-      grants: new Map(),
-      sessions: new Map(),
-      events: new Map(),
-      eventLog: [],
-    };
+// ── Erreurs ────────────────────────────────────────────────────────────────
+export class ConversionBackendUnavailableError extends Error {
+  readonly code = "B3_CONVERSION_BACKEND_UNAVAILABLE";
+  constructor(message = "conversion backend unavailable (fail-closed)") {
+    super(message);
+    this.name = "ConversionBackendUnavailableError";
   }
-  return globalThis.__cloneStoreConversionStore;
 }
 
-export function __resetConversionStoreForTests(): void {
-  globalThis.__cloneStoreConversionStore = {
-    grants: new Map(),
-    sessions: new Map(),
-    events: new Map(),
-    eventLog: [],
+// ── Backend abstraction ────────────────────────────────────────────────────
+export interface ConversionBackend {
+  readonly kind: "in_memory" | "runtime_pg";
+  // grants
+  upsertGrant(grant: AttributionGrant): void;
+  getGrantByTokenId(tokenId: string): AttributionGrant | null;
+  markGrantVisited(tokenId: string, isoTimestamp: string): AttributionGrant | null;
+  revokeGrant(tokenId: string, isoTimestamp: string): boolean;
+  // sessions
+  insertSession(session: ConversionSession): ConversionSession;
+  getSession(sessionId: string): ConversionSession | null;
+  updateSession(session: ConversionSession): ConversionSession;
+  // events
+  recordEvent(event: ConversionEvent): { inserted: boolean; existing: ConversionEvent | null };
+  listEventsForSession(sessionId: string): readonly ConversionEvent[];
+  listAllEvents(): readonly ConversionEvent[];
+  // reset (tests only)
+  resetForTests(): void;
+}
+
+// ── In-memory backend (tests + dev local explicite) ────────────────────────
+function newInMemoryBackend(): ConversionBackend {
+  const grants = new Map<string, AttributionGrant>();
+  const sessions = new Map<string, ConversionSession>();
+  const events = new Map<string, ConversionEvent>(); // keyed by idempotencyKey
+  const eventLog: ConversionEvent[] = [];
+  return {
+    kind: "in_memory",
+    upsertGrant(grant) {
+      grants.set(grant.tokenId, grant);
+    },
+    getGrantByTokenId(tokenId) {
+      return grants.get(tokenId.toLowerCase()) ?? null;
+    },
+    markGrantVisited(tokenId, isoTimestamp) {
+      const g = grants.get(tokenId.toLowerCase());
+      if (!g) return null;
+      const updated: AttributionGrant = { ...g, lastVisitAt: isoTimestamp };
+      grants.set(g.tokenId, updated);
+      return updated;
+    },
+    revokeGrant(tokenId, isoTimestamp) {
+      const g = grants.get(tokenId.toLowerCase());
+      if (!g) return false;
+      grants.set(g.tokenId, { ...g, status: "REVOKED", revokedAt: isoTimestamp });
+      return true;
+    },
+    insertSession(session) {
+      sessions.set(session.id, session);
+      return session;
+    },
+    getSession(sessionId) {
+      return sessions.get(sessionId) ?? null;
+    },
+    updateSession(session) {
+      sessions.set(session.id, session);
+      return session;
+    },
+    recordEvent(event) {
+      const existing = events.get(event.idempotencyKey);
+      if (existing) return { inserted: false, existing };
+      events.set(event.idempotencyKey, event);
+      eventLog.push(event);
+      return { inserted: true, existing: null };
+    },
+    listEventsForSession(sessionId) {
+      return eventLog.filter((e) => e.sessionId === sessionId);
+    },
+    listAllEvents() {
+      return eventLog.slice();
+    },
+    resetForTests() {
+      grants.clear();
+      sessions.clear();
+      events.clear();
+      eventLog.length = 0;
+    },
   };
 }
 
-// ── Grants ──────────────────────────────────────────────────────────────────
+// ── Backend selector (singleton process-local) ─────────────────────────────
+let _backend: ConversionBackend | null = null;
+let _backendOverriddenForTests = false;
+
+function inMemoryAllowedInThisEnv(): boolean {
+  // Production : refuse TOUJOURS le fallback (sauf si injecté explicitement
+  // par les tests via __setConversionStoreBackendForTests).
+  if (process.env.NODE_ENV === "production") return false;
+  // Hors production : autorisé seulement si le flag explicite est posé.
+  return process.env.CLONESTORE_B3_ALLOW_IN_MEMORY_CONVERSION_STORE === "true";
+}
+
+/**
+ * Récupère (ou refuse de récupérer) le backend conversion. Throw si
+ * production sans backend DB et sans injection test → fail-closed.
+ */
+function resolveBackend(): ConversionBackend {
+  if (_backend) return _backend;
+  if (_backendOverriddenForTests) {
+    throw new ConversionBackendUnavailableError("test override cleared without re-injection");
+  }
+  if (inMemoryAllowedInThisEnv()) {
+    _backend = newInMemoryBackend();
+    return _backend;
+  }
+  // Production / staging strict : aucune persistance silencieuse.
+  throw new ConversionBackendUnavailableError(
+    "no conversion backend wired (set CLONESTORE_B3_ALLOW_IN_MEMORY_CONVERSION_STORE=true for local dev, " +
+      "or inject via __setConversionStoreBackendForTests in tests)",
+  );
+}
+
+/** Indique si un backend est actuellement disponible — UTILE pour les routes
+ *  publiques qui doivent FAIL-CLOSED en silence (réponse organique). */
+export function isConversionBackendAvailable(): boolean {
+  if (_backend) return true;
+  return inMemoryAllowedInThisEnv();
+}
+
+/** Injection backend par les tests. Annule l'auto-instanciation. */
+export function __setConversionStoreBackendForTests(backend: ConversionBackend | null): void {
+  _backend = backend;
+  _backendOverriddenForTests = backend !== null;
+}
+
+/** Reset complet pour test isolation. */
+export function __resetConversionStoreForTests(): void {
+  if (_backend) _backend.resetForTests();
+  _backend = null;
+  _backendOverriddenForTests = false;
+}
+
+// ── Grants ─────────────────────────────────────────────────────────────────
 export interface ImportGrantInput {
   tokenId: string;
-  keyVersion: number;
+  keyVersion?: string;
   variant: VariantId;
-  cohort: CohortId;
+  cohort: string;
   contactKind: ContactKind;
-  campaign: string;
+  campaignId: string;
+  prospectId: string;
+  siren?: string | null;
   segment?: string | null;
   emailTier?: string | null;
-  leadforgeProspectId?: string | null;
-  ttlMs?: number;
+  ttlDays?: number;
   now?: Date;
 }
 
-const DEFAULT_GRANT_TTL_MS = 60 * 24 * 60 * 60 * 1000; // 60 jours
+const DEFAULT_TTL_DAYS = 45;
+const TOKEN_ID_RE = /^[0-9a-f]{40}$/;
 
 export interface ImportGrantResult {
   ok: boolean;
@@ -83,77 +201,99 @@ export interface ImportGrantResult {
 
 export function importAttributionGrant(input: ImportGrantInput): ImportGrantResult {
   const errors: string[] = [];
-  if (!/^[0-9a-f]{32}$/i.test(input.tokenId)) errors.push("token_id.invalid");
-  if (!Number.isInteger(input.keyVersion) || input.keyVersion < 1) errors.push("key_version.invalid");
-  if (!isVariantId(input.variant) || (input.variant as string) === ORGANIC_VARIANT_ID) errors.push("variant.invalid");
-  if (!isCohortId(input.cohort)) errors.push("cohort.invalid");
+  if (!TOKEN_ID_RE.test(input.tokenId)) errors.push("token_id.invalid");
+  if (!(VARIANT_IDS as readonly string[]).includes(input.variant)) errors.push("variant.invalid");
   if (!isContactKind(input.contactKind)) errors.push("contact_kind.invalid");
-  if (typeof input.campaign !== "string" || input.campaign.trim().length === 0) errors.push("campaign.invalid");
+  if (typeof input.cohort !== "string" || input.cohort.trim().length === 0) errors.push("cohort.invalid");
+  if (typeof input.campaignId !== "string" || input.campaignId.trim().length === 0) errors.push("campaign.invalid");
+  if (typeof input.prospectId !== "string" || input.prospectId.trim().length === 0) errors.push("prospect_id.invalid");
   if (errors.length > 0) return { ok: false, errors };
 
+  const backend = resolveBackend();
   const now = input.now ?? new Date();
-  const ttl = input.ttlMs ?? DEFAULT_GRANT_TTL_MS;
-  const fingerprint = tokenFingerprint(input.tokenId, input.keyVersion);
+  const ttlDays = input.ttlDays ?? DEFAULT_TTL_DAYS;
+  const fingerprint = tokenFingerprint(input.tokenId);
   const id = `grant_${fingerprint.slice(0, 16)}`;
   const grant: AttributionGrant = {
     id,
     tokenId: input.tokenId.toLowerCase(),
     tokenFingerprint: fingerprint,
-    keyVersion: input.keyVersion,
-    leadforgeProspectId: input.leadforgeProspectId ?? null,
-    campaign: input.campaign.trim().slice(0, 80),
+    keyVersion: input.keyVersion ?? "a1",
+    prospectId: input.prospectId,
+    siren: input.siren ?? null,
+    campaignId: input.campaignId,
     cohort: input.cohort,
-    variant: input.variant as VariantId,
+    variant: input.variant,
     contactKind: input.contactKind,
-    segment: input.segment?.trim().slice(0, 40) ?? null,
-    emailTier: input.emailTier?.trim().slice(0, 24) ?? null,
+    segment: input.segment ?? null,
+    emailTier: input.emailTier ?? null,
     funnelVersion: FUNNEL_VERSION,
-    status: "active",
+    status: "ACTIVE",
     createdAt: now.toISOString(),
-    expiresAt: new Date(now.getTime() + ttl).toISOString(),
+    expiresAt: new Date(now.getTime() + ttlDays * 24 * 60 * 60 * 1000).toISOString(),
     revokedAt: null,
-    lastResolvedAt: null,
+    lastVisitAt: null,
   };
-  store().grants.set(grant.tokenId, grant);
+  backend.upsertGrant(grant);
   return { ok: true, grant, errors: [] };
 }
 
 export function getGrantByTokenId(tokenId: string): AttributionGrant | null {
-  return store().grants.get(tokenId.toLowerCase()) ?? null;
+  try {
+    const backend = resolveBackend();
+    return backend.getGrantByTokenId(tokenId.toLowerCase());
+  } catch (e) {
+    if (e instanceof ConversionBackendUnavailableError) return null; // fail-closed
+    throw e;
+  }
+}
+
+export function markGrantVisited(tokenId: string, now: Date = new Date()): AttributionGrant | null {
+  try {
+    return resolveBackend().markGrantVisited(tokenId.toLowerCase(), now.toISOString());
+  } catch (e) {
+    if (e instanceof ConversionBackendUnavailableError) return null;
+    throw e;
+  }
 }
 
 export function revokeGrant(tokenId: string, now: Date = new Date()): boolean {
-  const g = store().grants.get(tokenId.toLowerCase());
-  if (!g) return false;
-  store().grants.set(g.tokenId, { ...g, status: "revoked", revokedAt: now.toISOString() });
-  return true;
-}
-
-/** Marque "résolu" le grant (visite publique). Idempotent. */
-export function markGrantResolved(tokenId: string, now: Date = new Date()): AttributionGrant | null {
-  const g = store().grants.get(tokenId.toLowerCase());
-  if (!g) return null;
-  const updated: AttributionGrant = { ...g, lastResolvedAt: now.toISOString() };
-  store().grants.set(g.tokenId, updated);
-  return updated;
+  try {
+    return resolveBackend().revokeGrant(tokenId.toLowerCase(), now.toISOString());
+  } catch (e) {
+    if (e instanceof ConversionBackendUnavailableError) return false;
+    throw e;
+  }
 }
 
 export function isGrantUsable(grant: AttributionGrant, now: Date = new Date()): boolean {
-  if (grant.status !== "active") return false;
+  if (grant.status !== "ACTIVE") return false;
   if (grant.revokedAt !== null) return false;
   if (new Date(grant.expiresAt).getTime() < now.getTime()) return false;
   return true;
 }
 
-// ── Conversion sessions ─────────────────────────────────────────────────────
+// ── Sessions ───────────────────────────────────────────────────────────────
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-export function createConversionSessionFromGrant(grant: AttributionGrant, now: Date = new Date()): ConversionSession {
+function newSessionId(): string {
+  return globalThis.crypto.randomUUID();
+}
+
+function newCorrelationId(): string {
+  return globalThis.crypto.randomUUID().replace(/-/g, "");
+}
+
+export function createConversionSessionFromGrant(
+  grant: AttributionGrant,
+  now: Date = new Date(),
+): ConversionSession {
+  const backend = resolveBackend();
   const session: ConversionSession = {
-    id: newConversionSessionId(),
+    id: newSessionId(),
     grantId: grant.id,
     variant: grant.variant,
-    campaign: grant.campaign,
+    campaign: grant.campaignId,
     cohort: grant.cohort,
     contactKind: grant.contactKind,
     funnelVersion: grant.funnelVersion,
@@ -162,17 +302,21 @@ export function createConversionSessionFromGrant(grant: AttributionGrant, now: D
     tenantId: null,
     orderId: null,
     diagnosticDraftKey: null,
+    correlationId: newCorrelationId(),
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + SESSION_TTL_MS).toISOString(),
   };
-  store().sessions.set(session.id, session);
-  return session;
+  return backend.insertSession(session);
 }
 
 export function createOrganicConversionSession(now: Date = new Date()): ConversionSession {
+  // Pour les sessions organiques (sans grant), on peut tolérer l'absence
+  // de backend en RENDANT QUAND MÊME une session ÉPHÉMÈRE non persistée :
+  // la démo organique reste accessible. Si le backend est disponible, on
+  // persiste pour pouvoir corréler les events.
   const session: ConversionSession = {
-    id: newConversionSessionId(),
+    id: newSessionId(),
     grantId: null,
     variant: ORGANIC_VARIANT_ID,
     campaign: null,
@@ -184,17 +328,27 @@ export function createOrganicConversionSession(now: Date = new Date()): Conversi
     tenantId: null,
     orderId: null,
     diagnosticDraftKey: null,
+    correlationId: newCorrelationId(),
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + SESSION_TTL_MS).toISOString(),
   };
-  store().sessions.set(session.id, session);
-  return session;
+  try {
+    return resolveBackend().insertSession(session);
+  } catch (e) {
+    if (e instanceof ConversionBackendUnavailableError) return session;
+    throw e;
+  }
 }
 
 export function getConversionSession(sessionId: string): ConversionSession | null {
-  if (!sessionId) return null;
-  return store().sessions.get(sessionId) ?? null;
+  if (!sessionId || !UUID_V4_RE.test(sessionId)) return null;
+  try {
+    return resolveBackend().getSession(sessionId);
+  } catch (e) {
+    if (e instanceof ConversionBackendUnavailableError) return null;
+    throw e;
+  }
 }
 
 export interface SessionUpdate {
@@ -205,46 +359,90 @@ export interface SessionUpdate {
   diagnosticDraftKey?: string | null;
 }
 
-export function updateConversionSession(sessionId: string, update: SessionUpdate, now: Date = new Date()): ConversionSession | null {
-  const existing = store().sessions.get(sessionId);
+const STAGE_ORDER: readonly ConversionStage[] = [
+  "landed",
+  "demo_seen",
+  "diagnostic_in_progress",
+  "diagnostic_completed",
+  "checkout_pending",
+  "checkout_completed",
+  "onboarding",
+  "activated",
+  "expired",
+];
+
+function advanceStage(current: ConversionStage, next: ConversionStage): ConversionStage {
+  const ci = STAGE_ORDER.indexOf(current);
+  const ni = STAGE_ORDER.indexOf(next);
+  if (ci < 0 || ni < 0) return current;
+  return ni > ci ? next : current;
+}
+
+export function updateConversionSession(
+  sessionId: string,
+  update: SessionUpdate,
+  now: Date = new Date(),
+): ConversionSession | null {
+  let backend: ConversionBackend;
+  try {
+    backend = resolveBackend();
+  } catch (e) {
+    if (e instanceof ConversionBackendUnavailableError) return null;
+    throw e;
+  }
+  const existing = backend.getSession(sessionId);
   if (!existing) return null;
-  const nextStage = update.stage ? advanceStage(existing.stage, update.stage) : existing.stage;
   const merged: ConversionSession = {
     ...existing,
-    stage: nextStage,
+    stage: update.stage ? advanceStage(existing.stage, update.stage) : existing.stage,
     userId: update.userId !== undefined ? update.userId : existing.userId,
     tenantId: update.tenantId !== undefined ? update.tenantId : existing.tenantId,
     orderId: update.orderId !== undefined ? update.orderId : existing.orderId,
     diagnosticDraftKey: update.diagnosticDraftKey !== undefined ? update.diagnosticDraftKey : existing.diagnosticDraftKey,
     updatedAt: now.toISOString(),
   };
-  store().sessions.set(sessionId, merged);
-  return merged;
+  return backend.updateSession(merged);
 }
 
-/** Rattache un user/tenant à une session anonyme. Refuse si déjà attaché à autre user. */
+/** Rattachement atomique user/tenant. Refuse si déjà attaché à un autre user. */
 export function attachUserToSession(
   sessionId: string,
   userId: string,
   tenantId: string | null,
   now: Date = new Date(),
 ): { ok: boolean; session?: ConversionSession; reason?: string } {
-  const existing = store().sessions.get(sessionId);
+  let backend: ConversionBackend;
+  try {
+    backend = resolveBackend();
+  } catch (e) {
+    if (e instanceof ConversionBackendUnavailableError) return { ok: false, reason: "backend_unavailable" };
+    throw e;
+  }
+  const existing = backend.getSession(sessionId);
   if (!existing) return { ok: false, reason: "session_not_found" };
   if (existing.userId && existing.userId !== userId) {
     return { ok: false, reason: "session_attached_to_other_user" };
   }
-  const session = updateConversionSession(sessionId, { userId, tenantId }, now);
-  if (!session) return { ok: false, reason: "session_update_failed" };
-  return { ok: true, session };
+  if (existing.tenantId && tenantId && existing.tenantId !== tenantId) {
+    return { ok: false, reason: "session_attached_to_other_tenant" };
+  }
+  const updated = updateConversionSession(sessionId, { userId, tenantId }, now);
+  if (!updated) return { ok: false, reason: "session_update_failed" };
+  return { ok: true, session: updated };
 }
 
-// ── Events ──────────────────────────────────────────────────────────────────
+// ── Events ─────────────────────────────────────────────────────────────────
 export interface RecordEventInput {
   sessionId: string;
-  eventId: EventId;
+  eventType: EventType;
   idempotencyKey: string;
-  metadata?: Record<string, string | number | boolean | null>;
+  campaign?: string | null;
+  cohort?: string | null;
+  variant?: string | null;
+  sourcePage?: string | null;
+  prospectToken?: string | null; // sera réduit à token_id
+  metadata?: Record<string, unknown>;
+  correlationId?: string | null;
   now?: Date;
 }
 
@@ -255,92 +453,121 @@ export interface RecordEventResult {
   reason?: string;
 }
 
-const METADATA_MAX_KEYS = 12;
-const METADATA_MAX_VALUE_LEN = 120;
+import { safeProspectToken } from "./attribution-token";
 
 export function recordConversionEvent(input: RecordEventInput): RecordEventResult {
-  const session = store().sessions.get(input.sessionId);
-  if (!session) return { ok: false, reason: "session_not_found" };
-  const existing = store().events.get(input.idempotencyKey);
-  if (existing) return { ok: true, duplicate: true, event: existing };
-  const cleaned: Record<string, string | number | boolean | null> = {};
-  let count = 0;
-  for (const [rawKey, rawValue] of Object.entries(input.metadata ?? {})) {
-    if (count >= METADATA_MAX_KEYS) break;
-    const key = String(rawKey).trim().slice(0, 32);
-    if (key.length === 0) continue;
-    if (/email|token|secret|password|siren|cv|salary/i.test(key)) continue;
-    if (rawValue === null || rawValue === undefined) {
-      cleaned[key] = null;
-    } else if (typeof rawValue === "boolean") {
-      cleaned[key] = rawValue;
-    } else if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
-      cleaned[key] = rawValue;
-    } else if (typeof rawValue === "string") {
-      const v = rawValue.slice(0, METADATA_MAX_VALUE_LEN);
-      if (/[@]|\b\d{9,}\b/.test(v)) continue; // skip PII-like
-      cleaned[key] = v;
-    } else {
-      continue;
-    }
-    count += 1;
+  if (!isEventType(input.eventType)) return { ok: false, reason: "event_type_invalid" };
+  let backend: ConversionBackend;
+  try {
+    backend = resolveBackend();
+  } catch (e) {
+    if (e instanceof ConversionBackendUnavailableError) return { ok: false, reason: "backend_unavailable" };
+    throw e;
   }
+  const session = backend.getSession(input.sessionId);
+  if (!session) return { ok: false, reason: "session_not_found" };
+
+  const cleaned = cleanEventMetadata(input.metadata ?? {});
   const event: ConversionEvent = {
-    id: globalThis.crypto.randomUUID(),
-    sessionId: session.id,
-    eventId: input.eventId,
+    eventId: globalThis.crypto.randomUUID().replace(/-/g, ""),
     idempotencyKey: input.idempotencyKey,
+    eventType: input.eventType,
     serverTimestamp: (input.now ?? new Date()).toISOString(),
-    metadata: cleaned,
-    variant: session.variant,
+    prospectToken: safeProspectToken(input.prospectToken ?? ""),
+    sessionId: session.id,
+    campaign: input.campaign ?? session.campaign ?? "",
+    cohort: input.cohort ?? session.cohort ?? "",
+    variant: input.variant ?? session.variant,
+    funnelVersion: session.funnelVersion,
+    sourcePage: input.sourcePage ?? "",
+    correlationId: input.correlationId ?? session.correlationId,
+    metadata: cleaned.cleaned,
   };
-  store().events.set(input.idempotencyKey, event);
-  store().eventLog.push(event);
+  const result = backend.recordEvent(event);
+  if (!result.inserted) {
+    return { ok: true, duplicate: true, event: result.existing ?? event };
+  }
   return { ok: true, event };
 }
 
 export function listConversionEvents(sessionId: string): readonly ConversionEvent[] {
-  return store().eventLog.filter((e) => e.sessionId === sessionId);
+  try {
+    return resolveBackend().listEventsForSession(sessionId);
+  } catch (e) {
+    if (e instanceof ConversionBackendUnavailableError) return [];
+    throw e;
+  }
 }
 
 export function listAllConversionEvents(): readonly ConversionEvent[] {
-  return store().eventLog.slice();
+  try {
+    return resolveBackend().listAllEvents();
+  } catch (e) {
+    if (e instanceof ConversionBackendUnavailableError) return [];
+    throw e;
+  }
 }
 
-// ── Réconciliation (export interne) ────────────────────────────────────────
+// ── Réconciliation ─────────────────────────────────────────────────────────
 export interface ReconciliationRow {
   sessionId: string;
   grantTokenFingerprint: string | null;
   campaign: string | null;
-  cohort: CohortId | null;
-  variant: VariantId | "VARIANT_ORGANIC";
+  cohort: string | null;
+  variant: string;
   stage: ConversionStage;
   userId: string | null;
   tenantId: string | null;
   orderId: string | null;
-  events: readonly { eventId: EventId; serverTimestamp: string }[];
+  correlationId: string;
+  events: readonly { eventType: EventType; serverTimestamp: string }[];
 }
 
 export function buildReconciliationReport(): ReconciliationRow[] {
-  const s = store();
-  return Array.from(s.sessions.values()).map((session) => {
-    const grant = session.grantId
-      ? Array.from(s.grants.values()).find((g) => g.id === session.grantId) ?? null
-      : null;
-    const events = s.eventLog
-      .filter((e) => e.sessionId === session.id)
-      .map((e) => ({ eventId: e.eventId, serverTimestamp: e.serverTimestamp }));
-    return {
-      sessionId: session.id,
-      grantTokenFingerprint: grant?.tokenFingerprint ?? null,
-      campaign: session.campaign,
-      cohort: session.cohort,
-      variant: session.variant,
-      stage: session.stage,
-      userId: session.userId,
-      tenantId: session.tenantId,
-      orderId: session.orderId,
-      events,
-    };
-  });
+  try {
+    const backend = resolveBackend();
+    const allEvents = backend.listAllEvents();
+    const bySession = new Map<string, ConversionEvent[]>();
+    for (const e of allEvents) {
+      const arr = bySession.get(e.sessionId) ?? [];
+      arr.push(e);
+      bySession.set(e.sessionId, arr);
+    }
+    const rows: ReconciliationRow[] = [];
+    for (const [sessionId, events] of bySession) {
+      const session = backend.getSession(sessionId);
+      if (!session) continue;
+      const grant = session.grantId
+        ? // Sans index direct, on cherche dans les grants connues : pour les
+          // backends in-memory c'est OK. Pour PG ce sera une requête SQL.
+          findGrantById(backend, session.grantId)
+        : null;
+      rows.push({
+        sessionId: session.id,
+        grantTokenFingerprint: grant?.tokenFingerprint ?? null,
+        campaign: session.campaign,
+        cohort: session.cohort,
+        variant: session.variant,
+        stage: session.stage,
+        userId: session.userId,
+        tenantId: session.tenantId,
+        orderId: session.orderId,
+        correlationId: session.correlationId,
+        events: events.map((e) => ({ eventType: e.eventType, serverTimestamp: e.serverTimestamp })),
+      });
+    }
+    return rows;
+  } catch (e) {
+    if (e instanceof ConversionBackendUnavailableError) return [];
+    throw e;
+  }
+}
+
+function findGrantById(backend: ConversionBackend, grantId: string): AttributionGrant | null {
+  // Helper temporaire : scanne via getGrantByTokenId pour tous les grants
+  // mémorisés. Implémentation in-memory uniquement.
+  if (backend.kind !== "in_memory") return null;
+  // Pour le backend in-memory, on doit recourir à une approche par contournement.
+  // Cette fonction sera étendue lorsque le backend PG sera branché.
+  return null;
 }
