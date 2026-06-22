@@ -9,6 +9,7 @@ import {
   CLAIM_IDS,
   CLAIM_STATUSES,
   CHECKOUT_METADATA_FIELDS,
+  CHECKOUT_METADATA_ADDITIONAL_ALLOWED,
   DEMO_BEHAVIORS,
   DEMO_STEP_RANGE,
   DIAGNOSTIC_DEFAULT_ASSUMPTIONS,
@@ -169,6 +170,26 @@ describe("BLOC 3 — contrat LeadForge db9b166 (PARITÉ stricte avec fixture ind
 
   it("checkout_metadata_fields LeadForge (5) matche la fixture", () => {
     expect([...CHECKOUT_METADATA_FIELDS]).toEqual([...fixture.contract.checkout_metadata_fields]);
+  });
+
+  // Defense in depth (revue adversariale axe 1) :
+  // CHECKOUT_METADATA_ADDITIONAL_ALLOWED ne fait pas partie du contrat LeadForge
+  // mais s'étend dans Stripe metadata côté CloneStore. On verrouille la liste
+  // pour qu'aucune clé secret/email/PII ne puisse y être ajoutée silencieusement.
+  it("CHECKOUT_METADATA_ADDITIONAL_ALLOWED (5 clés CloneStore) verrouillé + sans PII/secret", () => {
+    expect([...CHECKOUT_METADATA_ADDITIONAL_ALLOWED].sort()).toEqual([
+      "user_id",
+      "agent_slug",
+      "order_id",
+      "tenant_id",
+      "founder_reservation_id",
+    ].sort());
+    const forbidden = [/secret/i, /password/i, /token$/i, /email/i, /siren/i, /api[_-]?key/i, /^cv$/i];
+    for (const key of CHECKOUT_METADATA_ADDITIONAL_ALLOWED) {
+      for (const re of forbidden) {
+        expect(re.test(key), `${key} matches ${re}`).toBe(false);
+      }
+    }
   });
 
   it("demo behaviors et step range matchent la fixture", () => {

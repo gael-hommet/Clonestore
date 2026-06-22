@@ -149,8 +149,13 @@ const report = {
 
 if (failed.length === 0) {
   report.verdict = "V0_CONVERSION_ENGINE_CODE_READY_EXTERNAL_ACTIVATION_REQUIRED";
+  report.exit_code_semantics = {
+    "0": "code ready, external activation still blocked BY DESIGN (Stripe live, real prospects, domains, public-launch flags)",
+    "1": "code itself NOT ready (a check failed). Blockers externes are a report field, not a process error.",
+  };
   console.log(JSON.stringify(report, null, 2));
-  process.exit(report.blocking_external.length > 0 ? 1 : 0);
+  // exit 0 = code ready (les blockers externes sont des champs du rapport, pas un échec process)
+  process.exit(0);
 } else {
   // Map du premier échec → verdict spécifique
   const first = failed[0];
