@@ -4,12 +4,29 @@
 export type ActivationStatus =
   | "active"
   | "trialing"
+  | "incomplete"
   | "canceled"
   | "past_due"
   | "unpaid"
   | "incomplete_expired"
   | "paused"
   | "none";
+
+// E-R1 §6 — mapping EXHAUSTIF des statuts d'abonnement Stripe (aucun `as string` libre).
+// Stripe : active, past_due, unpaid, canceled, incomplete, incomplete_expired, trialing, paused.
+export function mapStripeSubscriptionStatus(status: string | null | undefined): ActivationStatus {
+  switch (status) {
+    case "active": return "active";
+    case "trialing": return "trialing";
+    case "incomplete": return "incomplete";
+    case "incomplete_expired": return "incomplete_expired";
+    case "past_due": return "past_due";
+    case "unpaid": return "unpaid";
+    case "canceled": return "canceled";
+    case "paused": return "paused";
+    default: return "none";
+  }
+}
 
 export const ACTIVE_STATUSES: readonly ActivationStatus[] = ["active", "trialing"];
 export const INACTIVE_STATUSES: readonly ActivationStatus[] = [
@@ -42,16 +59,9 @@ export function mapPaymentStatusToActivation(
   return "none";
 }
 
-// Maps Stripe subscription.status directly to ActivationStatus.
+// Maps Stripe subscription.status directly to ActivationStatus (exhaustive — E-R1 §6).
 export function mapSubscriptionStatus(status: string | null): ActivationStatus {
-  if (status === "active") return "active";
-  if (status === "trialing") return "trialing";
-  if (status === "canceled") return "canceled";
-  if (status === "past_due") return "past_due";
-  if (status === "unpaid") return "unpaid";
-  if (status === "incomplete_expired") return "incomplete_expired";
-  if (status === "paused") return "paused";
-  return "none";
+  return mapStripeSubscriptionStatus(status);
 }
 
 // Safely extracts user_id and agent_slug from a metadata object.

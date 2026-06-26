@@ -9,6 +9,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { buildLoginRedirect } from "./redirects";
 import { getSessionClient } from "./session-client";
+import { isAuthBypassEnabled } from "./dev-bypass";
 
 export function useRequireAuth(): void {
   const router = useRouter();
@@ -18,6 +19,9 @@ export function useRequireAuth(): void {
   useEffect(() => {
     if (checkedRef.current) return;
     checkedRef.current = true;
+
+    // Dev/test uniquement (mort en production) : ne pas rediriger.
+    if (isAuthBypassEnabled()) return;
 
     void getSessionClient()
       .auth.getSession()

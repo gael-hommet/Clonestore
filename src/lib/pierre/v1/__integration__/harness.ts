@@ -1,0 +1,112 @@
+// src/lib/pierre/v1/__integration__/harness.ts
+// PHASE 8.1 — Integration harness. Real in-process PostgreSQL 16 via PGlite
+// (no Docker, no system binaries). Applies the real migration, seeds two
+// tenants, exposes a SqlExecutor + TenantContext builders.
+//
+// PGlite is a devDependency, used ONLY by integration tests/bench — never by the
+// shipped runtime (which depends only on SqlExecutor).
+
+import { PGlite } from "@electric-sql/pglite";
+import { readFileSync, readdirSync } from "fs";
+import { resolve } from "path";
+import type { SqlExecutor, SqlRow } from "../sql";
+import { newUuid, newRequestId, newCorrelationId } from "../sql";
+import type { TenantContext, MemberRole } from "../tenant-context";
+
+const MIG_DIR = resolve(process.cwd(), "supabase/migrations");
+/** All canonical runtime migrations (pierre_v1, pierre_v2, …) in order. */
+function migrationSql(): string[] {
+  return readdirSync(MIG_DIR)
+    .filter((f) => f.endsWith(".sql") && f.includes("pierre_v"))
+    .sort()
+    .map((f) => readFileSync(resolve(MIG_DIR, f), "utf-8"));
+}
+
+export type Harness = {
+  db: SqlExecutor;
+  pg: PGlite;
+  companyA: string;
+  companyB: string;
+  userA: string;
+  userB: string;
+  ctx(company: "A" | "B", role?: MemberRole): TenantContext;
+  /** Run a block as the restricted (non-superuser) role with a tenant GUC bound —
+   *  this is how RLS isolation is actually proven. */
+  asTenantRole<T>(companyId: string, fn: (q: (text: string, params?: readonly unknown[]) => Promise<{ rows: SqlRow[] }>) => Promise<T>): Promise<T>;
+  close(): Promise<void>;
+};
+
+function wrap(pg: PGlite): SqlExecutor {
+  const exec: SqlExecutor = {
+    async query<T = SqlRow>(text: string, params?: readonly unknown[]) {
+      const r = await pg.query(text, params ? [...params] : undefined);
+      return { rows: r.rows as T[] };
+    },
+    async transaction<T>(fn: (tx: SqlExecutor) => Promise<T>): Promise<T> {
+      return pg.transaction(async (tx) => {
+        const txExec: SqlExecutor = {
+          async query<T2 = SqlRow>(text: string, params?: readonly unknown[]) {
+            const r = await tx.query(text, params ? [...params] : undefined);
+            return { rows: r.rows as T2[] };
+          },
+          transaction(inner) { return inner(txExec); },
+        };
+        return fn(txExec);
+      }) as Promise<T>;
+    },
+  };
+  return exec;
+}
+
+export async function createHarness(): Promise<Harness> {
+  const pg = await PGlite.create();
+  for (const sql of migrationSql()) await pg.exec(sql);
+  const db = wrap(pg);
+
+  const companyA = newUuid();
+  const companyB = newUuid();
+  const userA = newUuid();
+  const userB = newUuid();
+
+  await pg.query("insert into pierre_rt_companies (id, name) values ($1,$2),($3,$4)", [companyA, "Tenant A", companyB, "Tenant B"]);
+  await pg.query("insert into pierre_rt_members (id, company_id, user_id, role) values ($1,$2,$3,'owner'),($4,$5,$6,'owner')",
+    [newUuid(), companyA, userA, newUuid(), companyB, userB]);
+
+  return {
+    db, pg, companyA, companyB, userA, userB,
+    ctx(company, role: MemberRole = "owner"): TenantContext {
+      const company_id = company === "A" ? companyA : companyB;
+      const user_id = company === "A" ? userA : userB;
+      // viewer = read-only (no sensitive, no write); owner = full OWNER permission set.
+      const perms = role === "viewer"
+        ? (["company.read", "mission.read", "task.read", "validation.read", "employee.read", "site.read"] as const)
+        : ([
+            "company.read", "company.write", "company.admin",
+            "mission.create", "mission.read", "mission.cancel",
+            "employee.read", "employee.write", "employee.archive", "employee.sensitive.read", "employee.sensitive.write",
+            "document.read", "document.write", "absence.read", "absence.write",
+            "payroll_prep.read", "payroll_prep.write", "validation.read", "validation.decide",
+            "pierre.use", "audit.read", "site.read", "site.write", "tenancy.admin",
+            "task.read", "queue.admin", "gdpr.admin",
+          ] as const);
+      const ROLE_KEY: Record<string, string> = { owner: "OWNER", admin: "ADMIN", hr_manager: "HR_MANAGER", hr_operator: "HR_OPERATOR", viewer: "VIEWER" };
+      return {
+        company_id, user_id, membership_id: newUuid(), role, role_keys: [ROLE_KEY[role] ?? "VIEWER"],
+        permissions: [...perms], site_ids: null, request_id: newRequestId(), correlation_id: newCorrelationId(),
+      };
+    },
+    async asTenantRole(companyId, fn) {
+      // Switch to the restricted role + bind the tenant GUC inside one tx.
+      const r = await pg.transaction(async (tx) => {
+        await tx.exec("set local role pierre_rt_app");
+        await tx.query("select set_config('app.current_company', $1, true)", [companyId]);
+        return fn(async (text, params) => {
+          const res = await tx.query(text, params ? [...params] : undefined);
+          return { rows: res.rows as SqlRow[] };
+        });
+      });
+      return r as never;
+    },
+    async close() { await pg.close(); },
+  };
+}

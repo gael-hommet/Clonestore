@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { LiquidGlass } from "@/components/ui/LiquidGlass";
+import { PresencePing } from "@/components/founder/PresencePing";
 import { getSessionClient } from "@/lib/auth/session-client";
 import { buildCheckoutAuthHeaders, sanitizeCheckoutError } from "@/lib/checkout/checkout-helpers";
 import { cn } from "@/lib/utils";
@@ -414,6 +415,7 @@ function CheckoutContent() {
 
   return (
     <main className="cs-page">
+      <PresencePing event="founder_checkout_started" />
       <div className="cs-page-shell">
         <section className="grid min-h-[calc(100vh-170px)] items-center gap-6">
           <LiquidGlass
@@ -566,6 +568,18 @@ function CheckoutContent() {
                   ) : null}
 
                   {renderAction()}
+
+                  <p className="text-center text-xs leading-5 text-[var(--cs-ink-4)]">
+                    En continuant, vous acceptez les{" "}
+                    <Link href="/legal/cgv" className="underline hover:text-[var(--cs-ink-2)]">
+                      CGV
+                    </Link>{" "}
+                    et la{" "}
+                    <Link href="/legal/confidentialite" className="underline hover:text-[var(--cs-ink-2)]">
+                      politique de confidentialité
+                    </Link>
+                    .
+                  </p>
                 </div>
               </LiquidGlass>
             </div>

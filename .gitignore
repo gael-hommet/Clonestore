@@ -45,6 +45,48 @@ _checkpoint-build-ok-*
 _checkpoint-build-ok-*.zip
 _backups_ts/
 
+# P-FINAL 02 — Go-live proofs (never commit — contains local evidence paths)
+go-live-proofs.local.json
+go-live-evidence/
+*.proof.local.json
+
+# PHASE E — Founder smoke proofs (never commit — local external evidence)
+*-smoke-proof.local.json
+founder-stripe-smoke-proof.local.json
+founder-analytics-smoke-proof.local.json
+
 
 # B38B — Local validation reports (never commit)
 .local-reports/
+
+# PHASE 8.1 local test database (PGlite)
+.pglite-data/
+
+# Playwright local run artifacts (never commit)
+test-results/
+playwright-report/
+
+# /demo design — temp reference-frame extractions (never commit; design-only)
+.tmp-demo-refs/
+
+# /demo — local QA artifacts (browser proofs, never commit)
+.playwright-mcp/
+/demo-*.jpeg
+/demo-qa-proofs/
+
+# CloneStory rehearsal (local only)
+.pglite-clonestory-rehearsal/
+.playwright-mcp/
+
+.vercel
+.env*
+.pglite-csfinal1/
+
+# CloneStory — artefacts d'activation production (snapshots masqués, JAMAIS commités/déployés)
+artifacts/
+
+# CloneStory — scripts temporaires d'exploitation (jamais commités)
+tmp-clonestory-*.mjs
+
+.vercel
+.env*

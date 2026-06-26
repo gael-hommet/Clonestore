@@ -4,6 +4,7 @@ import {
   Bot,
   CheckCircle2,
   CreditCard,
+  Eye,
   Mail,
   MessageSquareText,
   ShieldCheck,
@@ -157,6 +158,70 @@ export default function QuestionsPage() {
               </LiquidGlass>
             );
           })}
+        </section>
+
+        {/* FAQ Pierre */}
+        <section>
+          <LiquidGlass
+            variant="panel"
+            intensity="medium"
+            className="rounded-[2.2rem] p-6 md:p-8"
+          >
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="cs-eyebrow">Pierre — Questions fréquentes</p>
+                <h2 className="cs-heading mt-2 text-xl md:text-2xl">
+                  Tout comprendre avant de décider.
+                </h2>
+              </div>
+              <Link
+                href="/demo/pierre"
+                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[color:color-mix(in_srgb,var(--cs-line-soft)_68%,white)] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.82),rgba(255,250,244,0.56))] px-4 py-2 text-sm font-medium text-[var(--cs-ink-2)] transition hover:-translate-y-0.5"
+              >
+                <Eye className="h-4 w-4" />
+                Voir la démo Pierre
+              </Link>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              {[
+                {
+                  q: "Pierre est-il un chatbot ?",
+                  a: "Non. Pierre est un poste RH opérationnel automatisé. Il comprend une demande RH libre, la transforme en mission structurée, prépare des documents et des emails, suit les relances et garde une trace claire — comme un collaborateur RH, pas comme un bot de réponses.",
+                },
+                {
+                  q: "Puis-je voir Pierre en action avant d'acheter ?",
+                  a: "Oui. La démo illustrative sur /demo/pierre montre 3 scénarios complets : recrutement, absence et onboarding. Vous voyez la mission interprétée, les tâches créées, le document brouillon, l'email prêt et la trace CloneTrace. Données fictives, aucun appel IA réel.",
+                },
+                {
+                  q: "La démo utilise-t-elle mes données ?",
+                  a: "Non. La démo est 100% illustrative avec des données entièrement fictives. Aucune donnée n'est enregistrée, aucun email n'est envoyé, aucun compte n'est créé.",
+                },
+                {
+                  q: "Pierre envoie-t-il des emails tout seul ?",
+                  a: "Non. Pierre prépare les emails sous forme de brouillons. L'envoi nécessite toujours une validation humaine explicite. Pierre ne prend aucune action externe sans autorisation.",
+                },
+                {
+                  q: "Pierre remplace-t-il un juriste ou un avocat ?",
+                  a: "Non. Pierre prépare des documents RH opérationnels courants. Il ne fournit pas d'avis juridique, ne remplace pas un avocat et ne prend pas de décisions disciplinaires autonomes. La validation humaine reste obligatoire pour les actes sensibles.",
+                },
+                {
+                  q: "Pourquoi Pierre vaut 449 €/mois ?",
+                  a: "Pierre absorbe une part réelle du travail RH répétitif : documents, emails, relances, suivi de missions, traçabilité. Le gain de temps et la réduction de charge mentale doivent être perceptibles dès la première semaine d'utilisation.",
+                },
+              ].map((item) => (
+                <LiquidGlass
+                  key={item.q}
+                  variant="clear"
+                  intensity="soft"
+                  className="rounded-[1.5rem] p-5 space-y-2"
+                >
+                  <p className="text-sm font-semibold text-[var(--cs-ink-1)]">{item.q}</p>
+                  <p className="text-sm leading-7 text-[var(--cs-ink-4)]">{item.a}</p>
+                </LiquidGlass>
+              ))}
+            </div>
+          </LiquidGlass>
         </section>
 
         <section className="clonesupport-bottom">

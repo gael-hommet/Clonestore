@@ -19,9 +19,82 @@ import {
   bridgePierreActivated,
 } from "@/lib/clonestore/conversion/checkout-bridge";
 import { isConversionBackendAvailable } from "@/lib/clonestore/conversion/storage";
+// Phase E — founder reservation webhook bridge (E-R2/E-R3).
+import { WebhookDatabaseError } from "@/lib/founder-access/webhook-db";
+import { applyFounderStripeWebhook } from "@/lib/founder-access/stripe-webhook-bridge";
+import { getInjectedStripeWebhookDeps, defaultStripeWebhookDeps, type StripeWebhookDeps } from "@/lib/founder-access/stripe-webhook-deps";
+// CloneStory — CS-FINAL 3 : pont contribution commerciale (additif, best-effort,
+// universe isolé). N'agit que si le compte porte une attribution CloneStory ; ne casse
+// JAMAIS le checkout principal (toute erreur est avalée à l'intérieur du pont).
+import { bridgeClonestoryCommercial } from "@/lib/clonestory/founding-partners/server/stripe-commercial-bridge";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Récupère la preuve commerciale (prix/montant/devise/intervalle) depuis Stripe pour un
+// abonnement donné. Best-effort : si l'API n'est pas joignable, retourne null (la preuve
+// sera considérée manquante → pas d'activation en production).
+async function fetchSubscriptionProof(stripe: Stripe, subId: string): Promise<{ priceId: string | null; amountCents: number | null; currency: string | null; interval: string | null; productId: string | null } | null> {
+  try {
+    const sub = await stripe.subscriptions.retrieve(subId, { expand: ["items.data.price"] });
+    const item = sub.items?.data?.[0];
+    const price = item?.price;
+    const product = price?.product;
+    return {
+      priceId: price?.id ?? null,
+      amountCents: typeof price?.unit_amount === "number" ? price.unit_amount : null,
+      currency: price?.currency ?? null,
+      interval: price?.recurring?.interval ?? null,
+      productId: typeof product === "string" ? product : (product?.id ?? null),
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ── Pont VÉRITÉ Stripe → réservation fondateur (E.4 + E-R2) ─────────────────
+// Délègue à applyFounderStripeWebhook (logique extraite + testable avec base réelle).
+// N'agit QUE si la metadata Stripe porte founder_reservation_id. Connexion DÉDIÉE.
+async function bridgeFounderEvent(deps: StripeWebhookDeps, args: {
+  meta: Record<string, string> | null;
+  event: Stripe.Event;
+  rawStatus: string;
+  subId: string | null;
+  customerId: string | null;
+  isGrantCandidate: boolean;
+  currentPeriodEnd?: number | null;
+}): Promise<void> {
+  if (!args.meta?.["founder_reservation_id"]) return; // pas une activation fondateur
+  const db = await deps.getFounderDb(); // §1/§3 — DB dédiée writer (fail-closed prod, jamais pierre_rt_app)
+  await applyFounderStripeWebhook(
+    db,
+    {
+      eventId: args.event.id, eventType: args.event.type, eventCreated: args.event.created,
+      livemode: args.event.livemode, apiVersion: args.event.api_version ?? null,
+      metadata: args.meta, rawStatus: args.rawStatus, subscriptionId: args.subId, customerId: args.customerId,
+      currentPeriodEnd: args.currentPeriodEnd ?? null, isGrantCandidate: args.isGrantCandidate,
+    },
+    {
+      expectedPriceId: deps.expectedPriceId,
+      expectedProductId: deps.expectedProductId,
+      envIsProduction: process.env.NODE_ENV === "production",
+      fetchProof: deps.fetchProof,
+    },
+  );
+}
+
+/** Dépendances effectives : injectées (tests) ou par défaut (prod : Supabase + Stripe). */
+function resolveDeps(): StripeWebhookDeps {
+  const injected = getInjectedStripeWebhookDeps();
+  if (injected) return injected;
+  return defaultStripeWebhookDeps({
+    fetchProof: (subId: string) => fetchSubscriptionProof(getStripe(), subId),
+    orders: {
+      upsert: (a) => upsertOrderStatus(a),
+      updateBySubId: (subId, update) => updateOrderBySubId(subId, update),
+    },
+  });
+}
 
 function json(status: number, data: unknown) {
   return NextResponse.json(data, { status });
@@ -130,6 +203,25 @@ export async function POST(req: Request) {
       return json(400, { error: msg });
     }
 
+    // Dépendances (injectables en test) résolues APRÈS vérification de signature.
+    const deps = resolveDeps();
+
+    // ── CloneStory CS-FINAL 3 : contribution commerciale (additif, best-effort) ──
+    // Couvre invoice.paid (paiement autoritatif), remboursements, litiges, expiration.
+    // Idempotent (ledger d'event Stripe) ; n'agit que si une attribution existe ;
+    // n'affecte ni l'ordre principal, ni le statut HTTP renvoyé à Stripe.
+    await bridgeClonestoryCommercial(event, {
+      resolveSubscriptionMeta: async (subId: string) => {
+        try {
+          const sub = await stripe.subscriptions.retrieve(subId);
+          const m = (sub.metadata ?? {}) as Record<string, string>;
+          return { userId: m["user_id"] ?? null, agentSlug: m["agent_slug"] ?? null };
+        } catch {
+          return null;
+        }
+      },
+    });
+
     // ── checkout.session.completed ─────────────────────────────
     // Handles both immediate payment (paid) and trial (no_payment_required).
     if (event.type === "checkout.session.completed") {
@@ -143,7 +235,7 @@ export async function POST(req: Request) {
         return json(200, { received: true, skipped: true, reason: validation.reason });
       }
 
-      await upsertOrderStatus({
+      await deps.orders.upsert({
         user_id: validation.user_id,
         agent_slug: validation.agent_slug,
         status: validation.status,
@@ -151,14 +243,23 @@ export async function POST(req: Request) {
         customerId: getString(obj, "customer"),
       });
 
+      // Vérité fondateur (Phase E.4 + E-R2) : activer la réservation si l'event
+      // la concerne (preuve requise). Doit être exécuté AVANT le pont BLOC 3
+      // pour garantir que la réservation fondateur est persistée d'abord.
+      const stripeMetaRaw = getMetadata(obj);
+      await bridgeFounderEvent(deps, {
+        meta: stripeMetaRaw, event,
+        rawStatus: validation.status, subId: validation.subscription_id,
+        customerId: getString(obj, "customer"), isGrantCandidate: true,
+      });
+
       // ── BLOC 3 : pont conversion (additif, best-effort) ─────────
       // N'agit QUE si la metadata Stripe contient conversion_session_id
       // ET le backend conversion est disponible. Idempotent, ne bloque pas.
-      const meta = getMetadata(obj);
-      if (meta?.["conversion_session_id"] && isConversionBackendAvailable()) {
-        bridgeCheckoutCompleted({ metadata: meta, orderId: validation.subscription_id });
+      if (stripeMetaRaw?.["conversion_session_id"] && isConversionBackendAvailable()) {
+        bridgeCheckoutCompleted({ metadata: stripeMetaRaw, orderId: validation.subscription_id });
         if (isAccessGranted(validation.status)) {
-          bridgePierreActivated({ sessionId: meta["conversion_session_id"] });
+          bridgePierreActivated({ sessionId: stripeMetaRaw["conversion_session_id"] });
         }
       }
 
@@ -195,7 +296,7 @@ export async function POST(req: Request) {
         return json(200, { received: true, skipped: true, reason: "No metadata on subscription" });
       }
 
-      await upsertOrderStatus({
+      await deps.orders.upsert({
         user_id,
         agent_slug,
         status,
@@ -222,13 +323,19 @@ export async function POST(req: Request) {
 
       if (isAccessGranted(status)) {
         // Keep order active/trialing
-        await updateOrderBySubId(subId, { status, ended_at: null });
+        await deps.orders.updateBySubId(subId, { status, ended_at: null });
       } else if (isAccessRevoked(status)) {
         const now = new Date().toISOString();
-        await updateOrderBySubId(subId, { status, ended_at: now });
+        await deps.orders.updateBySubId(subId, { status, ended_at: now });
       } else if (status === "past_due") {
-        await updateOrderBySubId(subId, { status: "past_due" });
+        await deps.orders.updateBySubId(subId, { status: "past_due" });
       }
+
+      await bridgeFounderEvent(deps, {
+        meta: getMetadata(obj), event,
+        rawStatus: stripeStatus ?? "", subId, customerId: getString(obj, "customer"),
+        isGrantCandidate: isAccessGranted(status), currentPeriodEnd: getNumber(obj, "current_period_end"),
+      });
 
       return json(200, { received: true, type: event.type, subId, status });
     }
@@ -241,8 +348,13 @@ export async function POST(req: Request) {
       const subId = getString(obj, "id");
       if (subId) {
         const now = new Date().toISOString();
-        await updateOrderBySubId(subId, { status: "canceled", ended_at: now });
+        await deps.orders.updateBySubId(subId, { status: "canceled", ended_at: now });
       }
+
+      await bridgeFounderEvent(deps, {
+        meta: getMetadata(obj), event,
+        rawStatus: "canceled", subId, customerId: getString(obj, "customer"), isGrantCandidate: false,
+      });
 
       return json(200, { received: true, type: event.type, subId });
     }
@@ -254,7 +366,7 @@ export async function POST(req: Request) {
 
       const subId = getString(obj, "subscription");
       if (subId) {
-        await updateOrderBySubId(subId, { status: "past_due" });
+        await deps.orders.updateBySubId(subId, { status: "past_due" });
       }
 
       // BLOC 3 : pont conversion failed (best-effort, ne bloque pas).
@@ -272,6 +384,11 @@ export async function POST(req: Request) {
 
     return json(200, { received: true, type: event.type });
   } catch (e: unknown) {
+    // §1/§5 — DB webhook dédiée non configurée/prête en production → 503 (Stripe retry), jamais 200.
+    if (e instanceof WebhookDatabaseError) {
+      console.error("[webhook] dedicated DB not ready (fail-closed):", e.name);
+      return json(503, { error: "webhook_database_not_ready" });
+    }
     const msg = e instanceof Error ? e.message : "Webhook failed";
     console.error("[webhook] error:", msg);
     return json(500, { error: msg });

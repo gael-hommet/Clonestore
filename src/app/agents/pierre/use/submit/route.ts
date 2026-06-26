@@ -1,3 +1,8 @@
+// @deprecated PHASE 8.1 — Legacy mission write path (writes to pierre_* tables).
+// The canonical runtime is /api/pierre/v1/missions (pierre_rt_* tables, governed,
+// idempotent, durable queue). New missions must go through the v1 runtime. This
+// route is kept only as a fallback until PHASE 8.2 seeds pierre_rt_members; do not
+// add new client callers. See docs/migrations/PIERRE_LOCAL_TO_PRODUCTION_RUNTIME.md
 import { NextRequest, NextResponse } from "next/server";
 import {
   createClient,

@@ -1,0 +1,812 @@
+/* CloneStory — Le Cercle des Partenaires Fondateurs — styles de fondation isolés.
+   Importe par le seul layout du segment founding-partners. Tout est scope sous le
+   conteneur data-clonestory ; aucune variable, couleur ou typographie ne fuit vers
+   globals.css ni le reste de CloneStore. Classes prefixees csy- et variables csy-.
+   Aucune redefinition globale (html, body, racine). */
+
+[data-clonestory] {
+  /* ── Palette : noir profond, ivoire, écru, blanc cassé, crème minérale,
+     gris pierre, accent métallique mat (non brillant) ────────────────────── */
+  --csy-black: #0a0a0b;
+  --csy-ink: #101013;
+  --csy-ink-2: #17171b;
+  --csy-graphite: #202024;
+
+  --csy-ivory: #f5f1e8;
+  --csy-bone: #efe9df; /* blanc cassé */
+  --csy-ecru: #e4dccb;
+  --csy-cream: #ece5d6; /* crème minérale */
+
+  --csy-stone-1: #b9b4a8;
+  --csy-stone-2: #8d887d;
+  --csy-stone-3: #66635c;
+  --csy-stone-4: #46443f;
+
+  /* Accent métallique discret (laiton/champagne mat — jamais brillant). */
+  --csy-metal: #b8a888;
+  --csy-metal-soft: rgba(184, 168, 136, 0.14);
+  --csy-metal-line: rgba(184, 168, 136, 0.28);
+
+  /* Lignes fines */
+  --csy-line: rgba(245, 241, 232, 0.10);
+  --csy-line-soft: rgba(245, 241, 232, 0.06);
+  --csy-line-strong: rgba(245, 241, 232, 0.18);
+
+  /* Rythme & mouvement : lent, maîtrisé, silencieux */
+  --csy-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --csy-slow: 900ms;
+  --csy-slower: 1600ms;
+
+  /* Familles : auto-hébergées via Fontsource (importées par le layout du segment).
+     Fallback robuste et élégant si la police n'est pas encore peinte. */
+  --csy-font-serif: "Bodoni Moda Variable", "Bodoni Moda", Georgia, "Times New Roman", serif;
+  --csy-font-sans: "Manrope Variable", "Manrope", system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+
+  position: relative;
+  isolation: isolate;
+  background: var(--csy-black);
+  color: var(--csy-ivory);
+  font-family: var(--csy-font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: calc(100vh - 96px);
+}
+
+/* Grain minéral très discret + halo froid haut de page (silencieux). */
+[data-clonestory] .csy-canvas {
+  position: relative;
+  overflow: clip;
+  background:
+    radial-gradient(1200px 520px at 50% -8%, rgba(184, 168, 136, 0.06), transparent 60%),
+    radial-gradient(900px 600px at 12% 0%, rgba(245, 241, 232, 0.03), transparent 55%),
+    linear-gradient(180deg, #0c0c0d 0%, #0a0a0b 40%, #08080a 100%);
+}
+
+/* ── Mise en page ─────────────────────────────────────────────────────────── */
+[data-clonestory] .csy-shell {
+  width: min(100%, 1080px);
+  margin-inline: auto;
+  padding-inline: clamp(22px, 5vw, 56px);
+}
+[data-clonestory] .csy-shell--narrow {
+  width: min(100%, 760px);
+}
+
+[data-clonestory] .csy-section {
+  padding-block: clamp(64px, 12vh, 160px);
+}
+[data-clonestory] .csy-section--hero {
+  padding-block: clamp(96px, 18vh, 220px);
+}
+
+[data-clonestory] .csy-rule {
+  height: 1px;
+  border: 0;
+  margin: 0;
+  background: linear-gradient(90deg, transparent, var(--csy-line-strong) 18%, var(--csy-line-strong) 82%, transparent);
+}
+[data-clonestory] .csy-rule--metal {
+  background: linear-gradient(90deg, transparent, var(--csy-metal-line) 50%, transparent);
+}
+
+/* ── Typographie ──────────────────────────────────────────────────────────── */
+[data-clonestory] .csy-eyebrow {
+  margin: 0;
+  font-family: var(--csy-font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--csy-metal);
+}
+
+[data-clonestory] .csy-display {
+  margin: 0;
+  font-family: var(--csy-font-serif);
+  font-weight: 500;
+  font-size: clamp(2.8rem, 7vw, 6.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.012em;
+  color: var(--csy-ivory);
+  text-wrap: balance;
+}
+[data-clonestory] .csy-display em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--csy-cream);
+}
+
+[data-clonestory] .csy-heading {
+  margin: 0;
+  font-family: var(--csy-font-serif);
+  font-weight: 500;
+  font-size: clamp(1.8rem, 3.6vw, 3rem);
+  line-height: 1.12;
+  letter-spacing: -0.008em;
+  color: var(--csy-ivory);
+  text-wrap: balance;
+}
+
+[data-clonestory] .csy-lede {
+  margin: 0;
+  font-family: var(--csy-font-sans);
+  font-weight: 400;
+  font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+  line-height: 1.85;
+  color: var(--csy-stone-1);
+  max-width: 60ch;
+}
+
+[data-clonestory] .csy-copy {
+  margin: 0;
+  font-family: var(--csy-font-sans);
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--csy-stone-2);
+  max-width: 64ch;
+}
+
+[data-clonestory] .csy-name {
+  font-family: var(--csy-font-serif);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--csy-ivory);
+}
+
+/* ── Sceau / badge de registre ────────────────────────────────────────────── */
+[data-clonestory] .csy-seal {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 22px;
+  border: 1px solid var(--csy-metal-line);
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgba(184, 168, 136, 0.05), transparent);
+}
+[data-clonestory] .csy-seal__badge {
+  font-family: var(--csy-font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--csy-metal);
+}
+[data-clonestory] .csy-seal__title {
+  font-family: var(--csy-font-serif);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--csy-ivory);
+}
+[data-clonestory] .csy-seal__since {
+  font-family: var(--csy-font-sans);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--csy-stone-2);
+}
+
+/* ── Note doctrinale (claire mais élégante, sans casser le prestige) ───────── */
+[data-clonestory] .csy-doctrine {
+  border-left: 1px solid var(--csy-metal-line);
+  padding: 4px 0 4px 24px;
+  max-width: 70ch;
+}
+[data-clonestory] .csy-doctrine p {
+  margin: 0;
+  font-family: var(--csy-font-sans);
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--csy-stone-1);
+}
+[data-clonestory] .csy-doctrine p + p {
+  margin-top: 12px;
+  font-size: 0.86rem;
+  color: var(--csy-stone-3);
+}
+
+/* ── Lien / action discrète ───────────────────────────────────────────────── */
+[data-clonestory] .csy-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--csy-font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--csy-ivory);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--csy-metal-line);
+  transition: color var(--csy-slow) var(--csy-ease), border-color var(--csy-slow) var(--csy-ease);
+}
+[data-clonestory] .csy-link:hover {
+  color: var(--csy-metal);
+  border-color: var(--csy-metal);
+}
+[data-clonestory] .csy-link__arrow {
+  transition: transform var(--csy-slow) var(--csy-ease);
+}
+[data-clonestory] .csy-link:hover .csy-link__arrow {
+  transform: translateX(4px);
+}
+
+/* ── Grille de principes (espace, bordures fines) ─────────────────────────── */
+[data-clonestory] .csy-grid {
+  display: grid;
+  gap: 1px;
+  background: var(--csy-line);
+  border: 1px solid var(--csy-line);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 760px) {
+  [data-clonestory] .csy-grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+[data-clonestory] .csy-cell {
+  background: var(--csy-black);
+  padding: clamp(24px, 3vw, 40px);
+}
+[data-clonestory] .csy-cell__index {
+  font-family: var(--csy-font-serif);
+  font-size: 0.95rem;
+  color: var(--csy-metal);
+  letter-spacing: 0.1em;
+}
+[data-clonestory] .csy-cell__title {
+  margin: 14px 0 10px;
+  font-family: var(--csy-font-serif);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--csy-ivory);
+}
+[data-clonestory] .csy-cell__copy {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--csy-stone-2);
+}
+
+/* ── Apparition lente au montage (silencieuse) ────────────────────────────── */
+[data-clonestory] .csy-appear {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: csyAppear var(--csy-slower) var(--csy-ease) forwards;
+}
+[data-clonestory] .csy-appear--2 { animation-delay: 220ms; }
+[data-clonestory] .csy-appear--3 { animation-delay: 440ms; }
+[data-clonestory] .csy-appear--4 { animation-delay: 660ms; }
+
+@keyframes csyAppear {
+  to { opacity: 1; transform: none; }
+}
+
+/* ── Expérience d'entrée cinématographique (overlay 1ʳᵉ visite) ───────────── */
+[data-clonestory] .csy-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background: var(--csy-black);
+  text-align: center;
+}
+[data-clonestory] .csy-intro__line {
+  margin: 0;
+  font-family: var(--csy-font-serif);
+  font-weight: 500;
+  font-size: clamp(1.6rem, 4vw, 3rem);
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--csy-ivory);
+  max-width: 22ch;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity var(--csy-slow) var(--csy-ease),
+    transform var(--csy-slow) var(--csy-ease);
+}
+[data-clonestory] .csy-intro__line[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+}
+[data-clonestory] .csy-intro__skip {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  font-family: var(--csy-font-sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--csy-stone-3);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: color var(--csy-slow) var(--csy-ease);
+}
+[data-clonestory] .csy-intro__skip:hover {
+  color: var(--csy-stone-1);
+}
+[data-clonestory] .csy-intro--leaving {
+  opacity: 0;
+  transition: opacity var(--csy-slow) var(--csy-ease);
+}
+
+/* ── Respect absolu de prefers-reduced-motion ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  [data-clonestory] .csy-appear,
+  [data-clonestory] .csy-intro__line {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  [data-clonestory] .csy-intro--leaving {
+    transition: none !important;
+  }
+}
+
+/* ── Formulaires (sobres, institutionnels) ───────────────────────────────── */
+[data-clonestory] .csy-form {
+  display: grid;
+  gap: 20px;
+  max-width: 560px;
+}
+[data-clonestory] .csy-row2 {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 620px) {
+  [data-clonestory] .csy-row2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+[data-clonestory] .csy-field {
+  display: grid;
+  gap: 8px;
+}
+[data-clonestory] .csy-label {
+  font-family: var(--csy-font-sans);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--csy-stone-2);
+}
+[data-clonestory] .csy-label span {
+  color: var(--csy-stone-3);
+  font-weight: 500;
+}
+[data-clonestory] .csy-input,
+[data-clonestory] .csy-textarea {
+  width: 100%;
+  background: rgba(245, 241, 232, 0.03);
+  border: 1px solid var(--csy-line-strong);
+  border-radius: 2px;
+  padding: 13px 14px;
+  color: var(--csy-ivory);
+  font-family: var(--csy-font-sans);
+  font-size: 1rem;
+  transition: border-color var(--csy-slow) var(--csy-ease), background var(--csy-slow) var(--csy-ease);
+}
+[data-clonestory] .csy-input::placeholder,
+[data-clonestory] .csy-textarea::placeholder {
+  color: var(--csy-stone-4);
+}
+[data-clonestory] .csy-input:focus,
+[data-clonestory] .csy-textarea:focus {
+  outline: none;
+  border-color: var(--csy-metal);
+  background: rgba(245, 241, 232, 0.05);
+}
+[data-clonestory] .csy-textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+[data-clonestory] .csy-check {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-family: var(--csy-font-sans);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--csy-stone-1);
+}
+[data-clonestory] .csy-check input {
+  margin-top: 3px;
+  accent-color: var(--csy-metal);
+}
+[data-clonestory] .csy-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ── Boutons ──────────────────────────────────────────────────────────────── */
+[data-clonestory] .csy-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--csy-font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 14px 26px;
+  border-radius: 2px;
+  border: 1px solid var(--csy-ivory);
+  background: var(--csy-ivory);
+  color: var(--csy-black);
+  cursor: pointer;
+  transition: opacity var(--csy-slow) var(--csy-ease), transform var(--csy-slow) var(--csy-ease);
+}
+[data-clonestory] .csy-button:hover {
+  opacity: 0.86;
+}
+[data-clonestory] .csy-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+[data-clonestory] .csy-button--ghost {
+  background: transparent;
+  color: var(--csy-ivory);
+  border-color: var(--csy-line-strong);
+}
+[data-clonestory] .csy-button--ghost:hover {
+  border-color: var(--csy-metal);
+  color: var(--csy-metal);
+  opacity: 1;
+}
+[data-clonestory] .csy-notice {
+  font-family: var(--csy-font-sans);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 14px 16px;
+  border-radius: 2px;
+  border: 1px solid var(--csy-line-strong);
+  color: var(--csy-stone-1);
+}
+[data-clonestory] .csy-notice--ok {
+  border-color: var(--csy-metal-line);
+  color: var(--csy-cream);
+  background: var(--csy-metal-soft);
+}
+
+/* ── Mon Registre ─────────────────────────────────────────────────────────── */
+[data-clonestory] .csy-registre-head {
+  display: grid;
+  gap: 14px;
+}
+[data-clonestory] .csy-statline {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--csy-line);
+  border: 1px solid var(--csy-line);
+  margin-top: 8px;
+}
+@media (min-width: 720px) {
+  [data-clonestory] .csy-statline {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+[data-clonestory] .csy-stat {
+  background: var(--csy-black);
+  padding: 22px;
+}
+[data-clonestory] .csy-stat__n {
+  font-family: var(--csy-font-serif);
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--csy-ivory);
+}
+[data-clonestory] .csy-stat__k {
+  margin-top: 8px;
+  font-family: var(--csy-font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--csy-stone-3);
+}
+[data-clonestory] .csy-credential {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  border: 1px solid var(--csy-line-strong);
+  border-radius: 2px;
+}
+[data-clonestory] .csy-credential__k {
+  font-family: var(--csy-font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--csy-stone-3);
+}
+[data-clonestory] .csy-credential__v {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--csy-font-sans);
+  font-size: 0.96rem;
+  color: var(--csy-ivory);
+  word-break: break-all;
+}
+[data-clonestory] .csy-copybtn {
+  flex: 0 0 auto;
+  font-family: var(--csy-font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--csy-metal);
+  background: transparent;
+  border: 1px solid var(--csy-metal-line);
+  border-radius: 2px;
+  padding: 7px 11px;
+  cursor: pointer;
+  transition: color var(--csy-slow) var(--csy-ease), border-color var(--csy-slow) var(--csy-ease);
+}
+[data-clonestory] .csy-copybtn:hover {
+  color: var(--csy-ivory);
+  border-color: var(--csy-metal);
+}
+
+/* Ligne d'archive (statut, historique) — jamais un niveau de jeu. */
+[data-clonestory] .csy-archive {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--csy-line);
+}
+[data-clonestory] .csy-archive__row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 18px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--csy-line);
+  font-family: var(--csy-font-sans);
+  font-size: 0.92rem;
+}
+[data-clonestory] .csy-archive__when {
+  color: var(--csy-stone-3);
+  font-variant-numeric: tabular-nums;
+}
+[data-clonestory] .csy-archive__what {
+  color: var(--csy-stone-1);
+}
+[data-clonestory] .csy-introrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: baseline;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--csy-line);
+}
+[data-clonestory] .csy-introrow__co {
+  font-family: var(--csy-font-serif);
+  font-size: 1.15rem;
+  color: var(--csy-ivory);
+}
+[data-clonestory] .csy-tag {
+  font-family: var(--csy-font-sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 2px;
+  border: 1px solid var(--csy-line-strong);
+  color: var(--csy-stone-2);
+}
+[data-clonestory] .csy-tag--confirmed {
+  border-color: var(--csy-metal-line);
+  color: var(--csy-metal);
+}
+[data-clonestory] .csy-tag--declared {
+  color: var(--csy-stone-3);
+}
+[data-clonestory] .csy-tag--disputed {
+  color: #c89b6a;
+  border-color: rgba(200, 155, 106, 0.4);
+}
+
+/* ── Administration (sobre) ──────────────────────────────────────────────── */
+[data-clonestory] .csy-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--csy-font-sans);
+  font-size: 0.9rem;
+}
+[data-clonestory] .csy-admin-table th,
+[data-clonestory] .csy-admin-table td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--csy-line);
+  color: var(--csy-stone-1);
+  vertical-align: top;
+}
+[data-clonestory] .csy-admin-table th {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--csy-stone-3);
+}
+
+/* ── Masquage route-scopé du chrome commercial CloneStore ─────────────────────
+   Deux gardes complémentaires, sans modifier globals.css ni aucune autre route :
+   1) `:has([data-clonestory])` agit DÈS LE PREMIER RENDU (le conteneur CloneStory
+      est dans le HTML serveur) → AUCUN flash de l'en-tête commercial au chargement
+      direct, même JS lent/désactivé. Au retour vers CloneStore, le conteneur
+      disparaît du DOM → l'en-tête/pied réapparaissent.
+   2) `[data-clonestory-active]` (posé par ClonestoryBodyFlag) reste comme filet de
+      sécurité pour la navigation client et les navigateurs sans :has(). */
+body:has([data-clonestory]) .cs-header,
+body:has([data-clonestory]) .cs-footer,
+body[data-clonestory-active="true"] .cs-header,
+body[data-clonestory-active="true"] .cs-footer {
+  display: none !important;
+}
+
+/* ── Masthead minimal CloneStory (remplace l'en-tête commercial) ──────────────*/
+[data-clonestory] .csy-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px clamp(22px, 5vw, 56px);
+  border-bottom: 1px solid var(--csy-line);
+}
+[data-clonestory] .csy-masthead__mark {
+  font-family: var(--csy-font-serif);
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--csy-ivory);
+}
+[data-clonestory] .csy-masthead__back {
+  font-family: var(--csy-font-sans);
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  color: var(--csy-stone-3);
+  transition: color var(--csy-slow) var(--csy-ease);
+}
+[data-clonestory] .csy-masthead__back:hover {
+  color: var(--csy-metal);
+}
+
+/* ── Frontispice (en-tête de maison) ──────────────────────────────────────── */
+[data-clonestory] .csy-frontispiece {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: var(--csy-stone-3);
+}
+[data-clonestory] .csy-frontispiece__rule {
+  flex: 1;
+  height: 1px;
+  background: var(--csy-line);
+}
+[data-clonestory] .csy-frontispiece__mark {
+  font-family: var(--csy-font-serif);
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  color: var(--csy-metal);
+}
+
+/* ── Liste de principes éditoriale (numéros romains, pas de cartes) ─────────── */
+[data-clonestory] .csy-principles {
+  display: grid;
+  gap: 0;
+  border-bottom: 1px solid var(--csy-line);
+}
+[data-clonestory] .csy-principle {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: clamp(30px, 5vh, 52px) 0;
+  border-top: 1px solid var(--csy-line);
+}
+@media (min-width: 760px) {
+  [data-clonestory] .csy-principle {
+    grid-template-columns: 90px 1fr;
+    gap: 36px;
+  }
+}
+[data-clonestory] .csy-principle__num {
+  font-family: var(--csy-font-serif);
+  font-size: 1.5rem;
+  font-style: italic;
+  color: var(--csy-metal);
+  line-height: 1;
+}
+[data-clonestory] .csy-principle__title {
+  margin: 0 0 12px;
+  font-family: var(--csy-font-serif);
+  font-weight: 500;
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  color: var(--csy-ivory);
+  letter-spacing: -0.006em;
+}
+[data-clonestory] .csy-principle__copy {
+  margin: 0;
+  font-family: var(--csy-font-sans);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--csy-stone-2);
+  max-width: 56ch;
+}
+
+/* ── Registre (entrées de ledger, JAMAIS des KPI/cards) ─────────────────────── */
+[data-clonestory] .csy-ledger {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--csy-line);
+}
+[data-clonestory] .csy-ledger__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 2px;
+  border-bottom: 1px solid var(--csy-line);
+}
+[data-clonestory] .csy-ledger__label {
+  font-family: var(--csy-font-sans);
+  font-size: 0.86rem;
+  letter-spacing: 0.06em;
+  color: var(--csy-stone-1);
+}
+[data-clonestory] .csy-ledger__dots {
+  flex: 1;
+  border-bottom: 1px dotted var(--csy-line-strong);
+  transform: translateY(-4px);
+  min-width: 24px;
+  opacity: 0.5;
+}
+[data-clonestory] .csy-ledger__value {
+  font-family: var(--csy-font-serif);
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--csy-ivory);
+  font-variant-numeric: tabular-nums;
+}
+[data-clonestory] .csy-ledger__value--muted {
+  color: var(--csy-stone-3);
+}
+
+/* ── Champs de transmission (lien/code) — archive, pas code promo ──────────── */
+[data-clonestory] .csy-field-line {
+  display: grid;
+  gap: 8px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--csy-line);
+}
+[data-clonestory] .csy-field-line__k {
+  font-family: var(--csy-font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--csy-stone-3);
+}
+[data-clonestory] .csy-field-line__v {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--csy-font-sans);
+  font-size: 1rem;
+  color: var(--csy-ivory);
+  word-break: break-all;
+}
+
+/* Focus visible sobre (accessibilité) — compounds explicites (sûr au minifieur) */
+[data-clonestory] a:focus-visible,
+[data-clonestory] button:focus-visible,
+[data-clonestory] input:focus-visible,
+[data-clonestory] textarea:focus-visible,
+[data-clonestory] select:focus-visible,
+[data-clonestory] [tabindex]:focus-visible {
+  outline: 1px solid var(--csy-metal);
+  outline-offset: 3px;
+}

@@ -164,6 +164,35 @@ canvas {
   width: min(100%, 1320px);
 }
 
+/* Barre supérieure : shell plus large que les pages (logo + nav + actions sur une
+   ligne) + COMPACTION FLUIDE. La topbar desktop complète tient dès ~1280px sans rien
+   rogner, et retrouve ses dimensions pleines vers ~1536px. Seuls gaps, paddings et
+   taille de texte varient dans une plage limitée (pills, couleurs, style inchangés).
+   En dessous de xl c'est le menu hamburger (tablette / mobile) qui prend le relais. */
+.cs-header .cs-shell {
+  width: min(100%, 1620px);
+}
+
+@media (min-width: 1024px) {
+  .cs-header .cs-shell {
+    padding-inline: clamp(12px, 1vw, 28px);
+  }
+  .cs-header .cs-nav-rail {
+    gap: clamp(2px, 0.28vw, 6px);
+    padding: clamp(3px, 0.32vw, 6px);
+  }
+  .cs-header .cs-nav-link {
+    padding-inline: clamp(7px, 0.5vw, 13px);
+    font-size: clamp(0.74rem, calc(0.2rem + 0.7vw), 0.88rem);
+  }
+  .cs-header .clone-liquid-button {
+    padding-inline: clamp(11px, 0.85vw, 20px);
+  }
+  .cs-header a[href="/reserver/pierre"] {
+    padding-inline: clamp(10px, 0.8vw, 16px);
+  }
+}
+
 @media (max-width: 1024px) {
   .cs-shell,
   .cs-page-shell,
@@ -318,11 +347,12 @@ canvas {
   align-items: center;
   justify-content: center;
   min-height: 40px;
-  padding-inline: 14px;
+  padding-inline: 11px;
   border-radius: var(--cs-radius-pill);
   color: var(--cs-ink-3);
   font-size: 0.88rem;
   font-weight: 650;
+  white-space: nowrap;
   transition:
     background-color var(--cs-speed-fast) var(--cs-ease),
     color var(--cs-speed-fast) var(--cs-ease),
@@ -1530,6 +1560,7 @@ canvas {
   align-items: center;
   justify-content: center;
   gap: 9px;
+  white-space: nowrap;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.54);
   background:
@@ -2457,7 +2488,8 @@ canvas {
 
 html,
 body {
-  overflow-x: hidden;
+  /* `clip` plutôt que `hidden` : ne crée pas de conteneur de scroll → sticky OK. */
+  overflow-x: clip;
 }
 
 .clone-home-page,
@@ -2469,8 +2501,11 @@ body {
 }
 
 .clone-home-screen {
-  content-visibility: auto;
-  contain-intrinsic-size: 860px;
+  /* `content-visibility: auto` + `contain-intrinsic-size` forçait une LARGEUR
+     intrinsèque (860/720px) aux sections hors-écran → débordement horizontal et
+     contenu rogné sur mobile. On laisse les sections suivre la largeur du
+     conteneur (le gain de perf est négligeable pour une home). */
+  content-visibility: visible;
 }
 
 /* Hero title: smaller, more premium, less brutal */
@@ -4471,11 +4506,17 @@ body {
   --cs-violet-2: #667cff;
 }
 
-/* Sécurité anti-casse layout */
-html,
-body {
+/* Sécurité anti-casse layout.
+   IMPORTANT : un scroll vertical posé sur le body en faisait un conteneur de
+   scroll → cassait `position: sticky` partout (sidebars de l'espace connecté
+   qui restaient collées en haut du document). On laisse le scroll au <html>
+   (conteneur unique) et on protège l'overflow horizontal avec `clip` sur le
+   body, qui n'établit PAS de conteneur de scroll. */
+html {
   overflow-x: hidden;
-  overflow-y: auto;
+}
+body {
+  overflow-x: clip;
 }
 
 .cs-backdrop,
@@ -5068,11 +5109,10 @@ html[data-clone-motion="off"] body:not(:has(.clone-home-page)) .clone-core-aura 
 html,
 body {
   min-height: 100%;
-  overflow-x: hidden;
-}
-
-body {
-  overflow-y: auto;
+  /* `clip` borne l'overflow horizontal SANS faire du body un conteneur de
+     scroll (contrairement à `hidden`, qui force overflow-y à `auto`). Indispensable
+     pour que `position: sticky` fonctionne (sidebars de l'espace connecté). */
+  overflow-x: clip;
 }
 
 /* =========================================================
@@ -5482,11 +5522,10 @@ html[data-clone-motion="off"] * {
 html,
 body {
   min-height: 100%;
-  overflow-x: hidden;
-}
-
-body {
-  overflow-y: auto;
+  /* `clip` borne l'overflow horizontal SANS faire du body un conteneur de
+     scroll (contrairement à `hidden`, qui force overflow-y à `auto`). Indispensable
+     pour que `position: sticky` fonctionne (sidebars de l'espace connecté). */
+  overflow-x: clip;
 }
 
 /* =========================================================
@@ -5511,3 +5550,178 @@ body {
 .cs-badge-danger  { color: var(--cs-danger);  background: var(--cs-danger-bg); }
 .cs-badge-blue    { color: var(--cs-blue);    background: var(--cs-blue-soft); }
 .cs-badge-muted   { color: var(--cs-ink-4);   background: rgba(0,0,0,0.055); }
+
+/* =========================================================
+   PHASE 2.8 — Responsive Premium Utilities
+   Ajoutés sans modifier le design LiquidGlass existant.
+   Ne pas utiliser sur la homepage.
+   ========================================================= */
+
+/* Masquer la scrollbar native (ex : tabs overflow-x) */
+.cs-no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.cs-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Scroll horizontal avec scrollbar fine (timelines, tabs) */
+.cs-scroll-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.24) transparent;
+}
+.cs-scroll-x::-webkit-scrollbar {
+  height: 4px;
+}
+.cs-scroll-x::-webkit-scrollbar-track {
+  background: transparent;
+}
+.cs-scroll-x::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.28);
+  border-radius: 99px;
+}
+
+/* Grille responsive premium 1→2→3 colonnes */
+.cs-responsive-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .cs-responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .cs-responsive-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ============================================================
+   APP SHELL — espace connecté : sidebar gauche permanente
+   (desktop) + drawer (mobile/tablette). Une seule navigation.
+   ============================================================ */
+
+.cs-app {
+  width: min(100%, 1480px);
+  margin-inline: auto;
+  padding-inline: 28px;
+}
+@media (max-width: 1024px) {
+  .cs-app {
+    padding-inline: 18px;
+  }
+}
+@media (max-width: 520px) {
+  .cs-app {
+    padding-inline: 14px;
+  }
+}
+
+.cs-app-mobilebar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+}
+/* La barre mobile ne doit jamais apparaître sur desktop (la sidebar permanente
+   prend le relais). On le force en CSS car `.cs-app-mobilebar` l'emporterait sur
+   l'utilitaire `lg:hidden`. */
+@media (min-width: 1024px) {
+  .cs-app-mobilebar {
+    display: none;
+  }
+}
+
+.cs-app-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+}
+@media (min-width: 1024px) {
+  .cs-app-grid {
+    grid-template-columns: 264px minmax(0, 1fr);
+    gap: 28px;
+  }
+}
+
+/* Sidebar desktop : sticky en haut de l'espace connecté (le header public est
+   masqué sur ces routes), hauteur viewport, scroll interne. Le correctif overflow
+   (body non conteneur de scroll) rend `position: sticky` opérant sur toute la page. */
+.cs-app-sidebar {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+  height: calc(100vh - 40px);
+}
+.cs-app {
+  padding-top: 4px;
+}
+.cs-app-sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px 12px;
+  border-radius: 1.6rem;
+  border: 1px solid var(--clone-glass-border, rgba(255, 255, 255, 0.58));
+  background: var(--clone-glass-bg, rgba(255, 255, 255, 0.6));
+  box-shadow: var(--cs-shadow-panel, 0 24px 70px rgba(32, 36, 45, 0.08));
+}
+
+/* Contenu : on aplatit le `cs-page-shell` interne des pages (la grille porte déjà
+   la largeur max + le padding) → pas de double contrainte ni de double padding. */
+.cs-app-main .cs-page-shell {
+  width: 100%;
+  padding-inline: 0;
+}
+.cs-app-main .cs-page {
+  background: transparent;
+}
+
+/* Drawer mobile : overlay + panneau glissant, scroll arrière-plan verrouillé via JS. */
+.cs-app-drawer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+}
+.cs-app-drawer-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: rgba(18, 20, 28, 0.44);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  cursor: pointer;
+}
+.cs-app-drawer-panel {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(86vw, 320px);
+  padding: 16px 14px;
+  background: rgba(251, 247, 239, 0.98);
+  border-right: 1px solid var(--cs-line);
+  box-shadow: 0 24px 70px rgba(20, 22, 30, 0.3);
+  animation: cs-app-drawer-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+html[data-clone-appearance="graphite"] .cs-app-drawer-panel {
+  background: rgba(22, 26, 34, 0.98);
+}
+@keyframes cs-app-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
