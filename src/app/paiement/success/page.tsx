@@ -234,7 +234,7 @@ function SuccessContent() {
                         icon={<ArrowRight className="h-4 w-4" />}
                       />
                       <ActionButton
-                        href="/agents/pierre/use"
+                        href="/agents/pierre/setup"
                         label="Configurer Pierre"
                         icon={<Waypoints className="h-4 w-4" />}
                       />
@@ -300,8 +300,8 @@ function SuccessContent() {
                         }
                       />
                       <StepCard
-                        title="Configuration"
-                        text="Pierre peut maintenant être préparé avec vos règles, votre entreprise et vos usages."
+                        title="Empreinte Entreprise"
+                        text="Configurez Pierre avec votre identité, vos règles RH, vos valideurs et votre ton — en quelques minutes."
                         icon={<FileCheck2 className="h-4 w-4" />}
                       />
                       <StepCard

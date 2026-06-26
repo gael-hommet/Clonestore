@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { buildLoginRedirect } from "./redirects";
 import { getSessionClient } from "./session-client";
+import { isAuthBypassEnabled } from "./dev-bypass";
 
 export type AuthGateState = "checking" | "authenticated" | "unauthenticated";
 
@@ -20,6 +21,12 @@ export function useAuthGate(): { authState: AuthGateState } {
   const redirectedRef = useRef(false);
 
   useEffect(() => {
+    // Dev/test uniquement (mort en production) : considérer authentifié.
+    if (isAuthBypassEnabled()) {
+      setAuthState("authenticated");
+      return;
+    }
+
     void getSessionClient()
       .auth.getSession()
       .then(({ data }) => {

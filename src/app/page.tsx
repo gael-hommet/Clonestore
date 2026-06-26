@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleDot,
+  Eye,
   FileCheck2,
   Fingerprint,
   LockKeyhole,
@@ -26,6 +27,7 @@ import {
 } from "lucide-react";
 
 import { LiquidGlass } from "@/components/ui/LiquidGlass";
+import { PresencePing } from "@/components/founder/PresencePing";
 import { cn } from "@/lib/utils";
 
 type SectionKey = "overview" | "employees" | "technologies" | "cockpit" | "trust";
@@ -53,6 +55,7 @@ const employees = [
     tone: "active",
     text: "Documents RH, emails, relances, suivi, validations et continuité des missions RH.",
     href: "/agents/pierre",
+    demoHref: "/demo/pierre",
   },
   {
     name: "Clara",
@@ -297,13 +300,24 @@ function EmployeeCard({ employee }: { employee: (typeof employees)[number] }) {
 
       <p className="mt-5 text-sm leading-7 text-[var(--cs-ink-3)]">{employee.text}</p>
 
-      <Link
-        href={employee.href}
-        className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[var(--cs-ink-1)]"
-      >
-        Voir la fiche
-        <ArrowRight className="h-4 w-4" />
-      </Link>
+      <div className="mt-7 flex flex-wrap items-center gap-4">
+        <Link
+          href={employee.href}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--cs-ink-1)]"
+        >
+          Voir la fiche
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+        {"demoHref" in employee && employee.demoHref ? (
+          <Link
+            href={employee.demoHref}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#6f83ff]"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            Voir la démo
+          </Link>
+        ) : null}
+      </div>
     </LiquidGlass>
   );
 }
@@ -477,6 +491,7 @@ export default function HomePage() {
 
   return (
     <main className="cs-page clone-home-page">
+      <PresencePing event="site_viewed" />
       <div className="cs-page-shell clone-home-shell">
         <div className="clone-home-layout">
           <aside className={cn("clone-home-rail-wrap", railOpen && "clone-home-rail-wrap--open")}>
@@ -570,7 +585,10 @@ export default function HomePage() {
                           overflow: "visible",
                           fontFamily:
                             '"SF Pro Display", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-                          fontSize: "clamp(3.8rem, 5.55vw, 5.95rem)",
+                          // Plancher abaissé (2.1rem) + terme vw plus fort : le titre
+                          // descend proprement sur mobile (320–430px) sans débordement
+                          // horizontal, tout en gardant sa taille premium sur desktop.
+                          fontSize: "clamp(2.1rem, 6.2vw, 5.95rem)",
                           fontWeight: 560,
                           lineHeight: 0.92,
                           letterSpacing: "-0.074em",
@@ -606,20 +624,20 @@ export default function HomePage() {
 
                     <div className="clone-actions-row">
                       <ActionButton
+                        href="/demo/pierre"
+                        label="Voir la démo Pierre"
+                        primary
+                        icon={<Eye className="h-4 w-4" />}
+                      />
+                      <ActionButton
                         href="/agents"
                         label="Découvrir les employés"
-                        primary
                         icon={<ArrowRight className="h-4 w-4" />}
                       />
                       <ActionButton
                         href="/assistant"
                         label="Parler à CloneChat"
                         icon={<Bot className="h-4 w-4" />}
-                      />
-                      <ActionButton
-                        href="/profile"
-                        label="Voir le cockpit"
-                        icon={<Waypoints className="h-4 w-4" />}
                       />
                     </div>
 
@@ -633,6 +651,73 @@ export default function HomePage() {
                   <div className="clone-hero-visual">
                     <CloneCoreOrbit />
                     <CloneCoreLegend />
+                  </div>
+                </div>
+              </LiquidGlass>
+            </section>
+
+            <section className="clone-home-screen">
+              <LiquidGlass variant="panel" intensity="medium" className="clone-section-panel">
+                <SectionTitle
+                  eyebrow="Employé IA, pas assistant"
+                  title="Un assistant aide à travailler. Pierre prend le travail et le fait avancer."
+                  text="La plupart des outils IA répondent quand on les sollicite. Un employé IA CloneStore reçoit une demande, la transforme en mission, exécute sous règles, relance, demande les validations sensibles et garde la trace — sans qu’on ait à le piloter étape par étape."
+                />
+
+                <div className="mt-8 grid gap-4 md:grid-cols-2">
+                  <LiquidGlass variant="clear" intensity="soft" className="rounded-3xl p-6">
+                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[var(--cs-ink-4)]">
+                      Assistant IA classique
+                    </p>
+                    <ul className="mt-4 space-y-2.5 text-sm leading-7 text-[var(--cs-ink-3)]">
+                      <li>Répond uniquement quand on le sollicite.</li>
+                      <li>Produit un texte, puis s’arrête.</li>
+                      <li>Ne suit rien dans le temps.</li>
+                      <li>Aucune trace, aucune validation cadrée.</li>
+                    </ul>
+                  </LiquidGlass>
+
+                  <LiquidGlass
+                    variant="clear"
+                    intensity="soft"
+                    interactive
+                    className="rounded-3xl border border-[rgba(111,131,255,0.28)] bg-[rgba(111,131,255,0.06)] p-6"
+                  >
+                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#5f74ff]">
+                      Pierre — employé IA RH
+                    </p>
+                    <ul className="mt-4 space-y-2.5 text-sm leading-7 text-[var(--cs-ink-2)]">
+                      <li className="flex items-start gap-2"><BadgeCheck className="mt-1 h-4 w-4 shrink-0 text-[#6f83ff]" />Transforme une demande en mission et en tâches.</li>
+                      <li className="flex items-start gap-2"><BadgeCheck className="mt-1 h-4 w-4 shrink-0 text-[#6f83ff]" />Exécute, relance et maintient la continuité.</li>
+                      <li className="flex items-start gap-2"><BadgeCheck className="mt-1 h-4 w-4 shrink-0 text-[#6f83ff]" />Bloque le sensible et demande une validation humaine.</li>
+                      <li className="flex items-start gap-2"><BadgeCheck className="mt-1 h-4 w-4 shrink-0 text-[#6f83ff]" />Garde une trace complète avec CloneTrace.</li>
+                    </ul>
+                  </LiquidGlass>
+                </div>
+
+                <div className="mt-8 flex flex-col items-start gap-5 border-t border-white/50 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-[1.9rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                      449 € HT
+                      <span className="ml-1 text-base font-medium text-[var(--cs-ink-4)]">/ mois</span>
+                    </p>
+                    <p className="mt-1 text-xs leading-6 text-[var(--cs-ink-4)]">
+                      Accès à Pierre, employé IA RH dédié à votre entreprise. Aucun paiement aujourd’hui.
+                    </p>
+                  </div>
+
+                  <div className="clone-actions-row">
+                    <ActionButton
+                      href="/demo/pierre"
+                      label="Voir la démo Pierre"
+                      primary
+                      icon={<Eye className="h-4 w-4" />}
+                    />
+                    <ActionButton
+                      href="/reserver/pierre"
+                      label="Réserver Pierre"
+                      icon={<ArrowRight className="h-4 w-4" />}
+                    />
                   </div>
                 </div>
               </LiquidGlass>

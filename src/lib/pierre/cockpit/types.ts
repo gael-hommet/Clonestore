@@ -122,6 +122,10 @@ export type PierreCockpitValidationSummary = {
   isSensitive: boolean;
   requiresHuman: boolean;
   createdAt: string | null;
+  // PHASE 8.2-C — V1 validation identity (the cockpit decides validations, not tasks).
+  validationId?: string;
+  version?: number;
+  status?: string;
 };
 
 export type PierreCockpitRiskSummary = {

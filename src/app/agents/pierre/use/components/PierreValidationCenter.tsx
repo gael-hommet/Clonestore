@@ -32,7 +32,8 @@ function ValidationCard({
     setErrorMsg(null);
     try {
       const fn = action === "approve" ? onApprove : onCancel;
-      const res = await fn(item.taskId);
+      // PHASE 8.2-C — decisions are keyed by the V1 validationId (fallback: taskId).
+      const res = await fn(item.validationId ?? item.taskId);
       if (res.ok) {
         setResult(action === "approve" ? "approved" : "refused");
       } else {

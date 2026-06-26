@@ -234,7 +234,7 @@ export default function LaunchReadinessPage() {
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-stone-800">Launch Readiness</h1>
-            <p className="text-xs text-stone-500">B48 — Tableau de bord pré-lancement — Interne</p>
+            <p className="text-xs text-stone-500">Tableau de bord pré-lancement — Interne</p>
           </div>
           <button
             onClick={() => setRefreshKey((k) => k + 1)}
@@ -327,7 +327,7 @@ export default function LaunchReadinessPage() {
 
         {/* Footer disclaimer */}
         <p className="text-xs text-stone-400 text-center pb-4">
-          B48 — Tableau de bord interne. Pierre n'est pas avocat, juriste ou logiciel de paie officiel.
+          Tableau de bord interne. Pierre n'est pas avocat, juriste ou logiciel de paie officiel.
           Ce rapport est une aide technique — la conformité juridique finale nécessite une revue humaine.
         </p>
       </div>

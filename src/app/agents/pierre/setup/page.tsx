@@ -2,6 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+
+// ── PHASE 3.10 — Empreinte Entreprise (localStorage read-only) ───────────────
+// Pas de Supabase, pas de DB write, pas de runtime Pierre.
+import {
+  loadPierreSetupEnterpriseFootprint,
+} from "@/lib/clonestore/enterprise-footprint";
+import type {
+  PierreSetupFootprintReadResult,
+} from "@/lib/clonestore/enterprise-footprint";
 import {
   ArrowRight,
   Bot,
@@ -515,6 +524,19 @@ export default function PierreSetupPage() {
   const [loadMessage, setLoadMessage] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
+  // ── PHASE 3.10 — Empreinte Entreprise (localStorage read-only) ─────────────
+  const [footprintResult, setFootprintResult] =
+    useState<PierreSetupFootprintReadResult | null>(null);
+
+  useEffect(() => {
+    try {
+      const result = loadPierreSetupEnterpriseFootprint();
+      setFootprintResult(result);
+    } catch {
+      /* Silent fail — localStorage indisponible */
+    }
+  }, []);
+
   useEffect(() => {
     let active = true;
 
@@ -636,6 +658,35 @@ export default function PierreSetupPage() {
   return (
     <div className="cs-page-shell py-10 md:py-14">
       <div className="space-y-6">
+        {/* Onboarding welcome banner — shown at the top to guide new customers */}
+        <div className="rounded-[2rem] border border-[rgba(111,131,255,0.22)] bg-gradient-to-r from-[rgba(111,131,255,0.08)] to-[rgba(111,131,255,0.03)] p-5 md:p-6">
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/60 bg-white/35 text-[#6f83ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div className="flex-1 space-y-2">
+              <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                Bienvenue — configurez Pierre en quelques minutes
+              </p>
+              <p className="text-sm leading-6 text-[var(--cs-ink-3)]">
+                Cette page est la matrice de Pierre. Ce que vous renseignez ici — identité, ton, valideurs, interdits — configure son comportement pour toutes vos missions RH.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {[
+                  "1. Identité entreprise",
+                  "2. Personnes & valideurs",
+                  "3. Ton & communication",
+                  "4. Accéder au cockpit",
+                ].map((step) => (
+                  <span key={step} className="cs-pill text-xs">
+                    {step}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <section className="cs-command-surface overflow-hidden">
           <div className="cs-system-halo" />
 
@@ -769,6 +820,103 @@ export default function PierreSetupPage() {
                           ? loadMessage || "Chargement impossible."
                           : "Aucune erreur détectée."}
                   </p>
+                </div>
+              </div>
+
+              {/* PHASE 3.10 — Empreinte Entreprise read-only */}
+              <div className="cs-card">
+                <div className="relative space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                      Empreinte Entreprise
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-flex items-center rounded-full border border-white/45 bg-white/28 px-2 py-0.5 text-[0.58rem] font-bold text-[var(--cs-ink-3)]">
+                        Lecture seule
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-[0.68rem] text-[var(--cs-ink-4)]">
+                    Contexte lu par Pierre en lecture seule · Aucune action exécutée
+                  </p>
+
+                  {footprintResult?.has_footprint && footprintResult.summary ? (
+                    <div className="space-y-3">
+                      {/* Entreprise + readiness */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 rounded-[0.9rem] border border-white/40 bg-white/16 px-3 py-2">
+                        <div>
+                          <p className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">
+                            Entreprise
+                          </p>
+                          <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                            {footprintResult.summary.company_name}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[0.58rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">
+                            Readiness
+                          </p>
+                          <p className="text-sm font-bold text-[var(--cs-ink-1)]">
+                            {footprintResult.summary.readiness_score}%
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Cards compactes */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {footprintResult.cards.slice(0, 4).map((card) => (
+                          <div
+                            key={card.id}
+                            className="rounded-[0.9rem] border border-white/40 bg-white/14 p-2"
+                          >
+                            <p className="text-[0.58rem] font-bold uppercase tracking-[0.08em] text-[var(--cs-ink-4)]">
+                              {card.label}
+                            </p>
+                            <p className="text-xs font-semibold text-[var(--cs-ink-1)]">
+                              {String(card.value)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Top recommendation */}
+                      {footprintResult.recommendations.filter(
+                        (r) => r.severity === "blocking" || r.severity === "warning"
+                      ).slice(0, 1).map((rec) => (
+                        <p key={rec.id} className="text-[0.62rem] text-[var(--cs-ink-4)]">
+                          ⚠ {rec.text}
+                        </p>
+                      ))}
+
+                      {/* CTA */}
+                      <div className="flex flex-wrap gap-1.5">
+                        <Link
+                          href="/profile/onboarding"
+                          className="inline-flex items-center rounded-full border border-white/45 bg-white/24 px-2.5 py-1 text-[0.62rem] font-semibold text-[var(--cs-ink-2)] hover:bg-white/38 transition"
+                        >
+                          Modifier l'empreinte
+                        </Link>
+                        <Link
+                          href="/profile/agents#empreinte-entreprise"
+                          className="inline-flex items-center rounded-full border border-white/45 bg-white/24 px-2.5 py-1 text-[0.62rem] font-semibold text-[var(--cs-ink-2)] hover:bg-white/38 transition"
+                        >
+                          Voir dans cockpit
+                        </Link>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-[0.7rem] text-[var(--cs-ink-3)]">
+                        Empreinte Entreprise manquante — Pierre peut être configuré, mais le contexte entreprise global n'est pas encore disponible.
+                      </p>
+                      <Link
+                        href="/profile/onboarding"
+                        className="inline-flex items-center rounded-full border border-white/45 bg-white/24 px-2.5 py-1 text-[0.62rem] font-semibold text-[var(--cs-ink-2)] hover:bg-white/38 transition"
+                      >
+                        Créer l'Empreinte Entreprise →
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1232,6 +1380,53 @@ export default function PierreSetupPage() {
             </div>
           </div>
         </section>
+
+        {/* First mission suggestions — only shown after save succeeds */}
+        {saveState === "success" && (
+          <div className="rounded-[2rem] border border-[rgba(111,131,255,0.22)] bg-gradient-to-br from-[rgba(111,131,255,0.07)] to-transparent p-6 md:p-8">
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              <span className="cs-pill">
+                <Waypoints className="h-3.5 w-3.5 text-[#6f83ff]" />
+                Premières missions suggérées
+              </span>
+            </div>
+            <p className="mb-4 text-sm leading-6 text-[var(--cs-ink-3)]">
+              Pierre est configuré. Lancez votre première mission depuis le cockpit.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {[
+                {
+                  label: "Prépare un contrat CDI",
+                  detail: "Pierre rédige le contrat selon vos règles et votre tone of voice.",
+                },
+                {
+                  label: "Email d'onboarding nouveau collaborateur",
+                  detail: "Pierre génère le message de bienvenue personnalisé.",
+                },
+                {
+                  label: "Analyse RH de l'équipe",
+                  detail: "Pierre synthétise l'état de santé RH de vos collaborateurs.",
+                },
+              ].map(({ label, detail }) => (
+                <Link
+                  key={label}
+                  href="/agents/pierre/use"
+                  className="group flex flex-col gap-2 rounded-[1.5rem] border border-white/40 bg-white/25 p-4 transition-all hover:border-[rgba(111,131,255,0.35)] hover:bg-white/40"
+                >
+                  <p className="text-sm font-semibold text-[var(--cs-ink-1)]">{label}</p>
+                  <p className="text-xs leading-5 text-[var(--cs-ink-3)]">{detail}</p>
+                  <ArrowRight className="mt-auto h-4 w-4 text-[#6f83ff] opacity-0 transition-opacity group-hover:opacity-100" />
+                </Link>
+              ))}
+            </div>
+            <div className="mt-6">
+              <Link href="/agents/pierre/use" className="clone-liquid-button clone-liquid-button--dark">
+                <span>Aller au cockpit Pierre</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -11,9 +11,40 @@ import { hasPierreAccess } from "@/lib/pierre/access";
 import { normalizeAgentSlug } from "@/lib/checkout/checkout-helpers";
 import { EXPECTED_PIERRE_PRICE_AMOUNT, TRIAL_PERIOD_DAYS } from "@/lib/billing/stripe-activation";
 import { getOrderStatus } from "@/lib/billing/order-activation";
+// BLOC 3 — pont conversion (additif, ne change pas l'auth/billing existante).
+import { readConversionSessionId } from "@/lib/clonestore/conversion/session";
+import {
+  bridgeCheckoutStarted,
+  buildConversionCheckoutMetadata,
+} from "@/lib/clonestore/conversion/checkout-bridge";
+import { getConversionSession, isConversionBackendAvailable } from "@/lib/clonestore/conversion/storage";
+// Phase E — founder reservation strict validation (E-R1 §8)
+import { getRuntimeDb } from "@/lib/pierre/v1/db";
+import { getReservationForActivation } from "@/lib/founder-access/store";
+import { getFounderPhase } from "@/lib/founder-access/commercial";
+import { normalizeEmail } from "@/lib/founder-access/validation";
+import { evaluateFounderCheckout, type CheckoutEligibility } from "@/lib/founder-access/checkout-eligibility";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const FA_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// E-R1 §8 — Quand `founder_reservation_id` est PRÉSENT, la validation est STRICTE
+// (logique pure dans checkout-eligibility.ts). Tout cas invalide → erreur.
+async function validateFounderReservation(
+  raw: unknown, userId: string, userEmail: string | null,
+): Promise<CheckoutEligibility> {
+  if (typeof raw !== "string" || !FA_UUID_RE.test(raw)) {
+    return { ok: false, code: "FOUNDER_RESERVATION_INVALID", message: "Réservation fondatrice invalide." };
+  }
+  const db = await getRuntimeDb();
+  const reservation = await getReservationForActivation(db, raw);
+  return evaluateFounderCheckout({
+    reservation, phase: getFounderPhase(), userId,
+    userEmailNormalized: userEmail ? normalizeEmail(userEmail) : null,
+  });
+}
 
 // ── Supabase admin ──────────────────────────────────────────────
 
@@ -202,6 +233,48 @@ export async function POST(request: NextRequest) {
     ).toString();
     const cancel_url = new URL(`/paiement/cancel?agent=${agentSlug}`, base).toString();
 
+    // Liaison fondateur (Phase E.4 + E-R1 §8) — STRICTE quand un rid est fourni.
+    const metadata: Record<string, string> = { user_id: userId, agent_slug: agentSlug };
+    const rawRid = (body as Record<string, unknown>).founder_reservation_id;
+    if (agentSlug === "pierre" && typeof rawRid === "string" && rawRid.length > 0) {
+      let userEmail: string | null = null;
+      try {
+        const { data: u } = await supabaseAdmin.auth.getUser(tryReadBearerToken(request) ?? undefined);
+        userEmail = u.user?.email ?? null;
+      } catch { userEmail = null; }
+      const check = await validateFounderReservation(rawRid, userId, userEmail);
+      if (!check.ok) return jsonError(400, check.message, check.code);
+      metadata.founder_reservation_id = check.reservationId;
+    }
+
+    // ── BLOC 3 : conversion metadata + bridge (additif, non bloquant) ───
+    // Source = cookie signé `cs_conversion_session`. Aucune valeur lue depuis
+    // le body navigateur. Si pas de session conversion : checkout normal sans
+    // metadata marketing (visiteur organique).
+    const conversionSessionId = readConversionSessionId(request.headers.get("cookie"));
+    const conversionSession = conversionSessionId && isConversionBackendAvailable()
+      ? getConversionSession(conversionSessionId)
+      : null;
+    if (conversionSession) {
+      const built = buildConversionCheckoutMetadata({
+        conversionSessionId: conversionSession.id,
+        userId,
+        agentSlug,
+        founderReservationId: metadata.founder_reservation_id ?? null,
+      });
+      if (built.ok) {
+        // Merge additif : les clés Phase E (user_id, agent_slug, founder_reservation_id)
+        // sont conservées ; les clés BLOC 3 (campaign, cohort, variant, funnel_version,
+        // prospect_token) s'ajoutent.
+        for (const [k, v] of Object.entries(built.metadata)) {
+          if (!metadata[k]) metadata[k] = v;
+        }
+        metadata.conversion_session_id = conversionSession.id;
+      }
+      // best-effort : émettre checkout_started côté serveur (idempotent).
+      bridgeCheckoutStarted({ sessionId: conversionSession.id, userId, tenantId: null });
+    }
+
     // user_id comes from the validated Bearer token — never from client body
     // trial_period_days: 7 — card collected now, charged after trial unless cancelled
     const session = await stripe.checkout.sessions.create({
@@ -211,9 +284,9 @@ export async function POST(request: NextRequest) {
       cancel_url,
       subscription_data: {
         trial_period_days: TRIAL_PERIOD_DAYS,
-        metadata: { user_id: userId, agent_slug: agentSlug },
+        metadata,
       },
-      metadata: { user_id: userId, agent_slug: agentSlug },
+      metadata,
     });
 
     if (!session.url) {

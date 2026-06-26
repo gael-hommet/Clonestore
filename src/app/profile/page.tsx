@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import CloneStoryCockpitCard from "./_ui/CloneStoryCockpitCard";
 import {
   AlertCircle,
   ArrowRight,
@@ -1232,8 +1233,8 @@ export default function ProfilePage() {
   return (
     <main className="cs-page">
       <div className="cs-page-shell">
-        <div className="grid gap-5 xl:grid-cols-[278px_minmax(0,1fr)]">
-          <aside className="xl:sticky xl:top-[118px] xl:self-start">
+        <div className="space-y-4">
+          <div>
             <LiquidGlass
               variant="panel"
               intensity="strong"
@@ -1255,7 +1256,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="mt-3 hidden gap-2 xl:grid">
+              <div className="mt-3 hidden">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   const active = activeTab === tab.key;
@@ -1294,7 +1295,7 @@ export default function ProfilePage() {
                 })}
               </div>
 
-              <div className="mt-3 flex gap-2 overflow-x-auto pb-1 xl:hidden">
+              <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   const active = activeTab === tab.key;
@@ -1318,7 +1319,7 @@ export default function ProfilePage() {
                 })}
               </div>
 
-              <div className="mt-4 grid gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 <ActionButton
                   href="/profile/agents"
                   primary
@@ -1331,7 +1332,7 @@ export default function ProfilePage() {
                 </ActionButton>
               </div>
             </LiquidGlass>
-          </aside>
+          </div>
 
           <section className="min-w-0 space-y-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -1361,6 +1362,79 @@ export default function ProfilePage() {
             </div>
 
             <FeedbackBanner feedback={feedback} />
+
+            {activeTab === "overview" ? <CloneStoryCockpitCard /> : null}
+
+            {activeTab === "overview" && activeOrders.length === 0 ? (
+              <LiquidGlass
+                variant="panel"
+                intensity="strong"
+                refractive
+                className="relative overflow-hidden rounded-[2.2rem] p-6 md:p-8"
+              >
+                <div className="relative grid gap-6 xl:grid-cols-[1.1fr_0.9fr] xl:items-center">
+                  <div className="space-y-4">
+                    <span className="cs-status">Aucun employé IA actif</span>
+                    <h2 className="cs-heading text-2xl md:text-3xl">
+                      Votre organisation est prête.
+                      <br />
+                      Activez votre premier employé IA.
+                    </h2>
+                    <p className="max-w-xl text-sm leading-7 text-[var(--cs-ink-3)]">
+                      Votre compte CloneStore est créé, mais aucun employé IA n’est encore
+                      actif. Pierre — employé IA RH opérationnel — commence à absorber une
+                      partie du travail dès son activation. Votre cockpit et votre messagerie
+                      s’ouvrent automatiquement à ce moment-là.
+                    </p>
+                    <div className="flex flex-wrap gap-2.5">
+                      <ActionButton href="/agents/pierre" primary icon={<ArrowRight className="h-4 w-4" />}>
+                        Découvrir Pierre
+                      </ActionButton>
+                      <ActionButton href="/demo/pierre">Voir la démonstration</ActionButton>
+                      <ActionButton href="/reserver/pierre">Installer Pierre</ActionButton>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2.5">
+                    <div className="cs-card">
+                      <div className="flex items-start gap-3">
+                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-success)]" />
+                        <div>
+                          <p className="text-sm font-semibold text-[var(--cs-ink-1)]">Compte actif</p>
+                          <p className="text-sm text-[var(--cs-ink-4)]">
+                            Votre compte et votre organisation sont prêts à recevoir Pierre.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="cs-card">
+                      <div className="flex items-start gap-3">
+                        <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-[#667cff]" />
+                        <div>
+                          <p className="text-sm font-semibold text-[var(--cs-ink-1)]">Compte & facturation</p>
+                          <p className="text-sm text-[var(--cs-ink-4)]">
+                            Accessibles dès maintenant depuis les onglets ci-dessous.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="cs-card">
+                      <div className="flex items-start gap-3">
+                        <Waypoints className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-ink-3)]" />
+                        <div>
+                          <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                            Espaces opérationnels
+                          </p>
+                          <p className="text-sm text-[var(--cs-ink-4)]">
+                            Cockpit et messagerie s’activent avec votre premier employé.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </LiquidGlass>
+            ) : null}
 
             {activeTab === "overview" ? (
               <PanelShell

@@ -53,6 +53,59 @@ import { getSessionClient } from "@/lib/auth/session-client";
 import { useAuthGate } from "@/lib/auth/useAuthGate";
 import { cn } from "@/lib/utils";
 
+// ── TECH-02 / TECH-03 — Global libs connectés en PHASE 2.2 ───────────────────
+import {
+  EMPLOYEE_RUNTIME_REGISTRY,
+  PIERRE_EMPLOYEE_RUNTIME_CONTRACT,
+} from "@/lib/clonestore/employees/employee-registry";
+import {
+  DEFAULT_GLOBAL_TECH_CONFIGS,
+  DEFAULT_GLOBAL_TECH_CONFIG_LIST,
+} from "@/lib/clonestore/technologies/global-tech-defaults";
+
+// ── PHASE 3.9 — Empreinte Entreprise Cockpit ──────────────────────────────────
+// localStorage uniquement — pas de Supabase, pas de DB write.
+import {
+  loadEnterpriseFootprintForCockpit,
+  buildEnterpriseFootprintCockpitSummary,
+  buildEnterpriseFootprintCockpitCards,
+  buildEnterpriseFootprintCockpitActions,
+} from "@/lib/clonestore/enterprise-footprint";
+import type {
+  EnterpriseFootprintCockpitSummary,
+  EnterpriseFootprintCockpitCard,
+  EnterpriseFootprintCockpitAction,
+} from "@/lib/clonestore/enterprise-footprint";
+
+// ── PHASE 3.21 — Global Employee Context Registry UI Preview (read-only) ───────
+// Design-only. Pas de Supabase, pas de write, pas d'exécution, pas de CloneVoice actif.
+import {
+  loadEmployeeContextRegistryProfileFeed,
+} from "@/lib/clonestore/employee-context-registry";
+import type {
+  EmployeeContextRegistryProfileFeedReadResult,
+} from "@/lib/clonestore/employee-context-registry";
+
+// ── TECH-08 — CloneOS Command Center TECH-08 (PHASE 2.3 — plan-only) ─────────
+// processCloneOSCommand : pipeline classify→route→context→plan→guard→trace.
+// Aucune exécution réelle, aucune DB, aucun appel Pierre runtime.
+// Paie officielle / licenciement / décision légale / signature → refusés.
+import type {
+  CloneOSCommandCenterResult,
+  CloneOSCommandInput,
+} from "@/lib/clonestore/cloneos";
+import { processCloneOSCommand } from "@/lib/clonestore/cloneos";
+
+// ── PHASE 3.2 — CloneOS History localStorage abstraction ─────────────────────
+// CLONEOS_HISTORY_LOCALSTORAGE_KEY est la source de vérité unique.
+// Valeur : "clonestore.cloneos.commandHistory.v1" (rétrocompatibilité PHASE 2.4)
+// Server persistence : PHASE 3.3 — activée via env var (non forcée).
+import {
+  CLONEOS_HISTORY_LOCALSTORAGE_KEY,
+  persistCloneOSHistoryWithFallback,
+  explainCloneOSHistoryPersistenceMode,
+} from "@/lib/clonestore/cloneos-history";
+
 type OrderRow = {
   id: string;
   agent_slug: string;
@@ -382,6 +435,93 @@ const ROUTING_KEYWORDS: Array<{
   },
 ];
 
+// ── PHASE 2.2 — Employés roadmap (non présents dans EMPLOYEE_RUNTIME_REGISTRY) ─
+// Ces employés ne sont pas actifs. Ils sont affichés uniquement comme roadmap.
+// Ne pas les présenter comme actifs, utilisables ou facturables.
+
+type RoadmapEmployeeStub = {
+  slug: string;
+  name: string;
+  domain: string;
+  description: string;
+  stage: "soon" | "roadmap" | "concept";
+};
+
+const ROADMAP_EMPLOYEES: RoadmapEmployeeStub[] = [
+  {
+    slug: "emma",
+    name: "Emma",
+    domain: "Support client",
+    description: "Employée IA dédiée à la relation client, aux tickets SAV, aux réponses et au suivi des demandes.",
+    stage: "soon",
+  },
+  {
+    slug: "lucas",
+    name: "Lucas",
+    domain: "Finance",
+    description: "Employée IA dédiée à la facturation, aux relances paiement, à la trésorerie et aux devis.",
+    stage: "soon",
+  },
+  {
+    slug: "sophie",
+    name: "Sophie",
+    domain: "Administratif",
+    description: "Employée IA dédiée aux dossiers administratifs, à la coordination interne et au back-office.",
+    stage: "roadmap",
+  },
+  {
+    slug: "clara",
+    name: "Clara",
+    domain: "Recrutement",
+    description: "Employée IA dédiée au recrutement, aux candidatures, aux shortlists et à la coordination d'entretiens.",
+    stage: "roadmap",
+  },
+];
+
+// ── PHASE 2.2 — Keys technologies à afficher dans le cockpit ────────────────
+// Uniquement les technologies visibles client et utiles au résumé cockpit.
+// Pour la vue complète : /profile/technologies (TECH-04).
+
+const COCKPIT_VISIBLE_TECH_KEYS = [
+  "cloneos",
+  "cloneguard",
+  "clonetrace",
+  "cloneadn",
+  "clonevoice",
+] as const;
+
+// ── PHASE 2.3 — Microcopy plan-only CloneOS ──────────────────────────────────
+// Ces constantes garantissent l'affichage honnête : plan-only, jamais exécuté.
+const CLONEOS_PLAN_ONLY_LABEL = "Plan préparé — non exécuté.";
+const CLONEOS_NO_EMPLOYEE_LABEL =
+  "Aucun employé actif disponible pour ce domaine. " +
+  "Pierre est le seul employé IA actif en V1. " +
+  "Les domaines non RH seront activés avec de futurs employés IA.";
+const CLONEOS_TRACE_PREVIEW_LABEL = "Aperçu de trace — non persisté en base.";
+const CLONEOS_GUARD_LABEL = "CloneGuard vérifie avant toute action.";
+
+// Domaines non supportés → message explicite, jamais de faux employé actif.
+// finance → Lucas non actif. support → Emma non active.
+// Seul Pierre (RH) est opérationnel en V1.
+
+// ── PHASE 2.4 — Historique local CloneOS ─────────────────────────────────────
+// Local state + localStorage. Pas de DB. Pas d'API. Max 20 entrées.
+// PHASE 3.2 : clé importée depuis cloneos-history (source de vérité unique).
+// Valeur : "clonestore.cloneos.commandHistory.v1" (rétrocompatibilité PHASE 2.4)
+// Server persistence prévue en PHASE 3.3 (table non encore créée).
+const CLONEOS_HISTORY_KEY = CLONEOS_HISTORY_LOCALSTORAGE_KEY;
+const CLONEOS_HISTORY_MAX = 20;
+
+const CLONEOS_HISTORY_FILTERS: ReadonlyArray<{ key: string; label: string }> = [
+  { key: "all",                  label: "Tout" },
+  { key: "hr",                   label: "RH" },
+  { key: "blocked",              label: "Bloqué" },
+  { key: "requires_validation",  label: "À valider" },
+  { key: "refused",              label: "Refusé" },
+  { key: "no_employee",          label: "Sans employé" },
+  { key: "high_risk",            label: "Risque élevé" },
+];
+
 function nowLabel() {
   return new Date().toLocaleTimeString("fr-FR", {
     hour: "2-digit",
@@ -417,7 +557,8 @@ function statusLabel(status: string) {
 }
 
 function isActiveOrder(order: OrderRow) {
-  return (order.status || "").toLowerCase() === "active";
+  const s = (order.status || "").toLowerCase();
+  return s === "active" || s === "trialing";
 }
 
 function getInitials(email: string | null) {
@@ -761,6 +902,136 @@ function EmployeeCard({
   );
 }
 
+// ── PHASE 2.2 — PierreContractBanner ─────────────────────────────────────────
+// Affiche un résumé du contrat Employee Runtime de Pierre.
+// Données réelles depuis PIERRE_EMPLOYEE_RUNTIME_CONTRACT (TECH-02).
+
+function PierreContractBanner() {
+  const p = PIERRE_EMPLOYEE_RUNTIME_CONTRACT;
+  const hardTechs = p.required_technologies.filter((t) => t.required);
+
+  return (
+    <div className="mt-5 rounded-[1.75rem] border border-white/55 bg-white/20 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.68)] backdrop-blur-xl">
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className="rounded-full border px-2.5 py-1 text-[0.68rem] font-bold"
+          style={{
+            background: "linear-gradient(135deg,rgba(37,183,139,0.14),rgba(37,183,139,0.26))",
+            borderColor: "rgba(37,183,139,0.28)",
+            color: "var(--cs-success)",
+          }}
+        >
+          Actif — launch candidate
+        </span>
+        <span className="rounded-full border border-white/55 bg-white/42 px-2.5 py-1 text-[0.68rem] font-bold text-[var(--cs-ink-3)]">
+          Domaine : {p.domain.toUpperCase()}
+        </span>
+        <span className="rounded-full border border-white/55 bg-white/42 px-2.5 py-1 text-[0.68rem] font-bold text-[var(--cs-ink-3)]">
+          Premier employé IA CloneStore
+        </span>
+      </div>
+
+      <p className="mt-4 text-sm font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+        Pierre — {p.public_positioning}
+      </p>
+
+      <div className="mt-4 grid gap-1.5 sm:grid-cols-2">
+        <div className="rounded-[1.1rem] border border-white/50 bg-white/28 p-3">
+          <p className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+            Technologies requises
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {hardTechs.map((t) => (
+              <span
+                key={t.slug}
+                className="rounded-full border border-[var(--clone-accent-border)] bg-[var(--clone-accent-soft)] px-2 py-0.5 text-[0.65rem] font-bold text-[var(--clone-accent)]"
+              >
+                {t.slug.charAt(0).toUpperCase() + t.slug.slice(1)}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-[1.1rem] border border-white/50 bg-white/28 p-3">
+          <p className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+            Gouvernance
+          </p>
+          <p className="mt-2 text-xs leading-5 text-[var(--cs-ink-3)]">
+            CloneGuard actif · Validation humaine obligatoire · ClonePolicy + CloneTrust intégrés
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link
+          href="/agents/pierre/use"
+          className="clone-liquid-button clone-liquid-button--dark min-h-10 px-4"
+        >
+          Ouvrir le cockpit Pierre
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+        <Link href="/agents/pierre/setup" className="clone-liquid-button min-h-10 px-4">
+          Configurer Pierre
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// ── PHASE 2.2 — RoadmapEmployeeCard ──────────────────────────────────────────
+// Affiche un employé roadmap. Jamais actif, jamais utilisable, jamais facturé.
+
+function RoadmapEmployeeCard({ employee }: { employee: RoadmapEmployeeStub }) {
+  const stageLabel =
+    employee.stage === "soon"
+      ? "Bientôt disponible"
+      : employee.stage === "roadmap"
+        ? "En développement"
+        : "En exploration";
+
+  const stageTone =
+    employee.stage === "soon"
+      ? "border-[#c99a4d]/24 bg-[#c99a4d]/10 text-[#8f682d]"
+      : "border-white/55 bg-white/30 text-[var(--cs-ink-4)]";
+
+  return (
+    <article className="rounded-[1.45rem] border border-white/45 bg-white/18 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.58)] backdrop-blur-xl">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={cn("rounded-full border px-2.5 py-1 text-[0.68rem] font-bold", stageTone)}>
+              {stageLabel}
+            </span>
+            <span className="rounded-full border border-white/45 bg-white/28 px-2.5 py-1 text-[0.68rem] font-bold text-[var(--cs-ink-4)]">
+              Non activé dans votre espace
+            </span>
+          </div>
+
+          <h3 className="mt-3 text-base font-semibold tracking-[-0.04em] text-[var(--cs-ink-2)]">
+            {employee.name}
+          </h3>
+
+          <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+            {employee.domain}
+          </p>
+        </div>
+
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] border border-white/45 bg-white/30 text-[var(--cs-ink-4)]">
+          <Bot className="h-4 w-4" />
+        </div>
+      </div>
+
+      <p className="mt-3 text-sm leading-6 text-[var(--cs-ink-4)]">
+        {employee.description}
+      </p>
+
+      <p className="mt-3 text-[0.7rem] font-semibold text-[var(--cs-ink-4)]">
+        Disponible bientôt — non activé dans votre espace.
+      </p>
+    </article>
+  );
+}
+
 function MissionCard({
   mission,
   onInsert,
@@ -1091,6 +1362,639 @@ function TechnologyCard({
   );
 }
 
+// ── PHASE 2.4 — filterCloneOSHistory ─────────────────────────────────────────
+// Pure function — filtre l'historique local selon le filtre actif.
+
+function filterCloneOSHistory(
+  history: CloneOSCommandCenterResult[],
+  filter: string,
+): CloneOSCommandCenterResult[] {
+  if (!filter || filter === "all") return history;
+  if (filter === "hr") {
+    return history.filter((r) => r.classified_command?.domain === "hr");
+  }
+  if (filter === "blocked") {
+    return history.filter((r) => r.status === "blocked");
+  }
+  if (filter === "requires_validation") {
+    return history.filter((r) => r.status === "requires_validation");
+  }
+  if (filter === "refused") {
+    return history.filter((r) => r.status === "refused");
+  }
+  if (filter === "no_employee") {
+    return history.filter((r) => r.selected_route?.is_available === false);
+  }
+  if (filter === "high_risk") {
+    return history.filter(
+      (r) =>
+        r.classified_command?.risk_level === "high" ||
+        r.classified_command?.risk_level === "critical",
+    );
+  }
+  return history;
+}
+
+// ── PHASE 2.3 — Helpers CloneOS ──────────────────────────────────────────────
+
+function cloneOSStatusTone(status: string): NotificationTone {
+  if (status === "refused" || status === "failed" || status === "blocked") return "critical";
+  if (status === "requires_validation") return "warning";
+  return "info";
+}
+
+function cloneOSGuardDecisionLabel(decision: string): string {
+  if (decision === "refuse" || decision === "refused") return "Refusée — invariant absolu";
+  if (decision === "block") return "Bloquée";
+  if (decision === "require_validation") return "Validation humaine";
+  if (decision === "prepare_only") return "Préparation seulement";
+  return "Autorisée";
+}
+
+function cloneOSGuardDecisionTone(decision: string): NotificationTone {
+  if (decision === "refuse" || decision === "refused" || decision === "block") return "critical";
+  if (decision === "require_validation") return "warning";
+  return "success";
+}
+
+function cloneOSDomainLabel(domain: string): string {
+  const labels: Record<string, string> = {
+    hr: "RH", finance: "Finance", support: "Support",
+    admin: "Administratif", legal: "Légal", sales: "Commercial",
+    ops: "Opérations", general: "Général", unknown: "Non identifié",
+    marketing: "Marketing", engineering: "Ingénierie",
+  };
+  return labels[domain] ?? domain;
+}
+
+// ── PHASE 2.3 — CloneOSResultCard ────────────────────────────────────────────
+// Affiche le résultat riche du pipeline CloneOS TECH-08 en plan-only.
+// Classification · Routing · Mission Plan · CloneGuard · Trace preview.
+// Règle absolue : jamais "mission exécutée" ni "document généré" depuis ce composant.
+
+function CloneOSResultCard({ result }: { result: CloneOSCommandCenterResult }) {
+  const classified = result.classified_command;
+  const route = result.selected_route;
+  const plan = result.mission_plan;
+  const guard = result.guard_result;
+  const trace = result.trace_result;
+
+  const statusTone = cloneOSStatusTone(result.status);
+  const statusLabelMap: Record<string, string> = {
+    ready_for_execution: "Prêt — plan-only",
+    requires_validation: "Validation requise",
+    blocked: "Bloqué par Guard",
+    refused: "Refusé — invariant",
+    failed: "Échec",
+    trace_ready: "Trace préparée",
+  };
+  const statusLabel = statusLabelMap[result.status] ?? result.status;
+
+  return (
+    <div className="rounded-[1.55rem] border border-white/55 bg-white/28 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.68)] backdrop-blur-xl">
+      {/* En-tête */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-white/55 bg-white/42 px-2.5 py-1 text-[0.68rem] font-bold text-[var(--cs-ink-3)]">
+            CloneOS · TECH-08
+          </span>
+          <span
+            className="rounded-full border px-2.5 py-1 text-[0.68rem] font-bold"
+            style={getToneStyle(statusTone)}
+          >
+            {statusLabel}
+          </span>
+        </div>
+        <span className="text-[0.65rem] font-semibold text-[var(--cs-ink-4)]">
+          {CLONEOS_PLAN_ONLY_LABEL}
+        </span>
+      </div>
+
+      {/* Classification */}
+      {classified ? (
+        <div className="mt-3">
+          <p className="text-[0.64rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+            Classification
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="rounded-[1rem] border border-white/50 bg-white/28 p-2">
+              <p className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">Domaine</p>
+              <p className="mt-1 text-xs font-semibold text-[var(--cs-ink-1)]">
+                {cloneOSDomainLabel(classified.domain)}
+              </p>
+            </div>
+            <div className="rounded-[1rem] border border-white/50 bg-white/28 p-2">
+              <p className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">Intention</p>
+              <p className="mt-1 text-xs font-semibold text-[var(--cs-ink-1)]">
+                {classified.intent.replace(/_/g, " ")}
+              </p>
+            </div>
+            <div className="rounded-[1rem] border border-white/50 bg-white/28 p-2">
+              <p className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">Risque</p>
+              <p className="mt-1 text-xs font-semibold" style={{
+                color: (classified.risk_level === "critical" || classified.risk_level === "high")
+                  ? "var(--cs-danger)" : "var(--cs-ink-1)",
+              }}>
+                {classified.risk_level}
+              </p>
+            </div>
+            <div className="rounded-[1rem] border border-white/50 bg-white/28 p-2">
+              <p className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">Confiance</p>
+              <p className="mt-1 text-xs font-semibold text-[var(--cs-ink-1)]">
+                {Math.round(classified.confidence * 100)}%
+              </p>
+            </div>
+          </div>
+          {classified.summary ? (
+            <p className="mt-2 text-xs leading-5 text-[var(--cs-ink-3)]">{classified.summary}</p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* Routage */}
+      <div className="mt-3 rounded-[1.1rem] border border-white/50 bg-white/24 p-3">
+        <p className="text-[0.64rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+          Routage
+        </p>
+        {route?.is_available ? (
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            <span className="rounded-full border px-2.5 py-1 text-[0.68rem] font-bold"
+              style={getToneStyle("success")}>
+              Pierre (RH) — seul employé actif V1
+            </span>
+            <span className="text-xs text-[var(--cs-ink-3)]">{route.route_reason}</span>
+          </div>
+        ) : (
+          <p className="mt-1.5 text-xs leading-5 text-[var(--cs-ink-3)]">
+            {CLONEOS_NO_EMPLOYEE_LABEL}
+          </p>
+        )}
+      </div>
+
+      {/* Plan de mission */}
+      {plan && plan.tasks.length > 0 ? (
+        <div className="mt-3">
+          <p className="text-[0.64rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+            Plan de mission — {plan.title}
+          </p>
+          <div className="mt-2 grid gap-1.5">
+            {plan.tasks.slice(0, 5).map((task) => {
+              const taskGuard = guard?.task_results.find(
+                (r) => r.task_id === task.task_id,
+              );
+              const guardDec = taskGuard?.decision ?? "allow";
+              return (
+                <div
+                  key={task.task_id}
+                  className="flex items-start gap-2 rounded-[0.9rem] border border-white/48 bg-white/24 px-3 py-2"
+                >
+                  <span className="mt-0.5 shrink-0 text-[0.64rem] font-bold text-[var(--cs-ink-4)]">
+                    {task.order}.
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-[var(--cs-ink-1)]">{task.title}</p>
+                    {task.requires_validation ? (
+                      <p className="mt-0.5 text-[0.62rem] text-[var(--cs-ink-4)]">
+                        Validation humaine requise
+                      </p>
+                    ) : null}
+                  </div>
+                  <span
+                    className="shrink-0 rounded-full border px-2 py-0.5 text-[0.62rem] font-bold"
+                    style={getToneStyle(cloneOSGuardDecisionTone(guardDec))}
+                  >
+                    {cloneOSGuardDecisionLabel(guardDec)}
+                  </span>
+                </div>
+              );
+            })}
+            {plan.tasks.length > 5 ? (
+              <p className="text-[0.64rem] font-semibold text-[var(--cs-ink-4)]">
+                +{plan.tasks.length - 5} tâche{plan.tasks.length - 5 > 1 ? "s" : ""} supplémentaire{plan.tasks.length - 5 > 1 ? "s" : ""}
+              </p>
+            ) : null}
+          </div>
+          {plan.missing_information.length > 0 ? (
+            <p className="mt-2 text-[0.66rem] font-semibold text-[var(--cs-ink-4)]">
+              Informations manquantes : {plan.missing_information.join(" · ")}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* CloneGuard */}
+      {guard ? (
+        <div className="mt-3 rounded-[1.1rem] border border-white/50 bg-white/24 p-3">
+          <p className="text-[0.64rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+            {CLONEOS_GUARD_LABEL}
+          </p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            <span
+              className="rounded-full border px-2.5 py-1 text-[0.68rem] font-bold"
+              style={getToneStyle(cloneOSGuardDecisionTone(guard.overall_decision))}
+            >
+              {cloneOSGuardDecisionLabel(guard.overall_decision)}
+            </span>
+            {guard.has_refused_tasks ? (
+              <p className="text-[0.68rem] leading-5 text-[var(--cs-danger)]">
+                Action refusée — invariant absolu : paie officielle / licenciement / décision légale / signature de contrat. Pierre ne peut pas exécuter ces actions.
+              </p>
+            ) : guard.has_blocked_tasks ? (
+              <p className="text-[0.68rem] leading-5 text-[var(--cs-ink-3)]">
+                Action bloquée par CloneGuard. Revoir la demande.
+              </p>
+            ) : guard.has_validation_required_tasks ? (
+              <p className="text-[0.68rem] leading-5 text-[var(--cs-ink-3)]">
+                Validation humaine obligatoire — Pierre ne peut pas exécuter seul.
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Aperçu de trace */}
+      {trace ? (
+        <div className="mt-3 rounded-[1.1rem] border border-white/50 bg-white/24 p-3">
+          <p className="text-[0.64rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+            Aperçu de trace — {CLONEOS_TRACE_PREVIEW_LABEL}
+          </p>
+          <p className="mt-1 text-xs text-[var(--cs-ink-3)]">
+            {trace.event_count} événement{trace.event_count !== 1 ? "s" : ""} préparé{trace.event_count !== 1 ? "s" : ""} · timeline{" "}
+            <span className="font-mono text-[0.62rem]">{trace.timeline_id}</span>
+          </p>
+          {trace.trace_notes.length > 0 ? (
+            <p className="mt-1 text-[0.64rem] text-[var(--cs-ink-4)]">
+              {trace.trace_notes.join(" · ")}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* Action suivante + avertissements */}
+      <p className="mt-3 text-xs leading-5 text-[var(--cs-ink-3)]">
+        <span className="font-bold text-[var(--cs-ink-2)]">Action suivante :</span>{" "}
+        {result.next_action}
+      </p>
+      {result.errors.length > 0 ? (
+        <p className="mt-1 text-[0.68rem] leading-5 text-[var(--cs-danger)]">
+          {result.errors.join(" · ")}
+        </p>
+      ) : null}
+      {result.warnings.length > 0 ? (
+        <p className="mt-1 text-[0.68rem] leading-5 text-[var(--cs-ink-4)]">
+          {result.warnings.slice(0, 2).join(" · ")}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+// ── PHASE 2.4 — CloneOSCommandTimeline ───────────────────────────────────────
+// Timeline locale des commandes CloneOS. Filtres. Clic → met à jour lastResult.
+// Aucune DB. Aucun réseau. Local state uniquement.
+
+function CloneOSCommandTimeline({
+  history,
+  selectedFilter,
+  onFilterChange,
+  onSelectResult,
+  onClearHistory,
+}: {
+  history: CloneOSCommandCenterResult[];
+  selectedFilter: string;
+  onFilterChange: (filter: string) => void;
+  onSelectResult: (result: CloneOSCommandCenterResult) => void;
+  onClearHistory?: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3 rounded-[1.55rem] border border-white/55 bg-white/24 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.68)] backdrop-blur-xl">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[0.68rem] font-bold uppercase tracking-[0.15em] text-[var(--cs-ink-4)]">
+          Historique commandes
+        </p>
+        {onClearHistory && history.length > 0 ? (
+          <button
+            type="button"
+            onClick={onClearHistory}
+            className="text-[0.65rem] font-semibold text-[var(--cs-ink-4)] underline underline-offset-2 hover:text-[var(--cs-danger)]"
+          >
+            Effacer
+          </button>
+        ) : null}
+      </div>
+
+      {/* Filtres */}
+      <div className="flex flex-wrap gap-1.5">
+        {CLONEOS_HISTORY_FILTERS.map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={() => onFilterChange(f.key)}
+            className={cn(
+              "rounded-full border px-2.5 py-1 text-[0.64rem] font-bold transition",
+              selectedFilter === f.key
+                ? "border-[var(--clone-accent-border)] bg-[var(--clone-accent-soft)] text-[var(--clone-accent)]"
+                : "border-white/55 bg-white/36 text-[var(--cs-ink-4)] hover:bg-white/50",
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Entrées */}
+      {history.length === 0 ? (
+        <p className="text-xs leading-5 text-[var(--cs-ink-4)]">
+          Aucune commande dans l'historique.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2 overflow-y-auto" style={{ maxHeight: "400px" }}>
+          {history.map((entry) => {
+            const classified = entry.classified_command;
+            const route = entry.selected_route;
+            const tone = cloneOSStatusTone(entry.status);
+            return (
+              <button
+                key={entry.command_id}
+                type="button"
+                onClick={() => onSelectResult(entry)}
+                className="rounded-[1.1rem] border border-white/50 bg-white/28 p-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.66)] backdrop-blur-xl transition hover:bg-white/44"
+              >
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span
+                    className="rounded-full border px-2 py-0.5 text-[0.62rem] font-bold"
+                    style={getToneStyle(tone)}
+                  >
+                    {entry.status}
+                  </span>
+                  {classified ? (
+                    <span className="text-[0.62rem] font-bold text-[var(--cs-ink-4)]">
+                      {cloneOSDomainLabel(classified.domain)}
+                    </span>
+                  ) : null}
+                  {route?.is_available ? (
+                    <span className="text-[0.62rem] font-semibold text-[var(--cs-success)]">
+                      Pierre
+                    </span>
+                  ) : null}
+                  {classified?.risk_level === "high" || classified?.risk_level === "critical" ? (
+                    <span className="text-[0.62rem] font-bold text-[var(--cs-danger)]">
+                      {classified.risk_level}
+                    </span>
+                  ) : null}
+                </div>
+                {classified?.summary ? (
+                  <p className="mt-1.5 line-clamp-2 text-[0.68rem] leading-4 text-[var(--cs-ink-2)]">
+                    {classified.summary}
+                  </p>
+                ) : null}
+                <p className="mt-1 text-[0.62rem] text-[var(--cs-ink-4)]">
+                  {new Date(entry.generated_at).toLocaleTimeString("fr-FR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── PHASE 2.4 — LastRequestPanel ──────────────────────────────────────────────
+// Panneau "À propos de votre dernière demande" + CloneOSCommandTimeline latérale.
+// Plan-only. Aperçu CloneTrace — non persisté. Validation humaine si requise.
+
+function LastRequestPanel({
+  result,
+  history,
+  historyFilter,
+  onClearHistory,
+  onFilterChange,
+  onSelectResult,
+}: {
+  result: CloneOSCommandCenterResult | null;
+  history: CloneOSCommandCenterResult[];
+  historyFilter: string;
+  onClearHistory?: () => void;
+  onFilterChange: (filter: string) => void;
+  onSelectResult: (result: CloneOSCommandCenterResult) => void;
+}) {
+  const filteredHistory = filterCloneOSHistory(history, historyFilter);
+
+  return (
+    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+      {/* Zone principale : résumé opérationnel */}
+      <div className="rounded-[1.55rem] border border-white/55 bg-white/24 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.68)] backdrop-blur-xl">
+        <p className="text-[0.68rem] font-bold uppercase tracking-[0.15em] text-[var(--cs-ink-4)]">
+          À propos de votre dernière demande
+        </p>
+
+        {!result ? (
+          <div className="mt-4">
+            <p className="mt-2 text-sm font-semibold text-[var(--cs-ink-1)]">
+              Aucune commande soumise dans cette session.
+            </p>
+            <p className="mt-2 text-sm leading-7 text-[var(--cs-ink-3)]">
+              Envoyez une demande via le centre de commandement pour voir ici la
+              compréhension, le routage, les validations et le plan préparé.
+            </p>
+            <p className="mt-3 text-xs font-semibold text-[var(--cs-ink-4)]">
+              Pierre est le seul employé IA actif en V1 — domaine RH.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-3">
+            {/* En-tête statut */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className="rounded-full border border-white/55 bg-white/42 px-2.5 py-1 text-[0.68rem] font-bold text-[var(--cs-ink-3)]"
+              >
+                {CLONEOS_PLAN_ONLY_LABEL}
+              </span>
+              <span
+                className="rounded-full border px-2.5 py-1 text-[0.68rem] font-bold"
+                style={getToneStyle(cloneOSStatusTone(result.status))}
+              >
+                {(
+                  {
+                    ready_for_execution: "Prêt",
+                    requires_validation: "Validation requise",
+                    blocked: "Bloqué par Guard",
+                    refused: "Refusé — invariant",
+                    failed: "Échec",
+                    trace_ready: "Trace prête",
+                  } as Record<string, string>
+                )[result.status] ?? result.status}
+              </span>
+              <span className="text-[0.65rem] text-[var(--cs-ink-4)]">
+                {new Date(result.generated_at).toLocaleTimeString("fr-FR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+
+            {/* Compréhension */}
+            {result.classified_command ? (
+              <div className="rounded-[1.1rem] border border-white/50 bg-white/24 p-3">
+                <p className="text-[0.64rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+                  Compréhension
+                </p>
+                <p className="mt-1.5 text-xs leading-5 text-[var(--cs-ink-1)]">
+                  {result.classified_command.summary}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-3">
+                  <span className="text-[0.64rem] font-bold text-[var(--cs-ink-4)]">
+                    Domaine : {cloneOSDomainLabel(result.classified_command.domain)}
+                  </span>
+                  <span className="text-[0.64rem] font-bold text-[var(--cs-ink-4)]">
+                    Risque : {result.classified_command.risk_level}
+                  </span>
+                  <span className="text-[0.64rem] font-bold text-[var(--cs-ink-4)]">
+                    Intention : {result.classified_command.intent.replace(/_/g, " ")}
+                  </span>
+                </div>
+              </div>
+            ) : null}
+
+            {/* Employé mobilisé */}
+            <div className="rounded-[1.1rem] border border-white/50 bg-white/24 p-3">
+              <p className="text-[0.64rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+                Employé mobilisé
+              </p>
+              {result.selected_route?.is_available ? (
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  <span
+                    className="rounded-full border px-2.5 py-1 text-[0.68rem] font-bold"
+                    style={getToneStyle("success")}
+                  >
+                    Pierre (RH) — seul actif V1
+                  </span>
+                  <span className="text-[0.68rem] text-[var(--cs-ink-3)]">
+                    {result.selected_route.route_reason}
+                  </span>
+                </div>
+              ) : (
+                <p className="mt-1.5 text-xs leading-5 text-[var(--cs-ink-3)]">
+                  {CLONEOS_NO_EMPLOYEE_LABEL}
+                </p>
+              )}
+            </div>
+
+            {/* Plan de mission */}
+            {result.mission_plan ? (
+              <div className="rounded-[1.1rem] border border-white/50 bg-white/24 p-3">
+                <p className="text-[0.64rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+                  Plan de mission
+                </p>
+                <p className="mt-1.5 text-xs font-semibold text-[var(--cs-ink-1)]">
+                  {result.mission_plan.title}
+                </p>
+                <p className="mt-1 text-[0.68rem] text-[var(--cs-ink-4)]">
+                  {result.mission_plan.tasks.length} tâche
+                  {result.mission_plan.tasks.length !== 1 ? "s" : ""} prévue
+                  {result.mission_plan.tasks.length !== 1 ? "s" : ""}
+                  {result.mission_plan.validation_required
+                    ? " · Validation humaine requise"
+                    : ""}
+                </p>
+                {result.mission_plan.tasks.length > 0 ? (
+                  <div className="mt-2 grid gap-1">
+                    {result.mission_plan.tasks.slice(0, 4).map((task) => (
+                      <div
+                        key={task.task_id}
+                        className="flex items-center gap-2 text-[0.66rem] text-[var(--cs-ink-3)]"
+                      >
+                        <span className="font-bold">{task.order}.</span>
+                        <span>{task.title}</span>
+                        {task.requires_validation ? (
+                          <span className="font-bold text-[var(--cs-ink-4)]">
+                            [validation]
+                          </span>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {/* CloneGuard */}
+            {result.guard_result ? (
+              <div className="rounded-[1.1rem] border border-white/50 bg-white/24 p-3">
+                <p className="text-[0.64rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+                  {CLONEOS_GUARD_LABEL}
+                </p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  <span
+                    className="rounded-full border px-2.5 py-1 text-[0.68rem] font-bold"
+                    style={getToneStyle(
+                      cloneOSGuardDecisionTone(result.guard_result.overall_decision),
+                    )}
+                  >
+                    {cloneOSGuardDecisionLabel(result.guard_result.overall_decision)}
+                  </span>
+                  {result.guard_result.has_validation_required_tasks ? (
+                    <span className="text-[0.68rem] text-[var(--cs-ink-3)]">
+                      Validation humaine requise
+                    </span>
+                  ) : null}
+                  {result.guard_result.has_refused_tasks ? (
+                    <span className="text-[0.68rem] text-[var(--cs-danger)]">
+                      Invariant absolu — action refusée
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Aperçu CloneTrace */}
+            {result.trace_result ? (
+              <div className="rounded-[1.1rem] border border-white/50 bg-white/24 p-3">
+                <p className="text-[0.64rem] font-bold uppercase tracking-[0.12em] text-[var(--cs-ink-4)]">
+                  CloneTrace — {CLONEOS_TRACE_PREVIEW_LABEL}
+                </p>
+                <p className="mt-1 text-xs text-[var(--cs-ink-3)]">
+                  {result.trace_result.event_count} événement
+                  {result.trace_result.event_count !== 1 ? "s" : ""} préparé
+                  {result.trace_result.event_count !== 1 ? "s" : ""} · timeline{" "}
+                  <span className="font-mono text-[0.62rem]">
+                    {result.trace_result.timeline_id}
+                  </span>
+                </p>
+              </div>
+            ) : null}
+
+            {/* Action suivante */}
+            <p className="text-xs leading-5 text-[var(--cs-ink-3)]">
+              <span className="font-bold text-[var(--cs-ink-2)]">Prochaine action :</span>{" "}
+              {result.next_action}
+            </p>
+
+            {result.errors.length > 0 ? (
+              <p className="text-[0.68rem] leading-5 text-[var(--cs-danger)]">
+                {result.errors.join(" · ")}
+              </p>
+            ) : null}
+          </div>
+        )}
+      </div>
+
+      {/* Timeline latérale */}
+      <CloneOSCommandTimeline
+        history={filteredHistory}
+        selectedFilter={historyFilter}
+        onFilterChange={onFilterChange}
+        onSelectResult={onSelectResult}
+        onClearHistory={onClearHistory}
+      />
+    </div>
+  );
+}
+
 export default function ProfileAgentsPage() {
   const { authState } = useAuthGate();
   const supabase = useMemo(() => {
@@ -1108,6 +2012,17 @@ export default function ProfileAgentsPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [orders, setOrders] = useState<OrderRow[]>([]);
+
+  // ── PHASE 3.9 — Empreinte Entreprise (localStorage read-only) ─────────────
+  const [footprintSummary, setFootprintSummary] =
+    useState<EnterpriseFootprintCockpitSummary | null>(null);
+  const [footprintCards, setFootprintCards] = useState<EnterpriseFootprintCockpitCard[]>([]);
+  const [footprintActions, setFootprintActions] = useState<EnterpriseFootprintCockpitAction[]>([]);
+  const [footprintHasData, setFootprintHasData] = useState(false);
+
+  // ── PHASE 3.21 — Registre employés IA (read-only, design-only) ────────────────
+  const [registryFeed, setRegistryFeed] =
+    useState<EmployeeContextRegistryProfileFeedReadResult | null>(null);
 
   const [railOpen, setRailOpen] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -1359,6 +2274,20 @@ export default function ProfileAgentsPage() {
     },
   ]);
 
+  // ── PHASE 2.3 — Résultat CloneOS en mémoire locale (plan-only, jamais exécuté) ──
+  const [lastCloneOSResult, setLastCloneOSResult] = useState<CloneOSCommandCenterResult | null>(null);
+
+  // ── PHASE 2.4 — Historique local CloneOS (local state + localStorage, max 20) ──
+  // Pas de DB, pas d'API. Hydraté depuis localStorage au montage client.
+  const [cloneOSHistory, setCloneOSHistory] = useState<CloneOSCommandCenterResult[]>([]);
+  const [cloneOSHistoryFilter, setCloneOSHistoryFilter] = useState<string>("all");
+
+  // ── PHASE 3.3 — Persistence status (discret, non bloquant) ───────────────
+  // "Historique local actif" / "Historique serveur activé" / "Fallback localStorage"
+  const [cloneOSPersistenceStatus, setCloneOSPersistenceStatus] = useState<string>(
+    explainCloneOSHistoryPersistenceMode()
+  );
+
   const [alerts, setAlerts] = useState<AlertItem[]>([
     {
       id: "alert-sensitive",
@@ -1436,6 +2365,48 @@ export default function ProfileAgentsPage() {
   useEffect(() => {
     void load(false);
   }, [load]);
+
+  // ── PHASE 3.9 — Chargement Empreinte Entreprise au montage (localStorage) ───
+  // Pas de Supabase. Read-only. Fallback snapshot → draft → empty state.
+  useEffect(() => {
+    try {
+      const cockpitResult = loadEnterpriseFootprintForCockpit();
+      setFootprintHasData(cockpitResult.has_footprint);
+      if (cockpitResult.summary) {
+        setFootprintSummary(cockpitResult.summary);
+      }
+      setFootprintCards(cockpitResult.cards);
+      setFootprintActions(cockpitResult.actions);
+    } catch {
+      /* Silent fail — localStorage indisponible */
+    }
+  }, []);
+
+  // ── PHASE 3.21 — Chargement du Registre employés IA au montage (read-only) ───
+  // Design-only. localStorage. Aucun write. Aucune exécution. Aucun CloneVoice actif.
+  useEffect(() => {
+    try {
+      setRegistryFeed(loadEmployeeContextRegistryProfileFeed());
+    } catch {
+      /* Silent fail — fallback null */
+    }
+  }, []);
+
+  // ── PHASE 2.4 — Hydratation localStorage au montage client ───────────────────
+  // try/catch obligatoire — localStorage peut être absent (SSR, incognito, quota).
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CLONEOS_HISTORY_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as CloneOSCommandCenterResult[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCloneOSHistory(parsed.slice(0, CLONEOS_HISTORY_MAX));
+        }
+      }
+    } catch (_e) {
+      /* skip — localStorage indisponible ou JSON corrompu */
+    }
+  }, []);
 
   const ownedEmployees = useMemo(() => {
     const bySlug = new Map<string, OrderRow>();
@@ -1549,63 +2520,59 @@ export default function ProfileAgentsPage() {
     );
   }, [missions, searchQuery]);
 
+  // ── PHASE 2.2 — Technologies cockpit depuis DEFAULT_GLOBAL_TECH_CONFIGS (TECH-03) ──
+  // Remplacement des mock tech items par les données réelles de GlobalTechnologyConfig.
+  // Pour la vue complète et configurable : /profile/technologies (TECH-04).
+
   const technologies = useMemo<TechnologyItem[]>(
-    () => [
-      {
-        id: "cloneos",
-        name: "CloneOS",
-        role: "Comprend, découpe, route, coordonne et réunit les résultats.",
-        state: "active",
-        lastEvent: "Dernière orchestration : mission RH longue.",
-        rules: rules.filter(
-          (rule) => rule.target === "CloneOS" || rule.target === "CloneStore"
-        ).length,
-      },
-      {
-        id: "cloneguard",
-        name: "CloneGuard",
-        role: "Contrôle les risques, validations, blocages et permissions.",
-        state: validations.some((item) => item.status === "pending")
+    () =>
+      COCKPIT_VISIBLE_TECH_KEYS.map((key) => {
+        const cfg = DEFAULT_GLOBAL_TECH_CONFIGS[key];
+        const hasGuardPending =
+          key === "cloneguard" &&
+          validations.some((item) => item.status === "pending");
+
+        // CloneVoice = toujours watching — non actif production (TECH-10)
+        const isVoice = key === "clonevoice";
+
+        const state: TechnologyItem["state"] = hasGuardPending
           ? "needs_attention"
-          : "active",
-        lastEvent: "Dernier blocage : action sensible avant envoi.",
-        rules: rules.filter(
-          (rule) => rule.target === "CloneGuard" || rule.target === "CloneStore"
-        ).length,
-      },
-      {
-        id: "clonetrace",
-        name: "CloneTrace",
-        role: "Historise les missions, décisions, livraisons et événements.",
-        state: "active",
-        lastEvent: "Dernière trace : document livré.",
-        rules: rules.filter(
-          (rule) => rule.target === "CloneTrace" || rule.target === "CloneStore"
-        ).length,
-      },
-      {
-        id: "cloneadn",
-        name: "CloneADN",
-        role: "Aligne le système avec les habitudes et règles de l’entreprise.",
-        state: rules.length > 0 ? "active" : "watching",
-        lastEvent: "Alignement actif sur les règles validées.",
-        rules: rules.filter(
-          (rule) => rule.target === "CloneADN" || rule.target === "CloneStore"
-        ).length,
-      },
-      {
-        id: "clonevoice",
-        name: "CloneVoice",
-        role: "Permet de commander CloneStore à la voix.",
-        state: "watching",
-        lastEvent: "Entrée vocale prête côté interface.",
-        rules: rules.filter(
-          (rule) => rule.target === "CloneVoice" || rule.target === "CloneStore"
-        ).length,
-      },
-    ],
-    [rules, validations]
+          : isVoice || cfg.mode === "disabled" || cfg.runtime_status === "not_implemented"
+            ? "watching"
+            : cfg.status === "active"
+              ? "active"
+              : "watching";
+
+        const lastEvent = isVoice
+          ? "Préparation uniquement — non actif en production."
+          : `Préparation repo : ${cfg.readiness_score}/100.`;
+
+        return {
+          id: cfg.key,
+          name: cfg.display_name,
+          role: cfg.short_description,
+          state,
+          lastEvent,
+          rules: rules.filter(
+            (rule) =>
+              rule.target === cfg.display_name || rule.target === "CloneStore",
+          ).length,
+        };
+      }),
+    [rules, validations],
   );
+
+  // ── PHASE 2.2 — Résumé technologies globales pour le cockpit ─────────────────
+  const techSummary = useMemo(() => {
+    const all = DEFAULT_GLOBAL_TECH_CONFIG_LIST;
+    return {
+      total: all.length,
+      active: all.filter((c) => c.status === "active").length,
+      partial: all.filter((c) => c.status === "partial").length,
+      roadmap: all.filter((c) => c.status === "roadmap").length,
+      platformLocked: all.filter((c) => c.locked_by_platform).length,
+    };
+  }, []);
 
   const targetOptions = useMemo(
     () => [
@@ -1769,12 +2736,110 @@ export default function ProfileAgentsPage() {
     ]);
   }
 
+  // ── PHASE 2.4 — Gestion de l'historique CloneOS local ────────────────────────
+
+  function addToCloneOSHistory(result: CloneOSCommandCenterResult) {
+    setCloneOSHistory((prev) => {
+      // Dédoublonnage par command_id
+      const deduped = prev.filter((r) => r.command_id !== result.command_id);
+      const updated = [result, ...deduped].slice(0, CLONEOS_HISTORY_MAX);
+      try {
+        localStorage.setItem(CLONEOS_HISTORY_KEY, JSON.stringify(updated));
+      } catch (_e) {
+        /* skip — quota ou mode privé */
+      }
+      return updated;
+    });
+  }
+
+  function clearCloneOSHistory() {
+    setCloneOSHistory([]);
+    try {
+      localStorage.removeItem(CLONEOS_HISTORY_KEY);
+    } catch (_e) {
+      /* skip */
+    }
+  }
+
+  // ── PHASE 2.4 — runCloneOSCommand : helper commun command bar + salon ────────
+  // Utilisé par submitCommand() et sendSalonMessage().
+  // Construit l'input, appelle processCloneOSCommand, met à jour les états.
+  // Pas d'exécution réelle, pas de DB, pas d'appel Pierre runtime.
+
+  function runCloneOSCommand(text: string): CloneOSCommandCenterResult {
+    const input: CloneOSCommandInput = {
+      company_id: userId ?? "demo_company",
+      user_id: userId ?? undefined,
+      source: "profile_command_center",
+      raw_request: text,
+      attached_file_refs: [],
+      metadata: {},
+      is_demo: !userId,
+    };
+    const result = processCloneOSCommand(input);
+    setLastCloneOSResult(result);
+    addToCloneOSHistory(result); // localStorage toujours — PHASE 2.4 intact
+
+    // ── PHASE 3.3 — Server persistence best-effort (non bloquant) ────────────
+    // Uniquement si flag activé (env var) + userId. Jamais d'exécution métier.
+    // Si fail → localStorage conservé, UI non impactée.
+    void persistCloneOSHistoryWithFallback({
+      supabase,
+      userId,
+      result,
+      companyId: userId ?? "demo_company",
+      rawRequest: text,
+    }).then((r) => {
+      setCloneOSPersistenceStatus(
+        r.server_saved
+          ? "Historique serveur activé"
+          : "Historique local actif"
+      );
+    }).catch(() => {
+      setCloneOSPersistenceStatus("Fallback localStorage");
+    });
+
+    return result;
+  }
+
+  // ── PHASE 2.3 — submitCommand branché sur CloneOS TECH-08 ────────────────────
+  // Pipeline : classify → route → context → plan → guard → trace.
+  // Mode plan-only : aucune exécution réelle, aucune DB, aucun appel Pierre.
+  // Domaines non RH (finance/support…) → message clair, jamais de faux employé actif.
+  // Paie officielle / licenciement / décision légale / termination → refusés par Guard.
+
   function submitCommand() {
     const text = commandInput.trim();
     if (!text) return;
 
-    const plan = buildPlan(text);
+    // ── Étape 1 : runCloneOSCommand — helper commun PHASE 2.4 ────────────────
+    // Appelle processCloneOSCommand, setLastCloneOSResult, addToCloneOSHistory.
+    const cloneOSResult = runCloneOSCommand(text);
 
+    // ── Étape 2 : Dériver les données UI depuis le résultat CloneOS ───────────
+    const classified = cloneOSResult.classified_command;
+    const route = cloneOSResult.selected_route;
+    const missionPlan = cloneOSResult.mission_plan;
+    const guardResult = cloneOSResult.guard_result;
+
+    const pierreRouted = route?.is_available === true && route.employee_slug === "pierre";
+
+    const validationRequired =
+      cloneOSResult.status === "requires_validation" ||
+      (guardResult?.has_validation_required_tasks ?? false);
+
+    const derivedRisk: MissionRisk =
+      classified?.risk_level === "critical" || classified?.risk_level === "high"
+        ? "high"
+        : classified?.risk_level === "medium"
+          ? "medium"
+          : "low";
+
+    const cloneOSSummary = classified?.summary ?? text;
+    const missionTitle = missionPlan?.title ?? (text.length > 88 ? `${text.slice(0, 88)}…` : text);
+    const taskCount = missionPlan?.tasks.length ?? 0;
+
+    // ── Étape 3 : Historique de commande ──────────────────────────────────────
     setCommandHistory((previous) => [
       ...previous,
       {
@@ -1788,69 +2853,74 @@ export default function ProfileAgentsPage() {
       {
         id: `command-plan-${Date.now()}`,
         author: "CloneOS",
-        role: "Plan d’exécution",
+        role: classified?.domain === "hr" ? "Noyau opératoire → Pierre RH" : "Noyau opératoire",
         body: [
-          plan.summary,
+          CLONEOS_PLAN_ONLY_LABEL,
           "",
-          `Employés mobilisés : ${
-            plan.employees.length > 0
-              ? plan.employees.map((employee) => employee.name).join(", ")
-              : "aucun pour l’instant"
-          }.`,
-          plan.unavailable.length > 0
-            ? `Employés requis mais non actifs : ${plan.unavailable.join(", ")}.`
+          cloneOSSummary,
+          "",
+          pierreRouted
+            ? "Employé routé : Pierre (RH) — seul actif V1."
+            : CLONEOS_NO_EMPLOYEE_LABEL,
+          validationRequired
+            ? "Validation humaine requise avant toute exécution. Pierre ne peut pas agir seul."
             : null,
-          `Risque : ${plan.risk}.`,
-          plan.validationRequired
-            ? "Validation humaine requise avant exécution sensible."
-            : "Aucune validation sensible détectée à ce stade.",
+          taskCount > 0
+            ? `Plan préparé : ${taskCount} tâche${taskCount > 1 ? "s" : ""}.`
+            : null,
+          cloneOSResult.status === "refused"
+            ? "Action refusée — invariant absolu CloneGuard (paie officielle / licenciement / décision légale / termination)."
+            : null,
           "",
-          `Tâches créées : ${plan.tasks.join(" → ")}.`,
+          "Panneau résultat ci-dessous : classification · routage · Guard · aperçu de trace.",
         ]
           .filter(Boolean)
           .join("\n"),
         time: nowLabel(),
-        tone: getRiskTone(plan.risk),
+        tone:
+          cloneOSResult.status === "refused" || cloneOSResult.status === "blocked"
+            ? "critical"
+            : validationRequired
+              ? "warning"
+              : "info",
       },
     ]);
 
+    // ── Étape 4 : Mission locale (board kanban — mock, non persisté) ──────────
     const mission: MissionItem = {
       id: `mission-${Date.now()}`,
-      title: text.length > 88 ? `${text.slice(0, 88)}…` : text,
-      summary: plan.summary,
-      status: plan.nextStatus,
-      employees:
-        plan.employees.length > 0
-          ? plan.employees.map((employee) => employee.name)
-          : ["CloneOS"],
-      risk: plan.risk,
-      urgency:
-        plan.risk === "high"
-          ? "urgent"
-          : plan.risk === "medium"
-            ? "important"
-            : "normal",
-      nextAction: plan.validationRequired
-        ? "Attendre une validation humaine avant reprise."
-        : "Continuer le traitement et remonter le prochain statut.",
-      due: plan.validationRequired ? "Action requise" : "Aujourd’hui",
-      trace: "Mission créée depuis le centre de commandement CloneOS.",
+      title: missionTitle,
+      summary: cloneOSSummary,
+      status: validationRequired
+        ? "waiting_validation"
+        : pierreRouted
+          ? "today"
+          : "now",
+      employees: pierreRouted ? ["Pierre"] : ["CloneOS"],
+      risk: derivedRisk,
+      urgency: derivedRisk === "high" ? "urgent" : derivedRisk === "medium" ? "important" : "normal",
+      nextAction: validationRequired
+        ? "Attendre validation humaine — plan non exécuté."
+        : pierreRouted
+          ? "Mission planifiée par CloneOS — transfert à Pierre à valider."
+          : "Domaine non couvert en V1 — aucun employé actif disponible.",
+      due: validationRequired ? "Action requise" : "Aujourd’hui",
+      trace: `Plan préparé par CloneOS TECH-08. ${CLONEOS_PLAN_ONLY_LABEL}`,
     };
-
     setMissions((previous) => [mission, ...previous]);
 
-    if (plan.validationRequired) {
+    // ── Étape 5 : Validation locale si requise ────────────────────────────────
+    if (validationRequired) {
       setValidations((previous) => [
         {
           id: `validation-${Date.now()}`,
-          title: "Validation requise depuis le command center",
+          title: "Validation requise — plan CloneOS",
           description:
-            "CloneOS a détecté une action potentiellement sensible. CloneGuard bloque l’exécution jusqu’à décision humaine.",
-          employee:
-            plan.employees.length > 0
-              ? `${plan.employees.map((employee) => employee.name).join(", ")} / CloneGuard`
-              : "CloneGuard",
-          risk: plan.risk,
+            "CloneOS a détecté une action nécessitant validation humaine. " +
+            CLONEOS_GUARD_LABEL +
+            " Pierre ne peut pas agir sans approbation.",
+          employee: pierreRouted ? "Pierre / CloneGuard" : "CloneGuard",
+          risk: derivedRisk,
           status: "pending",
           time: nowLabel(),
         },
@@ -1858,35 +2928,42 @@ export default function ProfileAgentsPage() {
       ]);
     }
 
+    // ── Étape 6 : Message local ────────────────────────────────────────────────
     setMessages((previous) => [
       {
         id: `message-command-${Date.now()}`,
-        title: plan.validationRequired
-          ? "Mission créée avec validation"
-          : "Mission créée",
-        body: plan.summary,
+        title: validationRequired
+          ? "Plan CloneOS — validation requise"
+          : cloneOSResult.status === "refused"
+            ? "Plan refusé — invariant absolu"
+            : "Plan CloneOS préparé",
+        body: cloneOSSummary,
         owner: "CloneOS",
-        source: "Command center",
+        source: "Command center TECH-08",
         time: nowLabel(),
-        tone: getRiskTone(plan.risk),
+        tone:
+          cloneOSResult.status === "refused" || cloneOSResult.status === "blocked"
+            ? "critical"
+            : validationRequired
+              ? "warning"
+              : "info",
         unread: true,
-        categories: plan.validationRequired
+        categories: validationRequired
           ? ["reception", "validation", "suivis"]
           : ["reception", "preparation", "suivis"],
-        relatedEmployees:
-          plan.employees.length > 0
-            ? plan.employees.map((employee) => employee.name)
-            : ["CloneOS"],
-        summary: "Mission générée depuis la demande libre du cockpit principal.",
+        relatedEmployees: pierreRouted ? ["Pierre", "CloneOS"] : ["CloneOS"],
+        summary: `${CLONEOS_PLAN_ONLY_LABEL} Plan préparé par CloneOS TECH-08.`,
       },
       ...previous,
     ]);
 
+    // ── Étape 7 : Trace preview locale (non persistée) ────────────────────────
+    const traceEventCount = cloneOSResult.trace_result?.event_count ?? 0;
     pushTrace(
-      "Mission créée",
-      "CloneOS a transformé une demande libre en mission structurée.",
-      "CloneOS",
-      "info"
+      "Aperçu trace CloneOS préparé",
+      `${traceEventCount} événement${traceEventCount !== 1 ? "s" : ""} préparé${traceEventCount !== 1 ? "s" : ""} — ${CLONEOS_TRACE_PREVIEW_LABEL}`,
+      "CloneTrace / CloneOS",
+      validationRequired ? "warning" : "info",
     );
 
     setCommandInput("");
@@ -2220,6 +3297,14 @@ export default function ProfileAgentsPage() {
     }
 
     setSalonMessages((previous) => [...previous, userMessage, ...responses]);
+
+    // ── PHASE 2.4 — Analyse CloneOS sur toutes les demandes salon ─────────────
+    // runCloneOSCommand classe la demande et la stocke dans cloneOSHistory.
+    // Aucune exécution réelle. Plan-only. sendSalonMessage conserve son comportement.
+    if (!isStop) {
+      runCloneOSCommand(text);
+    }
+
     setSalonInput("");
   }
 
@@ -2398,6 +3483,13 @@ export default function ProfileAgentsPage() {
                   icon={<Settings2 className="h-4 w-4" />}
                   target="rules"
                 />
+                {/* PHASE 2.4 — Lien vers LastRequestPanel */}
+                <RailButton
+                  open={railOpen}
+                  label="Dernière demande"
+                  icon={<Clock3 className="h-4 w-4" />}
+                  target="last-request"
+                />
                 <RailButton
                   open={railOpen}
                   label="CloneTrace"
@@ -2419,6 +3511,34 @@ export default function ProfileAgentsPage() {
               </div>
 
               <div className="mt-auto grid gap-2">
+                {/* PHASE 2.2 — lien direct cockpit Pierre */}
+                <Link
+                  href="/agents/pierre/use"
+                  className={cn(
+                    "flex min-h-11 items-center rounded-full border border-white/55 bg-white/34 text-[var(--cs-ink-2)] shadow-[inset_0_1px_0_rgba(255,255,255,0.68)] hover:bg-white/48",
+                    railOpen ? "justify-start gap-3 px-3" : "justify-center px-0"
+                  )}
+                >
+                  <Bot className="h-4 w-4 text-[var(--cs-violet)]" />
+                  {railOpen ? (
+                    <span className="text-xs font-bold">Cockpit Pierre</span>
+                  ) : null}
+                </Link>
+
+                {/* PHASE 2.2 — lien technologies (TECH-04) */}
+                <Link
+                  href="/profile/technologies"
+                  className={cn(
+                    "flex min-h-11 items-center rounded-full border border-white/55 bg-white/34 text-[var(--cs-ink-2)] shadow-[inset_0_1px_0_rgba(255,255,255,0.68)] hover:bg-white/48",
+                    railOpen ? "justify-start gap-3 px-3" : "justify-center px-0"
+                  )}
+                >
+                  <Network className="h-4 w-4 text-[var(--cs-violet)]" />
+                  {railOpen ? (
+                    <span className="text-xs font-bold">Technologies</span>
+                  ) : null}
+                </Link>
+
                 <Link
                   href="/profile"
                   className={cn(
@@ -2456,11 +3576,18 @@ export default function ProfileAgentsPage() {
                     <div className="flex flex-wrap gap-2">
                       <span className="cs-pill">
                         <LayoutDashboard className="h-4 w-4 text-[var(--cs-violet)]" />
-                        Cockpit global
+                        Mon espace CloneStore
                       </span>
+                      {/* PHASE 2.2 — badge Pierre réel depuis Employee Runtime Contract (TECH-02) */}
+                      {EMPLOYEE_RUNTIME_REGISTRY.some((e) => e.slug === "pierre") ? (
+                        <span className="cs-pill">
+                          <BadgeCheck className="h-4 w-4 text-[var(--cs-success)]" />
+                          Pierre actif — {PIERRE_EMPLOYEE_RUNTIME_CONTRACT.domain.toUpperCase()}
+                        </span>
+                      ) : null}
                       <span className="cs-pill">
                         <Network className="h-4 w-4 text-[var(--cs-violet)]" />
-                        CloneOS actif
+                        {techSummary.active} technologies actives
                       </span>
                       <span className="cs-pill">
                         <ShieldCheck className="h-4 w-4 text-[var(--cs-success)]" />
@@ -2655,21 +3782,27 @@ export default function ProfileAgentsPage() {
                     <h2 className="mt-3 text-[1.65rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
                       Parlez au système entier, pas à un seul agent.
                     </h2>
+                    {/* PHASE 2.3 — mention connexion TECH-08 */}
                     <p className="mt-2 max-w-4xl text-sm leading-7 text-[var(--cs-ink-3)]">
-                      Une requête libre peut devenir une mission simple, une mission
-                      multi-employés, une règle, une validation, un briefing ou une
-                      action programmée.
+                      Chaque requête est classifiée, routée, planifiée et évaluée par
+                      CloneGuard — en plan-only. Pierre est le seul employé IA actif en V1.
+                      Les domaines non RH seront activés avec de futurs employés IA.
                     </p>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
+                    {/* PHASE 2.3 — badge TECH-08 connecté */}
                     <span className="cs-pill">
-                      <Mic className="h-4 w-4 text-[var(--cs-violet)]" />
-                      CloneVoice prêt
+                      <Network className="h-4 w-4 text-[var(--cs-success)]" />
+                      TECH-08 connecté
                     </span>
                     <span className="cs-pill">
-                      <FileText className="h-4 w-4 text-[var(--cs-violet)]" />
-                      Fichiers prêts
+                      <ShieldCheck className="h-4 w-4 text-[var(--cs-violet)]" />
+                      Guard actif
+                    </span>
+                    <span className="cs-pill">
+                      <FileText className="h-4 w-4 text-[var(--cs-ink-4)]" />
+                      Plan uniquement
                     </span>
                   </div>
                 </div>
@@ -2781,6 +3914,68 @@ export default function ProfileAgentsPage() {
               </div>
             </section>
 
+            {/* PHASE 2.3 — Panneau résultat CloneOS TECH-08 ────────────────────
+                Affiché dès qu'une commande a été soumise. Plan-only.
+                Classification · Routage · Mission plan · Guard · Trace preview. */}
+            {lastCloneOSResult ? (
+              <section className="cs-panel scroll-mt-24 p-5">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="cs-eyebrow">Analyse CloneOS — Dernière commande</p>
+                    <h2 className="mt-2 text-[1.25rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                      Classification · Routage · Plan · Guard · Trace
+                    </h2>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-white/55 bg-white/36 px-3 py-1 text-[0.68rem] font-bold text-[var(--cs-ink-4)]">
+                      {CLONEOS_PLAN_ONLY_LABEL}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setLastCloneOSResult(null)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/55 bg-white/36 text-[var(--cs-ink-3)] hover:bg-white/50"
+                      aria-label="Fermer le panneau résultat"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <CloneOSResultCard result={lastCloneOSResult} />
+              </section>
+            ) : null}
+
+            {/* PHASE 2.4 — LastRequestPanel : suivi opérationnel + timeline ────────
+                "À propos de votre dernière demande" + CloneOSCommandTimeline filtrable.
+                Local state. Persiste en localStorage. Plan préparé — non exécuté. */}
+            <section
+              id="last-request"
+              className="cs-panel scroll-mt-24 p-5"
+            >
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="cs-eyebrow">Suivi CloneOS</p>
+                  <h2 className="mt-2 text-[1.45rem] font-semibold tracking-[-0.05em] text-[var(--cs-ink-1)]">
+                    À propos de votre dernière demande.
+                  </h2>
+                  <p className="mt-1.5 text-sm text-[var(--cs-ink-3)]">
+                    {CLONEOS_PLAN_ONLY_LABEL} Aperçu CloneTrace — non persisté en base.
+                  </p>
+                </div>
+                <span className="cs-pill">
+                  <Inbox className="h-4 w-4 text-[var(--cs-violet)]" />
+                  {cloneOSHistory.length} commande{cloneOSHistory.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <LastRequestPanel
+                result={lastCloneOSResult}
+                history={cloneOSHistory}
+                historyFilter={cloneOSHistoryFilter}
+                onClearHistory={clearCloneOSHistory}
+                onFilterChange={setCloneOSHistoryFilter}
+                onSelectResult={(r) => setLastCloneOSResult(r)}
+              />
+            </section>
+
             <section id="employees" className="cs-panel scroll-mt-24 p-5">
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
@@ -2796,17 +3991,23 @@ export default function ProfileAgentsPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
+                  <Link href="/agents/pierre/use" className="clone-liquid-button clone-liquid-button--dark">
+                    Ouvrir Pierre
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                   <Link href="/agents" className="clone-liquid-button">
                     Boutique
                   </Link>
-                  <Link
-                    href="/profile"
-                    className="clone-liquid-button clone-liquid-button--dark"
-                  >
+                  <Link href="/profile" className="clone-liquid-button">
                     Réglages globaux
                   </Link>
                 </div>
               </div>
+
+              {/* PHASE 2.2 — Contrat Employee Runtime Pierre (TECH-02) */}
+              {EMPLOYEE_RUNTIME_REGISTRY.some((e) => e.slug === "pierre") ? (
+                <PierreContractBanner />
+              ) : null}
 
               {activeAgentMetas.length === 0 ? (
                 <div className="mt-5 rounded-[1.7rem] border border-white/55 bg-white/30 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl">
@@ -2841,6 +4042,30 @@ export default function ProfileAgentsPage() {
                   ))}
                 </div>
               )}
+
+              {/* PHASE 2.2 — Employés roadmap (non présents dans Employee Registry) */}
+              <div className="mt-6 border-t border-white/30 pt-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[0.7rem] font-bold uppercase tracking-[0.15em] text-[var(--cs-ink-4)]">
+                      Prochainement disponibles
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--cs-ink-3)]">
+                      Ces employés IA sont en développement. Non activés dans votre espace.
+                    </p>
+                  </div>
+                  <Link href="/agents" className="clone-liquid-button text-sm">
+                    Voir la boutique
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+
+                <div className="mt-4 grid gap-3 lg:grid-cols-2 2xl:grid-cols-4">
+                  {ROADMAP_EMPLOYEES.map((employee) => (
+                    <RoadmapEmployeeCard key={employee.slug} employee={employee} />
+                  ))}
+                </div>
+              </div>
             </section>
 
             <section id="missions" className="cs-panel scroll-mt-24 p-5">
@@ -2857,7 +4082,7 @@ export default function ProfileAgentsPage() {
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-4 xl:grid-cols-3 2xl:grid-cols-6">
+              <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
                 {MISSION_COLUMNS.map((column) => {
                   const columnMissions = filteredMissions.filter(
                     (mission) => mission.status === column.status
@@ -3701,21 +4926,26 @@ export default function ProfileAgentsPage() {
             <section id="technologies" className="cs-panel scroll-mt-24 p-5">
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <p className="cs-eyebrow">Technologies visibles</p>
+                  <p className="cs-eyebrow">Technologies CloneStore</p>
                   <h2 className="mt-3 text-[1.65rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
-                    Couches vivantes du système.
+                    Couches globales du système.
                   </h2>
+                  {/* PHASE 2.2 — résumé techSummary depuis DEFAULT_GLOBAL_TECH_CONFIG_LIST (TECH-03) */}
                   <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--cs-ink-3)]">
-                    Elles ne sont pas décoratives : elles affichent un état, un
-                    rôle, une activité récente et peuvent recevoir des règles.
+                    {techSummary.total} technologies au total —{" "}
+                    {techSummary.active} actives,{" "}
+                    {techSummary.partial} partielles,{" "}
+                    {techSummary.roadmap} en roadmap.{" "}
+                    CloneVoice : préparation uniquement, non actif production.
                   </p>
                 </div>
 
+                {/* PHASE 2.2 — lien vers /profile/technologies (TECH-04) */}
                 <Link
-                  href="/profile"
+                  href="/profile/technologies"
                   className="clone-liquid-button clone-liquid-button--dark"
                 >
-                  Réglages profonds
+                  Voir toutes les technologies
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -3747,6 +4977,10 @@ export default function ProfileAgentsPage() {
                   <Link href="/profile" className="clone-liquid-button">
                     Mon espace
                   </Link>
+                  {/* PHASE 2.7 — lien onboarding global */}
+                  <Link href="/profile/onboarding" className="clone-liquid-button">
+                    Configurer l'entreprise
+                  </Link>
                   <Link href="/agents" className="clone-liquid-button">
                     Boutique
                   </Link>
@@ -3763,6 +4997,319 @@ export default function ProfileAgentsPage() {
                 </div>
               </div>
             </section>
+
+            {/* PHASE 3.9 — Empreinte Entreprise Cockpit — read-only, localStorage */}
+            <section id="empreinte-entreprise" className="cs-panel scroll-mt-24 p-5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="cs-eyebrow">Empreinte Entreprise</p>
+                  <h2 className="mt-3 text-[1.65rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
+                    Socle CloneADN utilisé par CloneStore.
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-[var(--cs-ink-3)]">
+                    Données lues depuis le brouillon d'onboarding local.
+                    {" "}
+                    <span className="inline-flex items-center gap-1 rounded-full border border-white/45 bg-white/24 px-2 py-0.5 text-[0.6rem] font-bold text-[var(--cs-ink-3)]">
+                      Lecture seule
+                    </span>
+                    {" · "}
+                    <span className="text-[0.6rem] text-[var(--cs-ink-4)]">Aucune action exécutée</span>
+                  </p>
+                </div>
+
+                {footprintSummary && (
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={cn(
+                      "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.68rem] font-bold",
+                      footprintSummary.status === "ready"
+                        ? "border-[rgba(21,130,96,0.22)] bg-[rgba(21,130,96,0.10)] text-[var(--cs-success)]"
+                        : footprintSummary.status === "incomplete"
+                          ? "border-[#c99a4d]/24 bg-[#c99a4d]/10 text-[#8f682d]"
+                          : "border-white/45 bg-white/24 text-[var(--cs-ink-3)]"
+                    )}>
+                      {footprintSummary.status_label}
+                    </span>
+                    <span className="text-[0.6rem] text-[var(--cs-ink-4)]">
+                      {footprintSummary.source_label}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {footprintHasData && footprintSummary ? (
+                <div className="mt-4 space-y-4">
+                  {/* Scores */}
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {footprintCards.map((card) => (
+                      <div
+                        key={card.id}
+                        className={cn(
+                          "rounded-[1.1rem] border p-3",
+                          card.tone === "success"
+                            ? "border-[rgba(21,130,96,0.20)] bg-[rgba(21,130,96,0.08)]"
+                            : card.tone === "warning"
+                              ? "border-[#c99a4d]/20 bg-[#c99a4d]/08"
+                              : "border-white/50 bg-white/22"
+                        )}
+                      >
+                        <p className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">
+                          {card.label}
+                        </p>
+                        <p className="mt-1 text-lg font-bold text-[var(--cs-ink-1)]">
+                          {card.value}
+                        </p>
+                        {card.sub_label && (
+                          <p className="text-[0.6rem] text-[var(--cs-ink-4)]">
+                            {card.sub_label}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Entreprise + warnings */}
+                  <div className="flex flex-wrap items-center gap-3 rounded-[1.1rem] border border-white/40 bg-white/16 px-4 py-3">
+                    <div>
+                      <p className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">
+                        Entreprise
+                      </p>
+                      <p className="text-sm font-semibold text-[var(--cs-ink-1)]">
+                        {footprintSummary.company_name}
+                      </p>
+                    </div>
+                    <div className="ml-auto flex flex-wrap gap-1.5">
+                      {footprintSummary.top_missing_items.slice(0, 2).map((item, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center rounded-full border border-[#c99a4d]/22 bg-[#c99a4d]/08 px-2 py-0.5 text-[0.59rem] text-[#8f682d]"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* CTAs */}
+                  <div className="flex flex-wrap gap-2">
+                    {footprintActions.map((action) => (
+                      <Link
+                        key={action.id}
+                        href={action.href}
+                        className={cn(
+                          action.primary
+                            ? "clone-liquid-button clone-liquid-button--dark"
+                            : "clone-liquid-button"
+                        )}
+                      >
+                        {action.label}
+                      </Link>
+                    ))}
+                    <Link href="/agents/pierre/setup" className="clone-liquid-button">
+                      Configurer Pierre
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-[1.25rem] border border-white/40 bg-white/16 p-5 text-center">
+                  <p className="text-sm font-semibold text-[var(--cs-ink-2)]">
+                    Aucune Empreinte Entreprise n'est encore disponible.
+                  </p>
+                  <p className="mt-1 text-xs text-[var(--cs-ink-4)]">
+                    Configurez votre entreprise dans l'onboarding global pour que CloneStore comprenne votre contexte.
+                  </p>
+                  <Link
+                    href="/profile/onboarding"
+                    className="clone-liquid-button clone-liquid-button--dark mt-3 inline-flex"
+                  >
+                    Créer l'Empreinte Entreprise
+                  </Link>
+                </div>
+              )}
+            </section>
+
+            {/* ── PHASE 3.21 — Registre employés IA (read-only, design-only) ──────
+                Preview du Global Employee Context Registry. Lecture seule.
+                Aucune action exécutée. Aucun write serveur. CloneVoice non actif.
+                Pierre V1 + placeholders futurs Clara, Emma, Alex, Noah, Lucas, Sophie, Adrien. */}
+            {registryFeed ? (
+              <section id="registre-employes-ia" className="cs-panel scroll-mt-24 p-5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="cs-eyebrow">Registre employés IA</p>
+                    <h2 className="mt-2 text-[1.2rem] font-semibold tracking-[-0.04em] text-[var(--cs-ink-1)]">
+                      Contexte global des employés CloneStore — lecture seule
+                    </h2>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      "Lecture seule",
+                      "Design-only",
+                      "Aucune action exécutée",
+                      "Aucun write serveur",
+                      "CloneVoice non actif",
+                    ].map((badge) => (
+                      <span
+                        key={badge}
+                        className="inline-flex items-center rounded-full border border-white/50 bg-white/26 px-2.5 py-1 text-[0.62rem] font-semibold text-[var(--cs-ink-4)]"
+                      >
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Summary cards */}
+                <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+                  {[
+                    { label: "Employés actifs", value: registryFeed.summary.active_employees_count, sub: `${registryFeed.summary.future_placeholders_count} futur(s)` },
+                    { label: "Capacités", value: registryFeed.summary.capabilities_count, sub: `${registryFeed.summary.functions_count} fonction(s)` },
+                    { label: "Validations", value: registryFeed.summary.validation_rules_count, sub: `${registryFeed.summary.limits_count} limite(s)` },
+                    { label: "CloneOS / CloneVoice", value: `${registryFeed.summary.cloneos_visible_count} / ${registryFeed.summary.clonevoice_visible_count}`, sub: `exec ${registryFeed.summary.execution_enabled_count}` },
+                  ].map((card) => (
+                    <div key={card.label} className="rounded-[1.1rem] border border-white/50 bg-white/20 p-3">
+                      <p className="text-[0.6rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">{card.label}</p>
+                      <p className="mt-1 text-base font-bold tracking-[-0.02em] text-[var(--cs-ink-1)]">{card.value}</p>
+                      <p className="mt-0.5 text-[0.6rem] leading-4 text-[var(--cs-ink-4)]">{card.sub}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Employés actifs (Pierre V1) */}
+                <div className="mt-4 grid gap-3">
+                  {registryFeed.employees.map((emp) => (
+                    <div key={emp.employee_key} className="rounded-[1.35rem] border border-white/50 bg-white/20 p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full border border-[rgba(21,130,96,0.2)] bg-[rgba(21,130,96,0.08)] px-2.5 py-1 text-[0.66rem] font-bold text-[var(--cs-success)]">
+                          {emp.display_name}
+                        </span>
+                        <span className="text-[0.7rem] font-semibold text-[var(--cs-ink-2)]">{emp.role_title}</span>
+                        <span className="ml-auto text-[0.6rem] text-[var(--cs-ink-4)]">
+                          {emp.cloneos_visible ? "CloneOS ✓" : "CloneOS —"} · {emp.clonevoice_visible ? "CloneVoice (gouverné)" : "CloneVoice —"}
+                        </span>
+                      </div>
+
+                      {/* Capacités */}
+                      <p className="mt-3 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">
+                        Capacités ({emp.capabilities_count}) · Fonctions ({emp.functions_count}) — plan-only
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {emp.top_capabilities.map((cap) => (
+                          <span key={cap.capability_key} className="inline-flex items-center rounded-full border border-[#7a6cff]/20 bg-[#7a6cff]/08 px-2 py-0.5 text-[0.58rem] font-semibold text-[#5c4ad3]">
+                            {cap.label}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {emp.top_functions.map((fn) => (
+                          <span key={fn.function_key} className="inline-flex items-center rounded-full border border-white/50 bg-white/26 px-2 py-0.5 text-[0.58rem] text-[var(--cs-ink-4)]">
+                            {fn.label}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Limites & validations */}
+                      <p className="mt-3 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">
+                        Ce que {emp.display_name} ne peut pas faire ({emp.limits_count})
+                      </p>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {emp.limits_labels.slice(0, 4).map((l) => (
+                          <span key={l} className="inline-flex items-center rounded-full border border-[#b84a4a]/20 bg-[#b84a4a]/06 px-2 py-0.5 text-[0.58rem] text-[#b84a4a]">
+                            {l}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {emp.validation_rule_labels.slice(0, 4).map((r) => (
+                          <span key={r} className="inline-flex items-center rounded-full border border-[#c99a4d]/22 bg-[#c99a4d]/08 px-2 py-0.5 text-[0.58rem] text-[#8f682d]">
+                            {r}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Placeholders futurs */}
+                <div className="mt-4 rounded-[1.25rem] border border-white/45 bg-white/16 p-4">
+                  <p className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-ink-4)]">
+                    Employés futurs — design-only, non actifs
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {registryFeed.future_placeholders.map((ph) => (
+                      <span key={ph.employee_key} className="inline-flex items-center rounded-full border border-white/50 bg-white/22 px-2.5 py-1 text-[0.6rem] font-semibold text-[var(--cs-ink-4)]">
+                        {ph.display_name}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[0.6rem] leading-4 text-[var(--cs-ink-4)]">
+                    Clara, Emma, Alex, Noah, Lucas, Sophie, Adrien — placeholders design-only,
+                    non actifs en production.
+                  </p>
+                </div>
+
+                {/* CloneVoice governed context preview */}
+                <div className="mt-4 rounded-[1.25rem] border border-[#7a6cff]/20 bg-[#7a6cff]/05 p-4">
+                  <p className="text-[0.7rem] font-semibold text-[#5c4ad3]">
+                    CloneVoice — contexte gouverné futur
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-1.5 text-[0.6rem] text-[var(--cs-ink-3)] sm:grid-cols-3">
+                    <span>access_mode : {registryFeed.clonevoice_contract.access_mode}</span>
+                    <span>can_read_registry : {String(registryFeed.clonevoice_contract.can_read_registry)}</span>
+                    <span>can_execute_actions : {String(registryFeed.clonevoice_contract.can_execute_actions)}</span>
+                    <span>must_route_through_cloneos : {String(registryFeed.clonevoice_contract.must_route_through_cloneos)}</span>
+                    <span>must_pass_cloneguard : {String(registryFeed.clonevoice_contract.must_pass_cloneguard)}</span>
+                    <span>must_trace_with_clonetrace : {String(registryFeed.clonevoice_contract.must_trace_with_clonetrace)}</span>
+                    <span>raw_secret_access : {String(registryFeed.clonevoice_contract.raw_secret_access)}</span>
+                    <span>server_write_access : {String(registryFeed.clonevoice_contract.server_write_access)}</span>
+                    <span>public_launch_validated : {String(registryFeed.clonevoice_contract.public_launch_validated)}</span>
+                  </div>
+                  <p className="mt-2 text-[0.6rem] leading-4 text-[#5c4ad3]">
+                    CloneVoice n'est pas actif production. CloneVoice ne déclenche aucune action.
+                    CloneVoice passera plus tard par CloneOS, CloneGuard et CloneTrace.
+                    Aucun accès aux secrets bruts.
+                  </p>
+                </div>
+
+                {/* Warnings sécurité */}
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {registryFeed.warnings.map((w) => (
+                    <span
+                      key={w.code}
+                      className={cn(
+                        "inline-flex items-center rounded-full border px-2.5 py-1 text-[0.6rem] font-semibold",
+                        w.tone === "success"
+                          ? "border-[rgba(21,130,96,0.2)] bg-[rgba(21,130,96,0.07)] text-[var(--cs-success)]"
+                          : w.tone === "warning"
+                          ? "border-[#c99a4d]/22 bg-[#c99a4d]/08 text-[#8f682d]"
+                          : "border-white/50 bg-white/22 text-[var(--cs-ink-4)]"
+                      )}
+                    >
+                      {w.label}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Microcopy sécurité */}
+                <p className="mt-3 text-[0.6rem] leading-5 text-[var(--cs-ink-4)]">
+                  Les keys employee_key, function_key, capability_key ne sont pas des secrets.
+                  CloneVoice n'est pas actif production. Aucune action exécutée. Aucun write serveur.
+                  Lancement public externe non validé.
+                </p>
+
+                {/* CTAs */}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {registryFeed.actions.map((action) => (
+                    <Link
+                      key={action.id}
+                      href={action.href}
+                      className={cn(action.primary ? "clone-liquid-button clone-liquid-button--dark" : "clone-liquid-button")}
+                    >
+                      {action.label}
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
         </div>
       </div>

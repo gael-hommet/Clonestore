@@ -39,6 +39,7 @@
                     "node_modules",
                     "src/lib/pierre/__tests__",
                     "**/*.test.ts",
-                    "**/*.test.tsx"
+                    "**/*.test.tsx",
+                    "e2e"
                 ]
 }

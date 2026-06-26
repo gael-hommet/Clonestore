@@ -3,6 +3,7 @@ import {
   ArrowRight,
   Bot,
   CreditCard,
+  Eye,
   ShieldCheck,
   Sparkles,
   Undo2,
@@ -108,6 +109,11 @@ export default function PaiementCancelPage() {
                     label="Reprendre le paiement"
                     primary
                     icon={<ArrowRight className="h-4 w-4" />}
+                  />
+                  <ActionButton
+                    href="/demo/pierre"
+                    label="Voir la démo Pierre"
+                    icon={<Eye className="h-4 w-4" />}
                   />
                   <ActionButton
                     href="/agents"

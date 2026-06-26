@@ -12,6 +12,21 @@ import type {
   AssistantRequestBody,
   AssistantResponseBody,
 } from "@/lib/assistant/types";
+import { isCloneChatEnabled } from "@/lib/features/product-availability";
+
+// Blocage RÉEL de l'API CloneChat. Tant que le produit est désactivé, l'API
+// répond 503 — l'expérience ne peut pas être utilisée via un appel direct,
+// même en contournant l'interface.
+function cloneChatDisabledResponse() {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "CloneChat n'est pas encore disponible.",
+      code: "CLONECHAT_DISABLED",
+    },
+    { status: 503 },
+  );
+}
 
 function normalizeContext(
   partial?: Partial<AssistantAccountContext> | null
@@ -33,6 +48,10 @@ function extractQuestion(body: AssistantRequestBody | null | undefined) {
 }
 
 export async function POST(request: Request) {
+  if (!isCloneChatEnabled()) {
+    return cloneChatDisabledResponse();
+  }
+
   try {
     const body = (await request.json().catch(() => null)) as AssistantRequestBody | null;
     const question = extractQuestion(body);
@@ -88,6 +107,10 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
+  if (!isCloneChatEnabled()) {
+    return cloneChatDisabledResponse();
+  }
+
   return NextResponse.json({
     ok: true,
     name: "CloneChat assistant route",

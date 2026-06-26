@@ -7,10 +7,12 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TopbarAuthSlot from "./topbar-auth-slot";
 import { LiquidGlass } from "@/components/ui/LiquidGlass";
+import { isConnectedRoute } from "@/lib/nav/connected-routes";
 
 const navItems = [
   { href: "/", label: "Accueil" },
   { href: "/agents", label: "Employés IA" },
+  { href: "/demo", label: "Démo" },
   { href: "/#technologies", label: "Technologies" },
   { href: "/profile/agents", label: "Cockpit" },
   { href: "/profile", label: "Mon CloneStore" },
@@ -56,6 +58,12 @@ export default function SiteHeader() {
 
   const currentPath = useMemo(() => pathname || "/", [pathname]);
 
+  // Sur l'espace connecté, l'app shell est la seule navigation : le header public
+  // se masque entièrement (un seul drawer, un seul menu, pas de double navigation).
+  if (isConnectedRoute(currentPath)) {
+    return null;
+  }
+
   return (
     <header className="cs-header">
       <div className="cs-shell">
@@ -65,10 +73,10 @@ export default function SiteHeader() {
           refractive
           className="px-4 py-3"
         >
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center justify-between gap-3">
             <Brand />
 
-            <nav className="hidden flex-1 items-center justify-center xl:flex">
+            <nav className="hidden min-w-0 flex-1 items-center justify-center xl:flex">
               <div className="cs-nav-rail">
                 {navItems.map((item) => {
                   const isHashLink = item.href.includes("#");
@@ -92,7 +100,13 @@ export default function SiteHeader() {
               </div>
             </nav>
 
-            <div className="hidden items-center gap-2 xl:flex">
+            <div className="hidden shrink-0 items-center gap-2 xl:flex">
+              <Link
+                href="/reserver/pierre"
+                className="inline-flex min-h-11 items-center whitespace-nowrap rounded-full border border-[rgba(107,99,232,0.32)] bg-[rgba(107,99,232,0.06)] px-4 text-sm font-semibold text-[#4f48b8] transition hover:bg-[rgba(107,99,232,0.12)]"
+              >
+                Réserver Pierre
+              </Link>
               <Link href="/assistant" className="clone-liquid-button min-h-11 px-5">
                 CloneChat
               </Link>
@@ -103,7 +117,7 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setMobileOpen((prev) => !prev)}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/50 bg-white/45 text-[var(--cs-ink-1)] shadow-[var(--cs-shadow-soft)] backdrop-blur-xl xl:hidden"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/50 bg-white/45 text-[var(--cs-ink-1)] shadow-[var(--cs-shadow-soft)] backdrop-blur-xl xl:hidden"
               aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
               aria-expanded={mobileOpen}
               aria-controls="site-mobile-menu"
@@ -147,6 +161,15 @@ export default function SiteHeader() {
                     </Link>
                   );
                 })}
+
+                <Link
+                  href="/reserver/pierre"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-between rounded-[1.1rem] border border-[rgba(107,99,232,0.3)] bg-[rgba(107,99,232,0.08)] px-4 py-3 text-sm font-semibold text-[#4f48b8]"
+                >
+                  <span>Réserver Pierre</span>
+                  <span>→</span>
+                </Link>
 
                 <Link
                   href="/assistant"

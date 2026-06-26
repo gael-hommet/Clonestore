@@ -1,0 +1,616 @@
+{
+  "contract": {
+    "attribution_token": {
+      "default_ttl_days": 45,
+      "format": "{token_id}.{signature_hex}",
+      "key_env": "LEADFORGE_ATTRIBUTION_SIGNING_KEY",
+      "key_version": "a1",
+      "signature": "hmac.sha256(token_id, signing_key).hexdigest()",
+      "signature_encoding": "hex",
+      "signature_length": 64,
+      "token_id_length": 40,
+      "token_id_source": "uuid.hex + uuid.hex[:8]"
+    },
+    "checkout_amount_cents": 44900,
+    "checkout_currency": "eur",
+    "checkout_interval": "month",
+    "checkout_metadata_fields": [
+      "prospect_token",
+      "campaign",
+      "cohort",
+      "variant",
+      "funnel_version"
+    ],
+    "claim_ids": [
+      "company_adaptation",
+      "demo_timing",
+      "human_validation",
+      "pierre_is_role",
+      "price_monthly",
+      "recurring_work",
+      "traceability",
+      "volume_estimate"
+    ],
+    "claim_records": [
+      {
+        "claim_id": "company_adaptation",
+        "limitations": "à vérifier sur le produit CloneStore réel avant activation",
+        "scope": "demo",
+        "status": "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
+        "text": "Pierre s'adapte au fonctionnement de l'entreprise (CloneADN)"
+      },
+      {
+        "claim_id": "demo_timing",
+        "limitations": "aucune durée promise tant qu'elle n'est pas mesurée sur la vraie démo",
+        "scope": "demo",
+        "status": "PENDING_DEMO_TIMING_MEASUREMENT",
+        "text": "durée de la démonstration"
+      },
+      {
+        "claim_id": "human_validation",
+        "limitations": "périmètre des actions sensibles à vérifier sur le produit réel avant activation",
+        "scope": "landing",
+        "status": "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
+        "text": "Les actions sensibles passent par une validation humaine (CloneGuard)"
+      },
+      {
+        "claim_id": "pierre_is_role",
+        "limitations": "à vérifier sur le produit CloneStore réel avant activation",
+        "scope": "landing",
+        "status": "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
+        "text": "Pierre est un poste RH opérationnel automatisé (assistant IA transparent), pas un chatbot"
+      },
+      {
+        "claim_id": "price_monthly",
+        "limitations": "",
+        "scope": "pricing",
+        "status": "VERIFIED_PRICE",
+        "text": "449 €/mois"
+      },
+      {
+        "claim_id": "recurring_work",
+        "limitations": "à vérifier sur le produit CloneStore réel avant activation",
+        "scope": "email",
+        "status": "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
+        "text": "Pierre prend en charge du travail RH opérationnel récurrent (brief → missions → documents/emails → validation → trace)"
+      },
+      {
+        "claim_id": "traceability",
+        "limitations": "à vérifier sur le produit CloneStore réel avant activation",
+        "scope": "landing",
+        "status": "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
+        "text": "Chaque action est tracée et inspectable (CloneTrace)"
+      },
+      {
+        "claim_id": "volume_estimate",
+        "limitations": "aucune économie financière sans coût fourni par l'utilisateur; aucun résultat garanti",
+        "scope": "diagnostic",
+        "status": "ASSUMPTION_REQUIRES_DISCLOSURE",
+        "text": "Estimation d'un volume d'opérations RH traitable, en fourchette, à partir de vos hypothèses visibles et modifiables"
+      }
+    ],
+    "claim_status_enum": [
+      "ASSUMPTION_REQUIRES_DISCLOSURE",
+      "CUSTOMER_PROOF_REQUIRED",
+      "FORBIDDEN",
+      "LEGAL_REVIEW_REQUIRED",
+      "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
+      "PENDING_DEMO_TIMING_MEASUREMENT",
+      "SUPPORTED_ESTIMATE",
+      "VERIFIED_PRICE",
+      "VERIFIED_PRODUCT_FACT"
+    ],
+    "contact_kinds": [
+      "DIRECT",
+      "GATEWAY"
+    ],
+    "demo_behaviors": [
+      "CloneOS",
+      "CloneADN",
+      "CloneGuard",
+      "CloneTrace"
+    ],
+    "demo_step_range": [
+      6,
+      9
+    ],
+    "demo_version": "pierre-demo-v0.1",
+    "diagnostic": {
+      "default_assumptions": {
+        "automatable_share_central": 0.45,
+        "automatable_share_high": 0.6,
+        "automatable_share_low": 0.3,
+        "minutes_per_operation": 8,
+        "ops_per_hire": 6,
+        "ops_per_on_offboarding": 5
+      },
+      "forbidden_input_keys": [
+        "absence_individuelle",
+        "cv",
+        "dossier_disciplinaire",
+        "employee_name",
+        "health",
+        "nom_salarié",
+        "salaire_individuel",
+        "salary",
+        "sanction",
+        "santé"
+      ],
+      "forbidden_inputs_marketing": [
+        "absence_individuelle",
+        "cv",
+        "dossier_disciplinaire",
+        "nom_salarié",
+        "salaire_individuel",
+        "sanction",
+        "santé"
+      ],
+      "max_questions": 8,
+      "questions": [
+        {
+          "id": "headcount",
+          "type": "int"
+        },
+        {
+          "id": "hr_team_size",
+          "type": "int"
+        },
+        {
+          "id": "monthly_hires",
+          "type": "int"
+        },
+        {
+          "id": "monthly_on_offboardings",
+          "type": "int"
+        },
+        {
+          "id": "monthly_docs_emails_ops",
+          "type": "int"
+        },
+        {
+          "id": "current_tools",
+          "type": "text"
+        },
+        {
+          "id": "autonomy_level",
+          "type": "enum"
+        },
+        {
+          "id": "validation_required",
+          "type": "bool"
+        }
+      ]
+    },
+    "diagnostic_version": "pierre-diagnostic-v0.1",
+    "event_metadata_allowlist": [
+      "amount_eur",
+      "branch",
+      "claim_ids",
+      "compatibility",
+      "contact_kind",
+      "cta",
+      "decision",
+      "demo_step",
+      "email_tier",
+      "missions_count",
+      "reason",
+      "segment",
+      "stage",
+      "status",
+      "step"
+    ],
+    "event_metadata_forbidden": [
+      "api_key",
+      "body",
+      "candidate",
+      "card",
+      "cvv",
+      "email",
+      "email_body",
+      "employee",
+      "html_body",
+      "iban",
+      "ip",
+      "name",
+      "password",
+      "salary",
+      "secret",
+      "siren",
+      "text_body",
+      "token",
+      "user_agent"
+    ],
+    "event_types": [
+      "assistance_cta_clicked",
+      "checkout_completed",
+      "checkout_failed",
+      "checkout_started",
+      "demo_completed",
+      "demo_started",
+      "demo_step_viewed",
+      "diagnostic_completed",
+      "diagnostic_started",
+      "diagnostic_step_completed",
+      "landing_viewed",
+      "meeting_booked",
+      "meeting_started",
+      "message_preview_generated",
+      "onboarding_completed",
+      "onboarding_started",
+      "pierre_activated",
+      "positive_reply",
+      "purchase_cta_clicked",
+      "reply_received",
+      "result_viewed",
+      "unsubscribe",
+      "variant_assigned"
+    ],
+    "funnel_version": "v0.1",
+    "landing_version": "pierre-landing-v0.1",
+    "leadforge_commit": "db9b166",
+    "price": {
+      "checkout_amount_eur": 449,
+      "checkout_mode": "subscription",
+      "eur": 449,
+      "label": "449 €/mois"
+    },
+    "real_activatable_claim_statuses": [
+      "ASSUMPTION_REQUIRES_DISCLOSURE",
+      "SUPPORTED_ESTIMATE",
+      "VERIFIED_PRICE",
+      "VERIFIED_PRODUCT_FACT"
+    ],
+    "shadow_allowed_claim_statuses": [
+      "ASSUMPTION_REQUIRES_DISCLOSURE",
+      "PENDING_CLONESTORE_PRODUCT_VERIFICATION",
+      "PENDING_DEMO_TIMING_MEASUREMENT",
+      "SUPPORTED_ESTIMATE",
+      "VERIFIED_PRICE",
+      "VERIFIED_PRODUCT_FACT"
+    ],
+    "surface_allowed_claims": {
+      "demo": [
+        "company_adaptation",
+        "human_validation",
+        "pierre_is_role",
+        "traceability"
+      ],
+      "diagnostic": [
+        "human_validation",
+        "price_monthly",
+        "traceability",
+        "volume_estimate"
+      ],
+      "email": [
+        "company_adaptation",
+        "human_validation",
+        "pierre_is_role",
+        "price_monthly",
+        "recurring_work",
+        "traceability"
+      ],
+      "landing": [
+        "company_adaptation",
+        "human_validation",
+        "pierre_is_role",
+        "price_monthly",
+        "recurring_work",
+        "traceability"
+      ],
+      "pricing": [
+        "human_validation",
+        "price_monthly",
+        "traceability"
+      ]
+    },
+    "url_pattern": "/p/{token_id}.{signature}",
+    "variant_hero": {
+      "VARIANT_DEPARTMENT_OUTCOME": "hero_department_outcome",
+      "VARIANT_PROOF_FIRST": "hero_proof_first"
+    },
+    "variants": [
+      "VARIANT_DEPARTMENT_OUTCOME",
+      "VARIANT_PROOF_FIRST"
+    ]
+  },
+  "contract_canonical_json_sha256": "04e34646f17dcdf614b077a128f5891226c1b6f0f50a8bb92bebfbdfa9140948",
+  "diagnostic_vectors": [
+    {
+      "answers": {
+        "autonomy_level": "high",
+        "current_tools": "SIRH + email",
+        "headcount": 120,
+        "hr_team_size": 3,
+        "monthly_docs_emails_ops": 80,
+        "monthly_hires": 5,
+        "monthly_on_offboardings": 4,
+        "validation_required": true
+      },
+      "hourly_cost_eur": null,
+      "name": "high_volume_supervised",
+      "result": {
+        "actions_requiring_validation": [
+          "Communication externe sensible",
+          "Documents contractuels",
+          "Toute action marquée sensible"
+        ],
+        "assumptions": {
+          "automatable_share_central": 0.45,
+          "automatable_share_high": 0.6,
+          "automatable_share_low": 0.3,
+          "minutes_per_operation": 8,
+          "ops_per_hire": 6,
+          "ops_per_on_offboarding": 5
+        },
+        "compatibility": "high",
+        "compatibility_score": 76,
+        "financial_saving": null,
+        "formulas": {
+          "automatable_ops": "base_ops * automatable_share",
+          "base_ops_month": "max(declared_ops, derived_ops)",
+          "derived_ops_month": "monthly_hires*ops_per_hire + monthly_on_offboardings*ops_per_on_offboarding",
+          "operational_hours": "automatable_ops * minutes_per_operation / 60"
+        },
+        "limits": [
+          "Fourchettes, pas une prédiction exacte",
+          "Aucun résultat garanti",
+          "Aucune économie financière sans coût fourni",
+          "Hypothèses modifiables"
+        ],
+        "next_steps": [
+          "Voir la démonstration",
+          "Activer Pierre — 449 €/mois",
+          "Réserver 15 minutes (optionnel)"
+        ],
+        "operational_load": {
+          "base_ops_month": 80,
+          "declared_ops_month": 80,
+          "derived_ops_month": 50,
+          "hr_team_size": 3
+        },
+        "price_comparison": {
+          "pierre_eur_month": 449
+        },
+        "priorities": [
+          "Préparation de documents RH",
+          "Emails RH récurrents",
+          "Suivi des validations"
+        ],
+        "recommended_missions": [
+          "Préparation de documents RH",
+          "Emails RH récurrents",
+          "Suivi des validations",
+          "Traçabilité",
+          "Support onboarding/recrutement opérationnel"
+        ],
+        "volume_estimate": {
+          "central": {
+            "automatable_ops_month": 36,
+            "operational_hours_month": 4.8
+          },
+          "high": {
+            "automatable_ops_month": 48,
+            "operational_hours_month": 6.4
+          },
+          "low": {
+            "automatable_ops_month": 24,
+            "operational_hours_month": 3.2
+          }
+        }
+      }
+    },
+    {
+      "answers": {
+        "autonomy_level": "low",
+        "headcount": 8,
+        "hr_team_size": 0,
+        "monthly_docs_emails_ops": 3,
+        "monthly_hires": 0,
+        "monthly_on_offboardings": 0,
+        "validation_required": true
+      },
+      "hourly_cost_eur": null,
+      "name": "low_volume_no_cost",
+      "result": {
+        "actions_requiring_validation": [
+          "Communication externe sensible",
+          "Documents contractuels",
+          "Toute action marquée sensible"
+        ],
+        "assumptions": {
+          "automatable_share_central": 0.45,
+          "automatable_share_high": 0.6,
+          "automatable_share_low": 0.3,
+          "minutes_per_operation": 8,
+          "ops_per_hire": 6,
+          "ops_per_on_offboarding": 5
+        },
+        "compatibility": "low",
+        "compatibility_score": 40,
+        "financial_saving": null,
+        "formulas": {
+          "automatable_ops": "base_ops * automatable_share",
+          "base_ops_month": "max(declared_ops, derived_ops)",
+          "derived_ops_month": "monthly_hires*ops_per_hire + monthly_on_offboardings*ops_per_on_offboarding",
+          "operational_hours": "automatable_ops * minutes_per_operation / 60"
+        },
+        "limits": [
+          "Fourchettes, pas une prédiction exacte",
+          "Aucun résultat garanti",
+          "Aucune économie financière sans coût fourni",
+          "Hypothèses modifiables"
+        ],
+        "next_steps": [
+          "Voir la démonstration",
+          "Activer Pierre — 449 €/mois",
+          "Réserver 15 minutes (optionnel)"
+        ],
+        "operational_load": {
+          "base_ops_month": 3,
+          "declared_ops_month": 3,
+          "derived_ops_month": 0,
+          "hr_team_size": 0
+        },
+        "price_comparison": {
+          "pierre_eur_month": 449
+        },
+        "priorities": [
+          "Préparation de documents RH",
+          "Emails RH récurrents",
+          "Suivi des validations"
+        ],
+        "recommended_missions": [
+          "Préparation de documents RH",
+          "Emails RH récurrents",
+          "Suivi des validations",
+          "Traçabilité"
+        ],
+        "volume_estimate": {
+          "central": {
+            "automatable_ops_month": 1,
+            "operational_hours_month": 0.2
+          },
+          "high": {
+            "automatable_ops_month": 2,
+            "operational_hours_month": 0.2
+          },
+          "low": {
+            "automatable_ops_month": 1,
+            "operational_hours_month": 0.1
+          }
+        }
+      }
+    },
+    {
+      "answers": {
+        "autonomy_level": "medium",
+        "headcount": 60,
+        "hr_team_size": 2,
+        "monthly_docs_emails_ops": 40,
+        "monthly_hires": 3,
+        "monthly_on_offboardings": 2,
+        "validation_required": true
+      },
+      "hourly_cost_eur": 45.0,
+      "name": "with_hourly_cost",
+      "result": {
+        "actions_requiring_validation": [
+          "Communication externe sensible",
+          "Documents contractuels",
+          "Toute action marquée sensible"
+        ],
+        "assumptions": {
+          "automatable_share_central": 0.45,
+          "automatable_share_high": 0.6,
+          "automatable_share_low": 0.3,
+          "minutes_per_operation": 8,
+          "ops_per_hire": 6,
+          "ops_per_on_offboarding": 5
+        },
+        "compatibility": "medium",
+        "compatibility_score": 58,
+        "financial_saving": {
+          "basis": "user_supplied_hourly_cost",
+          "central_monthly_saving_eur": 108.0,
+          "hourly_cost_eur": 45.0,
+          "note": "fourchette indicative à partir de votre coût; aucun résultat garanti",
+          "vs_pierre_eur_month": 449
+        },
+        "formulas": {
+          "automatable_ops": "base_ops * automatable_share",
+          "base_ops_month": "max(declared_ops, derived_ops)",
+          "derived_ops_month": "monthly_hires*ops_per_hire + monthly_on_offboardings*ops_per_on_offboarding",
+          "operational_hours": "automatable_ops * minutes_per_operation / 60"
+        },
+        "limits": [
+          "Fourchettes, pas une prédiction exacte",
+          "Aucun résultat garanti",
+          "Aucune économie financière sans coût fourni",
+          "Hypothèses modifiables"
+        ],
+        "next_steps": [
+          "Voir la démonstration",
+          "Activer Pierre — 449 €/mois",
+          "Réserver 15 minutes (optionnel)"
+        ],
+        "operational_load": {
+          "base_ops_month": 40,
+          "declared_ops_month": 40,
+          "derived_ops_month": 28,
+          "hr_team_size": 2
+        },
+        "price_comparison": {
+          "pierre_eur_month": 449
+        },
+        "priorities": [
+          "Préparation de documents RH",
+          "Emails RH récurrents",
+          "Suivi des validations"
+        ],
+        "recommended_missions": [
+          "Préparation de documents RH",
+          "Emails RH récurrents",
+          "Suivi des validations",
+          "Traçabilité",
+          "Support onboarding/recrutement opérationnel"
+        ],
+        "volume_estimate": {
+          "central": {
+            "automatable_ops_month": 18,
+            "operational_hours_month": 2.4
+          },
+          "high": {
+            "automatable_ops_month": 24,
+            "operational_hours_month": 3.2
+          },
+          "low": {
+            "automatable_ops_month": 12,
+            "operational_hours_month": 1.6
+          }
+        }
+      }
+    }
+  ],
+  "generator": {
+    "note": "Synthetic fixture, NO real prospect data. Public-fingerprint computed from sorted-key JSON.",
+    "regeneration_command": "python export_fixture.py > /path/to/fixture.json",
+    "source_branch": "leadforge-153k-national-reverse-index",
+    "source_commit": "db9b16600ac421ed3029c8c3da9e1b7eda6d752a",
+    "source_repo": "https://github.com/gael-hommet/LeadForge"
+  },
+  "token_vectors": {
+    "fixture_secret_b64": "Y2xvbmVzdG9yZS1ibG9jMy1maXh0dXJlLXNlY3JldC1ub3QtZm9yLXByb2R1Y3Rpb24=",
+    "fixture_secret_utf8": "clonestore-bloc3-fixture-secret-not-for-production",
+    "malformed_empty": {
+      "expected_reason": "malformed",
+      "expected_valid": false,
+      "public_token": ""
+    },
+    "malformed_no_dot": {
+      "expected_reason": "malformed",
+      "expected_valid": false,
+      "public_token": "a1b2c3d4e5f60718293a4b5c6d7e8f90deadbeefdcb76d09b4993d1154e73467770c545794bf4f30b105e8fd93213884ae006336"
+    },
+    "tampered_signature": {
+      "expected_reason": "bad_signature",
+      "expected_valid": false,
+      "public_token": "a1b2c3d4e5f60718293a4b5c6d7e8f90deadbeef.dcb76d09b4993d1154e73467770c545794bf4f30b105e8fd93213884ae00633A",
+      "signature_hex": "dcb76d09b4993d1154e73467770c545794bf4f30b105e8fd93213884ae00633A",
+      "token_id": "a1b2c3d4e5f60718293a4b5c6d7e8f90deadbeef"
+    },
+    "tampered_token_id": {
+      "expected_reason": "bad_signature",
+      "expected_valid": false,
+      "public_token": "a1b2c3d4e5f60718293a4b5c6d7e8f90deadbee0.dcb76d09b4993d1154e73467770c545794bf4f30b105e8fd93213884ae006336",
+      "signature_hex": "dcb76d09b4993d1154e73467770c545794bf4f30b105e8fd93213884ae006336",
+      "token_id": "a1b2c3d4e5f60718293a4b5c6d7e8f90deadbee0"
+    },
+    "valid": {
+      "expected_reason": "ok",
+      "expected_valid": true,
+      "public_token": "a1b2c3d4e5f60718293a4b5c6d7e8f90deadbeef.dcb76d09b4993d1154e73467770c545794bf4f30b105e8fd93213884ae006336",
+      "signature_hex": "dcb76d09b4993d1154e73467770c545794bf4f30b105e8fd93213884ae006336",
+      "token_id": "a1b2c3d4e5f60718293a4b5c6d7e8f90deadbeef"
+    }
+  }
+}

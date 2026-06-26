@@ -1,8 +1,12 @@
 // src/app/agents/pierre/use/components/PierreCockpitShell.tsx
 // Main layout shell — left rail + center + right panel — Pierre Cockpit B31.1.
 // Handles workspace routing, responsive layout, accessibility.
+// PHASE 2.7 — Global nav links added to LeftRail bottom + CloneOS history in RightPanel.
+// PHASE 8.2-C — discoverable link to the Employee 360 page (/agents/pierre/employees).
 
 "use client";
+
+import Link from "next/link";
 
 import * as React from "react";
 import {
@@ -14,10 +18,11 @@ import {
   Fingerprint,
   FlaskConical,
   History,
+  LayoutDashboard,
   LogIn,
   Mail,
-  PanelLeftClose,
-  PanelLeftOpen,
+  MessagesSquare,
+  Network,
   RefreshCw,
   Settings2,
   ShieldCheck,
@@ -145,6 +150,65 @@ const NAV_ADVANCED: NavItem[] = [
   { workspace: "settings",  icon: <Settings2 className="h-4 w-4" />,    label: "Paramètres" },
 ];
 
+// ── Horizontal workspace tab bar (desktop secondary nav) ────────
+// L'app shell global (sidebar gauche) est la SEULE navigation latérale
+// principale. La navigation des espaces de travail du cockpit devient une barre
+// d'onglets horizontale (navigation de contenu), pas une deuxième sidebar.
+
+function WorkspaceTabBar({ cockpit }: { cockpit: CockpitHook }) {
+  const items = [...NAV_PRIMARY, ...NAV_ADVANCED];
+
+  return (
+    <div
+      className="hidden md:flex shrink-0 items-center gap-1.5 overflow-x-auto border-b px-3 py-2"
+      style={{ borderColor: "var(--cs-line)", background: "var(--cs-surface-strong)" }}
+      role="tablist"
+      aria-label="Espaces de travail Pierre"
+    >
+      {items.map((item) => {
+        const active = cockpit.activeWorkspace === item.workspace;
+        const badge = item.badge ? item.badge(cockpit) : 0;
+        return (
+          <button
+            key={item.workspace}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => cockpit.openWorkspace(item.workspace)}
+            className="relative inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition"
+            style={
+              active
+                ? { background: "var(--cs-graphite)", color: "var(--cs-ivory)" }
+                : { color: "var(--cs-ink-3)", background: "rgba(255,255,255,0.35)" }
+            }
+          >
+            <span aria-hidden="true">{item.icon}</span>
+            <span>{item.label}</span>
+            {badge > 0 && (
+              <span
+                className="ml-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold"
+                style={{ background: "var(--cs-danger)", color: "#fff" }}
+                aria-label={`${badge} en attente`}
+              >
+                {badge}
+              </span>
+            )}
+          </button>
+        );
+      })}
+
+      <Link
+        href="/agents/pierre/employees"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition hover:opacity-80"
+        style={{ color: "var(--cs-ink-3)", background: "rgba(255,255,255,0.35)" }}
+      >
+        <Users className="h-4 w-4" aria-hidden="true" />
+        <span>Salariés 360</span>
+      </Link>
+    </div>
+  );
+}
+
 // ── Workspace title map ─────────────────────────────────────────
 
 const WORKSPACE_TITLES: Record<PierreCockpitWorkspace, string> = {
@@ -161,189 +225,6 @@ const WORKSPACE_TITLES: Record<PierreCockpitWorkspace, string> = {
   settings:    "Paramètres",
 };
 
-// ── Nav button ──────────────────────────────────────────────────
-
-function NavButton({
-  item,
-  active,
-  collapsed,
-  cockpit,
-  onOpen,
-}: {
-  item: NavItem;
-  active: boolean;
-  collapsed: boolean;
-  cockpit: CockpitHook;
-  onOpen: () => void;
-}) {
-  const badgeCount = item.badge ? item.badge(cockpit) : 0;
-
-  return (
-    <button
-      onClick={onOpen}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors",
-        collapsed ? "justify-center" : "",
-        active ? "font-semibold" : "hover:bg-black/5",
-      )}
-      style={
-        active
-          ? { background: "rgba(255,255,255,0.72)", color: "var(--cs-ink-1)" }
-          : { color: "var(--cs-ink-3)" }
-      }
-      title={collapsed ? item.label : undefined}
-    >
-      <span className="shrink-0" aria-hidden="true">
-        {item.icon}
-      </span>
-      {!collapsed && (
-        <span className="flex-1 truncate text-sm">{item.label}</span>
-      )}
-      {badgeCount > 0 && (
-        <span
-          className={cn(
-            "flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold",
-            collapsed ? "absolute right-1 top-1" : "",
-          )}
-          style={{ background: "var(--cs-danger)", color: "#fff" }}
-          aria-label={`${badgeCount} en attente`}
-        >
-          {badgeCount}
-        </span>
-      )}
-    </button>
-  );
-}
-
-// ── Left rail ───────────────────────────────────────────────────
-
-function LeftRail({
-  cockpit,
-  collapsed,
-  onCollapse,
-}: {
-  cockpit: CockpitHook;
-  collapsed: boolean;
-  onCollapse: (v: boolean) => void;
-}) {
-  const { activeWorkspace, openWorkspace } = cockpit;
-
-  return (
-    <aside
-      className={cn(
-        "hidden md:flex flex-col shrink-0 transition-all duration-200",
-        collapsed ? "w-[60px]" : "w-[220px]",
-      )}
-      style={{
-        background: "rgba(245,240,230,0.82)",
-        backdropFilter: "blur(20px) saturate(1.4)",
-        WebkitBackdropFilter: "blur(20px) saturate(1.4)",
-        borderRight: "1px solid var(--cs-line)",
-      }}
-      aria-label="Navigation Pierre"
-    >
-      {/* Logo / Brand */}
-      <div
-        className="flex h-14 shrink-0 items-center gap-2.5 border-b px-3"
-        style={{ borderColor: "var(--cs-line)" }}
-      >
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-black"
-          style={{ background: "var(--cs-graphite)", color: "var(--cs-ivory)" }}
-          aria-hidden="true"
-        >
-          P
-        </div>
-        {!collapsed && (
-          <div className="overflow-hidden">
-            <p className="text-sm font-bold leading-tight" style={{ color: "var(--cs-ink-1)" }}>
-              Pierre
-            </p>
-            <p className="text-[10px] leading-tight" style={{ color: "var(--cs-ink-4)" }}>
-              HR Cockpit
-            </p>
-          </div>
-        )}
-        <button
-          onClick={() => onCollapse(!collapsed)}
-          className="ml-auto shrink-0 rounded-lg p-1 transition-opacity hover:opacity-70"
-          aria-label={collapsed ? "Déplier le menu" : "Réduire le menu"}
-          style={{ color: "var(--cs-ink-4)" }}
-        >
-          {collapsed ? (
-            <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
-          )}
-        </button>
-      </div>
-
-      {/* Primary nav */}
-      <nav className="flex flex-col gap-0.5 overflow-y-auto px-2 py-2" aria-label="Espaces de travail">
-        {NAV_PRIMARY.map((item) => (
-          <NavButton
-            key={item.workspace}
-            item={item}
-            active={activeWorkspace === item.workspace}
-            collapsed={collapsed}
-            cockpit={cockpit}
-            onOpen={() => openWorkspace(item.workspace)}
-          />
-        ))}
-
-        <div className="my-2 border-t" style={{ borderColor: "var(--cs-line)" }} />
-
-        {!collapsed && (
-          <p
-            className="mb-1 px-2.5 text-[10px] font-semibold uppercase tracking-widest"
-            style={{ color: "var(--cs-ink-4)" }}
-          >
-            Avancé
-          </p>
-        )}
-
-        {NAV_ADVANCED.map((item) => (
-          <NavButton
-            key={item.workspace}
-            item={item}
-            active={activeWorkspace === item.workspace}
-            collapsed={collapsed}
-            cockpit={cockpit}
-            onOpen={() => openWorkspace(item.workspace)}
-          />
-        ))}
-      </nav>
-
-      {/* RC status bar */}
-      {cockpit.rcStatus && (
-        <div className="shrink-0 border-t px-2 py-2" style={{ borderColor: "var(--cs-line)" }}>
-          <div
-            className="flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5"
-            style={{
-              background: cockpit.rcStatus.canStartCockpit ? "var(--cs-success-bg)" : "var(--cs-warn-bg)",
-              color: cockpit.rcStatus.canStartCockpit ? "var(--cs-success)" : "var(--cs-warn)",
-            }}
-          >
-            {cockpit.rcStatus.canStartCockpit ? (
-              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            ) : (
-              <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            )}
-            {!collapsed && (
-              <p className="truncate text-[10px] font-semibold">
-                RC · {cockpit.rcStatus.score}%
-                {cockpit.rcStatus.blockingIssues > 0 && (
-                  <span> · {cockpit.rcStatus.blockingIssues} pb.</span>
-                )}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-    </aside>
-  );
-}
 
 // ── Right info panel ────────────────────────────────────────────
 
@@ -448,6 +329,59 @@ function RightPanel({ cockpit }: { cockpit: CockpitHook }) {
           )}
         </div>
       )}
+
+      {/* PHASE 2.7 — Pierre dans l'espace CloneStore ────────────────────────────
+          Technologies utilisées par Pierre. Lecture seule.
+          CloneOS · CloneADN · CloneGuard · CloneTrace · CloneBrief.
+          Validation humaine obligatoire sur les actions sensibles. */}
+      <div
+        className="rounded-xl p-3"
+        style={{ background: "var(--cs-surface-strong)", border: "1px solid var(--cs-line)" }}
+      >
+        <p
+          className="mb-2 text-[10px] font-semibold uppercase tracking-wider"
+          style={{ color: "var(--cs-ink-4)" }}
+        >
+          Pierre dans CloneStore
+        </p>
+        <div className="flex flex-col gap-1">
+          {[
+            { label: "CloneOS",    desc: "Orchestration" },
+            { label: "CloneADN",   desc: "Mémoire entreprise" },
+            { label: "CloneGuard", desc: "Validation · risques" },
+            { label: "CloneTrace", desc: "Audit · historique" },
+            { label: "CloneBrief", desc: "Synthèses" },
+          ].map((tech) => (
+            <div key={tech.label} className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-semibold" style={{ color: "var(--cs-ink-2)" }}>
+                {tech.label}
+              </span>
+              <span className="text-[10px]" style={{ color: "var(--cs-ink-4)" }}>
+                {tech.desc}
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-[10px] leading-4" style={{ color: "var(--cs-ink-4)" }}>
+          Validation humaine obligatoire sur les actions sensibles.
+        </p>
+        <div className="mt-2 flex flex-col gap-1">
+          <a
+            href="/profile/agents"
+            className="text-[11px] font-semibold transition-opacity hover:opacity-70"
+            style={{ color: "var(--cs-violet)" }}
+          >
+            Mon espace CloneStore →
+          </a>
+          <a
+            href="/profile/onboarding"
+            className="text-[11px] font-semibold transition-opacity hover:opacity-70"
+            style={{ color: "var(--cs-violet)" }}
+          >
+            Onboarding entreprise →
+          </a>
+        </div>
+      </div>
     </aside>
   );
 }
@@ -479,9 +413,11 @@ function WorkspaceContent({ cockpit }: { cockpit: CockpitHook }) {
               tasks={cockpit.tasks}
               loadingMission={cockpit.loadingMission}
               taskActions={{
-                onApprove: cockpit.approveTask,
-                onCancel: cockpit.cancelTask,
-                onRun: cockpit.runTask,
+                // V1: approve the task's pending validation; cancel = mission-level;
+                // run = advance the governed worker queue one tick.
+                onApprove: cockpit.approveTaskValidation,
+                onCancel: (_id: string) => cockpit.cancelMission(),
+                onRun: (_id: string) => cockpit.tickWorker(),
               }}
             />
           </div>
@@ -493,8 +429,8 @@ function WorkspaceContent({ cockpit }: { cockpit: CockpitHook }) {
         <div className="overflow-y-auto p-4">
           <PierreValidationCenter
             validations={cockpit.validations}
-            onApprove={cockpit.approveTask}
-            onCancel={cockpit.cancelTask}
+            onApprove={cockpit.approveValidation}
+            onCancel={cockpit.rejectValidation}
           />
         </div>
       );
@@ -593,25 +529,20 @@ function ErrorBanner({ message, onDismiss }: { message: string; onDismiss: () =>
 export function PierreCockpitShell({ cockpit }: { cockpit: CockpitHook }) {
   return (
     <div
-      className="flex w-full overflow-hidden"
+      className="flex w-full overflow-hidden rounded-[1.6rem] border"
       style={{
-        height: "calc(100dvh - 70px)",
+        height: "calc(100dvh - 36px)",
         background: "var(--cs-bg)",
         color: "var(--cs-ink-1)",
+        borderColor: "var(--cs-line)",
       }}
     >
       {cockpit.authRequired ? (
         <AuthGate onRetry={cockpit.retryAuth} />
       ) : (
         <>
-          {/* Left rail */}
-          <LeftRail
-            cockpit={cockpit}
-            collapsed={cockpit.sidebarCollapsed}
-            onCollapse={cockpit.setSidebarCollapsed}
-          />
-
-          {/* Center */}
+          {/* Center — la navigation latérale principale est l'app shell global.
+              Les espaces de travail sont des onglets horizontaux (cf. WorkspaceTabBar). */}
           <main className="flex flex-1 flex-col overflow-hidden">
             {/* Header bar */}
             <header
@@ -662,6 +593,9 @@ export function PierreCockpitShell({ cockpit }: { cockpit: CockpitHook }) {
                 </button>
               </div>
             </header>
+
+            {/* Onglets horizontaux des espaces de travail (nav de contenu, desktop) */}
+            <WorkspaceTabBar cockpit={cockpit} />
 
             {/* Error banner (never shows auth errors — those render AuthGate) */}
             {cockpit.globalError && (

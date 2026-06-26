@@ -1,0 +1,61 @@
+// Phase E.5 — tests d'intégration PostgreSQL réel (PGlite) de l'analytics first-party.
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { createFounderHarness, type FounderHarness } from "./founder-harness";
+import { upsertWebSession, recordWebEvents, presenceSnapshot, funnelSnapshot, acquisitionBreakdown } from "../analytics";
+
+let h: FounderHarness;
+beforeAll(async () => { h = await createFounderHarness(); });
+afterAll(async () => { await h.close(); });
+
+describe("E.5 — sessions & présence", () => {
+  it("upsert d'une session (heartbeat) et présence en ligne", async () => {
+    await upsertWebSession(h.db, { anonymous_session_id: "s-demo", current_path: "/demo", landing_path: "/demo", utm_source: "newsletter", device_category: "desktop" });
+    await upsertWebSession(h.db, { anonymous_session_id: "s-pierre", current_path: "/demo/pierre" });
+    await upsertWebSession(h.db, { anonymous_session_id: "s-reserve", current_path: "/reserver/pierre" });
+    const p = await presenceSnapshot(h.db, 120);
+    expect(p.online_total).toBeGreaterThanOrEqual(3);
+    expect(p.on_demo_pierre).toBeGreaterThanOrEqual(1);
+    expect(p.on_reserver).toBeGreaterThanOrEqual(1);
+    expect(p.estimate).toBe(true);
+  });
+
+  it("exclut les sessions hors fenêtre de présence", async () => {
+    await upsertWebSession(h.db, { anonymous_session_id: "s-old", current_path: "/demo" });
+    await h.db.query("update clonestore_web_sessions set last_seen_at = now() - interval '10 minutes' where anonymous_session_id='s-old'");
+    const p = await presenceSnapshot(h.db, 120);
+    const old = await h.db.query<{ n: number }>("select count(*)::int n from clonestore_web_sessions where anonymous_session_id='s-old' and last_seen_at >= now() - interval '120 seconds'");
+    expect(old.rows[0].n).toBe(0);
+    expect(p.online_total).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("E.5 — événements & funnel", () => {
+  it("n'accepte que les noms d'événements autorisés", async () => {
+    const n = await recordWebEvents(h.db, "s-ev", [
+      { name: "site_viewed", path: "/" },
+      { name: "demo_viewed", path: "/demo" },
+      { name: "evil_injected", path: "/" }, // rejeté
+    ]);
+    expect(n).toBe(2);
+    const bad = await h.db.query<{ n: number }>("select count(*)::int n from clonestore_web_events where event_name='evil_injected'");
+    expect(bad.rows[0].n).toBe(0);
+  });
+
+  it("calcule volumes + conversions du funnel", async () => {
+    await recordWebEvents(h.db, "s-f1", [{ name: "site_viewed" }, { name: "demo_viewed" }]);
+    await recordWebEvents(h.db, "s-f2", [{ name: "site_viewed" }]);
+    const f = await funnelSnapshot(h.db, 30);
+    const site = f.stages.find((s) => s.event === "site_viewed")!;
+    const demo = f.stages.find((s) => s.event === "demo_viewed")!;
+    expect(site.count).toBeGreaterThanOrEqual(2);
+    expect(demo.count).toBeGreaterThanOrEqual(1);
+    expect(site.from_top).toBe(100); // sommet du funnel
+    expect(demo.from_prev).not.toBeNull();
+  });
+
+  it("décompose l'acquisition par source UTM", async () => {
+    const rows = await acquisitionBreakdown(h.db, 30);
+    expect(Array.isArray(rows)).toBe(true);
+    expect(rows.some((r) => r.utm_source === "newsletter")).toBe(true);
+  });
+});

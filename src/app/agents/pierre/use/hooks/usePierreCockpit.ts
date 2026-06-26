@@ -11,6 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getSessionClient } from "@/lib/auth/session-client";
+import { isAuthBypassEnabled } from "@/lib/auth/dev-bypass";
 
 import type {
   PierreCockpitWorkspace,
@@ -38,18 +39,24 @@ import {
   normalizeCustomerSuccessReport,
   normalizeReleaseCandidateReport,
   normalizeGoldenScenarios,
-  extractValidationAlerts,
   extractCockpitCardsFromMission,
   normalizeAIStatus,
 } from "@/lib/pierre/cockpit/normalizers";
 
+// PHASE 8.2-C — the active cockpit mission/task/validation path is V1-ONLY.
+// No legacy /api/pierre/use/{submit,mission,continuity,task} calls in this hook.
 import {
   submitPierreMission,
   fetchPierreMission,
-  approvePierreTask,
-  cancelPierreTask,
-  runPierreTask,
-  reschedulePierreTask,
+  fetchPierreMissionTasks,
+  fetchPierreMissionTimeline,
+  fetchPierreMissionValidations,
+  fetchPierreWorkerState,
+  tickPierreWorker,
+  approvePierreValidation,
+  rejectPierreValidation,
+  requestPierreValidationChanges,
+  cancelPierreMission,
   fetchPierreEmployeesFiles,
   fetchPierreEmployeeFile,
   fetchPierreCloneADN,
@@ -122,6 +129,11 @@ export function usePierreCockpit() {
   const [documents, setDocuments] = useState<PierreCockpitDocumentSummary[]>([]);
   const [validations, setValidations] = useState<PierreCockpitValidationSummary[]>([]);
   const [cards, setCards] = useState<PierreCockpitCard[]>([]);
+  // PHASE 8.2-C — V1 mission extras + a validationId→version map for decisions.
+  const [timeline, setTimeline] = useState<Record<string, unknown>[]>([]);
+  const [workerState, setWorkerState] = useState<Record<string, unknown> | null>(null);
+  const validationVersionRef = useRef<Record<string, number>>({});
+  const taskToValidationRef = useRef<Record<string, string>>({});
 
   // ── Chat messages ─────────────────────────────────────────
   const [messages, setMessages] = useState<PierreCockpitMessage[]>([]);
@@ -181,6 +193,9 @@ export function usePierreCockpit() {
   // ── Auth detection ────────────────────────────────────────
   // Returns true if the response is an auth failure — caller should abort.
   function checkAuth(res: PierreCockpitActionResult): boolean {
+    // Dev/test uniquement (mort en production) : ne pas verrouiller le workspace
+    // sur un échec d'auth → permet d'inspecter le cockpit actif (données vides).
+    if (isAuthBypassEnabled()) return false;
     if (authRequiredRef.current) return true;
     if (isAuthFailure(res.status ?? 0, res.error)) {
       authRequiredRef.current = true;
@@ -334,35 +349,88 @@ export function usePierreCockpit() {
     }
   }
 
-  // ── Mission refresh ────────────────────────────────────────
+  // ── Mission refresh (V1-only: mission + tasks + validations + worker) ──────
   const refreshMission = useCallback(async (missionId: string): Promise<void> => {
     if (!missionId || authRequiredRef.current) return;
     setLoadingMission(true);
     try {
+      // 1. Mission summary (V1 getMission).
       const res = await fetchPierreMission(missionId);
       if (checkAuth(res)) return;
-      if (res.ok && res.data) {
-        const raw = res.data as Record<string, unknown>;
-        setRawMission(raw);
+      if (!res.ok || !res.data) return;
+      const raw = res.data as Record<string, unknown>;
+      setRawMission(raw);
+      const missionSummary = normalizeMissionResponse(raw);
+      if (missionSummary) setActiveMission(missionSummary);
 
-        const missionSummary = normalizeMissionResponse(raw);
-        if (missionSummary) setActiveMission(missionSummary);
+      // 2. Tasks (V1 getMissionTasks — richer than the mission payload).
+      const tasksRes = await fetchPierreMissionTasks(missionId);
+      if (checkAuth(tasksRes)) return;
+      const taskList = tasksRes.ok && Array.isArray(tasksRes.data)
+        ? normalizeTaskList(tasksRes.data)
+        : normalizeTaskList(raw.tasks ?? []);
+      setTasks(taskList);
 
-        const taskList = normalizeTaskList(raw.tasks ?? []);
-        setTasks(taskList);
+      const docList = normalizeDocumentList(raw.documents ?? []);
+      setDocuments(docList);
 
-        const docList = normalizeDocumentList(raw.documents ?? []);
-        setDocuments(docList);
+      // 3. Validations (V1 getMissionValidations — real validation rows w/ version).
+      const valRes = await fetchPierreMissionValidations(missionId);
+      if (checkAuth(valRes)) return;
+      const versionMap: Record<string, number> = {};
+      const taskMap: Record<string, string> = {};
+      const validationList: PierreCockpitValidationSummary[] = (valRes.ok && Array.isArray(valRes.data) ? valRes.data : [])
+        .filter((v) => String((v as Record<string, unknown>).status ?? "pending") === "pending")
+        .map((vRaw) => {
+          const v = vRaw as Record<string, unknown>;
+          const id = String(v.id ?? "");
+          const version = Number(v.version ?? 0);
+          const taskId = v.task_id ? String(v.task_id) : "";
+          versionMap[id] = version;
+          if (taskId) taskMap[taskId] = id;
+          const ctx = (v.risk_context ?? {}) as Record<string, unknown>;
+          return {
+            taskId,
+            missionId,
+            validationId: id,
+            version,
+            status: String(v.status ?? "pending"),
+            title: String(v.reason ?? "Validation requise"),
+            type: String(v.validator_role ?? "validation"),
+            reason: v.reason ? String(v.reason) : null,
+            riskLevel: String(ctx.risk ?? ctx.level ?? "medium"),
+            isEmailTask: Boolean(ctx.is_email ?? false),
+            isSensitive: Boolean(ctx.sensitive ?? false),
+            requiresHuman: true,
+            createdAt: null,
+          } satisfies PierreCockpitValidationSummary;
+        });
+      validationVersionRef.current = versionMap;
+      taskToValidationRef.current = taskMap;
+      setValidations(validationList);
 
-        const validationList = extractValidationAlerts(taskList);
-        setValidations(validationList);
-
-        const newCards = extractCockpitCardsFromMission(missionSummary, taskList, docList);
-        setCards(newCards);
-      }
+      const newCards = extractCockpitCardsFromMission(missionSummary, taskList, docList);
+      setCards(newCards);
     } finally {
       setLoadingMission(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Mission timeline + worker state (V1) ──────────────────────────────────
+  const refreshTimeline = useCallback(async (missionId: string): Promise<void> => {
+    if (!missionId || authRequiredRef.current) return;
+    const res = await fetchPierreMissionTimeline(missionId);
+    if (checkAuth(res)) return;
+    if (res.ok && Array.isArray(res.data)) setTimeline(res.data as Record<string, unknown>[]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const refreshWorkerState = useCallback(async (): Promise<void> => {
+    if (authRequiredRef.current) return;
+    const res = await fetchPierreWorkerState();
+    if (checkAuth(res)) return;
+    if (res.ok) setWorkerState((res.data as Record<string, unknown>) ?? null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -501,10 +569,15 @@ export function usePierreCockpit() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeWorkspace, activeMissionId, refreshMission]);
 
-  // ── Task actions ──────────────────────────────────────────
-  const approveTask = useCallback(
-    async (taskId: string): Promise<PierreCockpitActionResult> => {
-      const res = await approvePierreTask(taskId);
+  // ── Validation lifecycle (V1) ─────────────────────────────
+  // Decisions are per-VALIDATION (id + version), not per-task. The version is
+  // resolved from the validation list loaded by refreshMission.
+  const decideValidation = useCallback(
+    async (validationId: string, action: "approve" | "reject" | "request_changes"): Promise<PierreCockpitActionResult> => {
+      if (!validationId) return { ok: false, error: "validationId requis", status: 400 };
+      const version = validationVersionRef.current[validationId] ?? 0;
+      const fn = action === "approve" ? approvePierreValidation : action === "reject" ? rejectPierreValidation : requestPierreValidationChanges;
+      const res = await fn(validationId, version);
       if (checkAuth(res)) return res;
       if (res.ok && activeMissionId) void refreshMission(activeMissionId);
       return res;
@@ -513,37 +586,52 @@ export function usePierreCockpit() {
     [activeMissionId, refreshMission],
   );
 
-  const cancelTask = useCallback(
+  const approveValidation = useCallback((validationId: string) => decideValidation(validationId, "approve"), [decideValidation]);
+  const rejectValidation = useCallback((validationId: string) => decideValidation(validationId, "reject"), [decideValidation]);
+  const requestValidationChanges = useCallback((validationId: string) => decideValidation(validationId, "request_changes"), [decideValidation]);
+
+  // A task-keyed approve/reject convenience: resolve the validation for that task.
+  const approveTaskValidation = useCallback(
     async (taskId: string): Promise<PierreCockpitActionResult> => {
-      const res = await cancelPierreTask(taskId);
+      const vId = taskToValidationRef.current[taskId];
+      if (!vId) return { ok: false, error: "Aucune validation en attente pour cette tâche.", status: 404 };
+      return decideValidation(vId, "approve");
+    },
+    [decideValidation],
+  );
+  const rejectTaskValidation = useCallback(
+    async (taskId: string): Promise<PierreCockpitActionResult> => {
+      const vId = taskToValidationRef.current[taskId];
+      if (!vId) return { ok: false, error: "Aucune validation en attente pour cette tâche.", status: 404 };
+      return decideValidation(vId, "reject");
+    },
+    [decideValidation],
+  );
+
+  // Mission-level cancel (V1) — replaces per-task cancel.
+  const cancelMission = useCallback(
+    async (): Promise<PierreCockpitActionResult> => {
+      if (!activeMissionId) return { ok: false, error: "Aucune mission active.", status: 400 };
+      const res = await cancelPierreMission(activeMissionId);
       if (checkAuth(res)) return res;
-      if (res.ok && activeMissionId) void refreshMission(activeMissionId);
+      if (res.ok) void refreshMission(activeMissionId);
       return res;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeMissionId, refreshMission],
   );
 
-  const doRunTask = useCallback(
-    async (taskId: string): Promise<PierreCockpitActionResult> => {
-      const res = await runPierreTask(taskId);
+  // Advance the governed queue one tick (V1 worker) — replaces manual task run.
+  const tickWorker = useCallback(
+    async (): Promise<PierreCockpitActionResult> => {
+      const res = await tickPierreWorker({ batch: 10 });
       if (checkAuth(res)) return res;
+      await refreshWorkerState();
       if (res.ok && activeMissionId) void refreshMission(activeMissionId);
       return res;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeMissionId, refreshMission],
-  );
-
-  const rescheduleTask = useCallback(
-    async (taskId: string, payload: Record<string, unknown>): Promise<PierreCockpitActionResult> => {
-      const res = await reschedulePierreTask(taskId, payload);
-      if (checkAuth(res)) return res;
-      if (res.ok && activeMissionId) void refreshMission(activeMissionId);
-      return res;
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeMissionId, refreshMission],
+    [activeMissionId, refreshMission, refreshWorkerState],
   );
 
   // ── Employee ──────────────────────────────────────────────
@@ -661,6 +749,10 @@ export function usePierreCockpit() {
     cards,
     selectMission,
     refreshMission,
+    refreshTimeline,
+    refreshWorkerState,
+    timeline,
+    workerState,
     refreshAll,
 
     // Chat
@@ -698,11 +790,14 @@ export function usePierreCockpit() {
     // AI
     aiStatus,
 
-    // Task actions
-    approveTask,
-    cancelTask,
-    runTask: doRunTask,
-    rescheduleTask,
+    // Validation lifecycle (V1) + worker
+    approveValidation,
+    rejectValidation,
+    requestValidationChanges,
+    approveTaskValidation,
+    rejectTaskValidation,
+    cancelMission,
+    tickWorker,
 
     // Loading / errors
     loadingSubmit,
