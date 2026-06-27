@@ -74,6 +74,9 @@ playwright-report/
 /demo-*.jpeg
 /demo-qa-proofs/
 
+# Site polish — local QA screenshots (browser proofs, never commit)
+docs/qa-screenshots/
+
 # CloneStory rehearsal (local only)
 .pglite-clonestory-rehearsal/
 .playwright-mcp/

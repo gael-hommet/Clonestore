@@ -28,6 +28,7 @@ import {
 
 import { LiquidGlass } from "@/components/ui/LiquidGlass";
 import { PresencePing } from "@/components/founder/PresencePing";
+import { FUTURE_DEPARTMENTS } from "@/lib/catalog/public-catalog";
 import { cn } from "@/lib/utils";
 
 type SectionKey = "overview" | "employees" | "technologies" | "cockpit" | "trust";
@@ -50,36 +51,22 @@ const sections: HomeSection[] = [
 const employees = [
   {
     name: "Pierre",
-    role: "Poste RH opérationnel automatisé",
-    status: "En construction",
+    role: "Employé IA RH opérationnel",
+    status: "Disponible",
     tone: "active",
     text: "Documents RH, emails, relances, suivi, validations et continuité des missions RH.",
     href: "/agents/pierre",
     demoHref: "/demo/pierre",
   },
+];
+
+// Futurs métiers/départements génériques (sans nom d'employé, sans prix, sans
+// date). On réutilise les domaines de la boutique et on ajoute l'ingénierie.
+const futureDomains = [
+  ...FUTURE_DEPARTMENTS,
   {
-    name: "Clara",
-    role: "Recrutement & coordination",
-    status: "Bientôt disponible",
-    tone: "soon",
-    text: "Analyse de candidatures, pipeline recrutement, coordination et synthèses de shortlists.",
-    href: "/agents/clara",
-  },
-  {
-    name: "Emma",
-    role: "Support & relation client",
-    status: "Bientôt disponible",
-    tone: "soon",
-    text: "Réponses support, suivi client, catégorisation, escalades et qualité de communication.",
-    href: "/agents/emma",
-  },
-  {
-    name: "Noah",
-    role: "Assistant direction",
-    status: "Bientôt disponible",
-    tone: "soon",
-    text: "Synthèses, décisions, priorités, comptes rendus et pilotage quotidien.",
-    href: "/agents/noah",
+    label: "Ingénierie",
+    description: "Conception, documentation, coordination technique et continuité des projets.",
   },
 ];
 
@@ -728,8 +715,8 @@ export default function HomePage() {
                 <div className="clone-section-head">
                   <SectionTitle
                     eyebrow="Employés IA"
-                    title="CloneStore ne tourne pas autour d’un seul employé."
-                    text="Chaque employé IA est pensé comme un poste automatisé spécialisé, avec son périmètre, ses limites, ses règles et son cockpit."
+                    title="Aujourd’hui Pierre. Demain, votre organisation s’étoffe."
+                    text="Pierre est l’employé IA opérationnel ouvert aujourd’hui — un poste automatisé spécialisé, avec son périmètre, ses limites, ses règles et son cockpit. D’autres métiers arriveront ensuite."
                   />
 
                   <ActionButton
@@ -743,6 +730,23 @@ export default function HomePage() {
                   {employees.map((employee) => (
                     <EmployeeCard key={employee.name} employee={employee} />
                   ))}
+                </div>
+
+                <div className="clone-future-domains">
+                  <p className="cs-eyebrow">Vision produit</p>
+                  <h3 className="clone-future-domains-title">Demain, d’autres métiers</h3>
+                  <p className="clone-future-domains-text">
+                    Présentés sans nom, sans prix et sans date : des domaines que CloneStore
+                    accueillera progressivement, quand ils seront prêts.
+                  </p>
+                  <div className="clone-future-domains-grid">
+                    {futureDomains.map((domain) => (
+                      <div key={domain.label} className="clone-future-domain-card">
+                        <p className="clone-future-domain-label">{domain.label}</p>
+                        <p className="clone-future-domain-desc">{domain.description}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </LiquidGlass>
             </section>

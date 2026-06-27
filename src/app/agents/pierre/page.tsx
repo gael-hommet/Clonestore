@@ -104,7 +104,7 @@ const HUMAN_VALIDATES = [
 
 export default function PierrePage() {
   return (
-    <main className="cs-page">
+    <main className="cs-page pierre-fiche">
       <div className="cs-page-shell py-10 md:py-14">
         <div className="space-y-6">
           {/* HERO */}

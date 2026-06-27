@@ -5725,3 +5725,104 @@ html[data-clone-appearance="graphite"] .cs-app-drawer-panel {
     transform: translateX(0);
   }
 }
+
+/* ============================================================
+   HOME — Pierre seul employé nommé + futurs métiers génériques
+   ============================================================ */
+
+/* Un seul employé nommé (Pierre) → carte pleine largeur, équilibrée. */
+.clone-employees-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.clone-future-domains {
+  margin-top: 28px;
+  padding-top: 26px;
+  border-top: 1px solid var(--cs-line-soft);
+}
+
+.clone-future-domains-title {
+  margin-top: 8px;
+  font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  color: var(--cs-ink-1);
+}
+
+.clone-future-domains-text {
+  margin-top: 8px;
+  max-width: 42rem;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--cs-ink-3);
+}
+
+.clone-future-domains-grid {
+  margin-top: 18px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 640px) {
+  .clone-future-domains-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .clone-future-domains-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.clone-future-domain-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border-radius: var(--cs-radius-lg);
+  border: 1px solid var(--cs-line-soft);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.clone-future-domain-label {
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--cs-ink-1);
+}
+
+.clone-future-domain-desc {
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--cs-ink-3);
+}
+
+/* ============================================================
+   FICHE PIERRE (/agents/pierre) — espacement interne des cartes
+   ------------------------------------------------------------
+   Les `.cs-panel` de cette page n'avaient AUCUN padding (le padding
+   global vient d'une densité non active ici) → eyebrow/dernière ligne
+   collés aux arrondis (rayon 28px). On rétablit un padding sûr,
+   SCOPÉ à la fiche : aucune autre page n'est touchée. Design inchangé
+   (forme, rayon, couleurs, bordures, ombres) ; seule la hauteur grandit
+   avec le contenu (height auto, pas de min-height limitante).
+   ============================================================ */
+.pierre-fiche .cs-panel {
+  height: auto;
+  padding: 24px;
+}
+/* cs-card garde son `h-full` (cartes de grille à hauteur égale) : on ne touche
+   qu'au padding pour protéger le contenu des arrondis. */
+.pierre-fiche .cs-card {
+  padding: 20px;
+}
+@media (min-width: 768px) {
+  .pierre-fiche .cs-panel {
+    padding: 30px;
+  }
+  .pierre-fiche .cs-card {
+    padding: 22px;
+  }
+}
