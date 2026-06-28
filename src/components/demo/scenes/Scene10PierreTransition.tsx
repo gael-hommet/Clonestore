@@ -6,6 +6,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { PinnedScene, SceneDecor, useScene, Appear } from "../primitives/pinned";
 import { GlassSurface } from "../primitives/GlassSurface";
 import { MissionCard } from "../primitives/MissionCard";
@@ -57,8 +58,15 @@ function CompletionStage({
           l'étape 1 ; à l'étape de conversion (≥2) son ESPACE se résorbe en douceur
           (grid-rows 1fr→0fr) pour laisser la place aux bénéfices + au CTA — sans saut
           de mise en page ni empilement transitoire (sinon, le CTA est coupé en bas). */}
+      {/* Desktop épinglé : les pastilles sont en anneau ABSOLU (overlay), la carte est
+          le seul élément en flux → centrée. Mobile/statique : pas d'anneau → on EMPILE
+          (flex-col) les pastilles AU-DESSUS d'une carte pleine largeur, sinon les deux
+          se retrouveraient côte à côte (flex row) et la carte 440px sortirait à droite. */}
       <div
-        className="relative mx-auto mt-7 flex items-center justify-center"
+        className={cn(
+          "relative mx-auto mt-7 flex items-center justify-center",
+          !pinned && "w-full flex-col",
+        )}
         style={{ minHeight: pinned && step < 2 ? 300 : undefined }}
       >
         {pinned
@@ -74,13 +82,13 @@ function CompletionStage({
               </div>
             ))
           : (
-            <div className="mb-4 flex flex-wrap justify-center gap-2">
+            <div className="mb-4 flex w-full flex-wrap justify-center gap-2">
               {RECAP.map((label) => (<span key={label} className="demo-chip"><span className="demo-chip__dot" aria-hidden="true" />{label}</span>))}
             </div>
           )}
 
         <div
-          className="relative z-10 grid w-[min(100%,440px)]"
+          className="relative z-10 grid w-[min(100%,440px)] min-w-0 max-w-full"
           style={
             pinned
               ? { gridTemplateRows: step < 2 ? "1fr" : "0fr", transition: "grid-template-rows 0.55s cubic-bezier(0.22,1,0.36,1)" }
