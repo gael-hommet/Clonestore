@@ -107,7 +107,7 @@ describe("founder-access — token de vérification", () => {
 describe("founder-access — calendrier commercial (Europe/Paris)", () => {
   it("trois phases selon la date", () => {
     expect(getFounderPhase(new Date("2026-06-19T12:00:00+02:00"))).toBe("before_launch");
-    expect(getFounderPhase(new Date("2026-07-23T12:00:00+02:00"))).toBe("launched");
+    expect(getFounderPhase(new Date("2026-08-15T12:00:00+02:00"))).toBe("launched");
     expect(getFounderPhase(new Date("2026-09-01T12:00:00+02:00"))).toBe("closed");
   });
   it("CTA : réserver avant, activer après, fermé après le 31 août", () => {

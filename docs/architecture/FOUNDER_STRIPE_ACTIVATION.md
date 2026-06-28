@@ -7,8 +7,8 @@ Réutilise l'infrastructure Stripe **existante** (pas de système de facturation
 
 Verrouillé par phase commerciale :
 
-- **avant le 22/07** → activation bloquée proprement (réservation possible) ;
-- **22/07 → 31/08** → activation disponible ;
+- **avant le 05/08** → activation bloquée proprement (réservation possible) ;
+- **05/08 → 31/08** → activation disponible ;
 - **après fermeture** → conditions fondatrices non disponibles.
 
 Le composant `ActivatePierre` réutilise le checkout existant (session Supabase → Bearer →

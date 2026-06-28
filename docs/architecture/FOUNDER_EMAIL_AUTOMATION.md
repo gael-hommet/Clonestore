@@ -51,8 +51,8 @@ provider injecté (tests).
 
 ## Séquence (heure de Paris)
 
-immédiat (vérification) · 17/07 J-5 · 20/07 J-2 · 21/07 J-1 · 22/07 ouverture ·
-24/07 suivi · 17/08 J-14 · 26/08 J-5 · 30/08 J-1 · 31/08 fermeture.
+immédiat (vérification) · 31/07 J-5 · 03/08 J-2 · 04/08 J-1 · 05/08 ouverture ·
+07/08 suivi · 17/08 J-14 · 26/08 J-5 · 30/08 J-1 · 31/08 fermeture.
 Relances : destinataire confirmé requis, client actif exclu, jamais de double envoi.
 
 ## URLs

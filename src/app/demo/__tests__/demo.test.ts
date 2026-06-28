@@ -175,7 +175,7 @@ describe("/demo — transition vers /demo/pierre", () => {
 describe("/demo — état commercial dynamique", () => {
   const c = read(COMMERCIAL);
   it("phrase avant lancement", () => {
-    expect(c).toContain("Pierre ouvre ses accès le 22 juillet 2026.");
+    expect(c).toContain("Pierre ouvre ses accès le 5 août 2026.");
   });
   it("phrase après lancement", () => {
     expect(c).toContain("Pierre est disponible pour votre entreprise.");
@@ -187,7 +187,7 @@ describe("/demo — état commercial dynamique", () => {
     expect(c).toContain("Activer Pierre à 449 € HT/mois");
   });
   it("dates et tarif fondateur verrouillés", () => {
-    expect(c).toContain("22 juillet 2026");
+    expect(c).toContain("5 août 2026");
     expect(c).toContain("31 août 2026");
     expect(c).toContain("449 € HT");
     expect(c).toContain(
