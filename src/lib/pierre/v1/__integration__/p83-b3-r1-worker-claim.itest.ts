@@ -27,9 +27,14 @@ async function submitted(): Promise<{ reqId: string; provReqId: string }> {
   const sub = await S.submitContractToSignatureProvider(h.db, owner, cid, {}, deps());
   return { reqId: sub.signature_request_id, provReqId: sub.provider_request_id };
 }
+// R2.4 — the claim is tenant-bound: it derives the tenant from app.current_company, so the
+// caller MUST bind the session tenant. A bare call (no binding) is refused by the function.
 async function claim(worker: string, limit = 10, lease = 60): Promise<string[]> {
-  const r = await h.db.query<{ id: string }>(`select id from pierre_rt_claim_signature_events($1,$2,$3,$4)`, [h.companyA, limit, worker, lease]);
-  return r.rows.map((x) => x.id);
+  return h.db.transaction(async (tx) => {
+    await tx.query(`select set_config('app.current_company', $1, true)`, [h.companyA]);
+    const r = await tx.query<{ id: string }>(`select id from pierre_rt_claim_signature_events($1,$2,$3,$4)`, [h.companyA, limit, worker, lease]);
+    return r.rows.map((x) => x.id);
+  });
 }
 
 describe("B3-R1.10 worker lease + concurrency", () => {

@@ -51,39 +51,37 @@ describe("B3-R1.8 production-safe ingress (DB layer)", () => {
   beforeEach(async () => { h = await createHarness(); });
   afterEach(async () => { await h.close(); });
 
-  async function ingest(provider: string, withGuc: boolean): Promise<{ ok: boolean; err?: string }> {
+  // R2.5 — the boundary is now the service-only provider REGISTRY (no session GUC). In the
+  // harness the live providers + the test-seeded Fake/sandbox are registered; an unknown one is
+  // refused. (The DEPLOYABLE-migration-only rejection of the Fake/sandbox is proven separately in
+  // p83-b3-r2-webhook-provider-production.itest.ts against a migrations-only database.)
+  async function ingest(provider: string): Promise<{ ok: boolean; err?: string }> {
     const req = newUuid();
-    // a real signature request so the company resolves (it is fine if absent — the provider gate fires first)
     await h.pg.exec("set role pierre_rt_webhook_ingress");
     try {
-      if (withGuc) await h.pg.query(`select set_config('app.allow_test_provider','true',false)`);
-      else await h.pg.query(`select set_config('app.allow_test_provider','', false)`); // explicitly unset
-      await h.pg.query(`select * from pierre_rt_ingest_signature_webhook($1,$2,$3,$4,$5,$6,$7,$8,$9)`, [provider, "evt-" + provider + (withGuc ? "-g" : ""), "request.activated", "hash", 200, req, null, true, null]);
+      await h.pg.query(`select * from pierre_rt_ingest_signature_webhook($1,$2,$3,$4,$5,$6,$7,$8,$9)`, [provider, "evt-" + provider, "request.activated", "hash", 200, req, null, true, null]);
       return { ok: true };
     } catch (e) { return { ok: false, err: (e as Error).message }; }
     finally { await h.pg.exec("reset role"); }
   }
 
-  it("fake_provider is REFUSED without the test GUC", async () => {
-    const r = await ingest("fake_provider", false);
-    expect(r.ok).toBe(false);
-    expect(r.err).toMatch(/not allowed/i);
+  it("a live provider (yousign) is accepted (in the registry)", async () => {
+    expect((await ingest("yousign")).ok).toBe(true);
   });
-  it("fake_provider is ACCEPTED only with the explicit test GUC", async () => {
-    const r = await ingest("fake_provider", true);
-    expect(r.ok).toBe(true);
-  });
-  it("a live provider (yousign) is accepted with NO GUC (production path)", async () => {
-    const r = await ingest("yousign", false);
-    expect(r.ok).toBe(true);
-  });
-  it("the legacy sandboxes remain accepted with no GUC (B2F unchanged)", async () => {
-    expect((await ingest("internal_sandbox", false)).ok).toBe(true);
-    expect((await ingest("local_sandbox", false)).ok).toBe(true);
+  it("the harness-seeded test providers are accepted (test-only registry rows)", async () => {
+    expect((await ingest("fake_provider")).ok).toBe(true);
+    expect((await ingest("internal_sandbox")).ok).toBe(true);
+    expect((await ingest("local_sandbox")).ok).toBe(true);
   });
   it("an unknown provider is refused", async () => {
-    const r = await ingest("evilcorp", false);
+    const r = await ingest("evilcorp");
     expect(r.ok).toBe(false);
     expect(r.err).toMatch(/not allowed/i);
+  });
+  it("the webhook-ingress role CANNOT enable a provider (no registry write grant — the GUC gate is gone)", async () => {
+    await h.pg.exec("set role pierre_rt_webhook_ingress");
+    try {
+      await expect(h.pg.query(`insert into pierre_rt_signature_provider_registry (provider, kind, enabled) values ('rogue','test',true)`)).rejects.toThrow(/permission denied/i);
+    } finally { await h.pg.exec("reset role"); }
   });
 });

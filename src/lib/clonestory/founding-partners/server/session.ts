@@ -29,6 +29,20 @@ export function readMemberSession(cookieHeader: string | null): string | null {
   return value && UUID_RE.test(value) ? value : null;
 }
 
+// ── Jeton de consultation du STATUT d'inscription (page d'attente, polling) ──
+// Jeton SIGNÉ porté côté client (sessionStorage), à durée limitée. Ne donne accès
+// qu'au STATUT (pending/verified/linked) du partenaire, jamais à sa session ni à sa PII.
+const STATUS_TTL_MS = 2 * 60 * 60 * 1000; // 2 heures
+
+export function buildStatusToken(partnerId: string): string {
+  return signCookie(partnerId, sessionSecret(), STATUS_TTL_MS);
+}
+export function readStatusToken(token: string | null): string | null {
+  if (!token) return null;
+  const value = verifyCookie(token, sessionSecret());
+  return value && UUID_RE.test(value) ? value : null;
+}
+
 // ── Cookie d'attribution de branche (qui a fait découvrir CloneStory) ────────
 // Posé quand un prospect arrive via un lien/code, lu à l'inscription pour
 // rattacher introduced_by_partner_id. Aucune PII : seul l'id de l'introducteur signé.

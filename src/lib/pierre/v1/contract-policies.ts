@@ -24,7 +24,7 @@ export type ContractPolicy = {
   create_roles: string[];
   approve_roles: string[];
   sensitivity: "normal" | "high";
-  signature_level: "none" | "acknowledgement" | "simple" | "advanced";
+  signature_level: "none" | "acknowledgement" | "simple" | "advanced" | "qualified";
   employee_visibility: "never" | "when_exposed" | "always";
   manager_visibility: "never" | "when_exposed" | "always";
   fixed_term: boolean;                // requires an end date, end > start
@@ -51,7 +51,12 @@ function policy(p: Partial<ContractPolicy> & { key: ContractTypeKey; label: stri
     create_roles: HR_WRITE,
     approve_roles: HR_APPROVE,
     sensitivity: "high",
-    signature_level: "advanced",
+    // R3.1 — explicit business decision (Choice B): standard employment contracts require a
+    // Simple Electronic Signature (SES / eIDAS electronic_signature) — legally binding, no ID
+    // verification. This is the REAL requirement; the previous "advanced" default was an
+    // over-specification that the adapter silently downgraded. AES/QES are now opt-in per-policy
+    // (e.g. APPRENTICESHIP) and the adapter NEVER downgrades a stronger requirement.
+    signature_level: "simple",
     employee_visibility: "when_exposed",
     manager_visibility: "never",
     fixed_term: false,
@@ -72,6 +77,9 @@ export const CONTRACT_POLICIES: Record<ContractTypeKey, ContractPolicy> = {
   CDD: policy({ key: "CDD", label: "CDD", ...FIXED_TERM, required_fields: [...BASE_FIELDS, "employment.end_date"] }),
   CDD_REPLACEMENT: policy({ key: "CDD_REPLACEMENT", label: "CDD de remplacement", ...FIXED_TERM, required_fields: [...BASE_FIELDS, "employment.end_date"] }),
   CDD_TEMPORARY_INCREASE: policy({ key: "CDD_TEMPORARY_INCREASE", label: "CDD accroissement temporaire", ...FIXED_TERM, required_fields: [...BASE_FIELDS, "employment.end_date"] }),
+  // R3.1 — Choice A: this regulated contract carries a stronger signature requirement (AES). The
+  // signing flow blocks CLEANLY (readiness blocked, submission refused, no provider HTTP) until the
+  // AES capability + signer phones are provisioned in the environment — it is NEVER executed as SES.
   APPRENTICESHIP: policy({ key: "APPRENTICESHIP", label: "Contrat d'apprentissage", ...FIXED_TERM, signature_level: "advanced", required_fields: [...BASE_FIELDS, "employment.end_date"] }),
   PROFESSIONAL_TRAINING: policy({ key: "PROFESSIONAL_TRAINING", label: "Contrat de professionnalisation", ...FIXED_TERM, required_fields: [...BASE_FIELDS, "employment.end_date"] }),
   INTERNSHIP: policy({ key: "INTERNSHIP", label: "Convention de stage", ...FIXED_TERM, signature_level: "simple", required_approvals: 1, amendment_allowed_after_signature: false, required_fields: [...BASE_FIELDS, "employment.end_date"] }),

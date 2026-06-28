@@ -21,11 +21,11 @@ export default async function VerifyInterstitialPage({ searchParams }: { searchP
       token={t}
       postAction="/api/founding-partners/verify"
       eyebrow="Le Cercle des Partenaires Fondateurs"
-      readyTitle="Confirmez votre adresse"
-      readyBody={`Confirmez ${peek.emailMasked ?? "votre adresse"} pour ouvrir votre registre personnel et entrer dans le Cercle.`}
-      actionLabel="Confirmer mon adresse"
-      usedTitle="Votre adresse est déjà confirmée."
-      usedBody="Votre registre est déjà ouvert. Retrouvez-le depuis votre espace CloneStore."
+      readyTitle="Confirme ton inscription à CloneStory"
+      readyBody={`En continuant, ${peek.emailMasked ?? "ton adresse"} sera vérifiée et tu seras automatiquement connecté à ton espace CloneStore, directement sur ton registre.`}
+      actionLabel="Confirmer et accéder à mon espace"
+      usedTitle="Ton adresse est déjà confirmée."
+      usedBody="Ton registre est déjà ouvert. Retrouve-le depuis ton espace CloneStore."
       expiredBody="Ce lien de confirmation a expiré. Vous pouvez demander un nouveau lien depuis la page d'inscription."
       invalidBody="Ce lien de confirmation n'est pas valide. Vous pouvez demander un nouveau lien depuis la page d'inscription."
     />

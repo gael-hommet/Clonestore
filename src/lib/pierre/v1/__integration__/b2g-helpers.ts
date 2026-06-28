@@ -20,8 +20,8 @@ export function storageDeps() {
 export async function seedEmployee(h: Harness, company: string, over: Record<string, string | null> = {}): Promise<string> {
   const id = newUuid();
   await h.db.query(
-    `insert into pierre_rt_employees (id, company_id, first_name, last_name, role_title, email) values ($1,$2,$3,$4,$5,$6)`,
-    [id, company, over.first_name ?? "Ada", over.last_name ?? "Lovelace", over.role_title ?? "Ingénieure", over.email === undefined ? "ada@ex.com" : over.email]);
+    `insert into pierre_rt_employees (id, company_id, first_name, last_name, role_title, email, phone) values ($1,$2,$3,$4,$5,$6,$7)`,
+    [id, company, over.first_name ?? "Ada", over.last_name ?? "Lovelace", over.role_title ?? "Ingénieure", over.email === undefined ? "ada@ex.com" : over.email, over.phone ?? null]);
   return id;
 }
 

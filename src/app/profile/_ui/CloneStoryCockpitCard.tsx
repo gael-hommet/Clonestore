@@ -219,6 +219,7 @@ export default function CloneStoryCockpitCard() {
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/founding-partners"
+              style={{ color: "#ffffff" }}
               className={`inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 text-sm font-semibold ${PRIMARY_BTN}`}
             >
               Découvrir le Cercle <ArrowRight className="h-4 w-4" aria-hidden />
@@ -343,6 +344,7 @@ export default function CloneStoryCockpitCard() {
         <div className="grid gap-2 sm:grid-cols-2">
           <Link
             href="/api/founding-partners/registry-session?intro=1"
+            style={{ color: "#ffffff" }}
             className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold ${PRIMARY_BTN}`}
           >
             <UserPlus className="h-4 w-4" aria-hidden /> Faire une introduction

@@ -55,7 +55,8 @@ function LedgerRow({ label, value }: { label: string; value: number }) {
   );
 }
 
-export default async function MyRegistryPage() {
+export default async function MyRegistryPage({ searchParams }: { searchParams: Promise<{ welcome?: string; account?: string }> }) {
+  const sp = await searchParams;
   const h = await headers();
   const partnerId = readMemberSession(h.get("cookie"));
   if (!partnerId) redirect("/founding-partners/join?acces=requis");
@@ -70,9 +71,44 @@ export default async function MyRegistryPage() {
   const p = view.partner;
   const isFounding = p.status === "founding_partner" && p.registry_number;
   const seal = isFounding ? buildIdentity(p.registry_number!, new Date(p.joined_at)) : null;
+  // Lien COURT partageable (alias /r/<code>) — la cible canonique reste /founding-partners/r/<code>.
+  const shortLink = view.publicLink && view.personalCode ? `${origin}/r/${view.personalCode}` : null;
+  const showWelcome = sp.welcome === "1";
 
   return (
     <main className="csy-canvas">
+      {showWelcome ? (
+        <section className="csy-section" style={{ paddingTop: "clamp(40px,7vh,90px)", paddingBottom: 0 }}>
+          <div className="csy-shell csy-shell--narrow">
+            <div className="csy-notice csy-notice--ok" role="status">
+              <StoryEyebrow>Bienvenue dans CloneStory</StoryEyebrow>
+              <p className="csy-copy" style={{ marginTop: 12, fontSize: "1.05rem" }}>
+                Ton inscription est confirmée. <strong>Ton lien personnel est prêt.</strong>
+              </p>
+              {sp.account === "switch" ? (
+                <p className="csy-copy" style={{ marginTop: 10, fontSize: "0.85rem", color: "var(--csy-stone-3)" }}>
+                  Tu es connecté à CloneStore avec une autre adresse. Pour lier ce compte du Cercle, déconnecte-toi
+                  puis reviens par cet email. Ton registre reste accessible ici en attendant.
+                </p>
+              ) : sp.account === "retry" ? (
+                <p className="csy-copy" style={{ marginTop: 10, fontSize: "0.85rem", color: "var(--csy-stone-3)" }}>
+                  La connexion automatique à CloneStore n'a pas abouti. Tu peux y accéder depuis
+                  {" "}<a className="csy-link" href="/login?redirect=/founding-partners/my-registry">la page de connexion</a>.
+                </p>
+              ) : null}
+              {shortLink ? (
+                <div style={{ marginTop: 16 }}>
+                  <Credential k="Ton lien personnel" value={shortLink} copyLabel="Copier mon lien" />
+                </div>
+              ) : null}
+              <div style={{ marginTop: 16, display: "flex", gap: 14, flexWrap: "wrap" }}>
+                <a className="csy-link" href="#faire-une-introduction">Faire une introduction</a>
+                <a className="csy-link" href="/founding-partners/conditions">Comment une contribution est reconnue</a>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
       <section className="csy-section" style={{ paddingTop: "clamp(56px,9vh,120px)" }}>
         <div className="csy-shell">
           <StoryEyebrow>Mon Registre · {TITLE_FR.replace("de CloneStore", "").trim()}</StoryEyebrow>
@@ -119,7 +155,7 @@ export default async function MyRegistryPage() {
       <div className="csy-shell"><StoryRule metal /></div>
 
       {/* CTA principal unique. */}
-      <section className="csy-section" style={{ paddingBlock: "clamp(40px,6vh,80px)" }}>
+      <section id="faire-une-introduction" className="csy-section" style={{ paddingBlock: "clamp(40px,6vh,80px)" }}>
         <div className="csy-shell csy-shell--narrow">
           <StoryHeading>Faire une introduction</StoryHeading>
           <p className="csy-copy" style={{ margin: "16px 0 26px" }}>

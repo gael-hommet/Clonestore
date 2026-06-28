@@ -14,28 +14,24 @@ import {
   type UploadSignatureDocumentInput, type ProviderDocument, type AddSignatureRecipientInput,
   type ProviderRecipient, type ActivateSignatureRequestInput, type CancelSignatureRequestInput,
   type SignatureEvidenceArtifact, type VerifySignatureWebhookInput, type VerifiedSignatureWebhook,
-  type ProviderRequestStatus, type ProviderRecipientStatus, type SignatureLevel, SignatureProviderError,
+  type ProviderRequestStatus, type ProviderRecipientStatus, SignatureProviderError,
 } from "../signature-provider";
+import { resolveYousignSignerSecurity, normalizePhoneNumber, type ProviderSecurityCapabilities } from "../signature-security";
 
 export type FetchResponse = { status: number; ok: boolean; headers: { get(name: string): string | null }; json(): Promise<unknown>; arrayBuffer(): Promise<ArrayBuffer>; text(): Promise<string> };
 export type FetchLike = (url: string, init: { method: string; headers: Record<string, string>; body?: string | Buffer | FormData; signal?: AbortSignal }) => Promise<FetchResponse>;
-export type YousignConfig = { apiUrl: string; apiKey: string; webhookSecret: string; fetch?: FetchLike; timeoutMs?: number; maxRetries?: number; webhookMaxAgeSeconds?: number };
+export type YousignConfig = { apiUrl: string; apiKey: string; webhookSecret: string; fetch?: FetchLike; timeoutMs?: number; maxRetries?: number; webhookMaxAgeSeconds?: number; aesEnabled?: boolean; qesEnabled?: boolean; phoneCountryHint?: string | null };
 
 const sha = (b: Buffer) => createHash("sha256").update(b).digest("hex");
 const STATUS_MAP: Record<string, ProviderRequestStatus> = { draft: "draft", ongoing: "ongoing", done: "done", declined: "declined", rejected: "declined", expired: "expired", canceled: "cancelled", cancelled: "cancelled", error: "failed", approval: "ongoing" };
 const RECIP_MAP: Record<string, ProviderRecipientStatus> = { initiated: "pending", notified: "sent", processing: "sent", delivered: "delivered", link_opened: "viewed", signed: "signed", done: "signed", declined: "declined", error: "declined", expired: "expired" };
-// CloneStore signature level → Yousign v3 signature_level.
-const LEVEL_MAP: Record<SignatureLevel, string> = {
-  acknowledgement: "electronic_signature", simple: "electronic_signature",
-  advanced_provider_managed: "advanced_electronic_signature", qualified_provider_managed: "qualified_electronic_signature",
-};
 
 export class YousignSignatureProvider implements SignatureProvider {
   readonly providerKey = "yousign";
-  private cfg: { apiUrl: string; apiKey: string; webhookSecret: string; timeoutMs: number; maxRetries: number; webhookMaxAgeSeconds: number; fetch: FetchLike };
+  private cfg: { apiUrl: string; apiKey: string; webhookSecret: string; timeoutMs: number; maxRetries: number; webhookMaxAgeSeconds: number; fetch: FetchLike; capabilities: ProviderSecurityCapabilities; phoneCountryHint: string | null };
   constructor(config: YousignConfig) {
     if (!config.apiUrl || !config.apiKey) throw new SignatureProviderError("yousign not configured", "unconfigured", false);
-    this.cfg = { apiUrl: config.apiUrl.replace(/\/$/, ""), apiKey: config.apiKey, webhookSecret: config.webhookSecret, timeoutMs: config.timeoutMs ?? 15000, maxRetries: config.maxRetries ?? 2, webhookMaxAgeSeconds: config.webhookMaxAgeSeconds ?? 300, fetch: config.fetch ?? (globalThis.fetch as unknown as FetchLike) };
+    this.cfg = { apiUrl: config.apiUrl.replace(/\/$/, ""), apiKey: config.apiKey, webhookSecret: config.webhookSecret, timeoutMs: config.timeoutMs ?? 15000, maxRetries: config.maxRetries ?? 2, webhookMaxAgeSeconds: config.webhookMaxAgeSeconds ?? 300, fetch: config.fetch ?? (globalThis.fetch as unknown as FetchLike), capabilities: { aes_enabled: config.aesEnabled ?? false, qes_enabled: config.qesEnabled ?? false }, phoneCountryHint: config.phoneCountryHint ?? null };
   }
 
   private baseHeaders(): Record<string, string> {
@@ -101,12 +97,27 @@ export class YousignSignatureProvider implements SignatureProvider {
   async addRecipient(input: AddSignatureRecipientInput): Promise<ProviderRecipient> {
     if (!input.provider_document_id) throw new SignatureProviderError("a signer requires the provider document id", "missing_document", false);
     if (!input.fields || input.fields.length === 0) throw new SignatureProviderError("a signer requires at least one signature field", "missing_fields", false);
-    const level = LEVEL_MAP[input.signature_level ?? "simple"];
-    const r = await this.json<{ id: string; status?: string }>("POST", `/signature_requests/${input.provider_request_id}/signers`, {
-      info: { first_name: input.first_name ?? splitName(input.name).first, last_name: input.last_name ?? splitName(input.name).last, email: input.email, locale: input.locale ?? "fr" },
-      signature_level: level, signature_authentication_mode: input.auth_method ?? "no_otp",
-      fields: input.fields.map((f) => ({ type: f.type, document_id: f.document_id, page: f.page, x: f.x, y: f.y, width: f.width, height: f.height })),
+    // R2.1/R2.2 — resolve the EXACT SES/AES/QES security FAIL-CLOSED, BEFORE any HTTP call. An
+    // unsupported combination (QES+OTP, AES without phone/capability, otp_sms without phone, …)
+    // throws here so the provider is never sent an invalid payload.
+    const sec = resolveYousignSignerSecurity({
+      signature_level: input.signature_level ?? "simple",
+      requested_authentication_mode: input.auth_method ?? null,
+      phone_number: input.phone_number ?? null,
+      provider_capabilities: this.cfg.capabilities,
     });
+    const info: Record<string, unknown> = { first_name: input.first_name ?? splitName(input.name).first, last_name: input.last_name ?? splitName(input.name).last, email: input.email, locale: input.locale ?? "fr" };
+    // include the phone ONLY when present/required — never invented; normalized to E.164.
+    if (sec.phone_number_required || (input.phone_number && String(input.phone_number).trim().length > 0)) {
+      info.phone_number = normalizePhoneNumber(input.phone_number, this.cfg.phoneCountryHint);
+    }
+    const body: Record<string, unknown> = {
+      info, signature_level: sec.provider_signature_level,
+      fields: input.fields.map((f) => ({ type: f.type, document_id: f.document_id, page: f.page, x: f.x, y: f.y, width: f.width, height: f.height })),
+    };
+    // QES omits the authentication mode entirely; SES/AES include the exact resolved mode.
+    if (sec.provider_authentication_mode !== null) body.signature_authentication_mode = sec.provider_authentication_mode;
+    const r = await this.json<{ id: string; status?: string }>("POST", `/signature_requests/${input.provider_request_id}/signers`, body);
     return { provider_recipient_id: r.id, email: input.email, role: input.role, status: RECIP_MAP[r.status ?? "initiated"] ?? "pending", signing_order: input.signing_order };
   }
 

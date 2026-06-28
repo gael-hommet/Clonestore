@@ -73,6 +73,31 @@ export function isOperationalUnlocked(state: OperationalAccessState): boolean {
   return state === "employee_active";
 }
 
+// Statuts qui valent « employé réellement actif » (payé + provisionné + actif).
+// Identiques à `hasPierreAccess` (l'essai compte comme accès) : on ne crée pas une
+// règle commerciale concurrente, on l'applique simplement à TOUT employé IA.
+const ACTIVE_EMPLOYEE_STATUSES = ["active", "trialing"];
+
+/**
+ * Décision « au moins un employé IA actif » pour le COCKPIT GÉNÉRAL (/profile) :
+ * comme `hasPierreAccess` mais NON limitée au seul slug « pierre ». Un compte qui
+ * possède n'importe quel employé CloneStore payé et actif ouvre son cockpit général.
+ */
+async function hasAnyActiveEmployee(
+  supabase: Parameters<typeof hasPierreAccess>[0],
+  userId: string,
+): Promise<{ ok: boolean; error: string | null }> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("user_id", userId)
+    .in("status", ACTIVE_EMPLOYEE_STATUSES)
+    .limit(1);
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: Array.isArray(data) && data.length > 0, error: null };
+}
+
 /**
  * Override de test/dev (JAMAIS actif en production : la garde NODE_ENV rend ce
  * bloc mort dans un build de production, et un visiteur ne peut pas définir de
@@ -100,7 +125,11 @@ function readDevStateOverride(): OperationalAccessState | null {
   return isValidState(env) ? env : null;
 }
 
-export async function resolveOperationalAccess(): Promise<OperationalAccess> {
+// scope "pierre" → cockpit Pierre / messagerie (Pierre actif requis).
+// scope "general" → cockpit général /profile (n'importe quel employé IA actif).
+export async function resolveOperationalAccess(
+  scope: "pierre" | "general" = "pierre",
+): Promise<OperationalAccess> {
   const override = readDevStateOverride();
   if (override) {
     return { state: override, userId: "e2e-test-user", orderStatus: override };
@@ -127,20 +156,27 @@ export async function resolveOperationalAccess(): Promise<OperationalAccess> {
     return { state: "anonymous", userId: null, orderStatus: null };
   }
 
-  // DÉCISION CANONIQUE : hasPierreAccess (active/trialing) = source unique de vérité.
-  const access = await hasPierreAccess(supabase, userId);
+  // DÉCISION CANONIQUE : un employé réellement actif (payé + provisionné + actif).
+  //   scope "pierre"  → hasPierreAccess (cockpit Pierre / messagerie)
+  //   scope "general" → n'importe quel employé IA actif (cockpit général /profile)
+  const access =
+    scope === "general"
+      ? await hasAnyActiveEmployee(supabase, userId)
+      : await hasPierreAccess(supabase, userId);
   if (access.ok) {
     return { state: "employee_active", userId, orderStatus: "active" };
   }
 
-  // Pas actif → on lit le statut de commande le plus récent pour le bon sous-état.
+  // Pas actif → on lit le statut de commande le plus récent pour le bon sous-état
+  // (toutes commandes en scope général, Pierre uniquement sinon).
   let status: string | null = null;
   try {
-    const { data } = await supabase
+    const base = supabase
       .from("orders")
       .select("status,created_at")
-      .eq("user_id", userId)
-      .eq("agent_slug", "pierre")
+      .eq("user_id", userId);
+    const scoped = scope === "general" ? base : base.eq("agent_slug", "pierre");
+    const { data } = await scoped
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -267,6 +303,87 @@ export function buildOperationalLock(
                 "Un seul fil pour tout l'opérationnel",
               ],
         actions: DISCOVER_ACTIONS,
+      };
+  }
+}
+
+// ── Écran verrouillé du COCKPIT GÉNÉRAL (/profile) ─────────────────────────────
+// Même machine à états, mais contenu propre au cockpit général : CTA orientés
+// achat / activation et JAMAIS de renvoi vers /profile (pas de boucle), jamais de
+// fausse promesse d'employé actif.
+
+const GENERAL_LOCK_TITLE = "Votre cockpit CloneStore n'est pas encore actif";
+const GENERAL_LOCK_BASE =
+  "Le cockpit s'ouvrira dès qu'au moins un employé IA payé sera activé sur votre organisation.";
+
+/**
+ * Contenu de l'écran verrouillé du cockpit général selon l'état, ou `null` si
+ * l'accès est ouvert (`employee_active`).
+ */
+export function buildGeneralCockpitLock(
+  state: OperationalAccessState,
+): OperationalLockContent | null {
+  if (state === "employee_active") return null;
+
+  switch (state) {
+    case "payment_pending":
+      return {
+        eyebrow: "Cockpit",
+        title: GENERAL_LOCK_TITLE,
+        description: `${GENERAL_LOCK_BASE} Votre paiement est en cours de finalisation.`,
+        actions: [
+          { label: "Consulter mon activation", href: "/reserver/pierre", primary: true },
+          { label: "Support", href: "/questions" },
+        ],
+      };
+    case "activation_pending":
+      return {
+        eyebrow: "Cockpit",
+        title: GENERAL_LOCK_TITLE,
+        description: `${GENERAL_LOCK_BASE} Votre abonnement est confirmé, l'activation est en cours.`,
+        actions: [
+          { label: "Activation en cours", href: "/agents/pierre", primary: true },
+          { label: "Support", href: "/questions" },
+        ],
+      };
+    case "subscription_suspended":
+      return {
+        eyebrow: "Cockpit",
+        title: GENERAL_LOCK_TITLE,
+        description: `${GENERAL_LOCK_BASE} Votre abonnement est actuellement suspendu.`,
+        actions: [
+          { label: "Réactiver mon abonnement", href: "/reserver/pierre", primary: true },
+          { label: "Support", href: "/questions" },
+        ],
+      };
+    case "subscription_ended":
+      return {
+        eyebrow: "Cockpit",
+        title: GENERAL_LOCK_TITLE,
+        description: `${GENERAL_LOCK_BASE} Votre abonnement est terminé.`,
+        actions: [
+          { label: "Réactiver mon abonnement", href: "/reserver/pierre", primary: true },
+          { label: "Support", href: "/questions" },
+        ],
+      };
+    case "anonymous":
+    case "authenticated_without_employee":
+    default:
+      return {
+        eyebrow: "Cockpit",
+        title: GENERAL_LOCK_TITLE,
+        description: `${GENERAL_LOCK_BASE} Activez votre premier employé IA pour ouvrir le cockpit, la messagerie et tous les outils opérationnels.`,
+        bullets: [
+          "Vue générale, employés et Empreinte Entreprise",
+          "Cockpit Pierre, messagerie et Employé 360",
+          "Missions, validations et documents",
+          "Aucun accès tant qu'aucun employé n'est actif",
+        ],
+        actions: [
+          { label: "Découvrir Pierre", href: "/agents/pierre", primary: true },
+          { label: "Voir la démonstration", href: "/demo/pierre" },
+          { label: "Installer Pierre", href: "/reserver/pierre" },
+        ],
       };
   }
 }

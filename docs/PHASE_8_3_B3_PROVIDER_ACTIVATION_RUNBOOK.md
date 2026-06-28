@@ -44,3 +44,28 @@ and the provider console together; deploy; verify with the opt-in smoke. No secr
 `CLONESTORE_SIGNATURE_LIVE_SMOKE_ENABLED=true` + credentials + `CLONESTORE_SIGNATURE_TEST_SIGNER_EMAIL`
 → `npm run check:p83-b3-live-signature`. It creates + cancels a draft request with a consented
 test signer; it never activates/emails a real person and never prints secrets.
+
+## 8. Signature security (B3-R2)
+- Default tier is **SES** (`electronic_signature`) — no phone/OTP/capability needed.
+- **AES** needs `CLONESTORE_SIGNATURE_AES_ENABLED=true` + `otp_sms` + a real signer phone.
+- **QES** needs `CLONESTORE_SIGNATURE_QES_ENABLED=true` + NO OTP mode; never mixed with SES/AES.
+- Both capability flags default **false**; a policy requesting AES/QES without the flag fails
+  before any HTTP call. Phones come from `employees.phone` / `companies.signatory_phone`
+  (tenant-safe, E.164-normalized, never invented).
+
+## 9. Provider boundary (B3-R2)
+The accepted providers are the rows of `pierre_rt_signature_provider_registry` (live-only in the
+deployable migration). To add a real provider, INSERT a `kind='live'` row **as a migration**
+(superuser) — the app and webhook-ingress roles cannot write it, and there is no session-GUC
+override. Under `NODE_ENV=production` the Fake/sandbox is never resolvable.
+
+## 10. Amendment activation worker (B3-R2)
+- `activateSignedAmendment` — past/now → apply atomically; future → governed schedule
+  (`pierre_rt_schedule_contract_activation`, full relational validation).
+- `runDueContractActivations` — governed claim (`FOR UPDATE SKIP LOCKED`, tenant-bound), atomic
+  apply per task, governed complete/fail. Bounded retry (`attempt_count`, `next_retry_at`) →
+  `dead_letter` after the bound; the stored `last_error_safe` is redacted.
+- Each applied change writes one append-only `pierre_rt_contract_effect_history` row
+  (allowlisted fields only). The signed parent is never overwritten.
+- Incident: tasks stuck `scheduled` → check `next_retry_at` / `last_error_safe`; `dead_letter`
+  tasks need manual review (never silently re-applied).

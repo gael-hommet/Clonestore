@@ -12,6 +12,7 @@ import type { TenantContext } from "./tenant-context";
 import { requirePermission } from "./rbac";
 import { validateContractType, getContractPolicy, canRoleCreateContract, canRoleApproveContract, type ContractPolicy } from "./contract-policies";
 import { evaluateContractReadiness, type ContractAction, type ContractReadiness } from "./contract-readiness";
+import { providerLevelForPolicy } from "./signature-security";
 import { assertContractTransition, emitContractEvent } from "./contract-state";
 import { buildContractRenderModel, renderContractPdf, renderContractDocx, canonicalContractHash } from "./contract-render-model";
 import { compileContractTemplate } from "./contract-template-compiler";
@@ -376,18 +377,20 @@ async function driveDocumentVersionToFinal(tx: SqlExecutor, ctx: TenantContext, 
   await finalizeDocVersion(tx, ctx, documentVersionId);  // requires 'approved' + a content hash / rendered artifact
 }
 
-export type SignatureRecipient = { role: string; email: string; name: string; signing_order: number };
+export type SignatureRecipient = { role: string; email: string; name: string; signing_order: number; phone_number: string | null };
 export type SignaturePreparation = { contract_id: string; signature_request_id: string; signature_level: string; idempotent: boolean; recipients: SignatureRecipient[] };
 
-/** R1.5 — resolve the REAL signers from real data; fail closed if any required email is absent. */
+/** R1.5/R2.2 — resolve the REAL signers from real, tenant-scoped data (employee + company
+ *  signatory). The phone is read from the tenant's own records (never invented, never another
+ *  tenant's). Fail closed if any required email is absent. */
 async function resolveSignatureRecipients(db: SqlExecutor, ctx: TenantContext, c: ContractRow): Promise<SignatureRecipient[]> {
-  const emp = (await db.query<{ email: string | null; first_name: string | null; last_name: string | null }>(`select email, first_name, last_name from pierre_rt_employees where company_id=$1 and id=$2`, [ctx.company_id, c.employee_id])).rows[0];
+  const emp = (await db.query<{ email: string | null; first_name: string | null; last_name: string | null; phone: string | null }>(`select email, first_name, last_name, phone from pierre_rt_employees where company_id=$1 and id=$2`, [ctx.company_id, c.employee_id])).rows[0];
   if (!emp || !emp.email || !EMAIL_RE.test(emp.email)) throw Errors.validation("Employee signer has no valid email — cannot prepare signature");
-  const co = (await db.query<{ signatory_email: string | null; signatory_name: string | null; legal_name: string | null; name: string | null }>(`select signatory_email, signatory_name, legal_name, name from pierre_rt_companies where id=$1`, [ctx.company_id])).rows[0];
+  const co = (await db.query<{ signatory_email: string | null; signatory_name: string | null; signatory_phone: string | null; legal_name: string | null; name: string | null }>(`select signatory_email, signatory_name, signatory_phone, legal_name, name from pierre_rt_companies where id=$1`, [ctx.company_id])).rows[0];
   if (!co || !co.signatory_email || !EMAIL_RE.test(co.signatory_email)) throw Errors.validation("Employer signatory email is not configured — cannot prepare signature");
   return [
-    { role: "employer", email: co.signatory_email, name: co.signatory_name ?? co.legal_name ?? co.name ?? "Employeur", signing_order: 1 },
-    { role: "employee", email: emp.email, name: `${emp.first_name ?? ""} ${emp.last_name ?? ""}`.trim() || "Salarié", signing_order: 2 },
+    { role: "employer", email: co.signatory_email, name: co.signatory_name ?? co.legal_name ?? co.name ?? "Employeur", signing_order: 1, phone_number: co.signatory_phone ?? null },
+    { role: "employee", email: emp.email, name: `${emp.first_name ?? ""} ${emp.last_name ?? ""}`.trim() || "Salarié", signing_order: 2, phone_number: emp.phone ?? null },
   ];
 }
 
@@ -406,7 +409,7 @@ export async function prepareContractSignature(db: SqlExecutor, ctx: TenantConte
     const existing = (await tx.query<{ id: string; approved_content_hash: string | null }>(`select id, approved_content_hash from pierre_rt_signature_requests where company_id=$1 and idempotency_key=$2`, [ctx.company_id, idem])).rows[0];
     if (existing) {
       if (v.canonical_hash && existing.approved_content_hash && existing.approved_content_hash !== v.canonical_hash) throw Errors.conflict("Idempotency key reused with different content");
-      const recips = (await tx.query<{ role: string; email: string; name: string; signing_order: number }>(`select role, email, name, signing_order from pierre_rt_signature_recipients where company_id=$1 and signature_request_id=$2 order by signing_order`, [ctx.company_id, existing.id])).rows;
+      const recips = (await tx.query<{ role: string; email: string; name: string; signing_order: number; phone_number: string | null }>(`select role, email, name, signing_order, phone_number from pierre_rt_signature_recipients where company_id=$1 and signature_request_id=$2 order by signing_order`, [ctx.company_id, existing.id])).rows;
       return { contract_id: contractId, signature_request_id: existing.id, signature_level: policy.signature_level, idempotent: true, recipients: recips };
     }
 
@@ -420,14 +423,17 @@ export async function prepareContractSignature(db: SqlExecutor, ctx: TenantConte
 
     const recipients = await resolveSignatureRecipients(tx, ctx, c); // R1.5 fail-closed
     const reqId = newUuid();
-    const dbLevel = ({ none: "acknowledgement", acknowledgement: "acknowledgement", simple: "simple", advanced: "advanced_provider_managed" } as Record<string, string>)[policy.signature_level] ?? "simple";
+    // R3.1 — the request signature level is the CANONICAL provider level for the policy. NO
+    // downgrade: `advanced` → AES, `qualified` → QES. The adaptation layer never weakens the
+    // policy. (`none` is not used by any contract policy; defensively map to acknowledgement.)
+    const dbLevel = providerLevelForPolicy(policy.signature_level) ?? "acknowledgement";
     await tx.query(
       `insert into pierre_rt_signature_requests (id, company_id, document_id, document_version_id, provider, signature_level, status, approval_status, approved_content_hash, idempotency_key, created_by)
        values ($1,$2,$3,$4,'local_sandbox',$5,'ready','approved',$6,$7,$8)`,
       [reqId, ctx.company_id, c.document_id, v.document_version_id, dbLevel, v.canonical_hash, idem, ctx.user_id]);
     for (const r of recipients) {
-      await tx.query(`insert into pierre_rt_signature_recipients (id, company_id, signature_request_id, name, email, role, signing_order, status) values ($1,$2,$3,$4,$5,$6,$7,'pending')`,
-        [newUuid(), ctx.company_id, reqId, r.name, r.email, r.role, r.signing_order]);
+      await tx.query(`insert into pierre_rt_signature_recipients (id, company_id, signature_request_id, name, email, role, signing_order, phone_number, status) values ($1,$2,$3,$4,$5,$6,$7,$8,'pending')`,
+        [newUuid(), ctx.company_id, reqId, r.name, r.email, r.role, r.signing_order, r.phone_number]);
     }
     await tx.query(`update pierre_rt_employee_contracts set workflow_status='ready_for_signature' where company_id=$1 and id=$2`, [ctx.company_id, contractId]);
     await tx.query(`update pierre_rt_employee_contract_versions set signature_status='ready' where company_id=$1 and id=$2`, [ctx.company_id, v.id]);

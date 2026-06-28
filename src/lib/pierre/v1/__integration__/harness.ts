@@ -61,6 +61,13 @@ function wrap(pg: PGlite): SqlExecutor {
 export async function createHarness(): Promise<Harness> {
   const pg = await PGlite.create();
   for (const sql of migrationSql()) await pg.exec(sql);
+  // B3-R2 — TEST-ONLY provider registration (superuser, harness-only). The DEPLOYABLE v18
+  // migration declares ONLY live providers; the deterministic Fake + sandbox providers exist
+  // exclusively here so B2F/B3 functional tests can drive the governed ingress. This NEVER
+  // weakens the production migration (production never runs this seed).
+  await pg.exec(`insert into pierre_rt_signature_provider_registry (provider, kind, enabled) values
+    ('fake_provider','test',true), ('internal_sandbox','sandbox',true), ('local_sandbox','sandbox',true)
+    on conflict (provider) do nothing`).catch(() => { /* tolerate pre-v18 chains */ });
   const db = wrap(pg);
 
   const companyA = newUuid();

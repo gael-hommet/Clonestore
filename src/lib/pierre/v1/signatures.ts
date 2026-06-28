@@ -11,8 +11,9 @@ import { Errors } from "./errors";
 import type { TenantContext } from "./tenant-context";
 import { requirePermission } from "./rbac";
 import { assertContractTransition, emitContractEvent } from "./contract-state";
-import { resolveSignatureProvider } from "./signature-provider-config";
+import { resolveSignatureProvider, signatureCapabilities } from "./signature-provider-config";
 import { type SignatureProvider, SignatureProviderError, type SignatureLevel } from "./signature-provider";
+import { resolveYousignSignerSecurity } from "./signature-security";
 import { mapProviderEventToCanonical, requestStatusForEvent, contractStatusForEvent, eventRank, isTerminalEvent, statusRank, type CanonicalSignatureEvent } from "./signature-events";
 import { createUploadIntent, finalizeUpload, type FileRow } from "./files";
 import { getFileStorageProvider, type FileStorageProvider } from "./file-storage";
@@ -62,7 +63,15 @@ function signatureFieldFor(role: string, providerDocumentId: string): { type: "s
   const employer = role === "employer" || role === "company" || role === "owner";
   return { type: "signature", document_id: providerDocumentId, page: 1, x: employer ? 70 : 320, y: 120, width: 180, height: 60 };
 }
-type RecipientRow = { id: string; email: string; name: string; role: string; signing_order: number; status: string; provider_recipient_id: string | null };
+type RecipientRow = { id: string; email: string; name: string; role: string; signing_order: number; status: string; provider_recipient_id: string | null; phone_number: string | null };
+
+// R2.1 — the per-signer requested authentication mode derived from the request signature level.
+// SES → no_otp (no phone needed by default); AES → otp_sms; QES → none (omitted).
+function requestedAuthModeForLevel(level: SignatureLevel): "no_otp" | "otp_sms" | null {
+  if (level === "advanced_provider_managed") return "otp_sms";
+  if (level === "qualified_provider_managed") return null;
+  return "no_otp";
+}
 
 async function loadContract(db: SqlExecutor, ctx: TenantContext, id: string, forUpdate = false): Promise<{ id: string; workflow_status: string; document_id: string | null; parent_contract_id: string | null; contract_type: string }> {
   const { rows } = await db.query<{ id: string; workflow_status: string; document_id: string | null; parent_contract_id: string | null; contract_type: string }>(`select id, workflow_status, document_id, parent_contract_id, contract_type from pierre_rt_employee_contracts where company_id=$1 and id=$2${forUpdate ? " for update" : ""}`, [ctx.company_id, id]);
@@ -114,14 +123,25 @@ export async function submitContractToSignatureProvider(db: SqlExecutor, ctx: Te
   if (!dv.rendered_pdf_file_id) throw Errors.conflict("No rendered PDF for the contract");
   const file = (await db.query<{ object_key: string; upload_status: string; scan_status: string; sha256: string | null }>(`select object_key, upload_status, scan_status, sha256 from pierre_rt_files where company_id=$1 and id=$2`, [ctx.company_id, dv.rendered_pdf_file_id])).rows[0];
   if (!file || file.upload_status !== "clean" || file.scan_status !== "clean") throw Errors.conflict("Contract PDF is not clean");
-  const recipients = (await db.query<RecipientRow>(`select id, email, name, role, signing_order, status, provider_recipient_id from pierre_rt_signature_recipients where company_id=$1 and signature_request_id=$2 order by signing_order`, [ctx.company_id, sr.id])).rows;
+  const recipients = (await db.query<RecipientRow>(`select id, email, name, role, signing_order, status, provider_recipient_id, phone_number from pierre_rt_signature_recipients where company_id=$1 and signature_request_id=$2 order by signing_order`, [ctx.company_id, sr.id])).rows;
   if (recipients.length === 0) throw Errors.conflict("No recipients to submit");
   for (const r of recipients) if (!EMAIL_RE.test(r.email)) throw Errors.validation(`Recipient ${r.role} has an invalid email`);
+
+  const level = (sr.signature_level as SignatureLevel) ?? "simple";
+
+  // R3.1 — PRE-FLIGHT the EXACT SES/AES/QES security for EVERY recipient BEFORE ANY provider HTTP.
+  // If the required tier is infeasible (capability disabled, a required phone missing, an
+  // unsupported combination), submission is REFUSED here — no request is created, no document is
+  // uploaded, and the stronger requirement is NEVER silently executed as a weaker SES.
+  const caps = signatureCapabilities();
+  const requestedMode = requestedAuthModeForLevel(level);
+  for (const r of recipients) {
+    resolveYousignSignerSecurity({ signature_level: level, requested_authentication_mode: requestedMode, phone_number: r.phone_number, provider_capabilities: { aes_enabled: caps.aesEnabled, qes_enabled: caps.qesEnabled } });
+  }
 
   const bytes = await storage.downloadBytes(file.object_key);
   // deterministic external_id — the official idempotency anchor (survives a timeout/retry).
   const externalId = sr.external_id ?? `clonestore:${ctx.company_id}:${sr.id}:${(file.sha256 ?? sha256(bytes)).slice(0, 16)}`;
-  const level = (sr.signature_level as SignatureLevel) ?? "simple";
 
   // 1. create the provider request (idempotent by external_id) and persist its id + external_id
   //    IMMEDIATELY so a timeout/retry resumes (via findRequestByIdempotencyKey) instead of
@@ -154,13 +174,14 @@ export async function submitContractToSignatureProvider(db: SqlExecutor, ctx: Te
     await emitSignatureEvent(db, ctx, "signature.document_uploaded", { request_id: sr.id, provider: provider.providerKey, provider_request_id: providerRequestId, document_id: c.document_id, detail: { provider_document_id: providerDocumentId } });
   }
 
-  // 3. add recipients with full identity + a REAL signature field (deterministic placement),
-  //    in signing order. A resume skips recipients that already have a provider id.
+  // 3. add recipients with full identity + a REAL signature field (deterministic placement), in
+  //    signing order. The SES/AES/QES security was already resolved fail-closed in the pre-flight
+  //    above (no HTTP happens for an infeasible tier).
   for (const r of recipients) {
     if (r.provider_recipient_id) continue;
     const fields = [signatureFieldFor(r.role, providerDocumentId!)];
     const nm = splitName(r.name);
-    const pr = await provider.addRecipient({ provider_request_id: providerRequestId, email: r.email, name: r.name, first_name: nm.first, last_name: nm.last, role: r.role, signing_order: r.signing_order, locale: "fr", signature_level: level, auth_method: "email", provider_document_id: providerDocumentId!, fields });
+    const pr = await provider.addRecipient({ provider_request_id: providerRequestId, email: r.email, name: r.name, first_name: nm.first, last_name: nm.last, role: r.role, signing_order: r.signing_order, locale: "fr", signature_level: level, auth_method: requestedMode ?? undefined, phone_number: r.phone_number, provider_document_id: providerDocumentId!, fields });
     await db.query(`update pierre_rt_signature_recipients set provider_recipient_id=$3, status=$4 where company_id=$1 and id=$2`, [ctx.company_id, r.id, pr.provider_recipient_id, pr.status]);
     await emitSignatureEvent(db, ctx, "signature.recipient_created", { request_id: sr.id, provider: provider.providerKey, provider_request_id: providerRequestId, detail: { role: r.role, signing_order: r.signing_order } });
   }
@@ -179,6 +200,27 @@ export async function submitContractToSignatureProvider(db: SqlExecutor, ctx: Te
     await emitContractEvent(tx, ctx, "contract.signature_prepared", { contract_id: contractId, status_before: lc.workflow_status, status_after: "submitted", reason: "request_activated" });
     return { contract_id: contractId, signature_request_id: sr.id, provider: provider.providerKey, provider_request_id: providerRequestId, status: activated.status, idempotent: false };
   });
+}
+
+// R3.1 — signature submission READINESS (non-throwing). Resolves the EXACT SES/AES/QES security
+// for the prepared recipients without contacting any provider. Returns `blocked` when the required
+// tier is infeasible in this environment (capability disabled, a required phone missing, …) so the
+// product can surface "advanced signature not yet enabled" — NEVER downgrade to SES.
+export type SignatureReadiness = { ready: boolean; provider_tier: string; blockers: string[] };
+export async function evaluateContractSignatureReadiness(db: SqlExecutor, ctx: TenantContext, contractId: string): Promise<SignatureReadiness> {
+  requirePermission(ctx, "document.read");
+  const sr = await sigRequestForContract(db, ctx, contractId);
+  if (!sr) return { ready: false, provider_tier: "none", blockers: ["no_signature_request"] };
+  const level = (sr.signature_level as SignatureLevel) ?? "simple";
+  const recipients = (await db.query<RecipientRow>(`select id, email, name, role, signing_order, status, provider_recipient_id, phone_number from pierre_rt_signature_recipients where company_id=$1 and signature_request_id=$2 order by signing_order`, [ctx.company_id, sr.id])).rows;
+  const caps = signatureCapabilities();
+  const requestedMode = requestedAuthModeForLevel(level);
+  const blockers: string[] = [];
+  for (const r of recipients) {
+    try { resolveYousignSignerSecurity({ signature_level: level, requested_authentication_mode: requestedMode, phone_number: r.phone_number, provider_capabilities: { aes_enabled: caps.aesEnabled, qes_enabled: caps.qesEnabled } }); }
+    catch (e) { blockers.push(`${r.role}:${(e as { code?: string }).code ?? "security_infeasible"}`); }
+  }
+  return { ready: blockers.length === 0, provider_tier: level, blockers };
 }
 
 // ── B3.5 — receive a public webhook: verify (provider) → resolve local id → governed ingest ──
@@ -211,13 +253,16 @@ export async function processPendingSignatureEvents(db: SqlExecutor, ctx: Tenant
   const worker = opts.worker ?? `worker:${newUuid().slice(0, 8)}`;
   const lease = Math.max(opts.lease_seconds ?? 60, 1);
   const res: ProcessResult = { processed: 0, applied: 0, ignored: 0, unknown: 0, finalized: 0 };
-  // R1.10 — atomically CLAIM a batch (FOR UPDATE SKIP LOCKED inside the governed function): a
-  // second concurrent worker claiming the same company gets a DISJOINT set (or none) — no event
-  // is processed twice, so no double download / version / evidence. The claim takes a lease;
-  // a crashed worker's events become claimable again only after the lease expires.
-  const events = (await db.query<{ id: string; signature_request_id: string; event_type: string; provider_event_time: string | null }>(
-    `select id, signature_request_id, event_type, provider_event_time from pierre_rt_claim_signature_events($1,$2,$3,$4) order by occurred_at asc`,
-    [ctx.company_id, limit, worker, lease])).rows;
+  // R1.10/R2.4 — atomically CLAIM a batch (FOR UPDATE SKIP LOCKED inside the governed function),
+  // TENANT-BOUND to the SESSION tenant (the function reads app.current_company, not a free
+  // p_company). A second concurrent worker claiming the same company gets a DISJOINT set (or
+  // none); a worker can never claim another tenant's events. The claim commits (lease persisted).
+  const events = await db.transaction(async (tx) => {
+    await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.company_id]);
+    return (await tx.query<{ id: string; signature_request_id: string; event_type: string; provider_event_time: string | null }>(
+      `select id, signature_request_id, event_type, provider_event_time from pierre_rt_claim_signature_events($1,$2,$3,$4) order by occurred_at asc`,
+      [ctx.company_id, limit, worker, lease])).rows;
+  });
   for (const ev of events) {
     res.processed += 1;
     try {
@@ -336,6 +381,10 @@ export async function finalizeSignedContract(db: SqlExecutor, ctx: TenantContext
     failpoint(deps, "after_signed_store");
     const evidenceFiles: Array<{ artifact: typeof evidence[number]; file: FileRow }> = [];
     for (const a of evidence) {
+      // the canonical signed document is `signedFile` (downloaded via version=completed and linked
+      // to the request's signed document version). The provider's evidence bundle MAY also carry a
+      // redundant signed_document copy — skip it (it would be an unlinked duplicate of the same bytes).
+      if (a.type === "signed_document") continue;
       const f = await storeAndScan(db, ctx, a.bytes, a.filename, a.mime, deps);
       stored.push({ file_id: f.file.id, object_key: f.object_key });
       if (f.file.upload_status !== "clean" || f.file.scan_status !== "clean") throw Errors.conflict(`Evidence ${a.type} failed the clean gate`);
@@ -353,22 +402,23 @@ export async function finalizeSignedContract(db: SqlExecutor, ctx: TenantContext
       await tx.query(`update pierre_rt_document_versions set status='signed', signed_at=now() where company_id=$1 and id=$2`, [ctx.company_id, dv.id]);
       await tx.query(`update pierre_rt_documents set status='signed', updated_at=now() where company_id=$1 and id=$2`, [ctx.company_id, lsr.document_id]);
       const beforeHash = lsr.approved_content_hash;
+      const evidenceId = newUuid();
       // integrity is now PROVEN (assertSignedIntegrity above did not throw) → record it as true.
       await tx.query(
         `insert into pierre_rt_signature_evidence (id, company_id, signature_request_id, provider, provider_request_id, signature_level, content_hash_before, content_hash_signed, evidence_file_id, recipients, events, integrity_verified)
          values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,true)
          on conflict (signature_request_id) do nothing`,
-        [newUuid(), ctx.company_id, requestId, lsr.provider, lsr.provider_request_id, lsr.signature_level, beforeHash, signedHash, evidenceFiles.find((e) => e.artifact.type === "audit_trail")?.file.id ?? evidenceFiles[0]?.file.id ?? null, JSON.stringify(providerRecipients.map((r) => ({ role: r.role, status: r.status }))), JSON.stringify(evidence.map((a) => ({ type: a.type, sha256: a.sha256 })))]);
-      // R1.13 — one normalized append-only artifact row per stored file (signed doc + each evidence).
-      await tx.query(
-        `insert into pierre_rt_signature_evidence_artifacts (id, company_id, signature_request_id, artifact_type, provider_artifact_id, file_id, mime_type, sha256, size_bytes, verification_status)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'verified') on conflict do nothing`,
-        [newUuid(), ctx.company_id, requestId, "signed_document", lsr.provider_document_id, signedFile.id, "application/pdf", signedHash, signedBytes.length]);
+        [evidenceId, ctx.company_id, requestId, lsr.provider, lsr.provider_request_id, lsr.signature_level, beforeHash, signedHash, evidenceFiles.find((e) => e.artifact.type === "audit_trail")?.file.id ?? evidenceFiles[0]?.file.id ?? null, JSON.stringify(providerRecipients.map((r) => ({ role: r.role, status: r.status }))), JSON.stringify(evidence.map((a) => ({ type: a.type, sha256: a.sha256 })))]);
+      // R2.7/R3.3 — every evidence artifact is recorded ONLY through the GOVERNED function. It
+      // requires a REAL file_id and DERIVES the verified truth (sha256/mime/size) from the actual
+      // pierre_rt_files row — never from caller metadata — and verifies the file is clean, same
+      // tenant, and linked to THIS request. The app role can't record a proof. Bind the tenant.
+      await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.company_id]);
+      await tx.query(`select * from pierre_rt_record_signature_evidence_artifact($1,$2,$3,$4,$5,$6,$7)`,
+        [ctx.company_id, requestId, evidenceId, "signed_document", lsr.provider_document_id, signedFile.id, null]);
       for (const e of evidenceFiles) {
-        await tx.query(
-          `insert into pierre_rt_signature_evidence_artifacts (id, company_id, signature_request_id, artifact_type, provider_artifact_id, file_id, mime_type, sha256, size_bytes, verification_status)
-           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'verified') on conflict do nothing`,
-          [newUuid(), ctx.company_id, requestId, e.artifact.type, (e.artifact as { provider_artifact_id?: string | null }).provider_artifact_id ?? null, e.file.id, e.artifact.mime, e.artifact.sha256, e.artifact.bytes.length]);
+        await tx.query(`select * from pierre_rt_record_signature_evidence_artifact($1,$2,$3,$4,$5,$6,$7)`,
+          [ctx.company_id, requestId, evidenceId, e.artifact.type, (e.artifact as { provider_artifact_id?: string | null }).provider_artifact_id ?? null, e.file.id, e.artifact.provider_timestamp ?? null]);
       }
       await tx.query(`update pierre_rt_signature_requests set status='completed', provider_status='done', completed_at=now(), signed_document_version_id=$3, reconcile_status='idle', updated_at=now() where company_id=$1 and id=$2`, [ctx.company_id, requestId, dv.id]);
       await emitSignatureEvent(tx, ctx, "signature.evidence_downloaded", { request_id: requestId, provider: lsr.provider, provider_request_id: lsr.provider_request_id, document_id: lsr.document_id, detail: { evidence_count: evidenceFiles.length } });
@@ -507,7 +557,7 @@ export async function getContractSignature(db: SqlExecutor, ctx: TenantContext, 
   requirePermission(ctx, "document.read");
   await loadContract(db, ctx, contractId);
   const sr = await sigRequestForContract(db, ctx, contractId);
-  const recipients = sr ? (await db.query<RecipientRow>(`select id, email, name, role, signing_order, status, provider_recipient_id from pierre_rt_signature_recipients where company_id=$1 and signature_request_id=$2 order by signing_order`, [ctx.company_id, sr.id])).rows : [];
+  const recipients = sr ? (await db.query<RecipientRow>(`select id, email, name, role, signing_order, status, provider_recipient_id, phone_number from pierre_rt_signature_recipients where company_id=$1 and signature_request_id=$2 order by signing_order`, [ctx.company_id, sr.id])).rows : [];
   return { contract_id: contractId, signature: sr, recipients };
 }
 
@@ -523,6 +573,16 @@ export async function getSignatureEvidence(db: SqlExecutor, ctx: TenantContext, 
 // rollback on error). A future date persists a real scheduled task (execute_at) and applies NOTHING
 // early; the activation worker (runDueContractActivations) applies it idempotently when due. ──
 
+const ACTIVATION_MAX_ATTEMPTS = 3;
+function dateStr(v: unknown): string { return v instanceof Date ? v.toISOString().slice(0, 10) : String(v).slice(0, 10); }
+function previousEffectValue(field: string, emp: { role_title: string | null; site_id: string | null; metadata: Record<string, unknown> | null }): string | null {
+  if (field === "employment.role_title") return emp.role_title ?? null;
+  if (field === "employment.site_id") return emp.site_id ?? null;
+  const active = (emp.metadata?.active_employment ?? null) as Record<string, unknown> | null;
+  const v = active?.[field];
+  return v === undefined || v === null ? null : String(v);
+}
+
 // Apply allowlisted structured effects to the employee record. role_title/site_id are real
 // columns; weekly_hours/salary/effective_* are structured employment terms kept in metadata. An
 // invalid site_id trips the FK → the transaction rolls back (fail-closed). Never touches the parent.
@@ -537,54 +597,120 @@ async function applyAmendmentEffectsToEmployee(tx: SqlExecutor, ctx: TenantConte
   await tx.query(`update pierre_rt_employees set metadata = coalesce(metadata,'{}'::jsonb) || jsonb_build_object('active_employment', $3::jsonb), updated_at=now() where company_id=$1 and id=$2`, [ctx.company_id, employeeId, JSON.stringify(effects)]);
 }
 
-export async function activateSignedAmendment(db: SqlExecutor, ctx: TenantContext, amendmentContractId: string, opts: { as_of?: string } = {}): Promise<{ activated: boolean; deferred_until: string | null; scheduled: boolean }> {
-  requirePermission(ctx, "document.write");
-  const { pickAllowedAmendmentEffects } = await import("./contracts");
-  const asOf = (opts.as_of ?? (new Date().toISOString())).slice(0, 10);
-  return db.transaction(async (tx) => {
-    const c = await loadContract(tx, ctx, amendmentContractId, true);
-    if (!c.parent_contract_id) throw Errors.validation("Not an amendment");
-    if (c.workflow_status !== "signed") throw Errors.conflict("Amendment is not signed");
-    const row = (await tx.query<{ employee_id: string; amendment_effects: Record<string, unknown> | null }>(`select employee_id, amendment_effects from pierre_rt_employee_contracts where company_id=$1 and id=$2`, [ctx.company_id, amendmentContractId])).rows[0];
-    const effects = pickAllowedAmendmentEffects(row?.amendment_effects ?? {});
-    const v = (await tx.query<{ effective_from: string | null }>(`select effective_from from pierre_rt_employee_contract_versions where company_id=$1 and contract_id=$2 order by version desc limit 1`, [ctx.company_id, amendmentContractId])).rows[0];
-    const effRaw = (effects["employment.effective_from"] ?? v?.effective_from) as unknown;
-    const eff = effRaw ? (effRaw instanceof Date ? effRaw.toISOString().slice(0, 10) : String(effRaw).slice(0, 10)) : asOf;
+// R2.11 — the ATOMIC amendment application: a single transaction that re-reads + re-verifies the
+// parent + amendment signatures, applies the allowlisted effects, writes an APPEND-ONLY effect
+// history row per change, transitions the task, and emits audit/trace/outbox. A throw anywhere
+// (or an injected failpoint) rolls EVERYTHING back — no partial state. The parent is never touched.
+async function applyAmendmentActivationAtomic(
+  db: SqlExecutor, ctx: TenantContext,
+  args: { amendmentId: string; eff: string; effects: Record<string, string>; taskId?: string | null; worker?: string | null; failpoint?: string },
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.company_id]);
+    const amd = await loadContract(tx, ctx, args.amendmentId, true);
+    if (!amd.parent_contract_id) throw Errors.validation("Not an amendment");
+    if (amd.workflow_status !== "signed") throw Errors.conflict("Amendment is not signed");
+    const parent = await loadContract(tx, ctx, amd.parent_contract_id, true);
+    if (parent.workflow_status !== "signed") throw Errors.conflict("Parent contract is not signed");
+    const row = (await tx.query<{ employee_id: string }>(`select employee_id from pierre_rt_employee_contracts where company_id=$1 and id=$2`, [ctx.company_id, args.amendmentId])).rows[0];
+    const emp = (await tx.query<{ role_title: string | null; site_id: string | null; metadata: Record<string, unknown> | null }>(`select role_title, site_id, metadata from pierre_rt_employees where company_id=$1 and id=$2`, [ctx.company_id, row.employee_id])).rows[0];
 
-    // idempotent: a recorded activation means it already applied — never apply twice.
-    const already = (await tx.query<{ n: number }>(`select count(*)::int n from pierre_rt_contract_audit where company_id=$1 and contract_id=$2 and event='contract.amendment_activated'`, [ctx.company_id, amendmentContractId])).rows[0].n;
-    if (already > 0) return { activated: true, deferred_until: null, scheduled: false };
+    // 1. apply the structured effects to the employee (parent untouched)
+    await applyAmendmentEffectsToEmployee(tx, ctx, row.employee_id, args.effects);
+    if (args.failpoint === "after_employee_update") throw new Error("__failpoint:after_employee_update");
 
-    if (eff > asOf) {
-      // future → persist a REAL scheduled task (idempotent: unique on company+amendment). Nothing
-      // is applied to the employee now.
+    // 2. APPEND-ONLY effect history — one row per allowlisted changed field, with the previous
+    //    value, written ONLY through the governed function (R3.5: the app role cannot forge it).
+    if (args.failpoint === "before_history") throw new Error("__failpoint:before_history");
+    for (const [field, value] of Object.entries(args.effects)) {
       await tx.query(
-        `insert into pierre_rt_contract_activation_tasks (id, company_id, amendment_contract_id, parent_contract_id, execute_at, effects, status)
-         values ($1,$2,$3,$4,$5,$6,'scheduled') on conflict (company_id, amendment_contract_id) do nothing`,
-        [newUuid(), ctx.company_id, amendmentContractId, c.parent_contract_id, eff, JSON.stringify(effects)]);
-      await emitContractEvent(tx, ctx, "contract.signature_prepared", { contract_id: amendmentContractId, status_after: "signed", reason: `amendment_effect_scheduled_${eff}` });
-      return { activated: false, deferred_until: eff, scheduled: true };
+        `select pierre_rt_record_contract_effect($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+        [ctx.company_id, row.employee_id, amd.parent_contract_id, args.amendmentId, args.taskId ?? null, field, previousEffectValue(field, emp), value, args.eff, ctx.user_id, ctx.correlation_id ?? null]);
     }
+    if (args.failpoint === "after_history") throw new Error("__failpoint:after_history");
 
-    // past/now → APPLY the structured effects (parent original is NEVER overwritten).
-    await applyAmendmentEffectsToEmployee(tx, ctx, row.employee_id, effects);
-    await tx.query(`update pierre_rt_contract_activation_tasks set status='applied', applied_at=now() where company_id=$1 and amendment_contract_id=$2 and status='scheduled'`, [ctx.company_id, amendmentContractId]);
-    await emitContractEvent(tx, ctx, "contract.amendment_activated", { contract_id: amendmentContractId, status_after: "signed", reason: `effective_${eff}` });
-    return { activated: true, deferred_until: null, scheduled: false };
+    // 3. transition the activation task. A worker-claimed task is completed with WORKER OWNERSHIP
+    //    (R3.4 — the lease must belong to this worker). The direct (taskless) path leaves any
+    //    scheduled task for the worker to reconcile idempotently (it never owns a lease here).
+    if (args.taskId) await tx.query(`select pierre_rt_complete_contract_activation($1,$2,$3)`, [ctx.company_id, args.taskId, args.worker ?? null]);
+
+    // 4. audit + CloneTrace + outbox
+    if (args.failpoint === "before_outbox") throw new Error("__failpoint:before_outbox");
+    await emitContractEvent(tx, ctx, "contract.amendment_activated", { contract_id: args.amendmentId, status_after: "signed", reason: `effective_${args.eff}` });
   });
 }
 
-// R1.14 — the activation worker: apply every scheduled amendment whose execute_at has arrived.
-// Idempotent (activateSignedAmendment guards on the recorded activation; the task flips to 'applied').
-export async function runDueContractActivations(db: SqlExecutor, ctx: TenantContext, opts: { as_of?: string; limit?: number } = {}): Promise<{ scanned: number; applied: number }> {
+export async function activateSignedAmendment(db: SqlExecutor, ctx: TenantContext, amendmentContractId: string, opts: { as_of?: string; __failpoint?: string } = {}): Promise<{ activated: boolean; deferred_until: string | null; scheduled: boolean }> {
   requirePermission(ctx, "document.write");
+  const { pickAllowedAmendmentEffects } = await import("./contracts");
+  const asOf = (opts.as_of ?? (new Date().toISOString())).slice(0, 10);
+  const c = await loadContract(db, ctx, amendmentContractId);
+  if (!c.parent_contract_id) throw Errors.validation("Not an amendment");
+  if (c.workflow_status !== "signed") throw Errors.conflict("Amendment is not signed");
+  const row = (await db.query<{ employee_id: string; amendment_effects: Record<string, unknown> | null }>(`select employee_id, amendment_effects from pierre_rt_employee_contracts where company_id=$1 and id=$2`, [ctx.company_id, amendmentContractId])).rows[0];
+  const effects = pickAllowedAmendmentEffects(row?.amendment_effects ?? {});
+  const v = (await db.query<{ effective_from: string | null }>(`select effective_from from pierre_rt_employee_contract_versions where company_id=$1 and contract_id=$2 order by version desc limit 1`, [ctx.company_id, amendmentContractId])).rows[0];
+  const effRaw = (effects["employment.effective_from"] ?? v?.effective_from) as unknown;
+  const eff = effRaw ? dateStr(effRaw) : asOf;
+
+  // idempotent: a recorded activation means it already applied — never apply twice.
+  const already = (await db.query<{ n: number }>(`select count(*)::int n from pierre_rt_contract_audit where company_id=$1 and contract_id=$2 and event='contract.amendment_activated'`, [ctx.company_id, amendmentContractId])).rows[0].n;
+  if (already > 0) return { activated: true, deferred_until: null, scheduled: false };
+
+  if (eff > asOf) {
+    // future → GOVERNED scheduling (relational validation + idempotent). Nothing applied now.
+    await db.transaction(async (tx) => {
+      await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.company_id]);
+      await tx.query(`select * from pierre_rt_schedule_contract_activation($1,$2,$3,$4)`, [ctx.company_id, amendmentContractId, eff, JSON.stringify(effects)]);
+      await emitContractEvent(tx, ctx, "contract.signature_prepared", { contract_id: amendmentContractId, status_after: "signed", reason: `amendment_effect_scheduled_${eff}` });
+    });
+    return { activated: false, deferred_until: eff, scheduled: true };
+  }
+
+  // past/now → ATOMIC application (effects + append-only history + task + audit/outbox).
+  await applyAmendmentActivationAtomic(db, ctx, { amendmentId: amendmentContractId, eff, effects, taskId: null, failpoint: opts.__failpoint });
+  return { activated: true, deferred_until: null, scheduled: false };
+}
+
+// R2.9/R2.11 — the activation WORKER: governed claim (FOR UPDATE SKIP LOCKED, tenant-bound) of due
+// tasks, atomic application per task, governed completion / failure (bounded retry → dead-letter).
+export async function runDueContractActivations(db: SqlExecutor, ctx: TenantContext, opts: { as_of?: string; limit?: number; worker?: string; lease_seconds?: number; __failpoint?: string } = {}): Promise<{ scanned: number; applied: number; dead_lettered: number }> {
+  requirePermission(ctx, "document.write");
+  const { pickAllowedAmendmentEffects } = await import("./contracts");
   const asOf = (opts.as_of ?? (new Date().toISOString())).slice(0, 10);
   const limit = Math.min(opts.limit ?? 50, 200);
-  const due = (await db.query<{ amendment_contract_id: string }>(`select amendment_contract_id from pierre_rt_contract_activation_tasks where company_id=$1 and status='scheduled' and execute_at <= $2 order by execute_at asc limit $3`, [ctx.company_id, asOf, limit])).rows;
-  let applied = 0;
-  for (const t of due) {
-    try { const r = await activateSignedAmendment(db, ctx, t.amendment_contract_id, { as_of: asOf }); if (r.activated) applied += 1; }
-    catch { await db.query(`update pierre_rt_contract_activation_tasks set attempts=attempts+1 where company_id=$1 and amendment_contract_id=$2`, [ctx.company_id, t.amendment_contract_id]); }
+  const worker = opts.worker ?? `activation-worker:${newUuid().slice(0, 8)}`;
+  const lease = Math.max(opts.lease_seconds ?? 60, 1);
+  // 1. CLAIM due tasks atomically (tenant-bound), committing the lease.
+  const claimed = await db.transaction(async (tx) => {
+    await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.company_id]);
+    return (await tx.query<{ id: string; amendment_contract_id: string; execute_at: unknown; effects: Record<string, unknown> }>(
+      `select id, amendment_contract_id, execute_at, effects from pierre_rt_claim_contract_activations($1,$2,$3,$4,$5)`,
+      [ctx.company_id, limit, worker, lease, asOf])).rows;
+  });
+  let applied = 0, deadLettered = 0;
+  for (const t of claimed) {
+    const effects = pickAllowedAmendmentEffects(t.effects);
+    const eff = dateStr(t.execute_at);
+    try {
+      const already = (await db.query<{ n: number }>(`select count(*)::int n from pierre_rt_contract_audit where company_id=$1 and contract_id=$2 and event='contract.amendment_activated'`, [ctx.company_id, t.amendment_contract_id])).rows[0].n;
+      if (already > 0) {
+        // already applied (e.g. by a direct activation) → complete WITH worker ownership, idempotent.
+        await db.transaction(async (tx) => { await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.company_id]); await tx.query(`select pierre_rt_complete_contract_activation($1,$2,$3)`, [ctx.company_id, t.id, worker]); });
+        applied += 1; continue;
+      }
+      await applyAmendmentActivationAtomic(db, ctx, { amendmentId: t.amendment_contract_id, eff, effects, taskId: t.id, worker, failpoint: opts.__failpoint });
+      applied += 1;
+    } catch (e) {
+      // governed failure: bounded retry → dead-letter (WORKER OWNERSHIP required). Error redacted/bounded.
+      const safe = (e instanceof Error ? e.message : "error").replace(/[A-Za-z0-9._-]{24,}/g, "[redacted]").slice(0, 180);
+      await db.transaction(async (tx) => {
+        await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.company_id]);
+        await tx.query(`select pierre_rt_fail_contract_activation($1,$2,$3,$4,$5)`, [ctx.company_id, t.id, worker, safe, ACTIVATION_MAX_ATTEMPTS]);
+      });
+      const st = (await db.query<{ status: string }>(`select status from pierre_rt_contract_activation_tasks where company_id=$1 and id=$2`, [ctx.company_id, t.id])).rows[0];
+      if (st?.status === "dead_letter") deadLettered += 1;
+    }
   }
-  return { scanned: due.length, applied };
+  return { scanned: claimed.length, applied, dead_lettered: deadLettered };
 }

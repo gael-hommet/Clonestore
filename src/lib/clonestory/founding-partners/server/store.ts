@@ -526,6 +526,51 @@ export async function regenerateCredentials(partnerId: string): Promise<string |
   });
 }
 
+// ── Liaison compte CloneStore ↔ partenaire (onboarding seamless) ──────────────
+export type LinkAccountResult = { ok: boolean; reason: "linked" | "already" | "partner_linked_other" | "account_taken" | "partner_not_found" | "invalid" };
+
+/**
+ * Lie DURABLEMENT le compte CloneStore (user.id Supabase) au partenaire. Idempotent et
+ * SANS VOL : un partenaire déjà lié à un AUTRE compte n'est jamais réécrit ; un compte déjà
+ * lié à un AUTRE partenaire est refusé (index unique partiel `uq_csy_partner_account`).
+ * Sûr à rejouer après succès (retry du POST de confirmation).
+ */
+export async function linkPartnerAccount(partnerId: string, accountUserId: string): Promise<LinkAccountResult> {
+  if (!partnerId || !accountUserId) return { ok: false, reason: "invalid" };
+  const db = await getClonestoryDb();
+  return withService(db, async (tx) => {
+    const cur = (await tx.query<{ account_user_id: string | null }>(
+      `select account_user_id::text from clonestory_fp_partners where id = $1`, [partnerId])).rows[0];
+    if (!cur) return { ok: false, reason: "partner_not_found" };
+    if (cur.account_user_id === accountUserId) return { ok: true, reason: "already" };       // idempotent
+    if (cur.account_user_id) return { ok: false, reason: "partner_linked_other" };           // jamais d'écrasement
+    const taken = (await tx.query<{ id: string }>(
+      `select id::text from clonestory_fp_partners where account_user_id = $1 and id <> $2 limit 1`, [accountUserId, partnerId])).rows[0];
+    if (taken) return { ok: false, reason: "account_taken" };                                 // compte pris par un autre partenaire
+    try {
+      await tx.query(`update clonestory_fp_partners set account_user_id = $2, updated_at = now() where id = $1 and account_user_id is null`, [partnerId, accountUserId]);
+    } catch (e) {
+      if (isUniqueViolation(e)) return { ok: false, reason: "account_taken" };                // course → l'index tranche
+      throw e;
+    }
+    return { ok: true, reason: "linked" };
+  });
+}
+
+// ── Statut d'inscription (page d'attente — polling, AUCUNE PII complète) ───────
+export type RegistrationStatus = "pending" | "verified" | "linked";
+export async function getRegistrationStatus(partnerId: string): Promise<{ status: RegistrationStatus; emailMasked: string } | null> {
+  if (!partnerId) return null;
+  const db = await getClonestoryDb();
+  return withService(db, async (tx) => {
+    const r = (await tx.query<{ email: string | null; email_verified_at: string | null; account_user_id: string | null; status: string }>(
+      `select email, email_verified_at, account_user_id::text, status from clonestory_fp_partners where id = $1`, [partnerId])).rows[0];
+    if (!r) return null;
+    const status: RegistrationStatus = r.account_user_id ? "linked" : r.email_verified_at ? "verified" : "pending";
+    return { status, emailMasked: maskEmail(r.email) };
+  });
+}
+
 // ── Mon Registre (lecture MODE MEMBRE) ───────────────────────────────────────
 export interface RegistryView {
   partner: PartnerRow;

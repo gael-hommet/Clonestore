@@ -19,6 +19,8 @@ export type AddSignatureRecipientInput = {
   provider_request_id: string; email: string; name: string; first_name?: string; last_name?: string; role: string;
   signing_order: number; locale?: string; signature_level?: SignatureLevel; auth_method?: string;
   provider_document_id?: string; fields?: SignatureFieldPlacement[];
+  /** R2.2 — real, tenant-safe phone (E.164). Required for otp_sms / AES; null otherwise. */
+  phone_number?: string | null;
 };
 export type ProviderRecipient = { provider_recipient_id: string; email: string; role: string; status: ProviderRecipientStatus; signing_order: number };
 export type ActivateSignatureRequestInput = { provider_request_id: string };

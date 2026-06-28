@@ -13,7 +13,7 @@ import {
   markVerificationUnknown,
   registerPartner,
 } from "@/lib/clonestory/founding-partners/server/store";
-import { readRefCookie } from "@/lib/clonestory/founding-partners/server/session";
+import { readRefCookie, buildStatusToken } from "@/lib/clonestory/founding-partners/server/session";
 import { renderVerificationEmail, sendClonestoryEmail } from "@/lib/clonestory/founding-partners/server/emails";
 import {
   assertClonestoryRegistrationReady,
@@ -113,5 +113,8 @@ export async function POST(req: Request) {
     }
   }
 
-  return ok(devVerifyUrl ? { devVerifyUrl } : undefined);
+  // Jeton de consultation du STATUT (page d'attente). Présent pour TOUTE tentative réelle
+  // (nouvelle OU réinscription) → ne révèle jamais si l'adresse existe déjà.
+  const statusToken = buildStatusToken(result.partnerId);
+  return ok({ statusToken, ...(devVerifyUrl ? { devVerifyUrl } : {}) });
 }

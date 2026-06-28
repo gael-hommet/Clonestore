@@ -43,6 +43,7 @@ import {
 
 import { LiquidGlass } from "@/components/ui/LiquidGlass";
 import { AGENTS } from "@/lib/agent-catalog";
+import PierreInboxPanel from "./PierreInboxPanel";
 import { getSessionClient } from "@/lib/auth/session-client";
 import { useAuthGate } from "@/lib/auth/useAuthGate";
 import { cn } from "@/lib/utils";
@@ -1897,6 +1898,8 @@ export default function ProfileMessagesPage() {
     <main className="cs-page">
       <div className="cs-page-shell">
         <div className="space-y-5">
+          {/* PHASE 8.4-R1.11 — real authenticated P8.4 inbox (recipient-only, mark-read/archive) */}
+          <PierreInboxPanel />
           {/* Hero */}
           <section className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>

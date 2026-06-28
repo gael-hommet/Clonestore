@@ -98,13 +98,13 @@ describe("B3-R1.15 real Yousign v3 HTTP contract", () => {
     const m = mock(() => ({ json: { id: "signer_1", status: "initiated" } }));
     const p = provider(m.fetch);
     const field = { type: "signature" as const, document_id: "doc_42", page: 1, x: 70, y: 120, width: 180, height: 60 };
-    const r = await p.addRecipient({ provider_request_id: "sr_1", email: "ada@acme.test", name: "Ada Lovelace", first_name: "Ada", last_name: "Lovelace", role: "employee", signing_order: 1, locale: "fr", signature_level: "qualified_provider_managed", auth_method: "otp_sms", provider_document_id: "doc_42", fields: [field] });
+    // SES (simple) — the standard tier: electronic_signature + no_otp, no phone needed.
+    const r = await p.addRecipient({ provider_request_id: "sr_1", email: "ada@acme.test", name: "Ada Lovelace", first_name: "Ada", last_name: "Lovelace", role: "employee", signing_order: 1, locale: "fr", signature_level: "simple", auth_method: "no_otp", provider_document_id: "doc_42", fields: [field] });
     expect(r.provider_recipient_id).toBe("signer_1");
     const body = JSON.parse(m.calls[0].body as string);
     expect(body.info).toMatchObject({ first_name: "Ada", last_name: "Lovelace", email: "ada@acme.test", locale: "fr" });
-    // qualified → qualified_electronic_signature (NEVER hardcoded electronic_signature)
-    expect(body.signature_level).toBe("qualified_electronic_signature");
-    expect(body.signature_authentication_mode).toBe("otp_sms");
+    expect(body.signature_level).toBe("electronic_signature");
+    expect(body.signature_authentication_mode).toBe("no_otp");
     expect(body.fields).toHaveLength(1);
     expect(body.fields[0]).toMatchObject({ type: "signature", document_id: "doc_42", page: 1 });
     // fail-closed: a signer with no document id or no fields is refused before any HTTP call
@@ -112,16 +112,21 @@ describe("B3-R1.15 real Yousign v3 HTTP contract", () => {
     await expect(p.addRecipient({ provider_request_id: "sr_1", email: "x@y.z", name: "X", role: "employee", signing_order: 1, provider_document_id: "doc_42" } as never)).rejects.toThrow(/signature field/i);
   });
 
-  it("signature levels map distinctly (simple vs advanced vs qualified)", async () => {
-    const seen: string[] = [];
-    const m = mock((c) => { if (c.url.endsWith("/signers")) seen.push(JSON.parse(c.body as string).signature_level); return { json: { id: "s", status: "initiated" } }; });
-    const p = provider(m.fetch);
+  it("signature levels map distinctly (SES vs AES vs QES) with their exact security", async () => {
+    const seen: Array<{ level: string; auth: string | undefined; phone: string | undefined }> = [];
+    const m = mock((c) => { if (c.url.endsWith("/signers")) { const b = JSON.parse(c.body as string); seen.push({ level: b.signature_level, auth: b.signature_authentication_mode, phone: b.info?.phone_number }); } return { json: { id: "s", status: "initiated" } }; });
+    // AES + QES capabilities enabled for this provider instance
+    const p = new YousignSignatureProvider({ apiUrl: API, apiKey: KEY, webhookSecret: WH, fetch: m.fetch, aesEnabled: true, qesEnabled: true });
     const f = [{ type: "signature" as const, document_id: "doc", page: 1, x: 1, y: 1, width: 1, height: 1 }];
     const base = { provider_request_id: "sr_1", email: "a@b.c", name: "A B", role: "employee", signing_order: 1, provider_document_id: "doc", fields: f };
-    await p.addRecipient({ ...base, signature_level: "simple" });
-    await p.addRecipient({ ...base, signature_level: "advanced_provider_managed" });
-    await p.addRecipient({ ...base, signature_level: "qualified_provider_managed" });
-    expect(seen).toEqual(["electronic_signature", "advanced_electronic_signature", "qualified_electronic_signature"]);
+    await p.addRecipient({ ...base, signature_level: "simple", auth_method: "no_otp" });
+    await p.addRecipient({ ...base, signature_level: "advanced_provider_managed", auth_method: "otp_sms", phone_number: "+33612345678" });
+    await p.addRecipient({ ...base, signature_level: "qualified_provider_managed" }); // QES: no auth mode
+    expect(seen[0]).toEqual({ level: "electronic_signature", auth: "no_otp", phone: undefined });
+    expect(seen[1]).toEqual({ level: "advanced_electronic_signature", auth: "otp_sms", phone: "+33612345678" });
+    // QES: the authentication mode field is OMITTED entirely
+    expect(seen[2].level).toBe("qualified_electronic_signature");
+    expect(seen[2].auth).toBeUndefined();
   });
 
   it("downloadSignedDocument → GET version=completed (NOT signed); rejects HTML/JSON-as-PDF + non-%PDF bytes", async () => {

@@ -76,9 +76,18 @@ evidence_downloaded / signed_document_stored / completed`, plus the contract `co
 and `contract.amendment_activated`. Deterministic dedup keys; no secrets, payloads, document
 bytes or unnecessary PII in audit/outbox.
 
+## B3-R2 security closure
+
+The signer security (SES/AES/QES), tenant binding of the `SECURITY DEFINER` functions, the
+production provider registry, the governed evidence write, and the governed/atomic amendment
+activation are documented in `PHASE_8_3_B3_R2_SIGNATURE_SECURITY_CLOSURE.md`. Operational config
+(capabilities, provider registry, activation worker) is in
+`PHASE_8_3_B3_PROVIDER_ACTIVATION_RUNBOOK.md`.
+
 ## External limits (honest)
 
 The live provider call is exercised ONLY by the opt-in smoke (`check:p83-b3-live-signature`,
 gated by `CLONESTORE_SIGNATURE_LIVE_SMOKE_ENABLED=true`). Without it, the provider runtime is
-proven locally against the deterministic Fake + the real Yousign adapter's request shaping;
-**the live provider is NOT executed** and is never declared validated.
+proven locally against the deterministic Fake + the real Yousign adapter's request shaping (strict
+HTTP mock for the SES/AES/QES matrix); **the live provider is NOT executed** and is never declared
+validated. PGlite is single-connection → worker concurrency proofs are logical-local.
