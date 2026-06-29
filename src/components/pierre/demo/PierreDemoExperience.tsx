@@ -284,8 +284,14 @@ export function PierreDemoExperience() {
       </div>
 
       {/* ── Document drawer ───────────────────────────────────────────────── */}
-      <DemoDrawer open={openDoc !== null} title={openDoc?.title ?? ""} onClose={() => setOpenDocId(null)}>
-        {openDoc ? <DemoDocumentViewer doc={openDoc} /> : null}
+      <DemoDrawer
+        open={openDoc !== null}
+        title={openDoc?.title ?? ""}
+        onClose={() => setOpenDocId(null)}
+        scrollResetKey={openDoc ? `${scenarioId}:${openDoc.id}` : null}
+      >
+        {/* key forces a fresh subtree per document so it always opens at the top */}
+        {openDoc ? <DemoDocumentViewer key={`${scenarioId}:${openDoc.id}`} doc={openDoc} /> : null}
       </DemoDrawer>
     </div>
   );
