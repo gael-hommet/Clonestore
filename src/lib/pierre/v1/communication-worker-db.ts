@@ -39,6 +39,8 @@ const globalForWorkerPool = globalThis as unknown as { __pierreCommWorkerPool?: 
  * `set local role pierre_rt_communication_worker` against the real grants).
  */
 export async function createCommunicationWorkerExecutor(): Promise<SqlExecutor> {
+  const { isE2ETestRuntime } = await import("./db");
+  if (isE2ETestRuntime()) { const { getTestRuntimeDb } = await import("./test-runtime-db"); return getTestRuntimeDb(); }
   const url = getCommunicationWorkerDatabaseUrl();
   if (!url) throw new CommunicationWorkerDbError("communication worker database is not configured (PIERRE_COMMUNICATION_WORKER_DATABASE_URL)");
   const pg = await import("pg");

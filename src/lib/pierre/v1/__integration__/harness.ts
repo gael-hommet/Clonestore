@@ -58,6 +58,27 @@ function wrap(pg: PGlite): SqlExecutor {
   return exec;
 }
 
+/**
+ * PHASE 8.6 — bring a harness company to the product-access decision `allowed` via the minimal real state
+ * the gate reads: an ACTIVE product entitlement + a COMPLETED onboarding session. Route-handler suites
+ * that exercise the real handlers (now product-gated) must establish this precondition — the gate is never
+ * relaxed for tests; the fixture is brought up to a genuinely-entitled, onboarded company instead.
+ */
+export async function provisionActiveCompany(h: Harness, companyId: string): Promise<void> {
+  await h.pg.query(
+    `insert into pierre_rt_product_entitlements (id, company_id, product_key, status, source_type, starts_at)
+       values (gen_random_uuid(), $1, 'pierre', 'active', 'operator_activation', now())
+       on conflict do nothing`,
+    [companyId],
+  );
+  await h.pg.query(
+    `insert into pierre_rt_onboarding_sessions (id, company_id, product_key, status, progress_percent, completed_at)
+       values (gen_random_uuid(), $1, 'pierre', 'completed', 100, now())
+       on conflict do nothing`,
+    [companyId],
+  );
+}
+
 export async function createHarness(): Promise<Harness> {
   const pg = await PGlite.create();
   for (const sql of migrationSql()) await pg.exec(sql);

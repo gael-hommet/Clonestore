@@ -51,7 +51,9 @@ describe("§10 contract routes / api layer", () => {
     expect(files.length).toBeGreaterThanOrEqual(10);
     for (const f of files) {
       const src = readFileSync(f, "utf8");
-      expect(src).toContain("withTenant(req,");           // tenant resolved server-side
+      // PHASE 8.6 — tenant resolved server-side via a thin wrapper: withProductAccess (product-gated) or
+      // withTenant. Either way the tenant is never trusted from the body.
+      expect(src, `${f} must use a server-side tenant wrapper`).toMatch(/with(ProductAccess|Tenant)\(req,/);
       expect(src).not.toMatch(/company_id\s*:\s*b\./);    // never an authoritative company_id from the body
       expect(src).not.toMatch(/getRuntimeDb|insert into|update pierre_rt/i); // routes never touch the DB directly
     }

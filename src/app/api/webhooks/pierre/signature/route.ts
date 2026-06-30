@@ -7,12 +7,19 @@
 import { NextResponse } from "next/server";
 import { createWebhookExecutor, WebhookError } from "@/lib/pierre/v1/signature-webhooks";
 import { receiveSignatureWebhook } from "@/lib/pierre/v1/signatures";
-import { getSignatureWebhookSecret, resolveWebhookProvider } from "@/lib/pierre/v1/signature-provider-config";
+import { getSignatureWebhookSecret, resolveWebhookProvider, isLiveSignatureConfigured, isProductionNodeEnv } from "@/lib/pierre/v1/signature-provider-config";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
+    // Fail-CLOSED (not a 500 crash) when no live signature provider is configured in production: an
+    // unconfigured provider is an expected "service unavailable" state → 503, consistent with the
+    // missing-secret branch below and the communications webhook. resolveWebhookProvider would otherwise
+    // throw a plain Error here, which the catch turns into a 500.
+    if (isProductionNodeEnv() && !isLiveSignatureConfigured()) {
+      return NextResponse.json({ error: { code: "webhook_unconfigured", message: "signature provider not configured" } }, { status: 503 });
+    }
     // R1.8 — the provider is NEVER freely chosen by the request header in production: it must
     // match the configured live provider (resolveWebhookProvider fails-closed). The header is
     // only honoured in test/dev.

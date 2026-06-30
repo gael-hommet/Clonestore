@@ -38,6 +38,8 @@ const globalForWebhookPool = globalThis as unknown as { __pierreCommWebhookPool?
  * signature ingress role, the service role, or the application role.
  */
 export async function createCommunicationWebhookExecutor(): Promise<SqlExecutor> {
+  const { isE2ETestRuntime } = await import("./db");
+  if (isE2ETestRuntime()) { const { getTestRuntimeDb } = await import("./test-runtime-db"); return getTestRuntimeDb(); }
   const url = getCommunicationWebhookDatabaseUrl();
   if (!url) throw new CommunicationWebhookDbError("communication webhook database is not configured (PIERRE_COMMUNICATION_WEBHOOK_DATABASE_URL)");
   const pg = await import("pg");

@@ -9,7 +9,7 @@ import { resolve } from "path";
 const MIG = resolve(process.cwd(), "supabase/migrations");
 const FILES = readdirSync(MIG).filter((f) => f.endsWith(".sql") && f.includes("pierre_v")).sort();
 const V21 = FILES.find((f) => f.includes("pierre_v21"))!;
-const upToV20 = FILES.filter((f) => !f.includes("pierre_v21"));
+const upToV20 = FILES.filter((f) => f < V21); // strictly before v21 (excludes v21 + v22+)
 
 let pg: PGlite;
 beforeAll(async () => { pg = await PGlite.create(); for (const f of upToV20) await pg.exec(readFileSync(resolve(MIG, f), "utf-8")); });
@@ -17,8 +17,8 @@ afterAll(async () => { await pg.close(); });
 const has = async (sql: string) => ((await pg.query<{ n: number }>(sql)).rows[0].n > 0);
 
 describe("R1.16 v21 migration truth", () => {
-  it("v21 is the last migration and applies on v1→v20", async () => {
-    expect(FILES[FILES.length - 1]).toContain("pierre_v21");
+  it("v21 applies on v1→v20", async () => {
+    expect(V21).toBeTruthy();
     await expect(pg.exec(readFileSync(resolve(MIG, V21), "utf-8"))).resolves.not.toThrow();
   });
 

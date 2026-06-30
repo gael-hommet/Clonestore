@@ -1,7 +1,7 @@
 // PHASE 8.3-B2G-R1.9 — exercise the REAL Next.js route handlers (POST/GET), with auth + runtime
 // DB injected, proving 401/403/404/200, forged-tenant rejection and forged-body-company ignored.
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { createHarness, type Harness } from "./harness";
+import { createHarness, provisionActiveCompany, type Harness } from "./harness";
 import { newUuid, type SqlExecutor } from "../sql";
 import { seedEmployee } from "./b2g-helpers";
 
@@ -19,6 +19,10 @@ let h: Harness; let emp: string; let userC: string;
 beforeEach(async () => {
   h = await createHarness();
   mockDb = h.db;
+  // PHASE 8.6 — the real handlers are now product-gated; bring both tenants to an active+onboarded
+  // entitlement so the gate permits (RBAC/tenant checks remain the assertions under test).
+  await provisionActiveCompany(h, h.companyA);
+  await provisionActiveCompany(h, h.companyB);
   emp = await seedEmployee(h, h.companyA);
   // a low-privilege member of company A (no document.write) for the permission case
   userC = newUuid();

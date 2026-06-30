@@ -52,8 +52,20 @@ function singletonPool(): Pool {
   return globalForPool.__pierreRuntimePool;
 }
 
-/** Production runtime executor over the shared pool. */
+/** True when the deterministic LOCAL E2E test DB is enabled (never in production). */
+export function isE2ETestRuntime(): boolean {
+  return process.env.PIERRE_E2E_TEST_MODE === "1" && process.env.NODE_ENV !== "production";
+}
+
+/** Production runtime executor over the shared pool. In deterministic LOCAL E2E mode
+ *  (PIERRE_E2E_TEST_MODE=1, non-production) it is backed by an in-process PGlite instead — the genuine
+ *  governed schema on a real Postgres engine, with NO Docker / system Postgres / Supabase. Fail-closed:
+ *  the test branch refuses to load in production. */
 export async function getRuntimeDb(): Promise<SqlExecutor> {
+  if (isE2ETestRuntime()) {
+    const { getTestRuntimeDb } = await import("./test-runtime-db");
+    return getTestRuntimeDb();
+  }
   return createPgExecutor(singletonPool());
 }
 

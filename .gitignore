@@ -93,3 +93,17 @@ tmp-clonestory-*.mjs
 
 .vercel
 .env*
+
+# PHASE 8.7.2 — live infrastructure proofs + generated secrets/DSNs (NEVER commit; redacted reports only)
+.p87-proofs/
+p87-secrets.local.*
+p87-dsn-manifest.local.*
+.env.p87-runtime.local
+.validation-logs/
+p87-step2-results.txt
+p87-step3-results.txt
+p87-validation-results.txt
+.p87-activate.log
+.p87-check.log
+tmp-clonestory-*.mjs
+.vercel-prod-pull.env

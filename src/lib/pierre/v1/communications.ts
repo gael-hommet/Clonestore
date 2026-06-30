@@ -12,6 +12,7 @@ import { Errors } from "./errors";
 import type { TenantContext } from "./tenant-context";
 import { requirePermission } from "./rbac";
 import { sha256 } from "./renderers";
+import { emitRuntimeEvent } from "./runtime-event-bus";
 import { classifyCommunicationEvent, isMandatoryCategory, type CommunicationEventPolicy, type CommunicationChannel } from "./communication-event-registry";
 import { resolveCommunicationRecipient } from "./communication-recipient-resolver";
 import { renderCommunication } from "./communication-template-registry";
@@ -30,6 +31,7 @@ async function commAudit(db: SqlExecutor, ctx: TenantContext, action: string, de
 }
 
 function objectRefForEvent(eventKind: string, payload: Record<string, unknown>): { objectType: string; objectId: string | null } {
+  if (eventKind === "member.invited") return { objectType: "invitation", objectId: (payload.invitation_id as string) ?? null };
   if (eventKind.startsWith("contract.")) return { objectType: "contract", objectId: (payload.contract_id as string) ?? null };
   if (eventKind.startsWith("document.")) return { objectType: "document", objectId: (payload.document_id as string) ?? null };
   if (eventKind === "signature.completed" || eventKind.startsWith("signature.")) return { objectType: "signature_request", objectId: (payload.signature_request_id as string) ?? null };
@@ -119,7 +121,11 @@ export async function createCommunicationIntents(db: SqlExecutor, ctx: TenantCon
     for (const channel of channels) {
       const deliveryId = newUuid();
       const idem = sha256(Buffer.from(`${ctx.company_id}:${intentId}:${recipientId}:${channel}`));
-      const actionPath = buildActionPathFor(ctx.company_id, objectType, reso.document_id, linkSecret, reso.recipient.resolved_user_id);
+      // PHASE 8.6 — an invitation's action path is the accept link carrying the (governed, internal) token;
+      // it comes from the outbox payload, never from a business object. Every other object uses the secure link.
+      const actionPath = objectType === "invitation"
+        ? String((payload.link as string) ?? `/invite/accept#token=${(payload.token as string) ?? ""}`)
+        : buildActionPathFor(ctx.company_id, objectType, reso.document_id, linkSecret, reso.recipient.resolved_user_id);
       const variables = { object_label: reso.object_label || "Notification", action_path: actionPath };
       const { rendered, templateVersion } = renderCommunication({ templateKey: policy.templateKey, locale: "fr", variables, publicBase: base });
       const isEmail = channel === "email";
@@ -248,6 +254,20 @@ export async function dispatchCommunicationDeliveries(db: SqlExecutor, ctx: Tena
           failpoint(deps, "before_internal_complete");
           await tx.query(`select pierre_rt_record_communication_attempt($1,$2,$3,$4,$5,$6,$7,$8,$9)`, [ctx.company_id, d.id, worker, "in_app", mid, ctxData.content_hash, "delivered", null, null]);
           await tx.query(`select pierre_rt_complete_internal_delivery($1,$2,$3,$4,$5)`, [ctx.company_id, d.id, worker, mid, ctxData.content_hash]);
+          // P8.5-FINAL §5 — the REAL P8.4 terminal transition (in-app message persisted + delivered) emits
+          // a durable runtime event IN THIS TRANSACTION. It is keyed to the real delivery (idempotent) and
+          // resumes a wait bound to the communication intent — a 'submitted' email never triggers this.
+          await emitRuntimeEvent(tx, ctx, {
+            source: "p84_communication",
+            event_key: `comm:${d.id}:delivered`,
+            kind: "communication.delivered",
+            object_type: "communication_delivery",
+            object_id: d.id,
+            payload_hash: sha256(Buffer.from(`comm:${d.id}:delivered:${ctxData.content_hash}`)),
+            // a plan waits for the communication ABOUT a business object it knows (object_type 'communication',
+            // object_id = the intent's business object); the delivery-keyed event resolves that wait.
+            resolve: ctxData.object_id ? { event_kind: "communication.delivered", object_type: "communication", object_id: ctxData.object_id } : null,
+          });
           return mid;
         });
         await commAudit(db, ctx, "communication.delivered", { delivery_id: d.id, channel: "in_app", message_id: messageId });
@@ -450,6 +470,23 @@ export async function applyPendingCommunicationEvents(db: SqlExecutor, ctx: Tena
     res.processed += 1;
     const outcome = await withTenant(db, ctx, async (tx) => (await tx.query<{ apply: string }>(`select pierre_rt_apply_communication_provider_event($1,$2) as apply`, [ctx.company_id, ev.id])).rows[0].apply);
     if (outcome === "applied") res.applied += 1; else if (outcome === "unknown") res.unknown += 1; else res.ignored += 1;
+    // P8.5-FINAL §5 — bridge the REAL P8.4 email terminal transition into a durable runtime event. A
+    // provider-confirmed 'delivered' resumes a communication wait; a bounce/complaint/failure is recorded
+    // (resolve=null) for escalation and never auto-resumes a 'communication.delivered' wait.
+    if (outcome === "applied" && ev.delivery_id) {
+      const drow = (await db.query<{ business_object_id: string | null; status: string }>(`select i.object_id as business_object_id, d.status from pierre_rt_communication_deliveries d join pierre_rt_communication_intents i on i.company_id=d.company_id and i.id=d.intent_id where d.company_id=$1 and d.id=$2`, [ctx.company_id, ev.delivery_id])).rows[0];
+      if (drow && ["delivered", "bounced", "complained", "failed"].includes(drow.status)) {
+        await withTenant(db, ctx, (tx) => emitRuntimeEvent(tx, ctx, {
+          source: "p84_communication",
+          event_key: `comm:${ev.delivery_id}:${drow.status}`,
+          kind: `communication.${drow.status}`,
+          object_type: "communication_delivery",
+          object_id: ev.delivery_id!,
+          payload_hash: sha256(Buffer.from(`comm:${ev.delivery_id}:${drow.status}`)),
+          resolve: drow.status === "delivered" && drow.business_object_id ? { event_kind: "communication.delivered", object_type: "communication", object_id: drow.business_object_id } : null,
+        }));
+      }
+    }
     // on bounce/complaint → record a suppression for the recipient address (governed)
     if (ev.delivery_id && (ev.event_type === "email.bounced" || ev.event_type === "email.complained")) {
       const addr = (await db.query<{ resolved_email: string | null }>(`select r.resolved_email from pierre_rt_communication_deliveries d join pierre_rt_communication_recipients r on r.company_id=d.company_id and r.id=d.recipient_id where d.company_id=$1 and d.id=$2`, [ctx.company_id, ev.delivery_id])).rows[0];

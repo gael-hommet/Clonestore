@@ -89,6 +89,12 @@ reg({ key: "task.notification", version: "1", locale: "fr", variables: ["object_
     action: { label: "Ouvrir", path: v.action_path },
     in_app_title: `Notification`, in_app_body: `${v.object_label}` }) });
 
+reg({ key: "member.invited", version: "1", locale: "fr", variables: ["object_label", "action_path"],
+  build: (v) => ({ subject: `Invitation à rejoindre l'espace Pierre`, greeting: "Bonjour,",
+    paragraphs: ["Vous avez été invité(e) à rejoindre un espace de travail Pierre.", "Cliquez sur le lien sécurisé ci-dessous pour accepter l'invitation et créer votre accès."],
+    action: { label: "Accepter l'invitation", path: v.action_path },
+    in_app_title: `Invitation à rejoindre`, in_app_body: `Vous avez été invité(e) à rejoindre un espace Pierre.` }) });
+
 export function getCommunicationTemplate(key: string, locale = "fr"): CommunicationTemplate | null {
   return REGISTRY[`${key}@${locale}`] ?? REGISTRY[`${key}@fr`] ?? null;
 }

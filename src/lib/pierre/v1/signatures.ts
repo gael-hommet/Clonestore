@@ -18,6 +18,7 @@ import { mapProviderEventToCanonical, requestStatusForEvent, contractStatusForEv
 import { createUploadIntent, finalizeUpload, type FileRow } from "./files";
 import { getFileStorageProvider, type FileStorageProvider } from "./file-storage";
 import { createVersion } from "./documents";
+import { emitRuntimeEvent } from "./runtime-event-bus";
 import { sha256 } from "./renderers";
 
 export type SignatureDeps = { provider?: SignatureProvider; storage?: FileStorageProvider; scanner?: import("./file-scan").FileScanProvider; now?: string; __failpoint?: string };
@@ -312,6 +313,20 @@ async function applyOneEvent(db: SqlExecutor, ctx: TenantContext, eventId: strin
         await tx.query(`update pierre_rt_signature_requests set status=$3, provider_status=$3, last_provider_event_at=now(), updated_at=now() where company_id=$1 and id=$2`, [ctx.company_id, requestId, reqStatus]);
         const cs = contractStatusForEvent(canonical);
         if (cs) await applyContractStatus(tx, ctx, requestId, cs);
+        // P8.5-FINAL §4 — a NON-completed terminal transition (declined/expired/cancelled/failed) emits a
+        // RECORD-ONLY durable runtime event (resolve=null): it is observable by the runtime/operator but
+        // NEVER auto-resumes the signature wait (which only resolves on a real completion).
+        if (["declined", "expired", "cancelled", "failed"].includes(reqStatus)) {
+          await emitRuntimeEvent(tx, ctx, {
+            source: "p83_signature",
+            event_key: `sig:${requestId}:${reqStatus}`,
+            kind: `signature.${reqStatus}`,
+            object_type: "signature_request",
+            object_id: requestId,
+            payload_hash: sha256(Buffer.from(`sig:${requestId}:${reqStatus}`)),
+            resolve: null,
+          });
+        }
       }
     }
     await tx.query(`update pierre_rt_signature_events set application_status='applied', canonical_event=$3, event_rank=$4, applied_at=now() where company_id=$1 and id=$2`, [ctx.company_id, eventId, canonical, incomingRank]);
@@ -424,6 +439,19 @@ export async function finalizeSignedContract(db: SqlExecutor, ctx: TenantContext
       await emitSignatureEvent(tx, ctx, "signature.evidence_downloaded", { request_id: requestId, provider: lsr.provider, provider_request_id: lsr.provider_request_id, document_id: lsr.document_id, detail: { evidence_count: evidenceFiles.length } });
       await emitSignatureEvent(tx, ctx, "signature.signed_document_stored", { request_id: requestId, document_id: lsr.document_id, status: "completed", detail: { signed_hash: signedHash.slice(0, 16) } });
       await emitSignatureEvent(tx, ctx, "signature.completed", { request_id: requestId, provider: lsr.provider, provider_request_id: lsr.provider_request_id, document_id: lsr.document_id, status: "completed" });
+      // P8.5-FINAL §4 — the REAL P8.3 terminal transition emits a durable runtime event IN THIS
+      // TRANSACTION (never a later poll of completed requests). It resumes the durable signature wait
+      // bound to the real signature_request_id; the runtime never imports the provider adapter.
+      await emitRuntimeEvent(tx, ctx, {
+        source: "p83_signature",
+        event_key: `sig:${requestId}:completed`,
+        kind: "signature.completed",
+        object_type: "signature_request",
+        object_id: requestId,
+        payload_hash: signedHash,
+        provider_event_id: lsr.provider_request_id ?? null,
+        resolve: { event_kind: "signature.completed", object_type: "signature_request", object_id: requestId },
+      });
       failpoint(deps, "before_commit");
 
       // the contract version → signed; the contract → signed; signed_at

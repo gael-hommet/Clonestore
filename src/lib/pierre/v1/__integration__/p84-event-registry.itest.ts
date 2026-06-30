@@ -30,9 +30,18 @@ describe("P8.4.1 communication event registry", () => {
     expect(isMandatoryCategory("optional")).toBe(false);
     expect(isMandatoryCategory("operational")).toBe(false);
   });
-  it("every communicable policy has a required in_app channel and a template", () => {
+  it("every communicable policy guarantees a delivery channel and a template", () => {
+    // PHASE 8.6 — internal-recipient policies guarantee in_app (the member's inbox). An EXTERNAL-recipient
+    // policy (an invitee who is not yet a member, e.g. member.invited via the `invited_email` strategy) has
+    // no in-app inbox, so it guarantees email instead. Every communicable policy still guarantees at least
+    // one required channel + a real template + bounded attempts.
     for (const p of allCommunicablePolicies()) {
-      expect(p.requiredChannels).toContain("in_app");
+      if (p.recipientStrategy === "invited_email") {
+        expect(p.requiredChannels).toContain("email");
+      } else {
+        expect(p.requiredChannels).toContain("in_app");
+      }
+      expect(p.requiredChannels.length).toBeGreaterThan(0);
       expect(p.templateKey.length).toBeGreaterThan(0);
       expect(p.maxAttempts).toBeGreaterThan(0);
     }

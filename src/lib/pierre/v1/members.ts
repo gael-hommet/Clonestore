@@ -102,6 +102,7 @@ export async function createInvitation(db: SqlExecutor, ctx: TenantContext, inpu
           expires_at = now() + ($6 || ' days')::interval where company_id = $1 and id = $2 returning id, email, status, expires_at`,
       [ctx.company_id, id, tokenHash, roles, siteIds, String(expiresDays)]);
     await audit(db, ctx.company_id, ctx.user_id, "invitation", id, "invitation_reissued");
+    await emitInvitationCommunication(db, ctx, { invitation_id: id, email, raw, tokenHash, roles });
     return { ...rows[0], expires_at: isoOf(rows[0].expires_at), raw_token: raw, idempotent: true };
   }
 
@@ -112,7 +113,27 @@ export async function createInvitation(db: SqlExecutor, ctx: TenantContext, inpu
      returning id, email, status, expires_at`,
     [id, ctx.company_id, email, tokenHash, roles, siteIds, ctx.user_id, String(expiresDays)]);
   await audit(db, ctx.company_id, ctx.user_id, "invitation", id, "invitation_created");
+  await emitInvitationCommunication(db, ctx, { invitation_id: id, email, raw, tokenHash, roles });
   return { ...rows[0], expires_at: isoOf(rows[0].expires_at), raw_token: raw, idempotent: false };
+}
+
+/**
+ * PHASE 8.6 — emit the REAL P8.4 communication for an invitation: a `member.invited` outbox business
+ * event carrying the recipient email + the raw token + the accept link in its GOVERNED, internal payload.
+ * The token never leaves through the client API — it flows ONLY into the outbox, then to the communication
+ * worker, then to the email provider (which delivers/records it). The accept link the invitee receives is
+ * the single carrier of the token. The dedup_key + payload version make each (re)issue a distinct delivery.
+ */
+async function emitInvitationCommunication(
+  db: SqlExecutor, ctx: TenantContext,
+  p: { invitation_id: string; email: string; raw: string; tokenHash: string; roles: string[] },
+): Promise<void> {
+  const link = `/invite/accept#token=${p.raw}`;
+  const payload = { invitation_id: p.invitation_id, email: p.email, token: p.raw, link, roles: p.roles, version: p.tokenHash.slice(0, 18) };
+  await db.query(
+    `insert into pierre_rt_outbox (id, company_id, kind, payload, dedup_key)
+       values ($1,$2,'member.invited',$3,$4) on conflict (company_id, dedup_key) do nothing`,
+    [newUuid(), ctx.company_id, JSON.stringify(payload), `member.invited:${p.invitation_id}:${p.tokenHash.slice(0, 16)}`]);
 }
 
 export async function resendInvitation(db: SqlExecutor, ctx: TenantContext, invitationId: string): Promise<InvitationResult> {

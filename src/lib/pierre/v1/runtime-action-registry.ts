@@ -1,0 +1,118 @@
+// src/lib/pierre/v1/runtime-action-registry.ts
+// PHASE 8.5 §8 — the CANONICAL, CLOSED runtime action registry. A runtime step NEVER carries a free
+// executable instruction: it carries an action drawn from THIS server registry. An action absent from
+// the registry is never executed — it blocks the plan and is signalled. There is no generic
+// database.query / http.request / run_code / execute_prompt / arbitrary_tool action. A free policy or
+// "safe" flag supplied by the client is ignored: the server policy here is authoritative.
+
+export type RuntimeActionCategory =
+  | "read" | "prepare" | "approval" | "communication" | "document" | "signature" | "wait" | "schedule" | "state_transition";
+export type RuntimeActionRisk = "read_only" | "low" | "controlled" | "sensitive" | "prohibited";
+export type RuntimeExecutionMode = "automatic" | "automatic_after_policy" | "human_approval_required" | "manual_only";
+export type AmbiguousFailurePolicy = "reconcile" | "manual_review" | "never_retry";
+export type CompensationStrategy = "none" | "local_rollback" | "external_reconciliation" | "manual";
+
+export type RuntimeActionDefinition = {
+  actionKey: string;
+  version: string;
+  category: RuntimeActionCategory;
+  risk: RuntimeActionRisk;
+  executionMode: RuntimeExecutionMode;
+  /** lightweight server-side validation of the typed input payload (no free fields). */
+  validateInput: (payload: Record<string, unknown>) => string[];
+  requiredPermission: string | null;
+  requiredObjectTypes: string[];
+  idempotencyStrategy: string;
+  timeoutSeconds: number;
+  maxAttempts: number;
+  canRetryAutomatically: boolean;
+  ambiguousFailurePolicy: AmbiguousFailurePolicy;
+  compensationStrategy: CompensationStrategy;
+  /** the runtime_event kinds an action of this category may legitimately wait on. */
+  allowedWaitEvents: string[];
+};
+
+const isUuid = (v: unknown): v is string => typeof v === "string" && /^[0-9a-fA-F-]{36}$/.test(v);
+const isStr = (v: unknown): v is string => typeof v === "string" && v.length > 0;
+
+function def(p: Partial<RuntimeActionDefinition> & { actionKey: string; category: RuntimeActionCategory; risk: RuntimeActionRisk }): RuntimeActionDefinition {
+  return {
+    version: "1",
+    executionMode: "automatic",
+    validateInput: () => [],
+    requiredPermission: null,
+    requiredObjectTypes: [],
+    idempotencyStrategy: "step_run_id",
+    timeoutSeconds: 60,
+    maxAttempts: 5,
+    canRetryAutomatically: true,
+    ambiguousFailurePolicy: "manual_review",
+    compensationStrategy: "none",
+    allowedWaitEvents: [],
+    ...p,
+  };
+}
+
+// ── the closed registry ─────────────────────────────────────────────────────────────
+const REGISTRY: Record<string, RuntimeActionDefinition> = {
+  // structural / state
+  "mission.noop": def({ actionKey: "mission.noop", category: "read", risk: "read_only", canRetryAutomatically: false }),
+  "mission.complete": def({ actionKey: "mission.complete", category: "state_transition", risk: "low", canRetryAutomatically: false }),
+  "mission.block": def({ actionKey: "mission.block", category: "state_transition", risk: "low", canRetryAutomatically: false,
+    validateInput: (p) => (isStr(p.blocker_code) ? [] : ["blocker_code required"]) }),
+
+  // reads (governed services, read-only)
+  "employee.read": def({ actionKey: "employee.read", category: "read", risk: "read_only", requiredPermission: "employee.read", requiredObjectTypes: ["employee"], canRetryAutomatically: false,
+    validateInput: (p) => (isUuid(p.employee_id) ? [] : ["employee_id (uuid) required"]) }),
+  "contract.read": def({ actionKey: "contract.read", category: "read", risk: "read_only", requiredPermission: "document.read", requiredObjectTypes: ["contract"], canRetryAutomatically: false,
+    validateInput: (p) => (isUuid(p.contract_id) ? [] : ["contract_id (uuid) required"]) }),
+  "document.read": def({ actionKey: "document.read", category: "read", risk: "read_only", requiredPermission: "document.read", requiredObjectTypes: ["document"], canRetryAutomatically: false,
+    validateInput: (p) => (isUuid(p.document_id) ? [] : ["document_id (uuid) required"]) }),
+
+  // durable waits
+  "wait.until_time": def({ actionKey: "wait.until_time", category: "wait", risk: "read_only", canRetryAutomatically: false, allowedWaitEvents: ["timer"],
+    validateInput: (p) => (isStr(p.wake_at) ? [] : ["wake_at (ISO instant) required"]) }),
+  "wait.for_event": def({ actionKey: "wait.for_event", category: "wait", risk: "read_only", canRetryAutomatically: false, allowedWaitEvents: ["external_event"],
+    validateInput: (p) => (isStr(p.event_kind) ? [] : ["event_kind required"]) }),
+
+  // human approval (reuses pierre_rt_validations)
+  "approval.request": def({ actionKey: "approval.request", category: "approval", risk: "controlled", executionMode: "automatic_after_policy", requiredPermission: "validation.read", canRetryAutomatically: false, allowedWaitEvents: ["approval"],
+    validateInput: (p) => (isStr(p.reason) ? [] : ["reason required"]) }),
+
+  // communication — NEVER sends email directly; emits a governed outbox event + the P8.4 pipeline
+  "communication.create_intent": def({ actionKey: "communication.create_intent", category: "communication", risk: "controlled", requiredPermission: "document.read", idempotencyStrategy: "source_event_key", ambiguousFailurePolicy: "reconcile", compensationStrategy: "external_reconciliation", allowedWaitEvents: ["external_event"],
+    validateInput: (p) => (isStr(p.event_kind) && isUuid(p.object_id) ? [] : ["event_kind + object_id (uuid) required"]) }),
+
+  // follow-up / relance — schedules a durable, bounded follow-up (stop-conditions checked at fire time)
+  "follow_up.schedule": def({ actionKey: "follow_up.schedule", category: "schedule", risk: "low", requiredPermission: "document.read",
+    validateInput: (p) => (isStr(p.reason) && (isStr(p.due_at) || typeof p.delay_seconds === "number") ? [] : ["reason + (due_at or delay_seconds) required"]) }),
+
+  // signature — NEVER calls the provider directly; calls the P8.3 governed services then waits
+  "signature.prepare": def({ actionKey: "signature.prepare", category: "signature", risk: "sensitive", executionMode: "automatic_after_policy", requiredPermission: "document.write", requiredObjectTypes: ["contract"], idempotencyStrategy: "idempotency_key", ambiguousFailurePolicy: "reconcile", compensationStrategy: "external_reconciliation", allowedWaitEvents: ["external_event"],
+    validateInput: (p) => (isUuid(p.contract_id) ? [] : ["contract_id (uuid) required"]) }),
+};
+
+export function getRuntimeActionDefinition(actionKey: string, version?: string): RuntimeActionDefinition | null {
+  const d = REGISTRY[actionKey];
+  if (!d) return null;
+  if (version && version !== d.version) return null; // an obsolete/unknown version is refused, never guessed
+  return d;
+}
+export function isKnownRuntimeAction(actionKey: string): boolean {
+  return !!REGISTRY[actionKey];
+}
+export function allRuntimeActions(): RuntimeActionDefinition[] {
+  return Object.values(REGISTRY);
+}
+export function validateRuntimeActionInput(actionKey: string, payload: Record<string, unknown>): { ok: boolean; errors: string[] } {
+  const d = REGISTRY[actionKey];
+  if (!d) return { ok: false, errors: [`unknown action ${actionKey}`] };
+  const errors = d.validateInput(payload ?? {});
+  return { ok: errors.length === 0, errors };
+}
+/** Server-authoritative execution policy (the client never declares an action "safe"). */
+export function resolveRuntimeExecutionPolicy(actionKey: string): { executionMode: RuntimeExecutionMode; risk: RuntimeActionRisk; requiresApproval: boolean } | null {
+  const d = REGISTRY[actionKey];
+  if (!d) return null;
+  return { executionMode: d.executionMode, risk: d.risk, requiresApproval: d.executionMode === "human_approval_required" || d.risk === "sensitive" };
+}

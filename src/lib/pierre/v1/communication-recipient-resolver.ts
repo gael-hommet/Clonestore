@@ -11,7 +11,7 @@ import type { TenantContext } from "./tenant-context";
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-export type RecipientStrategy = "document_approver" | "document_requester" | "signature_coordinator" | "contract_owner" | "template_author" | "task_target";
+export type RecipientStrategy = "document_approver" | "document_requester" | "signature_coordinator" | "contract_owner" | "template_author" | "task_target" | "invited_email";
 
 export type ResolvedRecipient = {
   recipient_type: string;
@@ -103,6 +103,25 @@ export async function resolveCommunicationRecipient(
   input: { recipientStrategy: string; objectType: string; objectId: string | null; payload: Record<string, unknown>; requiresEmail: boolean; fallbackStrategy?: string | null },
 ): Promise<RecipientResolution> {
   const blockers: string[] = [];
+
+  // PHASE 8.6 — invitations target an EXTERNAL email (the invitee is not yet a member, so there is no
+  // in-app recipient). The address is NOT trusted from the payload: it is read from the persisted,
+  // tenant-scoped invitation row (a real object field, exactly like every other strategy). A cross-tenant
+  // or absent invitation is invisible; a missing/invalid address blocks the communication.
+  if (input.recipientStrategy === "invited_email") {
+    if (!input.objectId) { blockers.push("object_not_found_in_tenant"); return { resolved: false, object_label: "", document_id: null, recipient: null, blockers }; }
+    const inv = (await db.query<{ email: string | null }>(`select email from pierre_rt_invitations where company_id=$1 and id=$2 and status='pending'`, [ctx.company_id, input.objectId])).rows[0];
+    if (!inv) { blockers.push("object_not_found_in_tenant"); return { resolved: false, object_label: "", document_id: null, recipient: null, blockers }; }
+    const invEmail = inv.email && EMAIL_RE.test(inv.email) ? inv.email : null;
+    if (!invEmail) blockers.push("no_valid_invitee_email");
+    const recipient: ResolvedRecipient = {
+      recipient_type: "external_recipient", recipient_role: "invited_email",
+      resolved_user_id: null, resolved_membership_id: null, resolved_employee_id: null,
+      resolved_email: invEmail, resolution_source: "invitations.email",
+    };
+    return { resolved: blockers.length === 0, object_label: "Invitation", document_id: null, recipient, blockers };
+  }
+
   const loaded = await loadObjectAndTarget(db, ctx, input.recipientStrategy, input.objectType, input.objectId, input.payload);
   if (!loaded.exists) { blockers.push("object_not_found_in_tenant"); return { resolved: false, object_label: "", document_id: null, recipient: null, blockers }; }
 

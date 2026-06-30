@@ -2,7 +2,7 @@
 // provider webhook. Tenant is server-resolved; no HTML/secret/object-key/address is exposed; the
 // webhook is fail-closed (503 unconfigured, 401 on a bad signature).
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { createHarness, type Harness } from "./harness";
+import { createHarness, provisionActiveCompany, type Harness } from "./harness";
 import { type SqlExecutor } from "../sql";
 import { resolveTenantContext, type TenantContext } from "../tenant-context";
 import { configureSignatory, seedDocument, emitOutbox } from "./p84-helpers";
@@ -26,6 +26,8 @@ const { POST: webhook } = await import("@/app/api/webhooks/pierre/communications
 let h: Harness; let owner: TenantContext;
 beforeEach(async () => {
   h = await createHarness(); mockDb = h.db; mockUser = { id: h.userA };
+  await provisionActiveCompany(h, h.companyA);
+  await provisionActiveCompany(h, h.companyB);
   owner = await resolveTenantContext(h.db, { user_id: h.userA, company_id: h.companyA });
   await configureSignatory(h, h.companyA);
   webhookDb = { async query(t: string, p?: readonly unknown[]) { await h.pg.exec("set role pierre_rt_communication_webhook"); try { const r = await h.pg.query(t, p ? [...p] : undefined); return { rows: r.rows as never[] }; } finally { await h.pg.exec("reset role"); } }, transaction(fn: (tx: unknown) => unknown) { return fn(webhookDb); } } as never;

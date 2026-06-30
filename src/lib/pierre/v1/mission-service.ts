@@ -16,6 +16,8 @@ import {
   type MissionRow, type TaskRow,
 } from "./repositories";
 import { enqueueJob, cancelJobsForTask } from "./queue";
+import { emitRuntimeEvent } from "./runtime-event-bus";
+import { createHash } from "crypto";
 import { analyzeInstruction, type AnalyzedTask } from "./analysis";
 import { evaluateGuard } from "./cloneguard";
 import { decideValidation, requiresHumanApproval, type AutonomyMode } from "./autonomy";
@@ -229,6 +231,23 @@ export async function decideValidationAction(
     const mapped = action === "approve" ? "approved" : action === "reject" ? "rejected" : "changes_requested";
     const decided = await ValidationRepo.decide(tx, ctx.company_id, v.id, v.version, mapped as "approved" | "rejected" | "changes_requested", ctx.user_id);
     await EventRepo.append(tx, { company_id: ctx.company_id, mission_id: v.mission_id, task_id: v.task_id, type: `validation_${mapped}`, actor_type: "user", actor_id: ctx.user_id });
+
+    // P8.5-FINAL §3 — the REAL decision emits a durable runtime event IN THIS TRANSACTION (never a later
+    // poll of decided validations). Only an APPROVAL resolves the runtime approval wait, and only with the
+    // pinned content fingerprint (a stale/amended content never auto-passes); a rejection / changes_requested
+    // is recorded but resolves nothing — the sensitive step never silently proceeds.
+    const fp = (v.risk_context as { content_fingerprint?: string | null } | null)?.content_fingerprint ?? null;
+    const decisionKind = mapped === "approved" ? "approval.approved" : mapped === "rejected" ? "approval.rejected" : "approval.changes_requested";
+    await emitRuntimeEvent(tx, ctx, {
+      source: "p8x_approval",
+      event_key: `val:${v.id}:${mapped}:${fp ?? "none"}`,
+      kind: decisionKind,
+      object_type: "validation",
+      object_id: v.id,
+      payload_hash: createHash("sha256").update(`${v.id}:${mapped}:${fp ?? ""}`).digest("hex"),
+      fingerprint: fp,
+      resolve: mapped === "approved" ? { event_kind: "approval.decided", object_type: "validation", object_id: v.id } : null,
+    });
 
     let unlocked: string | null = null;
     if (v.task_id) {

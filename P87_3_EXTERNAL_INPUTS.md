@@ -1,0 +1,15 @@
+# P8.7.3 — EXTERNAL INPUTS REQUIRED (owner-only; nothing here is automatable from the sandbox)
+
+All values are owner-provided. **No secret value appears in this file.** Statuses reflect REAL probes
+(Vercel CLI, Stripe API, Resend API, DNS-over-HTTPS), not variable presence.
+
+| Provider | Real state (probed) | Remaining input | Scope / Mode | Exact dashboard | Variable(s) |
+|---|---|---|---|---|---|
+| **Application / deploy** | App live at `www.clonestore.pro`; signature route fix ready but **not deployed** (git exec sandbox-blocked; `VERCEL_OIDC_TOKEN` is build-only, rejected as a CLI `--token`). | **Deploy the fix**: either `git push` (preferred) OR a Vercel deploy token. CLI is logged in as `gael-hommet` (cached) but I won't deploy an uncommitted tree (git-drift). | Production | Vercel → `clonestore-xcwi` → Deployments / Git | commit+push, or `VERCEL_TOKEN` |
+| **Storage** | ✅ **READY_LIVE** — real private-bucket signed-URL round-trip proof passed. (Prod runtime opt-in not set.) | Set prod env so the app *uses* it on next deploy. | Production | Vercel → `clonestore-xcwi` → Settings → Environment Variables | `FILE_STORAGE_PROVIDER=supabase`, `SUPABASE_STORAGE_BUCKET=pierre-private-documents` |
+| **Stripe** | **READY_SANDBOX** — test key valid; price `44900 EUR/mo` active; webhook at `…/api/webhooks/stripe` now covers the **5 required events** (completed this pass). **No `sk_live_` exists** (test in both `.env.local` AND prod). | Live keys; then I verify the live price + register/complete the live webhook + capture the live signing secret. | Live | Stripe → Developers → API keys / Webhooks | `STRIPE_SECRET_KEY=sk_live_…`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_…`, (live) `STRIPE_PRICE_PIERRE`, `STRIPE_WEBHOOK_SECRET` |
+| **Resend** | ⛔ key returns **400 `validation_error: "API key is invalid"`** on `/domains` AND `/api-keys` → the key itself is **invalid**. DNS: SPF **MISSING**, DMARC/DKIM(resend)/DKIM(send)/MX(send) **PRESENT**. | A **valid** Resend key with domain+webhook scope; add the missing **SPF** record; confirm `clonestore.pro` shows **verified** in Resend. | Live (full-access key) | Resend → API Keys + Domains; DNS provider (add SPF TXT) | `RESEND_API_KEY` (valid), `CLONESTORE_COMMUNICATION_PROVIDER=resend`, `CLONESTORE_EMAIL_FROM=pierre@clonestore.pro`, `CLONESTORE_EMAIL_WEBHOOK_SECRET`, `CLONESTORE_COMMUNICATION_LINK_SECRET`, `PIERRE_COMMUNICATION_SYSTEM_SECRET` |
+| **Yousign** | ⛔ **no key anywhere** (`.env.local`, prod). Adapter exists; check classifies sandbox vs live by URL. | Sandbox or production API key + official URL + webhook secret. | Sandbox (`api-sandbox.yousign.app`) or Live (`api.yousign.app`) | Yousign → API & Webhooks | `CLONESTORE_SIGNATURE_PROVIDER=yousign`, `CLONESTORE_SIGNATURE_API_URL`, `CLONESTORE_SIGNATURE_API_KEY`, `CLONESTORE_SIGNATURE_WEBHOOK_SECRET` |
+
+Once these are in `.env.local` (and the branch deployed), re-run `npm run check:p87-external-providers-live`
+and the single final battery — I'll then drive each real provider proof (no faking, SKIPPED never → PASS).

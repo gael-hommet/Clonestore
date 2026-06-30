@@ -13,7 +13,7 @@ export type CommunicationEventPolicy = {
   allowedChannels: CommunicationChannel[];
   requiredChannels: CommunicationChannel[];
   /** named strategy resolved by the recipient resolver (server-side). */
-  recipientStrategy: "document_approver" | "document_requester" | "signature_coordinator" | "contract_owner" | "template_author" | "task_target";
+  recipientStrategy: "document_approver" | "document_requester" | "signature_coordinator" | "contract_owner" | "template_author" | "task_target" | "invited_email";
   /** R1.4 — an explicit, documented generic fallback (the ONLY way owner/admin is used). */
   fallbackStrategy?: "tenant_owner";
   templateKey: string;
@@ -63,6 +63,9 @@ const POLICIES: Record<string, CommunicationEventPolicy> = {
   // ── mission/task external side effect ──
   "email": P({ kind: "email", category: "operational", templateKey: "task.notification", recipientStrategy: "task_target", fallbackStrategy: "tenant_owner", allowedChannels: ["in_app"], requiredChannels: ["in_app"], suppressible: true, quietHoursApplicable: true }),
   "low_risk_notification": P({ kind: "low_risk_notification", category: "optional", templateKey: "task.notification", recipientStrategy: "task_target", fallbackStrategy: "tenant_owner", allowedChannels: ["in_app"], requiredChannels: ["in_app"], suppressible: true, quietHoursApplicable: true }),
+  // ── members / invitations (P8.6) — the invitee is an EXTERNAL email (not yet a member): email ONLY,
+  // transactional (mandatory, never suppressible), recipient read from the persisted invitation row. ──
+  "member.invited": P({ kind: "member.invited", category: "transactional", sensitivity: "personal", templateKey: "member.invited", recipientStrategy: "invited_email", allowedChannels: ["email"], requiredChannels: ["email"], priority: "high", attachmentPolicy: "none" }),
 };
 
 // Known internal lifecycle events that are intentionally NOT communications (skipped cleanly, not
