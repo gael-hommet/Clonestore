@@ -11,6 +11,9 @@ export interface ExternalProvidersReport {
   generated_at: string;
   domains: Record<string, ProviderDomainStatus>;
   ready: boolean;
+  prelaunch_ready: boolean;
+  live_ready: boolean;
+  stripe_live_flip_required: boolean;
   blockers: Array<{ area: string; status: string; reason: string }>;
 }
 

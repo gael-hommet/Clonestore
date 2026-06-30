@@ -34,10 +34,12 @@ const readProof = () => { const p = join(ROOT, ".p87-proofs", "step3", "storage-
 
 const report = await engine.runExternalProvidersCheck({ env, fetchJson, readProof, now: new Date().toISOString() });
 
+const PRELAUNCH = process.argv.slice(2).includes("--prelaunch");
+const pass = PRELAUNCH ? report.prelaunch_ready : report.live_ready;
 if (!JSON_ONLY) {
-  process.stderr.write(`\n== P8.7.3 EXTERNAL PROVIDERS LIVE CHECK (${ENVIRONMENT}) ==\n`);
+  process.stderr.write(`\n== P8.7.3 EXTERNAL PROVIDERS ${PRELAUNCH ? "PRE-LAUNCH" : "LIVE"} CHECK (${ENVIRONMENT}) ==\n`);
   for (const [k, v] of Object.entries(report.domains)) process.stderr.write(`   - ${k.padEnd(15)} ${v.status}${v.status.startsWith("READY") ? "" : `  (${v.detail})`}\n`);
-  process.stderr.write(`\n  ready: ${report.ready}\n  mode: ${STRICT ? "strict" : "report"}\n\n`);
+  process.stderr.write(`\n  prelaunch_ready: ${report.prelaunch_ready}\n  live_ready: ${report.live_ready}\n  stripe_live_flip_required: ${report.stripe_live_flip_required}\n  mode: ${PRELAUNCH ? "prelaunch" : "live"}${STRICT ? " (strict)" : ""}\n\n`);
 }
 process.stdout.write(JSON.stringify(report, null, 2) + "\n");
-process.exit(STRICT && !report.ready ? 2 : 0);
+process.exit(STRICT && !pass ? 2 : 0);

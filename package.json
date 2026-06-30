@@ -299,7 +299,9 @@
     "proof:p87-runtime-billing": "node scripts/p87-runtime-billing-proof.mjs",
     "proof:p87-storage": "node scripts/p87-storage-proof.mjs",
     "report:p87-external-providers-live": "node scripts/check-p87-external-providers-live.mjs",
-    "check:p87-external-providers-live": "node scripts/check-p87-external-providers-live.mjs --strict"
+    "check:p87-external-providers-live": "node scripts/check-p87-external-providers-live.mjs --strict",
+    "report:p87-external-providers-prelaunch": "node scripts/check-p87-external-providers-live.mjs --prelaunch",
+    "check:p87-external-providers-prelaunch": "node scripts/check-p87-external-providers-live.mjs --prelaunch --strict"
   },
   "dependencies": {
     "@fontsource-variable/bodoni-moda": "^5.2.7",

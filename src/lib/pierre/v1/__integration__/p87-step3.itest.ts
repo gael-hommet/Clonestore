@@ -75,23 +75,29 @@ describe("P8.7.3 external-providers check (DI, real-evidence)", () => {
     });
     expect(scope.domains.communications.status).toBe("BLOCKED_CONFIGURATION");
     const ok = await runExternalProvidersCheck({
-      env: { RESEND_API_KEY: "re_x", CLONESTORE_EMAIL_FROM: "pierre@clonestore.pro", CLONESTORE_COMMUNICATION_PROVIDER: "resend" },
-      fetchJson: mkFetch({ "api.resend.com/domains": { status: 200, ok: true, json: { data: [{ name: "clonestore.pro", status: "verified" }] } } }),
+      env: { RESEND_API_KEY: "re_x", CLONESTORE_EMAIL_FROM: "pierre@clonestore.pro", CLONESTORE_COMMUNICATION_PROVIDER: "resend", NEXT_PUBLIC_APP_URL: HTTPS },
+      fetchJson: mkFetch({ "api.resend.com/domains": { status: 200, ok: true, json: { data: [{ name: "clonestore.pro", status: "verified" }] } }, "/api/webhooks/pierre/communications": { status: 401, ok: false, json: null } }),
     });
     expect(ok.domains.communications.status).toBe("READY_LIVE");
+    // domain verified but the deployed route still unconfigured (503) → blocked, not READY_LIVE
+    const noRoute = await runExternalProvidersCheck({
+      env: { RESEND_API_KEY: "re_x", CLONESTORE_EMAIL_FROM: "pierre@clonestore.pro", CLONESTORE_COMMUNICATION_PROVIDER: "resend", NEXT_PUBLIC_APP_URL: HTTPS },
+      fetchJson: mkFetch({ "api.resend.com/domains": { status: 200, ok: true, json: { data: [{ name: "clonestore.pro", status: "verified" }] } }, "/api/webhooks/pierre/communications": { status: 503, ok: false, json: null } }),
+    });
+    expect(noRoute.domains.communications.status).toBe("BLOCKED_CONFIGURATION");
   });
 
   it("signature: no key → missing-secret; sandbox URL → READY_SANDBOX; prod URL → READY_LIVE; bad key → permission", async () => {
     const none = await runExternalProvidersCheck({ env: {}, fetchJson: mkFetch({}) });
     expect(none.domains.signature.status).toBe("BLOCKED_MISSING_SECRET");
     const sb = await runExternalProvidersCheck({
-      env: { YOUSIGN_API_KEY: "ys_x", YOUSIGN_API_URL: "https://api-sandbox.yousign.app/v3" },
-      fetchJson: mkFetch({ "/users": { status: 200, ok: true, json: {} } }),
+      env: { YOUSIGN_API_KEY: "ys_x", YOUSIGN_API_URL: "https://api-sandbox.yousign.app/v3", NEXT_PUBLIC_APP_URL: HTTPS },
+      fetchJson: mkFetch({ "/users": { status: 200, ok: true, json: {} }, "/api/webhooks/pierre/signature": { status: 401, ok: false, json: null } }),
     });
     expect(sb.domains.signature.status).toBe("READY_SANDBOX");
     const prod = await runExternalProvidersCheck({
-      env: { YOUSIGN_API_KEY: "ys_x", YOUSIGN_API_URL: "https://api.yousign.app/v3" },
-      fetchJson: mkFetch({ "/users": { status: 200, ok: true, json: {} } }),
+      env: { YOUSIGN_API_KEY: "ys_x", YOUSIGN_API_URL: "https://api.yousign.app/v3", NEXT_PUBLIC_APP_URL: HTTPS },
+      fetchJson: mkFetch({ "/users": { status: 200, ok: true, json: {} }, "/api/webhooks/pierre/signature": { status: 401, ok: false, json: null } }),
     });
     expect(prod.domains.signature.status).toBe("READY_LIVE");
     const bad = await runExternalProvidersCheck({
@@ -117,5 +123,38 @@ describe("P8.7.3 external-providers check (DI, real-evidence)", () => {
     expect(r.ready).toBe(false);
     expect(r.blockers.length).toBeGreaterThan(0);
     expect(r.blockers.find((b: any) => b.area === "signature")).toBeTruthy();
+  });
+
+  const fullGreen = (stripeKey: string) => ({
+    env: {
+      NEXT_PUBLIC_APP_URL: HTTPS,
+      STRIPE_SECRET_KEY: stripeKey, STRIPE_PRICE_PIERRE: "price_1",
+      RESEND_API_KEY: "re_x", CLONESTORE_EMAIL_FROM: "pierre@clonestore.pro", CLONESTORE_COMMUNICATION_PROVIDER: "resend",
+      YOUSIGN_API_KEY: "ys_x", YOUSIGN_API_URL: "https://api-sandbox.yousign.app/v3",
+      NEXT_PUBLIC_SUPABASE_URL: "https://ref.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "srk", SUPABASE_STORAGE_BUCKET: "pierre-private-documents",
+    },
+    readProof: () => ({ ok: true }),
+    fetchJson: mkFetch({
+      "/api/webhooks/stripe": { status: 400, ok: false, json: null },
+      "/api/webhooks/pierre/communications": { status: 401, ok: false, json: null },
+      "/api/webhooks/pierre/signature": { status: 401, ok: false, json: null },
+      "/v1/prices/": { status: 200, ok: true, json: PRICE_OK },
+      "/v1/webhook_endpoints": { status: 200, ok: true, json: { data: [{ url: `${HTTPS}/api/webhooks/stripe`, status: "enabled", enabled_events: STRIPE_REQUIRED_EVENTS }] } },
+      "api.resend.com/domains": { status: 200, ok: true, json: { data: [{ name: "clonestore.pro", status: "verified" }] } },
+      "/users": { status: 200, ok: true, json: {} },
+      "/storage/v1/bucket": { status: 200, ok: true, json: [{ name: "pierre-private-documents", public: false }] },
+    }),
+  });
+
+  it("gates: prelaunch true + live false with Stripe sandbox; live true only with Stripe live", async () => {
+    const sandbox = await runExternalProvidersCheck(fullGreen("sk_test_x"));
+    expect(sandbox.domains.stripe.status).toBe("READY_SANDBOX");
+    expect(sandbox.prelaunch_ready).toBe(true);
+    expect(sandbox.live_ready).toBe(false);
+    expect(sandbox.stripe_live_flip_required).toBe(true);
+    const live = await runExternalProvidersCheck(fullGreen("sk_live_x"));
+    expect(live.domains.stripe.status).toBe("READY_LIVE");
+    expect(live.live_ready).toBe(true);
+    expect(live.stripe_live_flip_required).toBe(false);
   });
 });

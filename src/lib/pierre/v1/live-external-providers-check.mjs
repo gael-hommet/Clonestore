@@ -14,6 +14,17 @@ const isReady = (s) => s === "READY_LIVE" || s === "READY_SANDBOX";
 const canonical = (env) => env.NEXT_PUBLIC_APP_URL || env.CLONESTORE_PUBLIC_APP_URL || env.CLONESTORE_BASE_URL || "";
 
 const WEBHOOK_ROUTES = ["/api/webhooks/stripe", "/api/webhooks/pierre/communications", "/api/webhooks/pierre/signature"];
+// a route is "configured" when an unsigned POST reaches cryptographic validation (400/401/403) — NOT a
+// missing-config 503, NOT absent (404) or crashing (500).
+async function routeConfigured(d, env, path) {
+  const url = canonical(env);
+  if (!/^https:\/\//.test(url)) return "no_canonical_url";
+  const res = await d.fetchJson(`${url.replace(/\/$/, "")}${path}`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+  if (res.status === 0) return "unreachable";
+  if ([400, 401, 403].includes(res.status)) return "ok";
+  if (res.status === 503) return "unconfigured_503";
+  return `http_${res.status}`;
+}
 async function checkApplication(d, env) {
   const url = canonical(env);
   if (!/^https:\/\//.test(url)) return { status: "BLOCKED_CONFIGURATION", detail: "no canonical https public URL (localhost/empty)" };
@@ -84,7 +95,9 @@ async function checkCommunications(d, env) {
   if (!dom) return { status: "BLOCKED_CONFIGURATION", detail: `domain ${domain} not present in Resend` };
   if (dom.status !== "verified") return { status: "BLOCKED_CONFIGURATION", detail: `domain ${domain} not verified (status=${dom.status})` };
   if (provider && provider !== "resend") return { status: "BLOCKED_CONFIGURATION", detail: `communication provider '${provider}' is not resend` };
-  return { status: "READY_LIVE", detail: `resend domain ${domain} verified` };
+  const rc = await routeConfigured(d, env, "/api/webhooks/pierre/communications");
+  if (rc !== "ok") return { status: "BLOCKED_CONFIGURATION", detail: `resend domain verified but webhook route ${rc}` };
+  return { status: "READY_LIVE", detail: `resend domain ${domain} verified + webhook route configured (unsigned→4xx)` };
 }
 
 async function checkSignature(d, env) {
@@ -96,7 +109,9 @@ async function checkSignature(d, env) {
   const r = await d.fetchJson(`${apiUrl.replace(/\/$/, "")}/users`, { headers: { authorization: `Bearer ${key}` } });
   if (r.status === 401 || r.status === 403) return { status: "BLOCKED_PERMISSION", detail: "Yousign rejected the key" };
   if (!r.ok && r.status !== 200) return { status: "BLOCKED_CONFIGURATION", detail: `Yousign http ${r.status}` };
-  return { status: sandbox ? "READY_SANDBOX" : "READY_LIVE", detail: `Yousign ${sandbox ? "sandbox" : "production"} authenticated` };
+  const rc = await routeConfigured(d, env, "/api/webhooks/pierre/signature");
+  if (rc !== "ok") return { status: "BLOCKED_CONFIGURATION", detail: `Yousign authenticated but webhook route ${rc}` };
+  return { status: sandbox ? "READY_SANDBOX" : "READY_LIVE", detail: `Yousign ${sandbox ? "sandbox" : "production"} authenticated + webhook route configured (unsigned→4xx)` };
 }
 
 async function checkStorage(d, env) {
@@ -125,11 +140,18 @@ export async function runExternalProvidersCheck(deps) {
   try { domains.signature = await checkSignature(d, d.env); } catch (e) { domains.signature = { status: "BLOCKED_CONFIGURATION", detail: redactError(e) }; }
   try { domains.storage = await checkStorage(d, d.env); } catch (e) { domains.storage = { status: "BLOCKED_CONFIGURATION", detail: redactError(e) }; }
   const blockers = Object.entries(domains).filter(([, v]) => !isReady(v.status)).map(([area, v]) => ({ area, status: v.status, reason: v.detail }));
+  const st = (k) => domains[k]?.status;
+  const okOrSandbox = (k) => ["READY_LIVE", "READY_SANDBOX"].includes(st(k));
+  // base = everything except the Stripe-live flip: app/storage/communications must be LIVE; signature live-or-sandbox.
+  const base = st("application") === "READY_LIVE" && st("storage") === "READY_LIVE" && st("communications") === "READY_LIVE" && okOrSandbox("signature");
+  const prelaunch_ready = base && okOrSandbox("stripe");
+  const live_ready = base && st("stripe") === "READY_LIVE";
+  const stripe_live_flip_required = st("stripe") === "READY_SANDBOX";
   return {
     phase: "P8.7.3",
     generated_at: d.now || new Date().toISOString(),
-    domains,
-    ready: blockers.length === 0,
-    blockers,
+    domains, blockers,
+    prelaunch_ready, live_ready, stripe_live_flip_required,
+    ready: live_ready, // the strict LIVE gate stays red until the Stripe live flip
   };
 }
