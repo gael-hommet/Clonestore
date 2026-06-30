@@ -367,24 +367,60 @@
   backdrop-filter: blur(10px);
 }
 
-/* ── Drawer (exploration / capability) ───────────────────────────────────── */
+/* ── Drawer (document panel / exploration / capability) ──────────────────────
+   The panel opens BELOW the fixed site topbar so the document is never hidden
+   behind it. `--demo-header-height` is the single source of truth for the
+   topbar height; it is kept in sync at runtime from the real .cs-header element
+   (see PierreDemoExperience), with a safe static fallback here. */
 .pd-drawer-backdrop {
-  position: fixed; inset: 0; z-index: 60;
+  position: fixed;
+  top: var(--demo-header-height, 88px);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 60;
   background: rgba(24, 24, 34, 0.32);
-  display: flex; justify-content: flex-end;
+  display: flex;
+  justify-content: flex-end;
 }
 .pd-drawer {
+  display: flex;
+  flex-direction: column;
   width: min(560px, 100%);
   height: 100%;
-  overflow-y: auto;
+  max-height: calc(100dvh - var(--demo-header-height, 88px));
+  overflow: hidden; /* the panel itself never scrolls — only .pd-drawer__body does */
   background: var(--pd-ivory);
   border-left: 1px solid var(--pd-line);
   box-shadow: -30px 0 80px rgba(24, 24, 34, 0.2);
-  padding: clamp(16px, 3vw, 26px);
+}
+.pd-drawer__head {
+  flex-shrink: 0; /* title + close are always visible, never compressed */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: clamp(14px, 2.4vw, 22px) clamp(16px, 3vw, 26px) 12px;
+  border-bottom: 1px solid var(--pd-line-soft);
+  background: var(--pd-ivory);
+}
+.pd-drawer__body {
+  flex: 1 1 auto;
+  min-height: 0; /* allow the flex child to shrink so it can scroll */
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: 16px clamp(16px, 3vw, 26px)
+    calc(clamp(16px, 3vw, 26px) + env(safe-area-inset-bottom, 0px));
 }
 @media (max-width: 560px) {
   .pd-drawer-backdrop { align-items: flex-end; }
-  .pd-drawer { width: 100%; height: 92%; border-left: none; border-top-left-radius: 18px; border-top-right-radius: 18px; }
+  .pd-drawer {
+    width: 100%;
+    height: auto; /* bottom sheet: sizes to content, capped by max-height */
+    border-left: none;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+  }
 }
 
 /* ── Stage transition / motion (guarded) ─────────────────────────────────── */

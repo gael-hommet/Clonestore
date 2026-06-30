@@ -62,6 +62,33 @@ export function PierreDemoExperience() {
     return () => mq.removeEventListener?.("change", handler);
   }, []);
 
+  // Single source of truth for the topbar height: measure the real fixed site
+  // header and publish it as --demo-header-height so the document panel always
+  // begins exactly below it — robust across resize, orientation and zoom.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+    const header = document.querySelector<HTMLElement>(".cs-header");
+    if (!header) {
+      root.style.setProperty("--demo-header-height", "0px");
+      return;
+    }
+    const apply = () => {
+      const h = Math.round(header.getBoundingClientRect().height);
+      root.style.setProperty("--demo-header-height", `${h}px`);
+    };
+    apply();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(apply) : null;
+    ro?.observe(header);
+    window.addEventListener("resize", apply);
+    window.addEventListener("orientationchange", apply);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", apply);
+      window.removeEventListener("orientationchange", apply);
+    };
+  }, []);
+
   // Per-step analytics + completion.
   useEffect(() => {
     if (!started) return;
