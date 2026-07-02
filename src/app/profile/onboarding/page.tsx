@@ -24,6 +24,13 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useRequireAuth } from "@/lib/auth/useRequireAuth";
+
+// P9.2 — Blocs client posés AU-DESSUS du wizard profond (jamais en remplacement).
+import { computeFootprintInputs, type QuickStartDraft, type QuickStartField } from "@/lib/client-onboarding";
+import { QuickStartBlock } from "./_components/QuickStartBlock";
+import { GuidedFootprintOverview } from "./_components/GuidedFootprintOverview";
+import { ContinuousFootprintSurface } from "./_components/ContinuousFootprintSurface";
 
 // ── PHASE 3.5 / 3.6 / 3.7 — Persistence onboarding ──────────────────────────
 // localStorage first — persistence serveur via feature flag uniquement.
@@ -588,6 +595,9 @@ function ActionBtn({
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function ProfileOnboardingPage() {
+  // My CloneStore exige une session : anonyme → /login?redirect=/profile/onboarding.
+  useRequireAuth();
+
   // ── State onboarding global ───────────────────────────────────────────────
   const [state, setState] = useState<GlobalOnboardingState>({
     currentStep: "company_identity",
@@ -942,6 +952,78 @@ export default function ProfileOnboardingPage() {
         [stepId]: prev.stepStatuses[stepId] === "pending" ? "in_progress" : prev.stepStatuses[stepId],
       },
     }));
+  }
+
+  // ── P9.2 — dérivés pour les blocs client posés au-dessus du wizard ──────────
+  // Aucune donnée dupliquée : Quick Start est CONTRÔLÉ par `state` (value/onChange),
+  // l'empreinte guidée dérive du MÊME state, la navigation réutilise `goToStep`.
+  const quickStartValue: QuickStartDraft = {
+    companyName: state.company.company_name,
+    companySize: state.company.size_range,
+    sector: state.company.industry,
+    country: state.company.country,
+    firstObjective: state.firstMission?.prompt ?? "",
+  };
+
+  function handleQuickStartChange(field: QuickStartField, next: string) {
+    setState((p) => {
+      switch (field) {
+        case "companyName":
+          return { ...p, company: { ...p.company, company_name: next } };
+        case "companySize":
+          return { ...p, company: { ...p.company, size_range: next } };
+        case "sector":
+          return { ...p, company: { ...p.company, industry: next } };
+        case "country":
+          return { ...p, company: { ...p.company, country: next } };
+        case "firstObjective": {
+          // Ne crée pas de mission vide ; met à jour le prompt si mission déjà amorcée.
+          if (!next.trim() && !p.firstMission) return p;
+          return {
+            ...p,
+            firstMission: {
+              mission_type: p.firstMission?.mission_type ?? "hr_email_onboarding",
+              prompt: next,
+              employee_slug: "pierre",
+              plan_only: true,
+            },
+          };
+        }
+        default:
+          return p;
+      }
+    });
+  }
+
+  const footprintCompletions = useMemo(() => {
+    const draftLike = {
+      company: state.company,
+      humans: state.humans,
+      documents: state.documents,
+      rules: state.rules,
+      technologies: [],
+      first_mission: state.firstMission,
+    } as unknown as Parameters<typeof computeFootprintInputs>[0];
+    const base = computeFootprintInputs(draftLike);
+    // Les technologies vivent hors du state page (page dédiée) → dérivé du statut d'étape.
+    const t = state.stepStatuses.technologies;
+    return { ...base, technologies: { completion: t === "done" ? 1 : t === "in_progress" ? 0.5 : 0 } };
+  }, [state]);
+
+  const FOOTPRINT_TO_STEP: Record<string, GlobalOnboardingStepId> = {
+    identity: "company_identity",
+    team: "team_humans",
+    documents: "documents",
+    rules: "rules_validations",
+    technologies: "technologies",
+    mission: "first_pierre_mission",
+  };
+
+  function goToSection(sectionId: string) {
+    goToStep(FOOTPRINT_TO_STEP[sectionId] ?? "company_identity");
+    if (typeof document !== "undefined") {
+      document.getElementById("onboarding-wizard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 
   function markStepDone(stepId: GlobalOnboardingStepId) {
@@ -1677,8 +1759,14 @@ export default function ProfileOnboardingPage() {
             </div>
           </div>
 
+          {/* P9.2 — Démarrage rapide + empreinte guidée + informations à confirmer.
+              Posés AU-DESSUS du wizard profond (jamais en remplacement). */}
+          <QuickStartBlock value={quickStartValue} onChange={handleQuickStartChange} />
+          <GuidedFootprintOverview completions={footprintCompletions} onGoToSection={goToSection} />
+          <ContinuousFootprintSurface />
+
           {/* Layout principal : étapes + contenu */}
-          <div className="grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)]">
+          <div id="onboarding-wizard" className="grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)]">
             {/* Navigation étapes */}
             <aside className="grid gap-2">
               {ONBOARDING_STEPS.map((step, i) => (

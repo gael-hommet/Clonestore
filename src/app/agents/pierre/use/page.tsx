@@ -43,7 +43,10 @@ import { useRequireAuth } from "@/lib/auth/useRequireAuth";
 import { isAuthBypassEnabled } from "@/lib/auth/dev-bypass";
 import { usePierreCockpit } from "./hooks/usePierreCockpit";
 import { PierreCockpitShell } from "./components/PierreCockpitShell";
+import CockpitGovernedOverview from "@/components/pierre/CockpitGovernedOverview";
 import type { CloneOSCommandCenterResult } from "@/lib/clonestore/cloneos";
+// P9.3 — nouveau cockpit opérationnel client (remplace l'expérience technique).
+import { OperationalCockpitShell } from "@/components/pierre/cockpit/OperationalCockpitShell";
 
 // ── PHASE 2.7 — Intégration globale CloneStore ────────────────────────────────
 // Pierre n'est pas une page isolée. Il est branché sur le socle CloneStore.
@@ -577,6 +580,8 @@ function CockpitWrapper(props: { footprintResult: PierreUseFootprintReadResult |
 
   return (
     <>
+      {/* PHASE 8.6 — the governed, server-authoritative cockpit overview (real snapshot; no mocks). */}
+      <CockpitGovernedOverview />
       <PierreUseFootprintStrip
         result={footprintResult}
         onUseSuggestion={handleUseFootprintSuggestion}
@@ -648,9 +653,11 @@ function CockpitContent() {
   if (accessState === "checking") return <CheckingGate />;
   if (accessState === "no_access" || accessState === "unauthenticated")
     return <NoAccessGate footprintResult={footprintResult} />;
-  // PHASE 3.12 — CockpitWrapper reçoit footprintResult → accède à cockpit.setInputDraft
-  // Préremplit uniquement le composer. Aucun envoi automatique.
-  return <CockpitWrapper footprintResult={footprintResult} />;
+  // P9.3 — cockpit opérationnel client final (données réelles V1 via client-cockpit).
+  // L'ancien CockpitWrapper (overview technique + strip) reste défini mais n'est
+  // plus rendu ; le nouveau shell est l'expérience client officielle.
+  void CockpitWrapper;
+  return <OperationalCockpitShell />;
 }
 
 export default function PierreCockpitPage() {

@@ -25,67 +25,43 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getSessionClient } from "@/lib/auth/session-client";
+import { resolveAppNavGroups, isNavItemActive } from "@/lib/nav/app-shell-nav";
 
-type NavItem = { href: string; label: string; icon: LucideIcon };
-type NavGroup = { title: string; items: NavItem[] };
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    title: "Organisation",
-    items: [
-      { href: "/profile", label: "Vue générale", icon: LayoutDashboard },
-      { href: "/profile/agents", label: "Mes employés", icon: BriefcaseBusiness },
-      { href: "/profile/onboarding", label: "Empreinte Entreprise", icon: Building2 },
-    ],
-  },
-  {
-    title: "Opérations",
-    items: [
-      { href: "/agents/pierre/use", label: "Cockpit Pierre", icon: Waypoints },
-      { href: "/profile/messages", label: "Messagerie", icon: MessagesSquare },
-      { href: "/agents/pierre/employees", label: "Employé 360", icon: Users },
-      { href: "/assistant", label: "CloneChat", icon: Bot },
-    ],
-  },
-  {
-    title: "Configuration",
-    items: [
-      { href: "/agents/pierre/setup", label: "Configuration Pierre", icon: Settings2 },
-      { href: "/profile/technologies", label: "Technologies", icon: Cpu },
-    ],
-  },
-  {
-    title: "Compte",
-    items: [
-      { href: "/agents", label: "Boutique", icon: Sparkles },
-      { href: "/questions", label: "Support", icon: LifeBuoy },
-    ],
-  },
-];
-
-function isActive(pathname: string, href: string) {
-  if (href === "/profile") return pathname === "/profile";
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
+// Icônes locales, indexées par path canonique du registre. La nav elle-même
+// (existence + labels + regroupement) est DÉRIVÉE de route-registry.ts.
+const NAV_ICONS: Record<string, LucideIcon> = {
+  "/profile": LayoutDashboard,
+  "/profile/agents": BriefcaseBusiness,
+  "/profile/onboarding": Building2,
+  "/agents/pierre/use": Waypoints,
+  "/profile/messages": MessagesSquare,
+  "/agents/pierre/employees": Users,
+  "/assistant": Bot,
+  "/agents/pierre/setup": Settings2,
+  "/profile/technologies": Cpu,
+  "/agents": Sparkles,
+  "/questions": LifeBuoy,
+};
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname() || "/profile";
+  const groups = resolveAppNavGroups();
 
   return (
     <nav className="flex flex-col gap-5" aria-label="Navigation de l'espace connecté">
-      {NAV_GROUPS.map((group) => (
+      {groups.map((group) => (
         <div key={group.title} className="space-y-1.5">
           <p className="px-3 text-[0.66rem] font-bold uppercase tracking-[0.18em] text-[var(--cs-ink-4)]">
             {group.title}
           </p>
           <div className="flex flex-col gap-0.5">
             {group.items.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(pathname, item.href);
+              const Icon = NAV_ICONS[item.path] ?? Sparkles;
+              const active = isNavItemActive(pathname, item.path);
               return (
                 <Link
-                  key={item.href}
-                  href={item.href}
+                  key={item.path}
+                  href={item.path}
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
                   className={cn(

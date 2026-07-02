@@ -1,0 +1,306 @@
+{
+  "run_id": "p811-1182ffc8a1",
+  "packs": [
+    {
+      "pack": "org.structure_management",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "org.workforce_planning",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "org.succession_planning",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "recruitment.open_requisition",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "recruitment.pipeline_management",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "recruitment.decision",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "offer.negotiation_and_signature",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "offer.candidate_conversion",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "contract.change_via_amendment",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "contract.suspension_and_expiration",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "contract.submit_signature",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "onboarding.run_plan",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "onboarding.access_provisioning",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "data_gdpr.right_to_object",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "absence.request_to_decision",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "absence.payroll_transmission",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "absence.timeclock_integration",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "payroll.prepare_period",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "payroll.transmit_and_reconcile",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "compensation.salary_change",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "compensation.benefits_and_expenses",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "compensation.equity_and_equity_review",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "performance.review_cycle",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "performance.calibration_and_pip",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "training.plan_and_enroll",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "training.certification_tracking",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "career.wishes_and_mentoring",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "career.mobility",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "relations.hr_requests",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "relations.complaints_and_alerts",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "disciplinary.case_governance",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "health.incident_and_risk",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "health.accommodations_wellbeing",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "communications.governed_campaign",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "communications.legal_review",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "policy.lifecycle",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "policy.enforcement_audit",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "offboarding.orchestrate",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "reporting.hr_dashboards",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "reporting.executive_and_anomalies",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "proactive.deadline_watch",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "proactive.operational_watch",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    },
+    {
+      "pack": "pierre_admin.country_config",
+      "resumable": true,
+      "onWorkerCrash": "lease_recover_reclaim",
+      "onProviderFailure": "retry_backoff_deadletter",
+      "idempotency": "mission_correlation"
+    }
+  ]
+}

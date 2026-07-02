@@ -146,7 +146,7 @@ export default function AgentsPage() {
       <div className="cs-page-shell py-10 md:py-14">
         <div className="space-y-6">
           {/* HEADER */}
-          <section className="cs-command-surface overflow-hidden">
+          <section data-tour-id="boutique-entry" className="cs-command-surface overflow-hidden">
             <div className="cs-system-halo" />
 
             <div className="relative space-y-5">

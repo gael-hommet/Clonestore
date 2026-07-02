@@ -1,0 +1,7 @@
+{
+  "companyA_sees": 1,
+  "companyB_sees_conversations": 0,
+  "companyB_sees_messages": 0,
+  "ok": true,
+  "note": "RLS enforced under set role clonechat_app; superuser bypass avoided"
+}

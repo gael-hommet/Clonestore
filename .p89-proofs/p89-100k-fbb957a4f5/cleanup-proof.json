@@ -1,0 +1,9 @@
+{
+  "run_id": "p89-100k-fbb957a4f5",
+  "cleanup": {
+    "ok": true,
+    "data_dir_removed": true
+  },
+  "engine": "ephemeral embedded PG16 dropped",
+  "residue": "none (db + datadir removed)"
+}

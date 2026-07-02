@@ -107,13 +107,12 @@ function isValidState(value: string | undefined | null): value is OperationalAcc
   return !!value && OPERATIONAL_ACCESS_STATES.includes(value as OperationalAccessState);
 }
 
-function readDevStateOverride(): OperationalAccessState | null {
+async function readDevStateOverride(): Promise<OperationalAccessState | null> {
   if (process.env.NODE_ENV === "production") return null;
   // Cookie (prioritaire) : permet de basculer d'état sans redémarrer le serveur.
-  // `cookies()` est accessible en synchrone à l'exécution (comme supabaseServer) ;
-  // le `as any` neutralise le type Promise forward-compat de Next 15.
+  // Next.js 15 — `cookies()` est asynchrone et DOIT être await (plus d'accès synchrone).
   try {
-    const store = cookies() as unknown as {
+    const store = (await cookies()) as unknown as {
       get(name: string): { value?: string } | undefined;
     };
     const cookieValue = store.get("e2e_operational_state")?.value?.trim();
@@ -130,14 +129,14 @@ function readDevStateOverride(): OperationalAccessState | null {
 export async function resolveOperationalAccess(
   scope: "pierre" | "general" = "pierre",
 ): Promise<OperationalAccess> {
-  const override = readDevStateOverride();
+  const override = await readDevStateOverride();
   if (override) {
     return { state: override, userId: "e2e-test-user", orderStatus: override };
   }
 
   let supabase;
   try {
-    supabase = supabaseServer();
+    supabase = await supabaseServer();
   } catch {
     return { state: "anonymous", userId: null, orderStatus: null };
   }

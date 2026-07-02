@@ -1,0 +1,39 @@
+{
+  "run_id": "p89-final-2fa5898d89",
+  "tenants": 1000,
+  "comm_seeded_deliveries": 40000,
+  "connections": 32,
+  "workers": 8,
+  "claimed_total": 40400,
+  "claimed_note": "claimed_total may exceed comm_seeded because workers also drain the few isolation-phase deliveries seeded earlier for the same tenants (same PREFIX); the gate depends on overlap/double-claim, not the count",
+  "delivery_overlap": 0,
+  "submitted": 27249,
+  "retried": 7140,
+  "dead_lettered": 1000,
+  "lease_errors": 0,
+  "double_submit": 0,
+  "stuck_processing_after_drain": 0,
+  "live_leased_after_drain": 0,
+  "claim_latency_ms": {
+    "n": 3000,
+    "p50": 2.9,
+    "p95": 5.36,
+    "p99": 7.02,
+    "max": 34.44
+  },
+  "provider_events": {
+    "sampled": 25,
+    "duplicate_detected_count": 25,
+    "out_of_order_monotonic_count": 25,
+    "duplicate_detected": true,
+    "out_of_order_monotonic": true,
+    "errors": 0
+  },
+  "final_statuses": {
+    "submission_unknown": 5011,
+    "retry_scheduled": 7140,
+    "submitted": 27249,
+    "dead_letter": 1000
+  },
+  "ms": 49729
+}

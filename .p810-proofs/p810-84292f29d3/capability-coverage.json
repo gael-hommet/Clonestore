@@ -1,0 +1,29 @@
+{
+  "run_id": "p810-84292f29d3",
+  "total": 215,
+  "byStatus": {
+    "VERIFIED_EXISTING": 77,
+    "PARTIAL": 36,
+    "MISSING": 81,
+    "IMPLEMENTED_UNVERIFIED": 5,
+    "CONTRACT_ONLY": 6,
+    "EXTERNAL_DEPENDENCY": 5,
+    "HUMAN_ONLY": 4,
+    "LEGAL_CONTENT_REQUIRED": 1
+  },
+  "byAutonomy": {
+    "execute_autonomous": 68,
+    "execute_with_validation": 59,
+    "prepare_draft": 71,
+    "suggest": 5,
+    "observe_only": 8,
+    "human_only": 4
+  },
+  "byTargetPhase": {
+    "ALREADY_VERIFIED": 77,
+    "P8.11": 102,
+    "P8.12": 32,
+    "HUMAN_ONLY": 4
+  },
+  "verifiedPct": 35.8
+}

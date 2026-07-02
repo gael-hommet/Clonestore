@@ -1,0 +1,853 @@
+{
+  "run_id": "p89-final-2fa5898d89",
+  "engine": "embedded-postgresql-16 (local, ephemeral)",
+  "params": {
+    "COMPANIES": 100000,
+    "ACTIVE": 1000,
+    "CONNS": 32,
+    "WORKERS": 8,
+    "DOCUMENTS": 400,
+    "DELIVERIES": 40000,
+    "ISO_CHECKS": 5000
+  },
+  "phases": {
+    "boot_ms": 5491,
+    "migrations": {
+      "files": 28,
+      "applied": 28,
+      "errors": []
+    },
+    "seed_base_ms": 12750,
+    "configurations": {
+      "seed_ms": 9575,
+      "configurations": 100000,
+      "companies_without_config": 0,
+      "configs_without_company": 0,
+      "slug_collisions": 0,
+      "out_of_prefix": 0,
+      "sizes": {
+        "table_size": "34 MB",
+        "index_size": "21 MB"
+      },
+      "lookup_ms": {
+        "n": 500,
+        "p50": 0.53,
+        "p95": 0.99,
+        "p99": 1.49,
+        "max": 3.45
+      },
+      "pagination_ms": {
+        "n": 500,
+        "p50": 0.54,
+        "p95": 1,
+        "p99": 1.26,
+        "max": 2.54
+      },
+      "explain": {
+        "index_used": true,
+        "index_name": "idx_pierre_rt_onboarding_sessions_company",
+        "index_names": [
+          "idx_pierre_rt_onboarding_sessions_company"
+        ],
+        "node_types": [
+          "Index Scan"
+        ],
+        "actual_rows": 1,
+        "actual_total_time_ms": 0.017,
+        "shared_hit_blocks": 4,
+        "shared_read_blocks": 0,
+        "planning_time_ms": 0.101,
+        "execution_time_ms": 0.029,
+        "plan": {
+          "Plan": {
+            "Node Type": "Index Scan",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Scan Direction": "Forward",
+            "Index Name": "idx_pierre_rt_onboarding_sessions_company",
+            "Relation Name": "pierre_rt_onboarding_sessions",
+            "Alias": "pierre_rt_onboarding_sessions",
+            "Startup Cost": 0.42,
+            "Total Cost": 8.44,
+            "Plan Rows": 1,
+            "Plan Width": 30,
+            "Actual Startup Time": 0.016,
+            "Actual Total Time": 0.017,
+            "Actual Rows": 1,
+            "Actual Loops": 1,
+            "Index Cond": "(company_id = '5aaa523c-6499-4f38-8cd8-b889adf8a0b4'::uuid)",
+            "Rows Removed by Index Recheck": 0,
+            "Filter": "(product_key = 'pierre'::text)",
+            "Rows Removed by Filter": 0,
+            "Shared Hit Blocks": 4,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          },
+          "Planning": {
+            "Shared Hit Blocks": 0,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          },
+          "Planning Time": 0.101,
+          "Triggers": [],
+          "Execution Time": 0.029
+        }
+      },
+      "pagination_explain": {
+        "index_used": true,
+        "index_name": "idx_pierre_rt_onboarding_sessions_company",
+        "index_names": [
+          "idx_pierre_rt_onboarding_sessions_company"
+        ],
+        "node_types": [
+          "Limit",
+          "Sort",
+          "Index Scan"
+        ],
+        "actual_rows": 1,
+        "actual_total_time_ms": 0.019,
+        "shared_hit_blocks": 12,
+        "shared_read_blocks": 0,
+        "planning_time_ms": 0.088,
+        "execution_time_ms": 0.032,
+        "plan": {
+          "Plan": {
+            "Node Type": "Limit",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 8.45,
+            "Total Cost": 8.45,
+            "Plan Rows": 1,
+            "Plan Width": 24,
+            "Actual Startup Time": 0.018,
+            "Actual Total Time": 0.019,
+            "Actual Rows": 1,
+            "Actual Loops": 1,
+            "Shared Hit Blocks": 4,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "Plans": [
+              {
+                "Node Type": "Sort",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 8.45,
+                "Total Cost": 8.45,
+                "Plan Rows": 1,
+                "Plan Width": 24,
+                "Actual Startup Time": 0.018,
+                "Actual Total Time": 0.018,
+                "Actual Rows": 1,
+                "Actual Loops": 1,
+                "Sort Key": [
+                  "created_at DESC"
+                ],
+                "Sort Method": "quicksort",
+                "Sort Space Used": 25,
+                "Sort Space Type": "Memory",
+                "Shared Hit Blocks": 4,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Index Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Scan Direction": "Forward",
+                    "Index Name": "idx_pierre_rt_onboarding_sessions_company",
+                    "Relation Name": "pierre_rt_onboarding_sessions",
+                    "Alias": "pierre_rt_onboarding_sessions",
+                    "Startup Cost": 0.42,
+                    "Total Cost": 8.44,
+                    "Plan Rows": 1,
+                    "Plan Width": 24,
+                    "Actual Startup Time": 0.012,
+                    "Actual Total Time": 0.013,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Index Cond": "(company_id = '5aaa523c-6499-4f38-8cd8-b889adf8a0b4'::uuid)",
+                    "Rows Removed by Index Recheck": 0,
+                    "Shared Hit Blocks": 4,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0
+                  }
+                ]
+              }
+            ]
+          },
+          "Planning": {
+            "Shared Hit Blocks": 0,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          },
+          "Planning Time": 0.088,
+          "Triggers": [],
+          "Execution Time": 0.032
+        }
+      }
+    },
+    "seed_active_ms": 197,
+    "fairness": {
+      "active_tenants": 1000,
+      "noisy_tenants": 5,
+      "normal_tenants": 995,
+      "noisy_jobs_each": 2000,
+      "normal_jobs_each": 3,
+      "before_global_claim": {
+        "rounds": 32,
+        "overlap": 0,
+        "starved": 0,
+        "first_service_round_p95": 30,
+        "first_service_round_max": 32,
+        "normal_served": 995,
+        "normal_total": 995,
+        "noisyShareEarly": 0
+      },
+      "after_fair_claim": {
+        "rounds": 2,
+        "overlap": 0,
+        "starved": 0,
+        "first_service_round_p95": 1,
+        "first_service_round_max": 1,
+        "normal_served": 995,
+        "normal_total": 995,
+        "noisyShareEarly": 0
+      },
+      "defect_reproduced": true,
+      "fairness_primitive": "src/lib/pierre/v1/fair-claim.ts (claimJobsForTenant + fairClaimRound weighted round-robin, quota/tenant)",
+      "tradeoff": "global cross-tenant priority relaxed for bounded per-tenant service; within a tenant, (priority, age) preserved",
+      "ms": 6649
+    },
+    "deep_isolation": {
+      "families": 14,
+      "family_detail": {
+        "pierre_rt_companies": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_members": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_onboarding_sessions": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_product_entitlements": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_missions": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_tasks": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_employees": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_documents": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_files": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_notifications": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_events": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_jobs": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_communication_intents": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        },
+        "pierre_rt_communication_deliveries": {
+          "rls": true,
+          "checks": 1600,
+          "leaks": 0,
+          "unauthorized_mutations": 0
+        }
+      },
+      "isolation_checks": 22800,
+      "cross_tenant_leaks": 0,
+      "unauthorized_mutations": 0,
+      "unauthorized_claims": 0,
+      "read_errors": 0,
+      "positive_control_pass": 5600,
+      "positive_control_fail": 0,
+      "writes_prevented_by_rls_zero_rows": 4000,
+      "writes_prevented_by_grant_error": 1600,
+      "skipped": 0,
+      "first_error": null,
+      "sample_tenants": 400,
+      "ms": 19605
+    },
+    "communications": {
+      "tenants": 1000,
+      "comm_seeded_deliveries": 40000,
+      "connections": 32,
+      "workers": 8,
+      "claimed_total": 40400,
+      "claimed_note": "claimed_total may exceed comm_seeded because workers also drain the few isolation-phase deliveries seeded earlier for the same tenants (same PREFIX); the gate depends on overlap/double-claim, not the count",
+      "delivery_overlap": 0,
+      "submitted": 27249,
+      "retried": 7140,
+      "dead_lettered": 1000,
+      "lease_errors": 0,
+      "double_submit": 0,
+      "stuck_processing_after_drain": 0,
+      "live_leased_after_drain": 0,
+      "claim_latency_ms": {
+        "n": 3000,
+        "p50": 2.9,
+        "p95": 5.36,
+        "p99": 7.02,
+        "max": 34.44
+      },
+      "provider_events": {
+        "sampled": 25,
+        "duplicate_detected_count": 25,
+        "out_of_order_monotonic_count": 25,
+        "duplicate_detected": true,
+        "out_of_order_monotonic": true,
+        "errors": 0
+      },
+      "final_statuses": {
+        "submission_unknown": 5011,
+        "retry_scheduled": 7140,
+        "submitted": 27249,
+        "dead_letter": 1000
+      },
+      "ms": 49729
+    },
+    "documents": {
+      "formats": [
+        "docx",
+        "pdf"
+      ],
+      "sizes": [
+        "small",
+        "medium",
+        "max"
+      ],
+      "concurrencies": [
+        1,
+        10,
+        50,
+        100
+      ],
+      "per_scenario": {
+        "docx_small_c1": {
+          "docs": 60,
+          "concurrency": 1,
+          "peak_in_flight": 1,
+          "ms": 185,
+          "throughput_docs_per_s": 324.3,
+          "latency_ms": {
+            "n": 60,
+            "p50": 2.83,
+            "p95": 5.15,
+            "p99": 5.82,
+            "max": 5.82
+          }
+        },
+        "docx_small_c10": {
+          "docs": 60,
+          "concurrency": 10,
+          "peak_in_flight": 10,
+          "ms": 67,
+          "throughput_docs_per_s": 895.5,
+          "latency_ms": {
+            "n": 60,
+            "p50": 10.64,
+            "p95": 13.19,
+            "p99": 13.37,
+            "max": 13.37
+          }
+        },
+        "docx_small_c50": {
+          "docs": 60,
+          "concurrency": 50,
+          "peak_in_flight": 50,
+          "ms": 59,
+          "throughput_docs_per_s": 1016.9,
+          "latency_ms": {
+            "n": 60,
+            "p50": 43.79,
+            "p95": 46.99,
+            "p99": 48.23,
+            "max": 48.23
+          }
+        },
+        "docx_small_c100": {
+          "docs": 100,
+          "concurrency": 100,
+          "peak_in_flight": 100,
+          "ms": 145,
+          "throughput_docs_per_s": 689.7,
+          "latency_ms": {
+            "n": 100,
+            "p50": 136.14,
+            "p95": 141.64,
+            "p99": 142.16,
+            "max": 142.54
+          }
+        },
+        "docx_medium_c1": {
+          "docs": 60,
+          "concurrency": 1,
+          "peak_in_flight": 1,
+          "ms": 355,
+          "throughput_docs_per_s": 169,
+          "latency_ms": {
+            "n": 60,
+            "p50": 5.23,
+            "p95": 10.31,
+            "p99": 12.05,
+            "max": 12.05
+          }
+        },
+        "docx_medium_c10": {
+          "docs": 60,
+          "concurrency": 10,
+          "peak_in_flight": 10,
+          "ms": 136,
+          "throughput_docs_per_s": 441.2,
+          "latency_ms": {
+            "n": 60,
+            "p50": 21.02,
+            "p95": 29.13,
+            "p99": 30.22,
+            "max": 30.22
+          }
+        },
+        "docx_medium_c50": {
+          "docs": 60,
+          "concurrency": 50,
+          "peak_in_flight": 50,
+          "ms": 124,
+          "throughput_docs_per_s": 483.9,
+          "latency_ms": {
+            "n": 60,
+            "p50": 77.78,
+            "p95": 100.3,
+            "p99": 103.37,
+            "max": 103.37
+          }
+        },
+        "docx_medium_c100": {
+          "docs": 100,
+          "concurrency": 100,
+          "peak_in_flight": 100,
+          "ms": 200,
+          "throughput_docs_per_s": 500,
+          "latency_ms": {
+            "n": 100,
+            "p50": 146.54,
+            "p95": 188.95,
+            "p99": 194.73,
+            "max": 195.73
+          }
+        },
+        "docx_max_c1": {
+          "docs": 30,
+          "concurrency": 1,
+          "peak_in_flight": 1,
+          "ms": 636,
+          "throughput_docs_per_s": 47.2,
+          "latency_ms": {
+            "n": 30,
+            "p50": 19.67,
+            "p95": 30.73,
+            "p99": 36.86,
+            "max": 36.86
+          }
+        },
+        "docx_max_c10": {
+          "docs": 30,
+          "concurrency": 10,
+          "peak_in_flight": 10,
+          "ms": 470,
+          "throughput_docs_per_s": 63.8,
+          "latency_ms": {
+            "n": 30,
+            "p50": 147.81,
+            "p95": 186.97,
+            "p99": 216.8,
+            "max": 216.8
+          }
+        },
+        "docx_max_c50": {
+          "docs": 50,
+          "concurrency": 50,
+          "peak_in_flight": 50,
+          "ms": 728,
+          "throughput_docs_per_s": 68.7,
+          "latency_ms": {
+            "n": 50,
+            "p50": 416.93,
+            "p95": 695.39,
+            "p99": 725.48,
+            "max": 725.48
+          }
+        },
+        "docx_max_c100": {
+          "docs": 100,
+          "concurrency": 100,
+          "peak_in_flight": 100,
+          "ms": 2278,
+          "throughput_docs_per_s": 43.9,
+          "latency_ms": {
+            "n": 100,
+            "p50": 1671.5,
+            "p95": 2215.6,
+            "p99": 2260.12,
+            "max": 2273.83
+          }
+        },
+        "pdf_small_c1": {
+          "docs": 60,
+          "concurrency": 1,
+          "peak_in_flight": 1,
+          "ms": 278,
+          "throughput_docs_per_s": 215.8,
+          "latency_ms": {
+            "n": 60,
+            "p50": 4.37,
+            "p95": 6.28,
+            "p99": 6.97,
+            "max": 6.97
+          }
+        },
+        "pdf_small_c10": {
+          "docs": 60,
+          "concurrency": 10,
+          "peak_in_flight": 10,
+          "ms": 99,
+          "throughput_docs_per_s": 606.1,
+          "latency_ms": {
+            "n": 60,
+            "p50": 14.29,
+            "p95": 25.44,
+            "p99": 30.22,
+            "max": 30.22
+          }
+        },
+        "pdf_small_c50": {
+          "docs": 60,
+          "concurrency": 50,
+          "peak_in_flight": 50,
+          "ms": 90,
+          "throughput_docs_per_s": 666.7,
+          "latency_ms": {
+            "n": 60,
+            "p50": 70.53,
+            "p95": 72.8,
+            "p99": 73.34,
+            "max": 73.34
+          }
+        },
+        "pdf_small_c100": {
+          "docs": 100,
+          "concurrency": 100,
+          "peak_in_flight": 100,
+          "ms": 154,
+          "throughput_docs_per_s": 649.4,
+          "latency_ms": {
+            "n": 100,
+            "p50": 142.6,
+            "p95": 148.36,
+            "p99": 148.87,
+            "max": 149
+          }
+        },
+        "pdf_medium_c1": {
+          "docs": 60,
+          "concurrency": 1,
+          "peak_in_flight": 1,
+          "ms": 465,
+          "throughput_docs_per_s": 129,
+          "latency_ms": {
+            "n": 60,
+            "p50": 7.46,
+            "p95": 10.18,
+            "p99": 12.09,
+            "max": 12.09
+          }
+        },
+        "pdf_medium_c10": {
+          "docs": 60,
+          "concurrency": 10,
+          "peak_in_flight": 10,
+          "ms": 161,
+          "throughput_docs_per_s": 372.7,
+          "latency_ms": {
+            "n": 60,
+            "p50": 25.53,
+            "p95": 31.03,
+            "p99": 32.84,
+            "max": 32.84
+          }
+        },
+        "pdf_medium_c50": {
+          "docs": 60,
+          "concurrency": 50,
+          "peak_in_flight": 50,
+          "ms": 157,
+          "throughput_docs_per_s": 382.2,
+          "latency_ms": {
+            "n": 60,
+            "p50": 111.17,
+            "p95": 128.2,
+            "p99": 129.72,
+            "max": 129.72
+          }
+        },
+        "pdf_medium_c100": {
+          "docs": 100,
+          "concurrency": 100,
+          "peak_in_flight": 100,
+          "ms": 264,
+          "throughput_docs_per_s": 378.8,
+          "latency_ms": {
+            "n": 100,
+            "p50": 218.43,
+            "p95": 253.26,
+            "p99": 259.08,
+            "max": 259.72
+          }
+        },
+        "pdf_max_c1": {
+          "docs": 30,
+          "concurrency": 1,
+          "peak_in_flight": 1,
+          "ms": 783,
+          "throughput_docs_per_s": 38.3,
+          "latency_ms": {
+            "n": 30,
+            "p50": 21.89,
+            "p95": 37.69,
+            "p99": 99.75,
+            "max": 99.75
+          }
+        },
+        "pdf_max_c10": {
+          "docs": 30,
+          "concurrency": 10,
+          "peak_in_flight": 10,
+          "ms": 489,
+          "throughput_docs_per_s": 61.3,
+          "latency_ms": {
+            "n": 30,
+            "p50": 151.82,
+            "p95": 183.59,
+            "p99": 186.93,
+            "max": 186.93
+          }
+        },
+        "pdf_max_c50": {
+          "docs": 50,
+          "concurrency": 50,
+          "peak_in_flight": 50,
+          "ms": 847,
+          "throughput_docs_per_s": 59,
+          "latency_ms": {
+            "n": 50,
+            "p50": 522.8,
+            "p95": 819.76,
+            "p99": 842.18,
+            "max": 842.18
+          }
+        },
+        "pdf_max_c100": {
+          "docs": 100,
+          "concurrency": 100,
+          "peak_in_flight": 100,
+          "ms": 1846,
+          "throughput_docs_per_s": 54.2,
+          "latency_ms": {
+            "n": 100,
+            "p50": 1039.99,
+            "p95": 1748.32,
+            "p99": 1823.31,
+            "max": 1838.49
+          }
+        }
+      },
+      "memory": {
+        "heap_start_mb": 17.6,
+        "heap_end_mb": 78.5,
+        "rss_mb": 222.9,
+        "unbounded": {
+          "peak_heap_delta_mb": 7,
+          "mode": "unbounded (all-at-once)"
+        },
+        "bounded": {
+          "peak_heap_delta_mb": -14.4,
+          "mode": "bounded (mapBounded=10)"
+        }
+      },
+      "integrity": {
+        "cross_tenant_documents": 0,
+        "hash_mismatches": 0,
+        "invalid_outputs": 0,
+        "storage_errors": 0
+      },
+      "backpressure_primitive": "src/lib/pierre/v1/bounded-concurrency.ts (BoundedConcurrency + mapBounded; caps in-flight, backpressures producer)",
+      "ms": 12267
+    },
+    "complex_failures": {
+      "scenarios": {
+        "A_worker_crash": {
+          "claimed": 1,
+          "recovered": 1,
+          "reclaimed": 1,
+          "succeeded": 1,
+          "single_completion": true,
+          "ok": true
+        },
+        "B_pool_saturation": {
+          "timed_out_cleanly": true,
+          "recovered_after_release": true,
+          "job_not_lost": true,
+          "ok": true
+        },
+        "C_db_timeout": {
+          "rolled_back": true,
+          "state_consistent": true
+        },
+        "D_provider_5xx": {
+          "terminal_status": "dead_letter",
+          "dead_lettered": true
+        },
+        "E_response_unknown": {
+          "status": "submission_unknown",
+          "governed": true
+        },
+        "F_duplicate_events": {
+          "idempotent": true
+        },
+        "G_out_of_order": {
+          "applied_second": "ignored",
+          "final_status": "delivered",
+          "monotonic": true
+        },
+        "H_crash_before_persist": {
+          "final_status": "submitted",
+          "rows": 1,
+          "submitted_count": 1,
+          "no_orphan_or_duplicate": true
+        }
+      },
+      "lost_jobs": 0,
+      "duplicate_side_effects": 0,
+      "unrecovered_leases": 0,
+      "permanent_backlog": 0,
+      "residue_computed_from_db": true,
+      "all_green": true,
+      "ms": 2018
+    }
+  },
+  "invariants": {
+    "materialized_100k_company_configurations": true,
+    "fairness_1000_active_tenants": true,
+    "deep_isolation_100k": true,
+    "communication_delivery_concurrency_verified": true,
+    "document_pipeline_load_verified": true,
+    "complex_failure_recovery_verified": true
+  },
+  "cleanup": {
+    "ok": true,
+    "data_dir_removed": true,
+    "docstore_removed": true
+  },
+  "pg_version": "PostgreSQL 16.14, compiled by Visual C++",
+  "counts": {
+    "companies": 100000,
+    "members": 100000,
+    "entitlements": 100000
+  },
+  "verdict": "GREEN"
+}

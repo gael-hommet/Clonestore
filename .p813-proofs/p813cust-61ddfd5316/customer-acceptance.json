@@ -1,0 +1,31 @@
+{
+  "run_id": "p813cust-61ddfd5316",
+  "functionalBackendUsable": true,
+  "capabilitiesCovered": 215,
+  "totalCapabilities": 215,
+  "missionPacks": 43,
+  "selfServiceCriteria": [
+    {
+      "id": "cap.coverage",
+      "statement": "Every HR capability has a governed certified path (no NOT_CERTIFIED).",
+      "met": true
+    },
+    {
+      "id": "packs.compile",
+      "statement": "Every mission pack compiles on the verified runtime (proven in P8.11).",
+      "met": true
+    },
+    {
+      "id": "no.tech.intervention",
+      "statement": "A customer operates via missions/approvals/manual handoffs — no code, no SQL, no provider wiring.",
+      "met": true
+    },
+    {
+      "id": "governed.fallbacks",
+      "statement": "Legally-sensitive / provider / country acts route to governed human/manual paths (never dead-end, never fabricated).",
+      "met": true
+    }
+  ],
+  "ok": true,
+  "disclosure": "Functional operability is certified. Automatic country-legal execution is NOT available until VERIFIED rules + live providers + owner sign-off (dimension B)."
+}

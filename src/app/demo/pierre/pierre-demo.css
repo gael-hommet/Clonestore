@@ -452,3 +452,233 @@
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   COCKPIT — the interactive HR operations cockpit (/demo/pierre core).
+   Three persistent zones (Entrées · Mission · Livrables) under a context bar.
+   Scoped `.pdc-*`. Desktop = fixed-height cockpit with internal zone scroll;
+   mobile = tabbed views sharing the same context bar + phase nav.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.pdc {
+  display: grid;
+  gap: 14px;
+  border-radius: var(--pd-radius);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background:
+    radial-gradient(130% 100% at 8% -6%, rgba(255, 255, 255, 0.6), transparent 44%),
+    linear-gradient(180deg, var(--pd-paper) 0%, rgba(255, 253, 249, 0.72) 100%);
+  box-shadow: var(--pd-shadow);
+  padding: clamp(12px, 2vw, 18px);
+}
+
+/* ── Context bar ──────────────────────────────────────────────────────────── */
+.pdc-bar {
+  display: grid;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--pd-radius-sm);
+  border: 1px solid var(--pd-line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 241, 0.66));
+}
+.pdc-bar__top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pdc-bar__scenario { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.pdc-bar__clock {
+  font-variant-numeric: tabular-nums; font-weight: 750; color: var(--pd-ink-1);
+  font-size: 0.9rem; white-space: nowrap;
+}
+.pdc-bar__title { font-weight: 700; color: var(--pd-ink-2); font-size: 0.85rem; }
+.pdc-metrics { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+.pdc-metric {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  padding: 5px 11px; border-radius: var(--pd-radius-pill);
+  border: 1px solid var(--pd-line); background: rgba(255, 255, 255, 0.7);
+}
+.pdc-metric__v { font-weight: 780; color: var(--pd-ink-1); font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+.pdc-metric__l { font-size: 0.68rem; color: var(--pd-ink-4); font-weight: 650; letter-spacing: 0.02em; }
+.pdc-metric--flag .pdc-metric__v { color: var(--pd-warn); }
+
+/* ── Phase rail (the progress) ───────────────────────────────────────────── */
+.pdc-phaserail { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pdc-phase {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 12px; border-radius: var(--pd-radius-pill);
+  border: 1px solid var(--pd-line); background: rgba(255, 255, 255, 0.55);
+  color: var(--pd-ink-3); font-size: 0.74rem; font-weight: 700; cursor: pointer;
+  transition: background 180ms var(--pd-ease), color 180ms var(--pd-ease), border-color 180ms var(--pd-ease);
+}
+.pdc-phase:hover { color: var(--pd-ink-1); border-color: var(--pd-line-strong); }
+.pdc-phase:focus-visible { outline: 3px solid rgba(58, 107, 116, 0.5); outline-offset: 2px; }
+.pdc-phase__n {
+  display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+  font-size: 0.64rem; font-weight: 800; background: var(--pd-line); color: var(--pd-ink-3);
+}
+.pdc-phase--done { color: var(--pd-ink-2); border-color: rgba(58, 107, 116, 0.28); }
+.pdc-phase--done .pdc-phase__n { background: var(--pd-cool-soft); color: var(--pd-cool); }
+.pdc-phase--cur {
+  color: #fdfaf3; border-color: rgba(0, 0, 0, 0.2);
+  background: linear-gradient(180deg, var(--pd-graphite-2), var(--pd-graphite));
+}
+.pdc-phase--cur .pdc-phase__n { background: rgba(255, 255, 255, 0.22); color: #fff; }
+.pdc-phaselabel { display: none; }
+
+/* ── The three-zone grid ─────────────────────────────────────────────────── */
+.pdc-grid { display: grid; gap: 12px; }
+.pdc-zone {
+  display: flex; flex-direction: column; min-height: 0;
+  border-radius: var(--pd-radius-sm);
+  border: 1px solid var(--pd-line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 253, 249, 0.5));
+  transition: box-shadow 220ms var(--pd-ease), border-color 220ms var(--pd-ease);
+}
+.pdc-zone--focus {
+  border-color: var(--pd-cool);
+  box-shadow: 0 0 0 2px var(--pd-cool-soft), var(--pd-shadow);
+}
+.pdc-zone__head {
+  flex-shrink: 0; display: flex; align-items: center; gap: 8px;
+  padding: 11px 13px; border-bottom: 1px solid var(--pd-line-soft);
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--pd-radius-sm) var(--pd-radius-sm) 0 0;
+}
+.pdc-zone__ico {
+  flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center;
+  background: var(--pd-champagne-soft); color: var(--pd-ink-2); border: 1px solid var(--pd-line);
+}
+.pdc-zone--focus .pdc-zone__ico { background: var(--pd-cool-soft); color: var(--pd-cool); border-color: rgba(58, 107, 116, 0.25); }
+.pdc-zone__label { font-weight: 750; color: var(--pd-ink-1); font-size: 0.82rem; }
+.pdc-zone__q { font-size: 0.68rem; color: var(--pd-ink-4); }
+.pdc-zone__body {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: 12px 13px; display: grid; gap: 12px; align-content: start;
+}
+/* keep reused step components compact inside a zone */
+.pdc-zone .pd-h2 { font-size: 1.02rem; }
+.pdc-zone .pd-lede { font-size: 0.8rem; }
+.pdc-zone section > header { margin-bottom: 10px; }
+
+/* ── Panel (a block inside a zone) ───────────────────────────────────────── */
+.pdc-panel {
+  border-radius: var(--pd-radius-sm);
+  border: 1px solid var(--pd-line-soft);
+  background: rgba(255, 255, 255, 0.6);
+  padding: 12px;
+}
+.pdc-panel__head { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.pdc-panel__title { font-weight: 750; font-size: 0.8rem; color: var(--pd-ink-1); }
+.pdc-panel--locked { opacity: 0.5; }
+.pdc-locked {
+  display: flex; align-items: center; gap: 8px; padding: 12px;
+  border-radius: var(--pd-radius-sm); border: 1px dashed var(--pd-line-strong);
+  color: var(--pd-ink-4); font-size: 0.76rem; background: rgba(255, 255, 255, 0.35);
+}
+
+/* ── Incoming requests (left) ────────────────────────────────────────────── */
+.pdc-req {
+  display: grid; gap: 5px; padding: 10px 11px;
+  border-radius: var(--pd-radius-sm); border: 1px solid var(--pd-line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 253, 249, 0.58));
+}
+.pdc-req__top { display: flex; align-items: center; gap: 7px; }
+.pdc-req__from { font-weight: 700; font-size: 0.76rem; color: var(--pd-ink-2); }
+.pdc-req__chan {
+  margin-left: auto; font-size: 0.62rem; letter-spacing: 0.04em; text-transform: uppercase;
+  font-weight: 750; color: var(--pd-ink-4);
+}
+.pdc-req__text { font-size: 0.8rem; color: var(--pd-ink-1); line-height: 1.45; }
+.pdc-req__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.pdc-req__dot--haute { background: var(--pd-block); }
+.pdc-req__dot--normale { background: var(--pd-cool); }
+
+/* ── Context rows (left) ─────────────────────────────────────────────────── */
+.pdc-ctx { display: grid; gap: 6px; }
+.pdc-ctx__row { display: flex; gap: 8px; font-size: 0.78rem; }
+.pdc-ctx__row dt { color: var(--pd-ink-4); min-width: 96px; flex: none; }
+.pdc-ctx__row dd { margin: 0; color: var(--pd-ink-1); font-weight: 600; }
+.pdc-missing {
+  display: flex; align-items: flex-start; gap: 8px; padding: 9px 11px; margin-top: 4px;
+  border-radius: var(--pd-radius-sm); border: 1px solid var(--pd-block-soft);
+  background: var(--pd-block-soft); color: var(--pd-ink-2); font-size: 0.76rem;
+}
+
+/* ── Week continuity (center) ────────────────────────────────────────────── */
+.pdc-week { display: grid; gap: 8px; }
+.pdc-week__row {
+  display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start;
+  padding: 9px 11px; border-radius: var(--pd-radius-sm);
+  border: 1px solid var(--pd-line-soft); background: rgba(255, 255, 255, 0.55);
+}
+.pdc-week__when { text-align: right; min-width: 60px; }
+.pdc-week__day { font-weight: 750; font-size: 0.72rem; color: var(--pd-ink-2); }
+.pdc-week__time { font-variant-numeric: tabular-nums; font-size: 0.68rem; color: var(--pd-ink-4); }
+.pdc-week__label { font-weight: 650; font-size: 0.8rem; color: var(--pd-ink-1); display: flex; gap: 7px; align-items: baseline; }
+.pdc-week__detail { font-size: 0.74rem; color: var(--pd-ink-3); margin-top: 3px; line-height: 1.45; }
+.pdc-week__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; transform: translateY(-1px); }
+
+/* ── Deliverables list (right) ───────────────────────────────────────────── */
+.pdc-deliv { width: 100%; text-align: left; cursor: pointer; }
+.pdc-deliv:focus-visible { outline: 3px solid rgba(58, 107, 116, 0.5); outline-offset: 2px; }
+.pdc-deliv:hover { border-color: var(--pd-cool); box-shadow: var(--pd-shadow-lift); }
+.pdc-deliv__top { display: flex; align-items: center; gap: 8px; }
+.pdc-deliv__ico { flex: none; color: var(--pd-cool); }
+.pdc-deliv__title { font-weight: 700; font-size: 0.8rem; color: var(--pd-ink-1); }
+.pdc-deliv__badge { margin-left: auto; }
+
+/* ── Role split (bilan) ──────────────────────────────────────────────────── */
+.pdc-roles { display: grid; gap: 10px; }
+@media (min-width: 620px) { .pdc-roles { grid-template-columns: 1fr 1fr; } }
+.pdc-role { border-radius: var(--pd-radius-sm); border: 1px solid var(--pd-line); padding: 12px; }
+.pdc-role--pierre { background: var(--pd-cool-soft); border-color: rgba(58, 107, 116, 0.25); }
+.pdc-role--human { background: rgba(255, 255, 255, 0.6); }
+.pdc-role__h { display: flex; align-items: center; gap: 7px; font-weight: 780; font-size: 0.82rem; color: var(--pd-ink-1); margin-bottom: 8px; }
+.pdc-role ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.pdc-role li { display: flex; gap: 8px; align-items: flex-start; font-size: 0.78rem; color: var(--pd-ink-2); }
+.pdc-role li::before { content: "—"; color: var(--pd-ink-4); flex: none; }
+
+/* ── Mobile tabs ─────────────────────────────────────────────────────────── */
+.pdc-tabs {
+  display: flex; gap: 6px; padding: 6px; border-radius: var(--pd-radius-pill);
+  border: 1px solid var(--pd-line); background: rgba(255, 255, 255, 0.6);
+}
+.pdc-tab {
+  flex: 1; min-height: 40px; border-radius: var(--pd-radius-pill); border: 1px solid transparent;
+  background: transparent; color: var(--pd-ink-3); font-weight: 700; font-size: 0.78rem; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+}
+.pdc-tab[aria-selected="true"] {
+  color: #fdfaf3; background: linear-gradient(180deg, var(--pd-graphite-2), var(--pd-graphite));
+}
+.pdc-tab:focus-visible { outline: 3px solid rgba(58, 107, 116, 0.5); outline-offset: 2px; }
+
+/* Desktop: three zones side by side, cockpit is a fixed-height workspace. */
+@media (min-width: 1080px) {
+  .pdc-tabs { display: none; }
+  .pdc-grid {
+    grid-template-columns: minmax(238px, 300px) minmax(0, 1fr) minmax(288px, 372px);
+    height: clamp(520px, 66vh, 760px);
+  }
+  .pdc-zone { display: flex !important; }
+}
+/* Tablet: two columns, mission centre spans; tabs still hidden if it fits. */
+@media (min-width: 720px) and (max-width: 1079px) {
+  .pdc-grid { grid-template-columns: 1fr; }
+}
+/* Below desktop: only the active tab's zone shows, sized to content. */
+@media (max-width: 1079px) {
+  .pdc-zone[data-active="false"] { display: none; }
+  .pdc-zone__body { max-height: none; }
+}
+
+.pdc-note {
+  display: flex; gap: 7px; align-items: flex-start; font-size: 0.72rem; color: var(--pd-ink-4);
+  line-height: 1.5;
+}
+
+/* Cockpit variant of the controls: an in-flow footer of the workspace, not a
+   viewport-floating bar (the base .pd-controls stays sticky for the guided use
+   elsewhere and for the responsive contract). */
+.pd-controls.pdc-controls {
+  position: relative;
+  bottom: auto;
+  z-index: 1;
+}

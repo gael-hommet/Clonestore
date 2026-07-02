@@ -26,7 +26,11 @@ export class ResendEmailProvider implements EmailDeliveryProvider {
     const body = JSON.stringify({
       from: input.from, to: input.to, subject: input.subject, html: input.html, text: input.plainText,
       reply_to: input.replyTo ?? undefined,
-      tags: Object.entries(input.tags).map(([name, value]) => ({ name, value })),
+      // Resend REQUIRES tag names/values to be ASCII letters, numbers, underscores or dashes only — canonical
+      // event kinds contain dots (e.g. "document.ready_for_review"), which Resend rejects with a 422. Sanitize
+      // to the allowed charset (dots/colons/etc → "_"); this preserves the tag semantics and never affects the
+      // message content or any other provider.
+      tags: Object.entries(input.tags).map(([name, value]) => ({ name: String(name).replace(/[^A-Za-z0-9_-]/g, "_"), value: String(value).replace(/[^A-Za-z0-9_-]/g, "_") })),
     });
     // R1.9 — a REAL timeout via AbortController. A timeout is AMBIGUOUS (the request may have reached
     // Resend), so it is reported as `timeout` and NEVER blindly resent. A failure BEFORE the request

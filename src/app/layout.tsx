@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteHeader from "../components/site/site-header";
 import { LiquidGlassFilters } from "@/components/ui/LiquidGlassFilters";
+import { GuidedTourProvider } from "@/components/guided-tour/GuidedTourProvider";
 
 export const metadata: Metadata = {
   title: "CloneStore",
@@ -57,7 +58,9 @@ export default function RootLayout({
 
         <SiteHeader />
 
-        <div className="cs-main">{children}</div>
+        <div className="cs-main">
+          <GuidedTourProvider>{children}</GuidedTourProvider>
+        </div>
 
         <footer className="cs-footer">
           <div className="cs-shell">

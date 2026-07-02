@@ -1,0 +1,230 @@
+{
+  "run_id": "p811-2a7576d80e",
+  "count": 32,
+  "gaps": [
+    {
+      "id": "org.restructuring_prepare",
+      "domain": "org",
+      "countryRuleFamilies": [
+        "employee_representation"
+      ]
+    },
+    {
+      "id": "recruitment.candidate_data_compliance",
+      "domain": "recruitment",
+      "countryRuleFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "id": "offer.generate_offer_document",
+      "domain": "offer",
+      "countryRuleFamilies": [
+        "contract_types"
+      ]
+    },
+    {
+      "id": "offer.right_to_work",
+      "domain": "offer",
+      "countryRuleFamilies": [
+        "right_to_work"
+      ]
+    },
+    {
+      "id": "contract.renewal",
+      "domain": "contract",
+      "countryRuleFamilies": [
+        "fixed_term_rules"
+      ]
+    },
+    {
+      "id": "contract.hours_change",
+      "domain": "contract",
+      "countryRuleFamilies": [
+        "working_time"
+      ]
+    },
+    {
+      "id": "contract.end_probation",
+      "domain": "contract",
+      "countryRuleFamilies": [
+        "probation_periods"
+      ]
+    },
+    {
+      "id": "onboarding.probation_tracking",
+      "domain": "onboarding",
+      "countryRuleFamilies": [
+        "probation_periods"
+      ]
+    },
+    {
+      "id": "absence.balance_calculation",
+      "domain": "absence",
+      "countryRuleFamilies": [
+        "paid_leave"
+      ]
+    },
+    {
+      "id": "absence.sick_leave",
+      "domain": "absence",
+      "countryRuleFamilies": [
+        "sick_leave"
+      ]
+    },
+    {
+      "id": "absence.parental_leave",
+      "domain": "absence",
+      "countryRuleFamilies": [
+        "parental_leave"
+      ]
+    },
+    {
+      "id": "absence.return_to_work",
+      "domain": "absence",
+      "countryRuleFamilies": [
+        "occupational_health"
+      ]
+    },
+    {
+      "id": "absence.time_tracking",
+      "domain": "absence",
+      "countryRuleFamilies": [
+        "working_time"
+      ]
+    },
+    {
+      "id": "payroll.export_transmission",
+      "domain": "payroll",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ]
+    },
+    {
+      "id": "payroll.official_calculation",
+      "domain": "payroll",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ]
+    },
+    {
+      "id": "payroll.dsn_declaration",
+      "domain": "payroll",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ]
+    },
+    {
+      "id": "payroll.payslip_generation",
+      "domain": "payroll",
+      "countryRuleFamilies": [
+        "payslip_requirements"
+      ]
+    },
+    {
+      "id": "training.mandatory_compliance",
+      "domain": "training",
+      "countryRuleFamilies": [
+        "mandatory_trainings"
+      ]
+    },
+    {
+      "id": "disciplinary.summons",
+      "domain": "disciplinary",
+      "countryRuleFamilies": [
+        "disciplinary_procedure"
+      ]
+    },
+    {
+      "id": "disciplinary.deadlines",
+      "domain": "disciplinary",
+      "countryRuleFamilies": [
+        "disciplinary_procedure"
+      ]
+    },
+    {
+      "id": "health.medical_visits",
+      "domain": "health",
+      "countryRuleFamilies": [
+        "occupational_health"
+      ]
+    },
+    {
+      "id": "health.mandatory_safety_training",
+      "domain": "health",
+      "countryRuleFamilies": [
+        "mandatory_trainings"
+      ]
+    },
+    {
+      "id": "offboarding.resignation",
+      "domain": "offboarding",
+      "countryRuleFamilies": [
+        "notice_periods"
+      ]
+    },
+    {
+      "id": "offboarding.mutual_termination",
+      "domain": "offboarding",
+      "countryRuleFamilies": [
+        "severance"
+      ]
+    },
+    {
+      "id": "offboarding.end_of_contract",
+      "domain": "offboarding",
+      "countryRuleFamilies": [
+        "fixed_term_rules"
+      ]
+    },
+    {
+      "id": "offboarding.final_pay",
+      "domain": "offboarding",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ]
+    },
+    {
+      "id": "offboarding.file_closure_archival",
+      "domain": "offboarding",
+      "countryRuleFamilies": [
+        "document_retention"
+      ]
+    },
+    {
+      "id": "data_gdpr.retention",
+      "domain": "data_gdpr",
+      "countryRuleFamilies": [
+        "document_retention"
+      ]
+    },
+    {
+      "id": "data_gdpr.legal_basis",
+      "domain": "data_gdpr",
+      "countryRuleFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "id": "data_gdpr.consent_proof",
+      "domain": "data_gdpr",
+      "countryRuleFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "id": "proactive.end_of_probation",
+      "domain": "proactive",
+      "countryRuleFamilies": [
+        "probation_periods"
+      ]
+    },
+    {
+      "id": "proactive.retention_deletion",
+      "domain": "proactive",
+      "countryRuleFamilies": [
+        "document_retention"
+      ]
+    }
+  ]
+}

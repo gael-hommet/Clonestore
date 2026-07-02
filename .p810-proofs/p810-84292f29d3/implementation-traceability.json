@@ -1,0 +1,2759 @@
+{
+  "run_id": "p810-84292f29d3",
+  "entries": [
+    {
+      "id": "org.read_company",
+      "domain": "org",
+      "label": "Read company information",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/company.ts",
+          "symbol": "getCompany"
+        },
+        {
+          "kind": "route",
+          "path": "src/app/api/pierre/v1/company/route.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "org.update_company",
+      "domain": "org",
+      "label": "Update company properties",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/company.ts",
+          "symbol": "patchCompany"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "org.create_site",
+      "domain": "org",
+      "label": "Create establishment/site",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/sites.ts",
+          "symbol": "createSite"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "org.update_site",
+      "domain": "org",
+      "label": "Update site properties",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/sites.ts",
+          "symbol": "patchSite"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "org.archive_site",
+      "domain": "org",
+      "label": "Archive site + reassign employees",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/sites.ts",
+          "symbol": "archiveSite"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "org.assign_site_manager",
+      "domain": "org",
+      "label": "Assign site manager",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/sites.ts",
+          "symbol": "assignSiteManager"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "org.list_sites",
+      "domain": "org",
+      "label": "List sites (RBAC-scoped)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/sites.ts",
+          "symbol": "listSites"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "org.manage_org_structure",
+      "domain": "org",
+      "label": "Model teams/departments/positions & org chart",
+      "status": "PARTIAL",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/sites.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/members.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "org.workforce_planning",
+      "domain": "org",
+      "label": "Workforce planning, headcount & future needs",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "org.position_budget",
+      "domain": "org",
+      "label": "Position budgeting & approval",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "org.succession_planning",
+      "domain": "org",
+      "label": "Succession planning for key roles",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "org.restructuring_prepare",
+      "domain": "org",
+      "label": "Prepare restructuring scenarios (analysis only)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "recruitment.classify_intent",
+      "domain": "recruitment",
+      "label": "Detect recruitment intent from request",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/mission/classify.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "recruitment.plan_hiring_tasks",
+      "domain": "recruitment",
+      "label": "Plan hiring tasks & missing-info detection",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/hr/workflows.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "recruitment.job_requisition",
+      "domain": "recruitment",
+      "label": "Open a job requisition (need, job description, budget approval)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "recruitment.posting",
+      "domain": "recruitment",
+      "label": "Publish/post an opening",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "recruitment.sourcing",
+      "domain": "recruitment",
+      "label": "Sourcing & candidate intake",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "recruitment.pipeline",
+      "domain": "recruitment",
+      "label": "Candidate pipeline & talent pool management",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "recruitment.interview_scheduling",
+      "domain": "recruitment",
+      "label": "Interview scheduling & evaluation capture",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "recruitment.reference_checks",
+      "domain": "recruitment",
+      "label": "Reference checks",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "recruitment.screening_decision",
+      "domain": "recruitment",
+      "label": "Screening/hiring decision (accept/reject)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "recruitment.candidate_rejection",
+      "domain": "recruitment",
+      "label": "Formal candidate rejection notification",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/hr/contracts.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/hr/workflows.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "recruitment.candidate_data_compliance",
+      "domain": "recruitment",
+      "label": "Candidate data GDPR/consent & retention",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "offer.generate_offer_document",
+      "domain": "offer",
+      "label": "Generate job-offer document (promesse d'embauche)",
+      "status": "CONTRACT_ONLY",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/document-types.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "offer.render_offer_premium",
+      "domain": "offer",
+      "label": "Render offer document (premium)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/documents/premium-documents.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/renderers.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "offer.negotiation",
+      "domain": "offer",
+      "label": "Offer negotiation workflow",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "offer.right_to_work",
+      "domain": "offer",
+      "label": "Right-to-work / work-authorization verification",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "offer.signature_collection",
+      "domain": "offer",
+      "label": "Collect offer/pre-hire signatures",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "offer.candidate_to_employee",
+      "domain": "offer",
+      "label": "Convert candidate → employee (onboarding handoff)",
+      "status": "PARTIAL",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/hr/workflows.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "contract.create",
+      "domain": "contract",
+      "label": "Create employment contract",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/contracts.ts",
+          "symbol": "createContract"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/contract-state.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.submit_review",
+      "domain": "contract",
+      "label": "Submit contract for review",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/contracts.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.request_changes",
+      "domain": "contract",
+      "label": "Request contract changes",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/contracts.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.approve",
+      "domain": "contract",
+      "label": "Approve employment contract",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/contracts.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.finalize",
+      "domain": "contract",
+      "label": "Finalize contract to final status",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/contracts.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.generate_artifacts",
+      "domain": "contract",
+      "label": "Generate contract PDF/DOCX",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/contracts.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/renderers.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.readiness_check",
+      "domain": "contract",
+      "label": "Check contract readiness before action",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/contract-readiness.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.create_amendment",
+      "domain": "contract",
+      "label": "Create contract amendment (avenant)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/contracts.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.apply_amendment_effects",
+      "domain": "contract",
+      "label": "Apply amendment effects to employee record",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/signatures.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.schedule_amendment",
+      "domain": "contract",
+      "label": "Schedule future amendment activation",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/signatures.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.versioning",
+      "domain": "contract",
+      "label": "Contract versioning",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/documents.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.renewal",
+      "domain": "contract",
+      "label": "Contract renewal",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "contract.role_change",
+      "domain": "contract",
+      "label": "Role change (via amendment)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "contract.salary_change",
+      "domain": "contract",
+      "label": "Salary change (via amendment)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "contract.hours_change",
+      "domain": "contract",
+      "label": "Working-hours change (via amendment)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "contract.suspension",
+      "domain": "contract",
+      "label": "Contract suspension",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "contract.end_probation",
+      "domain": "contract",
+      "label": "End of probation decision",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "contract.expiration",
+      "domain": "contract",
+      "label": "Contract expiration handling",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "contract.archive",
+      "domain": "contract",
+      "label": "Archive contract",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/documents.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.template_manage",
+      "domain": "contract",
+      "label": "Manage contract templates & versions (governed, immutable published)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/templates.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/contract-template-compiler.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.prepare_signature",
+      "domain": "contract",
+      "label": "Prepare contract for signature (idempotent)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/contracts.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/signature-security.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.submit_signature",
+      "domain": "contract",
+      "label": "Submit contract to e-signature provider",
+      "status": "EXTERNAL_DEPENDENCY",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/signatures.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/signature-provider.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "contract.ingest_signature_webhook",
+      "domain": "contract",
+      "label": "Ingest & reconcile signature webhook",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/signature-webhooks.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/signature-events.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.finalize_signed",
+      "domain": "contract",
+      "label": "Finalize signed contract with evidence",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/signatures.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "contract.signature_security_tier",
+      "domain": "contract",
+      "label": "Enforce signature level (SES/AES/QES) security matrix",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/signature-security.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "onboarding.get_session",
+      "domain": "onboarding",
+      "label": "Get onboarding session state + steps",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/onboarding-service.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "onboarding.complete_step",
+      "domain": "onboarding",
+      "label": "Complete onboarding step (server-verified + evidence hash)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/onboarding-service.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/onboarding-completion-rules.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "onboarding.reopen_step",
+      "domain": "onboarding",
+      "label": "Reopen completed step (governed recovery)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/onboarding-service.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "onboarding.complete_session",
+      "domain": "onboarding",
+      "label": "Complete onboarding session (READY gate)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/onboarding-service.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "onboarding.registry_steps",
+      "domain": "onboarding",
+      "label": "Canonical onboarding step registry",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/onboarding-registry.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "onboarding.employee_onboarding_plan",
+      "domain": "onboarding",
+      "label": "Employee onboarding plan (preboarding, access, equipment, buddy, checkpoints)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "onboarding.document_collection",
+      "domain": "onboarding",
+      "label": "Onboarding document collection & chase",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "onboarding.access_provisioning",
+      "domain": "onboarding",
+      "label": "Account/access provisioning",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "onboarding.incomplete_handling",
+      "domain": "onboarding",
+      "label": "Detect & escalate incomplete onboarding",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "onboarding.probation_tracking",
+      "domain": "onboarding",
+      "label": "Probation checkpoints & end-of-probation prompt",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "employee360.create",
+      "domain": "employee360",
+      "label": "Create employee with identity",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts",
+          "symbol": "createEmployee"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.list",
+      "domain": "employee360",
+      "label": "List employees (site-scoped, paginated)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.view_360",
+      "domain": "employee360",
+      "label": "Employee 360 view (events, documents, absences)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.search",
+      "domain": "employee360",
+      "label": "Search employees (accent/typo tolerant)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employee-search.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.update",
+      "domain": "employee360",
+      "label": "Update employee (identity, contact, role, dates)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.archive",
+      "domain": "employee360",
+      "label": "Archive employee (mark as left)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.reactivate",
+      "domain": "employee360",
+      "label": "Reactivate employee",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.timeline",
+      "domain": "employee360",
+      "label": "Employee timeline (events + status history)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.completeness",
+      "domain": "employee360",
+      "label": "Employee completeness score + blocking items",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/completeness.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.sensitive_data",
+      "domain": "employee360",
+      "label": "Manage sensitive data (restricted access + audit)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employee-sensitive.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.documents_list",
+      "domain": "employee360",
+      "label": "List employee documents (metadata only)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.import",
+      "domain": "employee360",
+      "label": "Bulk employee import (validated batches)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employee-import.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.custom_fields",
+      "domain": "employee360",
+      "label": "Custom field definitions & values",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/custom-fields.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "employee360.rectify",
+      "domain": "employee360",
+      "label": "Rectify employee data (GDPR correction)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "absence.create_request",
+      "domain": "absence",
+      "label": "Create absence request",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts"
+        },
+        {
+          "kind": "route",
+          "path": "src/app/api/pierre/v1/employees"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "absence.list",
+      "domain": "absence",
+      "label": "List employee absences",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/employees.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "absence.approval_workflow",
+      "domain": "absence",
+      "label": "Absence approval workflow (manager/HR)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "absence.balance_calculation",
+      "domain": "absence",
+      "label": "Leave balance calculation & accrual",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "absence.conflict_detection",
+      "domain": "absence",
+      "label": "Absence conflict/overlap detection & planning",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "absence.sick_leave",
+      "domain": "absence",
+      "label": "Sick leave & medical certificate handling",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "absence.parental_leave",
+      "domain": "absence",
+      "label": "Maternity/paternity/parental leave",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "absence.return_to_work",
+      "domain": "absence",
+      "label": "Return-to-work & accommodation",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "absence.time_tracking",
+      "domain": "absence",
+      "label": "Working time / hours / schedules / on-call",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "absence.timeclock_integration",
+      "domain": "absence",
+      "label": "Time-clock integration",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "absence.payroll_transmission",
+      "domain": "absence",
+      "label": "Transmit absences to payroll",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "payroll.collect_variables",
+      "domain": "payroll",
+      "label": "Collect payroll variables (hours, premiums, bonuses)",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "payroll.absence_recap",
+      "domain": "payroll",
+      "label": "Absence recap for a payroll period",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "payroll.anomaly_detection",
+      "domain": "payroll",
+      "label": "Payroll data anomaly detection",
+      "status": "CONTRACT_ONLY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "payroll.validation",
+      "domain": "payroll",
+      "label": "Payroll variables validation before transmission",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "payroll.export_transmission",
+      "domain": "payroll",
+      "label": "Export & transmit to payroll provider",
+      "status": "EXTERNAL_DEPENDENCY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "payroll.official_calculation",
+      "domain": "payroll",
+      "label": "Official payroll calculation (certified engine)",
+      "status": "EXTERNAL_DEPENDENCY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "payroll.dsn_declaration",
+      "domain": "payroll",
+      "label": "Social declaration submission (e.g. DSN/ONSS/CCSS)",
+      "status": "EXTERNAL_DEPENDENCY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "payroll.payslip_generation",
+      "domain": "payroll",
+      "label": "Payslip generation",
+      "status": "EXTERNAL_DEPENDENCY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "payroll.payslip_distribution",
+      "domain": "payroll",
+      "label": "Secure payslip distribution",
+      "status": "PARTIAL",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communication-secure-links.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "payroll.provider_reconciliation",
+      "domain": "payroll",
+      "label": "Reconcile provider return",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "payroll.calendar",
+      "domain": "payroll",
+      "label": "Payroll calendar & cutoffs",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "payroll.correction",
+      "domain": "payroll",
+      "label": "Payroll correction / rappel",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "compensation.salary_grid",
+      "domain": "compensation",
+      "label": "Salary grid maintenance",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "compensation.salary_change_prepare",
+      "domain": "compensation",
+      "label": "Prepare salary change (feeds contract amendment)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "compensation.raise_promotion",
+      "domain": "compensation",
+      "label": "Raise / promotion compensation",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "compensation.variable_pay",
+      "domain": "compensation",
+      "label": "Variable pay (bonus, commission, incentive)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "compensation.equity",
+      "domain": "compensation",
+      "label": "Equity (options/RSUs) administration",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "compensation.benefits",
+      "domain": "compensation",
+      "label": "Benefits administration (mutuelle, prévoyance)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "compensation.vouchers",
+      "domain": "compensation",
+      "label": "Meal vouchers / titres",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "compensation.expenses",
+      "domain": "compensation",
+      "label": "Expense reimbursement",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "compensation.salary_review",
+      "domain": "compensation",
+      "label": "Salary review campaign",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "compensation.pay_equity",
+      "domain": "compensation",
+      "label": "Pay-equity analysis & reporting",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "performance.objectives",
+      "domain": "performance",
+      "label": "Create & track objectives (OKRs/goals)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "performance.annual_review",
+      "domain": "performance",
+      "label": "Annual/professional interview workflow",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "performance.feedback_360",
+      "domain": "performance",
+      "label": "360 feedback & peer review",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "performance.one_to_one",
+      "domain": "performance",
+      "label": "One-to-ones & performance notes",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "performance.calibration",
+      "domain": "performance",
+      "label": "Calibration & promotion committee support",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "performance.pip",
+      "domain": "performance",
+      "label": "Performance improvement plan (PIP)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "performance.recognition",
+      "domain": "performance",
+      "label": "Recognition & documentation",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "training.skills_mapping",
+      "domain": "training",
+      "label": "Map required vs held skills / gap",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "training.plan",
+      "domain": "training",
+      "label": "Create & track training plans",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "references": [
+        {
+          "kind": "route",
+          "path": "src/app/api/pierre/use/workflows/rh"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "training.enrollment",
+      "domain": "training",
+      "label": "Enroll employees & manage convocations",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "training.certification_tracking",
+      "domain": "training",
+      "label": "Track certification validity & expiry",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "training.mandatory_compliance",
+      "domain": "training",
+      "label": "Enforce mandatory training compliance & proof",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "training.evaluation",
+      "domain": "training",
+      "label": "Post-training evaluation",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "career.wishes",
+      "domain": "career",
+      "label": "Track career wishes & evolution paths",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "career.internal_mobility",
+      "domain": "career",
+      "label": "Internal mobility requests & approval",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "career.geographic_mobility",
+      "domain": "career",
+      "label": "Geographic mobility (site change)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "career.succession_transition",
+      "domain": "career",
+      "label": "Role transition & succession execution",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "career.mentoring",
+      "domain": "career",
+      "label": "Mentoring relationships & retention monitoring",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "relations.hr_requests",
+      "domain": "relations",
+      "label": "HR questions/requests ticketing",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "relations.complaints",
+      "domain": "relations",
+      "label": "Log & resolve complaints/conflicts",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "relations.mediation",
+      "domain": "relations",
+      "label": "Mediation & escalation tracking",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "relations.harassment_alert",
+      "domain": "relations",
+      "label": "Harassment/discrimination alert intake (governed, confidential)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "relations.whistleblower",
+      "domain": "relations",
+      "label": "Whistleblower protection & confidentiality",
+      "status": "HUMAN_ONLY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "HUMAN_ONLY"
+    },
+    {
+      "id": "disciplinary.file_report",
+      "domain": "disciplinary",
+      "label": "File disciplinary report & collect facts/evidence",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "disciplinary.chain_of_custody",
+      "domain": "disciplinary",
+      "label": "Document chronology & evidence chain of custody",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "disciplinary.qualify",
+      "domain": "disciplinary",
+      "label": "Analyze facts & qualify violation",
+      "status": "HUMAN_ONLY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "HUMAN_ONLY"
+    },
+    {
+      "id": "disciplinary.summons",
+      "domain": "disciplinary",
+      "label": "Summon employee for disciplinary interview",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "disciplinary.decision",
+      "domain": "disciplinary",
+      "label": "Issue disciplinary decision/warning/sanction",
+      "status": "HUMAN_ONLY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "HUMAN_ONLY"
+    },
+    {
+      "id": "disciplinary.appeal",
+      "domain": "disciplinary",
+      "label": "Manage disciplinary appeals",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "disciplinary.deadlines",
+      "domain": "disciplinary",
+      "label": "Enforce statutory disciplinary deadlines",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "disciplinary.closure",
+      "domain": "disciplinary",
+      "label": "Track case closure & archive",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "health.medical_visits",
+      "domain": "health",
+      "label": "Manage mandatory occupational-health visits",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "health.incident_reporting",
+      "domain": "health",
+      "label": "Report & track workplace incidents/accidents",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "health.risk_assessment",
+      "domain": "health",
+      "label": "Risk assessment & prevention planning",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "health.accommodations",
+      "domain": "health",
+      "label": "Manage medical accommodations",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "health.mental_health",
+      "domain": "health",
+      "label": "Wellbeing / workload signals (never diagnostic)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "health.safety_clearances",
+      "domain": "health",
+      "label": "Manage safety clearances & access restrictions",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "health.mandatory_safety_training",
+      "domain": "health",
+      "label": "Track mandatory H&S training completion",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "communications.send_in_app",
+      "domain": "communications",
+      "label": "Send in-app communication (governed)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communications.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "communications.send_email",
+      "domain": "communications",
+      "label": "Send email communication (governed, proof-of-send)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communications.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communication-provider.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "communications.create_intent",
+      "domain": "communications",
+      "label": "Create communication intent from outbox event",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communications.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "communications.resolve_recipient",
+      "domain": "communications",
+      "label": "Resolve recipient (strategy-based)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communication-recipient-resolver.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "communications.preferences",
+      "domain": "communications",
+      "label": "Communication preferences per user/category/channel",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communications.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "communications.suppression",
+      "domain": "communications",
+      "label": "Suppress address (bounce/complaint)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communications.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "communications.provider_webhook",
+      "domain": "communications",
+      "label": "Ingest & apply provider webhook (idempotent, monotonic)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communication-webhook-db.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "communications.dead_letter",
+      "domain": "communications",
+      "label": "Dead-letter failed communications",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communications.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "communications.retry_cancel",
+      "domain": "communications",
+      "label": "Retry / cancel a delivery (governed)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communications.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "communications.secure_link",
+      "domain": "communications",
+      "label": "Secure, time-limited, revocable document link",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communication-secure-links.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "communications.templates",
+      "domain": "communications",
+      "label": "Manage communication templates (multilingual, versioned)",
+      "status": "PARTIAL",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communication-template-registry.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "communications.scheduling",
+      "domain": "communications",
+      "label": "Schedule comms (quiet hours, batch, delay)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "communications.read_receipt",
+      "domain": "communications",
+      "label": "Track read receipt / engagement",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "communications.legal_review",
+      "domain": "communications",
+      "label": "Validate communication content for legal/compliance",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "communications.audit_lifecycle",
+      "domain": "communications",
+      "label": "Audit delivery lifecycle (PII-free)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communications.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "policy.define",
+      "domain": "policy",
+      "label": "Define an internal HR policy",
+      "status": "CONTRACT_ONLY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "policy.version_publish",
+      "domain": "policy",
+      "label": "Version & publish policy updates",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "policy.acceptance",
+      "domain": "policy",
+      "label": "Require & record policy acceptance (NDA, code of conduct)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "policy.impact_diffusion",
+      "domain": "policy",
+      "label": "Policy impact analysis & diffusion + proof",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "policy.enforcement_audit",
+      "domain": "policy",
+      "label": "Audit policy application & exceptions",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "offboarding.resignation",
+      "domain": "offboarding",
+      "label": "Process resignation",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "offboarding.dismissal",
+      "domain": "offboarding",
+      "label": "Dismissal procedure (governed, human+legal)",
+      "status": "HUMAN_ONLY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "HUMAN_ONLY"
+    },
+    {
+      "id": "offboarding.mutual_termination",
+      "domain": "offboarding",
+      "label": "Mutual termination (or local equivalent)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "offboarding.end_of_contract",
+      "domain": "offboarding",
+      "label": "End of fixed-term contract",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "offboarding.orchestrate",
+      "domain": "offboarding",
+      "label": "Orchestrate offboarding (access, handover, equipment, docs)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "offboarding.final_pay",
+      "domain": "offboarding",
+      "label": "Prepare final pay & documents (STC)",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "offboarding.exit_interview",
+      "domain": "offboarding",
+      "label": "Exit interview",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "offboarding.file_closure_archival",
+      "domain": "offboarding",
+      "label": "Close & archive employee file (retention)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "data_gdpr.export_employee",
+      "domain": "data_gdpr",
+      "label": "Export employee data (SAR / portability)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/gdpr.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "data_gdpr.export_company",
+      "domain": "data_gdpr",
+      "label": "Export company data (bulk SAR)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/gdpr.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "data_gdpr.legal_hold",
+      "domain": "data_gdpr",
+      "label": "Set legal hold (blocks anonymization + purge)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/gdpr.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "data_gdpr.anonymize",
+      "domain": "data_gdpr",
+      "label": "Anonymize employee (pseudonymization, legal aggregates preserved)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/gdpr.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "data_gdpr.purge",
+      "domain": "data_gdpr",
+      "label": "Purge employee (physical delete w/ retention guard)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/gdpr.ts"
+        },
+        {
+          "kind": "route",
+          "path": "src/app/api/pierre/security/purge/route.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "data_gdpr.delete_document",
+      "domain": "data_gdpr",
+      "label": "Delete a document (erasure)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/gdpr.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "data_gdpr.access_log",
+      "domain": "data_gdpr",
+      "label": "Data access audit trail (who/what/when, no values)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/gdpr.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "data_gdpr.retention",
+      "domain": "data_gdpr",
+      "label": "Enforce statutory retention & scheduled deletion",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "data_gdpr.legal_basis",
+      "domain": "data_gdpr",
+      "label": "Maintain legal basis & data minimization",
+      "status": "LEGAL_CONTENT_REQUIRED",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "data_gdpr.consent_proof",
+      "domain": "data_gdpr",
+      "label": "Maintain consent proof for communications",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "data_gdpr.right_to_object",
+      "domain": "data_gdpr",
+      "label": "Right to object / opt-out from a processing category",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "reporting.headcount_turnover",
+      "domain": "reporting",
+      "label": "Headcount & turnover reporting",
+      "status": "PARTIAL",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/cockpit-snapshot.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "reporting.absenteeism",
+      "domain": "reporting",
+      "label": "Absenteeism reporting",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "reporting.recruitment_funnel",
+      "domain": "reporting",
+      "label": "Recruitment/onboarding funnel reporting",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "reporting.completeness_deadlines",
+      "domain": "reporting",
+      "label": "Completeness & deadline dashboards",
+      "status": "PARTIAL",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/cockpit-snapshot.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/completeness.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "reporting.executive_report",
+      "domain": "reporting",
+      "label": "Executive/HR periodic reports + recommended actions",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "reporting.anomaly_surfacing",
+      "domain": "reporting",
+      "label": "Surface anomalies & risks",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "proactive.scheduler",
+      "domain": "proactive",
+      "label": "Durable proactive scheduler (bounded recurrence, stop conditions)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/runtime-scheduler.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/runtime-schedule-rules.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "proactive.followup",
+      "domain": "proactive",
+      "label": "Follow-up scheduling (durable, bounded)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/runtime-action-handlers.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "proactive.contract_expiry",
+      "domain": "proactive",
+      "label": "Detect contract expiry & prompt",
+      "status": "CONTRACT_ONLY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "proactive.end_of_probation",
+      "domain": "proactive",
+      "label": "End-of-probation monitoring",
+      "status": "CONTRACT_ONLY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "proactive.missing_document",
+      "domain": "proactive",
+      "label": "Missing-document detection & chase",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "proactive.expiring_training",
+      "domain": "proactive",
+      "label": "Expiring training/certification detection",
+      "status": "MISSING",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "proactive.blocked_signature",
+      "domain": "proactive",
+      "label": "Blocked-signature detection",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "proactive.payroll_anomaly",
+      "domain": "proactive",
+      "label": "Payroll anomaly / untreated absence detection",
+      "status": "CONTRACT_ONLY",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "proactive.retention_deletion",
+      "domain": "proactive",
+      "label": "Retention obligation & scheduled deletion detection",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "proactive.sla_breach",
+      "domain": "proactive",
+      "label": "SLA breach & provider-chase detection",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "pierre_admin.autonomy_config",
+      "domain": "pierre_admin",
+      "label": "Company autonomy & permission delegation config",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/autonomy.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "pierre_admin.approval_workflow",
+      "domain": "pierre_admin",
+      "label": "Human approval workflow (validation requests + fingerprinting)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/runtime-action-handlers.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "pierre_admin.action_registry",
+      "domain": "pierre_admin",
+      "label": "Closed autonomous action registry (fail-closed)",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/runtime-action-registry.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "pierre_admin.cloneguard",
+      "domain": "pierre_admin",
+      "label": "CloneGuard approval & prohibition gates",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/cloneguard.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "pierre_admin.mission_orchestration",
+      "domain": "pierre_admin",
+      "label": "Mission creation & orchestration",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/mission-service.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "pierre_admin.durable_queue",
+      "domain": "pierre_admin",
+      "label": "Durable task queue with leasing + fair claim",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/queue.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/fair-claim.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "pierre_admin.recovery",
+      "domain": "pierre_admin",
+      "label": "Worker lease recovery with fencing",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/runtime-lease-controller.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/queue.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "pierre_admin.audit_trail",
+      "domain": "pierre_admin",
+      "label": "Immutable audit trail & observability",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "route",
+          "path": "src/app/api/pierre/use/audit-trail/route.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "pierre_admin.permission_enforcement",
+      "domain": "pierre_admin",
+      "label": "API-layer permission enforcement + escalation prevention",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/rbac.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/membership-invitations.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    },
+    {
+      "id": "pierre_admin.country_config",
+      "domain": "pierre_admin",
+      "label": "Country configuration (jurisdiction resolution + packs)",
+      "status": "PARTIAL",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/hr-canon/country-packs/index.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "pierre_admin.sending_identity",
+      "domain": "pierre_admin",
+      "label": "Sending identity, channels & limits config",
+      "status": "VERIFIED_EXISTING",
+      "references": [
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/communication-provider-config.ts"
+        },
+        {
+          "kind": "module",
+          "path": "src/lib/pierre/v1/runtime-limits.ts"
+        }
+      ],
+      "hasReferences": true,
+      "targetPhase": "ALREADY_VERIFIED"
+    }
+  ],
+  "referencelessImplemented": [
+    {
+      "id": "recruitment.interview_scheduling",
+      "domain": "recruitment",
+      "label": "Interview scheduling & evaluation capture",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "recruitment.screening_decision",
+      "domain": "recruitment",
+      "label": "Screening/hiring decision (accept/reject)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "offer.signature_collection",
+      "domain": "offer",
+      "label": "Collect offer/pre-hire signatures",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "contract.renewal",
+      "domain": "contract",
+      "label": "Contract renewal",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "contract.role_change",
+      "domain": "contract",
+      "label": "Role change (via amendment)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "contract.salary_change",
+      "domain": "contract",
+      "label": "Salary change (via amendment)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "contract.hours_change",
+      "domain": "contract",
+      "label": "Working-hours change (via amendment)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "contract.end_probation",
+      "domain": "contract",
+      "label": "End of probation decision",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "contract.expiration",
+      "domain": "contract",
+      "label": "Contract expiration handling",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "onboarding.employee_onboarding_plan",
+      "domain": "onboarding",
+      "label": "Employee onboarding plan (preboarding, access, equipment, buddy, checkpoints)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "onboarding.document_collection",
+      "domain": "onboarding",
+      "label": "Onboarding document collection & chase",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "onboarding.incomplete_handling",
+      "domain": "onboarding",
+      "label": "Detect & escalate incomplete onboarding",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "onboarding.probation_tracking",
+      "domain": "onboarding",
+      "label": "Probation checkpoints & end-of-probation prompt",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "absence.sick_leave",
+      "domain": "absence",
+      "label": "Sick leave & medical certificate handling",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "absence.time_tracking",
+      "domain": "absence",
+      "label": "Working time / hours / schedules / on-call",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "payroll.collect_variables",
+      "domain": "payroll",
+      "label": "Collect payroll variables (hours, premiums, bonuses)",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "payroll.absence_recap",
+      "domain": "payroll",
+      "label": "Absence recap for a payroll period",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "compensation.salary_change_prepare",
+      "domain": "compensation",
+      "label": "Prepare salary change (feeds contract amendment)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "disciplinary.file_report",
+      "domain": "disciplinary",
+      "label": "File disciplinary report & collect facts/evidence",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "disciplinary.chain_of_custody",
+      "domain": "disciplinary",
+      "label": "Document chronology & evidence chain of custody",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "communications.scheduling",
+      "domain": "communications",
+      "label": "Schedule comms (quiet hours, batch, delay)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "communications.read_receipt",
+      "domain": "communications",
+      "label": "Track read receipt / engagement",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "offboarding.end_of_contract",
+      "domain": "offboarding",
+      "label": "End of fixed-term contract",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "offboarding.file_closure_archival",
+      "domain": "offboarding",
+      "label": "Close & archive employee file (retention)",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "data_gdpr.retention",
+      "domain": "data_gdpr",
+      "label": "Enforce statutory retention & scheduled deletion",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "data_gdpr.right_to_object",
+      "domain": "data_gdpr",
+      "label": "Right to object / opt-out from a processing category",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "reporting.anomaly_surfacing",
+      "domain": "reporting",
+      "label": "Surface anomalies & risks",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "proactive.missing_document",
+      "domain": "proactive",
+      "label": "Missing-document detection & chase",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "proactive.blocked_signature",
+      "domain": "proactive",
+      "label": "Blocked-signature detection",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    },
+    {
+      "id": "proactive.retention_deletion",
+      "domain": "proactive",
+      "label": "Retention obligation & scheduled deletion detection",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.12"
+    },
+    {
+      "id": "proactive.sla_breach",
+      "domain": "proactive",
+      "label": "SLA breach & provider-chase detection",
+      "status": "PARTIAL",
+      "references": [],
+      "hasReferences": false,
+      "targetPhase": "P8.11"
+    }
+  ]
+}

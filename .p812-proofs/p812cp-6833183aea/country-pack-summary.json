@@ -1,0 +1,54 @@
+{
+  "run_id": "p812cp-6833183aea",
+  "totalRules": 276,
+  "verified": 0,
+  "invented": 0,
+  "nonNull": 0,
+  "packs": [
+    {
+      "jurisdiction": "FR",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    },
+    {
+      "jurisdiction": "LU",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    }
+  ],
+  "sourceErrors": [],
+  "gates": {
+    "packs_valid": true,
+    "no_invented_values": true,
+    "zero_verified_without_reviewer": true,
+    "all_rules_null_value": true,
+    "source_register_valid": true
+  },
+  "ok": true
+}

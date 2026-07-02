@@ -1,0 +1,40 @@
+{
+  "run_id": "p812exec-1aff116aca",
+  "ok": true,
+  "scenarios": [
+    {
+      "input": {
+        "companyCountry": "France"
+      },
+      "resolved": "FR",
+      "expected": "FR",
+      "ok": true
+    },
+    {
+      "input": {
+        "companyCountry": "FR",
+        "siteCountry": "BE"
+      },
+      "resolved": "BE",
+      "expected": "BE",
+      "ok": true
+    },
+    {
+      "input": {
+        "companyCountry": "Suisse",
+        "subRegion": "CH-VD"
+      },
+      "resolved": "CH",
+      "expected": "CH",
+      "ok": true
+    },
+    {
+      "input": {
+        "companyCountry": "US"
+      },
+      "resolved": null,
+      "expected": null,
+      "ok": true
+    }
+  ]
+}

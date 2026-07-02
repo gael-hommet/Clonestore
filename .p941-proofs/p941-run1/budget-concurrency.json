@@ -1,0 +1,10 @@
+{
+  "cap": 1000,
+  "reservePer": 300,
+  "concurrent": 20,
+  "granted": 3,
+  "expectedGranted": 3,
+  "totalReserved": 900,
+  "ok": true,
+  "note": "atomic FOR UPDATE reserve — concurrent independent connections cannot jointly exceed cap"
+}

@@ -281,7 +281,7 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div className="max-w-3xl">
+              <div data-tour-id="client-space-entry" className="max-w-3xl">
                 <h1 className="cs-heading text-[clamp(2.6rem,5.2vw,5.8rem)] leading-[0.94] tracking-[-0.07em]">
                   Entrez dans
                   <br />

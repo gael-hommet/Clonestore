@@ -1,0 +1,43 @@
+{
+  "run_id": "p810-84292f29d3",
+  "ok": true,
+  "packs": [
+    {
+      "jurisdiction": "FR",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    },
+    {
+      "jurisdiction": "LU",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    }
+  ],
+  "ruleFamilies": 23
+}

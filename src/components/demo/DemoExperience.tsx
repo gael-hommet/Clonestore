@@ -1,8 +1,10 @@
 "use client";
 
-// /demo — Orchestrateur de la présentation immersive E2.1 → E2.10.
-// Scènes cinématiques épinglées + comparatives + respirations éditoriales,
-// analytics de cycle de vie, suivi de scène, transition de sortie vers /demo/pierre.
+// /demo — Orchestrateur de la présentation en 6 actes.
+// Acte 1 Comprendre · 2 La différence · 3 Le système · 4 Le résultat ·
+// 5 La confiance · 6 Passer à Pierre. Couches : parcours principal (lisible sans
+// clic), micro-explications contextuelles, et tiroir d'approfondissement facultatif.
+// framer-motion + reducedMotion="user" ; transition élément-partagé vers /demo/pierre.
 
 import * as React from "react";
 import Link from "next/link";
@@ -15,30 +17,21 @@ import { MissionCard } from "./primitives/MissionCard";
 import { DemoCTALink } from "./primitives/DemoCTA";
 import { Reveal } from "./primitives/motion";
 import { useDemoHeaderHeightVar } from "./primitives/pinned";
-import { SHARED_MISSION_LAYOUT_ID, DEMO_SCENE_NAV } from "./shared";
+import { SHARED_MISSION_LAYOUT_ID, DEMO_SCENE_NAV, type DeepDiveTopic } from "./shared";
 
-import { Scene01CloneCommand } from "./scenes/Scene01CloneCommand";
-import { Scene02Fragmentation } from "./scenes/Scene02Fragmentation";
-import { Scene03CategoryEvolution } from "./scenes/Scene03CategoryEvolution";
-import { Scene04CloneSystem } from "./scenes/Scene04CloneSystem";
-import { Scene05EnterpriseFootprint } from "./scenes/Scene05EnterpriseFootprint";
-import { Scene06OrganizationScale } from "./scenes/Scene06OrganizationScale";
-import { Scene07TrustArchitecture } from "./scenes/Scene07TrustArchitecture";
-import { Scene08PierreHrContinuum } from "./scenes/Scene08PierreHrContinuum";
-import { Scene09CloneOrganization } from "./scenes/Scene09CloneOrganization";
-import { Scene10PierreTransition } from "./scenes/Scene10PierreTransition";
+import { Act1Opening } from "./acts/Act1Opening";
+import { Act2Difference } from "./acts/Act2Difference";
+import { Act3System } from "./acts/Act3System";
+import { Act4Result } from "./acts/Act4Result";
+import { Act5Trust } from "./acts/Act5Trust";
+import { Act6Pierre } from "./acts/Act6Pierre";
+import { DemoDeepDive } from "./DemoDeepDive";
 
 import { emitDemoEvent, DEMO_EVENTS } from "@/lib/demo/presentation/analytics";
 import { getCommercialPhase } from "@/lib/demo/presentation/commercial-state";
-import {
-  PIERRE_DEMO_ROUTE,
-  SCENE_COMPLETION,
-  SCENE_SYSTEM,
-  SCENE_SCALE,
-} from "@/lib/demo/presentation/content";
+import { PIERRE_DEMO_ROUTE, SCENE_COMPLETION } from "@/lib/demo/presentation/content";
 
-/** Bloc de conversion final (après la FAQ) : transforme la compréhension en action.
- *  Routes réelles existantes uniquement — aucune urgence ni preuve inventée. */
+/** Bloc de conversion final (après la FAQ) : routes réelles uniquement. */
 function DemoConversion({ onReserve, onPierre }: { onReserve: () => void; onPierre: () => void }) {
   return (
     <section className="demo-section demo-cv" aria-label="Passer à l'action avec CloneStore">
@@ -70,25 +63,11 @@ function DemoConversion({ onReserve, onPierre }: { onReserve: () => void; onPier
   );
 }
 
-/** Respiration éditoriale : une question de transition centrée entre deux grands moments. */
-function DemoBreath({ lines }: { lines: readonly string[] }) {
-  return (
-    <section className="demo-section demo-section--breath demo-cv" aria-hidden="true">
-      <div className="demo-shell">
-        <Reveal className="mx-auto max-w-xl space-y-2 text-center">
-          {lines.map((q) => (
-            <p key={q} className="demo-question">{q}</p>
-          ))}
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
 export function DemoExperience() {
   const router = useRouter();
   const [activeId, setActiveId] = React.useState<string>(DEMO_SCENE_NAV[0].id);
   const [transitioning, setTransitioning] = React.useState(false);
+  const [deepDive, setDeepDive] = React.useState<DeepDiveTopic | null>(null);
   const startedRef = React.useRef(false);
   const completedRef = React.useRef(false);
   const reduceRef = React.useRef(false);
@@ -173,24 +152,21 @@ export function DemoExperience() {
       <div className="demo-root">
         <DemoProgress activeId={activeId} />
 
-        <Scene01CloneCommand onDirectPierre={handleDirectPierre} />
-        <Scene02Fragmentation />
-        <Scene03CategoryEvolution />
-        <Scene04CloneSystem />
-        <DemoBreath lines={[SCENE_SYSTEM.transition]} />
-        <Scene05EnterpriseFootprint />
-        <Scene06OrganizationScale />
-        <DemoBreath lines={SCENE_SCALE.transition} />
-        <Scene07TrustArchitecture />
-        <Scene08PierreHrContinuum />
-        <Scene09CloneOrganization />
-        <Scene10PierreTransition
+        <Act1Opening onDirectPierre={handleDirectPierre} />
+        <Act2Difference />
+        <Act3System onDeepDive={setDeepDive} />
+        <Act4Result />
+        <Act5Trust onDeepDive={setDeepDive} />
+        <Act6Pierre
           onTransition={handleTransition}
           onDirectReservation={handleDirectReservation}
+          onDeepDive={setDeepDive}
         />
 
         <DemoFaq />
         <DemoConversion onReserve={handleDirectReservation} onPierre={handleDirectPierre} />
+
+        <DemoDeepDive topic={deepDive} onClose={() => setDeepDive(null)} />
 
         <AnimatePresence>
           {transitioning ? (

@@ -45,12 +45,32 @@ describe("cockpit général /profile — verrou derrière un employé payé et a
     }
   });
 
-  it("le layout /profile applique le verrou serveur (scope général, force-dynamic, sans flash)", () => {
+  it("P9.2 : le layout /profile n'impose PLUS de verrou général (My CloneStore accessible avec session, sans employé)", () => {
     const layout = read("src/app/profile/layout.tsx");
-    expect(layout).toContain('resolveOperationalAccess("general")');
-    expect(layout).toContain("buildGeneralCockpitLock");
-    expect(layout).toContain("AccessLockScreen");
+    // La home est désormais accessible à tout compte connecté : plus de hard-lock au layout.
+    expect(layout).not.toContain("buildGeneralCockpitLock");
+    expect(layout).not.toContain("AccessLockScreen");
+    // L'auth reste garantie par le garde client de la page (redirection /login).
+    // force-dynamic conservé (pas de cache d'un espace personnel).
     expect(layout).toContain("force-dynamic");
+    expect(layout).toContain("AppShell");
+  });
+
+  it("le verrou opérationnel reste appliqué là où il doit l'être (cockpit Pierre + messagerie), inchangé", () => {
+    // Cockpit Pierre : verrou serveur via OperationalRouteShell gate=cockpit.
+    const cockpit = read("src/app/agents/pierre/use/layout.tsx");
+    expect(cockpit).toContain('gate="cockpit"');
+    expect(cockpit).toContain("force-dynamic");
+    const shell = read("src/components/app/OperationalRouteShell.tsx");
+    expect(shell).toContain("resolveOperationalAccess");
+    expect(shell).toContain("buildOperationalLock");
+    expect(shell).toContain("AccessLockScreen");
+    // Messagerie : verrou serveur propre, indépendant du layout /profile.
+    const messages = read("src/app/profile/messages/layout.tsx");
+    expect(messages).toContain("resolveOperationalAccess");
+    expect(messages).toContain('buildOperationalLock(access.state, "messagerie")');
+    expect(messages).toContain("AccessLockScreen");
+    expect(messages).toContain("force-dynamic");
   });
 
   it("la décision « actif » n'est pas codée uniquement autour de Pierre", () => {

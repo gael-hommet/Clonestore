@@ -1,0 +1,21 @@
+{
+  "_comment": "PHASE 8.8 operator-maintained aggregation of the final Production-unblock gates. Read-only input to scripts/p88-readiness-decision.mjs. P8.7.4 verification is auto-derived from the latest .p87-proofs final-report and the deploy-block from the environment; this file supplies the remaining gate results after each read-only gate is run. Update ONLY with real, verified results. Never fabricate.",
+  "updated": "P8.8 preparation — canonical entry state",
+  "tests": { "passed": true, "note": "63 targeted P8.7.4/P8.8 tests green (node --check, tsc, vitest)" },
+  "build": { "passed": true, "note": "rm -rf .next && npm run build → exit 0" },
+  "preflight": { "green": true, "note": "scripts/p87-preflight.mjs → GREEN 17/17 (prod context)" },
+  "providers": { "stripe_test": true, "resend": true, "yousign_sandbox": true },
+  "residue": { "zero": true, "note": "0 tenant/entitlement/claimable-delivery/Stripe-sub/Yousign-open; lock cleaned" },
+  "rollback": { "ready": true, "note": "P8_8_PRODUCTION_ROLLBACK_RUNBOOK.md" },
+  "observability": { "ready": true, "note": "P8_8_OBSERVABILITY_RUNBOOK.md over src/lib/observability + go-live" },
+  "ownerApproval": { "granted": false, "note": "final human gate — pending; do NOT set true until owner explicitly approves post P8.7.4 24/24" },
+  "externalBlockers": [
+    {
+      "id": "P8-YOUSIGN-SANDBOX-ORG-MEMBERSHIP",
+      "state": "OPEN",
+      "owner": "yousign-account-owner / yousign-support",
+      "impact": "Two-signer CDI activation (req 16-18) unprovable in current Sandbox: 1 org member, POST /users=403 in sandbox, non-member recipient quota-limited",
+      "closes_when": "a 2nd distinct controlled org member exists OR the sandbox recipient-must-belong-to-org restriction is lifted; then P8.7.4 re-run → 24/24"
+    }
+  ]
+}

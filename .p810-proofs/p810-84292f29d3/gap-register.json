@@ -1,0 +1,2200 @@
+{
+  "run_id": "p810-84292f29d3",
+  "summary": {
+    "total": 138,
+    "p811": 102,
+    "p812": 32,
+    "humanOnly": 4,
+    "byDomain": {
+      "org": 5,
+      "recruitment": 10,
+      "offer": 5,
+      "contract": 8,
+      "onboarding": 5,
+      "absence": 9,
+      "payroll": 12,
+      "compensation": 10,
+      "performance": 7,
+      "training": 6,
+      "career": 5,
+      "relations": 5,
+      "disciplinary": 8,
+      "health": 7,
+      "communications": 4,
+      "policy": 5,
+      "offboarding": 8,
+      "data_gdpr": 4,
+      "reporting": 6,
+      "proactive": 8,
+      "pierre_admin": 1
+    }
+  },
+  "p811": [
+    {
+      "id": "org.manage_org_structure",
+      "domain": "org",
+      "label": "Model teams/departments/positions & org chart",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "org.manage_org_structure.cert"
+      ]
+    },
+    {
+      "id": "org.workforce_planning",
+      "domain": "org",
+      "label": "Workforce planning, headcount & future needs",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "suggest",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "org.workforce_planning.cert"
+      ]
+    },
+    {
+      "id": "org.position_budget",
+      "domain": "org",
+      "label": "Position budgeting & approval",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "org.position_budget.cert"
+      ]
+    },
+    {
+      "id": "org.succession_planning",
+      "domain": "org",
+      "label": "Succession planning for key roles",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "suggest",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "org.succession_planning.cert"
+      ]
+    },
+    {
+      "id": "recruitment.classify_intent",
+      "domain": "recruitment",
+      "label": "Detect recruitment intent from request",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "recruitment.classify_intent.cert"
+      ]
+    },
+    {
+      "id": "recruitment.job_requisition",
+      "domain": "recruitment",
+      "label": "Open a job requisition (need, job description, budget approval)",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "recruitment.job_requisition.cert"
+      ]
+    },
+    {
+      "id": "recruitment.posting",
+      "domain": "recruitment",
+      "label": "Publish/post an opening",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "recruitment.posting.cert"
+      ]
+    },
+    {
+      "id": "recruitment.sourcing",
+      "domain": "recruitment",
+      "label": "Sourcing & candidate intake",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "suggest",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "recruitment.sourcing.cert"
+      ]
+    },
+    {
+      "id": "recruitment.pipeline",
+      "domain": "recruitment",
+      "label": "Candidate pipeline & talent pool management",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "recruitment.pipeline.cert"
+      ]
+    },
+    {
+      "id": "recruitment.interview_scheduling",
+      "domain": "recruitment",
+      "label": "Interview scheduling & evaluation capture",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "recruitment.interview_scheduling.cert"
+      ]
+    },
+    {
+      "id": "recruitment.reference_checks",
+      "domain": "recruitment",
+      "label": "Reference checks",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "recruitment.reference_checks.cert"
+      ]
+    },
+    {
+      "id": "recruitment.screening_decision",
+      "domain": "recruitment",
+      "label": "Screening/hiring decision (accept/reject)",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "recruitment.screening_decision.cert"
+      ]
+    },
+    {
+      "id": "recruitment.candidate_rejection",
+      "domain": "recruitment",
+      "label": "Formal candidate rejection notification",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "recruitment.candidate_rejection.cert"
+      ]
+    },
+    {
+      "id": "offer.negotiation",
+      "domain": "offer",
+      "label": "Offer negotiation workflow",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "offer.negotiation.cert"
+      ]
+    },
+    {
+      "id": "offer.signature_collection",
+      "domain": "offer",
+      "label": "Collect offer/pre-hire signatures",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [
+        "signature_provider:blocked"
+      ],
+      "outstandingCertification": [
+        "offer.signature_collection.cert"
+      ]
+    },
+    {
+      "id": "offer.candidate_to_employee",
+      "domain": "offer",
+      "label": "Convert candidate → employee (onboarding handoff)",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "offer.candidate_to_employee.cert"
+      ]
+    },
+    {
+      "id": "contract.role_change",
+      "domain": "contract",
+      "label": "Role change (via amendment)",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "contract.role_change.cert"
+      ]
+    },
+    {
+      "id": "contract.salary_change",
+      "domain": "contract",
+      "label": "Salary change (via amendment)",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "contract.salary_change.cert"
+      ]
+    },
+    {
+      "id": "contract.suspension",
+      "domain": "contract",
+      "label": "Contract suspension",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "contract.suspension.cert"
+      ]
+    },
+    {
+      "id": "contract.expiration",
+      "domain": "contract",
+      "label": "Contract expiration handling",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "contract.expiration.cert"
+      ]
+    },
+    {
+      "id": "contract.submit_signature",
+      "domain": "contract",
+      "label": "Submit contract to e-signature provider",
+      "status": "EXTERNAL_DEPENDENCY",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [
+        "signature_provider:blocked"
+      ],
+      "outstandingCertification": [
+        "contract.submit_signature.cert"
+      ]
+    },
+    {
+      "id": "onboarding.employee_onboarding_plan",
+      "domain": "onboarding",
+      "label": "Employee onboarding plan (preboarding, access, equipment, buddy, checkpoints)",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "onboarding.employee_onboarding_plan.cert"
+      ]
+    },
+    {
+      "id": "onboarding.document_collection",
+      "domain": "onboarding",
+      "label": "Onboarding document collection & chase",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "onboarding.document_collection.cert"
+      ]
+    },
+    {
+      "id": "onboarding.access_provisioning",
+      "domain": "onboarding",
+      "label": "Account/access provisioning",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [
+        "identity_provider:not_integrated"
+      ],
+      "outstandingCertification": [
+        "onboarding.access_provisioning.cert"
+      ]
+    },
+    {
+      "id": "onboarding.incomplete_handling",
+      "domain": "onboarding",
+      "label": "Detect & escalate incomplete onboarding",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "onboarding.incomplete_handling.cert"
+      ]
+    },
+    {
+      "id": "absence.approval_workflow",
+      "domain": "absence",
+      "label": "Absence approval workflow (manager/HR)",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "absence.approval_workflow.cert"
+      ]
+    },
+    {
+      "id": "absence.conflict_detection",
+      "domain": "absence",
+      "label": "Absence conflict/overlap detection & planning",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "absence.conflict_detection.cert"
+      ]
+    },
+    {
+      "id": "absence.timeclock_integration",
+      "domain": "absence",
+      "label": "Time-clock integration",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "absence.timeclock_integration.cert"
+      ]
+    },
+    {
+      "id": "absence.payroll_transmission",
+      "domain": "absence",
+      "label": "Transmit absences to payroll",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "absence.payroll_transmission.cert"
+      ]
+    },
+    {
+      "id": "payroll.collect_variables",
+      "domain": "payroll",
+      "label": "Collect payroll variables (hours, premiums, bonuses)",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "payroll.collect_variables.cert"
+      ]
+    },
+    {
+      "id": "payroll.absence_recap",
+      "domain": "payroll",
+      "label": "Absence recap for a payroll period",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "payroll.absence_recap.cert"
+      ]
+    },
+    {
+      "id": "payroll.anomaly_detection",
+      "domain": "payroll",
+      "label": "Payroll data anomaly detection",
+      "status": "CONTRACT_ONLY",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "payroll.anomaly_detection.cert"
+      ]
+    },
+    {
+      "id": "payroll.validation",
+      "domain": "payroll",
+      "label": "Payroll variables validation before transmission",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "payroll.validation.cert"
+      ]
+    },
+    {
+      "id": "payroll.payslip_distribution",
+      "domain": "payroll",
+      "label": "Secure payslip distribution",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "payroll.payslip_distribution.cert"
+      ]
+    },
+    {
+      "id": "payroll.provider_reconciliation",
+      "domain": "payroll",
+      "label": "Reconcile provider return",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [
+        "payroll_provider:not_integrated"
+      ],
+      "outstandingCertification": [
+        "payroll.provider_reconciliation.cert"
+      ]
+    },
+    {
+      "id": "payroll.calendar",
+      "domain": "payroll",
+      "label": "Payroll calendar & cutoffs",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "payroll.calendar.cert"
+      ]
+    },
+    {
+      "id": "payroll.correction",
+      "domain": "payroll",
+      "label": "Payroll correction / rappel",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "payroll.correction.cert"
+      ]
+    },
+    {
+      "id": "compensation.salary_grid",
+      "domain": "compensation",
+      "label": "Salary grid maintenance",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "compensation.salary_grid.cert"
+      ]
+    },
+    {
+      "id": "compensation.salary_change_prepare",
+      "domain": "compensation",
+      "label": "Prepare salary change (feeds contract amendment)",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "compensation.salary_change_prepare.cert"
+      ]
+    },
+    {
+      "id": "compensation.raise_promotion",
+      "domain": "compensation",
+      "label": "Raise / promotion compensation",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "compensation.raise_promotion.cert"
+      ]
+    },
+    {
+      "id": "compensation.variable_pay",
+      "domain": "compensation",
+      "label": "Variable pay (bonus, commission, incentive)",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "compensation.variable_pay.cert"
+      ]
+    },
+    {
+      "id": "compensation.equity",
+      "domain": "compensation",
+      "label": "Equity (options/RSUs) administration",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "compensation.equity.cert"
+      ]
+    },
+    {
+      "id": "compensation.benefits",
+      "domain": "compensation",
+      "label": "Benefits administration (mutuelle, prévoyance)",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [
+        "benefits_provider:not_integrated"
+      ],
+      "outstandingCertification": [
+        "compensation.benefits.cert"
+      ]
+    },
+    {
+      "id": "compensation.vouchers",
+      "domain": "compensation",
+      "label": "Meal vouchers / titres",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "compensation.vouchers.cert"
+      ]
+    },
+    {
+      "id": "compensation.expenses",
+      "domain": "compensation",
+      "label": "Expense reimbursement",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "compensation.expenses.cert"
+      ]
+    },
+    {
+      "id": "compensation.salary_review",
+      "domain": "compensation",
+      "label": "Salary review campaign",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "compensation.salary_review.cert"
+      ]
+    },
+    {
+      "id": "compensation.pay_equity",
+      "domain": "compensation",
+      "label": "Pay-equity analysis & reporting",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "observe_only",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "compensation.pay_equity.cert"
+      ]
+    },
+    {
+      "id": "performance.objectives",
+      "domain": "performance",
+      "label": "Create & track objectives (OKRs/goals)",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "performance.objectives.cert"
+      ]
+    },
+    {
+      "id": "performance.annual_review",
+      "domain": "performance",
+      "label": "Annual/professional interview workflow",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "performance.annual_review.cert"
+      ]
+    },
+    {
+      "id": "performance.feedback_360",
+      "domain": "performance",
+      "label": "360 feedback & peer review",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "performance.feedback_360.cert"
+      ]
+    },
+    {
+      "id": "performance.one_to_one",
+      "domain": "performance",
+      "label": "One-to-ones & performance notes",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "performance.one_to_one.cert"
+      ]
+    },
+    {
+      "id": "performance.calibration",
+      "domain": "performance",
+      "label": "Calibration & promotion committee support",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "suggest",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "performance.calibration.cert"
+      ]
+    },
+    {
+      "id": "performance.pip",
+      "domain": "performance",
+      "label": "Performance improvement plan (PIP)",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "performance.pip.cert"
+      ]
+    },
+    {
+      "id": "performance.recognition",
+      "domain": "performance",
+      "label": "Recognition & documentation",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "performance.recognition.cert"
+      ]
+    },
+    {
+      "id": "training.skills_mapping",
+      "domain": "training",
+      "label": "Map required vs held skills / gap",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "training.skills_mapping.cert"
+      ]
+    },
+    {
+      "id": "training.plan",
+      "domain": "training",
+      "label": "Create & track training plans",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "training.plan.cert"
+      ]
+    },
+    {
+      "id": "training.enrollment",
+      "domain": "training",
+      "label": "Enroll employees & manage convocations",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "training.enrollment.cert"
+      ]
+    },
+    {
+      "id": "training.certification_tracking",
+      "domain": "training",
+      "label": "Track certification validity & expiry",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "training.certification_tracking.cert"
+      ]
+    },
+    {
+      "id": "training.evaluation",
+      "domain": "training",
+      "label": "Post-training evaluation",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "training.evaluation.cert"
+      ]
+    },
+    {
+      "id": "career.wishes",
+      "domain": "career",
+      "label": "Track career wishes & evolution paths",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "career.wishes.cert"
+      ]
+    },
+    {
+      "id": "career.internal_mobility",
+      "domain": "career",
+      "label": "Internal mobility requests & approval",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "career.internal_mobility.cert"
+      ]
+    },
+    {
+      "id": "career.geographic_mobility",
+      "domain": "career",
+      "label": "Geographic mobility (site change)",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "career.geographic_mobility.cert"
+      ]
+    },
+    {
+      "id": "career.succession_transition",
+      "domain": "career",
+      "label": "Role transition & succession execution",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "career.succession_transition.cert"
+      ]
+    },
+    {
+      "id": "career.mentoring",
+      "domain": "career",
+      "label": "Mentoring relationships & retention monitoring",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "suggest",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "career.mentoring.cert"
+      ]
+    },
+    {
+      "id": "relations.hr_requests",
+      "domain": "relations",
+      "label": "HR questions/requests ticketing",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "relations.hr_requests.cert"
+      ]
+    },
+    {
+      "id": "relations.complaints",
+      "domain": "relations",
+      "label": "Log & resolve complaints/conflicts",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "relations.complaints.cert"
+      ]
+    },
+    {
+      "id": "relations.mediation",
+      "domain": "relations",
+      "label": "Mediation & escalation tracking",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "observe_only",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "relations.mediation.cert"
+      ]
+    },
+    {
+      "id": "relations.harassment_alert",
+      "domain": "relations",
+      "label": "Harassment/discrimination alert intake (governed, confidential)",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "observe_only",
+      "riskLevel": "critical",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "relations.harassment_alert.cert"
+      ]
+    },
+    {
+      "id": "disciplinary.file_report",
+      "domain": "disciplinary",
+      "label": "File disciplinary report & collect facts/evidence",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "disciplinary.file_report.cert"
+      ]
+    },
+    {
+      "id": "disciplinary.chain_of_custody",
+      "domain": "disciplinary",
+      "label": "Document chronology & evidence chain of custody",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "disciplinary.chain_of_custody.cert"
+      ]
+    },
+    {
+      "id": "disciplinary.appeal",
+      "domain": "disciplinary",
+      "label": "Manage disciplinary appeals",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "disciplinary.appeal.cert"
+      ]
+    },
+    {
+      "id": "disciplinary.closure",
+      "domain": "disciplinary",
+      "label": "Track case closure & archive",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "disciplinary.closure.cert"
+      ]
+    },
+    {
+      "id": "health.incident_reporting",
+      "domain": "health",
+      "label": "Report & track workplace incidents/accidents",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "health.incident_reporting.cert"
+      ]
+    },
+    {
+      "id": "health.risk_assessment",
+      "domain": "health",
+      "label": "Risk assessment & prevention planning",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "health.risk_assessment.cert"
+      ]
+    },
+    {
+      "id": "health.accommodations",
+      "domain": "health",
+      "label": "Manage medical accommodations",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "health.accommodations.cert"
+      ]
+    },
+    {
+      "id": "health.mental_health",
+      "domain": "health",
+      "label": "Wellbeing / workload signals (never diagnostic)",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "observe_only",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "health.mental_health.cert"
+      ]
+    },
+    {
+      "id": "health.safety_clearances",
+      "domain": "health",
+      "label": "Manage safety clearances & access restrictions",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "health.safety_clearances.cert"
+      ]
+    },
+    {
+      "id": "communications.templates",
+      "domain": "communications",
+      "label": "Manage communication templates (multilingual, versioned)",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "communications.templates.cert"
+      ]
+    },
+    {
+      "id": "communications.scheduling",
+      "domain": "communications",
+      "label": "Schedule comms (quiet hours, batch, delay)",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "communications.scheduling.cert"
+      ]
+    },
+    {
+      "id": "communications.read_receipt",
+      "domain": "communications",
+      "label": "Track read receipt / engagement",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "communications.read_receipt.cert"
+      ]
+    },
+    {
+      "id": "communications.legal_review",
+      "domain": "communications",
+      "label": "Validate communication content for legal/compliance",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "communications.legal_review.cert"
+      ]
+    },
+    {
+      "id": "policy.define",
+      "domain": "policy",
+      "label": "Define an internal HR policy",
+      "status": "CONTRACT_ONLY",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "policy.define.cert"
+      ]
+    },
+    {
+      "id": "policy.version_publish",
+      "domain": "policy",
+      "label": "Version & publish policy updates",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "policy.version_publish.cert"
+      ]
+    },
+    {
+      "id": "policy.acceptance",
+      "domain": "policy",
+      "label": "Require & record policy acceptance (NDA, code of conduct)",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "policy.acceptance.cert"
+      ]
+    },
+    {
+      "id": "policy.impact_diffusion",
+      "domain": "policy",
+      "label": "Policy impact analysis & diffusion + proof",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "policy.impact_diffusion.cert"
+      ]
+    },
+    {
+      "id": "policy.enforcement_audit",
+      "domain": "policy",
+      "label": "Audit policy application & exceptions",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "policy.enforcement_audit.cert"
+      ]
+    },
+    {
+      "id": "offboarding.orchestrate",
+      "domain": "offboarding",
+      "label": "Orchestrate offboarding (access, handover, equipment, docs)",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "offboarding.orchestrate.cert"
+      ]
+    },
+    {
+      "id": "offboarding.exit_interview",
+      "domain": "offboarding",
+      "label": "Exit interview",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "offboarding.exit_interview.cert"
+      ]
+    },
+    {
+      "id": "data_gdpr.right_to_object",
+      "domain": "data_gdpr",
+      "label": "Right to object / opt-out from a processing category",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "data_gdpr.right_to_object.cert"
+      ]
+    },
+    {
+      "id": "reporting.headcount_turnover",
+      "domain": "reporting",
+      "label": "Headcount & turnover reporting",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "reporting.headcount_turnover.cert"
+      ]
+    },
+    {
+      "id": "reporting.absenteeism",
+      "domain": "reporting",
+      "label": "Absenteeism reporting",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "reporting.absenteeism.cert"
+      ]
+    },
+    {
+      "id": "reporting.recruitment_funnel",
+      "domain": "reporting",
+      "label": "Recruitment/onboarding funnel reporting",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "reporting.recruitment_funnel.cert"
+      ]
+    },
+    {
+      "id": "reporting.completeness_deadlines",
+      "domain": "reporting",
+      "label": "Completeness & deadline dashboards",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "reporting.completeness_deadlines.cert"
+      ]
+    },
+    {
+      "id": "reporting.executive_report",
+      "domain": "reporting",
+      "label": "Executive/HR periodic reports + recommended actions",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "prepare_draft",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "reporting.executive_report.cert"
+      ]
+    },
+    {
+      "id": "reporting.anomaly_surfacing",
+      "domain": "reporting",
+      "label": "Surface anomalies & risks",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "reporting.anomaly_surfacing.cert"
+      ]
+    },
+    {
+      "id": "proactive.contract_expiry",
+      "domain": "proactive",
+      "label": "Detect contract expiry & prompt",
+      "status": "CONTRACT_ONLY",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "proactive.contract_expiry.cert"
+      ]
+    },
+    {
+      "id": "proactive.missing_document",
+      "domain": "proactive",
+      "label": "Missing-document detection & chase",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "low",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "proactive.missing_document.cert"
+      ]
+    },
+    {
+      "id": "proactive.expiring_training",
+      "domain": "proactive",
+      "label": "Expiring training/certification detection",
+      "status": "MISSING",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "proactive.expiring_training.cert"
+      ]
+    },
+    {
+      "id": "proactive.blocked_signature",
+      "domain": "proactive",
+      "label": "Blocked-signature detection",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "proactive.blocked_signature.cert"
+      ]
+    },
+    {
+      "id": "proactive.payroll_anomaly",
+      "domain": "proactive",
+      "label": "Payroll anomaly / untreated absence detection",
+      "status": "CONTRACT_ONLY",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "proactive.payroll_anomaly.cert"
+      ]
+    },
+    {
+      "id": "proactive.sla_breach",
+      "domain": "proactive",
+      "label": "SLA breach & provider-chase detection",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "proactive.sla_breach.cert"
+      ]
+    },
+    {
+      "id": "pierre_admin.country_config",
+      "domain": "pierre_admin",
+      "label": "Country configuration (jurisdiction resolution + packs)",
+      "status": "PARTIAL",
+      "targetPhase": "P8.11",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [],
+      "integrations": [],
+      "outstandingCertification": [
+        "pierre_admin.country_config.cert"
+      ]
+    }
+  ],
+  "p812": [
+    {
+      "id": "org.restructuring_prepare",
+      "domain": "org",
+      "label": "Prepare restructuring scenarios (analysis only)",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "observe_only",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "employee_representation"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "org.restructuring_prepare.cert"
+      ]
+    },
+    {
+      "id": "recruitment.candidate_data_compliance",
+      "domain": "recruitment",
+      "label": "Candidate data GDPR/consent & retention",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "data_protection"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "recruitment.candidate_data_compliance.cert"
+      ]
+    },
+    {
+      "id": "offer.generate_offer_document",
+      "domain": "offer",
+      "label": "Generate job-offer document (promesse d'embauche)",
+      "status": "CONTRACT_ONLY",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "contract_types"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "offer.generate_offer_document.cert"
+      ]
+    },
+    {
+      "id": "offer.right_to_work",
+      "domain": "offer",
+      "label": "Right-to-work / work-authorization verification",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "right_to_work"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "offer.right_to_work.cert"
+      ]
+    },
+    {
+      "id": "contract.renewal",
+      "domain": "contract",
+      "label": "Contract renewal",
+      "status": "PARTIAL",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "fixed_term_rules"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "contract.renewal.cert"
+      ]
+    },
+    {
+      "id": "contract.hours_change",
+      "domain": "contract",
+      "label": "Working-hours change (via amendment)",
+      "status": "PARTIAL",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "working_time"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "contract.hours_change.cert"
+      ]
+    },
+    {
+      "id": "contract.end_probation",
+      "domain": "contract",
+      "label": "End of probation decision",
+      "status": "PARTIAL",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "probation_periods"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "contract.end_probation.cert"
+      ]
+    },
+    {
+      "id": "onboarding.probation_tracking",
+      "domain": "onboarding",
+      "label": "Probation checkpoints & end-of-probation prompt",
+      "status": "PARTIAL",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [
+        "probation_periods"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "onboarding.probation_tracking.cert"
+      ]
+    },
+    {
+      "id": "absence.balance_calculation",
+      "domain": "absence",
+      "label": "Leave balance calculation & accrual",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [
+        "paid_leave"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "absence.balance_calculation.cert"
+      ]
+    },
+    {
+      "id": "absence.sick_leave",
+      "domain": "absence",
+      "label": "Sick leave & medical certificate handling",
+      "status": "PARTIAL",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [
+        "sick_leave"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "absence.sick_leave.cert"
+      ]
+    },
+    {
+      "id": "absence.parental_leave",
+      "domain": "absence",
+      "label": "Maternity/paternity/parental leave",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "parental_leave"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "absence.parental_leave.cert"
+      ]
+    },
+    {
+      "id": "absence.return_to_work",
+      "domain": "absence",
+      "label": "Return-to-work & accommodation",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "occupational_health"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "absence.return_to_work.cert"
+      ]
+    },
+    {
+      "id": "absence.time_tracking",
+      "domain": "absence",
+      "label": "Working time / hours / schedules / on-call",
+      "status": "PARTIAL",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [
+        "working_time"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "absence.time_tracking.cert"
+      ]
+    },
+    {
+      "id": "payroll.export_transmission",
+      "domain": "payroll",
+      "label": "Export & transmit to payroll provider",
+      "status": "EXTERNAL_DEPENDENCY",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ],
+      "integrations": [
+        "payroll_provider:not_integrated"
+      ],
+      "outstandingCertification": [
+        "payroll.export_transmission.cert"
+      ]
+    },
+    {
+      "id": "payroll.official_calculation",
+      "domain": "payroll",
+      "label": "Official payroll calculation (certified engine)",
+      "status": "EXTERNAL_DEPENDENCY",
+      "targetPhase": "P8.12",
+      "autonomy": "observe_only",
+      "riskLevel": "critical",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ],
+      "integrations": [
+        "payroll_provider:not_integrated"
+      ],
+      "outstandingCertification": [
+        "payroll.official_calculation.cert"
+      ]
+    },
+    {
+      "id": "payroll.dsn_declaration",
+      "domain": "payroll",
+      "label": "Social declaration submission (e.g. DSN/ONSS/CCSS)",
+      "status": "EXTERNAL_DEPENDENCY",
+      "targetPhase": "P8.12",
+      "autonomy": "observe_only",
+      "riskLevel": "critical",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ],
+      "integrations": [
+        "payroll_provider:not_integrated"
+      ],
+      "outstandingCertification": [
+        "payroll.dsn_declaration.cert"
+      ]
+    },
+    {
+      "id": "payroll.payslip_generation",
+      "domain": "payroll",
+      "label": "Payslip generation",
+      "status": "EXTERNAL_DEPENDENCY",
+      "targetPhase": "P8.12",
+      "autonomy": "observe_only",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "payslip_requirements"
+      ],
+      "integrations": [
+        "payroll_provider:not_integrated"
+      ],
+      "outstandingCertification": [
+        "payroll.payslip_generation.cert"
+      ]
+    },
+    {
+      "id": "training.mandatory_compliance",
+      "domain": "training",
+      "label": "Enforce mandatory training compliance & proof",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "mandatory_trainings"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "training.mandatory_compliance.cert"
+      ]
+    },
+    {
+      "id": "disciplinary.summons",
+      "domain": "disciplinary",
+      "label": "Summon employee for disciplinary interview",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "disciplinary_procedure"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "disciplinary.summons.cert"
+      ]
+    },
+    {
+      "id": "disciplinary.deadlines",
+      "domain": "disciplinary",
+      "label": "Enforce statutory disciplinary deadlines",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "disciplinary_procedure"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "disciplinary.deadlines.cert"
+      ]
+    },
+    {
+      "id": "health.medical_visits",
+      "domain": "health",
+      "label": "Manage mandatory occupational-health visits",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "occupational_health"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "health.medical_visits.cert"
+      ]
+    },
+    {
+      "id": "health.mandatory_safety_training",
+      "domain": "health",
+      "label": "Track mandatory H&S training completion",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "mandatory_trainings"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "health.mandatory_safety_training.cert"
+      ]
+    },
+    {
+      "id": "offboarding.resignation",
+      "domain": "offboarding",
+      "label": "Process resignation",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "notice_periods"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "offboarding.resignation.cert"
+      ]
+    },
+    {
+      "id": "offboarding.mutual_termination",
+      "domain": "offboarding",
+      "label": "Mutual termination (or local equivalent)",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "severance"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "offboarding.mutual_termination.cert"
+      ]
+    },
+    {
+      "id": "offboarding.end_of_contract",
+      "domain": "offboarding",
+      "label": "End of fixed-term contract",
+      "status": "PARTIAL",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [
+        "fixed_term_rules"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "offboarding.end_of_contract.cert"
+      ]
+    },
+    {
+      "id": "offboarding.final_pay",
+      "domain": "offboarding",
+      "label": "Prepare final pay & documents (STC)",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "offboarding.final_pay.cert"
+      ]
+    },
+    {
+      "id": "offboarding.file_closure_archival",
+      "domain": "offboarding",
+      "label": "Close & archive employee file (retention)",
+      "status": "PARTIAL",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [
+        "document_retention"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "offboarding.file_closure_archival.cert"
+      ]
+    },
+    {
+      "id": "data_gdpr.retention",
+      "domain": "data_gdpr",
+      "label": "Enforce statutory retention & scheduled deletion",
+      "status": "PARTIAL",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "document_retention"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "data_gdpr.retention.cert"
+      ]
+    },
+    {
+      "id": "data_gdpr.legal_basis",
+      "domain": "data_gdpr",
+      "label": "Maintain legal basis & data minimization",
+      "status": "LEGAL_CONTENT_REQUIRED",
+      "targetPhase": "P8.12",
+      "autonomy": "prepare_draft",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "data_protection"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "data_gdpr.legal_basis.cert"
+      ]
+    },
+    {
+      "id": "data_gdpr.consent_proof",
+      "domain": "data_gdpr",
+      "label": "Maintain consent proof for communications",
+      "status": "MISSING",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "data_protection"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "data_gdpr.consent_proof.cert"
+      ]
+    },
+    {
+      "id": "proactive.end_of_probation",
+      "domain": "proactive",
+      "label": "End-of-probation monitoring",
+      "status": "CONTRACT_ONLY",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_autonomous",
+      "riskLevel": "medium",
+      "legalSensitivity": "standard",
+      "countryRuleFamilies": [
+        "probation_periods"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "proactive.end_of_probation.cert"
+      ]
+    },
+    {
+      "id": "proactive.retention_deletion",
+      "domain": "proactive",
+      "label": "Retention obligation & scheduled deletion detection",
+      "status": "PARTIAL",
+      "targetPhase": "P8.12",
+      "autonomy": "execute_with_validation",
+      "riskLevel": "high",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "document_retention"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "proactive.retention_deletion.cert"
+      ]
+    }
+  ],
+  "humanOnly": [
+    {
+      "id": "relations.whistleblower",
+      "domain": "relations",
+      "label": "Whistleblower protection & confidentiality",
+      "status": "HUMAN_ONLY",
+      "targetPhase": "HUMAN_ONLY",
+      "autonomy": "human_only",
+      "riskLevel": "critical",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "data_protection"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "relations.whistleblower.cert"
+      ]
+    },
+    {
+      "id": "disciplinary.qualify",
+      "domain": "disciplinary",
+      "label": "Analyze facts & qualify violation",
+      "status": "HUMAN_ONLY",
+      "targetPhase": "HUMAN_ONLY",
+      "autonomy": "human_only",
+      "riskLevel": "critical",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "disciplinary_procedure"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "disciplinary.qualify.cert"
+      ]
+    },
+    {
+      "id": "disciplinary.decision",
+      "domain": "disciplinary",
+      "label": "Issue disciplinary decision/warning/sanction",
+      "status": "HUMAN_ONLY",
+      "targetPhase": "HUMAN_ONLY",
+      "autonomy": "human_only",
+      "riskLevel": "critical",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "disciplinary_procedure"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "disciplinary.decision.cert"
+      ]
+    },
+    {
+      "id": "offboarding.dismissal",
+      "domain": "offboarding",
+      "label": "Dismissal procedure (governed, human+legal)",
+      "status": "HUMAN_ONLY",
+      "targetPhase": "HUMAN_ONLY",
+      "autonomy": "human_only",
+      "riskLevel": "critical",
+      "legalSensitivity": "high",
+      "countryRuleFamilies": [
+        "dismissal_procedure",
+        "notice_periods",
+        "severance"
+      ],
+      "integrations": [],
+      "outstandingCertification": [
+        "offboarding.dismissal.cert"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,821 @@
+{
+  "run_id": "p811-2a7576d80e",
+  "entries": [
+    {
+      "capabilityId": "org.manage_org_structure",
+      "domain": "org",
+      "packs": [
+        "org.structure_management"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "org.workforce_planning",
+      "domain": "org",
+      "packs": [
+        "org.workforce_planning"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "org.position_budget",
+      "domain": "org",
+      "packs": [
+        "org.workforce_planning"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "org.succession_planning",
+      "domain": "org",
+      "packs": [
+        "org.succession_planning"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "recruitment.classify_intent",
+      "domain": "recruitment",
+      "packs": [
+        "recruitment.open_requisition"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "recruitment.job_requisition",
+      "domain": "recruitment",
+      "packs": [
+        "recruitment.open_requisition"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "recruitment.posting",
+      "domain": "recruitment",
+      "packs": [
+        "recruitment.open_requisition"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "recruitment.sourcing",
+      "domain": "recruitment",
+      "packs": [
+        "recruitment.pipeline_management"
+      ],
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    },
+    {
+      "capabilityId": "recruitment.pipeline",
+      "domain": "recruitment",
+      "packs": [
+        "recruitment.pipeline_management"
+      ],
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    },
+    {
+      "capabilityId": "recruitment.interview_scheduling",
+      "domain": "recruitment",
+      "packs": [
+        "recruitment.pipeline_management"
+      ],
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    },
+    {
+      "capabilityId": "recruitment.reference_checks",
+      "domain": "recruitment",
+      "packs": [
+        "recruitment.pipeline_management"
+      ],
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    },
+    {
+      "capabilityId": "recruitment.screening_decision",
+      "domain": "recruitment",
+      "packs": [
+        "recruitment.decision"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "recruitment.candidate_rejection",
+      "domain": "recruitment",
+      "packs": [
+        "recruitment.decision"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "offer.negotiation",
+      "domain": "offer",
+      "packs": [
+        "offer.negotiation_and_signature"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "offer.signature_collection",
+      "domain": "offer",
+      "packs": [
+        "offer.negotiation_and_signature"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "offer.candidate_to_employee",
+      "domain": "offer",
+      "packs": [
+        "offer.candidate_conversion"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "contract.role_change",
+      "domain": "contract",
+      "packs": [
+        "contract.change_via_amendment"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "contract.salary_change",
+      "domain": "contract",
+      "packs": [
+        "contract.change_via_amendment"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "contract.suspension",
+      "domain": "contract",
+      "packs": [
+        "contract.suspension_and_expiration"
+      ],
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    },
+    {
+      "capabilityId": "contract.expiration",
+      "domain": "contract",
+      "packs": [
+        "contract.suspension_and_expiration"
+      ],
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    },
+    {
+      "capabilityId": "contract.submit_signature",
+      "domain": "contract",
+      "packs": [
+        "contract.submit_signature"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "onboarding.employee_onboarding_plan",
+      "domain": "onboarding",
+      "packs": [
+        "onboarding.run_plan"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "onboarding.document_collection",
+      "domain": "onboarding",
+      "packs": [
+        "onboarding.run_plan"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "onboarding.access_provisioning",
+      "domain": "onboarding",
+      "packs": [
+        "onboarding.access_provisioning"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "onboarding.incomplete_handling",
+      "domain": "onboarding",
+      "packs": [
+        "onboarding.run_plan"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "absence.approval_workflow",
+      "domain": "absence",
+      "packs": [
+        "absence.request_to_decision"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "absence.conflict_detection",
+      "domain": "absence",
+      "packs": [
+        "absence.request_to_decision"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "absence.timeclock_integration",
+      "domain": "absence",
+      "packs": [
+        "absence.timeclock_integration"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "absence.payroll_transmission",
+      "domain": "absence",
+      "packs": [
+        "absence.payroll_transmission"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "payroll.collect_variables",
+      "domain": "payroll",
+      "packs": [
+        "payroll.prepare_period"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "payroll.absence_recap",
+      "domain": "payroll",
+      "packs": [
+        "payroll.prepare_period"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "payroll.anomaly_detection",
+      "domain": "payroll",
+      "packs": [
+        "payroll.prepare_period"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "payroll.validation",
+      "domain": "payroll",
+      "packs": [
+        "payroll.prepare_period"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "payroll.payslip_distribution",
+      "domain": "payroll",
+      "packs": [
+        "payroll.transmit_and_reconcile"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "payroll.provider_reconciliation",
+      "domain": "payroll",
+      "packs": [
+        "payroll.transmit_and_reconcile"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "payroll.calendar",
+      "domain": "payroll",
+      "packs": [
+        "payroll.prepare_period"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "payroll.correction",
+      "domain": "payroll",
+      "packs": [
+        "payroll.prepare_period"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "compensation.salary_grid",
+      "domain": "compensation",
+      "packs": [
+        "compensation.salary_change"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "compensation.salary_change_prepare",
+      "domain": "compensation",
+      "packs": [
+        "compensation.salary_change"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "compensation.raise_promotion",
+      "domain": "compensation",
+      "packs": [
+        "compensation.salary_change"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "compensation.variable_pay",
+      "domain": "compensation",
+      "packs": [
+        "compensation.salary_change"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "compensation.equity",
+      "domain": "compensation",
+      "packs": [
+        "compensation.equity_and_equity_review"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "compensation.benefits",
+      "domain": "compensation",
+      "packs": [
+        "compensation.benefits_and_expenses"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "compensation.vouchers",
+      "domain": "compensation",
+      "packs": [
+        "compensation.benefits_and_expenses"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "compensation.expenses",
+      "domain": "compensation",
+      "packs": [
+        "compensation.benefits_and_expenses"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "compensation.salary_review",
+      "domain": "compensation",
+      "packs": [
+        "compensation.salary_change"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "compensation.pay_equity",
+      "domain": "compensation",
+      "packs": [
+        "compensation.equity_and_equity_review"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "performance.objectives",
+      "domain": "performance",
+      "packs": [
+        "performance.review_cycle"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "performance.annual_review",
+      "domain": "performance",
+      "packs": [
+        "performance.review_cycle"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "performance.feedback_360",
+      "domain": "performance",
+      "packs": [
+        "performance.review_cycle"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "performance.one_to_one",
+      "domain": "performance",
+      "packs": [
+        "performance.review_cycle"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "performance.calibration",
+      "domain": "performance",
+      "packs": [
+        "performance.calibration_and_pip"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "performance.pip",
+      "domain": "performance",
+      "packs": [
+        "performance.calibration_and_pip"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "performance.recognition",
+      "domain": "performance",
+      "packs": [
+        "performance.review_cycle"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "training.skills_mapping",
+      "domain": "training",
+      "packs": [
+        "training.plan_and_enroll"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "training.plan",
+      "domain": "training",
+      "packs": [
+        "training.plan_and_enroll"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "training.enrollment",
+      "domain": "training",
+      "packs": [
+        "training.plan_and_enroll"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "training.certification_tracking",
+      "domain": "training",
+      "packs": [
+        "training.certification_tracking"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "training.evaluation",
+      "domain": "training",
+      "packs": [
+        "training.plan_and_enroll"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "career.wishes",
+      "domain": "career",
+      "packs": [
+        "career.wishes_and_mentoring"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "career.internal_mobility",
+      "domain": "career",
+      "packs": [
+        "career.mobility"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "career.geographic_mobility",
+      "domain": "career",
+      "packs": [
+        "career.mobility"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "career.succession_transition",
+      "domain": "career",
+      "packs": [
+        "career.mobility"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "career.mentoring",
+      "domain": "career",
+      "packs": [
+        "career.wishes_and_mentoring"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "relations.hr_requests",
+      "domain": "relations",
+      "packs": [
+        "relations.hr_requests"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "relations.complaints",
+      "domain": "relations",
+      "packs": [
+        "relations.complaints_and_alerts"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "relations.mediation",
+      "domain": "relations",
+      "packs": [
+        "relations.complaints_and_alerts"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "relations.harassment_alert",
+      "domain": "relations",
+      "packs": [
+        "relations.complaints_and_alerts"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "disciplinary.file_report",
+      "domain": "disciplinary",
+      "packs": [
+        "disciplinary.case_governance"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "disciplinary.chain_of_custody",
+      "domain": "disciplinary",
+      "packs": [
+        "disciplinary.case_governance"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "disciplinary.appeal",
+      "domain": "disciplinary",
+      "packs": [
+        "disciplinary.case_governance"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "disciplinary.closure",
+      "domain": "disciplinary",
+      "packs": [
+        "disciplinary.case_governance"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "health.incident_reporting",
+      "domain": "health",
+      "packs": [
+        "health.incident_and_risk"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "health.risk_assessment",
+      "domain": "health",
+      "packs": [
+        "health.incident_and_risk"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "health.accommodations",
+      "domain": "health",
+      "packs": [
+        "health.accommodations_wellbeing"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "health.mental_health",
+      "domain": "health",
+      "packs": [
+        "health.accommodations_wellbeing"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "health.safety_clearances",
+      "domain": "health",
+      "packs": [
+        "health.incident_and_risk"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "communications.templates",
+      "domain": "communications",
+      "packs": [
+        "communications.governed_campaign"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "communications.scheduling",
+      "domain": "communications",
+      "packs": [
+        "communications.governed_campaign"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "communications.read_receipt",
+      "domain": "communications",
+      "packs": [
+        "communications.governed_campaign"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "communications.legal_review",
+      "domain": "communications",
+      "packs": [
+        "communications.legal_review"
+      ],
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "capabilityId": "policy.define",
+      "domain": "policy",
+      "packs": [
+        "policy.lifecycle"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "policy.version_publish",
+      "domain": "policy",
+      "packs": [
+        "policy.lifecycle"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "policy.acceptance",
+      "domain": "policy",
+      "packs": [
+        "policy.lifecycle"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "policy.impact_diffusion",
+      "domain": "policy",
+      "packs": [
+        "policy.lifecycle"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "policy.enforcement_audit",
+      "domain": "policy",
+      "packs": [
+        "policy.enforcement_audit"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "offboarding.orchestrate",
+      "domain": "offboarding",
+      "packs": [
+        "offboarding.orchestrate"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "offboarding.exit_interview",
+      "domain": "offboarding",
+      "packs": [
+        "offboarding.orchestrate"
+      ],
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "capabilityId": "data_gdpr.right_to_object",
+      "domain": "data_gdpr",
+      "packs": [
+        "data_gdpr.right_to_object"
+      ],
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    },
+    {
+      "capabilityId": "reporting.headcount_turnover",
+      "domain": "reporting",
+      "packs": [
+        "reporting.hr_dashboards"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "reporting.absenteeism",
+      "domain": "reporting",
+      "packs": [
+        "reporting.hr_dashboards"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "reporting.recruitment_funnel",
+      "domain": "reporting",
+      "packs": [
+        "reporting.hr_dashboards"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "reporting.completeness_deadlines",
+      "domain": "reporting",
+      "packs": [
+        "reporting.hr_dashboards"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "reporting.executive_report",
+      "domain": "reporting",
+      "packs": [
+        "reporting.executive_and_anomalies"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "reporting.anomaly_surfacing",
+      "domain": "reporting",
+      "packs": [
+        "reporting.executive_and_anomalies"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "proactive.contract_expiry",
+      "domain": "proactive",
+      "packs": [
+        "proactive.deadline_watch"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "proactive.missing_document",
+      "domain": "proactive",
+      "packs": [
+        "proactive.deadline_watch"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "proactive.expiring_training",
+      "domain": "proactive",
+      "packs": [
+        "proactive.deadline_watch"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "proactive.blocked_signature",
+      "domain": "proactive",
+      "packs": [
+        "proactive.operational_watch"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "proactive.payroll_anomaly",
+      "domain": "proactive",
+      "packs": [
+        "proactive.operational_watch"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "proactive.sla_breach",
+      "domain": "proactive",
+      "packs": [
+        "proactive.operational_watch"
+      ],
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "capabilityId": "pierre_admin.country_config",
+      "domain": "pierre_admin",
+      "packs": [
+        "pierre_admin.country_config"
+      ],
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    }
+  ]
+}

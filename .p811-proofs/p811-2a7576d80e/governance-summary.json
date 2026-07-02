@@ -1,0 +1,29 @@
+{
+  "run_id": "p811-2a7576d80e",
+  "packs": 43,
+  "packsWithApprovals": 24,
+  "packsWithHumanDecision": 13,
+  "packsWithExternalHandoff": 9,
+  "distinctApprovers": [
+    "hr_manager",
+    "owner",
+    "hr_operator",
+    "manager",
+    "payroll_operator",
+    "admin"
+  ],
+  "byRuntimeStatus": {
+    "IMPLEMENTED": 17,
+    "HUMAN_DECISION_REQUIRED": 13,
+    "COUNTRY_RULES_REQUIRED": 4,
+    "RUNTIME_READY_EXTERNAL_BLOCKED": 9
+  },
+  "externalSystems": [
+    "signature_provider",
+    "identity_provider",
+    "payroll_provider",
+    "time_attendance",
+    "benefits_provider",
+    "training_provider"
+  ]
+}

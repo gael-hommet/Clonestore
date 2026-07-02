@@ -55,8 +55,11 @@ const funnel = [
 for (const [name, page, href] of funnel) {
   if (link(src[page], href)) ok(`funnel:${name}`); else ko(`funnel:${name}`, `${page} ne renvoie pas vers ${href}`);
 }
-// /agents expose Pierre comme disponible et renvoie vers sa fiche (lien dynamique par slug).
-if (src.agents && /\/agents\/\$\{agent\.slug\}/.test(src.agents) && src.agents.includes("/demo/pierre"))
+// La boutique /agents renvoie vers la fiche Pierre ET vers sa démo. On vérifie le
+// COMPORTEMENT utilisateur réel (les deux liens présents), pas une implémentation
+// particulière : la boutique a été reconstruite avec un lien Pierre statique
+// (plus de map dynamique `/agents/${agent.slug}`), ce qui reste valide.
+if (link(src.agents, "/agents/pierre") && link(src.agents, "/demo/pierre"))
   ok("funnel:agents→pierre");
 else ko("funnel:agents→pierre", "la boutique /agents ne renvoie pas vers la fiche Pierre / sa démo");
 

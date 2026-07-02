@@ -108,7 +108,7 @@ export default function PierrePage() {
       <div className="cs-page-shell py-10 md:py-14">
         <div className="space-y-6">
           {/* HERO */}
-          <section className="cs-command-surface overflow-hidden">
+          <section data-tour-id="pierre-page-entry" className="cs-command-surface overflow-hidden">
             <div className="cs-system-halo" />
             <div className="relative grid gap-6 xl:grid-cols-[1.05fr_0.95fr] xl:items-center">
               <div className="space-y-5">

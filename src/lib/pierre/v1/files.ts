@@ -127,7 +127,10 @@ export async function finalizeSignedUpload(db: SqlExecutor, ctx: TenantContext, 
     // §2 — expected (declared by the client at intent time) vs actual (the real stored bytes).
     const expectedSha = file.declared_sha256 ?? actualSha;
     const expectedSize = file.declared_size_bytes ?? actualSize;
-    const integrityOk = actualSha === expectedSha && actualSize === expectedSize;
+    // Number() coercion: declared_size_bytes is a BIGINT column → node-postgres returns it as a STRING, so a
+    // naive `actualSize === expectedSize` (number === string) is always false against real Postgres (PGlite
+    // returns a number, which is why this only surfaced live). Compare numeric values.
+    const integrityOk = actualSha === expectedSha && Number(actualSize) === Number(expectedSize);
     await db.query(`insert into pierre_rt_file_integrity_checks (id, company_id, file_id, expected_sha256, actual_sha256, size_bytes, ok) values ($1,$2,$3,$4,$5,$6,$7)`,
       [newUuid(), ctx.company_id, fileId, expectedSha, actualSha, actualSize, integrityOk]);
     if (!integrityOk) {
@@ -178,7 +181,9 @@ export async function finalizeUpload(db: SqlExecutor, ctx: TenantContext, fileId
     const stored = await storage.downloadBytes(file.object_key);
     actualSha = sha256(stored);
     actualSize = stored.length;
-    const integrityOk = actualSha === expectedSha && actualSize === expectedSize;
+    // Number() coercion: declared_size_bytes (BIGINT) is returned as a STRING by node-postgres against real
+    // Postgres, so a bare number===string comparison always fails live (PGlite returns a number). Compare numerically.
+    const integrityOk = actualSha === expectedSha && Number(actualSize) === Number(expectedSize);
     await db.query(`insert into pierre_rt_file_integrity_checks (id, company_id, file_id, expected_sha256, actual_sha256, size_bytes, ok) values ($1,$2,$3,$4,$5,$6,$7)`,
       [newUuid(), ctx.company_id, fileId, expectedSha, actualSha, actualSize, integrityOk]);
     if (!integrityOk) {

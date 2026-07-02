@@ -1,0 +1,8 @@
+{
+  "run_id": "p813func-d3322b3a80",
+  "certified_by_reference": true,
+  "references": [
+    ".p89-proofs/p89-final-2fa5898d89/isolation.json (22,800 checks, 0 leaks)"
+  ],
+  "note": "tenant isolation proven at 100k in P8.9"
+}

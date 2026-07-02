@@ -1,0 +1,37 @@
+{
+  "run_id": "p813adv-67ddad195f",
+  "method": "programmatic self-refutation (complements the multi-agent adversarial workflow)",
+  "refutations": [
+    {
+      "claim": "functional completeness",
+      "refuted": false,
+      "detail": "uncertified=0"
+    },
+    {
+      "claim": "no country auto-authorized without verified rules",
+      "refuted": false,
+      "detail": "launchGrade=0"
+    },
+    {
+      "claim": "no provider usable/fabricated",
+      "refuted": false,
+      "detail": "liveGrade=0"
+    },
+    {
+      "claim": "human-only never automated",
+      "refuted": false,
+      "detail": "checked"
+    },
+    {
+      "claim": "manual path not counted as integration",
+      "refuted": false,
+      "detail": "manual=6 live=0"
+    },
+    {
+      "claim": "no scenario fabricates result / invents law",
+      "refuted": false,
+      "detail": "failed=0"
+    }
+  ],
+  "anyRefuted": false
+}

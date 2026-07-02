@@ -1,0 +1,102 @@
+{
+  "run_id": "p89-100k-ce009eb766",
+  "engine": "embedded-postgresql-16 (local, ephemeral)",
+  "params": {
+    "COMPANIES": 2000,
+    "ACTIVE": 200,
+    "JOBS": 2000,
+    "CONNS": 8,
+    "WORKERS": 4
+  },
+  "phases": {
+    "boot_ms": 4794,
+    "migrations": {
+      "files": 28,
+      "applied": 28,
+      "errors": []
+    },
+    "seed_100k_ms": 225,
+    "seed_active_ms": 28,
+    "enqueue_jobs_ms": 107,
+    "concurrency": {
+      "workers": 4,
+      "connections": 8,
+      "processed": 2000,
+      "drain_ms": 329,
+      "throughput_jobs_per_s": 6079,
+      "claim_latency_ms": {
+        "n": 104,
+        "p50": 6.69,
+        "p95": 9.11,
+        "p99": 121.11,
+        "max": 133.5
+      },
+      "overlap": 0,
+      "deadlocks_recovered": 0
+    },
+    "fairness": {
+      "noisy_jobs": 2000,
+      "normal_tenants": 99,
+      "starved": 0,
+      "first_service_claim_p95": 115,
+      "claims_used": 115,
+      "ms": 931
+    },
+    "isolation": {
+      "tenants_checked": 0,
+      "cross_tenant_leaks": 0,
+      "ms": 227
+    },
+    "explain": {
+      "mission_list": {
+        "exec_ms": 0.03,
+        "seq_scan": false,
+        "index_used": true
+      },
+      "entitlement_lookup": {
+        "exec_ms": 0.03,
+        "seq_scan": false,
+        "index_used": true
+      },
+      "job_claim_scan": {
+        "exec_ms": 0.26,
+        "seq_scan": false,
+        "index_used": false
+      }
+    },
+    "recovery": {
+      "dup_enqueue_rows": 1,
+      "stale_recovered": 1,
+      "reclaimed": 1,
+      "ms": 63
+    }
+  },
+  "invariants": {
+    "materialized_100k": true,
+    "no_double_claim": true,
+    "no_unrecovered_deadlock": true,
+    "no_starvation": true,
+    "zero_cross_tenant": true,
+    "hot_paths_indexed": true,
+    "dup_dedup": true,
+    "stale_lease_recovered": true
+  },
+  "cleanup": {
+    "ok": true,
+    "data_dir_removed": true
+  },
+  "pg_version": "PostgreSQL 16.14, compiled by Visual C++",
+  "counts": {
+    "companies": 2000,
+    "members": 2000,
+    "entitlements": 2000,
+    "out_of_prefix": 0,
+    "ready_jobs": 2000
+  },
+  "sizes": {
+    "companies": "456 kB",
+    "entitlements": "824 kB",
+    "members": "1008 kB"
+  },
+  "verdict": "GREEN"
+}

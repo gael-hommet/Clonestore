@@ -1,0 +1,268 @@
+{
+  "run_id": "p810-84292f29d3",
+  "promises": [
+    {
+      "id": "promise.structure_missions",
+      "statement": "Pierre structures HR requests into governed missions & tasks.",
+      "source": "/demo/pierre, catalog",
+      "capabilityIds": [
+        "pierre_admin.mission_orchestration",
+        "pierre_admin.durable_queue"
+      ],
+      "backing": "fully_backed",
+      "verifiedCount": 2,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "pierre_admin.mission_orchestration": "VERIFIED_EXISTING",
+        "pierre_admin.durable_queue": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.produce_documents",
+      "statement": "Pierre prepares real HR documents (contracts, letters) as PDF/DOCX.",
+      "source": "/demo/pierre",
+      "capabilityIds": [
+        "contract.generate_artifacts",
+        "offer.render_offer_premium"
+      ],
+      "backing": "fully_backed",
+      "verifiedCount": 2,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "contract.generate_artifacts": "VERIFIED_EXISTING",
+        "offer.render_offer_premium": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.contracts",
+      "statement": "Pierre prepares and manages employment contracts.",
+      "source": "catalog",
+      "capabilityIds": [
+        "contract.create",
+        "contract.approve",
+        "contract.finalize",
+        "contract.template_manage"
+      ],
+      "backing": "fully_backed",
+      "verifiedCount": 4,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "contract.create": "VERIFIED_EXISTING",
+        "contract.approve": "VERIFIED_EXISTING",
+        "contract.finalize": "VERIFIED_EXISTING",
+        "contract.template_manage": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.signatures",
+      "statement": "Pierre routes contracts to e-signature and finalizes with legal evidence.",
+      "source": "catalog",
+      "capabilityIds": [
+        "contract.prepare_signature",
+        "contract.submit_signature",
+        "contract.finalize_signed"
+      ],
+      "backing": "partially_backed",
+      "verifiedCount": 2,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "contract.prepare_signature": "VERIFIED_EXISTING",
+        "contract.submit_signature": "EXTERNAL_DEPENDENCY",
+        "contract.finalize_signed": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.employee_file",
+      "statement": "Pierre maintains a complete Employee 360 file.",
+      "source": "catalog, /demo",
+      "capabilityIds": [
+        "employee360.create",
+        "employee360.view_360",
+        "employee360.completeness"
+      ],
+      "backing": "fully_backed",
+      "verifiedCount": 3,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "employee360.create": "VERIFIED_EXISTING",
+        "employee360.view_360": "VERIFIED_EXISTING",
+        "employee360.completeness": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.communications",
+      "statement": "Pierre sends governed HR communications with proof of send.",
+      "source": "/demo, catalog",
+      "capabilityIds": [
+        "communications.send_email",
+        "communications.send_in_app",
+        "communications.audit_lifecycle"
+      ],
+      "backing": "fully_backed",
+      "verifiedCount": 3,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "communications.send_email": "VERIFIED_EXISTING",
+        "communications.send_in_app": "VERIFIED_EXISTING",
+        "communications.audit_lifecycle": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.validation_traceability",
+      "statement": "Every sensitive action is validated and fully traceable.",
+      "source": "/demo",
+      "capabilityIds": [
+        "pierre_admin.approval_workflow",
+        "pierre_admin.audit_trail",
+        "pierre_admin.cloneguard"
+      ],
+      "backing": "fully_backed",
+      "verifiedCount": 3,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "pierre_admin.approval_workflow": "VERIFIED_EXISTING",
+        "pierre_admin.audit_trail": "VERIFIED_EXISTING",
+        "pierre_admin.cloneguard": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.onboarding",
+      "statement": "Pierre runs a server-authoritative onboarding.",
+      "source": "catalog",
+      "capabilityIds": [
+        "onboarding.complete_step",
+        "onboarding.complete_session",
+        "onboarding.registry_steps"
+      ],
+      "backing": "fully_backed",
+      "verifiedCount": 3,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "onboarding.complete_step": "VERIFIED_EXISTING",
+        "onboarding.complete_session": "VERIFIED_EXISTING",
+        "onboarding.registry_steps": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.gdpr",
+      "statement": "Pierre honours GDPR: export, rectify, anonymize, purge, legal hold.",
+      "source": "catalog",
+      "capabilityIds": [
+        "data_gdpr.export_employee",
+        "data_gdpr.anonymize",
+        "data_gdpr.purge",
+        "data_gdpr.legal_hold"
+      ],
+      "backing": "fully_backed",
+      "verifiedCount": 4,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "data_gdpr.export_employee": "VERIFIED_EXISTING",
+        "data_gdpr.anonymize": "VERIFIED_EXISTING",
+        "data_gdpr.purge": "VERIFIED_EXISTING",
+        "data_gdpr.legal_hold": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.proactive",
+      "statement": "Pierre proactively watches deadlines and acts.",
+      "source": "/demo, catalog",
+      "capabilityIds": [
+        "proactive.scheduler",
+        "proactive.followup"
+      ],
+      "backing": "fully_backed",
+      "verifiedCount": 2,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "proactive.scheduler": "VERIFIED_EXISTING",
+        "proactive.followup": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.autonomy_governed",
+      "statement": "Pierre acts autonomously within governed, configurable limits.",
+      "source": "catalog",
+      "capabilityIds": [
+        "pierre_admin.autonomy_config",
+        "pierre_admin.action_registry"
+      ],
+      "backing": "fully_backed",
+      "verifiedCount": 2,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "pierre_admin.autonomy_config": "VERIFIED_EXISTING",
+        "pierre_admin.action_registry": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.multi_tenant_isolation",
+      "statement": "Each company's data is strictly isolated.",
+      "source": "catalog",
+      "capabilityIds": [
+        "org.read_company",
+        "pierre_admin.permission_enforcement"
+      ],
+      "backing": "fully_backed",
+      "verifiedCount": 2,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "org.read_company": "VERIFIED_EXISTING",
+        "pierre_admin.permission_enforcement": "VERIFIED_EXISTING"
+      }
+    },
+    {
+      "id": "promise.absences",
+      "statement": "Pierre manages absences and leave end-to-end.",
+      "source": "catalog (forward-looking)",
+      "capabilityIds": [
+        "absence.create_request",
+        "absence.approval_workflow",
+        "absence.balance_calculation"
+      ],
+      "backing": "partially_backed",
+      "verifiedCount": 1,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "absence.create_request": "VERIFIED_EXISTING",
+        "absence.approval_workflow": "MISSING",
+        "absence.balance_calculation": "MISSING"
+      }
+    },
+    {
+      "id": "promise.payroll_prep",
+      "statement": "Pierre prepares payroll variables for your provider.",
+      "source": "catalog (forward-looking)",
+      "capabilityIds": [
+        "payroll.collect_variables",
+        "payroll.validation",
+        "payroll.export_transmission"
+      ],
+      "backing": "aspirational",
+      "verifiedCount": 0,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "payroll.collect_variables": "IMPLEMENTED_UNVERIFIED",
+        "payroll.validation": "MISSING",
+        "payroll.export_transmission": "EXTERNAL_DEPENDENCY"
+      }
+    },
+    {
+      "id": "promise.performance",
+      "statement": "Pierre runs performance reviews.",
+      "source": "catalog (forward-looking)",
+      "capabilityIds": [
+        "performance.objectives",
+        "performance.annual_review"
+      ],
+      "backing": "aspirational",
+      "verifiedCount": 0,
+      "missingCapabilityIds": [],
+      "statuses": {
+        "performance.objectives": "MISSING",
+        "performance.annual_review": "MISSING"
+      }
+    }
+  ],
+  "dangling": []
+}

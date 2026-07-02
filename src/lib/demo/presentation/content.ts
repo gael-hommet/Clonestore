@@ -8,17 +8,16 @@
 // Apostrophes droites utilisées uniformément (choix de rendu, le libellé est
 // strictement préservé).
 
+// Parcours en 6 actes (voir DEMO_SCENE_NAV côté composants). Les objets SCENE_*
+// ci-dessous restent la bibliothèque de copie réutilisée par les actes et le
+// tiroir d'approfondissement.
 export const DEMO_SCENE_ORDER = [
-  "opening", // E2.1
-  "fragmentation", // E2.2
-  "category", // E2.3
-  "system", // E2.4
-  "footprint", // E2.5
-  "scale", // E2.6
-  "trust", // E2.7
-  "pierreScope", // E2.8
-  "organization", // E2.9
-  "completion", // E2.10
+  "opening", // Acte 1 — Comprendre CloneStore
+  "difference", // Acte 2 — Logiciel / assistant / employé IA
+  "system", // Acte 3 — Le système dans l'action
+  "result", // Acte 4 — Un résultat concret
+  "trust", // Acte 5 — La confiance
+  "pierre", // Acte 6 — Passer à Pierre
 ] as const;
 
 export type DemoSceneKey = (typeof DEMO_SCENE_ORDER)[number];

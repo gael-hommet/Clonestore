@@ -667,3 +667,62 @@ html.demo-pin-root body {
 @media (prefers-reduced-motion: reduce) {
   .demo-veil { transition: none !important; }
 }
+
+/* ── Tiroir d'approfondissement (couche 3, facultative) ──────────────────────
+   S'ouvre sous le header fixe pour ne jamais masquer la barre publique. */
+.demo-dd-backdrop {
+  position: fixed;
+  inset: var(--demo-header-height, 88px) 0 0 0;
+  z-index: 60;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(21, 25, 34, 0.34);
+}
+.demo-dd {
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100%);
+  height: 100%;
+  max-height: calc(100dvh - var(--demo-header-height, 88px));
+  overflow: hidden;
+  background: linear-gradient(180deg, #fdfaf3, #f6efe2);
+  border-left: 1px solid var(--cs-line);
+  box-shadow: -30px 0 80px rgba(21, 25, 34, 0.22);
+}
+.demo-dd__head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: clamp(14px, 2.4vw, 20px) clamp(16px, 3vw, 24px) 12px;
+  border-bottom: 1px solid var(--cs-line-soft);
+}
+.demo-dd__ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: var(--demo-violet);
+  background: rgba(107, 99, 232, 0.12);
+  border: 1px solid rgba(107, 99, 232, 0.2);
+}
+.demo-dd__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px clamp(16px, 3vw, 24px)
+    calc(clamp(16px, 3vw, 24px) + env(safe-area-inset-bottom, 0px));
+}
+@media (max-width: 560px) {
+  .demo-dd-backdrop { align-items: flex-end; }
+  .demo-dd {
+    width: 100%;
+    height: auto;
+    border-left: none;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+  }
+}

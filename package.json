@@ -301,7 +301,12 @@
     "report:p87-external-providers-live": "node scripts/check-p87-external-providers-live.mjs",
     "check:p87-external-providers-live": "node scripts/check-p87-external-providers-live.mjs --strict",
     "report:p87-external-providers-prelaunch": "node scripts/check-p87-external-providers-live.mjs --prelaunch",
-    "check:p87-external-providers-prelaunch": "node scripts/check-p87-external-providers-live.mjs --prelaunch --strict"
+    "check:p87-external-providers-prelaunch": "node scripts/check-p87-external-providers-live.mjs --prelaunch --strict",
+    "report:p87-controlled-live-journey": "node scripts/check-p87-controlled-live-journey.mjs",
+    "check:p87-controlled-live-journey": "node scripts/check-p87-controlled-live-journey.mjs --strict",
+    "proof:p87-controlled-live-journey": "node scripts/p87-step4-controlled-journey.mjs",
+    "preflight:p87-controlled-live-journey": "node scripts/p87-preflight.mjs",
+    "test:p87-remediation": "vitest run src/lib/pierre/v1/__tests__/p87-run-guards.test.ts src/lib/pierre/v1/__tests__/p87-signature-external-id.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/bodoni-moda": "^5.2.7",

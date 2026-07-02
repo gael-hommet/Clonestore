@@ -1,0 +1,41 @@
+{
+  "run_id": "p812prov-58977782c6",
+  "contractTests": [
+    {
+      "provider": "yousign",
+      "outcome": "routed_to_manual",
+      "fabricatedReference": false,
+      "manualHandoff": true
+    },
+    {
+      "provider": "payroll",
+      "outcome": "routed_to_manual",
+      "fabricatedReference": false,
+      "manualHandoff": true
+    },
+    {
+      "provider": "identity",
+      "outcome": "routed_to_manual",
+      "fabricatedReference": false,
+      "manualHandoff": true
+    },
+    {
+      "provider": "time_attendance",
+      "outcome": "routed_to_manual",
+      "fabricatedReference": false,
+      "manualHandoff": true
+    },
+    {
+      "provider": "benefits",
+      "outcome": "routed_to_manual",
+      "fabricatedReference": false,
+      "manualHandoff": true
+    },
+    {
+      "provider": "training",
+      "outcome": "routed_to_manual",
+      "fabricatedReference": false,
+      "manualHandoff": true
+    }
+  ]
+}

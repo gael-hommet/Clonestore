@@ -1,0 +1,114 @@
+{
+  "run_id": "p89-100k-fbb957a4f5",
+  "engine": "embedded-postgresql-16 (local, ephemeral)",
+  "params": {
+    "COMPANIES": 100000,
+    "ACTIVE": 3000,
+    "JOBS": 30000,
+    "CONNS": 16,
+    "WORKERS": 8
+  },
+  "phases": {
+    "boot_ms": 5086,
+    "migrations": {
+      "files": 28,
+      "applied": 28,
+      "errors": []
+    },
+    "seed_100k_ms": 13592,
+    "seed_active_ms": 502,
+    "enqueue_jobs_ms": 4455,
+    "concurrency": {
+      "workers": 8,
+      "connections": 16,
+      "processed": 30000,
+      "drain_ms": 9452,
+      "throughput_jobs_per_s": 3173.9,
+      "claim_latency_ms": {
+        "n": 1508,
+        "p50": 34.89,
+        "p95": 71.01,
+        "p99": 155.04,
+        "max": 866.46
+      },
+      "overlap": 0,
+      "deadlocks_recovered": 0
+    },
+    "fairness": {
+      "noisy_jobs": 2000,
+      "normal_tenants": 99,
+      "starved": 0,
+      "first_service_claim_p95": 115,
+      "claims_used": 115,
+      "ms": 2413
+    },
+    "isolation": {
+      "tenants_checked": 200,
+      "cross_tenant_leaks": 0,
+      "empty_reads": 0,
+      "first_error": null,
+      "ms": 41333
+    },
+    "explain": {
+      "mission_list": {
+        "exec_ms": 0.09,
+        "seq_scan": false,
+        "index_used": false
+      },
+      "entitlement_lookup": {
+        "exec_ms": 0.06,
+        "seq_scan": false,
+        "index_used": true
+      },
+      "job_claim_scan": {
+        "exec_ms": 3.41,
+        "seq_scan": false,
+        "index_used": false
+      }
+    },
+    "recovery": {
+      "dup_enqueue_rows": 1,
+      "stale_recovered": 1,
+      "reclaimed": 1,
+      "ms": 95
+    },
+    "partition_draft": {
+      "applied": true,
+      "functions": 3,
+      "partitioned_table": true,
+      "partition_created": true,
+      "archive_rows": 1,
+      "pruned_terminal_jobs": 32297,
+      "ms": 181
+    }
+  },
+  "invariants": {
+    "materialized_100k": true,
+    "no_double_claim": true,
+    "no_unrecovered_deadlock": true,
+    "no_starvation": true,
+    "zero_cross_tenant": true,
+    "hot_paths_indexed": true,
+    "dup_dedup": true,
+    "stale_lease_recovered": true,
+    "partition_retention_ready": true
+  },
+  "cleanup": {
+    "ok": true,
+    "data_dir_removed": true
+  },
+  "pg_version": "PostgreSQL 16.14, compiled by Visual C++",
+  "counts": {
+    "companies": 100000,
+    "members": 100000,
+    "entitlements": 100000,
+    "out_of_prefix": 0,
+    "ready_jobs": 30000
+  },
+  "sizes": {
+    "companies": "20 MB",
+    "entitlements": "34 MB",
+    "members": "42 MB"
+  },
+  "verdict": "GREEN"
+}

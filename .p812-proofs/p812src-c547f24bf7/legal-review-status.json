@@ -1,0 +1,1769 @@
+{
+  "run_id": "p812src-c547f24bf7",
+  "totalRules": 220,
+  "verified": 0,
+  "sourcedUnverified": 0,
+  "awaitingSourcing": 220,
+  "packets": [
+    {
+      "jurisdiction": "FR",
+      "family": "contract_types",
+      "ruleKey": "contract_types.permitted_types",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "contract_types",
+      "ruleKey": "contract_types.type_specific_constraints",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "data_protection",
+      "ruleKey": "data_protection.hr_data_specifics",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "data_protection",
+      "ruleKey": "data_protection.works_council_consultation",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "data_protection",
+      "ruleKey": "data_protection.sensitive_data_rules",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.procedure_steps",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.deadlines",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.sanction_scale",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.appeal_rights",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "document_retention",
+      "ruleKey": "document_retention.retention_by_document_type",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.thresholds",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.obligations",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.consultation_cases",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.permitted_uses",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.max_duration",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.max_renewals",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.conversion_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.required_trainings",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.periodicity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.proof_requirements",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "notice_periods",
+      "ruleKey": "notice_periods.resignation_notice",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "notice_periods",
+      "ruleKey": "notice_periods.dismissal_notice_by_seniority",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.mandatory_visits",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.periodicity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.special_categories",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.annual_entitlement",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.accrual_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.carryover_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.maternity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.paternity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.parental",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.protections",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.employer_contributions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.employee_contributions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.bases_and_ceilings",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.mandatory_mentions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.format",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.retention_period",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.max_duration_by_category",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.renewal_allowed",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.renewal_max_duration",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "right_to_work",
+      "ruleKey": "right_to_work.authorization_checks",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "right_to_work",
+      "ruleKey": "right_to_work.employer_obligations",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "severance",
+      "ruleKey": "severance.eligibility",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "severance",
+      "ruleKey": "severance.computation_formula",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "severance",
+      "ruleKey": "severance.minimum",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.waiting_period",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.employer_topup",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.certificate_deadline",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.job_protection",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "working_time",
+      "ruleKey": "working_time.weekly_max_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "working_time",
+      "ruleKey": "working_time.daily_max_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "working_time",
+      "ruleKey": "working_time.daily_rest_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "working_time",
+      "ruleKey": "working_time.weekly_rest",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "FR",
+      "family": "working_time",
+      "ruleKey": "working_time.overtime_treatment",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "contract_types",
+      "ruleKey": "contract_types.permitted_types",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "contract_types",
+      "ruleKey": "contract_types.type_specific_constraints",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "data_protection",
+      "ruleKey": "data_protection.hr_data_specifics",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "data_protection",
+      "ruleKey": "data_protection.works_council_consultation",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "data_protection",
+      "ruleKey": "data_protection.sensitive_data_rules",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.procedure_steps",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.deadlines",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.sanction_scale",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.appeal_rights",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "document_retention",
+      "ruleKey": "document_retention.retention_by_document_type",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.thresholds",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.obligations",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.consultation_cases",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.permitted_uses",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.max_duration",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.max_renewals",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.conversion_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.required_trainings",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.periodicity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.proof_requirements",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "notice_periods",
+      "ruleKey": "notice_periods.resignation_notice",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "notice_periods",
+      "ruleKey": "notice_periods.dismissal_notice_by_seniority",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.mandatory_visits",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.periodicity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.special_categories",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.annual_entitlement",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.accrual_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.carryover_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.maternity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.paternity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.parental",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.protections",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.employer_contributions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.employee_contributions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.bases_and_ceilings",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.mandatory_mentions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.format",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.retention_period",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.max_duration_by_category",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.renewal_allowed",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.renewal_max_duration",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "right_to_work",
+      "ruleKey": "right_to_work.authorization_checks",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "right_to_work",
+      "ruleKey": "right_to_work.employer_obligations",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "severance",
+      "ruleKey": "severance.eligibility",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "severance",
+      "ruleKey": "severance.computation_formula",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "severance",
+      "ruleKey": "severance.minimum",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.waiting_period",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.employer_topup",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.certificate_deadline",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.job_protection",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "working_time",
+      "ruleKey": "working_time.weekly_max_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "working_time",
+      "ruleKey": "working_time.daily_max_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "working_time",
+      "ruleKey": "working_time.daily_rest_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "working_time",
+      "ruleKey": "working_time.weekly_rest",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "BE",
+      "family": "working_time",
+      "ruleKey": "working_time.overtime_treatment",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "contract_types",
+      "ruleKey": "contract_types.permitted_types",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "contract_types",
+      "ruleKey": "contract_types.type_specific_constraints",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "data_protection",
+      "ruleKey": "data_protection.hr_data_specifics",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "data_protection",
+      "ruleKey": "data_protection.works_council_consultation",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "data_protection",
+      "ruleKey": "data_protection.sensitive_data_rules",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.procedure_steps",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.deadlines",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.sanction_scale",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.appeal_rights",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "document_retention",
+      "ruleKey": "document_retention.retention_by_document_type",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.thresholds",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.obligations",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.consultation_cases",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.permitted_uses",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.max_duration",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.max_renewals",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.conversion_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.required_trainings",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.periodicity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.proof_requirements",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "notice_periods",
+      "ruleKey": "notice_periods.resignation_notice",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "notice_periods",
+      "ruleKey": "notice_periods.dismissal_notice_by_seniority",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.mandatory_visits",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.periodicity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.special_categories",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.annual_entitlement",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.accrual_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.carryover_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.maternity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.paternity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.parental",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.protections",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.employer_contributions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.employee_contributions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.bases_and_ceilings",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.mandatory_mentions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.format",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.retention_period",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.max_duration_by_category",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.renewal_allowed",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.renewal_max_duration",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "right_to_work",
+      "ruleKey": "right_to_work.authorization_checks",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "right_to_work",
+      "ruleKey": "right_to_work.employer_obligations",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "severance",
+      "ruleKey": "severance.eligibility",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "severance",
+      "ruleKey": "severance.computation_formula",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "severance",
+      "ruleKey": "severance.minimum",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.waiting_period",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.employer_topup",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.certificate_deadline",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.job_protection",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "working_time",
+      "ruleKey": "working_time.weekly_max_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "working_time",
+      "ruleKey": "working_time.daily_max_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "working_time",
+      "ruleKey": "working_time.daily_rest_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "working_time",
+      "ruleKey": "working_time.weekly_rest",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "LU",
+      "family": "working_time",
+      "ruleKey": "working_time.overtime_treatment",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "contract_types",
+      "ruleKey": "contract_types.permitted_types",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "contract_types",
+      "ruleKey": "contract_types.type_specific_constraints",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "data_protection",
+      "ruleKey": "data_protection.hr_data_specifics",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "data_protection",
+      "ruleKey": "data_protection.works_council_consultation",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "data_protection",
+      "ruleKey": "data_protection.sensitive_data_rules",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.procedure_steps",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.deadlines",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.sanction_scale",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "disciplinary_procedure",
+      "ruleKey": "disciplinary_procedure.appeal_rights",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "document_retention",
+      "ruleKey": "document_retention.retention_by_document_type",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.thresholds",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.obligations",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "employee_representation",
+      "ruleKey": "employee_representation.consultation_cases",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.permitted_uses",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.max_duration",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.max_renewals",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "fixed_term_rules",
+      "ruleKey": "fixed_term_rules.conversion_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.required_trainings",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.periodicity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "mandatory_trainings",
+      "ruleKey": "mandatory_trainings.proof_requirements",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "notice_periods",
+      "ruleKey": "notice_periods.resignation_notice",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "notice_periods",
+      "ruleKey": "notice_periods.dismissal_notice_by_seniority",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.mandatory_visits",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.periodicity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "occupational_health",
+      "ruleKey": "occupational_health.special_categories",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.annual_entitlement",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.accrual_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "paid_leave",
+      "ruleKey": "paid_leave.carryover_rule",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.maternity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.paternity",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.parental",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "parental_leave",
+      "ruleKey": "parental_leave.protections",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.employer_contributions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.employee_contributions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "payroll_contributions",
+      "ruleKey": "payroll_contributions.bases_and_ceilings",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.mandatory_mentions",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.format",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "payslip_requirements",
+      "ruleKey": "payslip_requirements.retention_period",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.max_duration_by_category",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.renewal_allowed",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "probation_periods",
+      "ruleKey": "probation_periods.renewal_max_duration",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "right_to_work",
+      "ruleKey": "right_to_work.authorization_checks",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "right_to_work",
+      "ruleKey": "right_to_work.employer_obligations",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "severance",
+      "ruleKey": "severance.eligibility",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "severance",
+      "ruleKey": "severance.computation_formula",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "severance",
+      "ruleKey": "severance.minimum",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 1
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.waiting_period",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.employer_topup",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.certificate_deadline",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "sick_leave",
+      "ruleKey": "sick_leave.job_protection",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "working_time",
+      "ruleKey": "working_time.weekly_max_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "working_time",
+      "ruleKey": "working_time.daily_max_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "working_time",
+      "ruleKey": "working_time.daily_rest_hours",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "working_time",
+      "ruleKey": "working_time.weekly_rest",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    },
+    {
+      "jurisdiction": "CH",
+      "family": "working_time",
+      "ruleKey": "working_time.overtime_treatment",
+      "status": "SOURCE_REQUIRED",
+      "packetStatus": "AWAITING_SOURCING",
+      "sources": 2
+    }
+  ]
+}

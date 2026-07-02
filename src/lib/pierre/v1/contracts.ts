@@ -236,14 +236,14 @@ export async function generateContract(
   let pdfFileId: string | null = null, docxFileId: string | null = null;
   try {
     if (pdf) {
-      const intent = await createUploadIntent(db, ctx, { declared_mime_type: "application/pdf", original_filename: `contract-${version.version}.pdf`, declared_sha256: sha256(pdf.bytes), declared_size_bytes: pdf.bytes.length }, deps);
+      const intent = await createUploadIntent(db, ctx, { declared_mime_type: "application/pdf", original_filename: `contract-${version.version}.pdf`, declared_sha256: sha256(pdf.bytes), declared_size_bytes: Buffer.byteLength(pdf.bytes) }, deps);
       await storage.upload((await fileObjectKey(db, ctx, intent.file_id)), pdf.bytes);
       const f = await finalizeUpload(db, ctx, intent.file_id, pdf.bytes, deps);
       if (f.upload_status !== "clean" || f.scan_status !== "clean") throw Errors.validation("Rendered PDF failed the clean gate");
       pdfFileId = intent.file_id; createdFiles.push(intent.file_id);
     }
     if (docx) {
-      const intent = await createUploadIntent(db, ctx, { declared_mime_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", original_filename: `contract-${version.version}.docx`, declared_sha256: sha256(docx.bytes), declared_size_bytes: docx.bytes.length }, deps);
+      const intent = await createUploadIntent(db, ctx, { declared_mime_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", original_filename: `contract-${version.version}.docx`, declared_sha256: sha256(docx.bytes), declared_size_bytes: Buffer.byteLength(docx.bytes) }, deps);
       await storage.upload((await fileObjectKey(db, ctx, intent.file_id)), docx.bytes);
       const f = await finalizeUpload(db, ctx, intent.file_id, docx.bytes, deps);
       if (f.upload_status !== "clean" || f.scan_status !== "clean") throw Errors.validation("Rendered DOCX failed the clean gate");

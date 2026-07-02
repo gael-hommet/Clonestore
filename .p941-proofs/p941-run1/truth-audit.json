@@ -1,0 +1,40 @@
+{
+  "phase": "P9.4.1",
+  "artifact": "truth-audit",
+  "method": "14 read-only investigators over real code (~789k tokens), adversarial anti-overclaim",
+  "claims": [
+    { "claim": "complete knowledge brain", "verdict": "FALSE", "durable": "no", "multiInstance": "no", "exhaustive": "no", "reality": "14 hardcoded chunks in knowledge.ts; missing 7 employees, pricing detail, flags, permissions, technologies, contracts", "action": "source-registry grounded on real canonical modules + coverage gate" },
+    { "claim": "persistent bug & solution memory", "verdict": "FALSE", "durable": "no", "multiInstance": "no", "reality": "createInMemoryBugStore via globalThis; 2 seeds; lost on restart; no DB table", "action": "durable Postgres store + verified-reuse policy" },
+    { "claim": "hard daily/monthly GLOBAL budget", "verdict": "PARTIAL", "durable": "no", "multiInstance": "no", "reality": "per-process in-memory array; check→record NOT atomic; concurrent requests can jointly exceed cap", "action": "durable atomic Postgres ledger (reserve/record/release)" },
+    { "claim": "persistent multi-device conversations", "verdict": "FALSE", "durable": "no", "multiInstance": "no", "reality": "localStorage-only single browser (40 msgs); continuity.ts/thread-storage.ts never implemented", "action": "server Postgres store + API + cross-device/restart resume" },
+    { "claim": "image metadata stripping", "verdict": "FALSE", "reality": "no image lib; regex mime + size estimate; original base64 passed to OpenAI", "action": "real decode/magic-bytes/resize/recompress/EXIF-strip OR honest documentation" },
+    { "claim": "image resize/compression", "verdict": "FALSE", "reality": "not implemented; detail:low is an OpenAI param not a local resize", "action": "real sanitization pipeline" },
+    { "claim": "complete governed tools", "verdict": "FALSE", "reality": "1/16 wired (create_mission); decide_validation/cancel_mission fall through to unsupported_kind; create_support_case/retrieve_bug no impl", "action": "wire decide_validation (real V1 contracts exist), durable support tools, UNAVAILABLE honesty for the rest" },
+    { "claim": "support-case persistence", "verdict": "FALSE", "reality": "no table, no executor", "action": "Postgres store + governed tools" }
+  ],
+  "canonicalSources": {
+    "price": "src/lib/demo/presentation/commercial-state.ts (FOUNDER_PRICE_MONTHLY=449 EUR HT/mois, window->2026-08-31)",
+    "publicCommercial": "src/lib/catalog/public-catalog.ts (single source; Pierre only public)",
+    "employees": "src/lib/clonestore/employees/employee-registry.ts",
+    "technologies": "src/lib/clonestore/technologies/registry.ts (12 defs)",
+    "routes": "src/lib/nav/route-registry.ts (~30) + P9_1_ROUTE_NAVIGATION_MATRIX.md (60+)",
+    "productAvailability": "src/lib/features/product-availability.ts",
+    "p8Canon": "src/lib/pierre/v1/hr-canon/capability-registry.ts (READ-ONLY; 215 caps; 4 HUMAN_ONLY never surfaced)",
+    "clientContracts": "src/lib/pierre/cockpit/api-client.ts + src/lib/client-cockpit/**"
+  },
+  "gaps": {
+    "GAP-1": "validation decisions accept version but not a reason field",
+    "GAP-2": "no dedicated documents endpoint; artifacts derived from tasks; no upload contract",
+    "HUMAN_ONLY": ["relations.whistleblower", "disciplinary.qualify", "disciplinary.decision", "offboarding.dismissal"]
+  },
+  "durabilityDecision": {
+    "proofDb": "embedded-postgres (real persistent Postgres, survives process restart, multi-connection) — NOT PGlite (in-memory)",
+    "migration": "supabase/migrations-p941/ (separate dir, name excludes 'pierre_v' -> invisible to P8 harnesses)",
+    "repositories": "src/lib/clonechat/durable/** via node-postgres; in-memory impl kept for npm test",
+    "rlsPattern": "company_id::text = current_setting('app.current_company', true) + enable/force row level security",
+    "notAppliedToSupabase": true,
+    "productionWiring": "apply P9.4.1 migration to Supabase + set CLONECHAT_DB_URL/env (deliberate operator step; nothing deployed here)"
+  },
+  "forbiddenPerimeterRespected": true,
+  "productionFlagsUnchanged": true
+}

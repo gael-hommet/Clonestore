@@ -27,6 +27,9 @@ import { getInjectedStripeWebhookDeps, defaultStripeWebhookDeps, type StripeWebh
 // universe isolé). N'agit que si le compte porte une attribution CloneStory ; ne casse
 // JAMAIS le checkout principal (toute erreur est avalée à l'intérieur du pont).
 import { bridgeClonestoryCommercial } from "@/lib/clonestory/founding-partners/server/stripe-commercial-bridge";
+// P8.7.4 — additive Pierre commercial bridge. INERT unless the event carries explicit pierre_synthetic=true
+// controlled-journey metadata; fully error-swallowed; never affects the orders/founder/CloneStory flows.
+import { bridgePierreCommercial } from "@/lib/pierre/v1/pierre-stripe-commercial-bridge";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -221,6 +224,12 @@ export async function POST(req: Request) {
         }
       },
     });
+
+    // ── P8.7.4 Pierre commercial bridge (additive, best-effort, INERT for real traffic) ──
+    // Only acts on events explicitly tagged pierre_synthetic=true + pierre_product_key=pierre + a valid
+    // pierre_company_id (the controlled journey). Governed billing-webhook role; never the admin/service role.
+    // It swallows its own errors and never changes the status returned to Stripe.
+    await bridgePierreCommercial(event);
 
     // ── checkout.session.completed ─────────────────────────────
     // Handles both immediate payment (paid) and trial (no_payment_required).

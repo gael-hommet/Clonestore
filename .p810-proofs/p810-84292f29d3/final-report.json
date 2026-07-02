@@ -1,0 +1,75 @@
+{
+  "run_id": "p810-84292f29d3",
+  "phase": "P8.10",
+  "capabilities": 215,
+  "domains": 22,
+  "target_min_capabilities": 150,
+  "by_status": {
+    "VERIFIED_EXISTING": 77,
+    "PARTIAL": 36,
+    "MISSING": 81,
+    "IMPLEMENTED_UNVERIFIED": 5,
+    "CONTRACT_ONLY": 6,
+    "EXTERNAL_DEPENDENCY": 5,
+    "HUMAN_ONLY": 4,
+    "LEGAL_CONTENT_REQUIRED": 1
+  },
+  "gaps": {
+    "total": 138,
+    "p811": 102,
+    "p812": 32,
+    "humanOnly": 4,
+    "byDomain": {
+      "org": 5,
+      "recruitment": 10,
+      "offer": 5,
+      "contract": 8,
+      "onboarding": 5,
+      "absence": 9,
+      "payroll": 12,
+      "compensation": 10,
+      "performance": 7,
+      "training": 6,
+      "career": 5,
+      "relations": 5,
+      "disciplinary": 8,
+      "health": 7,
+      "communications": 4,
+      "policy": 5,
+      "offboarding": 8,
+      "data_gdpr": 4,
+      "reporting": 6,
+      "proactive": 8,
+      "pierre_admin": 1
+    }
+  },
+  "promises": {
+    "total": 15,
+    "fullyBacked": 11,
+    "partiallyBacked": 2,
+    "aspirational": 2,
+    "dangling": 0
+  },
+  "country_packs": {
+    "ok": true,
+    "jurisdictions": [
+      "FR",
+      "BE",
+      "LU",
+      "CH"
+    ],
+    "all_source_required": true
+  },
+  "unknown_rule_family_refs": [],
+  "gates": {
+    "registry_valid": true,
+    "all_domains_covered": true,
+    "min_capabilities": true,
+    "verified_have_evidence": true,
+    "no_dangling_promises": true,
+    "country_packs_ok": true,
+    "no_invented_country_rules": true,
+    "known_country_rule_refs": true
+  },
+  "ok": true
+}

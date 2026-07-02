@@ -47,17 +47,18 @@ async function safeFetch(
   url: string,
   options?: RequestInit,
 ): Promise<PierreCockpitActionResult> {
+  // Auth : Bearer si une session Supabase est disponible, sinon on s'appuie sur
+  // les cookies same-origin (les routes acceptent le cookie Supabase en prod et
+  // le cookie d'identité E2E signé en test-mode local). Le serveur reste l'autorité :
+  // il renverra 401 si la requête n'est réellement pas authentifiée.
   const token = await getBearerToken();
-  if (!token) {
-    return { ok: false, status: 401, error: "AUTH_REQUIRED" };
-  }
 
   try {
     const res = await fetch(url, {
       credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options?.headers ?? {}),
       },
       ...options,
@@ -214,6 +215,17 @@ export async function fetchPierreEmployeesFiles(): Promise<PierreCockpitActionRe
 export async function fetchPierreEmployeeFile(employeeId: string): Promise<PierreCockpitActionResult> {
   if (!employeeId) return { ok: false, error: "employeeId requis", status: 400 };
   return safeFetch(`/api/pierre/use/employee/${encodeURIComponent(employeeId)}/file`);
+}
+
+/** V1 employees list — tenant résolu serveur (RBAC + site-scoped). Lecture seule. */
+export async function fetchPierreEmployeesV1(limit = 50): Promise<PierreCockpitActionResult> {
+  return safeFetch(`/api/pierre/v1/employees?limit=${encodeURIComponent(String(limit))}`);
+}
+
+/** V1 employees search — tenant résolu serveur. Lecture seule. */
+export async function searchPierreEmployeesV1(q: string, limit = 20): Promise<PierreCockpitActionResult> {
+  if (!q.trim()) return { ok: true, status: 200, data: { items: [] } };
+  return safeFetch(`/api/pierre/v1/employees?q=${encodeURIComponent(q.trim())}&limit=${encodeURIComponent(String(limit))}`);
 }
 
 // ══════════════════════════════════════════════════════════════

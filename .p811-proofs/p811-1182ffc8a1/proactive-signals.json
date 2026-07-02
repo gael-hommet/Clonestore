@@ -1,0 +1,139 @@
+{
+  "run_id": "p811-1182ffc8a1",
+  "ok": true,
+  "signals": [
+    {
+      "key": "recruitment.decision_overdue",
+      "label": "Screening decision pending too long",
+      "detection": "sla_breach",
+      "handledByPackId": "recruitment.decision",
+      "defaultSeverity": "critical"
+    },
+    {
+      "key": "onboarding.kickoff_due",
+      "label": "onboarding.kickoff_due",
+      "detection": "date_threshold",
+      "handledByPackId": "offer.candidate_conversion",
+      "defaultSeverity": "info"
+    },
+    {
+      "key": "contract.expiry_watch",
+      "label": "Contract nearing expiry",
+      "detection": "expiry",
+      "handledByPackId": "contract.suspension_and_expiration",
+      "defaultSeverity": "warning"
+    },
+    {
+      "key": "onboarding.missing_document",
+      "label": "Onboarding document still missing",
+      "detection": "missing_document",
+      "handledByPackId": "onboarding.run_plan",
+      "defaultSeverity": "info"
+    },
+    {
+      "key": "onboarding.incomplete",
+      "label": "Onboarding incomplete at deadline",
+      "detection": "state_gap",
+      "handledByPackId": "onboarding.run_plan",
+      "defaultSeverity": "info"
+    },
+    {
+      "key": "absence.payroll_transmission_due",
+      "label": "Approved absence must reach payroll",
+      "detection": "date_threshold",
+      "handledByPackId": "absence.request_to_decision",
+      "defaultSeverity": "info"
+    },
+    {
+      "key": "payroll.anomaly",
+      "label": "Payroll anomaly detected",
+      "detection": "anomaly",
+      "handledByPackId": "payroll.prepare_period",
+      "defaultSeverity": "critical"
+    },
+    {
+      "key": "payroll.calendar_cutoff",
+      "label": "Payroll cutoff approaching",
+      "detection": "date_threshold",
+      "handledByPackId": "payroll.prepare_period",
+      "defaultSeverity": "info"
+    },
+    {
+      "key": "contract.amendment_due",
+      "label": "contract.amendment_due",
+      "detection": "date_threshold",
+      "handledByPackId": "compensation.salary_change",
+      "defaultSeverity": "info"
+    },
+    {
+      "key": "performance.review_due",
+      "label": "Performance review due",
+      "detection": "date_threshold",
+      "handledByPackId": "performance.review_cycle",
+      "defaultSeverity": "info"
+    },
+    {
+      "key": "training.certification_expiring",
+      "label": "Certification expiring",
+      "detection": "expiry",
+      "handledByPackId": "training.certification_tracking",
+      "defaultSeverity": "warning"
+    },
+    {
+      "key": "relations.request_sla",
+      "label": "HR request SLA breach",
+      "detection": "sla_breach",
+      "handledByPackId": "relations.hr_requests",
+      "defaultSeverity": "critical"
+    },
+    {
+      "key": "disciplinary.deadline",
+      "label": "Disciplinary statutory deadline approaching",
+      "detection": "date_threshold",
+      "handledByPackId": "disciplinary.case_governance",
+      "defaultSeverity": "info"
+    },
+    {
+      "key": "health.wellbeing_signal",
+      "label": "Wellbeing/workload signal",
+      "detection": "state_gap",
+      "handledByPackId": "health.accommodations_wellbeing",
+      "defaultSeverity": "info"
+    },
+    {
+      "key": "policy.acceptance_pending",
+      "label": "Policy acceptance still pending",
+      "detection": "sla_breach",
+      "handledByPackId": "policy.lifecycle",
+      "defaultSeverity": "critical"
+    },
+    {
+      "key": "offboarding.access_to_close",
+      "label": "Access still open after departure",
+      "detection": "state_gap",
+      "handledByPackId": "offboarding.orchestrate",
+      "defaultSeverity": "info"
+    },
+    {
+      "key": "reporting.anomaly",
+      "label": "HR anomaly/risk surfaced",
+      "detection": "anomaly",
+      "handledByPackId": "reporting.executive_and_anomalies",
+      "defaultSeverity": "critical"
+    },
+    {
+      "key": "proactive.deadline",
+      "label": "Deadline/expiry/missing-doc detected",
+      "detection": "date_threshold",
+      "handledByPackId": "proactive.deadline_watch",
+      "defaultSeverity": "info"
+    },
+    {
+      "key": "proactive.operational_risk",
+      "label": "Operational risk (signature/payroll/SLA)",
+      "detection": "state_gap",
+      "handledByPackId": "proactive.operational_watch",
+      "defaultSeverity": "info"
+    }
+  ]
+}

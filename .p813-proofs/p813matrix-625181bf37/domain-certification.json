@@ -1,0 +1,197 @@
+{
+  "run_id": "p813matrix-625181bf37",
+  "domains": 22,
+  "byDomain": {
+    "org": {
+      "total": 12,
+      "certified": 12,
+      "byState": {
+        "CERTIFIED_AUTOMATED": 3,
+        "CERTIFIED_AFTER_APPROVAL": 5,
+        "CERTIFIED_HUMAN_DECISION": 3,
+        "CERTIFIED_FAIL_CLOSED": 1
+      }
+    },
+    "recruitment": {
+      "total": 11,
+      "certified": 11,
+      "byState": {
+        "CERTIFIED_AFTER_APPROVAL": 4,
+        "CERTIFIED_FAIL_CLOSED": 5,
+        "CERTIFIED_HUMAN_DECISION": 2
+      }
+    },
+    "offer": {
+      "total": 6,
+      "certified": 6,
+      "byState": {
+        "CERTIFIED_FAIL_CLOSED": 2,
+        "CERTIFIED_AUTOMATED": 1,
+        "CERTIFIED_MANUAL_GOVERNED_PATH": 2,
+        "CERTIFIED_AFTER_APPROVAL": 1
+      }
+    },
+    "contract": {
+      "total": 25,
+      "certified": 25,
+      "byState": {
+        "CERTIFIED_AFTER_APPROVAL": 9,
+        "CERTIFIED_AUTOMATED": 10,
+        "CERTIFIED_FAIL_CLOSED": 5,
+        "CERTIFIED_MANUAL_GOVERNED_PATH": 1
+      }
+    },
+    "onboarding": {
+      "total": 10,
+      "certified": 10,
+      "byState": {
+        "CERTIFIED_AUTOMATED": 5,
+        "CERTIFIED_AFTER_APPROVAL": 3,
+        "CERTIFIED_MANUAL_GOVERNED_PATH": 1,
+        "CERTIFIED_FAIL_CLOSED": 1
+      }
+    },
+    "employee360": {
+      "total": 14,
+      "certified": 14,
+      "byState": {
+        "CERTIFIED_AFTER_APPROVAL": 8,
+        "CERTIFIED_AUTOMATED": 6
+      }
+    },
+    "absence": {
+      "total": 11,
+      "certified": 11,
+      "byState": {
+        "CERTIFIED_AFTER_APPROVAL": 3,
+        "CERTIFIED_AUTOMATED": 1,
+        "CERTIFIED_FAIL_CLOSED": 5,
+        "CERTIFIED_MANUAL_GOVERNED_PATH": 2
+      }
+    },
+    "payroll": {
+      "total": 12,
+      "certified": 12,
+      "byState": {
+        "CERTIFIED_HUMAN_DECISION": 6,
+        "CERTIFIED_MANUAL_GOVERNED_PATH": 6
+      }
+    },
+    "compensation": {
+      "total": 10,
+      "certified": 10,
+      "byState": {
+        "CERTIFIED_HUMAN_DECISION": 7,
+        "CERTIFIED_MANUAL_GOVERNED_PATH": 3
+      }
+    },
+    "performance": {
+      "total": 7,
+      "certified": 7,
+      "byState": {
+        "CERTIFIED_AUTOMATED": 5,
+        "CERTIFIED_HUMAN_DECISION": 2
+      }
+    },
+    "training": {
+      "total": 6,
+      "certified": 6,
+      "byState": {
+        "CERTIFIED_MANUAL_GOVERNED_PATH": 4,
+        "CERTIFIED_AUTOMATED": 1,
+        "CERTIFIED_FAIL_CLOSED": 1
+      }
+    },
+    "career": {
+      "total": 5,
+      "certified": 5,
+      "byState": {
+        "CERTIFIED_AUTOMATED": 2,
+        "CERTIFIED_HUMAN_DECISION": 3
+      }
+    },
+    "relations": {
+      "total": 5,
+      "certified": 5,
+      "byState": {
+        "CERTIFIED_AUTOMATED": 1,
+        "CERTIFIED_HUMAN_DECISION": 4
+      }
+    },
+    "disciplinary": {
+      "total": 8,
+      "certified": 8,
+      "byState": {
+        "CERTIFIED_HUMAN_DECISION": 6,
+        "CERTIFIED_FAIL_CLOSED": 2
+      }
+    },
+    "health": {
+      "total": 7,
+      "certified": 7,
+      "byState": {
+        "CERTIFIED_FAIL_CLOSED": 2,
+        "CERTIFIED_HUMAN_DECISION": 5
+      }
+    },
+    "communications": {
+      "total": 15,
+      "certified": 15,
+      "byState": {
+        "CERTIFIED_AUTOMATED": 12,
+        "CERTIFIED_AFTER_APPROVAL": 2,
+        "CERTIFIED_HUMAN_DECISION": 1
+      }
+    },
+    "policy": {
+      "total": 5,
+      "certified": 5,
+      "byState": {
+        "CERTIFIED_AFTER_APPROVAL": 4,
+        "CERTIFIED_AUTOMATED": 1
+      }
+    },
+    "offboarding": {
+      "total": 8,
+      "certified": 8,
+      "byState": {
+        "CERTIFIED_FAIL_CLOSED": 5,
+        "CERTIFIED_HUMAN_DECISION": 1,
+        "CERTIFIED_MANUAL_GOVERNED_PATH": 2
+      }
+    },
+    "data_gdpr": {
+      "total": 11,
+      "certified": 11,
+      "byState": {
+        "CERTIFIED_AFTER_APPROVAL": 6,
+        "CERTIFIED_AUTOMATED": 1,
+        "CERTIFIED_FAIL_CLOSED": 4
+      }
+    },
+    "reporting": {
+      "total": 6,
+      "certified": 6,
+      "byState": {
+        "CERTIFIED_AUTOMATED": 6
+      }
+    },
+    "proactive": {
+      "total": 10,
+      "certified": 10,
+      "byState": {
+        "CERTIFIED_AUTOMATED": 8,
+        "CERTIFIED_FAIL_CLOSED": 2
+      }
+    },
+    "pierre_admin": {
+      "total": 11,
+      "certified": 11,
+      "byState": {
+        "CERTIFIED_AFTER_APPROVAL": 3,
+        "CERTIFIED_AUTOMATED": 7,
+        "CERTIFIED_FAIL_CLOSED": 1
+      }
+    }
+  }
+}

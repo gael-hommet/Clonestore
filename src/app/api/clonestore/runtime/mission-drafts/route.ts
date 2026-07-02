@@ -28,10 +28,10 @@ import {
 
 // ── Supabase server (anon key + cookies — RLS automatique, jamais service role) ──
 
-function getSupabaseServer() {
+async function getSupabaseServer() {
   try {
-    const { supabaseServer } = require("@/lib/supabase-server") as { supabaseServer: () => import("@supabase/supabase-js").SupabaseClient };
-    return supabaseServer();
+    const { supabaseServer } = require("@/lib/supabase-server") as { supabaseServer: () => Promise<import("@supabase/supabase-js").SupabaseClient> };
+    return await supabaseServer();
   } catch {
     return null;
   }
@@ -51,7 +51,7 @@ export async function GET() {
   }
 
   // Flag true : tenter une lecture read-only des propres brouillons.
-  const supabase = getSupabaseServer();
+  const supabase = await getSupabaseServer();
   if (!supabase) {
     return NextResponse.json(
       buildRuntimeMissionDraftServerSaveResponse("server_unavailable", { capabilities }),
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Auth obligatoire
-  const supabase = getSupabaseServer();
+  const supabase = await getSupabaseServer();
   if (!supabase) {
     return NextResponse.json(
       buildRuntimeMissionDraftServerError({ code: "SERVER_UNAVAILABLE", message: "Supabase non disponible." }, "server_unavailable"),

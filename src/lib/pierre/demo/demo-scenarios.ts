@@ -258,6 +258,24 @@ const SEMAINE_RH: DemoScenario = {
     "parallel_execution", "document_generation", "email_preparation", "human_approval",
     "scheduling_followup", "guardrails", "traceability", "continuity_memory", "signature_preparation",
   ],
+  clockLabel: "Lundi · 08 h 42",
+  incoming: [
+    { id: "in_lina", from: "Claire Dubois — manager Produit", channel: "message", text: "Lina arrive lundi prochain, il faut tout préparer pour son premier jour.", urgency: "haute", missionId: "m_lina" },
+    { id: "in_marc", from: "Dossier de Marc", channel: "rh", text: "Un justificatif manque encore dans le dossier de Marc.", urgency: "normale", missionId: "m_marc" },
+    { id: "in_recrutement", from: "Direction commerciale", channel: "email", text: "Lancer le recrutement du poste commercial, entretiens dès cette semaine.", urgency: "normale", missionId: "m_recrutement" },
+    { id: "in_nora", from: "Direction RH", channel: "note", text: "Avenant de Nora à préparer pour validation vendredi.", urgency: "haute", missionId: "m_nora" },
+  ],
+  week: [
+    { id: "w_marc", day: "Mardi", time: "11:20", label: "Marc n'a pas répondu", detail: "Relance courtoise préparée ; une seconde relance est planifiée sous 48 h.", actor: "Pierre", tone: "warn", kind: "relance" },
+    { id: "w_lina", day: "Mardi", time: "16:05", label: "Matériel de Lina toujours en attente", detail: "La tâche reste bloquée : Pierre ne complète pas ce point seul.", actor: "Pierre", tone: "block", kind: "attente" },
+    { id: "w_recrutement", day: "Mercredi", time: "09:15", label: "Candidat sans réponse — relance à l'échéance", detail: "Relance conditionnelle prête, déclenchée au bon moment.", actor: "Pierre", tone: "warn", kind: "relance" },
+    { id: "w_nora", day: "Jeudi", time: "14:40", label: "Échéance de validation de Nora vendredi", detail: "Rappel préparé ; l'avenant attend la validation humaine.", actor: "CloneContinuum", tone: "info", kind: "echeance" },
+    { id: "w_reprise", day: "Jeudi", time: "14:41", label: "Chaque mission reprise sans perte de contexte", detail: "Pierre reprend là où chaque mission en était, sans tout relire.", actor: "CloneContinuum", tone: "ok", kind: "reprise" },
+  ],
+  roleSplit: {
+    pierre: ["organisation des missions", "préparation des documents", "rédaction des messages", "suivi et relances", "détection des informations manquantes", "traçabilité de chaque action"],
+    humans: ["décisions et arbitrages", "validation de l'avenant", "relation avec les candidats et l'équipe", "responsabilité finale"],
+  },
 };
 
 // ── Scenario 2 — "Recruter sans perdre le fil" ───────────────────────────────
@@ -417,6 +435,21 @@ const RECRUTEMENT: DemoScenario = {
     "parallel_execution", "document_generation", "email_preparation", "human_approval",
     "scheduling_followup", "guardrails", "traceability",
   ],
+  clockLabel: "Mardi · 14 h 10",
+  incoming: [
+    { id: "in_r_offre", from: "Direction commerciale", channel: "email", text: "Lancer le recrutement d'un commercial sédentaire.", urgency: "haute", missionId: "r_offre" },
+    { id: "in_r_entretiens", from: "Managers disponibles", channel: "message", text: "Deux créneaux d'entretien libres cette semaine.", urgency: "normale", missionId: "r_entretiens" },
+    { id: "in_r_decision", from: "Direction commerciale", channel: "note", text: "Préparer la décision une fois les entretiens passés.", urgency: "normale", missionId: "r_decision" },
+  ],
+  week: [
+    { id: "w_r_fourchette", day: "Mardi", time: "14:12", label: "Fourchette de rémunération toujours attendue", detail: "Pierre la signale et bloque la tâche, sans l'inventer.", actor: "Pierre", tone: "block", kind: "attente" },
+    { id: "w_r_relance", day: "J+5", time: "—", label: "Candidats sans réponse relancés", detail: "Relance conditionnelle déclenchée à l'échéance prévue.", actor: "Pierre", tone: "warn", kind: "relance" },
+    { id: "w_r_decision", day: "Après entretiens", time: "—", label: "Comparatif prêt pour la décision managériale", detail: "La décision d'embauche reste humaine.", actor: "CloneContinuum", tone: "info", kind: "reprise" },
+  ],
+  roleSplit: {
+    pierre: ["offre et grille d'entretien", "invitations candidats", "planification des relances", "comparatif neutre des entretiens", "suivi du processus"],
+    humans: ["décision d'embauche", "conduite des entretiens", "négociation", "envoi de la promesse"],
+  },
 };
 
 // ── Scenario 3 — "Préparer un contrat sensible" ──────────────────────────────
@@ -545,6 +578,19 @@ const CONTRAT_SENSIBLE: DemoScenario = {
     "request_understanding", "context_recall", "missing_info_detection", "document_generation",
     "human_approval", "guardrails", "traceability", "signature_preparation",
   ],
+  clockLabel: "Vendredi · 16 h 40",
+  incoming: [
+    { id: "in_c_controle", from: "Direction RH", channel: "note", text: "Préparer l'avenant de Nora (passage cadre) pour validation.", urgency: "haute", missionId: "c_controle" },
+    { id: "in_c_document", from: "Modèle publié de l'entreprise", channel: "rh", text: "Vérifier le modèle et contrôler les données avant toute signature.", urgency: "haute", missionId: "c_document" },
+  ],
+  week: [
+    { id: "w_c_date", day: "Vendredi", time: "16:41", label: "Date d'effet toujours à confirmer", detail: "Pierre la signale au lieu de la deviner.", actor: "Pierre", tone: "block", kind: "attente" },
+    { id: "w_c_signature", day: "Après validation", time: "—", label: "Préparation à la signature en attente", detail: "La signature reste une décision humaine ; rien n'est lancé seul.", actor: "CloneTrust", tone: "info", kind: "echeance" },
+  ],
+  roleSplit: {
+    pierre: ["contrôle des données", "récupération du modèle publié", "préparation de l'avenant", "signalement des informations manquantes", "organisation de la validation"],
+    humans: ["validation de l'avenant", "décision contractuelle", "déclenchement de la signature", "responsabilité juridique"],
+  },
 };
 
 export const DEMO_SCENARIOS: readonly DemoScenario[] = [SEMAINE_RH, RECRUTEMENT, CONTRAT_SENSIBLE] as const;

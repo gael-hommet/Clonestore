@@ -15,6 +15,7 @@
 //   [FIX-3] clonepolicy — moteur interne actif dans CloneGuard, pas roadmap
 
 import { useState } from "react";
+import { useRequireAuth } from "@/lib/auth/useRequireAuth";
 import {
   Shield,
   Activity,
@@ -438,6 +439,7 @@ function TechSection({ section }: { section: TechUISection }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function TechnologiesPage() {
+  useRequireAuth();
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
   const { sections, total, essential_score, essential_ok } = PAGE_DATA;
   const { summary } = SNAPSHOT;

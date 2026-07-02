@@ -1,0 +1,262 @@
+{
+  "run_id": "p810-84292f29d3",
+  "domains": [
+    {
+      "domain": "org",
+      "name": "Organisation & planning",
+      "total": 12,
+      "byStatus": {
+        "VERIFIED_EXISTING": 7,
+        "PARTIAL": 1,
+        "MISSING": 4
+      },
+      "verified": 7,
+      "readinessPct": 58.3
+    },
+    {
+      "domain": "recruitment",
+      "name": "Recruitment",
+      "total": 11,
+      "byStatus": {
+        "IMPLEMENTED_UNVERIFIED": 2,
+        "VERIFIED_EXISTING": 1,
+        "MISSING": 6,
+        "PARTIAL": 2
+      },
+      "verified": 1,
+      "readinessPct": 9.1
+    },
+    {
+      "domain": "offer",
+      "name": "Offer & pre-hire",
+      "total": 6,
+      "byStatus": {
+        "CONTRACT_ONLY": 1,
+        "VERIFIED_EXISTING": 1,
+        "MISSING": 2,
+        "PARTIAL": 2
+      },
+      "verified": 1,
+      "readinessPct": 16.7
+    },
+    {
+      "domain": "contract",
+      "name": "Contracts & contractual changes",
+      "total": 25,
+      "byStatus": {
+        "VERIFIED_EXISTING": 17,
+        "PARTIAL": 6,
+        "MISSING": 1,
+        "EXTERNAL_DEPENDENCY": 1
+      },
+      "verified": 17,
+      "readinessPct": 68
+    },
+    {
+      "domain": "onboarding",
+      "name": "Onboarding",
+      "total": 10,
+      "byStatus": {
+        "VERIFIED_EXISTING": 5,
+        "PARTIAL": 4,
+        "MISSING": 1
+      },
+      "verified": 5,
+      "readinessPct": 50
+    },
+    {
+      "domain": "employee360",
+      "name": "Employee 360 & administration",
+      "total": 14,
+      "byStatus": {
+        "VERIFIED_EXISTING": 14
+      },
+      "verified": 14,
+      "readinessPct": 100
+    },
+    {
+      "domain": "absence",
+      "name": "Absences, leave & time",
+      "total": 11,
+      "byStatus": {
+        "VERIFIED_EXISTING": 2,
+        "MISSING": 7,
+        "PARTIAL": 2
+      },
+      "verified": 2,
+      "readinessPct": 18.2
+    },
+    {
+      "domain": "payroll",
+      "name": "Payroll operational",
+      "total": 12,
+      "byStatus": {
+        "IMPLEMENTED_UNVERIFIED": 2,
+        "CONTRACT_ONLY": 1,
+        "MISSING": 4,
+        "EXTERNAL_DEPENDENCY": 4,
+        "PARTIAL": 1
+      },
+      "verified": 0,
+      "readinessPct": 0
+    },
+    {
+      "domain": "compensation",
+      "name": "Compensation & benefits",
+      "total": 10,
+      "byStatus": {
+        "MISSING": 9,
+        "PARTIAL": 1
+      },
+      "verified": 0,
+      "readinessPct": 0
+    },
+    {
+      "domain": "performance",
+      "name": "Performance",
+      "total": 7,
+      "byStatus": {
+        "MISSING": 7
+      },
+      "verified": 0,
+      "readinessPct": 0
+    },
+    {
+      "domain": "training",
+      "name": "Training & skills",
+      "total": 6,
+      "byStatus": {
+        "MISSING": 5,
+        "IMPLEMENTED_UNVERIFIED": 1
+      },
+      "verified": 0,
+      "readinessPct": 0
+    },
+    {
+      "domain": "career",
+      "name": "Career & mobility",
+      "total": 5,
+      "byStatus": {
+        "MISSING": 5
+      },
+      "verified": 0,
+      "readinessPct": 0
+    },
+    {
+      "domain": "relations",
+      "name": "Employee relations",
+      "total": 5,
+      "byStatus": {
+        "MISSING": 4,
+        "HUMAN_ONLY": 1
+      },
+      "verified": 0,
+      "readinessPct": 0
+    },
+    {
+      "domain": "disciplinary",
+      "name": "Disciplinary",
+      "total": 8,
+      "byStatus": {
+        "PARTIAL": 2,
+        "HUMAN_ONLY": 2,
+        "MISSING": 4
+      },
+      "verified": 0,
+      "readinessPct": 0
+    },
+    {
+      "domain": "health",
+      "name": "Health, safety & wellbeing",
+      "total": 7,
+      "byStatus": {
+        "MISSING": 7
+      },
+      "verified": 0,
+      "readinessPct": 0
+    },
+    {
+      "domain": "communications",
+      "name": "HR communications",
+      "total": 15,
+      "byStatus": {
+        "VERIFIED_EXISTING": 11,
+        "PARTIAL": 3,
+        "MISSING": 1
+      },
+      "verified": 11,
+      "readinessPct": 73.3
+    },
+    {
+      "domain": "policy",
+      "name": "Policies & internal compliance",
+      "total": 5,
+      "byStatus": {
+        "CONTRACT_ONLY": 1,
+        "MISSING": 4
+      },
+      "verified": 0,
+      "readinessPct": 0
+    },
+    {
+      "domain": "offboarding",
+      "name": "Offboarding",
+      "total": 8,
+      "byStatus": {
+        "MISSING": 5,
+        "HUMAN_ONLY": 1,
+        "PARTIAL": 2
+      },
+      "verified": 0,
+      "readinessPct": 0
+    },
+    {
+      "domain": "data_gdpr",
+      "name": "Data, privacy & GDPR",
+      "total": 11,
+      "byStatus": {
+        "VERIFIED_EXISTING": 7,
+        "PARTIAL": 2,
+        "LEGAL_CONTENT_REQUIRED": 1,
+        "MISSING": 1
+      },
+      "verified": 7,
+      "readinessPct": 63.6
+    },
+    {
+      "domain": "reporting",
+      "name": "Reporting & steering",
+      "total": 6,
+      "byStatus": {
+        "PARTIAL": 3,
+        "MISSING": 3
+      },
+      "verified": 0,
+      "readinessPct": 0
+    },
+    {
+      "domain": "proactive",
+      "name": "Proactive operations",
+      "total": 10,
+      "byStatus": {
+        "VERIFIED_EXISTING": 2,
+        "CONTRACT_ONLY": 3,
+        "PARTIAL": 4,
+        "MISSING": 1
+      },
+      "verified": 2,
+      "readinessPct": 20
+    },
+    {
+      "domain": "pierre_admin",
+      "name": "Pierre administration",
+      "total": 11,
+      "byStatus": {
+        "VERIFIED_EXISTING": 10,
+        "PARTIAL": 1
+      },
+      "verified": 10,
+      "readinessPct": 90.9
+    }
+  ]
+}

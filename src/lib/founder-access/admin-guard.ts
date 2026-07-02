@@ -41,7 +41,7 @@ export type AdminAuth =
 export async function resolveFounderAdmin(): Promise<AdminAuth> {
   let email = "";
   try {
-    const supa = supabaseServer();
+    const supa = await supabaseServer();
     const { data } = await supa.auth.getUser();
     email = normalizeEmail(data.user?.email);
   } catch {

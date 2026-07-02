@@ -1,0 +1,41 @@
+{
+  "run_id": "p812src-c547f24bf7",
+  "packs": [
+    {
+      "jurisdiction": "FR",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    },
+    {
+      "jurisdiction": "BE",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    },
+    {
+      "jurisdiction": "LU",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    },
+    {
+      "jurisdiction": "CH",
+      "ok": true,
+      "missingRequiredFamilies": [],
+      "sourceErrors": [],
+      "ruleCount": 69,
+      "sourceRequiredCount": 69,
+      "verifiedCount": 0
+    }
+  ]
+}

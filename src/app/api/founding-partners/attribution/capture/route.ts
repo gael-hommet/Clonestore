@@ -16,7 +16,7 @@ const NO_STORE = { "cache-control": "private, no-store" };
 export async function POST(req: Request) {
   let user: { id: string; email: string | null; companyName: string | null } | null = null;
   try {
-    const supabase = supabaseServer();
+    const supabase = await supabaseServer();
     const { data } = await supabase.auth.getUser();
     if (data.user) {
       const meta = (data.user.user_metadata ?? {}) as Record<string, unknown>;

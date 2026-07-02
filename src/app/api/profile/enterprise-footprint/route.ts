@@ -38,10 +38,10 @@ import {
 
 // ── Supabase server (anon key + cookies — RLS automatique, jamais service role) ──
 
-function getSupabaseServer() {
+async function getSupabaseServer() {
   try {
-    const { supabaseServer } = require("@/lib/supabase-server") as { supabaseServer: () => import("@supabase/supabase-js").SupabaseClient };
-    return supabaseServer();
+    const { supabaseServer } = require("@/lib/supabase-server") as { supabaseServer: () => Promise<import("@supabase/supabase-js").SupabaseClient> };
+    return await supabaseServer();
   } catch {
     return null;
   }
@@ -62,7 +62,7 @@ function jsonError(message: string, status: number, extra: Record<string, unknow
 export async function GET(_req: NextRequest) {
   let supabase;
   try {
-    supabase = getSupabaseServer();
+    supabase = await getSupabaseServer();
   } catch {
     return jsonError("Supabase non configuré.", 503, { server_available: false, fallback_reason: "supabase_not_configured" });
   }
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
 
   let supabase;
   try {
-    supabase = getSupabaseServer();
+    supabase = await getSupabaseServer();
   } catch {
     return jsonError("Supabase non configuré.", 503);
   }

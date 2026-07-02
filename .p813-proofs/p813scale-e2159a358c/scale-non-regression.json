@@ -1,0 +1,16 @@
+{
+  "run_id": "p813scale-e2159a358c",
+  "checks": {
+    "canon_capabilities": true,
+    "canon_valid": true,
+    "mission_packs": true,
+    "country_rules_zero_verified": true,
+    "providers_zero_usable": true,
+    "sellability_100k_proof_present": true
+  },
+  "canon": 215,
+  "packs": 43,
+  "countryRules": 276,
+  "rulesVerified": 0,
+  "note": "100k sellability by reference to .p89-proofs/p89-final-2fa5898d89 (not re-run in P8.13)"
+}

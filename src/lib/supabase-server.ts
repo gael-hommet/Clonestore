@@ -2,8 +2,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-export function supabaseServer() {
-  const cookieStore = cookies() as any;
+export async function supabaseServer() {
+  // Next.js 15 — dynamic APIs are async; `cookies()` MUST be awaited (no sync access).
+  const cookieStore = (await cookies()) as any;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

@@ -1,0 +1,350 @@
+{
+  "run_id": "p811-1182ffc8a1",
+  "ok": true,
+  "scenarios": [
+    {
+      "pack": "org.structure_management",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "org.workforce_planning",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 8,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "org.succession_planning",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "recruitment.open_requisition",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "recruitment.pipeline_management",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 8,
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    },
+    {
+      "pack": "recruitment.decision",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 8,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "offer.negotiation_and_signature",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "pack": "offer.candidate_conversion",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "contract.change_via_amendment",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "contract.suspension_and_expiration",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    },
+    {
+      "pack": "contract.submit_signature",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "pack": "onboarding.run_plan",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "onboarding.access_provisioning",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "pack": "data_gdpr.right_to_object",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 8,
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    },
+    {
+      "pack": "absence.request_to_decision",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "absence.payroll_transmission",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "pack": "absence.timeclock_integration",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "pack": "payroll.prepare_period",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "payroll.transmit_and_reconcile",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 8,
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "pack": "compensation.salary_change",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 8,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "compensation.benefits_and_expenses",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "pack": "compensation.equity_and_equity_review",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "performance.review_cycle",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "performance.calibration_and_pip",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 8,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "training.plan_and_enroll",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 10,
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "pack": "training.certification_tracking",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "career.wishes_and_mentoring",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "career.mobility",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 8,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "relations.hr_requests",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "relations.complaints_and_alerts",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "disciplinary.case_governance",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 10,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "health.incident_and_risk",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 8,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "health.accommodations_wellbeing",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "communications.governed_campaign",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "communications.legal_review",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "HUMAN_DECISION_REQUIRED"
+    },
+    {
+      "pack": "policy.lifecycle",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 9,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "policy.enforcement_audit",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 6,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "offboarding.orchestrate",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 10,
+      "runtimeStatus": "RUNTIME_READY_EXTERNAL_BLOCKED"
+    },
+    {
+      "pack": "reporting.hr_dashboards",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "reporting.executive_and_anomalies",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "proactive.deadline_watch",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "proactive.operational_watch",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 7,
+      "runtimeStatus": "IMPLEMENTED"
+    },
+    {
+      "pack": "pierre_admin.country_config",
+      "opened": true,
+      "advanced": true,
+      "firstStep": "intake",
+      "checklistItems": 8,
+      "runtimeStatus": "COUNTRY_RULES_REQUIRED"
+    }
+  ]
+}

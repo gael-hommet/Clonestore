@@ -1,0 +1,77 @@
+{
+  "run_id": "p811-2a7576d80e",
+  "handoffs": [
+    {
+      "pack": "offer.negotiation_and_signature",
+      "stepKey": "collect_signature",
+      "type": "external",
+      "target": "signature_provider",
+      "expectedReturn": "provider result to reconcile",
+      "blocked": true
+    },
+    {
+      "pack": "contract.submit_signature",
+      "stepKey": "submit",
+      "type": "external",
+      "target": "signature_provider",
+      "expectedReturn": "provider result to reconcile",
+      "blocked": true
+    },
+    {
+      "pack": "onboarding.access_provisioning",
+      "stepKey": "provision",
+      "type": "external",
+      "target": "identity_provider",
+      "expectedReturn": "provider result to reconcile",
+      "blocked": true
+    },
+    {
+      "pack": "absence.payroll_transmission",
+      "stepKey": "handoff_payroll",
+      "type": "external",
+      "target": "payroll_provider",
+      "expectedReturn": "provider result to reconcile",
+      "blocked": true
+    },
+    {
+      "pack": "absence.timeclock_integration",
+      "stepKey": "ingest_attendance",
+      "type": "external",
+      "target": "time_attendance",
+      "expectedReturn": "provider result to reconcile",
+      "blocked": true
+    },
+    {
+      "pack": "payroll.transmit_and_reconcile",
+      "stepKey": "transmit",
+      "type": "external",
+      "target": "payroll_provider",
+      "expectedReturn": "provider result to reconcile",
+      "blocked": true
+    },
+    {
+      "pack": "compensation.benefits_and_expenses",
+      "stepKey": "provider",
+      "type": "external",
+      "target": "benefits_provider",
+      "expectedReturn": "provider result to reconcile",
+      "blocked": true
+    },
+    {
+      "pack": "training.plan_and_enroll",
+      "stepKey": "enroll",
+      "type": "external",
+      "target": "training_provider",
+      "expectedReturn": "provider result to reconcile",
+      "blocked": true
+    },
+    {
+      "pack": "offboarding.orchestrate",
+      "stepKey": "revoke_access",
+      "type": "external",
+      "target": "identity_provider",
+      "expectedReturn": "provider result to reconcile",
+      "blocked": true
+    }
+  ]
+}

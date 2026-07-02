@@ -1,0 +1,332 @@
+/* Guided Tour — habillage (P9.1).
+ *
+ * Réutilise EXCLUSIVEMENT les tokens CloneStore (couleurs, rayons, ombres,
+ * courbes de mouvement). Aucune nouvelle direction artistique. Toutes les classes
+ * sont préfixées `csgt-` et ne s'appliquent qu'aux éléments du tour (montés dans
+ * un portail vers <body>) : aucun style global du site n'est remplacé.
+ */
+
+.csgt-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+}
+
+/* Capte les clics : empêche toute interaction/navigation accidentelle pendant le tour. */
+.csgt-block {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: auto;
+  background: transparent;
+}
+
+/* Voile flouté + teinté, dans l'esprit glass CloneStore. */
+.csgt-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: rgba(21, 25, 34, 0.3);
+  -webkit-backdrop-filter: blur(5px) saturate(1.05);
+  backdrop-filter: blur(5px) saturate(1.05);
+}
+
+/* Trou doux : la cible reste NETTE et lisible (le flou/teinte ne s'y applique pas). */
+.csgt-scrim--hole {
+  --csgt-x: 50%;
+  --csgt-y: 50%;
+  --csgt-rx: 120px;
+  --csgt-ry: 90px;
+  -webkit-mask: radial-gradient(
+    ellipse var(--csgt-rx) var(--csgt-ry) at var(--csgt-x) var(--csgt-y),
+    transparent 0%,
+    transparent 55%,
+    #000 82%,
+    #000 100%
+  );
+  mask: radial-gradient(
+    ellipse var(--csgt-rx) var(--csgt-ry) at var(--csgt-x) var(--csgt-y),
+    transparent 0%,
+    transparent 55%,
+    #000 82%,
+    #000 100%
+  );
+}
+
+/* Liseré premium autour de la cible. */
+.csgt-ring {
+  position: fixed;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: var(--cs-radius-md, 16px);
+  box-shadow:
+    0 0 0 1.5px rgba(107, 99, 232, 0.55),
+    0 0 0 5px rgba(107, 99, 232, 0.14),
+    0 20px 60px rgba(107, 99, 232, 0.2);
+}
+
+/* Pointeur premium (curseur stylisé + halo qui respire). */
+.csgt-pointer {
+  position: fixed;
+  z-index: 4;
+  pointer-events: none;
+  transform: translate(-4px, -2px);
+}
+
+.csgt-pointer__cursor {
+  position: relative;
+  display: block;
+  filter: drop-shadow(0 6px 14px rgba(18, 24, 36, 0.28));
+}
+
+.csgt-pointer__halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--cs-radius-pill, 999px);
+  border: 2px solid rgba(107, 99, 232, 0.42);
+  transform: translate(-50%, -50%) scale(0.5);
+  animation: csgt-halo 1.8s var(--cs-ease, cubic-bezier(0.22, 1, 0.36, 1)) infinite;
+}
+
+.csgt-pointer__halo--static {
+  animation: none;
+  opacity: 0.32;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+@keyframes csgt-halo {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.45);
+    opacity: 0;
+  }
+}
+
+/* Carte de texte (glass premium, tokens CloneStore). */
+.csgt-card {
+  position: fixed;
+  z-index: 5;
+  width: min(360px, calc(100vw - 28px));
+  max-width: 360px;
+  padding: 20px 22px;
+  border-radius: var(--cs-radius-lg, 20px);
+  background: var(--cs-surface-white, rgba(255, 255, 255, 0.92));
+  border: 1px solid var(--cs-glass-border, rgba(255, 255, 255, 0.62));
+  box-shadow: var(--cs-shadow-float, 0 34px 95px rgba(18, 24, 36, 0.12));
+  -webkit-backdrop-filter: blur(22px) saturate(1.18);
+  backdrop-filter: blur(22px) saturate(1.18);
+  color: var(--cs-ink-1, #151922);
+  pointer-events: auto;
+  outline: none;
+}
+
+.csgt-card__eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cs-ink-4, #8a95a5);
+}
+
+.csgt-card__title {
+  margin: 0;
+  font-size: 1.16rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--cs-ink-1, #151922);
+}
+
+.csgt-card__body {
+  margin: 10px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--cs-ink-3, #5c6675);
+}
+
+/* Contrôles */
+.csgt-controls {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.csgt-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.csgt-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--cs-radius-pill, 999px);
+  background: rgba(24, 29, 39, 0.16);
+  transition: width var(--cs-speed-fast, 180ms) var(--cs-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.csgt-dot--active {
+  width: 18px;
+  background: var(--cs-violet, #6b63e8);
+}
+
+.csgt-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.csgt-nav__spacer {
+  flex: 1;
+}
+
+.csgt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.csgt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--cs-radius-pill, 999px);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background var(--cs-speed-fast, 180ms) var(--cs-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    color var(--cs-speed-fast, 180ms) var(--cs-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    border-color var(--cs-speed-fast, 180ms) var(--cs-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.csgt-btn:focus-visible {
+  outline: 2px solid var(--cs-violet, #6b63e8);
+  outline-offset: 2px;
+}
+
+.csgt-btn--primary {
+  background: var(--cs-graphite, #151922);
+  color: #ffffff;
+}
+
+.csgt-btn--primary:hover {
+  background: var(--cs-graphite-2, #252b36);
+}
+
+.csgt-btn--secondary {
+  background: rgba(255, 255, 255, 0.62);
+  border-color: var(--cs-line, rgba(24, 29, 39, 0.1));
+  color: var(--cs-ink-1, #151922);
+}
+
+.csgt-btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.csgt-btn--ghost {
+  background: transparent;
+  color: var(--cs-ink-3, #5c6675);
+}
+
+.csgt-btn--ghost:hover {
+  color: var(--cs-ink-1, #151922);
+}
+
+/* Invitation de bienvenue (discrète, bas de l'écran) */
+.csgt-welcome {
+  position: fixed;
+  z-index: 2147483000;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  width: min(384px, calc(100vw - 28px));
+  padding: 18px 20px 20px;
+  border-radius: var(--cs-radius-lg, 20px);
+  background: var(--cs-surface-white, rgba(255, 255, 255, 0.92));
+  border: 1px solid var(--cs-glass-border, rgba(255, 255, 255, 0.62));
+  box-shadow: var(--cs-shadow-float, 0 34px 95px rgba(18, 24, 36, 0.12));
+  -webkit-backdrop-filter: blur(22px) saturate(1.18);
+  backdrop-filter: blur(22px) saturate(1.18);
+  pointer-events: auto;
+}
+
+.csgt-welcome__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--cs-radius-pill, 999px);
+  color: var(--cs-ink-4, #8a95a5);
+  background: transparent;
+  cursor: pointer;
+  border: none;
+}
+
+.csgt-welcome__close:hover {
+  color: var(--cs-ink-1, #151922);
+  background: rgba(24, 29, 39, 0.05);
+}
+
+.csgt-welcome__eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.64rem;
+  font-weight: 750;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cs-violet, #6b63e8);
+}
+
+.csgt-welcome__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--cs-ink-1, #151922);
+}
+
+.csgt-welcome__body {
+  margin: 8px 0 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--cs-ink-3, #5c6675);
+}
+
+.csgt-welcome__actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .csgt-pointer__halo {
+    animation: none;
+    opacity: 0.32;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .csgt-dot {
+    transition: none;
+  }
+
+  .csgt-btn {
+    transition: none;
+  }
+}

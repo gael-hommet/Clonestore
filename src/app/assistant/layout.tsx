@@ -30,6 +30,7 @@ export default function AssistantLayout({ children }: { children: ReactNode }) {
           { label: "Support", href: "/questions" },
         ]}
         icon={<MessageSquareMore className="h-6 w-6" />}
+        dataTourId="clonechat-entry"
       />
     );
   }

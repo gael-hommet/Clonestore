@@ -225,6 +225,8 @@ create table if not exists pierre_rt_runtime_schedules (
   next_run_at      timestamptz,
   status           text not null default 'active' check (status in ('active','paused','completed','cancelled')),
   reason           text,
+  payload          jsonb not null default '{}'::jsonb,
+  stop_condition   jsonb,
   locked_by        text,
   lease_expires_at timestamptz,
   dedup_key        text not null,

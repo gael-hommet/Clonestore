@@ -1,0 +1,52 @@
+{
+  "run_id": "p89-final-2fa5898d89",
+  "scenarios": {
+    "A_worker_crash": {
+      "claimed": 1,
+      "recovered": 1,
+      "reclaimed": 1,
+      "succeeded": 1,
+      "single_completion": true,
+      "ok": true
+    },
+    "B_pool_saturation": {
+      "timed_out_cleanly": true,
+      "recovered_after_release": true,
+      "job_not_lost": true,
+      "ok": true
+    },
+    "C_db_timeout": {
+      "rolled_back": true,
+      "state_consistent": true
+    },
+    "D_provider_5xx": {
+      "terminal_status": "dead_letter",
+      "dead_lettered": true
+    },
+    "E_response_unknown": {
+      "status": "submission_unknown",
+      "governed": true
+    },
+    "F_duplicate_events": {
+      "idempotent": true
+    },
+    "G_out_of_order": {
+      "applied_second": "ignored",
+      "final_status": "delivered",
+      "monotonic": true
+    },
+    "H_crash_before_persist": {
+      "final_status": "submitted",
+      "rows": 1,
+      "submitted_count": 1,
+      "no_orphan_or_duplicate": true
+    }
+  },
+  "lost_jobs": 0,
+  "duplicate_side_effects": 0,
+  "unrecovered_leases": 0,
+  "permanent_backlog": 0,
+  "residue_computed_from_db": true,
+  "all_green": true,
+  "ms": 2018
+}

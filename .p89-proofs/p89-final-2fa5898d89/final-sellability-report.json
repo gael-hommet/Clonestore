@@ -1,0 +1,12 @@
+{
+  "run_id": "p89-final-2fa5898d89",
+  "companies": 100000,
+  "configurations": 100000,
+  "fairness_1000_active_tenants": true,
+  "deep_isolation_100k": true,
+  "communication_delivery_concurrency_verified": true,
+  "document_pipeline_load_verified": true,
+  "complex_failure_recovery_verified": true,
+  "zero_residue": true,
+  "ok": true
+}

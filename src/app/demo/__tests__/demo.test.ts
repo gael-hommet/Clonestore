@@ -1,7 +1,15 @@
 // /demo — Tests de contenu statique (node env, readFileSync — pas de rendu React).
-// Vérifie : présence et ordre des 10 scènes E2.1 → E2.10, textes verrouillés,
-// CTA vers /demo/pierre, copie commerciale dynamique, événements analytics,
-// prefers-reduced-motion, et absence de copie commerciale interdite.
+//
+// La présentation est structurée en 6 ACTES (Comprendre · La différence · Le
+// système · Le résultat · La confiance · Passer à Pierre) avec une couche
+// d'approfondissement facultative (tiroir). Ces tests protègent :
+//   • les garde-fous réels (route, transition /demo/pierre, accessibilité,
+//     reduced-motion, responsive, sécurité de copie, analytics, état commercial,
+//     lien public) ;
+//   • l'INTENTION produit du nouveau parcours (compréhension immédiate,
+//     comparaison logiciel/assistant/employé IA, mission fil conducteur,
+//     technologies expliquées dans l'action, résultat concret, gouvernance
+//     humaine, transition vers Pierre, profondeur approfondissable).
 
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
@@ -18,19 +26,15 @@ const ANALYTICS = "src/lib/demo/presentation/analytics.ts";
 const MOTION = "src/components/demo/primitives/motion.tsx";
 const EXPERIENCE = "src/components/demo/DemoExperience.tsx";
 const HEADER = "src/components/site/site-header.tsx";
+const DEEPDIVE = "src/components/demo/DemoDeepDive.tsx";
 
-const SCENES = [
-  "src/components/demo/scenes/Scene01CloneCommand.tsx",
-  "src/components/demo/scenes/Scene02Fragmentation.tsx",
-  "src/components/demo/scenes/Scene03CategoryEvolution.tsx",
-  "src/components/demo/scenes/Scene04CloneSystem.tsx",
-  "src/components/demo/scenes/Scene05EnterpriseFootprint.tsx",
-  "src/components/demo/scenes/Scene06OrganizationScale.tsx",
-  "src/components/demo/scenes/Scene07TrustArchitecture.tsx",
-  "src/components/demo/scenes/Scene08PierreHrContinuum.tsx",
-  "src/components/demo/scenes/Scene09CloneOrganization.tsx",
-  "src/components/demo/scenes/Scene10PierreTransition.tsx",
-];
+const ACT1 = "src/components/demo/acts/Act1Opening.tsx";
+const ACT2 = "src/components/demo/acts/Act2Difference.tsx";
+const ACT3 = "src/components/demo/acts/Act3System.tsx";
+const ACT4 = "src/components/demo/acts/Act4Result.tsx";
+const ACT5 = "src/components/demo/acts/Act5Trust.tsx";
+const ACT6 = "src/components/demo/acts/Act6Pierre.tsx";
+const ACTS = [ACT1, ACT2, ACT3, ACT4, ACT5, ACT6];
 
 // ── Route /demo ────────────────────────────────────────────────────────────
 
@@ -42,35 +46,22 @@ describe("/demo — route et structure", () => {
   });
 
   it("/demo est distincte de /demo/pierre (ne reconstruit pas le cockpit)", () => {
-    const page = read(PAGE);
-    // La page /demo ne doit pas embarquer la logique du cockpit pierre.
-    expect(page).not.toContain("SCENARIOS");
+    expect(read(PAGE)).not.toContain("SCENARIOS");
   });
 
-  it("les 10 fichiers de scène existent et sont substantiels", () => {
-    for (const f of SCENES) {
+  it("les 6 fichiers d'acte existent et sont substantiels", () => {
+    for (const f of ACTS) {
       expect(read(f).length).toBeGreaterThan(800);
     }
   });
 });
 
-// ── Ordre narratif E2.1 → E2.10 ──────────────────────────────────────────────
+// ── Parcours en 6 actes (ordre) ─────────────────────────────────────────────
 
-describe("/demo — ordre des dix scènes", () => {
-  it("content.ts définit DEMO_SCENE_ORDER dans le bon ordre", () => {
+describe("/demo — les six actes dans l'ordre", () => {
+  it("content.ts définit DEMO_SCENE_ORDER en 6 actes, dans l'ordre", () => {
     const c = read(CONTENT);
-    const order = [
-      "opening",
-      "fragmentation",
-      "category",
-      "system",
-      "footprint",
-      "scale",
-      "trust",
-      "pierreScope",
-      "organization",
-      "completion",
-    ];
+    const order = ["opening", "difference", "system", "result", "trust", "pierre"];
     let cursor = c.indexOf("DEMO_SCENE_ORDER");
     expect(cursor).toBeGreaterThan(-1);
     for (const key of order) {
@@ -80,19 +71,15 @@ describe("/demo — ordre des dix scènes", () => {
     }
   });
 
-  it("l'orchestrateur rend Scene01 → Scene10 dans l'ordre", () => {
+  it("l'orchestrateur rend Acte 1 → Acte 6 dans l'ordre", () => {
     const exp = read(EXPERIENCE);
     const tags = [
-      "<Scene01CloneCommand",
-      "<Scene02Fragmentation",
-      "<Scene03CategoryEvolution",
-      "<Scene04CloneSystem",
-      "<Scene05EnterpriseFootprint",
-      "<Scene06OrganizationScale",
-      "<Scene07TrustArchitecture",
-      "<Scene08PierreHrContinuum",
-      "<Scene09CloneOrganization",
-      "<Scene10PierreTransition",
+      "<Act1Opening",
+      "<Act2Difference",
+      "<Act3System",
+      "<Act4Result",
+      "<Act5Trust",
+      "<Act6Pierre",
     ];
     let cursor = -1;
     for (const tag of tags) {
@@ -103,70 +90,99 @@ describe("/demo — ordre des dix scènes", () => {
   });
 });
 
-// ── Textes verrouillés (un extrait exact par scène) ──────────────────────────
+// ── Intention produit : comprendre CloneStore sans explication orale ─────────
 
-describe("/demo — textes verrouillés présents", () => {
-  const locked: string[] = [
-    "CLONESTORE — EMPLOYÉS IA POUR ENTREPRISES",
-    "CloneStore lui apporte des employés IA.",
-    "Découvrir CloneStore en 5 minutes",
-    "Voir directement Pierre",
-    "Prépare l'arrivée de notre nouvelle responsable commerciale à Lyon. Coordonne les documents, les validations et les communications nécessaires pour lundi.",
-    "LE TRAVAIL NE MANQUE PAS.",
-    "À mesure que l'entreprise grandit, le travail opérationnel augmente plus vite que la capacité des équipes à le suivre.",
-    "UN EMPLOYÉ PREND EN CHARGE LE TRAVAIL.",
-    "L'employé IA prend en charge la mission.",
-    "TOUT UN SYSTÈME SE MET AU TRAVAIL.",
-    "CloneOS organise le travail.",
-    "Arrivée de Clara — état de la mission",
-    "CHAQUE ENTREPRISE FONCTIONNE DIFFÉREMMENT.",
-    "Il apprend à travailler comme elle.",
-    "UNE MÊME CAPACITÉ.",
-    "46 missions actives",
-    "C'EST UNE ARCHITECTURE.",
-    "Cette action ne peut pas être exécutée.",
-    "IL PREND EN CHARGE LE TRAVAIL RH.",
-    "CLONESTORE EST L'ORGANISATION.",
-    "Ouverture du site de Genève",
-    "REGARDEZ MAINTENANT PIERRE TRAVAILLER.",
-    "Voir Pierre prendre en charge une mission",
-    "Démonstration interactive. Aucun compte requis.",
-  ];
-
-  const content = read(CONTENT);
-  for (const phrase of locked) {
-    it(`texte verrouillé : « ${phrase.slice(0, 42)}… »`, () => {
-      expect(content).toContain(phrase);
-    });
-  }
-
-  it("inclut les 5 questions de la FAQ (§28)", () => {
-    const c = read(CONTENT);
-    expect(c).toContain("Pierre est-il adapté à toutes les tailles d'entreprise ?");
-    expect(c).toContain("Combien de temps faut-il pour l'adapter ?");
-    expect(c).toContain("Pierre peut-il agir sans validation ?");
-    expect(c).toContain("Devons-nous remplacer tous nos outils ?");
-    expect(c).toContain("La démonstration nécessite-t-elle un compte ?");
+describe("/demo — Acte 1 : compréhension immédiate de CloneStore", () => {
+  const a = read(ACT1);
+  it("pose la catégorie (ouvrir un poste, pas ajouter un logiciel) dès l'ouverture", () => {
+    expect(a).toMatch(/Ouvrez un poste|employé[s]? IA/i);
+    expect(a).toContain("Voir un employé IA travailler");
+  });
+  it("propose l'accès direct à Pierre", () => {
+    expect(a).toContain("PIERRE_DEMO_ROUTE");
   });
 });
 
-// ── Transition vers /demo/pierre ─────────────────────────────────────────────
+describe("/demo — Acte 2 : la différence logiciel / assistant / employé IA", () => {
+  const a = read(ACT2);
+  it("compare les trois systèmes explicitement", () => {
+    expect(a).toContain("Un logiciel");
+    expect(a).toMatch(/assistant IA/i);
+    expect(a).toMatch(/employé IA/i);
+  });
+  it("fait circuler la même demande (fil conducteur Clara)", () => {
+    expect(a).toContain("Clara");
+    expect(a).toMatch(/prend en charge/i);
+  });
+});
+
+describe("/demo — Acte 3 : les technologies expliquées dans l'action", () => {
+  const a = read(ACT3);
+  it("nomme chaque technologie avec un rôle", () => {
+    for (const tech of ["CloneOS", "CloneADN", "CloneGuard", "CloneContinuum", "CloneTrace"]) {
+      expect(a, `${tech} manquant`).toContain(tech);
+    }
+    expect(a).toMatch(/Organise|Adapte|Encadre|Trace/);
+  });
+  it("permet d'approfondir chaque technologie (profondeur facultative)", () => {
+    expect(a).toContain("onDeepDive");
+    expect(a).toMatch(/Détailler/);
+  });
+});
+
+describe("/demo — Acte 4 : un résultat concret et visible", () => {
+  const a = read(ACT4);
+  it("montre de vrais livrables (document, brief, trace)", () => {
+    expect(a).toContain("DocumentPreview");
+    expect(a).toContain("CloneBriefCard");
+    expect(a).toContain("TraceTimeline");
+  });
+  it("signale une information manquante sans l'inventer", () => {
+    expect(a).toMatch(/information manquante/i);
+  });
+});
+
+describe("/demo — Acte 5 : la gouvernance humaine", () => {
+  const a = read(ACT5);
+  it("traite les objections (permissions, refus, validation, trace)", () => {
+    expect(a).toContain("ValidationCard");
+    expect(a).toMatch(/permissions/i);
+    expect(a).toMatch(/validation humaine/i);
+  });
+});
+
+describe("/demo — Acte 6 : la transition vers Pierre", () => {
+  const a = read(ACT6);
+  it("offre un CTA réel vers /demo/pierre (fallback sans JS)", () => {
+    expect(a).toContain("DemoCTALink");
+    expect(a).toContain("PIERRE_DEMO_ROUTE");
+    expect(a).toContain("Voir Pierre travailler");
+  });
+});
+
+// ── Couche d'approfondissement (profondeur sans surcharge) ───────────────────
+
+describe("/demo — tiroir d'approfondissement", () => {
+  const d = read(DEEPDIVE);
+  it("expose les sujets d'approfondissement clés", () => {
+    for (const topic of ["cloneos", "empreinte", "cloneguard", "clonecontinuum", "clonetrace", "sizing", "frontier", "organization"]) {
+      expect(d, `sujet ${topic} manquant`).toContain(topic);
+    }
+  });
+  it("est un dialogue accessible et fermable", () => {
+    expect(d).toContain('role="dialog"');
+    expect(d).toContain('aria-modal="true"');
+    expect(d).toContain('aria-label="Fermer"');
+  });
+});
+
+// ── Transition vers /demo/pierre (garde-fou) ─────────────────────────────────
 
 describe("/demo — transition vers /demo/pierre", () => {
   it("la route /demo/pierre est la cible du CTA principal", () => {
     expect(read(CONTENT)).toContain('"/demo/pierre"');
     expect(read(EXPERIENCE)).toContain("PIERRE_DEMO_ROUTE");
     expect(read(EXPERIENCE)).toContain("router.push(PIERRE_DEMO_ROUTE)");
-  });
-
-  it("la scène 10 utilise un lien réel (fallback sans JS) vers /demo/pierre", () => {
-    const s10 = read(SCENES[9]);
-    expect(s10).toContain("PIERRE_DEMO_ROUTE");
-    expect(s10).toContain("DemoCTALink");
-  });
-
-  it("la scène 1 offre l'accès direct à Pierre", () => {
-    expect(read(SCENES[0])).toContain("PIERRE_DEMO_ROUTE");
   });
 });
 
@@ -193,6 +209,24 @@ describe("/demo — état commercial dynamique", () => {
     expect(c).toContain(
       "Le tarif fondateur de 449 € HT par mois est conservé sans limite de durée tant que l'abonnement reste actif.",
     );
+  });
+});
+
+// ── FAQ + bibliothèque de copie préservée ────────────────────────────────────
+
+describe("/demo — copie de référence préservée", () => {
+  const c = read(CONTENT);
+  it("inclut les 5 questions de la FAQ", () => {
+    expect(c).toContain("Pierre est-il adapté à toutes les tailles d'entreprise ?");
+    expect(c).toContain("Combien de temps faut-il pour l'adapter ?");
+    expect(c).toContain("Pierre peut-il agir sans validation ?");
+    expect(c).toContain("Devons-nous remplacer tous nos outils ?");
+    expect(c).toContain("La démonstration nécessite-t-elle un compte ?");
+  });
+  it("conserve les repères de copie réutilisés par les actes", () => {
+    expect(c).toContain("CLONESTORE — EMPLOYÉS IA POUR ENTREPRISES"); // Acte 1
+    expect(c).toContain("Arrivée de Clara — état de la mission"); // Acte 4 (brief)
+    expect(c).toContain("UN EMPLOYÉ PREND EN CHARGE LE TRAVAIL."); // Acte 2 (idée)
   });
 });
 
@@ -230,16 +264,12 @@ describe("/demo — événements analytics", () => {
     expect(a).not.toMatch(/fetch\s*\(\s*["']https:\/\//);
   });
 
-  it("chaque scène 2 → 10 câble son événement de section", () => {
-    expect(read(SCENES[1])).toContain("problemSectionViewed");
-    expect(read(SCENES[2])).toContain("categorySectionViewed");
-    expect(read(SCENES[3])).toContain("systemSectionViewed");
-    expect(read(SCENES[4])).toContain("footprintSectionViewed");
-    expect(read(SCENES[5])).toContain("scaleSectionViewed");
-    expect(read(SCENES[6])).toContain("trustSectionViewed");
-    expect(read(SCENES[7])).toContain("pierreScopeSectionViewed");
-    expect(read(SCENES[8])).toContain("organizationSectionViewed");
-    expect(read(SCENES[9])).toContain("completionViewed");
+  it("les actes câblent leurs événements de section", () => {
+    expect(read(ACT2)).toContain("categorySectionViewed");
+    expect(read(ACT3)).toContain("systemSectionViewed");
+    expect(read(ACT4)).toContain("footprintSectionViewed");
+    expect(read(ACT5)).toContain("trustSectionViewed");
+    expect(read(ACT6)).toContain("completionViewed");
   });
 });
 
@@ -247,8 +277,7 @@ describe("/demo — événements analytics", () => {
 
 describe("/demo — fondations visuelles et accessibilité", () => {
   it("s'appuie sur le système liquid-glass existant", () => {
-    const panel = read("src/components/demo/primitives/LiquidGlassPanel.tsx");
-    expect(panel).toContain("liquid-glass");
+    expect(read("src/components/demo/primitives/LiquidGlassPanel.tsx")).toContain("liquid-glass");
   });
 
   it("utilise Framer Motion (déjà installé)", () => {
@@ -256,7 +285,7 @@ describe("/demo — fondations visuelles et accessibilité", () => {
     expect(read(EXPERIENCE)).toContain("framer-motion");
   });
 
-  it("respecte prefers-reduced-motion (CSS + hook)", () => {
+  it("respecte prefers-reduced-motion (CSS + hook + orchestrateur)", () => {
     expect(read(CSS)).toContain("prefers-reduced-motion");
     expect(read(MOTION)).toContain("useReducedMotion");
     expect(read(EXPERIENCE)).toContain('reducedMotion="user"');
@@ -268,8 +297,8 @@ describe("/demo — fondations visuelles et accessibilité", () => {
     expect(css).toContain("@media (max-width: 900px)");
   });
 
-  it("les scènes utilisent des classes responsive Tailwind", () => {
-    const joined = SCENES.map(read).join("\n");
+  it("les actes utilisent des classes responsive Tailwind", () => {
+    const joined = ACTS.map(read).join("\n");
     expect(joined).toMatch(/\bsm:|\bmd:|\blg:|\bxl:/);
   });
 });
@@ -287,7 +316,7 @@ describe("/demo — lien public discret dans le SiteHeader", () => {
 // ── Sécurité de copie : aucune revendication interdite ───────────────────────
 
 describe("/demo — pas de copie commerciale interdite", () => {
-  const sources = [PAGE, CONTENT, COMMERCIAL, ...SCENES].map(read).join("\n");
+  const sources = [PAGE, CONTENT, COMMERCIAL, DEEPDIVE, ...ACTS].map(read).join("\n");
 
   it("aucun cliché SaaS générique interdit", () => {
     expect(sources).not.toMatch(/Révolutionnez votre entreprise/i);

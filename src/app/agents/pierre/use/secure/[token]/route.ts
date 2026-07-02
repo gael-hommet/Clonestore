@@ -24,7 +24,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ token: string }
     if (!secret) return NextResponse.json({ error: { code: "unconfigured", message: "secure links not configured" } }, { status: 503 });
     const { token } = await ctx.params;
 
-    const supa = supabaseServer();
+    const supa = await supabaseServer();
     const { data: auth } = await supa.auth.getUser();
     const userId = auth.user?.id ?? null;
     const db = await getRuntimeDb();

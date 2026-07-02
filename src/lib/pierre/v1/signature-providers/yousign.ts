@@ -47,7 +47,9 @@ export class YousignSignatureProvider implements SignatureProvider {
         const res = await this.cfg.fetch(url, { method, headers: init.headers, body: init.body, signal: ctrl.signal });
         clearTimeout(timer);
         if (res.status === 429 || res.status >= 500) { lastErr = new SignatureProviderError(`yousign ${res.status}`, res.status === 429 ? "rate_limited" : "provider_5xx", true); if (attempt < this.cfg.maxRetries && method === "GET") continue; throw lastErr; }
-        if (!res.ok) { const t = await res.text().catch(() => ""); throw new SignatureProviderError(`yousign ${res.status} ${redact(t).slice(0, 120)}`, "provider_4xx", false); }
+        // A 4xx carries the provider's `invalid_params` diagnosis (field name + reason) — keep enough
+        // of the redacted body to see the exact rejected field (never a secret; redact() strips keys).
+        if (!res.ok) { const t = await res.text().catch(() => ""); throw new SignatureProviderError(`yousign ${res.status} ${redact(t).slice(0, 400)}`, "provider_4xx", false); }
         if (opts.raw) {
           const ct = res.headers.get("content-type") ?? "";
           const buf = Buffer.from(await res.arrayBuffer());
@@ -73,14 +75,15 @@ export class YousignSignatureProvider implements SignatureProvider {
   async createRequest(input: CreateSignatureRequestInput): Promise<ProviderSignatureRequest> {
     const r = await this.json<{ id: string; status: string }>("POST", "/signature_requests", {
       name: input.name, delivery_mode: "email", timezone: "Europe/Paris",
-      ordered_signers: input.ordered ?? true, external_id: input.external_id ?? input.idempotency_key ?? undefined,
+      ordered_signers: input.ordered ?? true, external_id: conformExternalId(input.external_id ?? input.idempotency_key ?? undefined),
     });
     return { provider_request_id: r.id, status: STATUS_MAP[r.status] ?? "draft", provider: this.providerKey };
   }
 
   async findRequestByIdempotencyKey(key: string): Promise<ProviderSignatureRequest | null> {
-    // Official idempotency lookup: filter by external_id.
-    const r = await this.json<{ data?: Array<{ id: string; status: string }> }>("GET", `/signature_requests?external_id[eq]=${encodeURIComponent(key)}&limit=1`);
+    // Official idempotency lookup: filter by external_id. The SAME conforming transform as
+    // createRequest so the anchor stored on the provider is the one we query back (R1.5 resume).
+    const r = await this.json<{ data?: Array<{ id: string; status: string }> }>("GET", `/signature_requests?external_id[eq]=${encodeURIComponent(conformExternalId(key) ?? "")}&limit=1`);
     const first = r.data?.[0];
     return first ? { provider_request_id: first.id, status: STATUS_MAP[first.status] ?? "draft", provider: this.providerKey } : null;
   }
@@ -164,6 +167,23 @@ export class YousignSignatureProvider implements SignatureProvider {
     const p = JSON.parse(body.toString("utf8")) as { event_id?: string; event_name?: string; data?: { signature_request?: { id?: string } }; sent_at?: string };
     return { provider: this.providerKey, event_id: p.event_id ?? sha(body).slice(0, 24), event_type: p.event_name ?? "", provider_request_id: p.data?.signature_request?.id ?? null, event_time: new Date(issued * 1000).toISOString(), payload_hash: sha(body) };
   }
+}
+
+// P8.7.4 ROOT CAUSE — Yousign v3 rejects the create payload with 400 `parameters_not_valid` when
+// `external_id` is not provider-conformant. The governed layer builds a rich anchor
+// (`clonestore:<company>:<request>:<hash>` — ~101 chars, contains colons), which Yousign refuses.
+// We conform it HERE, at the provider boundary (the constraint is Yousign-specific), to a bounded,
+// safe-charset, DETERMINISTIC token so the official `external_id[eq]` idempotency lookup still
+// resolves the same request on a timeout/retry. A value that is already short and safe passes
+// through unchanged; anything else collapses to a stable `cs-<sha256[:32]>` (35 chars, [a-z0-9-]).
+const EXTERNAL_ID_SAFE = /[^A-Za-z0-9_-]/g;
+const EXTERNAL_ID_MAX = 40;
+export function conformExternalId(raw: string | null | undefined): string | undefined {
+  if (raw == null || raw === "") return undefined;
+  const s = String(raw);
+  const cleaned = s.replace(EXTERNAL_ID_SAFE, "-");
+  if (cleaned === s && cleaned.length <= EXTERNAL_ID_MAX) return cleaned;
+  return `cs-${createHash("sha256").update(s).digest("hex").slice(0, 32)}`;
 }
 
 function splitName(name: string): { first: string; last: string } {

@@ -1,0 +1,357 @@
+{
+  "run_id": "p812exec-1aff116aca",
+  "transitions": [
+    {
+      "capability": "org.restructuring_prepare",
+      "domain": "org",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "employee_representation"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "recruitment.candidate_data_compliance",
+      "domain": "recruitment",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "data_protection"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "offer.generate_offer_document",
+      "domain": "offer",
+      "priorStatus": "CONTRACT_ONLY",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "contract_types"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "offer.right_to_work",
+      "domain": "offer",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "right_to_work"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "contract.renewal",
+      "domain": "contract",
+      "priorStatus": "PARTIAL",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "fixed_term_rules"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "contract.hours_change",
+      "domain": "contract",
+      "priorStatus": "PARTIAL",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "working_time"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "contract.end_probation",
+      "domain": "contract",
+      "priorStatus": "PARTIAL",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "probation_periods"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "onboarding.probation_tracking",
+      "domain": "onboarding",
+      "priorStatus": "PARTIAL",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "probation_periods"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "absence.balance_calculation",
+      "domain": "absence",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "paid_leave"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "absence.sick_leave",
+      "domain": "absence",
+      "priorStatus": "PARTIAL",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "sick_leave"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "absence.parental_leave",
+      "domain": "absence",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "parental_leave"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "absence.return_to_work",
+      "domain": "absence",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "occupational_health"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "absence.time_tracking",
+      "domain": "absence",
+      "priorStatus": "PARTIAL",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "working_time"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "payroll.export_transmission",
+      "domain": "payroll",
+      "priorStatus": "EXTERNAL_DEPENDENCY",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "payroll.official_calculation",
+      "domain": "payroll",
+      "priorStatus": "EXTERNAL_DEPENDENCY",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "payroll.dsn_declaration",
+      "domain": "payroll",
+      "priorStatus": "EXTERNAL_DEPENDENCY",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "payroll.payslip_generation",
+      "domain": "payroll",
+      "priorStatus": "EXTERNAL_DEPENDENCY",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "payslip_requirements"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "training.mandatory_compliance",
+      "domain": "training",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "mandatory_trainings"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "disciplinary.summons",
+      "domain": "disciplinary",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "disciplinary_procedure"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "disciplinary.deadlines",
+      "domain": "disciplinary",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "disciplinary_procedure"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "health.medical_visits",
+      "domain": "health",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "occupational_health"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "health.mandatory_safety_training",
+      "domain": "health",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "mandatory_trainings"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "offboarding.resignation",
+      "domain": "offboarding",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "notice_periods"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "offboarding.mutual_termination",
+      "domain": "offboarding",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "severance"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "offboarding.end_of_contract",
+      "domain": "offboarding",
+      "priorStatus": "PARTIAL",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "fixed_term_rules"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "offboarding.final_pay",
+      "domain": "offboarding",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "payroll_contributions"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "offboarding.file_closure_archival",
+      "domain": "offboarding",
+      "priorStatus": "PARTIAL",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "document_retention"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "data_gdpr.retention",
+      "domain": "data_gdpr",
+      "priorStatus": "PARTIAL",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "document_retention"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "data_gdpr.legal_basis",
+      "domain": "data_gdpr",
+      "priorStatus": "LEGAL_CONTENT_REQUIRED",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "data_protection"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "data_gdpr.consent_proof",
+      "domain": "data_gdpr",
+      "priorStatus": "MISSING",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "data_protection"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "proactive.end_of_probation",
+      "domain": "proactive",
+      "priorStatus": "CONTRACT_ONLY",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "probation_periods"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    },
+    {
+      "capability": "proactive.retention_deletion",
+      "domain": "proactive",
+      "priorStatus": "PARTIAL",
+      "targetPhase": "P8.12",
+      "countryRuleFamilies": [
+        "document_retention"
+      ],
+      "unblockedForAutomation": false,
+      "newStatus": "COUNTRY_RULES_REQUIRED (engine ready; qualified human legal review of the required rules pending)"
+    }
+  ]
+}

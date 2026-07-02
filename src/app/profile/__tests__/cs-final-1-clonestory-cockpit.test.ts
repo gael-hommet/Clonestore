@@ -85,9 +85,12 @@ describe("API & sécurité", () => {
 });
 
 describe("injection dans le cockpit + migration", () => {
-  it("la carte est importée et rendue dans l'onglet overview de Mon espace (pas une nouvelle page)", () => {
+  it("la carte est importée et rendue dans la home « Mon espace » (pas une nouvelle page)", () => {
+    // P9.2 : la home /profile a été reconstruite (plus d'onglets) ; la carte
+    // CloneStory reste rendue dans cet espace, jamais une page /partenaires parallèle.
     expect(PAGE).toContain('import CloneStoryCockpitCard from "./_ui/CloneStoryCockpitCard"');
-    expect(PAGE).toMatch(/activeTab === "overview" \? <CloneStoryCockpitCard \/> : null/);
+    expect(PAGE).toMatch(/<CloneStoryCockpitCard \/>/);
+    expect(PAGE).not.toContain("/partenaires");
   });
   it("migration _05 : account_user_id + distinctions + awards + RLS forcée + rollback documenté", () => {
     expect(MIG).toContain("add column if not exists account_user_id");

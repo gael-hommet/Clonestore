@@ -182,6 +182,45 @@ export interface MissionMetrics {
   informationsInventees: number;
 }
 
+/**
+ * One of the several dispersed requests that land at the start of the week.
+ * Purely presentational (cockpit "Entrées" zone) — never validated as a
+ * capability, never a real side effect.
+ */
+export interface DemoIncomingRequest {
+  id: string;
+  /** Who/what the request comes from, e.g. "Claire Dubois — manager". */
+  from: string;
+  channel: "message" | "email" | "note" | "rh";
+  /** The raw, human request as it actually arrives (short). */
+  text: string;
+  urgency: "haute" | "normale";
+  /** Mission this request feeds into, if any (ties the story together). */
+  missionId?: string;
+}
+
+/**
+ * A later-in-the-week continuity beat: relance, wait, resume, deadline.
+ * Proves the mission stays alive over days — the anti-ChatGPT moment.
+ */
+export interface DemoWeekEvent {
+  id: string;
+  /** Human day label, e.g. "Mercredi". */
+  day: string;
+  time: string;
+  label: string;
+  detail?: string;
+  actor: Actor;
+  tone: "ok" | "warn" | "block" | "info";
+  kind: "relance" | "attente" | "reprise" | "echeance" | "signal";
+}
+
+/** How Pierre's work splits from the human's — the reassurance frontier. */
+export interface RoleSplit {
+  pierre: string[];
+  humans: string[];
+}
+
 export interface DemoScenario {
   id: string;
   name: string;
@@ -201,6 +240,39 @@ export interface DemoScenario {
   guardrail: DemoGuardrail;
   /** Capability ids referenced anywhere in this scenario (for validation). */
   capabilityIds: string[];
+
+  // ── Cockpit-only presentational extensions (optional, never validated) ──
+  /** Top-bar clock label, e.g. "Lundi · 08 h 42". */
+  clockLabel?: string;
+  /** The dispersed requests that arrive at the start of the week. */
+  incoming?: DemoIncomingRequest[];
+  /** Later-in-the-week continuity beats (relances, reprises, échéances). */
+  week?: DemoWeekEvent[];
+  /** Explicit Pierre-vs-human split for the closing reassurance block. */
+  roleSplit?: RoleSplit;
+}
+
+/** Ordered phases of the interactive cockpit (distinct from GUIDED_STEPS). */
+export type CockpitPhaseId =
+  | "reception"
+  | "analyse"
+  | "organisation"
+  | "execution"
+  | "validation"
+  | "continuite"
+  | "bilan";
+
+export interface CockpitPhase {
+  id: CockpitPhaseId;
+  title: string;
+  /** One-line caption for the top bar. */
+  caption: string;
+  /** The prospect's question this phase answers. */
+  question: string;
+  /** Which cockpit zone(s) this phase puts the spotlight on. */
+  focus: ("left" | "center" | "right")[];
+  /** Optional analytics event emitted when the phase becomes active. */
+  analyticsLabel: string;
 }
 
 /** Ordered stages of the guided journey. */

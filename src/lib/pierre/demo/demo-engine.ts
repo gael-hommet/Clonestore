@@ -6,7 +6,14 @@
 // (so the final numbers can never be invented), defines the ordered guided
 // journey, and exposes navigation + consistency helpers used by tests.
 
-import type { DemoScenario, DemoTask, GuidedStep, MissionMetrics, MissionUnderstanding } from "./demo-types";
+import type {
+  CockpitPhase,
+  DemoScenario,
+  DemoTask,
+  GuidedStep,
+  MissionMetrics,
+  MissionUnderstanding,
+} from "./demo-types";
 
 // ── Guided journey (ordered) ─────────────────────────────────────────────────
 export const GUIDED_STEPS: readonly GuidedStep[] = [
@@ -106,6 +113,121 @@ export function computeScenarioMetrics(scenario: DemoScenario): MissionMetrics {
     suivis: countSuivis(scenario),
     blocages: countBlocages(scenario),
     informationsInventees: 0,
+  };
+}
+
+// ── Interactive cockpit phases (distinct spine from GUIDED_STEPS) ─────────────
+// The cockpit keeps the three zones visible at all times; a phase is a guided
+// spotlight that answers one prospect question and reveals the matching content.
+export const COCKPIT_PHASES: readonly CockpitPhase[] = [
+  {
+    id: "reception",
+    title: "Demandes reçues",
+    caption: "Une semaine RH ne commence pas par une tâche propre.",
+    question: "Avec quoi Pierre travaille-t-il ?",
+    focus: ["left"],
+    analyticsLabel: "reception",
+  },
+  {
+    id: "analyse",
+    title: "Analyse",
+    caption: "Pierre lit, relie et hiérarchise — sans rien inventer.",
+    question: "Qu'a compris Pierre ?",
+    focus: ["left", "center"],
+    analyticsLabel: "analyse",
+  },
+  {
+    id: "organisation",
+    title: "Organisation",
+    caption: "Les demandes deviennent des missions et des actions.",
+    question: "Comment le travail est-il organisé ?",
+    focus: ["center"],
+    analyticsLabel: "organisation",
+  },
+  {
+    id: "execution",
+    title: "Exécution",
+    caption: "Plusieurs missions avancent ; les livrables apparaissent.",
+    question: "Qu'a réellement produit Pierre ?",
+    focus: ["center", "right"],
+    analyticsLabel: "execution",
+  },
+  {
+    id: "validation",
+    title: "Validation",
+    caption: "Une action sensible : Pierre s'arrête et vous sollicite.",
+    question: "Qui garde la décision ?",
+    focus: ["right"],
+    analyticsLabel: "validation",
+  },
+  {
+    id: "continuite",
+    title: "Continuité",
+    caption: "La mission reste active : relances, attentes, reprises.",
+    question: "Que se passe-t-il les jours suivants ?",
+    focus: ["center"],
+    analyticsLabel: "continuite",
+  },
+  {
+    id: "bilan",
+    title: "Bilan",
+    caption: "La preuve, chiffrée par le scénario — rien d'inventé.",
+    question: "Qu'est-ce que Pierre a pris en charge ?",
+    focus: ["right"],
+    analyticsLabel: "bilan",
+  },
+] as const;
+
+export const COCKPIT_PHASE_COUNT = COCKPIT_PHASES.length;
+
+/** Recommended dwell per phase (ms) for the auto-guided cockpit. */
+export const COCKPIT_PHASE_DWELL_MS: Record<CockpitPhase["id"], number> = {
+  reception: 8000,
+  analyse: 11000,
+  organisation: 12000,
+  execution: 15000,
+  validation: 12000,
+  continuite: 12000,
+  bilan: 13000,
+};
+
+export function clampPhase(index: number): number {
+  if (index < 0) return 0;
+  if (index > COCKPIT_PHASE_COUNT - 1) return COCKPIT_PHASE_COUNT - 1;
+  return index;
+}
+export function nextPhase(index: number): number {
+  return clampPhase(index + 1);
+}
+export function prevPhase(index: number): number {
+  return clampPhase(index - 1);
+}
+export function isLastPhase(index: number): boolean {
+  return index >= COCKPIT_PHASE_COUNT - 1;
+}
+export function phaseIndexById(id: CockpitPhase["id"]): number {
+  return COCKPIT_PHASES.findIndex((p) => p.id === id);
+}
+export function cockpitCompletion(index: number): number {
+  return Math.round(((clampPhase(index) + 1) / COCKPIT_PHASE_COUNT) * 100);
+}
+
+/** Live top-bar counters — all derived, never invented. */
+export interface CockpitCounters {
+  missions: number;
+  actions: number;
+  validations: number;
+  documents: number;
+  waiting: number;
+}
+export function cockpitCounters(scenario: DemoScenario): CockpitCounters {
+  const m = computeScenarioMetrics(scenario);
+  return {
+    missions: m.missions,
+    actions: m.taches,
+    validations: m.validations,
+    documents: m.documents,
+    waiting: m.blocages,
   };
 }
 

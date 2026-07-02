@@ -1,0 +1,89 @@
+{
+  "run_id": "p811-1182ffc8a1",
+  "byDomain": {
+    "org": {
+      "targeted": 4,
+      "covered": 4
+    },
+    "recruitment": {
+      "targeted": 9,
+      "covered": 9
+    },
+    "offer": {
+      "targeted": 3,
+      "covered": 3
+    },
+    "contract": {
+      "targeted": 5,
+      "covered": 5
+    },
+    "onboarding": {
+      "targeted": 4,
+      "covered": 4
+    },
+    "absence": {
+      "targeted": 4,
+      "covered": 4
+    },
+    "payroll": {
+      "targeted": 8,
+      "covered": 8
+    },
+    "compensation": {
+      "targeted": 10,
+      "covered": 10
+    },
+    "performance": {
+      "targeted": 7,
+      "covered": 7
+    },
+    "training": {
+      "targeted": 5,
+      "covered": 5
+    },
+    "career": {
+      "targeted": 5,
+      "covered": 5
+    },
+    "relations": {
+      "targeted": 4,
+      "covered": 4
+    },
+    "disciplinary": {
+      "targeted": 4,
+      "covered": 4
+    },
+    "health": {
+      "targeted": 5,
+      "covered": 5
+    },
+    "communications": {
+      "targeted": 4,
+      "covered": 4
+    },
+    "policy": {
+      "targeted": 5,
+      "covered": 5
+    },
+    "offboarding": {
+      "targeted": 2,
+      "covered": 2
+    },
+    "data_gdpr": {
+      "targeted": 1,
+      "covered": 1
+    },
+    "reporting": {
+      "targeted": 6,
+      "covered": 6
+    },
+    "proactive": {
+      "targeted": 6,
+      "covered": 6
+    },
+    "pierre_admin": {
+      "targeted": 1,
+      "covered": 1
+    }
+  }
+}

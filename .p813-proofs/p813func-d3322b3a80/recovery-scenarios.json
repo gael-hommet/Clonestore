@@ -1,0 +1,10 @@
+{
+  "run_id": "p813func-d3322b3a80",
+  "certified_by_reference": true,
+  "references": [
+    ".p89-proofs/p89-final-2fa5898d89/failures.json (A-H recovery, computed residue=0)",
+    "hr-operations reconciliation (idempotent, ambiguous≠success)",
+    "provider-integrations reconciliation"
+  ],
+  "note": "recovery/lease/dead-letter proven in P8.9; reconciliation proven in P8.11/P8.12 tests"
+}

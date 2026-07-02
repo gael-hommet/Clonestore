@@ -1,0 +1,21 @@
+{
+  "run_id": "p813matrix-0f121bb568",
+  "capabilities": 215,
+  "certified": 215,
+  "functionallyComplete": true,
+  "byState": {
+    "CERTIFIED_AUTOMATED": 70,
+    "CERTIFIED_AFTER_APPROVAL": 48,
+    "CERTIFIED_HUMAN_DECISION": 40,
+    "CERTIFIED_FAIL_CLOSED": 36,
+    "CERTIFIED_MANUAL_GOVERNED_PATH": 21
+  },
+  "byAutomationBlocker": {
+    "none": 118,
+    "human_reserved": 40,
+    "legal_review": 36,
+    "external_provider": 21
+  },
+  "evidenceValid": true,
+  "evidenceErrors": []
+}

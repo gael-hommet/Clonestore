@@ -20,6 +20,8 @@ export interface AccessLockScreenProps {
   /** Actions / CTA (la première primary mène vers la bonne suite). */
   actions: LockAction[];
   icon?: ReactNode;
+  /** Cible invisible du guided tour (P9.1) — n'affecte ni style ni layout. */
+  dataTourId?: string;
 }
 
 /**
@@ -36,11 +38,12 @@ export default function AccessLockScreen({
   bullets,
   actions,
   icon,
+  dataTourId,
 }: AccessLockScreenProps) {
   return (
     <main className="cs-page">
       <div className="cs-page-shell py-10 md:py-16">
-        <section className="cs-command-surface overflow-hidden">
+        <section data-tour-id={dataTourId} className="cs-command-surface overflow-hidden">
           <div className="cs-system-halo" />
 
           <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">

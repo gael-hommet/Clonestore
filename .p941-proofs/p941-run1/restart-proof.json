@@ -1,0 +1,13 @@
+{
+  "beforeRestart": {
+    "conversations": 1,
+    "reserved": 900
+  },
+  "afterRestart": {
+    "conversations": 1,
+    "messages": 1,
+    "reserved": 900
+  },
+  "ok": true,
+  "note": "real PG server stop+start on persistent data dir; durable data survived"
+}

@@ -1,0 +1,440 @@
+{
+  "run_id": "p812exec-1aff116aca",
+  "total": 48,
+  "allBlockedFromAutomation": true,
+  "allRoutedToGovernedFallback": true,
+  "scenarios": [
+    {
+      "pack": "recruitment.pipeline_management",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "recruitment.pipeline_management",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "recruitment.pipeline_management",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "recruitment.pipeline_management",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "recruitment.decision",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "recruitment.decision",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "recruitment.decision",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "recruitment.decision",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "offer.negotiation_and_signature",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "contract_types"
+      ]
+    },
+    {
+      "pack": "offer.negotiation_and_signature",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "contract_types"
+      ]
+    },
+    {
+      "pack": "offer.negotiation_and_signature",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "contract_types"
+      ]
+    },
+    {
+      "pack": "offer.negotiation_and_signature",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "contract_types"
+      ]
+    },
+    {
+      "pack": "contract.suspension_and_expiration",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "fixed_term_rules"
+      ]
+    },
+    {
+      "pack": "contract.suspension_and_expiration",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "fixed_term_rules"
+      ]
+    },
+    {
+      "pack": "contract.suspension_and_expiration",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "fixed_term_rules"
+      ]
+    },
+    {
+      "pack": "contract.suspension_and_expiration",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "fixed_term_rules"
+      ]
+    },
+    {
+      "pack": "data_gdpr.right_to_object",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "data_gdpr.right_to_object",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "data_gdpr.right_to_object",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "data_gdpr.right_to_object",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "GOVERNED_MANUAL",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "payroll.prepare_period",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "payroll_contributions"
+      ]
+    },
+    {
+      "pack": "payroll.prepare_period",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "payroll_contributions"
+      ]
+    },
+    {
+      "pack": "payroll.prepare_period",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "payroll_contributions"
+      ]
+    },
+    {
+      "pack": "payroll.prepare_period",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "payroll_contributions"
+      ]
+    },
+    {
+      "pack": "payroll.transmit_and_reconcile",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "payslip_requirements"
+      ]
+    },
+    {
+      "pack": "payroll.transmit_and_reconcile",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "payslip_requirements"
+      ]
+    },
+    {
+      "pack": "payroll.transmit_and_reconcile",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "payslip_requirements"
+      ]
+    },
+    {
+      "pack": "payroll.transmit_and_reconcile",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "payslip_requirements"
+      ]
+    },
+    {
+      "pack": "relations.complaints_and_alerts",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "relations.complaints_and_alerts",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "relations.complaints_and_alerts",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "relations.complaints_and_alerts",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "data_protection"
+      ]
+    },
+    {
+      "pack": "disciplinary.case_governance",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "disciplinary_procedure"
+      ]
+    },
+    {
+      "pack": "disciplinary.case_governance",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "disciplinary_procedure"
+      ]
+    },
+    {
+      "pack": "disciplinary.case_governance",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "disciplinary_procedure"
+      ]
+    },
+    {
+      "pack": "disciplinary.case_governance",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "disciplinary_procedure"
+      ]
+    },
+    {
+      "pack": "health.incident_and_risk",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "occupational_health"
+      ]
+    },
+    {
+      "pack": "health.incident_and_risk",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "occupational_health"
+      ]
+    },
+    {
+      "pack": "health.incident_and_risk",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "occupational_health"
+      ]
+    },
+    {
+      "pack": "health.incident_and_risk",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "occupational_health"
+      ]
+    },
+    {
+      "pack": "health.accommodations_wellbeing",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "occupational_health"
+      ]
+    },
+    {
+      "pack": "health.accommodations_wellbeing",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "occupational_health"
+      ]
+    },
+    {
+      "pack": "health.accommodations_wellbeing",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "occupational_health"
+      ]
+    },
+    {
+      "pack": "health.accommodations_wellbeing",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "HUMAN_DECISION",
+      "blockedFamilies": [
+        "occupational_health"
+      ]
+    },
+    {
+      "pack": "offboarding.orchestrate",
+      "jurisdiction": "FR",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "document_retention"
+      ]
+    },
+    {
+      "pack": "offboarding.orchestrate",
+      "jurisdiction": "BE",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "document_retention"
+      ]
+    },
+    {
+      "pack": "offboarding.orchestrate",
+      "jurisdiction": "LU",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "document_retention"
+      ]
+    },
+    {
+      "pack": "offboarding.orchestrate",
+      "jurisdiction": "CH",
+      "allowed": false,
+      "route": "EXTERNAL_BLOCKED",
+      "blockedFamilies": [
+        "document_retention"
+      ]
+    }
+  ]
+}

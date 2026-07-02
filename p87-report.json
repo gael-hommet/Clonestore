@@ -1,0 +1,274 @@
+﻿{
+  "phase": "P8.7.1",
+  "generated_at": "2026-06-29T23:22:58.624Z",
+  "environment": "local",
+  "env_files_loaded": 1,
+  "domains": {
+    "database": {
+      "status": "BLOCKED_CONFIGURATION",
+      "checks": [
+        {
+          "name": "DATABASE_URL",
+          "presence": "REDACTED"
+        },
+        {
+          "name": "NEXT_PUBLIC_SUPABASE_URL",
+          "presence": "PRESENT"
+        },
+        {
+          "name": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+          "presence": "PRESENT"
+        },
+        {
+          "name": "SUPABASE_SERVICE_ROLE_KEY",
+          "presence": "REDACTED"
+        },
+        {
+          "name": "db.connect+tls+catalog",
+          "status": "BLOCKED_CONFIGURATION",
+          "detail": "TLS not active on the DB connection (pg_stat_ssl.ssl=false)"
+        }
+      ]
+    },
+    "runtime": {
+      "status": "BLOCKED_MISSING_SECRET",
+      "checks": [
+        {
+          "name": "PIERRE_RUNTIME_SYSTEM_SECRET",
+          "presence": "MISSING"
+        },
+        {
+          "name": "PIERRE_RUNTIME_WORKER_DATABASE_URL",
+          "presence": "MISSING"
+        },
+        {
+          "name": "PIERRE_RUNTIME_SCHEDULER_DATABASE_URL",
+          "presence": "MISSING"
+        },
+        {
+          "name": "PIERRE_RUNTIME_PLANNER_DATABASE_URL",
+          "presence": "MISSING"
+        },
+        {
+          "name": "PIERRE_COMMUNICATION_WORKER_DATABASE_URL",
+          "presence": "MISSING"
+        },
+        {
+          "name": "PIERRE_COMMUNICATION_WEBHOOK_DATABASE_URL",
+          "presence": "MISSING"
+        }
+      ]
+    },
+    "billing": {
+      "status": "BLOCKED_MISSING_SECRET",
+      "checks": [
+        {
+          "name": "STRIPE_SECRET_KEY",
+          "presence": "REDACTED"
+        },
+        {
+          "name": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+          "presence": "PRESENT"
+        },
+        {
+          "name": "STRIPE_WEBHOOK_SECRET",
+          "presence": "REDACTED"
+        },
+        {
+          "name": "NEXT_PUBLIC_STRIPE_PRICE_ID",
+          "presence": "MISSING"
+        },
+        {
+          "name": "PIERRE_HANDOFF_TOKEN_SECRET",
+          "presence": "MISSING"
+        },
+        {
+          "name": "PIERRE_BILLING_WEBHOOK_DATABASE_URL",
+          "presence": "MISSING"
+        },
+        {
+          "name": "PIERRE_CUSTOMER_ACTIVATION_DATABASE_URL",
+          "presence": "MISSING"
+        }
+      ]
+    },
+    "communications": {
+      "status": "BLOCKED_MISSING_SECRET",
+      "checks": [
+        {
+          "name": "CLONESTORE_COMMUNICATION_PROVIDER",
+          "presence": "MISSING"
+        },
+        {
+          "name": "RESEND_API_KEY",
+          "presence": "INVALID_FORMAT"
+        },
+        {
+          "name": "CLONESTORE_EMAIL_FROM",
+          "presence": "INVALID_FORMAT"
+        },
+        {
+          "name": "CLONESTORE_EMAIL_WEBHOOK_SECRET",
+          "presence": "MISSING"
+        },
+        {
+          "name": "CLONESTORE_PUBLIC_APP_URL",
+          "presence": "INVALID_FORMAT"
+        },
+        {
+          "name": "CLONESTORE_COMMUNICATION_LINK_SECRET",
+          "presence": "MISSING"
+        },
+        {
+          "name": "PIERRE_COMMUNICATION_SYSTEM_SECRET",
+          "presence": "INVALID_FORMAT"
+        }
+      ]
+    },
+    "signature": {
+      "status": "BLOCKED_CONFIGURATION",
+      "checks": [
+        {
+          "name": "CLONESTORE_SIGNATURE_PROVIDER",
+          "presence": "MISSING"
+        },
+        {
+          "name": "CLONESTORE_SIGNATURE_API_URL",
+          "presence": "MISSING"
+        },
+        {
+          "name": "CLONESTORE_SIGNATURE_API_KEY",
+          "presence": "MISSING"
+        },
+        {
+          "name": "CLONESTORE_SIGNATURE_WEBHOOK_SECRET",
+          "presence": "MISSING"
+        }
+      ]
+    },
+    "storage": {
+      "status": "BLOCKED_MISSING_SECRET",
+      "checks": [
+        {
+          "name": "FILE_STORAGE_PROVIDER",
+          "presence": "MISSING"
+        },
+        {
+          "name": "SUPABASE_STORAGE_BUCKET",
+          "presence": "MISSING"
+        },
+        {
+          "name": "SUPABASE_STORAGE_PUBLIC",
+          "presence": "MISSING"
+        },
+        {
+          "name": "SUPABASE_SERVICE_ROLE_KEY",
+          "presence": "REDACTED"
+        }
+      ]
+    },
+    "application": {
+      "status": "BLOCKED_MISSING_SECRET",
+      "checks": [
+        {
+          "name": "NEXT_PUBLIC_APP_URL",
+          "presence": "MISSING"
+        },
+        {
+          "name": "CLONESTORE_COMMUNICATION_LINK_SECRET",
+          "presence": "MISSING"
+        },
+        {
+          "name": "PIERRE_COMMUNICATION_SYSTEM_SECRET",
+          "presence": "INVALID_FORMAT"
+        },
+        {
+          "name": "PIERRE_RUNTIME_SYSTEM_SECRET",
+          "presence": "MISSING"
+        },
+        {
+          "name": "PIERRE_HANDOFF_TOKEN_SECRET",
+          "presence": "MISSING"
+        }
+      ]
+    }
+  },
+  "legacy_checks": {
+    "check:p83-b3-live-signature": {
+      "status": "BLOCKED_CONFIGURATION",
+      "reason": "no live signature provider selected",
+      "required_actions": [
+        "resolve signature: no live signature provider selected",
+        "opt-in: CLONESTORE_SIGNATURE_LIVE_SMOKE_ENABLED missing",
+        "opt-in: CLONESTORE_SIGNATURE_TEST_SIGNER_EMAIL missing"
+      ]
+    },
+    "check:p84-live-communications": {
+      "status": "BLOCKED_MISSING_SECRET",
+      "reason": "CLONESTORE_COMMUNICATION_PROVIDER missing",
+      "required_actions": [
+        "resolve communications: CLONESTORE_COMMUNICATION_PROVIDER missing",
+        "opt-in: CLONESTORE_COMMUNICATION_LIVE_SMOKE_ENABLED missing",
+        "opt-in: CLONESTORE_COMMUNICATION_TEST_RECIPIENT missing",
+        "opt-in: CLONESTORE_COMMUNICATION_TEST_CONSENT missing"
+      ]
+    },
+    "check:p85-runtime-infrastructure": {
+      "status": "BLOCKED_MISSING_SECRET",
+      "reason": "runtime role DSN(s)/system-secret missing or unverified",
+      "required_actions": [
+        "resolve runtime: runtime role DSN(s)/system-secret missing or unverified",
+        "opt-in: PIERRE_RUNTIME_INFRA_SMOKE missing",
+        "opt-in: PIERRE_RUNTIME_WORKER_DATABASE_URL missing"
+      ]
+    },
+    "check:p86-billing-infrastructure": {
+      "status": "BLOCKED_MISSING_SECRET",
+      "reason": "NEXT_PUBLIC_STRIPE_PRICE_ID missing",
+      "required_actions": [
+        "resolve billing: NEXT_PUBLIC_STRIPE_PRICE_ID missing",
+        "opt-in: PIERRE_BILLING_INFRA_SMOKE missing",
+        "opt-in: PIERRE_BILLING_WEBHOOK_DATABASE_URL missing",
+        "opt-in: PIERRE_CUSTOMER_ACTIVATION_DATABASE_URL missing"
+      ]
+    }
+  },
+  "ready_for_p87_2": false,
+  "blockers": [
+    {
+      "domain": "database",
+      "status": "BLOCKED_CONFIGURATION",
+      "reason": "TLS not active on the DB connection (pg_stat_ssl.ssl=false)"
+    },
+    {
+      "domain": "runtime",
+      "status": "BLOCKED_MISSING_SECRET",
+      "reason": "runtime role DSN(s)/system-secret missing or unverified"
+    },
+    {
+      "domain": "billing",
+      "status": "BLOCKED_MISSING_SECRET",
+      "reason": "NEXT_PUBLIC_STRIPE_PRICE_ID missing"
+    },
+    {
+      "domain": "communications",
+      "status": "BLOCKED_MISSING_SECRET",
+      "reason": "CLONESTORE_COMMUNICATION_PROVIDER missing"
+    },
+    {
+      "domain": "signature",
+      "status": "BLOCKED_CONFIGURATION",
+      "reason": "no live signature provider selected"
+    },
+    {
+      "domain": "storage",
+      "status": "BLOCKED_MISSING_SECRET",
+      "reason": "FILE_STORAGE_PROVIDER missing"
+    },
+    {
+      "domain": "application",
+      "status": "BLOCKED_MISSING_SECRET",
+      "reason": "NEXT_PUBLIC_APP_URL missing"
+    }
+  ]
+}

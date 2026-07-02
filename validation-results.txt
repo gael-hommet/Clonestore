@@ -1,0 +1,66 @@
+﻿P8.6 FINAL VALIDATION -- 06/29/2026 22:14:32
+=== npm-test :: npm test :: start 22:14:32 ===
+exit=0
+ Test Files  128 passed (128)
+      Tests  8944 passed (8944)
+   Duration  33.75s (transform 52.87s, setup 0ms, import 72.40s, tests 18.19s, environment 54ms)
+ Test Files  22 passed (22)
+      Tests  162 passed (162)
+   Duration  7.37s (transform 7.83s, setup 0ms, import 7.58s, tests 12.42s, environment 10ms)
+
+=== pfinal01 :: npm run test:pfinal01 :: start 22:15:20 ===
+exit=0
+ Test Files  8 passed (8)
+      Tests  391 passed (391)
+   Duration  2.14s (transform 3.29s, setup 0ms, import 4.33s, tests 480ms, environment 3ms)
+
+=== pfinal02 :: npm run test:pfinal02 :: start 22:15:25 ===
+exit=0
+ Test Files  42 passed (42)
+      Tests  2522 passed (2522)
+   Duration  8.84s (transform 8.88s, setup 0ms, import 13.18s, tests 3.50s, environment 19ms)
+
+=== build :: npm run build :: start 22:15:36 ===
+exit=0
+ ✓ Compiled successfully in 104s
+   Skipping linting
+   Checking validity of types ...
+   Generating static pages (0/185) ...
+   Generating static pages (46/185) 
+   Generating static pages (92/185) 
+   Generating static pages (138/185) 
+ ✓ Generating static pages (185/185)
+
+=== check-p83-b2f-preflight :: npm run check:p83-b2f-preflight :: start 22:20:46 ===
+exit=0
+
+
+=== check-p83-b3-live-signature :: npm run check:p83-b3-live-signature :: start 22:20:52 ===
+exit=0
+ RESULTAT : SKIPPED — live signature provider smoke not enabled.
+
+=== check-p84-live-comms :: npm run check:p84-live-communications :: start 22:20:53 ===
+exit=0
+ RESULTAT : SKIPPED — live communication smoke not enabled.
+
+=== check-p85-runtime-smoke :: npm run check:p85-runtime-smoke :: start 22:20:54 ===
+exit=1
+2026-07-06__pierre_v28_customer_product_access_lifecycle.sql, expected v27
+
+=== check-p85-runtime-infra :: npm run check:p85-runtime-infrastructure :: start 22:21:02 ===
+exit=0
+SKIPPED check-p85-runtime-infrastructure: set PIERRE_RUNTIME_INFRA_SMOKE=1 + PIERRE_RUNTIME_WORKER_DATABASE_URL (a login that is a MEMBER of pierre_rt_runtime_worker) to run against a real PostgreSQL. NOT a PASS.
+
+=== check-p86-customer-smoke :: npm run check:p86-customer-lifecycle-smoke :: start 22:21:03 ===
+exit=0
+PASS check-p86-customer-lifecycle-smoke: v1→v28 applied (28 migrations); commercial proof → provisioned company (fenced claim) + owner + active entitlement; onboarding server-completed (company active); teammate invited + accepted (no silent reactivation); real P8.5 mission completed via the governed runtime; suspend→reactivate via the ORDERED commercial path without duplication; governed access-event trail present; tenant isolation holds. No fabricated terminal states.
+
+=== check-p86-billing-infra :: npm run check:p86-billing-infrastructure :: start 22:21:10 ===
+exit=0
+SKIPPED check-p86-billing-infrastructure: set PIERRE_BILLING_INFRA_SMOKE=1 + PIERRE_BILLING_WEBHOOK_DATABASE_URL (member of pierre_rt_billing_webhook) + PIERRE_CUSTOMER_ACTIVATION_DATABASE_URL (member of pierre_rt_customer_activation_worker) to run against a real PostgreSQL. NOT a PASS. Activated in P8.7.
+
+=== check-p86-migration :: npm run check:p86-migration :: start 22:21:11 ===
+exit=0
+PASS — v1→v28 applied (28 migrations), v28 idempotent, 6 tables + 2 roles + governed functions present.
+
+ALL DONE -- 06/29/2026 22:21:17

@@ -1,0 +1,1241 @@
+{
+  "run_id": "p813func-63652320f8",
+  "total": 91,
+  "passed": 91,
+  "failed": [],
+  "outcomeValid": true,
+  "outcomes": [
+    {
+      "scenarioId": "cert.org.structure_management.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.org.workforce_planning.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.org.succession_planning.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.recruitment.open_requisition.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:8 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.recruitment.pipeline_management.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "COUNTRY_RULES_REQUIRED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.recruitment.pipeline_management.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=FR-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.recruitment.pipeline_management.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=BE-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.recruitment.pipeline_management.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=LU-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.recruitment.pipeline_management.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=CH-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.recruitment.decision.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.recruitment.decision.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=FR-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.recruitment.decision.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=BE-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.recruitment.decision.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=LU-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.recruitment.decision.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=CH-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.offer.negotiation_and_signature.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_EXTERNAL",
+      "route": "RUNTIME_READY_EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.offer.negotiation_and_signature.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=FR-f90dd65a7afa0c64de7f558e31a49773"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.offer.negotiation_and_signature.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=BE-f90dd65a7afa0c64de7f558e31a49773"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.offer.negotiation_and_signature.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=LU-f90dd65a7afa0c64de7f558e31a49773"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.offer.negotiation_and_signature.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=CH-f90dd65a7afa0c64de7f558e31a49773"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.offer.candidate_conversion.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.contract.change_via_amendment.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.contract.suspension_and_expiration.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "COUNTRY_RULES_REQUIRED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.contract.suspension_and_expiration.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=FR-bf23c8185f9cc94eea6be01b76c60557"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.contract.suspension_and_expiration.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=BE-bf23c8185f9cc94eea6be01b76c60557"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.contract.suspension_and_expiration.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=LU-bf23c8185f9cc94eea6be01b76c60557"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.contract.suspension_and_expiration.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=CH-bf23c8185f9cc94eea6be01b76c60557"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.contract.submit_signature.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_EXTERNAL",
+      "route": "RUNTIME_READY_EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.onboarding.run_plan.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.onboarding.access_provisioning.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_EXTERNAL",
+      "route": "RUNTIME_READY_EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.data_gdpr.right_to_object.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "COUNTRY_RULES_REQUIRED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.data_gdpr.right_to_object.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=FR-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.data_gdpr.right_to_object.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=BE-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.data_gdpr.right_to_object.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=LU-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.data_gdpr.right_to_object.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "GOVERNED_MANUAL",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:GOVERNED_MANUAL blocked=true snapshot=CH-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.absence.request_to_decision.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.absence.payroll_transmission.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_EXTERNAL",
+      "route": "RUNTIME_READY_EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.absence.timeclock_integration.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_EXTERNAL",
+      "route": "RUNTIME_READY_EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler",
+        "provider:time_attendance → routed_to_manual (no fabricated success)"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.payroll.prepare_period.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.payroll.prepare_period.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=FR-fddcc80403a95037c891c6f131629ab0"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.payroll.prepare_period.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=BE-fddcc80403a95037c891c6f131629ab0"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.payroll.prepare_period.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=LU-fddcc80403a95037c891c6f131629ab0"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.payroll.prepare_period.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=CH-fddcc80403a95037c891c6f131629ab0"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.payroll.transmit_and_reconcile.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_EXTERNAL",
+      "route": "RUNTIME_READY_EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.payroll.transmit_and_reconcile.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=FR-cd38f859496265e8c73e15324150b282"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.payroll.transmit_and_reconcile.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=BE-cd38f859496265e8c73e15324150b282"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.payroll.transmit_and_reconcile.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=LU-cd38f859496265e8c73e15324150b282"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.payroll.transmit_and_reconcile.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=CH-cd38f859496265e8c73e15324150b282"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.compensation.salary_change.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.compensation.benefits_and_expenses.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_EXTERNAL",
+      "route": "RUNTIME_READY_EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.compensation.equity_and_equity_review.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.performance.review_cycle.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:8 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.performance.calibration_and_pip.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.training.plan_and_enroll.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_EXTERNAL",
+      "route": "RUNTIME_READY_EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:8 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.training.certification_tracking.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.career.wishes_and_mentoring.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.career.mobility.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.relations.hr_requests.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.relations.complaints_and_alerts.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.relations.complaints_and_alerts.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=FR-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.relations.complaints_and_alerts.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=BE-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.relations.complaints_and_alerts.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=LU-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.relations.complaints_and_alerts.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=CH-b24c1ddd7a581272d0c05af16f7744f3"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.disciplinary.case_governance.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:8 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.disciplinary.case_governance.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:8 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=FR-dfb298b47769a34ce2a2db0c63361232"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.disciplinary.case_governance.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:8 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=BE-dfb298b47769a34ce2a2db0c63361232"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.disciplinary.case_governance.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:8 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=LU-dfb298b47769a34ce2a2db0c63361232"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.disciplinary.case_governance.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:8 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=CH-dfb298b47769a34ce2a2db0c63361232"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.health.incident_and_risk.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.health.incident_and_risk.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=FR-f4642331b920b20afb930bc663f72205"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.health.incident_and_risk.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=BE-f4642331b920b20afb930bc663f72205"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.health.incident_and_risk.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=LU-f4642331b920b20afb930bc663f72205"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.health.incident_and_risk.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=CH-f4642331b920b20afb930bc663f72205"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.health.accommodations_wellbeing.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.health.accommodations_wellbeing.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=FR-f4642331b920b20afb930bc663f72205"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.health.accommodations_wellbeing.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=BE-f4642331b920b20afb930bc663f72205"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.health.accommodations_wellbeing.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=LU-f4642331b920b20afb930bc663f72205"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.health.accommodations_wellbeing.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "HUMAN_DECISION",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler",
+        "country_gate:HUMAN_DECISION blocked=true snapshot=CH-f4642331b920b20afb930bc663f72205"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.communications.governed_campaign.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:8 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.communications.legal_review.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_HUMAN",
+      "route": "HUMAN_DECISION_REQUIRED",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.policy.lifecycle.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:8 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.policy.enforcement_audit.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:5 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.offboarding.orchestrate.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "AWAITING_EXTERNAL",
+      "route": "RUNTIME_READY_EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.offboarding.orchestrate.FR",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=FR-7f9e78ce4d827966ed6a3101736aa846"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.offboarding.orchestrate.BE",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=BE-7f9e78ce4d827966ed6a3101736aa846"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.offboarding.orchestrate.LU",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=LU-7f9e78ce4d827966ed6a3101736aa846"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.offboarding.orchestrate.CH",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "EXTERNAL_BLOCKED",
+      "producedEvidence": [
+        "compiled:7 runtime steps on real compiler",
+        "country_gate:EXTERNAL_BLOCKED blocked=true snapshot=CH-7f9e78ce4d827966ed6a3101736aa846"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.reporting.hr_dashboards.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.reporting.executive_and_anomalies.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.proactive.deadline_watch.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.proactive.operational_watch.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "COMPLETED",
+      "route": "IMPLEMENTED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    },
+    {
+      "scenarioId": "cert.pierre_admin.country_config.generic",
+      "ran": true,
+      "compiled": true,
+      "terminalState": "BLOCKED",
+      "route": "COUNTRY_RULES_REQUIRED",
+      "producedEvidence": [
+        "compiled:6 runtime steps on real compiler"
+      ],
+      "forbiddenEffectsObserved": [],
+      "ok": true,
+      "notes": "certified"
+    }
+  ]
+}

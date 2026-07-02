@@ -26,7 +26,7 @@ export async function GET(req: Request) {
 
   let email: string | null = null;
   try {
-    const supabase = supabaseServer();
+    const supabase = await supabaseServer();
     const { data } = await supabase.auth.getUser();
     email = data.user?.email ?? null;
   } catch {

@@ -134,7 +134,10 @@ export class SupabaseStorageProvider implements FileStorageProvider {
     return { url: data.signedUrl, method: "PUT", object_key: objectKey, token: data.token, expires_at: new Date(Date.now() + opts.expirySeconds * 1000).toISOString(), max_size_bytes: opts.maxSizeBytes };
   }
   async upload(objectKey: string, bytes: Buffer): Promise<void> {
-    const { error } = await this.client.storage.from(this.bucket).upload(objectKey, bytes, { upsert: false, contentType: "application/octet-stream" });
+    // upsert:true so re-storing the SAME object key (finalize re-uploads the bytes after the initial upload,
+    // and idempotent retries) overwrites in place instead of failing with a duplicate error. Object keys are
+    // unique per file (buildObjectKey uses a random uuid), so this only ever overwrites the same logical file.
+    const { error } = await this.client.storage.from(this.bucket).upload(objectKey, bytes, { upsert: true, contentType: "application/octet-stream" });
     if (error) throw new Error("storage upload failed");
   }
   async finalizeUpload(objectKey: string): Promise<HeadResult> { return this.headObject(objectKey); }

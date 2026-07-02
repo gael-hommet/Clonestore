@@ -1,0 +1,103 @@
+{
+  "run_id": "p89-final-2fa5898d89",
+  "families": 14,
+  "family_detail": {
+    "pierre_rt_companies": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_members": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_onboarding_sessions": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_product_entitlements": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_missions": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_tasks": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_employees": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_documents": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_files": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_notifications": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_events": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_jobs": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_communication_intents": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    },
+    "pierre_rt_communication_deliveries": {
+      "rls": true,
+      "checks": 1600,
+      "leaks": 0,
+      "unauthorized_mutations": 0
+    }
+  },
+  "isolation_checks": 22800,
+  "cross_tenant_leaks": 0,
+  "unauthorized_mutations": 0,
+  "unauthorized_claims": 0,
+  "read_errors": 0,
+  "positive_control_pass": 5600,
+  "positive_control_fail": 0,
+  "writes_prevented_by_rls_zero_rows": 4000,
+  "writes_prevented_by_grant_error": 1600,
+  "skipped": 0,
+  "first_error": null,
+  "sample_tenants": 400,
+  "ms": 19605
+}

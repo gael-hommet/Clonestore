@@ -1,0 +1,41 @@
+{
+  "run_id": "p812prov-58977782c6",
+  "manualPaths": [
+    {
+      "provider": "yousign",
+      "available": true,
+      "steps": 4,
+      "evidence": "signed document + signing evidence recorded in the signature runtime"
+    },
+    {
+      "provider": "payroll",
+      "available": true,
+      "steps": 4,
+      "evidence": "provider confirmation + reconciled payroll run recorded"
+    },
+    {
+      "provider": "identity",
+      "available": true,
+      "steps": 3,
+      "evidence": "access provisioning/revocation confirmation recorded"
+    },
+    {
+      "provider": "time_attendance",
+      "available": true,
+      "steps": 3,
+      "evidence": "normalized worked-time recorded"
+    },
+    {
+      "provider": "benefits",
+      "available": true,
+      "steps": 3,
+      "evidence": "benefits enrollment/reimbursement confirmation recorded"
+    },
+    {
+      "provider": "training",
+      "available": true,
+      "steps": 3,
+      "evidence": "training enrollment/completion recorded"
+    }
+  ]
+}

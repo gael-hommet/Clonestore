@@ -1,0 +1,10 @@
+{
+  "run_id": "p89-final-2fa5898d89",
+  "cleanup": {
+    "ok": true,
+    "data_dir_removed": true,
+    "docstore_removed": true
+  },
+  "engine": "ephemeral embedded PG16 dropped",
+  "residue": "none (db + datadir + docstore removed)"
+}

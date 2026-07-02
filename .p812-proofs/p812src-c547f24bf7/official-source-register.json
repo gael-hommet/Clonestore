@@ -1,0 +1,289 @@
+{
+  "run_id": "p812src-c547f24bf7",
+  "count": 21,
+  "sourceErrors": [],
+  "register": [
+    {
+      "id": "fr.legifrance",
+      "jurisdiction": "FR",
+      "authority": "République française (DILA)",
+      "officialUrl": "https://www.legifrance.gouv.fr",
+      "sourceType": "statute",
+      "ruleFamilies": [
+        "contract_types",
+        "working_time",
+        "paid_leave",
+        "notice_periods",
+        "dismissal_procedure",
+        "fixed_term_rules",
+        "probation_periods",
+        "disciplinary_procedure",
+        "parental_leave",
+        "sick_leave",
+        "severance"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "fr.service_public",
+      "jurisdiction": "FR",
+      "authority": "DILA — service-public.fr",
+      "officialUrl": "https://www.service-public.fr",
+      "sourceType": "official_portal",
+      "ruleFamilies": [
+        "public_holidays",
+        "right_to_work",
+        "document_retention"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "fr.urssaf",
+      "jurisdiction": "FR",
+      "authority": "URSSAF",
+      "officialUrl": "https://www.urssaf.fr",
+      "sourceType": "official_portal",
+      "ruleFamilies": [
+        "payroll_contributions",
+        "minimum_wage"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "fr.cnil",
+      "jurisdiction": "FR",
+      "authority": "CNIL",
+      "officialUrl": "https://www.cnil.fr",
+      "sourceType": "administrative_guidance",
+      "ruleFamilies": [
+        "data_protection"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "fr.ameli",
+      "jurisdiction": "FR",
+      "authority": "Assurance Maladie / Ameli",
+      "officialUrl": "https://www.ameli.fr",
+      "sourceType": "official_portal",
+      "ruleFamilies": [
+        "sick_leave",
+        "occupational_health"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "fr.cba",
+      "jurisdiction": "FR",
+      "authority": "Convention collective de branche (IDCC)",
+      "officialUrl": "https://www.legifrance.gouv.fr",
+      "sourceType": "official_collective_agreement",
+      "ruleFamilies": [
+        "collective_agreements",
+        "mandatory_trainings"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "be.justel",
+      "jurisdiction": "BE",
+      "authority": "SPF Justice — Moniteur belge / Justel",
+      "officialUrl": "https://www.ejustice.just.fgov.be",
+      "sourceType": "statute",
+      "ruleFamilies": [
+        "contract_types",
+        "notice_periods",
+        "dismissal_procedure",
+        "working_time",
+        "fixed_term_rules",
+        "severance"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "be.emploi",
+      "jurisdiction": "BE",
+      "authority": "SPF Emploi, Travail et Concertation sociale",
+      "officialUrl": "https://emploi.belgique.be",
+      "sourceType": "administrative_guidance",
+      "ruleFamilies": [
+        "paid_leave",
+        "sick_leave",
+        "parental_leave",
+        "working_time",
+        "probation_periods"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "be.onss",
+      "jurisdiction": "BE",
+      "authority": "ONSS / RSZ",
+      "officialUrl": "https://www.onss.be",
+      "sourceType": "official_portal",
+      "ruleFamilies": [
+        "payroll_contributions",
+        "payslip_requirements"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "be.cp",
+      "jurisdiction": "BE",
+      "authority": "Commission paritaire (CP) — CCT",
+      "officialUrl": "https://www.emploi.belgique.be",
+      "sourceType": "official_collective_agreement",
+      "ruleFamilies": [
+        "collective_agreements",
+        "minimum_wage",
+        "mandatory_trainings"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "be.apd",
+      "jurisdiction": "BE",
+      "authority": "Autorité de protection des données (APD/GBA)",
+      "officialUrl": "https://www.autoriteprotectiondonnees.be",
+      "sourceType": "administrative_guidance",
+      "ruleFamilies": [
+        "data_protection"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "lu.legilux",
+      "jurisdiction": "LU",
+      "authority": "État luxembourgeois — Légilux",
+      "officialUrl": "https://legilux.public.lu",
+      "sourceType": "statute",
+      "ruleFamilies": [
+        "contract_types",
+        "working_time",
+        "notice_periods",
+        "dismissal_procedure",
+        "fixed_term_rules",
+        "probation_periods",
+        "severance"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "lu.guichet",
+      "jurisdiction": "LU",
+      "authority": "Guichet.lu",
+      "officialUrl": "https://guichet.public.lu",
+      "sourceType": "official_portal",
+      "ruleFamilies": [
+        "paid_leave",
+        "public_holidays",
+        "right_to_work",
+        "parental_leave",
+        "sick_leave",
+        "document_retention"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "lu.ccss",
+      "jurisdiction": "LU",
+      "authority": "Centre commun de la sécurité sociale (CCSS)",
+      "officialUrl": "https://www.ccss.lu",
+      "sourceType": "official_portal",
+      "ruleFamilies": [
+        "payroll_contributions",
+        "payslip_requirements"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "lu.itm",
+      "jurisdiction": "LU",
+      "authority": "Inspection du travail et des mines (ITM)",
+      "officialUrl": "https://itm.public.lu",
+      "sourceType": "administrative_guidance",
+      "ruleFamilies": [
+        "occupational_health",
+        "working_time",
+        "mandatory_trainings"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "lu.cnpd",
+      "jurisdiction": "LU",
+      "authority": "Commission nationale pour la protection des données (CNPD)",
+      "officialUrl": "https://cnpd.public.lu",
+      "sourceType": "administrative_guidance",
+      "ruleFamilies": [
+        "data_protection"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "ch.fedlex",
+      "jurisdiction": "CH",
+      "authority": "Confédération suisse — Fedlex",
+      "officialUrl": "https://www.fedlex.admin.ch",
+      "sourceType": "statute",
+      "ruleFamilies": [
+        "contract_types",
+        "working_time",
+        "notice_periods",
+        "probation_periods",
+        "fixed_term_rules",
+        "dismissal_procedure",
+        "severance"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "ch.seco",
+      "jurisdiction": "CH",
+      "authority": "Secrétariat d'État à l'économie (SECO)",
+      "officialUrl": "https://www.seco.admin.ch",
+      "sourceType": "administrative_guidance",
+      "ruleFamilies": [
+        "working_time",
+        "occupational_health",
+        "mandatory_trainings"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "ch.ahv",
+      "jurisdiction": "CH",
+      "authority": "AVS/AHV — Centre d'information",
+      "officialUrl": "https://www.ahv-iv.ch",
+      "sourceType": "official_portal",
+      "ruleFamilies": [
+        "payroll_contributions",
+        "payslip_requirements"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "ch.edoeb",
+      "jurisdiction": "CH",
+      "authority": "PFPDT / FDPIC",
+      "officialUrl": "https://www.edoeb.admin.ch",
+      "sourceType": "administrative_guidance",
+      "ruleFamilies": [
+        "data_protection"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    },
+    {
+      "id": "ch.canton",
+      "jurisdiction": "CH",
+      "authority": "Autorité cantonale compétente",
+      "officialUrl": "https://www.ch.ch",
+      "sourceType": "official_portal",
+      "ruleFamilies": [
+        "minimum_wage",
+        "public_holidays"
+      ],
+      "retrievalStatus": "POINTER_ONLY"
+    }
+  ]
+}

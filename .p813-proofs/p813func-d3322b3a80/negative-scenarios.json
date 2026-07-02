@@ -1,0 +1,967 @@
+{
+  "run_id": "p813func-d3322b3a80",
+  "count": 160,
+  "allBlockedNoForbidden": true,
+  "negatives": [
+    {
+      "id": "cert.pack.recruitment.pipeline_management.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.recruitment.pipeline_management.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.recruitment.pipeline_management.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.recruitment.pipeline_management.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.recruitment.decision.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.recruitment.decision.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.recruitment.decision.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.recruitment.decision.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.offer.negotiation_and_signature.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.offer.negotiation_and_signature.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.offer.negotiation_and_signature.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.offer.negotiation_and_signature.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.contract.suspension_and_expiration.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.contract.suspension_and_expiration.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.contract.suspension_and_expiration.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.contract.suspension_and_expiration.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.data_gdpr.right_to_object.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.data_gdpr.right_to_object.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.data_gdpr.right_to_object.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.data_gdpr.right_to_object.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.payroll.prepare_period.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.payroll.prepare_period.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.payroll.prepare_period.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.payroll.prepare_period.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.payroll.transmit_and_reconcile.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.payroll.transmit_and_reconcile.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.payroll.transmit_and_reconcile.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.payroll.transmit_and_reconcile.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.relations.complaints_and_alerts.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.relations.complaints_and_alerts.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.relations.complaints_and_alerts.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.relations.complaints_and_alerts.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.disciplinary.case_governance.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.disciplinary.case_governance.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.disciplinary.case_governance.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.disciplinary.case_governance.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.health.incident_and_risk.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.health.incident_and_risk.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.health.incident_and_risk.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.health.incident_and_risk.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.health.accommodations_wellbeing.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.health.accommodations_wellbeing.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.health.accommodations_wellbeing.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.health.accommodations_wellbeing.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.offboarding.orchestrate.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.offboarding.orchestrate.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.offboarding.orchestrate.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.pack.offboarding.orchestrate.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.org.restructuring_prepare.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.org.restructuring_prepare.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.org.restructuring_prepare.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.org.restructuring_prepare.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.recruitment.candidate_data_compliance.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.recruitment.candidate_data_compliance.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.recruitment.candidate_data_compliance.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.recruitment.candidate_data_compliance.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offer.generate_offer_document.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offer.generate_offer_document.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offer.generate_offer_document.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offer.generate_offer_document.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offer.right_to_work.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offer.right_to_work.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offer.right_to_work.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offer.right_to_work.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.renewal.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.renewal.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.renewal.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.renewal.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.hours_change.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.hours_change.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.hours_change.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.hours_change.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.end_probation.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.end_probation.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.end_probation.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.contract.end_probation.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.onboarding.probation_tracking.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.onboarding.probation_tracking.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.onboarding.probation_tracking.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.onboarding.probation_tracking.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.balance_calculation.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.balance_calculation.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.balance_calculation.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.balance_calculation.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.sick_leave.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.sick_leave.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.sick_leave.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.sick_leave.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.parental_leave.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.parental_leave.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.parental_leave.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.parental_leave.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.return_to_work.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.return_to_work.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.return_to_work.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.return_to_work.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.time_tracking.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.time_tracking.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.time_tracking.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.absence.time_tracking.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.training.mandatory_compliance.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.training.mandatory_compliance.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.training.mandatory_compliance.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.training.mandatory_compliance.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.disciplinary.summons.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.disciplinary.summons.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.disciplinary.summons.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.disciplinary.summons.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.disciplinary.deadlines.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.disciplinary.deadlines.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.disciplinary.deadlines.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.disciplinary.deadlines.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.health.medical_visits.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.health.medical_visits.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.health.medical_visits.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.health.medical_visits.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.health.mandatory_safety_training.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.health.mandatory_safety_training.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.health.mandatory_safety_training.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.health.mandatory_safety_training.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.resignation.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.resignation.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.resignation.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.resignation.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.mutual_termination.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.mutual_termination.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.mutual_termination.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.mutual_termination.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.end_of_contract.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.end_of_contract.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.end_of_contract.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.end_of_contract.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.final_pay.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.final_pay.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.final_pay.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.final_pay.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.file_closure_archival.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.file_closure_archival.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.file_closure_archival.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.offboarding.file_closure_archival.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.retention.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.retention.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.retention.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.retention.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.legal_basis.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.legal_basis.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.legal_basis.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.legal_basis.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.consent_proof.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.consent_proof.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.consent_proof.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.data_gdpr.consent_proof.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.proactive.end_of_probation.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.proactive.end_of_probation.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.proactive.end_of_probation.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.proactive.end_of_probation.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.proactive.retention_deletion.FR",
+      "country": "FR",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.proactive.retention_deletion.BE",
+      "country": "BE",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.proactive.retention_deletion.LU",
+      "country": "LU",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    },
+    {
+      "id": "cert.cap.proactive.retention_deletion.CH",
+      "country": "CH",
+      "terminal": "BLOCKED",
+      "forbidden": []
+    }
+  ]
+}

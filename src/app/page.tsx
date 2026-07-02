@@ -541,7 +541,11 @@ export default function HomePage() {
           </aside>
 
           <div className="clone-home-content">
-            <section id="overview" className="scroll-mt-32 clone-home-screen">
+            <section
+              id="overview"
+              data-tour-id="homepage-primary"
+              className="scroll-mt-32 clone-home-screen"
+            >
               <LiquidGlass
                 variant="panel"
                 intensity="strong"

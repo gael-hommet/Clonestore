@@ -1,0 +1,12 @@
+{
+  "run_id": "p812prov-58977782c6",
+  "provider": "yousign",
+  "status": "blocked",
+  "configured": false,
+  "missingCredentials": [
+    "YOUSIGN_API_KEY",
+    "YOUSIGN_BASE_URL"
+  ],
+  "blockedReason": "P8.7.4 — Yousign sandbox org-membership blocker (FINAL PRODUCTION UNBLOCK: NOT AUTHORIZED)",
+  "usable": false
+}

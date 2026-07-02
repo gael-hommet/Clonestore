@@ -1,0 +1,109 @@
+{
+  "run_id": "p813-a32195770c",
+  "phase": "P8.13",
+  "dimensionA_functional": {
+    "certification": "CERTIFIED",
+    "certified": 215,
+    "total": 215,
+    "byState": {
+      "CERTIFIED_AUTOMATED": 70,
+      "CERTIFIED_AFTER_APPROVAL": 48,
+      "CERTIFIED_HUMAN_DECISION": 40,
+      "CERTIFIED_FAIL_CLOSED": 36,
+      "CERTIFIED_MANUAL_GOVERNED_PATH": 21
+    },
+    "scenarios": {
+      "total": 207,
+      "passed": 207
+    }
+  },
+  "dimensionB_country": {
+    "launchGrade": 0,
+    "of": 4,
+    "countries": [
+      {
+        "country": "FR",
+        "officialSources": 6,
+        "rulesTotal": 69,
+        "rulesVerified": 0,
+        "reviewPackets": 69,
+        "providersLive": 0,
+        "ownerSignOff": false,
+        "launchGrade": false,
+        "blockers": [
+          "69 rules not VERIFIED (qualified human legal review required)",
+          "no live provider integration",
+          "no owner sign-off"
+        ]
+      },
+      {
+        "country": "BE",
+        "officialSources": 5,
+        "rulesTotal": 69,
+        "rulesVerified": 0,
+        "reviewPackets": 69,
+        "providersLive": 0,
+        "ownerSignOff": false,
+        "launchGrade": false,
+        "blockers": [
+          "69 rules not VERIFIED (qualified human legal review required)",
+          "no live provider integration",
+          "no owner sign-off"
+        ]
+      },
+      {
+        "country": "LU",
+        "officialSources": 5,
+        "rulesTotal": 69,
+        "rulesVerified": 0,
+        "reviewPackets": 69,
+        "providersLive": 0,
+        "ownerSignOff": false,
+        "launchGrade": false,
+        "blockers": [
+          "69 rules not VERIFIED (qualified human legal review required)",
+          "no live provider integration",
+          "no owner sign-off"
+        ]
+      },
+      {
+        "country": "CH",
+        "officialSources": 5,
+        "rulesTotal": 69,
+        "rulesVerified": 0,
+        "reviewPackets": 69,
+        "providersLive": 0,
+        "ownerSignOff": false,
+        "launchGrade": false,
+        "blockers": [
+          "69 rules not VERIFIED (qualified human legal review required)",
+          "no live provider integration",
+          "no owner sign-off"
+        ]
+      }
+    ]
+  },
+  "provider": {
+    "liveGrade": 0,
+    "manualPaths": 6
+  },
+  "productionUnblock": "NOT_AUTHORIZED",
+  "answers": {
+    "q1_end_to_end": "YES (functional). All 215 capabilities across 22 domains have a governed certified path (automated / after-approval / human / manual-governed / explicit fail-closed).",
+    "q2_real_results": "YES for verified capabilities (real mutations/documents/communications proven in P8.9–P8.11); orchestration certified on the real runtime for the rest. No fabricated results.",
+    "q3_customer_self_service": "YES for functional operations (missions/approvals/manual handoffs — no code/SQL/provider wiring). Automatic country-legal execution is NOT self-service until dimension B is met.",
+    "q4_launch_now": "Functional HR backend + 70 automated + 48 after-approval + 21 manual-governed + 40 human-decision capabilities. NOT automatic country-legal execution, NOT e-signature, NOT payroll computation.",
+    "q5_blocked_why": "Automatic country execution (0 VERIFIED rules → legal review), providers (not integrated), Yousign (P8.7.4), production unblock (deploy-block + owner gate). 0/4 countries launch-grade."
+  },
+  "gates": {
+    "functional_complete": true,
+    "functional_evidence_valid": true,
+    "all_scenarios_pass_real_runtime": true,
+    "customer_operable": true,
+    "no_country_auto_authorized": true,
+    "no_provider_live": true,
+    "deploy_block_active": true
+  },
+  "ok": true,
+  "verdict": "P8.13 — HR BACKEND FUNCTIONAL CERTIFICATION ACHIEVED (215/215 capabilities, governed paths, real-runtime scenarios) / COUNTRY PRODUCTION AUTHORIZATION: NOT GRANTED (0/4) / PRODUCTION UNBLOCK: NOT AUTHORIZED"
+}

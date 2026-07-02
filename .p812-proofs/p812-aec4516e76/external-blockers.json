@@ -1,0 +1,28 @@
+{
+  "run_id": "p812-aec4516e76",
+  "deployBlock": "(unset in local)",
+  "externalBlockers": [
+    {
+      "id": "P8.7.4",
+      "title": "Yousign sandbox org-membership",
+      "status": "OPEN",
+      "effect": "e-signature not usable; governed manual path only"
+    },
+    {
+      "id": "payroll",
+      "title": "Certified payroll engine + social declarations",
+      "status": "NOT_INTEGRATED"
+    },
+    {
+      "id": "identity/time/benefits/training",
+      "title": "Operational providers",
+      "status": "NOT_INTEGRATED"
+    },
+    {
+      "id": "legal_review",
+      "title": "Qualified human legal reviewer",
+      "status": "REQUIRED",
+      "effect": "no rule can become VERIFIED without it"
+    }
+  ]
+}

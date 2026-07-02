@@ -1,0 +1,26 @@
+{
+  "run_id": "p811-1182ffc8a1",
+  "phase": "P8.11",
+  "packs": 43,
+  "byRuntimeStatus": {
+    "IMPLEMENTED": 17,
+    "HUMAN_DECISION_REQUIRED": 13,
+    "COUNTRY_RULES_REQUIRED": 4,
+    "RUNTIME_READY_EXTERNAL_BLOCKED": 9
+  },
+  "coverage": {
+    "targeted": 102,
+    "covered": 102
+  },
+  "gates": {
+    "packs_valid": true,
+    "all_packs_compile_on_real_runtime": true,
+    "full_p811_coverage": true,
+    "coverage_matches_canon_dynamically": true,
+    "human_only_not_automated": true,
+    "functional_scenarios_ok": true,
+    "proactive_ok": true,
+    "canon_not_regressed": true
+  },
+  "ok": true
+}

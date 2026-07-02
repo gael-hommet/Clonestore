@@ -1,0 +1,3223 @@
+{
+  "run_id": "p813matrix-0f121bb568",
+  "entries": [
+    {
+      "capabilityId": "org.read_company",
+      "domain": "org",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:p82c-route-security.itest.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "org.update_company",
+      "domain": "org",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:p82c-operational.itest.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "org.create_site",
+      "domain": "org",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:p82c-operational.itest.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "org.update_site",
+      "domain": "org",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:p82c-operational.itest.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "org.archive_site",
+      "domain": "org",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:p82c-operational.itest.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "org.assign_site_manager",
+      "domain": "org",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:p82c-operational.itest.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "org.list_sites",
+      "domain": "org",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:tenancy-rbac-employee360.itest.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "org.manage_org_structure",
+      "domain": "org",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "org.structure_management"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:org.structure_management (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "org.workforce_planning",
+      "domain": "org",
+      "implementation": "MISSING",
+      "autonomy": "suggest",
+      "missionPackIds": [
+        "org.workforce_planning"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:org.workforce_planning (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "org.position_budget",
+      "domain": "org",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "org.workforce_planning"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:org.workforce_planning (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "org.succession_planning",
+      "domain": "org",
+      "implementation": "MISSING",
+      "autonomy": "suggest",
+      "missionPackIds": [
+        "org.succession_planning"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:org.succession_planning (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "org.restructuring_prepare",
+      "domain": "org",
+      "implementation": "MISSING",
+      "autonomy": "observe_only",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "recruitment.classify_intent",
+      "domain": "recruitment",
+      "implementation": "IMPLEMENTED_UNVERIFIED",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "recruitment.open_requisition"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:recruitment.open_requisition (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "recruitment.plan_hiring_tasks",
+      "domain": "recruitment",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "unit_test:hr-workflows.test.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "recruitment.job_requisition",
+      "domain": "recruitment",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "recruitment.open_requisition"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:recruitment.open_requisition (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "recruitment.posting",
+      "domain": "recruitment",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "recruitment.open_requisition"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:recruitment.open_requisition (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "recruitment.sourcing",
+      "domain": "recruitment",
+      "implementation": "MISSING",
+      "autonomy": "suggest",
+      "missionPackIds": [
+        "recruitment.pipeline_management"
+      ],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "pack:recruitment.pipeline_management (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (COUNTRY_RULES_REQUIRED)"
+    },
+    {
+      "capabilityId": "recruitment.pipeline",
+      "domain": "recruitment",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "recruitment.pipeline_management"
+      ],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "pack:recruitment.pipeline_management (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (COUNTRY_RULES_REQUIRED)"
+    },
+    {
+      "capabilityId": "recruitment.interview_scheduling",
+      "domain": "recruitment",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "recruitment.pipeline_management"
+      ],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "pack:recruitment.pipeline_management (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (COUNTRY_RULES_REQUIRED)"
+    },
+    {
+      "capabilityId": "recruitment.reference_checks",
+      "domain": "recruitment",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "recruitment.pipeline_management"
+      ],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "pack:recruitment.pipeline_management (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (COUNTRY_RULES_REQUIRED)"
+    },
+    {
+      "capabilityId": "recruitment.screening_decision",
+      "domain": "recruitment",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "recruitment.decision"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:recruitment.decision (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "recruitment.candidate_rejection",
+      "domain": "recruitment",
+      "implementation": "IMPLEMENTED_UNVERIFIED",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "recruitment.decision"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:recruitment.decision (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "recruitment.candidate_data_compliance",
+      "domain": "recruitment",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "offer.generate_offer_document",
+      "domain": "offer",
+      "implementation": "CONTRACT_ONLY",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "offer.render_offer_premium",
+      "domain": "offer",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "unit_test:premium-documents.test.ts / renderers.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "offer.negotiation",
+      "domain": "offer",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "offer.negotiation_and_signature"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:offer.negotiation_and_signature (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "offer.right_to_work",
+      "domain": "offer",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "offer.signature_collection",
+      "domain": "offer",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "offer.negotiation_and_signature"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:offer.negotiation_and_signature (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "offer.candidate_to_employee",
+      "domain": "offer",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "offer.candidate_conversion"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:offer.candidate_conversion (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "contract.create",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:runtime-core.itest.ts / hr-contracts.test.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "contract.submit_review",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:contract-state.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "contract.request_changes",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:contract-state.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "contract.approve",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:contract-state.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "contract.finalize",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-contracts.test.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "contract.generate_artifacts",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "unit_test:renderers.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "contract.readiness_check",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-contracts.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "contract.create_amendment",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-contracts.test.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "contract.apply_amendment_effects",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:signatures.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "contract.schedule_amendment",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:signatures.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "contract.versioning",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-contracts.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "contract.renewal",
+      "domain": "contract",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "contract.role_change",
+      "domain": "contract",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "contract.change_via_amendment"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:contract.change_via_amendment (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "contract.salary_change",
+      "domain": "contract",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "contract.change_via_amendment"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:contract.change_via_amendment (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "contract.hours_change",
+      "domain": "contract",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "contract.suspension",
+      "domain": "contract",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "contract.suspension_and_expiration"
+      ],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "pack:contract.suspension_and_expiration (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (COUNTRY_RULES_REQUIRED)"
+    },
+    {
+      "capabilityId": "contract.end_probation",
+      "domain": "contract",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "contract.expiration",
+      "domain": "contract",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "contract.suspension_and_expiration"
+      ],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "pack:contract.suspension_and_expiration (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (COUNTRY_RULES_REQUIRED)"
+    },
+    {
+      "capabilityId": "contract.archive",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:documents.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "contract.template_manage",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:p83-template-security-corrections.test.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "contract.prepare_signature",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "unit_test:p87-signature-external-id.test.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "contract.submit_signature",
+      "domain": "contract",
+      "implementation": "EXTERNAL_DEPENDENCY",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "contract.submit_signature"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:contract.submit_signature (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "contract.ingest_signature_webhook",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:signature-events.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "contract.finalize_signed",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:signature evidence artifacts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "contract.signature_security_tier",
+      "domain": "contract",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:signature-security tests"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "onboarding.get_session",
+      "domain": "onboarding",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:onboarding tests"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "onboarding.complete_step",
+      "domain": "onboarding",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:onboarding-completion-rules"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "onboarding.reopen_step",
+      "domain": "onboarding",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:onboarding-service.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "onboarding.complete_session",
+      "domain": "onboarding",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:onboarding readiness gate"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "onboarding.registry_steps",
+      "domain": "onboarding",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:onboarding-registry"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "onboarding.employee_onboarding_plan",
+      "domain": "onboarding",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "onboarding.run_plan"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:onboarding.run_plan (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "onboarding.document_collection",
+      "domain": "onboarding",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "onboarding.run_plan"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:onboarding.run_plan (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "onboarding.access_provisioning",
+      "domain": "onboarding",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "onboarding.access_provisioning"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:onboarding.access_provisioning (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "onboarding.incomplete_handling",
+      "domain": "onboarding",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "onboarding.run_plan"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:onboarding.run_plan (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "onboarding.probation_tracking",
+      "domain": "onboarding",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "employee360.create",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-employee.test.ts / tenancy-rbac-employee360.itest.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "employee360.list",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:tenancy-rbac-employee360.itest.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "employee360.view_360",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-employee-file.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "employee360.search",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:employee-360-scale.bench.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "employee360.update",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-employee.test.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "employee360.archive",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:employees.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "employee360.reactivate",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:employees.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "employee360.timeline",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-employee-file.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "employee360.completeness",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:completeness tests"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "employee360.sensitive_data",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:gdpr / sensitive access log"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "employee360.documents_list",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-employee-file.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "employee360.import",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:employee-import-scale.bench.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "employee360.custom_fields",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "migration_table:pierre_rt_custom_field_definitions"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "employee360.rectify",
+      "domain": "employee360",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:gdpr rectification"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "absence.create_request",
+      "domain": "absence",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "absence.request_to_decision"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "migration_table:pierre_rt_employee_absences"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "absence.list",
+      "domain": "absence",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "absence.request_to_decision"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-employee-file.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "absence.approval_workflow",
+      "domain": "absence",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "absence.request_to_decision"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:absence.request_to_decision (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "absence.balance_calculation",
+      "domain": "absence",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "absence.conflict_detection",
+      "domain": "absence",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "absence.request_to_decision"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:absence.request_to_decision (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "absence.sick_leave",
+      "domain": "absence",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "absence.parental_leave",
+      "domain": "absence",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "absence.return_to_work",
+      "domain": "absence",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "absence.time_tracking",
+      "domain": "absence",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "absence.timeclock_integration",
+      "domain": "absence",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "absence.timeclock_integration"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:absence.timeclock_integration (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "absence.payroll_transmission",
+      "domain": "absence",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "absence.payroll_transmission"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:absence.payroll_transmission (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "payroll.collect_variables",
+      "domain": "payroll",
+      "implementation": "IMPLEMENTED_UNVERIFIED",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "payroll.prepare_period"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:payroll.prepare_period (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "payroll.absence_recap",
+      "domain": "payroll",
+      "implementation": "IMPLEMENTED_UNVERIFIED",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "payroll.prepare_period"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:payroll.prepare_period (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "payroll.anomaly_detection",
+      "domain": "payroll",
+      "implementation": "CONTRACT_ONLY",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "payroll.prepare_period"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:payroll.prepare_period (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "payroll.validation",
+      "domain": "payroll",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "payroll.prepare_period"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:payroll.prepare_period (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "payroll.export_transmission",
+      "domain": "payroll",
+      "implementation": "EXTERNAL_DEPENDENCY",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "provider-integrations: governed manual handoff (submit → routed_to_manual, no fabricated success)"
+      ],
+      "rationale": "external provider not integrated → governed manual path"
+    },
+    {
+      "capabilityId": "payroll.official_calculation",
+      "domain": "payroll",
+      "implementation": "EXTERNAL_DEPENDENCY",
+      "autonomy": "observe_only",
+      "missionPackIds": [],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "provider-integrations: governed manual handoff (submit → routed_to_manual, no fabricated success)"
+      ],
+      "rationale": "external provider not integrated → governed manual path"
+    },
+    {
+      "capabilityId": "payroll.dsn_declaration",
+      "domain": "payroll",
+      "implementation": "EXTERNAL_DEPENDENCY",
+      "autonomy": "observe_only",
+      "missionPackIds": [],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "provider-integrations: governed manual handoff (submit → routed_to_manual, no fabricated success)"
+      ],
+      "rationale": "external provider not integrated → governed manual path"
+    },
+    {
+      "capabilityId": "payroll.payslip_generation",
+      "domain": "payroll",
+      "implementation": "EXTERNAL_DEPENDENCY",
+      "autonomy": "observe_only",
+      "missionPackIds": [],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "provider-integrations: governed manual handoff (submit → routed_to_manual, no fabricated success)"
+      ],
+      "rationale": "external provider not integrated → governed manual path"
+    },
+    {
+      "capabilityId": "payroll.payslip_distribution",
+      "domain": "payroll",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "payroll.transmit_and_reconcile"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:payroll.transmit_and_reconcile (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "payroll.provider_reconciliation",
+      "domain": "payroll",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "payroll.transmit_and_reconcile"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:payroll.transmit_and_reconcile (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "payroll.calendar",
+      "domain": "payroll",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "payroll.prepare_period"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:payroll.prepare_period (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "payroll.correction",
+      "domain": "payroll",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "payroll.prepare_period"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:payroll.prepare_period (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "compensation.salary_grid",
+      "domain": "compensation",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "compensation.salary_change"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:compensation.salary_change (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "compensation.salary_change_prepare",
+      "domain": "compensation",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "compensation.salary_change"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:compensation.salary_change (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "compensation.raise_promotion",
+      "domain": "compensation",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "compensation.salary_change"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:compensation.salary_change (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "compensation.variable_pay",
+      "domain": "compensation",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "compensation.salary_change"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:compensation.salary_change (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "compensation.equity",
+      "domain": "compensation",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "compensation.equity_and_equity_review"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:compensation.equity_and_equity_review (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "compensation.benefits",
+      "domain": "compensation",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "compensation.benefits_and_expenses"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:compensation.benefits_and_expenses (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "compensation.vouchers",
+      "domain": "compensation",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "compensation.benefits_and_expenses"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:compensation.benefits_and_expenses (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "compensation.expenses",
+      "domain": "compensation",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "compensation.benefits_and_expenses"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:compensation.benefits_and_expenses (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "compensation.salary_review",
+      "domain": "compensation",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "compensation.salary_change"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:compensation.salary_change (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "compensation.pay_equity",
+      "domain": "compensation",
+      "implementation": "MISSING",
+      "autonomy": "observe_only",
+      "missionPackIds": [
+        "compensation.equity_and_equity_review"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:compensation.equity_and_equity_review (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "performance.objectives",
+      "domain": "performance",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "performance.review_cycle"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:performance.review_cycle (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "performance.annual_review",
+      "domain": "performance",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "performance.review_cycle"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:performance.review_cycle (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "performance.feedback_360",
+      "domain": "performance",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "performance.review_cycle"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:performance.review_cycle (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "performance.one_to_one",
+      "domain": "performance",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "performance.review_cycle"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:performance.review_cycle (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "performance.calibration",
+      "domain": "performance",
+      "implementation": "MISSING",
+      "autonomy": "suggest",
+      "missionPackIds": [
+        "performance.calibration_and_pip"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:performance.calibration_and_pip (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "performance.pip",
+      "domain": "performance",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "performance.calibration_and_pip"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:performance.calibration_and_pip (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "performance.recognition",
+      "domain": "performance",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "performance.review_cycle"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:performance.review_cycle (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "training.skills_mapping",
+      "domain": "training",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "training.plan_and_enroll"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:training.plan_and_enroll (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "training.plan",
+      "domain": "training",
+      "implementation": "IMPLEMENTED_UNVERIFIED",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "training.plan_and_enroll"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:training.plan_and_enroll (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "training.enrollment",
+      "domain": "training",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "training.plan_and_enroll"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:training.plan_and_enroll (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "training.certification_tracking",
+      "domain": "training",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "training.certification_tracking"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:training.certification_tracking (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "training.mandatory_compliance",
+      "domain": "training",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "training.evaluation",
+      "domain": "training",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "training.plan_and_enroll"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:training.plan_and_enroll (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "career.wishes",
+      "domain": "career",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "career.wishes_and_mentoring"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:career.wishes_and_mentoring (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "career.internal_mobility",
+      "domain": "career",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "career.mobility"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:career.mobility (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "career.geographic_mobility",
+      "domain": "career",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "career.mobility"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:career.mobility (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "career.succession_transition",
+      "domain": "career",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "career.mobility"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:career.mobility (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "career.mentoring",
+      "domain": "career",
+      "implementation": "MISSING",
+      "autonomy": "suggest",
+      "missionPackIds": [
+        "career.wishes_and_mentoring"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:career.wishes_and_mentoring (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "relations.hr_requests",
+      "domain": "relations",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "relations.hr_requests"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:relations.hr_requests (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "relations.complaints",
+      "domain": "relations",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "relations.complaints_and_alerts"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:relations.complaints_and_alerts (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "relations.mediation",
+      "domain": "relations",
+      "implementation": "MISSING",
+      "autonomy": "observe_only",
+      "missionPackIds": [
+        "relations.complaints_and_alerts"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:relations.complaints_and_alerts (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "relations.harassment_alert",
+      "domain": "relations",
+      "implementation": "MISSING",
+      "autonomy": "observe_only",
+      "missionPackIds": [
+        "relations.complaints_and_alerts"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:relations.complaints_and_alerts (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "relations.whistleblower",
+      "domain": "relations",
+      "implementation": "HUMAN_ONLY",
+      "autonomy": "human_only",
+      "missionPackIds": [],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "canon:HUMAN_ONLY"
+      ],
+      "rationale": "legally-reserved human decision (Pierre assists/records only)"
+    },
+    {
+      "capabilityId": "disciplinary.file_report",
+      "domain": "disciplinary",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "disciplinary.case_governance"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:disciplinary.case_governance (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "disciplinary.chain_of_custody",
+      "domain": "disciplinary",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "disciplinary.case_governance"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:disciplinary.case_governance (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "disciplinary.qualify",
+      "domain": "disciplinary",
+      "implementation": "HUMAN_ONLY",
+      "autonomy": "human_only",
+      "missionPackIds": [],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "canon:HUMAN_ONLY"
+      ],
+      "rationale": "legally-reserved human decision (Pierre assists/records only)"
+    },
+    {
+      "capabilityId": "disciplinary.summons",
+      "domain": "disciplinary",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "disciplinary.decision",
+      "domain": "disciplinary",
+      "implementation": "HUMAN_ONLY",
+      "autonomy": "human_only",
+      "missionPackIds": [],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "canon:HUMAN_ONLY"
+      ],
+      "rationale": "legally-reserved human decision (Pierre assists/records only)"
+    },
+    {
+      "capabilityId": "disciplinary.appeal",
+      "domain": "disciplinary",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "disciplinary.case_governance"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:disciplinary.case_governance (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "disciplinary.deadlines",
+      "domain": "disciplinary",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "disciplinary.closure",
+      "domain": "disciplinary",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "disciplinary.case_governance"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:disciplinary.case_governance (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "health.medical_visits",
+      "domain": "health",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "health.incident_reporting",
+      "domain": "health",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "health.incident_and_risk"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:health.incident_and_risk (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "health.risk_assessment",
+      "domain": "health",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "health.incident_and_risk"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:health.incident_and_risk (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "health.accommodations",
+      "domain": "health",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "health.accommodations_wellbeing"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:health.accommodations_wellbeing (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "health.mental_health",
+      "domain": "health",
+      "implementation": "MISSING",
+      "autonomy": "observe_only",
+      "missionPackIds": [
+        "health.accommodations_wellbeing"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:health.accommodations_wellbeing (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "health.safety_clearances",
+      "domain": "health",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "health.incident_and_risk"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:health.incident_and_risk (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "health.mandatory_safety_training",
+      "domain": "health",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "communications.send_in_app",
+      "domain": "communications",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "p8_proof:.p89-proofs/p89-final-2fa5898d89"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "communications.send_email",
+      "domain": "communications",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "p8_proof:.p89-proofs/p89-final-2fa5898d89/communications.json"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "communications.create_intent",
+      "domain": "communications",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:communications.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "communications.resolve_recipient",
+      "domain": "communications",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:pierre-channels-b33.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "communications.preferences",
+      "domain": "communications",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "migration_table:pierre_rt_communication_preferences"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "communications.suppression",
+      "domain": "communications",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "migration_table:pierre_rt_communication_suppressions"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "communications.provider_webhook",
+      "domain": "communications",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "p8_proof:.p89-proofs/p89-final-2fa5898d89"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "communications.dead_letter",
+      "domain": "communications",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "p8_proof:.p89-proofs/p89-final-2fa5898d89"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "communications.retry_cancel",
+      "domain": "communications",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "state_machine:communications.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "communications.secure_link",
+      "domain": "communications",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:communication-secure-links"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "communications.templates",
+      "domain": "communications",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "communications.governed_campaign"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:communications.governed_campaign (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "communications.scheduling",
+      "domain": "communications",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "communications.governed_campaign"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:communications.governed_campaign (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "communications.read_receipt",
+      "domain": "communications",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "communications.governed_campaign"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:communications.governed_campaign (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "communications.legal_review",
+      "domain": "communications",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "communications.legal_review"
+      ],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "pack:communications.legal_review (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (HUMAN_DECISION_REQUIRED)"
+    },
+    {
+      "capabilityId": "communications.audit_lifecycle",
+      "domain": "communications",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:communications audit"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "policy.define",
+      "domain": "policy",
+      "implementation": "CONTRACT_ONLY",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "policy.lifecycle"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:policy.lifecycle (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "policy.version_publish",
+      "domain": "policy",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "policy.lifecycle"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:policy.lifecycle (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "policy.acceptance",
+      "domain": "policy",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "policy.lifecycle"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:policy.lifecycle (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "policy.impact_diffusion",
+      "domain": "policy",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "policy.lifecycle"
+      ],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:policy.lifecycle (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "policy.enforcement_audit",
+      "domain": "policy",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "policy.enforcement_audit"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:policy.enforcement_audit (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "offboarding.resignation",
+      "domain": "offboarding",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "offboarding.dismissal",
+      "domain": "offboarding",
+      "implementation": "HUMAN_ONLY",
+      "autonomy": "human_only",
+      "missionPackIds": [],
+      "state": "CERTIFIED_HUMAN_DECISION",
+      "mode": "HUMAN_DECISION",
+      "automationBlocker": "human_reserved",
+      "evidenceRefs": [
+        "canon:HUMAN_ONLY"
+      ],
+      "rationale": "legally-reserved human decision (Pierre assists/records only)"
+    },
+    {
+      "capabilityId": "offboarding.mutual_termination",
+      "domain": "offboarding",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "offboarding.end_of_contract",
+      "domain": "offboarding",
+      "implementation": "PARTIAL",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "offboarding.orchestrate",
+      "domain": "offboarding",
+      "implementation": "MISSING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "offboarding.orchestrate"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:offboarding.orchestrate (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "offboarding.final_pay",
+      "domain": "offboarding",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "offboarding.exit_interview",
+      "domain": "offboarding",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "offboarding.orchestrate"
+      ],
+      "state": "CERTIFIED_MANUAL_GOVERNED_PATH",
+      "mode": "MANUAL_GOVERNED",
+      "automationBlocker": "external_provider",
+      "evidenceRefs": [
+        "pack:offboarding.orchestrate (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (RUNTIME_READY_EXTERNAL_BLOCKED)"
+    },
+    {
+      "capabilityId": "offboarding.file_closure_archival",
+      "domain": "offboarding",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "data_gdpr.export_employee",
+      "domain": "data_gdpr",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "route:src/app/api/pierre/security/export/route.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "data_gdpr.export_company",
+      "domain": "data_gdpr",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "route:src/app/api/pierre/security/export/route.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "data_gdpr.legal_hold",
+      "domain": "data_gdpr",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:gdpr legal hold"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "data_gdpr.anonymize",
+      "domain": "data_gdpr",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:gdpr anonymize"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "data_gdpr.purge",
+      "domain": "data_gdpr",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "route:src/app/api/pierre/security/purge/route.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "data_gdpr.delete_document",
+      "domain": "data_gdpr",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:gdpr delete document"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "data_gdpr.access_log",
+      "domain": "data_gdpr",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "migration_table:pierre_rt_data_access_log"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "data_gdpr.retention",
+      "domain": "data_gdpr",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "data_gdpr.legal_basis",
+      "domain": "data_gdpr",
+      "implementation": "LEGAL_CONTENT_REQUIRED",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "data_gdpr.consent_proof",
+      "domain": "data_gdpr",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "data_gdpr.right_to_object",
+      "domain": "data_gdpr",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "data_gdpr.right_to_object"
+      ],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "pack:data_gdpr.right_to_object (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (COUNTRY_RULES_REQUIRED)"
+    },
+    {
+      "capabilityId": "reporting.headcount_turnover",
+      "domain": "reporting",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "reporting.hr_dashboards"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:reporting.hr_dashboards (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "reporting.absenteeism",
+      "domain": "reporting",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "reporting.hr_dashboards"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:reporting.hr_dashboards (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "reporting.recruitment_funnel",
+      "domain": "reporting",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "reporting.hr_dashboards"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:reporting.hr_dashboards (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "reporting.completeness_deadlines",
+      "domain": "reporting",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "reporting.hr_dashboards"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:reporting.hr_dashboards (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "reporting.executive_report",
+      "domain": "reporting",
+      "implementation": "MISSING",
+      "autonomy": "prepare_draft",
+      "missionPackIds": [
+        "reporting.executive_and_anomalies"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:reporting.executive_and_anomalies (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "reporting.anomaly_surfacing",
+      "domain": "reporting",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "reporting.executive_and_anomalies"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:reporting.executive_and_anomalies (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "proactive.scheduler",
+      "domain": "proactive",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-continuity.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "proactive.followup",
+      "domain": "proactive",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-continuity.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "proactive.contract_expiry",
+      "domain": "proactive",
+      "implementation": "CONTRACT_ONLY",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "proactive.deadline_watch"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:proactive.deadline_watch (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "proactive.end_of_probation",
+      "domain": "proactive",
+      "implementation": "CONTRACT_ONLY",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "proactive.missing_document",
+      "domain": "proactive",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "proactive.deadline_watch"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:proactive.deadline_watch (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "proactive.expiring_training",
+      "domain": "proactive",
+      "implementation": "MISSING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "proactive.deadline_watch"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:proactive.deadline_watch (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "proactive.blocked_signature",
+      "domain": "proactive",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "proactive.operational_watch"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:proactive.operational_watch (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "proactive.payroll_anomaly",
+      "domain": "proactive",
+      "implementation": "CONTRACT_ONLY",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "proactive.operational_watch"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:proactive.operational_watch (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "proactive.retention_deletion",
+      "domain": "proactive",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "hr-country-execution/capability-gate.ts (invoked: FR blocked=true, families=1, route=GOVERNED_MANUAL)"
+      ],
+      "rationale": "country rule not VERIFIED → explicit fail-closed via a real invocable capability gate + governed fallback"
+    },
+    {
+      "capabilityId": "proactive.sla_breach",
+      "domain": "proactive",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [
+        "proactive.operational_watch"
+      ],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "pack:proactive.operational_watch (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (IMPLEMENTED)"
+    },
+    {
+      "capabilityId": "pierre_admin.autonomy_config",
+      "domain": "pierre_admin",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-autonomy.test.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "pierre_admin.approval_workflow",
+      "domain": "pierre_admin",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-governance.test.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    },
+    {
+      "capabilityId": "pierre_admin.action_registry",
+      "domain": "pierre_admin",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-governance-runtime.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "pierre_admin.cloneguard",
+      "domain": "pierre_admin",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-cloneguard.test.ts / hr-cloneguard-runtime.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "pierre_admin.mission_orchestration",
+      "domain": "pierre_admin",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-mission-control.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "pierre_admin.durable_queue",
+      "domain": "pierre_admin",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "p8_proof:.p89-proofs/p89-100k-fbb957a4f5"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "pierre_admin.recovery",
+      "domain": "pierre_admin",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "p8_proof:.p89-proofs/p89-final-2fa5898d89/failures.json"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "pierre_admin.audit_trail",
+      "domain": "pierre_admin",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:hr-audit-trail.test.ts / hr-audit-trail-runtime.test.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "pierre_admin.permission_enforcement",
+      "domain": "pierre_admin",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_autonomous",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AUTOMATED",
+      "mode": "AUTOMATED",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:p86-roles-and-ownership.itest.ts"
+      ],
+      "rationale": "verified autonomous capability"
+    },
+    {
+      "capabilityId": "pierre_admin.country_config",
+      "domain": "pierre_admin",
+      "implementation": "PARTIAL",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [
+        "pierre_admin.country_config"
+      ],
+      "state": "CERTIFIED_FAIL_CLOSED",
+      "mode": "FAIL_CLOSED",
+      "automationBlocker": "legal_review",
+      "evidenceRefs": [
+        "pack:pierre_admin.country_config (compiles on real runtime)"
+      ],
+      "rationale": "realized by mission pack (COUNTRY_RULES_REQUIRED)"
+    },
+    {
+      "capabilityId": "pierre_admin.sending_identity",
+      "domain": "pierre_admin",
+      "implementation": "VERIFIED_EXISTING",
+      "autonomy": "execute_with_validation",
+      "missionPackIds": [],
+      "state": "CERTIFIED_AFTER_APPROVAL",
+      "mode": "AFTER_APPROVAL",
+      "automationBlocker": "none",
+      "evidenceRefs": [
+        "integration_test:pierre-channels-b33.test.ts"
+      ],
+      "rationale": "verified, executes after validation"
+    }
+  ]
+}

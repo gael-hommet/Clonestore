@@ -1,0 +1,32 @@
+{
+  "run_id": "p89-final-2fa5898d89",
+  "active_tenants": 1000,
+  "noisy_tenants": 5,
+  "normal_tenants": 995,
+  "noisy_jobs_each": 2000,
+  "normal_jobs_each": 3,
+  "before_global_claim": {
+    "rounds": 32,
+    "overlap": 0,
+    "starved": 0,
+    "first_service_round_p95": 30,
+    "first_service_round_max": 32,
+    "normal_served": 995,
+    "normal_total": 995,
+    "noisyShareEarly": 0
+  },
+  "after_fair_claim": {
+    "rounds": 2,
+    "overlap": 0,
+    "starved": 0,
+    "first_service_round_p95": 1,
+    "first_service_round_max": 1,
+    "normal_served": 995,
+    "normal_total": 995,
+    "noisyShareEarly": 0
+  },
+  "defect_reproduced": true,
+  "fairness_primitive": "src/lib/pierre/v1/fair-claim.ts (claimJobsForTenant + fairClaimRound weighted round-robin, quota/tenant)",
+  "tradeoff": "global cross-tenant priority relaxed for bounded per-tenant service; within a tenant, (priority, age) preserved",
+  "ms": 6649
+}

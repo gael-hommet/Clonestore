@@ -17,7 +17,7 @@ const NON_MEMBER: CockpitState = { authenticated: false, member: false, status: 
 export async function GET() {
   let user: { id: string; email: string | null } | null = null;
   try {
-    const supabase = supabaseServer();
+    const supabase = await supabaseServer();
     const { data } = await supabase.auth.getUser();
     if (data.user) user = { id: data.user.id, email: data.user.email ?? null };
   } catch {

@@ -1,0 +1,151 @@
+{
+  "run_id": "p812prov-58977782c6",
+  "summary": {
+    "providers": 6,
+    "byStatus": {
+      "blocked": 1,
+      "not_configured": 5
+    },
+    "usable": 0,
+    "blocked": [
+      "yousign"
+    ],
+    "allHaveManualPath": true,
+    "preflights": [
+      {
+        "provider": "yousign",
+        "status": "blocked",
+        "configured": false,
+        "missingCredentials": [
+          "YOUSIGN_API_KEY",
+          "YOUSIGN_BASE_URL"
+        ],
+        "blockedReason": "P8.7.4 — Yousign sandbox org-membership blocker (FINAL PRODUCTION UNBLOCK: NOT AUTHORIZED)",
+        "usable": false
+      },
+      {
+        "provider": "payroll",
+        "status": "not_configured",
+        "configured": false,
+        "missingCredentials": [
+          "PAYROLL_PROVIDER_API_KEY",
+          "PAYROLL_PROVIDER_BASE_URL"
+        ],
+        "blockedReason": null,
+        "usable": false
+      },
+      {
+        "provider": "identity",
+        "status": "not_configured",
+        "configured": false,
+        "missingCredentials": [
+          "IDENTITY_PROVIDER_API_KEY",
+          "IDENTITY_PROVIDER_BASE_URL"
+        ],
+        "blockedReason": null,
+        "usable": false
+      },
+      {
+        "provider": "time_attendance",
+        "status": "not_configured",
+        "configured": false,
+        "missingCredentials": [
+          "TIME_ATTENDANCE_API_KEY",
+          "TIME_ATTENDANCE_BASE_URL"
+        ],
+        "blockedReason": null,
+        "usable": false
+      },
+      {
+        "provider": "benefits",
+        "status": "not_configured",
+        "configured": false,
+        "missingCredentials": [
+          "BENEFITS_PROVIDER_API_KEY",
+          "BENEFITS_PROVIDER_BASE_URL"
+        ],
+        "blockedReason": null,
+        "usable": false
+      },
+      {
+        "provider": "training",
+        "status": "not_configured",
+        "configured": false,
+        "missingCredentials": [
+          "TRAINING_PROVIDER_API_KEY",
+          "TRAINING_PROVIDER_BASE_URL"
+        ],
+        "blockedReason": null,
+        "usable": false
+      }
+    ]
+  },
+  "preflights": [
+    {
+      "provider": "yousign",
+      "status": "blocked",
+      "configured": false,
+      "missingCredentials": [
+        "YOUSIGN_API_KEY",
+        "YOUSIGN_BASE_URL"
+      ],
+      "blockedReason": "P8.7.4 — Yousign sandbox org-membership blocker (FINAL PRODUCTION UNBLOCK: NOT AUTHORIZED)",
+      "usable": false
+    },
+    {
+      "provider": "payroll",
+      "status": "not_configured",
+      "configured": false,
+      "missingCredentials": [
+        "PAYROLL_PROVIDER_API_KEY",
+        "PAYROLL_PROVIDER_BASE_URL"
+      ],
+      "blockedReason": null,
+      "usable": false
+    },
+    {
+      "provider": "identity",
+      "status": "not_configured",
+      "configured": false,
+      "missingCredentials": [
+        "IDENTITY_PROVIDER_API_KEY",
+        "IDENTITY_PROVIDER_BASE_URL"
+      ],
+      "blockedReason": null,
+      "usable": false
+    },
+    {
+      "provider": "time_attendance",
+      "status": "not_configured",
+      "configured": false,
+      "missingCredentials": [
+        "TIME_ATTENDANCE_API_KEY",
+        "TIME_ATTENDANCE_BASE_URL"
+      ],
+      "blockedReason": null,
+      "usable": false
+    },
+    {
+      "provider": "benefits",
+      "status": "not_configured",
+      "configured": false,
+      "missingCredentials": [
+        "BENEFITS_PROVIDER_API_KEY",
+        "BENEFITS_PROVIDER_BASE_URL"
+      ],
+      "blockedReason": null,
+      "usable": false
+    },
+    {
+      "provider": "training",
+      "status": "not_configured",
+      "configured": false,
+      "missingCredentials": [
+        "TRAINING_PROVIDER_API_KEY",
+        "TRAINING_PROVIDER_BASE_URL"
+      ],
+      "blockedReason": null,
+      "usable": false
+    }
+  ]
+}

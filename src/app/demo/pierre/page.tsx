@@ -30,7 +30,7 @@ const CAPABILITY_FRAME = [
 export default function PierreDemoPage() {
   return (
     <div className="pd-root">
-      <main id="demo-pierre-cockpit" className="pd-shell">
+      <main id="demo-pierre-cockpit" data-tour-id="demo-entry" className="pd-shell">
         <PierreDemoExperience />
 
         {/* ── Capability frame (SEO + context, responsive) ────────────────── */}

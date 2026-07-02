@@ -8,7 +8,7 @@
 // issued-at anti-replay; and NO secret leak in errors.
 import { describe, it, expect } from "vitest";
 import { createHmac } from "crypto";
-import { YousignSignatureProvider, type FetchLike, type FetchResponse } from "../signature-providers/yousign";
+import { YousignSignatureProvider, conformExternalId, type FetchLike, type FetchResponse } from "../signature-providers/yousign";
 import { SignatureProviderError } from "../signature-provider";
 
 const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
@@ -56,7 +56,10 @@ describe("B3-R1.15 real Yousign v3 HTTP contract", () => {
     expect(c.headers.authorization).toBe(`Bearer ${KEY}`);
     expect(c.headers["content-type"]).toBe("application/json");
     const body = JSON.parse(c.body as string);
-    expect(body.external_id).toBe("clonestore:c:r:abc");
+    // P8.7.4 — the external_id is conformed at the provider boundary (Yousign 400s the raw colon
+    // anchor). The wire value is the deterministic, colon-free, bounded token.
+    expect(body.external_id).toBe(conformExternalId("clonestore:c:r:abc"));
+    expect(body.external_id).not.toContain(":");
     expect(body.ordered_signers).toBe(true);
     expect(body.delivery_mode).toBe("email");
     // the body must NOT carry any base64 document envelope
@@ -70,7 +73,9 @@ describe("B3-R1.15 real Yousign v3 HTTP contract", () => {
     expect(r?.provider_request_id).toBe("sr_existing");
     expect(m.calls[0].method).toBe("GET");
     expect(m.calls[0].url).toContain("/signature_requests?external_id[eq]=");
-    expect(m.calls[0].url).toContain(encodeURIComponent("clonestore:c:r:abc"));
+    // the SAME conforming transform as createRequest → the anchor we stored is the anchor we query.
+    expect(m.calls[0].url).toContain(encodeURIComponent(conformExternalId("clonestore:c:r:abc")!));
+    expect(m.calls[0].url).not.toContain("%3A"); // never the raw colon anchor
   });
 
   it("uploadDocument → REAL multipart/form-data: file + nature parts, no manual boundary, no base64", async () => {
