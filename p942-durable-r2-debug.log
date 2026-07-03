@@ -1,0 +1,181 @@
+
+[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90mC:/Users/homme/clonestore[39m
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mThe files belonging to this database system will be owned by user "homme".
+This user must also own the server process.
+
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mThe database cluster will be initialized with this locale configuration:
+  provider:    libc
+  LC_COLLATE:  French_France.1252
+  LC_CTYPE:    French_France.1252
+  LC_MESSAGES: C
+  LC_MONETARY: French_France.1252
+  LC_NUMERIC:  French_France.1252
+  LC_TIME:     French_France.1252
+The default database encoding has accordingly been set to "WIN1252".
+The default text search configuration will be set to "french".
+
+Data page checksums are disabled.
+
+creating directory C:/Users/homme/clonestore/.p941-proofs/pgdata-itest ... 
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mok
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mcreating subdirectories ... 
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mok
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mselecting dynamic shared memory implementation ... windows
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mselecting default max_connections ... 
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39m100
+selecting default shared_buffers ...
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39m 
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39m128MB
+selecting default time zone ... 
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mGMT
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mcreating configuration files ... 
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mok
+running bootstrap script ... 
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mok
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mperforming post-bootstrap initialization ...
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39m 
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mok
+syncing data to disk ...
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39m 
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39mok
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39m
+Success. You can now start the database server using:
+
+    ^"C^:^\Users^\homme^\clonestore^\node^_modules^\^@embedded^-postgres^\windows^-x64^\native^\bin^\pg^_ctl^" -D ^"C^:^\Users^\homme^\clonestore^\^.p941^-proofs^\pgdata^-itest^" -l logfile start
+
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39m2026-07-03 21:12:51.468 GMT [28908] LOG:  starting PostgreSQL 16.14, compiled by Visual C++ build 1944, 64-bit
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39m2026-07-03 21:12:51.479 GMT [28908] LOG:  listening on IPv6 address "::1", port 55440
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39m2026-07-03 21:12:51.479 GMT [28908] LOG:  listening on IPv4 address "127.0.0.1", port 55440
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39m2026-07-03 21:12:51.722 GMT [27560] LOG:  database system was shut down at 2026-07-03 21:12:50 GMT
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts
+[22m[39m2026-07-03 21:12:51.778 GMT [28908] LOG:  database system is ready to accept connections
+
+
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.1 durable conversations (Postgres, RLS isolation, multi-device)[2m > [22mcrée, liste et relit une conversation + messages ; isole les tenants[32m 196[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.1 durable conversations (Postgres, RLS isolation, multi-device)[2m > [22mATOMIC seq §5 : 60 appends concurrents sur DEUX pools → 1..60 uniques, persisted==accepted[33m 806[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.1 durable conversations (Postgres, RLS isolation, multi-device)[2m > [22mne persiste jamais une image brute (base64) — seulement des métadonnées[32m 28[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.1 durable support memory — verified-reuse policy[2m > [22mun signalement NE devient PAS réutilisable automatiquement[32m 38[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.1 durable support memory — verified-reuse policy[2m > [22mcrée un support case tenant-scopé (isolé)[32m 21[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.1 durable atomic budget (reserve/commit/release)[2m > [22mréserve, engage le réel, libère le surplus[32m 18[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.1 durable atomic budget (reserve/commit/release)[2m > [22mrefuse au-delà du plafond utilisateur (honnête)[32m 21[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.2 durable idempotence (cross-session/instance)[2m > [22mclaim → new ; re-claim avant commit → in_flight ; après commit → duplicate ; fail → libère[32m 24[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.2 durable idempotence (cross-session/instance)[2m > [22mCROSS-INSTANCE : une 2e connexion (autre 'instance') voit le doublon[32m 120[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)[2m > [22mEXÉCUTION UNIQUE sous concurrence : l'effet ne s'exécute qu'UNE fois[32m 78[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)[2m > [22mDOUBLON après succès → renvoie le résultat existant, effet NON rejoué[32m 16[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)[2m > [22mPAYLOAD différent → commande différente (SHA-256) → exécute séparément[32m 17[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)[2m > [22mREPRISE après lease expiré (crash) : effet idempotent rejoué → même cible[32m 143[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)[2m > [22mcommande étrangère (autre company/actor) ne révèle RIEN[32m 19[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)[2m > [22méchec récupérable → réessai possible ; échec terminal → non rejoué[32m 31[2mms[22m[39m
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.2 §2 — proposal store (server-authoritative, tenant-scoped)[2m > [22mcrée + recharge une proposition ; un autre tenant ne peut pas la charger[32m 14[2mms[22m[39m
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22m[2mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22m[2mconversations, ORDRE des messages, support cases et budget survivent au restart
+[22m[39m2026-07-03 21:12:55.134 GMT [7340] LOG:  starting PostgreSQL 16.14, compiled by Visual C++ build 1944, 64-bit
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22m[2mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22m[2mconversations, ORDRE des messages, support cases et budget survivent au restart
+[22m[39m2026-07-03 21:12:55.147 GMT [7340] LOG:  listening on IPv6 address "::1", port 55440
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22m[2mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22m[2mconversations, ORDRE des messages, support cases et budget survivent au restart
+[22m[39m2026-07-03 21:12:55.147 GMT [7340] LOG:  listening on IPv4 address "127.0.0.1", port 55440
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22m[2mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22m[2mconversations, ORDRE des messages, support cases et budget survivent au restart
+[22m[39m2026-07-03 21:12:55.255 GMT [12564] LOG:  database system was interrupted; last known up at 2026-07-03 21:12:51 GMT
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22m[2mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22m[2mconversations, ORDRE des messages, support cases et budget survivent au restart
+[22m[39m2026-07-03 21:12:55.667 GMT [12564] LOG:  database system was not properly shut down; automatic recovery in progress
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22m[2mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22m[2mconversations, ORDRE des messages, support cases et budget survivent au restart
+[22m[39m2026-07-03 21:12:55.675 GMT [12564] LOG:  redo starts at 0/15781A8
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22m[2mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22m[2mconversations, ORDRE des messages, support cases et budget survivent au restart
+[22m[39m2026-07-03 21:12:55.956 GMT [12564] LOG:  invalid record length at 0/1A4AB00: expected at least 24, got 0
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22m[2mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22m[2mconversations, ORDRE des messages, support cases et budget survivent au restart
+[22m[39m2026-07-03 21:12:55.956 GMT [12564] LOG:  redo done at 0/1A4AAD8 system usage: CPU: user: 0.03 s, system: 0.21 s, elapsed: 0.28 s
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22m[2mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22m[2mconversations, ORDRE des messages, support cases et budget survivent au restart
+[22m[39m2026-07-03 21:12:55.966 GMT [20132] LOG:  checkpoint starting: end-of-recovery immediate wait
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22m[2mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22m[2mconversations, ORDRE des messages, support cases et budget survivent au restart
+[22m[39m2026-07-03 21:12:56.386 GMT [20132] LOG:  checkpoint complete: wrote 1071 buffers (6.5%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.113 s, sync=0.299 s, total=0.423 s; sync files=364, longest=0.004 s, average=0.001 s; distance=4938 kB, estimate=4938 kB; lsn=0/1A4AB00, redo lsn=0/1A4AB00
+
+
+[90mstdout[2m | src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22m[2mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22m[2mconversations, ORDRE des messages, support cases et budget survivent au restart
+[22m[39m2026-07-03 21:12:56.471 GMT [7340] LOG:  database system is ready to accept connections
+
+
+ [32m✓[39m src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts[2m > [22mP9.4.1 RESTART persistence (real PG stop+start)[2m > [22mconversations, ORDRE des messages, support cases et budget survivent au restart[33m 2301[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m17 passed[39m[22m[90m (17)[39m
+[2m   Start at [22m 23:12:43
+[2m   Duration [22m 14.20s[2m (transform 373ms, setup 0ms, import 470ms, tests 13.08s, environment 0ms)[22m
+

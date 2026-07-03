@@ -4,7 +4,20 @@
 P8.13 closed the operational substrate; **P8.14 completes Pierre's cognitive runtime** on top of it. P8.13
 evidence is preserved, not erased.
 
-## Verdict
+## Verdict (owner-corrected)
+
+# P8.14 — PIERRE COGNITIVE RUNTIME: VERIFIED
+# P8 — COMPLETE AI HR EMPLOYEE: NOT YET VERIFIED
+
+**Owner correction (accepted):** the 8/8 adversarial result certifies the **cognitive-runtime layer**, not
+the completion of every operational HR capability. The canon still carries **128 OPEN capabilities**
+(81 MISSING + 36 PARTIAL + 6 CONTRACT_ONLY + 5 IMPLEMENTED_UNVERIFIED of 215). Those are unfinished
+**product** work — not out-of-scope backlog. P8 stays OPEN until the capability closure rules (§4) are met
+(MISSING/PARTIAL/CONTRACT_ONLY/IMPLEMENTED_UNVERIFIED = 0; EXTERNAL/HUMAN_ONLY/LEGAL allowed only with
+complete surrounding automation). The earlier 8/8 cognitive result remains valid evidence and is not
+falsified. Closure matrix: [P8_14_COMPLETE_HR_CAPABILITY_CLOSURE.md](P8_14_COMPLETE_HR_CAPABILITY_CLOSURE.md).
+
+### Cognitive-runtime verdict (unchanged, still valid)
 
 # P8.14 — PIERRE COGNITIVE RUNTIME VERIFIED
 

@@ -12,11 +12,6 @@ import {
   fetchPierreMission,
   fetchPierreMissionValidations,
   fetchPierreEmployeesV1,
-  submitPierreMission,
-  approvePierreValidation,
-  rejectPierreValidation,
-  requestPierreValidationChanges,
-  cancelPierreMission,
 } from "@/lib/pierre/cockpit/api-client";
 import {
   buildOverview,
@@ -37,7 +32,6 @@ import { runCloneChatTurn, type CloneChatContext } from "@/lib/clonechat/engine"
 // pure ; passer par le barrel embarquerait client.ts/screenshot.ts (import dynamique
 // du SDK OpenAI, code Node) dans le bundle NAVIGATEUR. On garde le SDK hors client.
 import { assembleFromStructured } from "@/lib/clonechat/openai/governed-turn";
-import { executeGovernedAction, createIdempotencyLedger } from "@/lib/clonechat/tool-executor";
 import type { CloneChatMessage, CloneChatProposedAction, CloneChatContentBlock } from "@/lib/clonechat";
 
 export type CloneChatUiMode = "loading" | "public" | "authenticated";
@@ -69,7 +63,6 @@ export function useCloneChat() {
   const mounted = useRef(true);
   const setConv = useCallback((id: string | null) => { conversationIdRef.current = id; setConversationId(id); }, []);
   const authHeaders = useCallback((): Record<string, string> => ({ "Content-Type": "application/json", ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}) }), []);
-  const idem = useRef(createIdempotencyLedger());
   const abortRef = useRef<AbortController | null>(null);
   const lastUserRef = useRef<{ text: string; images: string[] } | null>(null);
 
@@ -198,7 +191,18 @@ export function useCloneChat() {
         return;
       }
       const assembled = assembleFromStructured(data.structured, ctx, data.usageTokens ?? 0, t);
-      const blocks = [...assembled.blocks];
+      // P9.4.2 r2 §3 — L'exécution des actions à effet est AUTHORITATIVE CÔTÉ SERVEUR. On retire
+      // les aperçus d'action dérivés client, et on n'affiche un bouton « Confirmer » QUE si le
+      // serveur a persisté une PROPOSITION (référence proposalId). Le client ne détient jamais
+      // le payload canonique : la confirmation appellera /api/assistant/execute avec la référence.
+      const blocks: CloneChatContentBlock[] = assembled.blocks.filter((b) => !(b.type === "action_preview" && b.action.requiresConfirmation));
+      const prop = data.proposal as { id?: string; kind?: CloneChatProposedAction["kind"]; label?: string } | null | undefined;
+      if (prop?.id && prop.kind) {
+        blocks.push({ type: "action_preview", action: {
+          id: `srv-${prop.id}`, kind: prop.kind, label: prop.label ?? "Confirmer", risk: prop.kind === "cancel_mission" ? "irreversible" : "sensitive",
+          requiresConfirmation: true, allowed: true, reason: null, payload: {}, href: null, proposalId: prop.id,
+        } });
+      }
       // Citations discrètes (« D'après … ») — jamais de chemin de fichier / table au client.
       if (Array.isArray(data.citationLabels) && data.citationLabels.length > 0) blocks.push({ type: "boundary", provenance: "system", text: `D'après ${data.citationLabels.slice(0, 3).join(", ")}.` });
       push(msg("assistant", blocks, "company"));

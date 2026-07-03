@@ -21,6 +21,7 @@ import { buildGroundedSystemPrompt, validateCitations } from "@/lib/clonechat/kn
 import { getCloneChatStores } from "@/lib/clonechat/server/runtime";
 import { resolveCloneChatCompany } from "@/lib/clonechat/server/company";
 import { tenantRefusalResponse } from "@/lib/clonechat/server/auth";
+import { buildAndPersistProposal } from "@/lib/clonechat/server/proposal-builder";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -169,7 +170,17 @@ export async function POST(req: Request) {
       }
 
       await persistAssistant([{ type: "text", text: structured.answer }], { sourceIds: cited.valid, usage: { totalTokens: tokens } });
-      return noStore({ ok: true, source: "openai", structured, usageTokens: tokens, citationLabels: cited.labels, knownIssue: reusable?.matched ? { title: reusable.case!.title, reusable: reusable.case!.reusable } : null, durable: stores.durable });
+
+      // P9.4.2 r2 §3 — Action EFFECTIVE proposée par le modèle : le SERVEUR dérive le payload
+      // canonique validé (cible résolue contre l'état V1 réel), PERSISTE la proposition et ne
+      // renvoie qu'une RÉFÉRENCE. La confirmation exécutera l'action côté serveur (jamais le
+      // client). Best-effort : une panne de résolution n'échoue pas le tour (pas de bouton).
+      let proposal: Awaited<ReturnType<typeof buildAndPersistProposal>> = null;
+      try {
+        proposal = await buildAndPersistProposal({ toolCall: structured.tool_call ?? null, userMessage: message, identity: ctx, conversationId, proposals: stores.proposals, req, at: now() });
+      } catch { proposal = null; }
+
+      return noStore({ ok: true, source: "openai", structured, proposal, usageTokens: tokens, citationLabels: cited.labels, knownIssue: reusable?.matched ? { title: reusable.case!.title, reusable: reusable.case!.reusable } : null, durable: stores.durable });
     } catch {
       return deterministicFallback();
     }

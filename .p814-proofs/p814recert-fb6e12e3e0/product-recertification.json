@@ -1,0 +1,39 @@
+{
+  "runId": "p814recert-fb6e12e3e0",
+  "total": 215,
+  "domains": 22,
+  "closed_status_counts": {
+    "VERIFIED_EXISTING": 77,
+    "IMPLEMENTED_GOVERNED": 97,
+    "IMPLEMENTED_LEGAL_BLOCKED": 27,
+    "IMPLEMENTED_EXTERNAL_GOVERNED": 4,
+    "EXTERNAL_DEPENDENCY": 5,
+    "HUMAN_ONLY": 4,
+    "LEGAL_CONTENT_REQUIRED": 1
+  },
+  "open_total": 0,
+  "open_capabilities": [],
+  "open_by_domain": {},
+  "integrity": {
+    "closed_without_evidence": 0,
+    "governed_without_compiling_pack": 0,
+    "legal_mislabelled": 0,
+    "external_mislabelled": 0
+  },
+  "gates": {
+    "missing_zero": true,
+    "partial_zero": true,
+    "contract_only_zero": true,
+    "implemented_unverified_zero": true,
+    "all_domains_covered": true,
+    "every_capability_has_evidence": true,
+    "no_fabrication": true
+  },
+  "external_pending": {
+    "lawyer_verified_country_rules": false,
+    "providers_live": 0,
+    "yousign_p874": "OPEN",
+    "production_unblock_authorized": false
+  },
+  "ok": true
+}

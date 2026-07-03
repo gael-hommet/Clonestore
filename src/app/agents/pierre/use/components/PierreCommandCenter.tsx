@@ -138,7 +138,7 @@ export function PierreCommandCenter({
                 className="mt-1 text-sm"
                 style={{ color: "var(--cs-ink-4)" }}
               >
-                Votre assistant RH intelligent. Décrivez votre besoin en langage naturel.
+                Votre employé IA RH. Décrivez votre besoin en langage naturel.
               </p>
             </div>
 

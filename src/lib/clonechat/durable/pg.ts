@@ -34,6 +34,7 @@ export function resolveClonechatDbUrl(): string | null {
 type PgPool = {
   connect(): Promise<PgClient>;
   end(): Promise<void>;
+  on(event: "error", cb: (err: unknown) => void): void;
 };
 type PgClient = {
   query(text: string, params?: readonly unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number | null }>;
@@ -46,6 +47,14 @@ export async function createPgClonechatDb(connectionString: string, opts?: { ass
   // importé que par la couche serveur). Specifier statique → résolu par le runtime nodejs.
   const { default: pg } = (await import("pg")) as unknown as { default: { Pool: new (c: unknown) => PgPool } };
   const pool = new pg.Pool({ connectionString, max: 8, ...(opts?.ssl ? { ssl: { rejectUnauthorized: false } } : {}) });
+  // OBLIGATOIRE (pg) : un client INACTIF du pool peut être coupé (redémarrage Postgres,
+  // coupure réseau, arrêt côté serveur). pg relaie alors l'erreur au niveau du pool ; SANS
+  // écouteur, Node émet un `uncaughtException` et le process PLANTE. On CONSOMME l'erreur et
+  // on la trace (observable, jamais silencieuse) — le pool recrée les connexions à la demande.
+  // Ce n'est pas un swallow global : l'écouteur est scopé à CE pool, sur l'évènement idle.
+  pool.on("error", (err) => {
+    try { console.warn("[clonechat] pg pool idle-client error (recovered):", (err as { message?: string })?.message ?? err); } catch { /* ignore */ }
+  });
   const assumeRole = opts?.assumeRole === undefined ? "clonechat_app" : opts.assumeRole;
 
   async function run<T>(setup: (c: PgClient) => Promise<void>, fn: (q: ClonechatQuery) => Promise<T>): Promise<T> {

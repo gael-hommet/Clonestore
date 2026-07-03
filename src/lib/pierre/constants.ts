@@ -2,7 +2,7 @@ import type { PierreClassification, PierreTaskType } from "./types";
 
 export const PIERRE_NAME = "Pierre";
 
-export const PIERRE_PRODUCT_LABEL = "Assistant RH Automatisé";
+export const PIERRE_PRODUCT_LABEL = "Employé IA RH";
 
 export const PIERRE_ALLOWED_SCOPE = [
   "documents RH simples",

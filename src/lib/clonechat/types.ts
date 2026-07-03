@@ -78,6 +78,10 @@ export interface CloneChatProposedAction {
   readonly payload: Readonly<Record<string, unknown>>;
   /** Deep-link cockpit (identifiant opaque uniquement, jamais de contenu sensible). */
   readonly href: string | null;
+  /** P9.4.2 r2 §3 — Référence de PROPOSITION persistée côté serveur. Quand présente, la
+   *  confirmation exécute l'action CÔTÉ SERVEUR (le client ne soumet que cette référence,
+   *  jamais le payload canonique ni un fingerprint). Absente pour la navigation/ouverture. */
+  readonly proposalId?: string | null;
 }
 
 // ── Intentions ──────────────────────────────────────────────────────────────

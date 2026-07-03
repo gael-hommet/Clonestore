@@ -192,12 +192,22 @@ describe("P9.4.2 durable idempotence (cross-session/instance)", () => {
 });
 
 describe("P9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)", () => {
-  const cmd = (over: Partial<CanonicalCommand> = {}): CanonicalCommand => ({ companyId: A.companyId, actorId: A.userId, conversationId: null, proposalId: "prop-1", actionKind: "create_mission", payload: { instruction: "Préparer un CDI" }, ...over });
+  // proposal_id est un uuid réel (issu de clonechat_proposals en prod) → UUID valides ici.
+  const PID = {
+    concurrent: "10000000-0000-4000-8000-000000000001",
+    dup:        "10000000-0000-4000-8000-000000000002",
+    payload:    "10000000-0000-4000-8000-000000000003",
+    recover:    "10000000-0000-4000-8000-000000000004",
+    secret:     "10000000-0000-4000-8000-000000000005",
+    recFail:    "10000000-0000-4000-8000-000000000006",
+    termFail:   "10000000-0000-4000-8000-000000000007",
+  };
+  const cmd = (over: Partial<CanonicalCommand> = {}): CanonicalCommand => ({ companyId: A.companyId, actorId: A.userId, conversationId: null, proposalId: PID.concurrent, actionKind: "create_mission", payload: { instruction: "Préparer un CDI" }, ...over });
 
   it("EXÉCUTION UNIQUE sous concurrence : l'effet ne s'exécute qu'UNE fois", async () => {
     let runs = 0;
     const effect = async () => { runs += 1; await new Promise((r) => setTimeout(r, 40)); return { ok: true, targetRef: "m-unique", result: { missionId: "m-unique" } }; };
-    const c = cmd({ proposalId: "concurrent-1" });
+    const c = cmd({ proposalId: PID.concurrent });
     const outcomes = await Promise.all(Array.from({ length: 6 }, () => runGovernedCommand(durable.commands, c, effect, { leaseOwner: "w1", leaseMs: 5000 })));
     expect(runs).toBe(1); // l'effet réel ne s'exécute qu'une fois
     expect(outcomes.filter((o) => o.status === "succeeded").length).toBe(1);
@@ -207,7 +217,7 @@ describe("P9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)
   it("DOUBLON après succès → renvoie le résultat existant, effet NON rejoué", async () => {
     let runs = 0;
     const effect = async () => { runs += 1; return { ok: true, targetRef: "m-2", result: { missionId: "m-2" } }; };
-    const c = cmd({ proposalId: "dup-1" });
+    const c = cmd({ proposalId: PID.dup });
     const first = await runGovernedCommand(durable.commands, c, effect, { leaseOwner: "w1", leaseMs: 5000 });
     const second = await runGovernedCommand(durable.commands, c, effect, { leaseOwner: "w1", leaseMs: 5000 });
     expect(first.status).toBe("succeeded");
@@ -219,13 +229,13 @@ describe("P9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)
   it("PAYLOAD différent → commande différente (SHA-256) → exécute séparément", async () => {
     let runs = 0;
     const effect = async () => { runs += 1; return { ok: true, targetRef: `m-${runs}`, result: {} }; };
-    await runGovernedCommand(durable.commands, cmd({ proposalId: "p", payload: { instruction: "A" } }), effect, { leaseOwner: "w1", leaseMs: 5000 });
-    await runGovernedCommand(durable.commands, cmd({ proposalId: "p", payload: { instruction: "B" } }), effect, { leaseOwner: "w1", leaseMs: 5000 });
+    await runGovernedCommand(durable.commands, cmd({ proposalId: PID.payload, payload: { instruction: "A" } }), effect, { leaseOwner: "w1", leaseMs: 5000 });
+    await runGovernedCommand(durable.commands, cmd({ proposalId: PID.payload, payload: { instruction: "B" } }), effect, { leaseOwner: "w1", leaseMs: 5000 });
     expect(runs).toBe(2); // deux payloads canoniques distincts
   });
 
   it("REPRISE après lease expiré (crash) : effet idempotent rejoué → même cible", async () => {
-    const c = cmd({ proposalId: "recover-1" });
+    const c = cmd({ proposalId: PID.recover });
     // 1) claim brut (simule un worker qui prend le lease puis CRASH sans commit), lease court.
     const first = await durable.commands.claim(c, "crashed-worker", 60);
     expect(first.kind).toBe("acquired");
@@ -240,7 +250,7 @@ describe("P9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)
   });
 
   it("commande étrangère (autre company/actor) ne révèle RIEN", async () => {
-    const c = cmd({ proposalId: "secret-1" });
+    const c = cmd({ proposalId: PID.secret });
     await runGovernedCommand(durable.commands, c, async () => ({ ok: true, targetRef: "m-secret", result: {} }), { leaseOwner: "w1", leaseMs: 5000 });
     const { commandFingerprint } = await import("../command-ledger");
     const fp = commandFingerprint(c);
@@ -249,13 +259,13 @@ describe("P9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)
   });
 
   it("échec récupérable → réessai possible ; échec terminal → non rejoué", async () => {
-    const c1 = cmd({ proposalId: "rec-fail" });
+    const c1 = cmd({ proposalId: PID.recFail });
     const r1 = await runGovernedCommand(durable.commands, c1, async () => ({ ok: false, error: "network" }), { leaseOwner: "w1", leaseMs: 5000 });
     expect(r1.status).toBe("failed");
     const r2 = await runGovernedCommand(durable.commands, c1, async () => ({ ok: true, targetRef: "m-retry", result: {} }), { leaseOwner: "w1", leaseMs: 5000 });
     expect(r2.status).toBe("succeeded"); // failed_recoverable → reclaimable
 
-    const c2 = cmd({ proposalId: "term-fail" });
+    const c2 = cmd({ proposalId: PID.termFail });
     await runGovernedCommand(durable.commands, c2, async () => ({ ok: false, terminal: true, error: "permission_denied" }), { leaseOwner: "w1", leaseMs: 5000 });
     let reran = 0;
     const r3 = await runGovernedCommand(durable.commands, c2, async () => { reran += 1; return { ok: true, targetRef: "x", result: {} }; }, { leaseOwner: "w1", leaseMs: 5000 });
@@ -275,21 +285,28 @@ describe("P9.4.2 §2 — proposal store (server-authoritative, tenant-scoped)", 
 });
 
 describe("P9.4.1 RESTART persistence (real PG stop+start)", () => {
-  it("conversations, support cases et budget survivent au restart du serveur", async () => {
+  it("conversations, ORDRE des messages, support cases et budget survivent au restart", async () => {
     const conv = await durable.conversations.createConversation(A, { title: "Avant restart", at: iso(20) });
+    // §5 : plusieurs messages ORDONNÉS doivent rester dans le MÊME ordre après restart.
+    for (let i = 0; i < 12; i++) await durable.conversations.appendMessage(conv.id, A, { role: i % 2 ? "assistant" : "user", content: [{ type: "text", text: `ordre-${i}` }], at: iso(20) });
+    const before = (await durable.conversations.getMessages(conv.id, A, { limit: 100 })).map((m) => ({ seq: m.seq, t: (m.content[0] as { text?: string }).text }));
     await durable.support.report(A, { symptoms: "un bug qui doit survivre au restart total", at: iso(21) });
     const beforeList = (await durable.conversations.listConversations(A)).length;
 
-    // vrai restart
+    // vrai restart : le pool est fermé AVANT l'arrêt du serveur (aucune requête en vol).
     await durable.db.close();
     await epg!.stop();
     await epg!.start();
-    durable = await buildClonechatDurable(URL);
+    durable = await buildClonechatDurable(URL); // NOUVEAU pool après restart (aucun client terminé réutilisé)
 
     const afterConv = await durable.conversations.getConversation(conv.id, A);
     expect(afterConv?.title).toBe("Avant restart");
     const afterList = (await durable.conversations.listConversations(A)).length;
     expect(afterList).toBe(beforeList);
+    // ORDRE identique après restart (seq + contenu, position par position).
+    const after = (await durable.conversations.getMessages(conv.id, A, { limit: 100 })).map((m) => ({ seq: m.seq, t: (m.content[0] as { text?: string }).text }));
+    expect(after).toEqual(before);
+    expect(after.map((m) => m.seq)).toEqual(Array.from({ length: 12 }, (_, i) => i + 1));
     // le cas de bug global est toujours là
     const occ = await durable.support.report(A, { symptoms: "un bug qui doit survivre au restart total", at: iso(22) });
     expect(occ.occurrences).toBe(2); // incrément d'une occurrence pré-restart

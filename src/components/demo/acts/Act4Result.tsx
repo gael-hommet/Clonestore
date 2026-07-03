@@ -94,7 +94,7 @@ export function Act4Result() {
         </div>
 
         <Reveal delay={0.06} className="mx-auto mt-8 max-w-2xl text-center">
-          <p className="demo-statement">Ce qui mobilise habituellement plusieurs personnes sur plusieurs jours, Pierre l&apos;organise, le prépare et le suit — en parallèle et dans la durée.</p>
+          <p className="demo-statement">Vous ne voyez pas une tâche isolée : vous voyez le modèle d&apos;une fonction RH prise en charge — plusieurs missions absorbées en parallèle, dans la durée, ce qui mobiliserait autrement plusieurs collaborateurs.</p>
           <p className="mt-3 flex items-center justify-center gap-2 text-[0.72rem] text-[var(--cs-ink-4)]">
             <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {DEMO_DATA_DISCLAIMER}
           </p>

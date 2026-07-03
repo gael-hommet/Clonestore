@@ -211,7 +211,7 @@ export function evaluatePierreCommercialClaim(claim: string): CommercialClaimEva
 }
 
 export function getPierrePositioningStatement(): string {
-  return "Pierre est un assistant RH intelligent qui prépare, structure, suit et documente — l'humain garde la responsabilité finale des décisions officielles, légales, et contractuelles.";
+  return "Pierre est un employé IA RH : il prend en charge un périmètre opérationnel — il comprend, organise, prépare, suit, relance et trace le travail — pendant que l'humain garde la responsabilité finale des décisions officielles, légales et contractuelles.";
 }
 
 export function getPierreLegalLimitStatement(): string {

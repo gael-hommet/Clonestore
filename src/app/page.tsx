@@ -720,7 +720,7 @@ export default function HomePage() {
                   <SectionTitle
                     eyebrow="Employés IA"
                     title="Aujourd’hui Pierre. Demain, votre organisation s’étoffe."
-                    text="Pierre est l’employé IA opérationnel ouvert aujourd’hui — un poste automatisé spécialisé, avec son périmètre, ses limites, ses règles et son cockpit. D’autres métiers arriveront ensuite."
+                    text="Pierre est l’employé IA opérationnel ouvert aujourd’hui — un poste spécialisé qui prend en charge son périmètre, avec ses limites, ses règles et son cockpit. D’autres métiers arriveront ensuite."
                   />
 
                   <ActionButton
@@ -845,7 +845,7 @@ export default function HomePage() {
                     Découvrez les employés IA disponibles et en construction.
                   </h2>
                   <p className="mx-auto mt-5 max-w-2xl text-[0.98rem] leading-8 text-[var(--cs-ink-3)]">
-                    CloneStore avance vers un système complet de postes automatisés :
+                    CloneStore avance vers un système complet de postes tenus par des employés IA :
                     RH, support, recrutement, direction, opérations et fonctions spécialisées.
                   </p>
 
@@ -854,6 +854,11 @@ export default function HomePage() {
                       href="/agents"
                       label="Découvrir les employés"
                       primary
+                      icon={<ArrowRight className="h-4 w-4" />}
+                    />
+                    <ActionButton
+                      href="/comprendre-clonestore"
+                      label="Comprendre CloneStore"
                       icon={<ArrowRight className="h-4 w-4" />}
                     />
                     <ActionButton

@@ -182,7 +182,11 @@ export type HrImplementationStatus =
   | "EXTERNAL_DEPENDENCY"     // blocked on a real external provider
   | "LEGAL_CONTENT_REQUIRED"  // needs verified country legal rules
   | "HUMAN_ONLY"              // must be performed by a human
-  | "OUT_OF_SCOPE";           // deliberately not Pierre's job
+  | "OUT_OF_SCOPE"            // deliberately not Pierre's job
+  // ── P8.14 evidence-linked closure statuses (governed implementation, not a rubber-stamp) ──
+  | "IMPLEMENTED_GOVERNED"          // realized by a mission pack that compiles + persists + is worker-executable
+  | "IMPLEMENTED_EXTERNAL_GOVERNED" // internal workflow complete; external provider not live → governed manual path + persisted blocker
+  | "IMPLEMENTED_LEGAL_BLOCKED";    // internal workflow complete; final legal execution fails closed pending lawyer-verified country rules
 
 export type HrImplementationReference = {
   kind: "module" | "route" | "migration" | "function" | "registry" | "doc";

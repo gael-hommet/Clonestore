@@ -89,9 +89,9 @@ export function PierreValuePanel({ roi }: { roi: PierreCockpitROI | null }) {
       {/* KPI grid */}
       <div className="grid grid-cols-2 gap-3">
         <MetricCard
-          label="Heures économisées (est.)"
+          label="Charge de travail absorbée (est.)"
           value={roi.hoursEstimated !== null ? `${roi.hoursEstimated}h` : "—"}
-          sub="estimation Pierre"
+          sub="volume opérationnel estimé"
         />
         <MetricCard
           label="Valeur créée"

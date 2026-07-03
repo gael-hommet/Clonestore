@@ -154,7 +154,7 @@ export function DiagnosticForm() {
           const m = Math.random().toString(36).slice(2, 14);
           try {
             sessionStorage.setItem("cs_b3_diag_session_marker", m);
-          } catch {}
+          } catch { /* best-effort, non bloquant */ }
           return m;
         })()}`;
       emitConversionEvent("diagnostic_started", { step: 1 }, stableKey);
@@ -165,7 +165,7 @@ export function DiagnosticForm() {
   useEffect(() => {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, index, hourlyCost }));
-    } catch {}
+    } catch { /* best-effort, non bloquant */ }
   }, [answers, index, hourlyCost]);
 
   const currentQuestion = QUESTIONS[index];
@@ -459,7 +459,7 @@ function DiagnosticResultView({ result }: { result: DiagnosticApiResult }) {
         }),
         keepalive: true,
       });
-    } catch {}
+    } catch { /* best-effort, non bloquant */ }
   }
 
   return (
@@ -491,7 +491,7 @@ function DiagnosticResultView({ result }: { result: DiagnosticApiResult }) {
           <p className="cs-eyebrow">Économie financière estimée (basée sur le coût horaire que vous avez fourni)</p>
           <p className="text-sm text-[var(--cs-ink-2)]">
             Central&nbsp;: <strong>{result.financial_saving.central_monthly_saving_eur} €/mois</strong>
-            {" vs Pierre 449 €/mois."}
+            {" vs Pierre 449 € HT/mois."}
           </p>
           <p className="text-xs text-[var(--cs-ink-4)]">{result.financial_saving.note}</p>
         </div>
@@ -538,7 +538,7 @@ function DiagnosticResultView({ result }: { result: DiagnosticApiResult }) {
       <div className="cs-command-surface text-center space-y-3">
         <p className="cs-eyebrow">Prochaines étapes</p>
         <p className="text-sm text-[var(--cs-ink-2)]">
-          Pour activer Pierre : abonnement à 449 €/mois. Aucun paiement ne se déclenche tant que vous ne créez pas votre compte.
+          Pour activer Pierre : abonnement à 449 € HT/mois. Aucun paiement ne se déclenche tant que vous ne créez pas votre compte.
         </p>
         <div className="flex flex-wrap justify-center gap-3 pt-1">
           <Link
@@ -546,7 +546,7 @@ function DiagnosticResultView({ result }: { result: DiagnosticApiResult }) {
             onClick={emitCta}
             className="inline-flex h-11 items-center gap-2 rounded-full bg-[var(--cs-violet)] px-6 text-sm font-semibold text-white shadow-lg"
           >
-            <span>Voir Pierre — 449 €/mois</span>
+            <span>Voir Pierre — 449 € HT/mois</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
           <Link

@@ -20,7 +20,7 @@ const SYNTHESIS = [
   "Pierre reprend un périmètre RH opérationnel complet — pas une tâche isolée.",
   "Il travaille en parallèle, garde le contexte et suit jusqu'au résultat.",
   "Votre équipe garde les décisions, la relation et les situations sensibles.",
-  "Vous augmentez votre capacité sans recruter la structure humaine équivalente.",
+  "Vous augmentez votre capacité sans recruter une équipe équivalente — l'écart de coût vient du volume, de la vitesse, de la continuité et du travail en parallèle.",
 ];
 
 export function Act6Pierre({
