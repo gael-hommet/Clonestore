@@ -26,9 +26,25 @@ export interface ExecutionDeps {
   cancelMission?(missionId: string): Promise<SimpleResult>;
   /** Ouverture d'un cas de support DURABLE (tenant-safe). */
   createSupportCase?(summary: string): Promise<SimpleResult>;
-  /** Registre d'idempotence : cette proposition a-t-elle déjà été exécutée ? */
+  /** Registre d'idempotence de SESSION (client) : garde rapide contre le double-clic. */
   alreadyExecuted(actionId: string): boolean;
   markExecuted(actionId: string): void;
+  /** Idempotence DURABLE cross-session (serveur) : réserve avant exécution. 'new' ⇒
+   *  exécuter ; sinon ⇒ doublon. Optionnel (repli session-only si absent). */
+  claimDurable?(kind: string, key: string): Promise<{ fingerprint: string; status: "new" | "duplicate" | "in_flight" }>;
+  settleDurable?(fingerprint: string, ok: boolean): Promise<void>;
+}
+
+/** Clé stable d'une action (pour l'idempotence durable). null = pas de garde durable. */
+function keyForAction(action: CloneChatProposedAction): string | null {
+  const p = action.payload as Record<string, unknown> | undefined;
+  switch (action.kind) {
+    case "create_mission": return String(p?.instruction ?? "").trim() || null;
+    case "decide_validation": return p?.validationId ? `${p.validationId}:${p.decision}:${p.version}` : null;
+    case "cancel_mission": return p?.missionId ? String(p.missionId) : null;
+    case "create_support_case": return String(p?.summary ?? "").trim() || null;
+    default: return null;
+  }
 }
 
 export type ExecutionOutcome =
@@ -63,60 +79,68 @@ export async function executeGovernedAction(
     return { kind: "refused", reason: "confirmation_required" };
   }
 
+  // Garde d'idempotence : (1) session client (double-clic) ; (2) DURABLE cross-session
+  // (serveur) — un reload ou un autre appareil qui reconfirme la MÊME action logique est
+  // refusé comme doublon. La garde durable est optionnelle (repli session-only).
+  const DUP: Partial<Record<string, string>> = {
+    create_mission: "Cette mission a déjà été confiée à Pierre.",
+    decide_validation: "Cette validation a déjà été traitée.",
+    cancel_mission: "Cette mission a déjà été annulée.",
+    create_support_case: "Un cas de support a déjà été ouvert.",
+  };
+  if (deps.alreadyExecuted(action.id)) return { kind: "duplicate", message: DUP[action.kind] ?? "Action déjà effectuée." };
+  const key = keyForAction(action);
+  let fingerprint: string | null = null;
+  if (deps.claimDurable && key) {
+    const c = await deps.claimDurable(action.kind, key);
+    if (c.status !== "new") return { kind: "duplicate", message: DUP[action.kind] ?? "Action déjà effectuée." };
+    fingerprint = c.fingerprint;
+  }
+  const settle = async (ok: boolean) => { if (fingerprint && deps.settleDurable) await deps.settleDurable(fingerprint, ok); };
+
   if (action.kind === "create_mission") {
-    // Idempotence : une proposition déjà exécutée ne réexécute pas.
-    if (deps.alreadyExecuted(action.id)) {
-      return { kind: "duplicate", message: "Cette mission a déjà été confiée à Pierre." };
-    }
     const instruction = String((action.payload as { instruction?: string } | undefined)?.instruction ?? "").trim();
-    if (!instruction) return { kind: "refused", reason: "empty_instruction" };
-
-    const result = await deps.submitMission(instruction, action.id);
-    if (!result.ok) return { kind: "failed", message: result.error ?? "mission_not_created" };
-
-    // Succès CONFIRMÉ par le serveur → on marque l'idempotence.
-    deps.markExecuted(action.id);
+    if (!instruction) { await settle(false); return { kind: "refused", reason: "empty_instruction" }; }
+    const result = await deps.submitMission(instruction, fingerprint ?? action.id);
+    if (!result.ok) { await settle(false); return { kind: "failed", message: result.error ?? "mission_not_created" }; }
+    deps.markExecuted(action.id); await settle(true);
     const missionId = result.missionId ?? null;
-    const href = missionId
-      ? `/agents/pierre/use?view=missions&mission=${encodeURIComponent(missionId)}`
-      : "/agents/pierre/use";
+    const href = missionId ? `/agents/pierre/use?view=missions&mission=${encodeURIComponent(missionId)}` : "/agents/pierre/use";
     return { kind: "executed", missionId, href };
   }
 
   if (action.kind === "decide_validation") {
-    if (!deps.decideValidation) return { kind: "refused", reason: "decide_unavailable" };
-    if (deps.alreadyExecuted(action.id)) return { kind: "duplicate", message: "Cette validation a déjà été traitée." };
+    if (!deps.decideValidation) { await settle(false); return { kind: "refused", reason: "decide_unavailable" }; }
     const p = action.payload as { validationId?: string; decision?: "approve" | "reject" | "request_changes"; version?: number };
-    if (!p?.validationId || p.version == null || !p.decision) return { kind: "refused", reason: "invalid_validation_payload" };
+    if (!p?.validationId || p.version == null || !p.decision) { await settle(false); return { kind: "refused", reason: "invalid_validation_payload" }; }
     const r = await deps.decideValidation(p.validationId, p.decision, p.version);
-    if (!r.ok) return { kind: "failed", message: r.error ?? "decision_not_saved" };
-    deps.markExecuted(action.id);
+    if (!r.ok) { await settle(false); return { kind: "failed", message: r.error ?? "decision_not_saved" }; }
+    deps.markExecuted(action.id); await settle(true);
     const label = p.decision === "reject" ? "rejetée" : p.decision === "request_changes" ? "renvoyée pour changements" : "approuvée";
     return { kind: "executed", missionId: null, href: "/agents/pierre/use?view=validations", message: `Décision enregistrée : validation ${label}.` };
   }
 
   if (action.kind === "cancel_mission") {
-    if (!deps.cancelMission) return { kind: "refused", reason: "cancel_unavailable" };
-    if (deps.alreadyExecuted(action.id)) return { kind: "duplicate", message: "Cette mission a déjà été annulée." };
+    if (!deps.cancelMission) { await settle(false); return { kind: "refused", reason: "cancel_unavailable" }; }
     const p = action.payload as { missionId?: string };
-    if (!p?.missionId) return { kind: "refused", reason: "invalid_mission_payload" };
+    if (!p?.missionId) { await settle(false); return { kind: "refused", reason: "invalid_mission_payload" }; }
     const r = await deps.cancelMission(p.missionId);
-    if (!r.ok) return { kind: "failed", message: r.error ?? "cancel_failed" };
-    deps.markExecuted(action.id);
+    if (!r.ok) { await settle(false); return { kind: "failed", message: r.error ?? "cancel_failed" }; }
+    deps.markExecuted(action.id); await settle(true);
     return { kind: "executed", missionId: p.missionId, href: `/agents/pierre/use?view=missions&mission=${encodeURIComponent(p.missionId)}`, message: "Mission annulée." };
   }
 
   if (action.kind === "create_support_case") {
-    if (!deps.createSupportCase) return { kind: "refused", reason: "support_unavailable" };
-    if (deps.alreadyExecuted(action.id)) return { kind: "duplicate", message: "Un cas de support a déjà été ouvert." };
+    if (!deps.createSupportCase) { await settle(false); return { kind: "refused", reason: "support_unavailable" }; }
     const summary = String((action.payload as { summary?: string } | undefined)?.summary ?? "").trim();
-    if (!summary) return { kind: "refused", reason: "empty_summary" };
+    if (!summary) { await settle(false); return { kind: "refused", reason: "empty_summary" }; }
     const r = await deps.createSupportCase(summary);
-    if (!r.ok) return { kind: "failed", message: r.error ?? "support_case_failed" };
-    deps.markExecuted(action.id);
+    if (!r.ok) { await settle(false); return { kind: "failed", message: r.error ?? "support_case_failed" }; }
+    deps.markExecuted(action.id); await settle(true);
     return { kind: "executed", missionId: null, href: "/profile/messages", message: "Cas de support ouvert. Notre équipe pourra le suivre." };
   }
 
+  await settle(false);
   return { kind: "refused", reason: `unsupported_kind:${action.kind}` };
 }
 

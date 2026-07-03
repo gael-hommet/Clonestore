@@ -9,6 +9,8 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { readFileSync, existsSync, rmSync } from "fs";
 import { resolve } from "path";
 import { buildClonechatDurable, type ClonechatDurable } from "../index";
+import { runGovernedCommand } from "../../server/command-executor";
+import type { CanonicalCommand } from "../command-ledger";
 import type { CloneChatOpenAIConfig } from "../../openai/config";
 
 const PORT = Number(process.env.P941_ITEST_PORT ?? 55440);
@@ -64,6 +66,30 @@ describe("P9.4.1 durable conversations (Postgres, RLS isolation, multi-device)",
     expect(await durable.conversations.listConversations(B)).toHaveLength(0);
     expect(await durable.conversations.getConversation(conv.id, B)).toBeNull();
     expect(await durable.conversations.getMessages(conv.id, B)).toHaveLength(0);
+  });
+
+  it("ATOMIC seq §5 : 60 appends concurrents sur DEUX pools → 1..60 uniques, persisted==accepted", async () => {
+    const conv = await durable.conversations.createConversation(A, { title: "Concurrence", at: iso(6) });
+    const N = 60;
+    // DEUXIÈME pool indépendant (2e "instance" applicative sur la même base).
+    const pool2 = await buildClonechatDurable(URL);
+    try {
+      // Requêtes réparties sur les deux pools ; aucun .catch → toute violation FAIT ÉCHOUER.
+      const results = await Promise.all(Array.from({ length: N }, (_, i) => {
+        const store = (i % 2 === 0 ? durable : pool2).conversations;
+        return store.appendMessage(conv.id, A, { role: "user", content: [{ type: "text", text: `m${i}` }], at: iso(6) }).then((m) => m.seq);
+      }));
+      const accepted = results.length;
+      const seqs = results.slice().sort((a, b) => a - b);
+      expect(accepted).toBe(N);                              // toutes acceptées (aucune exception avalée)
+      expect(new Set(seqs).size).toBe(N);                    // aucun doublon
+      expect(seqs).toEqual(Array.from({ length: N }, (_, i) => i + 1)); // 1..N contigus
+      const stored = await durable.conversations.getMessages(conv.id, A, { limit: 200 });
+      expect(stored.length).toBe(accepted);                  // persisted == accepted
+      expect(stored.map((m) => m.seq)).toEqual(Array.from({ length: N }, (_, i) => i + 1)); // ordre exact
+      // Tenant B ne peut PAS appender à la conversation de A.
+      await expect(pool2.conversations.appendMessage(conv.id, B, { role: "user", content: [{ type: "text", text: "x" }], at: iso(6) })).rejects.toThrow();
+    } finally { await pool2.db.close(); }
   });
 
   it("ne persiste jamais une image brute (base64) — seulement des métadonnées", async () => {
@@ -136,6 +162,115 @@ describe("P9.4.1 durable atomic budget (reserve/commit/release)", () => {
     void r3;
     expect(rBig.granted === false || r3.granted === false).toBe(true);
     if (!rBig.granted) expect(rBig.reason).toBe("user_daily");
+  });
+});
+
+describe("P9.4.2 durable idempotence (cross-session/instance)", () => {
+  it("claim → new ; re-claim avant commit → in_flight ; après commit → duplicate ; fail → libère", async () => {
+    const fp = "exec_test0001";
+    const meta = { companyId: A.companyId, userId: A.userId, kind: "create_mission" };
+    expect(await durable.idempotency.claim(fp, meta)).toBe("new");
+    expect(await durable.idempotency.claim(fp, meta)).toBe("in_flight"); // réservé, pas encore engagé
+    await durable.idempotency.commit(fp, { missionId: "m-x" });
+    expect(await durable.idempotency.claim(fp, meta)).toBe("duplicate"); // engagé → doublon durable
+    // fail libère un claim non engagé (réessai possible)
+    const fp2 = "exec_test0002";
+    expect(await durable.idempotency.claim(fp2, meta)).toBe("new");
+    await durable.idempotency.fail(fp2);
+    expect(await durable.idempotency.claim(fp2, meta)).toBe("new");
+  });
+
+  it("CROSS-INSTANCE : une 2e connexion (autre 'instance') voit le doublon", async () => {
+    const fp = "exec_cross001";
+    const meta = { companyId: A.companyId, userId: A.userId, kind: "create_support_case" };
+    expect(await durable.idempotency.claim(fp, meta)).toBe("new");
+    await durable.idempotency.commit(fp);
+    const other = await buildClonechatDurable(URL); // 2e pool = 2e instance applicative
+    try { expect(await other.idempotency.claim(fp, meta)).toBe("duplicate"); }
+    finally { await other.db.close(); }
+  });
+});
+
+describe("P9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)", () => {
+  const cmd = (over: Partial<CanonicalCommand> = {}): CanonicalCommand => ({ companyId: A.companyId, actorId: A.userId, conversationId: null, proposalId: "prop-1", actionKind: "create_mission", payload: { instruction: "Préparer un CDI" }, ...over });
+
+  it("EXÉCUTION UNIQUE sous concurrence : l'effet ne s'exécute qu'UNE fois", async () => {
+    let runs = 0;
+    const effect = async () => { runs += 1; await new Promise((r) => setTimeout(r, 40)); return { ok: true, targetRef: "m-unique", result: { missionId: "m-unique" } }; };
+    const c = cmd({ proposalId: "concurrent-1" });
+    const outcomes = await Promise.all(Array.from({ length: 6 }, () => runGovernedCommand(durable.commands, c, effect, { leaseOwner: "w1", leaseMs: 5000 })));
+    expect(runs).toBe(1); // l'effet réel ne s'exécute qu'une fois
+    expect(outcomes.filter((o) => o.status === "succeeded").length).toBe(1);
+    expect(outcomes.every((o) => o.status === "succeeded" || o.status === "duplicate" || o.status === "in_flight")).toBe(true);
+  });
+
+  it("DOUBLON après succès → renvoie le résultat existant, effet NON rejoué", async () => {
+    let runs = 0;
+    const effect = async () => { runs += 1; return { ok: true, targetRef: "m-2", result: { missionId: "m-2" } }; };
+    const c = cmd({ proposalId: "dup-1" });
+    const first = await runGovernedCommand(durable.commands, c, effect, { leaseOwner: "w1", leaseMs: 5000 });
+    const second = await runGovernedCommand(durable.commands, c, effect, { leaseOwner: "w1", leaseMs: 5000 });
+    expect(first.status).toBe("succeeded");
+    expect(second.status).toBe("duplicate");
+    if (second.status === "duplicate") expect(second.targetRef).toBe("m-2");
+    expect(runs).toBe(1);
+  });
+
+  it("PAYLOAD différent → commande différente (SHA-256) → exécute séparément", async () => {
+    let runs = 0;
+    const effect = async () => { runs += 1; return { ok: true, targetRef: `m-${runs}`, result: {} }; };
+    await runGovernedCommand(durable.commands, cmd({ proposalId: "p", payload: { instruction: "A" } }), effect, { leaseOwner: "w1", leaseMs: 5000 });
+    await runGovernedCommand(durable.commands, cmd({ proposalId: "p", payload: { instruction: "B" } }), effect, { leaseOwner: "w1", leaseMs: 5000 });
+    expect(runs).toBe(2); // deux payloads canoniques distincts
+  });
+
+  it("REPRISE après lease expiré (crash) : effet idempotent rejoué → même cible", async () => {
+    const c = cmd({ proposalId: "recover-1" });
+    // 1) claim brut (simule un worker qui prend le lease puis CRASH sans commit), lease court.
+    const first = await durable.commands.claim(c, "crashed-worker", 60);
+    expect(first.kind).toBe("acquired");
+    await new Promise((r) => setTimeout(r, 120)); // lease expiré
+    // 2) un nouveau worker reprend : recovered → réexécute l'effet idempotent → commit.
+    let runs = 0;
+    const effect = async () => { runs += 1; return { ok: true, targetRef: "m-recovered", result: { missionId: "m-recovered" } }; };
+    const out = await runGovernedCommand(durable.commands, c, effect, { leaseOwner: "w2", leaseMs: 5000 });
+    expect(out.status).toBe("succeeded");
+    if (out.status === "succeeded") { expect(out.recovered).toBe(true); expect(out.targetRef).toBe("m-recovered"); }
+    expect(runs).toBe(1);
+  });
+
+  it("commande étrangère (autre company/actor) ne révèle RIEN", async () => {
+    const c = cmd({ proposalId: "secret-1" });
+    await runGovernedCommand(durable.commands, c, async () => ({ ok: true, targetRef: "m-secret", result: {} }), { leaseOwner: "w1", leaseMs: 5000 });
+    const { commandFingerprint } = await import("../command-ledger");
+    const fp = commandFingerprint(c);
+    expect(await durable.commands.get(fp, { companyId: A.companyId, actorId: A.userId })).not.toBeNull(); // le propriétaire voit
+    expect(await durable.commands.get(fp, { companyId: B.companyId, actorId: B.userId })).toBeNull();     // un étranger ne voit rien
+  });
+
+  it("échec récupérable → réessai possible ; échec terminal → non rejoué", async () => {
+    const c1 = cmd({ proposalId: "rec-fail" });
+    const r1 = await runGovernedCommand(durable.commands, c1, async () => ({ ok: false, error: "network" }), { leaseOwner: "w1", leaseMs: 5000 });
+    expect(r1.status).toBe("failed");
+    const r2 = await runGovernedCommand(durable.commands, c1, async () => ({ ok: true, targetRef: "m-retry", result: {} }), { leaseOwner: "w1", leaseMs: 5000 });
+    expect(r2.status).toBe("succeeded"); // failed_recoverable → reclaimable
+
+    const c2 = cmd({ proposalId: "term-fail" });
+    await runGovernedCommand(durable.commands, c2, async () => ({ ok: false, terminal: true, error: "permission_denied" }), { leaseOwner: "w1", leaseMs: 5000 });
+    let reran = 0;
+    const r3 = await runGovernedCommand(durable.commands, c2, async () => { reran += 1; return { ok: true, targetRef: "x", result: {} }; }, { leaseOwner: "w1", leaseMs: 5000 });
+    expect(r3.status).toBe("failed"); // terminal → non rejoué
+    expect(reran).toBe(0);
+  });
+});
+
+describe("P9.4.2 §2 — proposal store (server-authoritative, tenant-scoped)", () => {
+  it("crée + recharge une proposition ; un autre tenant ne peut pas la charger", async () => {
+    const p = await durable.proposals.create(A, { conversationId: null, actionKind: "create_mission", payload: { instruction: "CDI Marie" }, at: iso(30) });
+    const loaded = await durable.proposals.load(p.id, A);
+    expect(loaded?.actionKind).toBe("create_mission");
+    expect((loaded?.payload as { instruction?: string }).instruction).toBe("CDI Marie");
+    expect(await durable.proposals.load(p.id, B)).toBeNull(); // isolation tenant
   });
 });
 

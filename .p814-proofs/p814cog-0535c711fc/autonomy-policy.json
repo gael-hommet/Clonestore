@@ -1,0 +1,5 @@
+{
+  "runId": "p814cog-0535c711fc",
+  "note": "reuses decideValidation hard floor: approval-required/restricted never auto-execute",
+  "verified_by": "cognitive-modules.test.ts autonomy-policy suite"
+}

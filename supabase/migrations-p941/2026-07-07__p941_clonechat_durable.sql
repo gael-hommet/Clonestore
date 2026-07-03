@@ -112,6 +112,64 @@ create table if not exists clonechat_bug_cases (
   last_seen_at  timestamptz not null default now()
 );
 
+-- ── Durable idempotence for effectful actions (P9.4.2, cross-session/instance) ─
+-- Fingerprint = server-side hash(company_id, user_id, kind, key, day). A confirmed
+-- effectful action claims its fingerprint atomically (INSERT ON CONFLICT DO NOTHING);
+-- a reload/other-device re-confirm of the same logical action sees status='committed'
+-- and is refused as a duplicate — durable, not just session-scoped.
+create table if not exists clonechat_action_executions (
+  fingerprint text primary key,
+  company_id  uuid,
+  user_id     uuid,
+  kind        text not null,
+  status      text not null default 'claimed' check (status in ('claimed','committed','failed')),
+  result      jsonb,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create index if not exists cc_exec_company_idx on clonechat_action_executions (company_id, created_at desc);
+
+-- ── P9.4.2 r2 — Persisted proposals (server-authoritative) ───────────────────
+-- Quand le modèle propose une action effective, le SERVEUR persiste la proposition
+-- (payload canonique validé serveur). Le client confirme par proposal_id ; le serveur
+-- RECHARGE la proposition et reconstruit l'action — jamais de payload de confiance client.
+create table if not exists clonechat_proposals (
+  id            uuid primary key default gen_random_uuid(),
+  company_id    uuid not null,
+  user_id       uuid not null,
+  conversation_id uuid,
+  action_kind   text not null,
+  payload       jsonb not null default '{}'::jsonb,   -- payload canonique (serveur)
+  created_at    timestamptz not null default now()
+);
+create index if not exists cc_prop_company_idx on clonechat_proposals (company_id, user_id, created_at desc);
+
+-- ── P9.4.2 r2 — Durable command ledger (server-side, lease + crash recovery) ──
+-- Identité canonique = SHA-256(company, actor, conversation, proposal, kind, payload).
+-- Cycle : CONFIRMED → EXECUTING → SUCCEEDED | FAILED_RECOVERABLE | FAILED_TERMINAL | CANCELLED.
+create table if not exists clonechat_commands (
+  id             uuid primary key default gen_random_uuid(),
+  fingerprint    text not null unique,                  -- SHA-256 canonical identity
+  company_id     uuid not null,
+  actor_id       uuid not null,
+  conversation_id uuid,
+  proposal_id    uuid,
+  action_kind    text not null,
+  payload_sha256 text not null,
+  target_ref     text,                                  -- ex. mission_id / validation_id / case_id
+  status         text not null default 'confirmed'
+                   check (status in ('confirmed','executing','succeeded','failed_recoverable','failed_terminal','cancelled')),
+  attempt_count  integer not null default 0,
+  lease_owner    text,
+  lease_expiry   timestamptz,
+  result         jsonb,
+  recovery       jsonb,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now()
+);
+create index if not exists cc_cmd_company_idx on clonechat_commands (company_id, actor_id, created_at desc);
+create index if not exists cc_cmd_lease_idx on clonechat_commands (status, lease_expiry);
+
 -- ── Atomic budget ledger (global caps enforced across instances) ─────────────
 -- Counters keyed by opaque scope (e.g. 'user:day:<uid>:2026-07-03'). committed =
 -- real spent, reserved = worst-case in-flight. try_reserve locks rows FOR UPDATE
@@ -201,7 +259,7 @@ end $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['clonechat_conversations','clonechat_messages','clonechat_bug_occurrences','clonechat_support_cases']
+  foreach t in array array['clonechat_conversations','clonechat_messages','clonechat_bug_occurrences','clonechat_support_cases','clonechat_proposals','clonechat_commands']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('alter table %I force row level security', t);
@@ -238,6 +296,13 @@ alter table clonechat_usage_events force row level security;
 drop policy if exists cc_usage_all on clonechat_usage_events;
 create policy cc_usage_all on clonechat_usage_events for all using (true) with check (true);
 grant select, insert, update, delete on clonechat_usage_events to clonechat_app;
+
+-- Idempotence : clé opaque (fingerprint) intégrant company+user ; contenu neutralisé.
+alter table clonechat_action_executions enable row level security;
+alter table clonechat_action_executions force row level security;
+drop policy if exists cc_exec_all on clonechat_action_executions;
+create policy cc_exec_all on clonechat_action_executions for all using (true) with check (true);
+grant select, insert, update, delete on clonechat_action_executions to clonechat_app;
 
 grant execute on function clonechat_budget_try_reserve(text[],text[],bigint[],bigint) to clonechat_app;
 grant execute on function clonechat_budget_commit(text[],bigint,bigint) to clonechat_app;

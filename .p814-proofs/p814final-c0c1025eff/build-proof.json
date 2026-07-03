@@ -1,0 +1,14 @@
+{
+  "runId": "p814final-c0c1025eff",
+  "build_exit": 0,
+  "compiled_successfully": true,
+  "build_error_messages": 0,
+  "enoent_errors": 0,
+  "failed_to_compile": 0,
+  "tls_verification_disabled": false,
+  "intelligence_routes_registered": 6,
+  "proactive_tick_route": true,
+  "build_manifest_present": true,
+  "ok": true,
+  "server_500_present": true
+}

@@ -19,6 +19,8 @@ import { detectPromptInjection, injectionRefusalMessage } from "@/lib/clonechat"
 import { redactSymptom } from "@/lib/clonechat/bug-memory";
 import { buildGroundedSystemPrompt, validateCitations } from "@/lib/clonechat/knowledge";
 import { getCloneChatStores } from "@/lib/clonechat/server/runtime";
+import { resolveCloneChatCompany } from "@/lib/clonechat/server/company";
+import { tenantRefusalResponse } from "@/lib/clonechat/server/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,7 +47,8 @@ export async function POST(req: Request) {
   // 1) Flag produit.
   if (!isCloneChatEnabled()) return noStore({ ok: false, code: "CLONECHAT_DISABLED", error: "CloneChat n'est pas encore disponible." }, 503);
 
-  // 2) Auth serveur. Tenant = utilisateur (modèle V0).
+  // 2) Auth serveur (Supabase). Le tenant réel (entreprise) est résolu plus bas via le
+  //    membership V1 (lecture seule) — plus d'hypothèse companyId=userId (P9.4.2 §2).
   let userId: string | null = null;
   try {
     const supabase = await supabaseServer();
@@ -72,7 +75,12 @@ export async function POST(req: Request) {
   const cfg = loadOpenAIConfig();
   const key = readOpenAIKey();
   const stores = await getCloneChatStores();
-  const ctx = { companyId: userId, userId };
+  // Tenant = VRAIE entreprise (membership V1, lecture seule). FAIL-CLOSED : aucun tenant
+  // réel → refus structuré, on n'écrit RIEN (conversation/usage/support/commande) sous une
+  // fausse entreprise ; une panne DB P8 échoue fermé (jamais de continuation silencieuse).
+  const tenant = await resolveCloneChatCompany(userId);
+  if (!tenant.ok) return tenantRefusalResponse(tenant);
+  const ctx = { companyId: tenant.companyId, userId };
   const at = now();
 
   // Persistance durable du message utilisateur (best-effort ; n'échoue jamais le tour).
@@ -109,56 +117,64 @@ export async function POST(req: Request) {
   let reusable: Awaited<ReturnType<typeof stores.support.findReusable>> | null = null;
   if (BUG_HINT.test(message)) reusable = await stores.support.findReusable(message);
 
-  // 5) Chemin MULTIMODAL : capture → sanitisation réelle → analyse honnête.
-  const rawImgs = sanitizeImages(body?.images);
-  if (rawImgs.accepted.length > 0) {
+  // Comptabilité budget garantie : commit règle la réservation (réservé→engagé) ; le
+  // `finally` libère TOUTE réservation non réglée (panne, retour anticipé, exception) —
+  // aucune fuite ni double-comptage possible, quel que soit le chemin.
+  let settled = false;
+  const commit = async (tokens: number) => { if (settled) return; settled = true; await stores.budget.commit(reservation, Math.max(0, tokens)); };
+  try {
+    // 5) Chemin MULTIMODAL : capture → sanitisation réelle → analyse honnête.
+    const rawImgs = sanitizeImages(body?.images);
+    if (rawImgs.accepted.length > 0) {
+      try {
+        const prepared = await prepareImagesForModel(rawImgs.accepted);
+        const shot = await analyzeScreenshotReal(key, { model: cfg.model, userText: message, imageDataUrls: prepared.dataUrls, maxOutputTokens: reservation.maxOutputTokens });
+        const tokens = shot.usage.inputTokens + shot.usage.outputTokens;
+        await commit(tokens);
+        if (tokens > 0) await stores.budget.recordUsage(buildUsageRecord({ usage: shot.usage, userId, companyId: tenant.companyId, at: now(), imageCount: prepared.dataUrls.length }));
+        if (!shot.ok || !shot.analysis) return deterministicFallback();
+        const a = shot.analysis;
+        const symptomText = [a.summary, ...a.visibly_proven].join(". ");
+        const match = await stores.support.findReusable(symptomText);
+        if (!match.matched) await stores.support.report(ctx, { symptoms: symptomText, route: "screenshot", evidence: a.visibly_proven.map((t) => ({ kind: "screenshot_finding", text: redactSymptom(t), at: now() })), at: now() });
+        await persistAssistant([{ type: "text", text: a.summary }], { imageMeta: prepared.meta });
+        return noStore({ ok: true, source: "openai_vision", analysis: a, knownIssue: match.matched ? { title: match.case!.title, workaround: match.case!.workaround, solution: match.case!.solution, reusable: match.case!.reusable } : null, imageSanitization: prepared.report, rejectedImages: rawImgs.rejected, usageTokens: tokens, durable: stores.durable });
+      } catch {
+        return deterministicFallback();
+      }
+    }
+
+    // 6) Appel OpenAI RÉEL (structuré, grounded + citations validées serveur).
     try {
-      const prepared = await prepareImagesForModel(rawImgs.accepted);
-      const shot = await analyzeScreenshotReal(key, { model: cfg.model, userText: message, imageDataUrls: prepared.dataUrls, maxOutputTokens: reservation.maxOutputTokens });
-      const tokens = shot.usage.inputTokens + shot.usage.outputTokens;
-      await stores.budget.commit(reservation, tokens);
-      if (tokens > 0) await stores.budget.recordUsage(buildUsageRecord({ usage: shot.usage, userId, companyId: userId, at: now(), imageCount: prepared.dataUrls.length }));
-      if (!shot.ok || !shot.analysis) return deterministicFallback();
-      const a = shot.analysis;
-      const symptomText = [a.summary, ...a.visibly_proven].join(". ");
-      const match = await stores.support.findReusable(symptomText);
-      if (!match.matched) await stores.support.report(ctx, { symptoms: symptomText, route: "screenshot", evidence: a.visibly_proven.map((t) => ({ kind: "screenshot_finding", text: redactSymptom(t), at: now() })), at: now() });
-      await persistAssistant([{ type: "text", text: a.summary }], { imageMeta: prepared.meta });
-      return noStore({ ok: true, source: "openai_vision", analysis: a, knownIssue: match.matched ? { title: match.case!.title, workaround: match.case!.workaround, solution: match.case!.solution, reusable: match.case!.reusable } : null, imageSanitization: prepared.report, rejectedImages: rawImgs.rejected, usageTokens: tokens, durable: stores.durable });
+      const responder = createRealOpenAIResponder(key);
+      const grounded = buildGroundedSystemPrompt("authenticated", message);
+      const result = await responder.respond({ model: cfg.model, system: grounded.system, userText: message, history: (body?.history ?? []).slice(-6), maxOutputTokens: reservation.maxOutputTokens });
+      const tokens = result.usage.inputTokens + result.usage.outputTokens;
+      await commit(tokens);
+      if (tokens > 0) await stores.budget.recordUsage(buildUsageRecord({ usage: result.usage, userId, companyId: tenant.companyId, at: now() }));
+      if (!result.ok || !result.structured) return deterministicFallback();
+
+      let structured = result.structured;
+      // Citations : ne garder que les IDs réellement dans le contexte (sinon supprimées).
+      const cited = validateCitations(structured.citations ?? [], grounded.contextChunks);
+      structured = { ...structured, citations: cited.valid };
+
+      // Support (durable) : cas connu vérifié → contournement adossé ; sinon consigné.
+      if (reusable?.matched && reusable.case) {
+        const fix = reusable.case.workaround ?? reusable.case.solution;
+        if (fix) structured = { ...structured, answer: `${structured.answer}\n\nContournement connu (vérifié) : ${fix}` };
+        await stores.support.report(ctx, { symptoms: message, at: now() });
+      } else if (BUG_HINT.test(message)) {
+        await stores.support.report(ctx, { symptoms: message, evidence: [{ kind: "symptom", text: redactSymptom(message), at: now() }], at: now() });
+      }
+
+      await persistAssistant([{ type: "text", text: structured.answer }], { sourceIds: cited.valid, usage: { totalTokens: tokens } });
+      return noStore({ ok: true, source: "openai", structured, usageTokens: tokens, citationLabels: cited.labels, knownIssue: reusable?.matched ? { title: reusable.case!.title, reusable: reusable.case!.reusable } : null, durable: stores.durable });
     } catch {
-      await stores.budget.release(reservation);
       return deterministicFallback();
     }
-  }
-
-  // 6) Appel OpenAI RÉEL (structuré, grounded + citations validées serveur).
-  try {
-    const responder = createRealOpenAIResponder(key);
-    const grounded = buildGroundedSystemPrompt("authenticated", message);
-    const result = await responder.respond({ model: cfg.model, system: grounded.system, userText: message, history: (body?.history ?? []).slice(-6), maxOutputTokens: reservation.maxOutputTokens });
-    const tokens = result.usage.inputTokens + result.usage.outputTokens;
-    await stores.budget.commit(reservation, tokens);
-    if (tokens > 0) await stores.budget.recordUsage(buildUsageRecord({ usage: result.usage, userId, companyId: userId, at: now() }));
-    if (!result.ok || !result.structured) return deterministicFallback();
-
-    let structured = result.structured;
-    // Citations : ne garder que les IDs réellement dans le contexte (sinon supprimées).
-    const cited = validateCitations(structured.citations ?? [], grounded.contextChunks);
-    structured = { ...structured, citations: cited.valid };
-
-    // Support (durable) : cas connu vérifié → contournement adossé ; sinon consigné.
-    if (reusable?.matched && reusable.case) {
-      const fix = reusable.case.workaround ?? reusable.case.solution;
-      if (fix) structured = { ...structured, answer: `${structured.answer}\n\nContournement connu (vérifié) : ${fix}` };
-      await stores.support.report(ctx, { symptoms: message, at: now() });
-    } else if (BUG_HINT.test(message)) {
-      await stores.support.report(ctx, { symptoms: message, evidence: [{ kind: "symptom", text: redactSymptom(message), at: now() }], at: now() });
-    }
-
-    await persistAssistant([{ type: "text", text: structured.answer }], { sourceIds: cited.valid, usage: { totalTokens: tokens } });
-    return noStore({ ok: true, source: "openai", structured, usageTokens: tokens, citationLabels: cited.labels, knownIssue: reusable?.matched ? { title: reusable.case!.title, reusable: reusable.case!.reusable } : null, durable: stores.durable });
-  } catch {
-    await stores.budget.release(reservation);
-    return deterministicFallback();
+  } finally {
+    // Filet de sécurité : toute réservation non réglée (aucun commit atteint) est libérée.
+    if (!settled) { try { await stores.budget.release(reservation); } catch { /* ignore */ } }
   }
 }

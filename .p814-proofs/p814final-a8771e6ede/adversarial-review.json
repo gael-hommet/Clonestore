@@ -1,0 +1,24 @@
+{
+  "runId": "p814final-a8771e6ede",
+  "reviewers": 8,
+  "confirmed": [
+    "intelligence",
+    "product-honesty",
+    "evidence"
+  ],
+  "weak": [
+    "execution",
+    "coverage",
+    "autonomy",
+    "safety",
+    "memory-learning"
+  ],
+  "refuted": [],
+  "lead_verdict": "NOT VERIFIED",
+  "fixes_applied_after_review": {
+    "D4_D7": "registry-derived per-step governance (LLM cannot govern risk) — tested",
+    "D3_guards": "startCognitiveExecution called + fail-closed + compiled plan proven to flow into createMissionRunFromPlan (mock planner) — tested",
+    "D9": "prompt-injection proof clarified (injection_blocked=true)"
+  },
+  "blocking_count": 5
+}

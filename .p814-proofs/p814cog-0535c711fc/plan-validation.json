@@ -1,0 +1,18 @@
+{
+  "runId": "p814cog-0535c711fc",
+  "cyclic_rejected": true,
+  "allowed_action_keys": [
+    "mission.noop",
+    "mission.complete",
+    "mission.block",
+    "employee.read",
+    "contract.read",
+    "document.read",
+    "wait.until_time",
+    "wait.for_event",
+    "approval.request",
+    "communication.create_intent",
+    "follow_up.schedule",
+    "signature.prepare"
+  ]
+}

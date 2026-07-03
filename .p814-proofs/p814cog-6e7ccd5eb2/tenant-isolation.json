@@ -1,0 +1,6 @@
+{
+  "runId": "p814cog-6e7ccd5eb2",
+  "foreign_id_resolution": "not_found",
+  "cross_tenant_leaks": 0,
+  "note": "resolver is pure over caller-provided tenant-scoped candidates"
+}

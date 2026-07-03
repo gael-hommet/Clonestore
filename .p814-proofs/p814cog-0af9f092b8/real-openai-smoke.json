@@ -1,0 +1,7 @@
+{
+  "runId": "p814cog-0af9f092b8",
+  "status": "SKIPPED_NO_PRODUCTION_KEY",
+  "ai_mode": "mock",
+  "reason": "no server-side OpenAI key in production mode → cannot run a real bounded smoke here (honest); deterministic path fully verified",
+  "key_exposed": false
+}

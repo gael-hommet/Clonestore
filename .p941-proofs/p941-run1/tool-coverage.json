@@ -1,0 +1,149 @@
+{
+  "total": 19,
+  "wired": [
+    "prepare_mission",
+    "create_mission",
+    "cancel_mission",
+    "decide_validation",
+    "create_support_case"
+  ],
+  "advisory": [
+    "retrieve_knowledge",
+    "company_summary",
+    "list_missions",
+    "open_mission",
+    "list_validations",
+    "open_validation",
+    "list_employees",
+    "open_employee",
+    "find_document",
+    "open_document",
+    "find_known_issue",
+    "report_issue",
+    "retrieve_bug",
+    "navigate"
+  ],
+  "unavailable": [],
+  "effectful_wired": [
+    "create_mission",
+    "cancel_mission",
+    "decide_validation",
+    "create_support_case"
+  ],
+  "rows": [
+    {
+      "name": "retrieve_knowledge",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": null
+    },
+    {
+      "name": "company_summary",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": null
+    },
+    {
+      "name": "list_missions",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": null
+    },
+    {
+      "name": "open_mission",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": "open_mission"
+    },
+    {
+      "name": "prepare_mission",
+      "availability": "wired",
+      "effect": false,
+      "actionKind": "create_mission"
+    },
+    {
+      "name": "create_mission",
+      "availability": "wired",
+      "effect": true,
+      "actionKind": "create_mission"
+    },
+    {
+      "name": "cancel_mission",
+      "availability": "wired",
+      "effect": true,
+      "actionKind": "cancel_mission"
+    },
+    {
+      "name": "list_validations",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": null
+    },
+    {
+      "name": "open_validation",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": "open_validation"
+    },
+    {
+      "name": "decide_validation",
+      "availability": "wired",
+      "effect": true,
+      "actionKind": "decide_validation"
+    },
+    {
+      "name": "list_employees",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": null
+    },
+    {
+      "name": "open_employee",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": "open_employee"
+    },
+    {
+      "name": "find_document",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": null
+    },
+    {
+      "name": "open_document",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": "open_document"
+    },
+    {
+      "name": "find_known_issue",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": null
+    },
+    {
+      "name": "report_issue",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": null
+    },
+    {
+      "name": "retrieve_bug",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": null
+    },
+    {
+      "name": "create_support_case",
+      "availability": "wired",
+      "effect": true,
+      "actionKind": "create_support_case"
+    },
+    {
+      "name": "navigate",
+      "availability": "advisory",
+      "effect": false,
+      "actionKind": "navigate"
+    }
+  ]
+}

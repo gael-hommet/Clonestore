@@ -17,10 +17,10 @@ import { DEMO_TRACE } from "@/lib/demo/presentation/fixtures";
 import type { DeepDiveTopic } from "../shared";
 
 const STEPS = [
-  { tech: "CloneOS", Icon: Boxes, topic: "cloneos" as DeepDiveTopic, role: "Organise le travail", line: "Votre demande devient un plan : missions, tâches, dépendances et échéances." },
-  { tech: "CloneADN", Icon: Fingerprint, topic: "empreinte" as DeepDiveTopic, role: "Adapte à votre entreprise", line: "Vos règles, vos modèles et vos validateurs sont appliqués — via l'Empreinte Entreprise." },
-  { tech: "CloneGuard", Icon: ShieldCheck, topic: "cloneguard" as DeepDiveTopic, role: "Encadre l'autonomie", line: "Ce que Pierre fait seul, ce qu'il prépare, ce qu'il soumet à validation." },
-  { tech: "CloneTrace", Icon: ScrollText, topic: "clonetrace" as DeepDiveTopic, role: "Trace et reprend", line: "Chaque action reste vérifiable ; la mission reste active dans le temps." },
+  { tech: "CloneOS", Icon: Boxes, topic: "cloneos" as DeepDiveTopic, role: "Organise le travail", line: "Votre objectif devient des missions, des tâches, des dépendances, des responsables et des échéances." },
+  { tech: "CloneADN", Icon: Fingerprint, topic: "empreinte" as DeepDiveTopic, role: "Adapte à votre entreprise", line: "Pierre a déjà les compétences RH. L'Empreinte lui apprend comment votre entreprise veut qu'elles soient appliquées." },
+  { tech: "CloneGuard", Icon: ShieldCheck, topic: "cloneguard" as DeepDiveTopic, role: "Encadre l'autonomie", line: "Jamais aveugle : chaque action est exécutée, préparée, soumise à validation ou bloquée, selon vos règles." },
+  { tech: "CloneTrace", Icon: ScrollText, topic: "clonetrace" as DeepDiveTopic, role: "Suit et trace", line: "Pierre garde la mission active, reprend et relance ; chaque action et décision reste vérifiable." },
 ];
 
 function SysInner({ onDeepDive }: { onDeepDive: (t: DeepDiveTopic) => void }) {
@@ -39,7 +39,7 @@ function SysInner({ onDeepDive }: { onDeepDive: (t: DeepDiveTopic) => void }) {
           <span className="demo-accent">{SCENE_SYSTEM.headline[1]}</span>
         </h2>
         <p className="demo-lede mt-3 max-w-md">
-          Une demande. Quatre systèmes. Une mission menée jusqu&apos;au résultat.
+          Un agent exécute une action. Ces systèmes en font un employé IA qui prend en charge la mission.
         </p>
 
         <div className="mt-6 flex flex-wrap gap-1.5">

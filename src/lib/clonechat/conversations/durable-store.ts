@@ -62,8 +62,13 @@ export function createDurableConversationStore(db: ClonechatDb): ConversationSto
       });
     },
     appendMessage(id, ctx, msg: AppendMessageInput) {
-      return db.withTenant(ctx, async (q) => {
-        const owns = await q.query("select 1 from clonechat_conversations where id=$1 and user_id=$2", [id, ctx.userId]);
+      // ATOMIQUE (P9.4.2) : le FOR UPDATE sur la conversation sérialise les appends
+      // concurrents (le 2e bloque jusqu'au commit du 1er, puis lit un max(seq) à jour).
+      // Filet supplémentaire : l'index unique (conversation_id, seq) garantit qu'aucun
+      // doublon ne peut être écrit ; en cas de collision improbable, on RÉESSAIE une fois
+      // (nouvelle transaction ⇒ nouveau verrou ⇒ seq à jour).
+      const run = (): Promise<StoredMessage> => db.withTenant(ctx, async (q) => {
+        const owns = await q.query("select 1 from clonechat_conversations where id=$1 and user_id=$2 for update", [id, ctx.userId]);
         if (owns.rowCount === 0) throw new Error("conversation_not_found");
         const seqRow = await q.query("select coalesce(max(seq),0)::int as s from clonechat_messages where conversation_id=$1", [id]);
         const seq = Number(seqRow.rows[0].s) + 1;
@@ -76,6 +81,11 @@ export function createDurableConversationStore(db: ClonechatDb): ConversationSto
         );
         await q.query("update clonechat_conversations set updated_at=$2, last_activity_at=$2 where id=$1", [id, msg.at]);
         return mapMsg(r.rows[0]);
+      });
+      return run().catch((e: unknown) => {
+        // 23505 = unique_violation (conversation_id, seq) : réessai unique.
+        if ((e as { code?: string })?.code === "23505") return run();
+        throw e;
       });
     },
     renameConversation(id, ctx, title, at) {

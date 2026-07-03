@@ -1,0 +1,154 @@
+{
+  "complete": true,
+  "missingCategories": [],
+  "totalChunks": 64,
+  "categories": [
+    {
+      "category": "vision",
+      "indexedSources": 4,
+      "freshSources": 4,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "employees",
+      "indexedSources": 2,
+      "freshSources": 2,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "technologies",
+      "indexedSources": 13,
+      "freshSources": 13,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "offers",
+      "indexedSources": 1,
+      "freshSources": 1,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "prices",
+      "indexedSources": 1,
+      "freshSources": 1,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "routes",
+      "indexedSources": 10,
+      "freshSources": 10,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "pages",
+      "indexedSources": 14,
+      "freshSources": 14,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "onboarding",
+      "indexedSources": 1,
+      "freshSources": 1,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "account",
+      "indexedSources": 1,
+      "freshSources": 1,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "cockpit",
+      "indexedSources": 2,
+      "freshSources": 2,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "missions",
+      "indexedSources": 1,
+      "freshSources": 1,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "validations",
+      "indexedSources": 1,
+      "freshSources": 1,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "salaries",
+      "indexedSources": 1,
+      "freshSources": 1,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "documents",
+      "indexedSources": 1,
+      "freshSources": 1,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "communications",
+      "indexedSources": 1,
+      "freshSources": 1,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "permissions",
+      "indexedSources": 2,
+      "freshSources": 2,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "security",
+      "indexedSources": 2,
+      "freshSources": 2,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "limits",
+      "indexedSources": 1,
+      "freshSources": 1,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "bugs",
+      "indexedSources": 2,
+      "freshSources": 2,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "support",
+      "indexedSources": 1,
+      "freshSources": 1,
+      "coveragePercent": 100,
+      "missing": false
+    },
+    {
+      "category": "release_state",
+      "indexedSources": 2,
+      "freshSources": 2,
+      "coveragePercent": 100,
+      "missing": false
+    }
+  ]
+}

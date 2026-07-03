@@ -1,0 +1,6 @@
+{
+  "runId": "p814cog-6e7ccd5eb2",
+  "small_call_allowed": true,
+  "huge_call": false,
+  "note": "atomic single-call budget gate reused from cloneos"
+}

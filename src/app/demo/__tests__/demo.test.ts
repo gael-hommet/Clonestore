@@ -103,12 +103,17 @@ describe("/demo — Acte 1 : compréhension immédiate de CloneStore", () => {
   });
 });
 
-describe("/demo — Acte 2 : la différence logiciel / assistant / employé IA", () => {
+describe("/demo — Acte 2 : la différence logiciel / assistant / agent / employé IA", () => {
   const a = read(ACT2);
-  it("compare les trois systèmes explicitement", () => {
+  it("distingue les quatre catégories explicitement", () => {
     expect(a).toContain("Un logiciel");
-    expect(a).toMatch(/assistant IA/i);
+    expect(a).toMatch(/assistant/i);
+    expect(a).toMatch(/agent IA/i);
     expect(a).toMatch(/employé IA/i);
+  });
+  it("oppose « fournir des fonctions » à « prendre en charge un périmètre »", () => {
+    expect(a).toMatch(/périmètre/i);
+    expect(a).toMatch(/ne prend pas en charge la mission/i);
   });
   it("fait circuler la même demande (fil conducteur Clara)", () => {
     expect(a).toContain("Clara");

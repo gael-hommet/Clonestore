@@ -1,0 +1,9 @@
+{
+  "byVisibility": {
+    "PUBLIC": 38,
+    "AUTHENTICATED_CLIENT": 24,
+    "INTERNAL_CLONESTORE": 2
+  },
+  "public_never_sees_authenticated": true,
+  "no_internal_or_restricted_to_client": true
+}

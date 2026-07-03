@@ -42,8 +42,9 @@ type PgClient = {
 
 /** Construit un client Postgres durable. `assumeRole` par défaut = clonechat_app. */
 export async function createPgClonechatDb(connectionString: string, opts?: { assumeRole?: string | null; ssl?: boolean }): Promise<ClonechatDb> {
-  const spec = ["p", "g"].join(""); // évite l'analyse statique du bundler
-  const { default: pg } = (await import(spec)) as { default: { Pool: new (c: unknown) => PgPool } };
+  // Import serveur du driver pg (ce module n'est jamais bundlé côté client : il n'est
+  // importé que par la couche serveur). Specifier statique → résolu par le runtime nodejs.
+  const { default: pg } = (await import("pg")) as unknown as { default: { Pool: new (c: unknown) => PgPool } };
   const pool = new pg.Pool({ connectionString, max: 8, ...(opts?.ssl ? { ssl: { rejectUnauthorized: false } } : {}) });
   const assumeRole = opts?.assumeRole === undefined ? "clonechat_app" : opts.assumeRole;
 

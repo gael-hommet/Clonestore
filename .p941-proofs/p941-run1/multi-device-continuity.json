@@ -1,0 +1,13 @@
+{
+  "runId": "p941fs4395f2ac",
+  "userId": "7c4bec23-ef21-4067-8544-466a228de78b",
+  "email": "p94-e2e-a-p941fs4395f2ac@example.invalid",
+  "password": "Qa!gYP0qNIub-oG0ke7G04GcIrb",
+  "convId": "6d8ce5ba-904e-49b7-b2ba-645973729333",
+  "durable": true,
+  "deviceA_answer_source": "openai",
+  "known_issue_reused": true,
+  "deviceB_sees_conversation": true,
+  "deviceB_message_count": 4,
+  "tokensRecorded": 1788
+}

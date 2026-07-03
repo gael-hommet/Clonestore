@@ -132,32 +132,93 @@ export function sanitizeImageBuffer(bytes: Uint8Array): SanitizeResult {
 
 export interface PreparedImages {
   readonly dataUrls: string[];
-  readonly meta: Array<{ mime: string; originalBytes: number; sanitizedBytes: number; width: number | null; height: number | null; strippedChunks: string[]; sanitizedHash: string }>;
-  readonly report: { count: number; strippedTotal: number; magicVerified: boolean; metadataStripped: boolean; pixelResize: false; note: string };
+  readonly meta: Array<{ mime: string; engine: "sharp" | "chunk-strip"; originalBytes: number; sanitizedBytes: number; originalWidth: number | null; originalHeight: number | null; width: number | null; height: number | null; resized: boolean; strippedChunks: string[]; sanitizedHash: string }>;
+  readonly report: { count: number; engine: "sharp" | "chunk-strip" | "mixed" | "none"; strippedTotal: number; magicVerified: boolean; metadataStripped: boolean; pixelResize: boolean; maxDim: number; note: string };
 }
 
 const MIME: Record<string, string> = { png: "image/png", jpeg: "image/jpeg", webp: "image/webp" };
 
-/** Prépare des data-URLs pour le modèle : décodage, sanitisation, ré-encodage sûr. */
+/** Dimension max cible pour le modèle (réduit réellement les pixels ⇒ coût minimal). */
+export const TARGET_MAX_DIM = 1024;
+
+// Import dynamique de sharp (natif, fourni par la chaîne d'outils ; jamais bundlé client).
+// Résolu une fois ; null s'il est indisponible (⇒ repli chunk-strip honnête).
+let sharpMod: ((input: Uint8Array, opts?: unknown) => SharpLike) | null | undefined;
+async function loadSharp(): Promise<((input: Uint8Array, opts?: unknown) => SharpLike) | null> {
+  if (sharpMod === undefined) {
+    try { const mod = await import("sharp"); sharpMod = ((mod as { default?: unknown }).default ?? mod) as (input: Uint8Array, opts?: unknown) => SharpLike; }
+    catch { sharpMod = null; }
+  }
+  return sharpMod ?? null;
+}
+interface SharpLike {
+  metadata(): Promise<{ width?: number; height?: number; format?: string }>;
+  resize(o: { width: number; height: number; fit: "inside"; withoutEnlargement: boolean }): SharpLike;
+  png(o?: { compressionLevel?: number }): SharpLike;
+  jpeg(o?: { quality?: number; mozjpeg?: boolean }): SharpLike;
+  webp(o?: { quality?: number }): SharpLike;
+  toBuffer(): Promise<Buffer>;
+}
+
+/**
+ * Prépare des data-URLs pour le modèle. Chemin PRINCIPAL (sharp) : décode les pixels,
+ * REDIMENSIONNE réellement à TARGET_MAX_DIM, RECOMPRESSE, et retire TOUTES les métadonnées
+ * (sharp ne réémet pas l'EXIF par défaut). Repli honnête (sharp indisponible) : chunk-strip
+ * de conteneur (P9.4.1) — métadonnées retirées, sans resize pixel.
+ */
 export async function prepareImagesForModel(dataUrls: readonly string[]): Promise<PreparedImages> {
   const outUrls: string[] = [];
   const meta: PreparedImages["meta"] = [];
   let strippedTotal = 0;
+  const engines = new Set<"sharp" | "chunk-strip">();
+  const sharp = await loadSharp();
+
   for (const url of dataUrls) {
     const m = /^data:([a-z0-9.+/-]+);base64,([A-Za-z0-9+/=]+)$/i.exec(url.trim());
     if (!m) continue;
     const bytes = new Uint8Array(Buffer.from(m[2], "base64"));
-    const s = sanitizeImageBuffer(bytes);
-    if (!s.ok || !s.sanitized) continue; // rejet silencieux — l'appelant a déjà validé mime/taille
-    strippedTotal += s.strippedChunks.length;
-    const b64 = Buffer.from(s.sanitized).toString("base64");
-    const mime = MIME[s.format] ?? m[1];
+    // Garde défensive AVANT tout décodage pixel : magic bytes + bombs.
+    const pre = sanitizeImageBuffer(bytes);
+    if (!pre.ok) continue;
+
+    if (sharp) {
+      try {
+        const img = sharp(bytes, { failOn: "none", limitInputPixels: MAX_PIXELS });
+        const md = await img.metadata();
+        const ow = md.width ?? pre.width ?? null, oh = md.height ?? pre.height ?? null;
+        const fmt = (md.format === "jpeg" || md.format === "jpg") ? "jpeg" : md.format === "webp" ? "webp" : "png";
+        let pipe = img.resize({ width: TARGET_MAX_DIM, height: TARGET_MAX_DIM, fit: "inside", withoutEnlargement: true });
+        pipe = fmt === "jpeg" ? pipe.jpeg({ quality: 72, mozjpeg: true }) : fmt === "webp" ? pipe.webp({ quality: 72 }) : pipe.png({ compressionLevel: 9 });
+        const out = await pipe.toBuffer();
+        const outMd = await sharp(out).metadata();
+        const b64 = out.toString("base64");
+        const mime = MIME[fmt];
+        outUrls.push(`data:${mime};base64,${b64}`);
+        const resized = (ow != null && oh != null) && (ow > TARGET_MAX_DIM || oh > TARGET_MAX_DIM);
+        engines.add("sharp");
+        meta.push({ mime, engine: "sharp", originalBytes: bytes.length, sanitizedBytes: out.length, originalWidth: ow, originalHeight: oh, width: outMd.width ?? null, height: outMd.height ?? null, resized, strippedChunks: [], sanitizedHash: contentHash(b64) });
+        continue;
+      } catch { /* sharp a échoué sur cette image → repli chunk-strip ci-dessous */ }
+    }
+
+    // Repli : chunk-strip de conteneur (P9.4.1), sans resize pixel.
+    if (!pre.sanitized) continue;
+    strippedTotal += pre.strippedChunks.length;
+    const b64 = Buffer.from(pre.sanitized).toString("base64");
+    const mime = MIME[pre.format] ?? m[1];
+    engines.add("chunk-strip");
     outUrls.push(`data:${mime};base64,${b64}`);
-    meta.push({ mime, originalBytes: s.originalBytes, sanitizedBytes: s.sanitizedBytes, width: s.width, height: s.height, strippedChunks: s.strippedChunks, sanitizedHash: contentHash(b64) });
+    meta.push({ mime, engine: "chunk-strip", originalBytes: pre.originalBytes, sanitizedBytes: pre.sanitizedBytes, originalWidth: pre.width, originalHeight: pre.height, width: pre.width, height: pre.height, resized: false, strippedChunks: pre.strippedChunks, sanitizedHash: contentHash(b64) });
   }
+
+  const engine = outUrls.length === 0 ? "none" : engines.size > 1 ? "mixed" : engines.has("sharp") ? "sharp" : "chunk-strip";
+  const anyResize = meta.some((x) => x.resized);
   return {
-    dataUrls: outUrls,
-    meta,
-    report: { count: outUrls.length, strippedTotal, magicVerified: true, metadataStripped: true, pixelResize: false, note: "Métadonnées EXIF/GPS/XMP retirées au niveau conteneur ; magic bytes vérifiés ; bombs refusées. Le redimensionnement pixel n'est pas effectué localement (pas de codec) — coût maîtrisé par detail:low + plafond d'octets." },
+    dataUrls: outUrls, meta, report: {
+      count: outUrls.length, engine, strippedTotal, magicVerified: true, metadataStripped: true, pixelResize: anyResize, maxDim: TARGET_MAX_DIM,
+      note: engine === "chunk-strip"
+        ? "Repli sans sharp : métadonnées EXIF/GPS/XMP retirées au niveau conteneur ; magic bytes vérifiés ; bombs refusées ; PAS de resize pixel (coût maîtrisé par detail:low + plafond d'octets)."
+        : `sharp : pixels décodés, REDIMENSIONNÉS à ${TARGET_MAX_DIM}px max + RECOMPRESSÉS, TOUTES métadonnées retirées.`,
+    },
   };
 }

@@ -16,11 +16,11 @@ import { SHARED_MISSION_LAYOUT_ID } from "../shared";
 import type { DeepDiveTopic } from "../shared";
 
 const SYNTHESIS = [
-  "Une demande devient une mission.",
-  "La mission utilise les règles de votre entreprise.",
-  "Pierre accomplit le travail RH opérationnel.",
-  "Les décisions sensibles restent humaines.",
-  "Tout reste suivi et vérifiable.",
+  "Une demande devient une mission prise en charge.",
+  "Pierre reprend un périmètre RH opérationnel complet — pas une tâche isolée.",
+  "Il travaille en parallèle, garde le contexte et suit jusqu'au résultat.",
+  "Votre équipe garde les décisions, la relation et les situations sensibles.",
+  "Vous augmentez votre capacité sans recruter la structure humaine équivalente.",
 ];
 
 export function Act6Pierre({
@@ -66,7 +66,7 @@ export function Act6Pierre({
             className="demo-btn demo-btn-ghost mt-5"
             style={{ minHeight: 34, fontSize: "0.78rem", padding: "0 12px" }}
           >
-            <Network className="h-3.5 w-3.5" aria-hidden="true" /> Pierre est le premier employé IA de CloneStore
+            <Network className="h-3.5 w-3.5" aria-hidden="true" /> Pierre est le premier employé IA — les RH, le premier périmètre
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         </Reveal>

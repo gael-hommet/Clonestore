@@ -1,0 +1,19 @@
+{
+  "phase": "P9.4.2",
+  "gap": 5,
+  "artifact": "conversation-history-ui-browser-qa",
+  "durable": true,
+  "companyResolved": "real (e2e tenant e1154964 bound to Supabase user id; tenant provenance shown in UI)",
+  "steps": {
+    "operational_mode": "Assistant opérationnel · connecté à votre entreprise",
+    "conversationA_real_openai_reply": true,
+    "new_conversation_button_clears_thread": true,
+    "history_chips_appear": true,
+    "switch_to_A_reloads_A_messages_from_server": true,
+    "chip_count": 3,
+    "persist_after_full_reload": true,
+    "resumed_thread_has_messages_from_server": true
+  },
+  "bug_found_and_fixed": "duplicate React keys (user-1/assistant-2) — mkId counter reset to 0 per page load collided with localStorage/server ids; fixed with a session-unique id prefix",
+  "screenshot": "docs/qa-screenshots/p9-4-2/p942-conversation-history.png"
+}

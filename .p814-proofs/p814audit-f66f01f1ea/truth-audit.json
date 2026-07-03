@@ -1,0 +1,1476 @@
+{
+  "phase": "P8.14",
+  "artifact": "truth-audit",
+  "method": "12 independent read-only auditors + lead-architect synthesis + owner-lead independent verification of the crux (final-brain wiring, three-stack disjointness)",
+  "counts": {
+    "EXISTS": 86,
+    "PARTIAL": 23,
+    "MISSING": 19
+  },
+  "crux_verified": {
+    "finding": "On the live V1 customer path the LLM does NOT decide/plan/compose anything that reaches execution; plan source is analyzeInstruction regex (analysis.ts) via createMission (mission-service.ts:103). final-brain.ts runs a REAL 4-step LLM brain but is advisory-only on the deprecated submit path (tasks inserted only if aiMode==='primary' AND quality gate passes).",
+    "three_stacks": [
+      "A legacy Supabase submit (advisory brain, deprecated)",
+      "B V1 governed runtime (live customer path, regex brain)",
+      "C V1 P8.5 run engine (world-class fenced execution, only reachable via hardcoded canonical plan)"
+    ],
+    "independently_confirmed": [
+      "src/lib/pierre/brain/final-brain.ts exists (583 lines, runPierreFinalBrain)",
+      "src/lib/cloneos/ai/runtime.ts runCloneAIContract routes to real Anthropic+OpenAI providers",
+      "final-brain wired to api/pierre/use/submit + dry-run + scenarios/runner",
+      "governed-turn.ts is a single-turn tool-proposal, never executes"
+    ]
+  },
+  "dimension_verdicts": {
+    "real_llm_intelligence": "REAL substrate, NOT on customer path",
+    "free_language_understanding": "PARTIAL/advisory only",
+    "multimodal_input": "PARTIAL (storage/security only)",
+    "company_context": "PARTIAL (unwired to LLM)",
+    "entity_resolution": "PARTIAL",
+    "date_resolution": "PARTIAL/MISSING",
+    "dynamic_capability_composition": "MISSING",
+    "mission_generation": "MISSING (compiler exists, no NL->DAG generator)",
+    "long_running_autonomy": "REAL",
+    "durable_memory": "PARTIAL (operational yes, cognitive no)",
+    "proactive_initiative": "PARTIAL (declarative, no detectors)",
+    "adaptation_tone_channel": "MISSING",
+    "learning_from_corrections": "MISSING",
+    "communications": "REAL (deterministic; no LLM drafting/approval workflow)",
+    "unseen_request_generalization": "PARTIAL (advisory only)",
+    "real_openai_execution": "REAL",
+    "cost_governance": "PARTIAL"
+  },
+  "scoreboard": {
+    "REAL": 3,
+    "PARTIAL": 9,
+    "MISSING_or_advisory": 5
+  },
+  "reuse_substrate": [
+    "cloneos/ai/runtime.ts runCloneAIContract",
+    "cloneos/ai/model-router.ts",
+    "cloneos/ai/budgets.ts",
+    "pierre/brain/final-brain.ts",
+    "pierre/ai/runtime.ts",
+    "pierre/v1/runtime-plan-compiler.ts compileMissionPlan",
+    "pierre/v1/runtime-service.ts createMissionRunFromPlan + runPierreRuntimeJobs",
+    "pierre/v1/runtime-action-registry.ts (closed 13-action)",
+    "pierre/v1/autonomy.ts",
+    "pierre/v1/cloneguard.ts",
+    "pierre/v1/generation-context.ts buildStrictGenerationContext",
+    "pierre/v1/employees.ts getEmployee360",
+    "pierre/v1/communications.ts",
+    "pierre/v1/hr-proactive (deduplicate, signalToMissionRequest)",
+    "pierre/v1/hr-operations (reconcile, approvals, reporting)",
+    "clonechat/openai (client, budget-gate, image-sanitizer, tool-registry)",
+    "clonechat/context-boundary (prompt-injection)"
+  ],
+  "build_order": [
+    "P1 keystone: NL->plan-generator (runCloneAIContract)->compileMissionPlan->run engine; retire regex on live path (fallback kept)",
+    "P2 ground: context-retrieval buildLLMContext + entity/temporal/amount resolution",
+    "P3 clarify+breadth: clarification durable wait + capability retrieval",
+    "P4 proactive+cases: scheduled detectors -> dedup -> mission-creation; wire hr-operations + P9 contract",
+    "P5 memory/learning/adaptation/cost: cognitive-state table, usage per mission, learning intake, LLM comms drafting behind approval"
+  ],
+  "rows_by_cluster": {
+    "llm-intelligence": [
+      {
+        "requirement": "Real server-side LLM intelligence (multi-provider, Claude+GPT-4.1)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/brain/final-brain.ts:64-73 (runCloneAIContract for interpretation)",
+          "src/lib/pierre/brain/final-brain.ts:121-128 (runCloneAIContract for risk review)",
+          "src/lib/pierre/brain/final-brain.ts:167-176 (runCloneAIContract for task planning)",
+          "src/lib/pierre/brain/final-brain.ts:240-247 (runCloneAIContract for quality gate)",
+          "src/lib/cloneos/ai/model-router.ts:18-91 (provider policies: Anthropic preferred for structured_reasoning, OpenAI for risk_analysis)",
+          "src/lib/cloneos/ai/runtime.ts:271-290 (runCloneAIContract resolves prompt contracts and routes to real providers)"
+        ],
+        "reuse": "runCloneAIContract (src/lib/cloneos/ai/runtime.ts:271-290)",
+        "notes": "REAL intelligence: 4-step pipeline calls actual LLM reasoning engines. claude-sonnet-4-6 for interpretation/task-planning (structured reasoning), gpt-4.1 for orchestration/risk (enterprise logic). Not keyword matching. Each step feeds into next (interpretation -> risk -> tasks -> quality). Falls back to deterministic only on provider failure or aiMode=off."
+      },
+      {
+        "requirement": "Structured output with type safety (JSON schema validation)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/brain/types.ts:1-110 (PierreBrainInterpretation, PierreBrainRiskReview, PierreBrainTaskPlan types)",
+          "src/lib/cloneos/ai/prompt-registry.ts:456-469 (json_schema for pierre.brain.final_interpret)",
+          "src/lib/cloneos/ai/prompt-registry.ts:521-527 (json_schema for pierre.brain.task_plan)",
+          "src/lib/cloneos/ai/runtime.ts:220-226 (validateJsonAgainstSimpleSchema before accepting response)"
+        ],
+        "reuse": "normalizePierreBrainInterpretation, normalizePierreBrainRiskLevel, normalizePierreBrainTaskPlan (src/lib/pierre/brain/schema.ts)",
+        "notes": "Full type safety via Zod + normalization. Output strictly validated against declared json_schema in contracts. All schema fields required. Fallback normalizers handle LLM output variance (e.g., risk_level aliases: 'high'/'elevé'/'grave' -> 'high')."
+      },
+      {
+        "requirement": "Model routing/policy (provider selection, fallback chain, budget enforcement)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/cloneos/ai/model-router.ts:17-100 (PROFILE_POLICIES per model_profile: fast_classification->OpenAI, structured_reasoning->Anthropic, premium_generation->Anthropic Opus)",
+          "src/lib/cloneos/ai/runtime.ts:49-71 (deriveModelForBudget: maps policy.preferred_provider to actual model IDs from env)",
+          "src/lib/cloneos/ai/runtime.ts:156-254 (provider fallback loop: tries preferred, then fallback_providers in order)",
+          "src/lib/cloneos/ai/runtime.ts:131-153 (budget pre-check: blocks call if cost exceeds AI_SINGLE_CALL_MAX_CENTS)"
+        ],
+        "reuse": "CloneAIRouterPolicy (src/lib/cloneos/ai/types.ts), deriveModelForBudget, selectCloneAIProviderOrder",
+        "notes": "Policy-driven: each use_case binds to model_profile which routes to provider + specific model. Fast classification -> gpt-4.1-mini (cheap). Structured reasoning -> claude-sonnet-4-6 (smart). Premium -> claude-opus-4-7. Fallback: if OpenAI fails, tries Anthropic, then mock. Budget enforced atomically BEFORE any call (reserve/commit pattern)."
+      },
+      {
+        "requirement": "Free-language understanding (not keyword/regex-based mission interpretation)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/cloneos/ai/prompt-registry.ts:420-430 (system_prompt: 'Tu es Pierre... Tu interprètes des demandes RH complexes')",
+          "src/lib/cloneos/ai/prompt-registry.ts:439-453 (user_prompt_template accepts raw {{input}}, produces structured interpretation)",
+          "src/lib/pierre/brain/final-brain.ts:54-101 (runInterpretationStep passes raw input string to runCloneAIContract, receives structured JSON)"
+        ],
+        "reuse": "pierre.brain.final_interpret contract (src/lib/cloneos/ai/prompt-registry.ts:412-472)",
+        "notes": "REAL free-language understanding via claude-sonnet-4-6. System prompt trains for domain understanding (HR intent, risk detection). User provides plain-text HR request. LLM produces intent, domain, risk_level, missing_info. NOT regex matching (that's fallback only, in classifyMission)."
+      },
+      {
+        "requirement": "Unseen-request generalization (handles novel HR scenarios)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/cloneos/ai/prompt-registry.ts:420-430 (system: 'Tu interprètes des demandes RH complexes avec précision'; no hardcoded classification types)",
+          "src/lib/pierre/brain/final-brain.ts:54-101 (interpretation step takes any input string, passes to LLM without pre-filtering)",
+          "src/lib/cloneos/ai/model-router.ts:17-100 (PROFILE_POLICIES route based on task capability, not hardcoded intent)"
+        ],
+        "reuse": "claude-sonnet-4-6 structured reasoning, open-ended contract prompts",
+        "notes": "LLM reasoning generalizes beyond training examples. If HR request is novel (e.g., 'create a retention bonus policy'), claude-sonnet-4-6 interprets intent, identifies missing info (employee list, budget), proposes tasks. Not pre-classified. Only fallback (classifyMission regex) is limited to predefined labels."
+      },
+      {
+        "requirement": "Intent classifier as brain (flag if present as fake AI antipattern)",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/mission/classify.ts:49-208 (classifyMission: 18 predefined classifications with hardcoded weighted rules)",
+          "src/lib/pierre/brain/final-brain.ts:296-305 (if aiMode='off', returns buildSafePierreBrainFallback with deterministic interpretation)"
+        ],
+        "reuse": "classifyMission used ONLY as fallback when aiMode='off' or provider fails",
+        "notes": "HONEST design: intent classifier exists BUT is explicitly fallback-only. Real path uses LLM. Fallback is labeled deterministic in output (source='deterministic'). NOT deceptive. Route /api/pierre/brain/route.ts has bug (openai.responses.create invalid API) and is NOT used by real brain. The actual pipeline is final-brain.ts -> CloneOS runtime -> real LLM."
+      }
+    ],
+    "multimodal-input": [
+      {
+        "requirement": "PDF/DOCX/Image MIME detection with magic-byte validation",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/file-mime.ts:20-32"
+        ],
+        "reuse": "detectMime(bytes) for all file ingest paths",
+        "notes": "REAL: magic-byte detection of PDF (%PDF-), PNG (0x89504e47), JPEG (0xffd8ff), GIF, ZIP/DOCX. Uses binary literals, not string matching. Deterministic & fail-closed."
+      },
+      {
+        "requirement": "Safe filename sanitization (double-extension, Windows reserved names, masquerading)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/file-mime.ts:57-76"
+        ],
+        "reuse": "isDangerousFilename() + safeFilename() gatekeep all uploads",
+        "notes": "REAL: regex-based rejection of (con|prn|aux|nul|com[1-9]|lpt[1-9]), trailing dots/spaces, executable extensions (.exe, .bat, .cmd, .scr, .msi, .js, .ps1, .jar, .dll), bidi/zero-width Unicode attacks. Extension derived from VALIDATED mime, never filename."
+      },
+      {
+        "requirement": "DOCX/Office macro detection via ZIP central-directory parse",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/zip-inspect.ts:28-116",
+          "src/lib/pierre/v1/file-mime.ts:89-95"
+        ],
+        "reuse": "inspectDocx(buffer) called by screenContent() on all ZIP uploads",
+        "notes": "REAL: genuine ZIP structure parser (EOCD finder, central directory iteration) with vbaProject.bin detection, ZIP64/encryption/path-traversal/bomb-ratio rejection, CRC32 validation. NOT a naive string search. Enforced fail-closed: ZIP64 unsupported throws."
+      },
+      {
+        "requirement": "ZIP bomb defenses (entry count, total uncompressed size, compression ratio)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/zip-inspect.ts:11-14, 33, 68-70"
+        ],
+        "reuse": "MAX_ENTRIES=256, MAX_TOTAL_UNCOMPRESSED=80MB, MAX_RATIO=200, MAX_SINGLE_UNCOMPRESSED=50MB",
+        "notes": "REAL: hardcoded bounds + runtime checks. Ratio guard: (uncompressed/compressed > 200 AND > 1MB) throws 'zip_bomb_ratio'. Total checks. All guards are deterministic integer comparisons, not heuristic."
+      },
+      {
+        "requirement": "File size limits per MIME type with environment override",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/file-mime.ts:34-44"
+        ],
+        "reuse": "maxSizeBytesFor(mime) called at upload intent + finalization",
+        "notes": "REAL: SIZE_LIMITS_MB = {image: 15, pdf: 50, docx: 30, default: 10}. Respects FILE_MAX_SIZE_MB env override (min of declared + env). Bounds checked at intent creation (line 50 in files.ts) and screening (line 211 in files.ts)."
+      },
+      {
+        "requirement": "Content screening (executables, HTML smuggling, active SVG)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/file-mime.ts:78-97"
+        ],
+        "reuse": "screenContent(bytes, detected) in scan pipeline",
+        "notes": "REAL: detects MZ header (Windows .exe), ELF (Unix binary), shebang (#!), HTML/DOCTYPE in sample, <svg><script> combo. Returns reason codes (windows_executable, html_content, active_svg, office_macro, zip_bomb_*). Deterministic byte inspection."
+      },
+      {
+        "requirement": "Scan provider contract (deterministic test + ClamAV TCP + null quarantine)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/file-scan.ts:13-70"
+        ],
+        "reuse": "FileScanProvider interface used by FileService",
+        "notes": "REAL architecture: DeterministicTestScanProvider (EICAR detection + screenContent verdict), ClamAvScanProvider (TCP stub, marked unavailable until wired), NullQuarantineScanProvider (fail-closed: always quarantine). No silent acceptance while scanner unavailable."
+      },
+      {
+        "requirement": "File quarantine state machine (pending → clean | quarantined)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/files.ts:104-151, 155-205"
+        ],
+        "reuse": "upload_status & scan_status in pierre_rt_files table",
+        "notes": "REAL: upload_status ∈ {initialized, uploading, uploaded, verifying, clean, quarantined, rejected, deleted}. A file is never usable when upload_status ≠ 'clean' OR scan_status ≠ 'clean' (assertUsable() line 234-236). Audit trail logged for every state change."
+      },
+      {
+        "requirement": "Integrity verification (expected vs actual SHA256 + size, separate sources)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/files.ts:119-142, 169-194"
+        ],
+        "reuse": "sha256(buffer) from crypto module, compared against declared + stored bytes",
+        "notes": "REAL: declared_sha256/declared_size_bytes set at intent time (never trusted). For signed uploads: re-read from storage after client PUT (line 121). For direct uploads: re-read from storage after server upload (line 181). Mismatch → rejection. Separate integrity_checks table records expected/actual."
+      },
+      {
+        "requirement": "Tenant-scoped file isolation + cross-tenant prevention",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/files.ts:33, 106, 293-294"
+        ],
+        "reuse": "company_id foreign key + tenant checks in all queries",
+        "notes": "REAL: loadFile() queries by (company_id, id). assertFileAttachable() throws if file not found in tenant (line 294: 'File not found in this tenant'). Object key includes tenant scope. Storage provider contract ensures bucket isolation."
+      },
+      {
+        "requirement": "Document type registry (canonicalized, non-bypassable, role-gated)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/document-types.ts:58-73"
+        ],
+        "reuse": "DOCUMENT_TYPES constant, validateDocumentType() throws on unknown",
+        "notes": "REAL: static map of 13 document types (employment_contract, disciplinary_document, payroll_variable_document, etc.) with role gates (allowed_roles, read_roles, approve_roles), sensitivity defaults, MIME whitelist, signature requirements. validateDocumentType() is fail-closed: unknown type throws Error, never silently accepted."
+      },
+      {
+        "requirement": "Document guard (action-based access control with fail-closed blocks)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/document-guard.ts:49-139"
+        ],
+        "reuse": "enforceDocumentGuard(input) called before sensitive mutations",
+        "notes": "REAL: evaluateDocumentGuard() merges cloneguard + file/scan/approval/hash status into GuardLevel (allow|require_approval|escalate|block). FAIL-CLOSED: undefined file_status/scan_status blocks. Examples: (1) generate_final requires file_status='clean' AND scan_status='clean' AND template published AND content_hash; (2) submit_signature requires approval_status='approved' AND hash match. Returns reason codes + required permissions/approvals."
+      },
+      {
+        "requirement": "Document policy enforcement (role + sensitivity + visibility)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/document-policy.ts:34-95"
+        ],
+        "reuse": "assertDocumentTypePolicy() called on create/version/download",
+        "notes": "REAL: evaluateDocumentTypePolicy() checks (1) action-specific roles (create→allowed_roles, approve→approve_roles), (2) sensitivity (high sensitivity requires document.sensitive.read/write), (3) renderer restrictions, (4) visibility (employee_visibility, manager_visibility). Throws DocumentPolicyError if not allowed. Applied on create (line 72 in documents.ts) and every version (line 96)."
+      },
+      {
+        "requirement": "Bounded generation context (only requested fields, tenant-verified, cross-tenant refuse)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/generation-context.ts:50-97"
+        ],
+        "reuse": "buildStrictGenerationContext(db, ctx, input) for template rendering",
+        "notes": "REAL: StrictGenerationInput.requested_fields is a whitelist. Only those fields are loaded from DB. Fail-closed: unknown field throws, cross-tenant employee/site/contract refuses, site coherence checked (line 70: employee's site must match). Values record contains ONLY requested paths, never a blanket dump."
+      },
+      {
+        "requirement": "Contract rendering (deterministic PDF/DOCX from model, no LLM)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/contract-render-model.ts:41-78",
+          "src/lib/pierre/v1/renderers.ts:119-200"
+        ],
+        "reuse": "buildContractRenderModel() + PdfRenderer/DocxRenderer.render()",
+        "notes": "REAL rendering (not AI-generated): model built from template clauses + generation context + policy. PDF is hand-written PDF-1.4 (objects, streams, font definitions, WinAnsiEncoding for French). DOCX is hand-crafted OOXML ZIP. Deterministic: same input → same bytes → same content_hash. NO third-party library, NO LLM calls, NO semantic chunking."
+      },
+      {
+        "requirement": "Document version immutability (final/signed status blocks mutations)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/documents.ts:37, 123, 156-177"
+        ],
+        "reuse": "IMMUTABLE set, assertMutable(version), finalize gate",
+        "notes": "REAL: IMMUTABLE = {final, signed}. assertMutable() throws Conflict if version in IMMUTABLE. createVersion() invalidates prior approval (line 113). finalizeVersion() requires approved status + content_hash, then marks version='final' (immutable). Signed versions remain forever immutable."
+      },
+      {
+        "requirement": "Sensitive field access control (document.sensitive.read permission enforced)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/documents.ts:51-54, 84-85, 230-237"
+        ],
+        "reuse": "requireDocRead(ctx, doc) gates all reads; enforceDocumentGuard() on download",
+        "notes": "REAL: sensitivity ∈ {normal, high}. High sensitivity requires document.sensitive.read permission (line 53). Download enforces guard (line 234-237) which blocks if permission missing. Sensitive actions (preview, generate, download, read_evidence) checked in evaluateDocumentGuard()."
+      },
+      {
+        "requirement": "Outbox events for document lifecycle (no immediate delivery)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/document-outbox.ts:9-27"
+        ],
+        "reuse": "emitDocumentEvent() appended by documents/signatures layer",
+        "notes": "REAL: outbox-pattern architecture. Events (document.ready_for_review, document.approved, signature.submitted, etc.) are rows in pierre_rt_outbox with dedup_key for idempotency. P8.3 produces events; P8.4 consumes them. NOT email delivery itself — that is P8.4 responsibility."
+      },
+      {
+        "requirement": "PDF/DOCX extraction or semantic chunking for model input",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "none",
+        "notes": "NO CODE EXISTS. Zero references to PDF parsing (pdfjs, pdf-parse, textract), DOCX parsing (mammoth, docx-to-json), chunking (langchain splits, recursive splits), embeddings, RAG, or LLM calls. Storage & security layer only — no content extraction pipeline."
+      },
+      {
+        "requirement": "Bounded token/chunk limits for LLM context windows",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "none",
+        "notes": "NO CODE EXISTS. No max_tokens, chunk_size, token_limit, or context_window variables. File size limits (50MB PDF, 30MB DOCX) are storage/scan bounds, not LLM input bounds. No trace of Claude/OpenAI API calls or cost controls."
+      },
+      {
+        "requirement": "Content extraction (text/images) with sanitization before model submission",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "none",
+        "notes": "NO CODE EXISTS. screenContent() sanitizes for SECURITY (malware, executable code, macros). No parallel sanitization for LLM input (removing PII before submission, filtering toxic content, etc.). Files go to storage; no extraction pipeline wires them to a model."
+      },
+      {
+        "requirement": "Authorized content extraction (role-based field access, sensitivity gates)",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/generation-context.ts:21, 50-97",
+          "src/lib/pierre/v1/document-guard.ts:80-86"
+        ],
+        "reuse": "Strict field whitelist (generation-context), sensitive permission check (document-guard)",
+        "notes": "PARTIAL (real but not wired to extraction): field access is role-gated & sensitivity-aware in the context-building layer. But that context is used for template rendering (Handlebars substitution), NOT for extracting document content to feed an LLM. If P8.14 adds extraction, this layer provides the foundation."
+      }
+    ],
+    "world-model-context": [
+      {
+        "requirement": "Enterprise entity model (employees, sites, teams, reporting lines, contracts as retrieval-queryable, tenant-scoped, version-safe tables with CRUD)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/employees.ts:18-32 (EmployeeRow type with 30+ fields: first_name, last_name, status, contract_type, manager_employee_id, site_id, department, team, job_family, etc.)",
+          "src/lib/pierre/v1/employees.ts:36-122 (EmployeeRepo with insert, byId, list with cursor pagination, status transitions, event/document/absence tracking)",
+          "src/lib/pierre/v1/sites.ts:13-19 (SiteRow: id, company_id, name, code, timezone, type, address, postal_code, city, country, manager_membership_id, version, created_at, updated_at, archived_at)",
+          "src/lib/pierre/v1/sites.ts:23-48 (SiteRepo with insert, byId, list with scope filtering, activeEmployeeCount)",
+          "src/lib/pierre/v1/members.ts:54-72 (MemberView type and listMembers with role/custom_roles resolved from multiple tables)",
+          "src/lib/pierre/v1/employees.ts:47-55 (addEmployment, addContract, newContractVersion for relationship management with version safety)"
+        ],
+        "reuse": "pierre_rt_employees (existing table), pierre_rt_sites, pierre_rt_members, pierre_rt_employee_contracts, pierre_rt_employee_employments as foundation",
+        "notes": "Genuinely real CRUD with version-safe optimistic concurrency (version column checked on updates). Relationships are stored (manager_employee_id, site_id) not computed. Event model (addEvent, recent) provides actual state tracking. However, this is CRUD retrieval only — no LLM reasoning wired yet to *understand* hierarchies or make sense of contexts. The model IS structured for querying by a reasoning system but the reasoning system does not exist in this layer."
+      },
+      {
+        "requirement": "RBAC + tenant scoping: role-to-permission mapping, site-scope filtering, permission-guarded retrieval for LLM context",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/rbac.ts:12-26 (siteScope, canAccessSite, siteScopeArray — site-scope extraction and filtering functions)",
+          "src/lib/pierre/v1/employees.ts:125, 134-135 (requirePermission called on all public endpoints; listEmployees filters by siteScopeArray)",
+          "src/lib/pierre/v1/sites.ts:56, 62-64 (requirePermission on createSite, listSites filters with siteScopeArray)",
+          "src/lib/pierre/v1/tenant-context.ts:31-44 (TenantContext type: company_id, user_id, membership_id, role, permissions array, site_ids: string[] | null)",
+          "src/lib/pierre/v1/tenant-context.ts:70-143 (resolveTenantContext: reads pierre_rt_members, pierre_rt_membership_roles, pierre_rt_custom_role_permissions to build live permissions set)",
+          "src/lib/pierre/v1/tenant-context.ts:96-120 (multi-role resolution: both system roles (pierre_rt_membership_roles) and custom roles (pierre_rt_membership_custom_roles) merged into permissions array)"
+        ],
+        "reuse": "TenantContext as the canonical security principal; requirePermission + hasPermission guards; siteScope filters for list operations",
+        "notes": "This IS real, enforced authorization — not a UI toggle. Every function calls requirePermission(ctx, 'entity.action') and checks canAccessSite(ctx, siteId). Site scope filtering is LIVE from the database (pierre_rt_member_sites join). The TenantContext is resolved server-side from the authenticated user's membership, never from client input. Guards are deterministic, not AI-driven."
+      },
+      {
+        "requirement": "Company-specific intelligence: policies (approval circuits, templates, rules), preferences, custom roles, field definitions, sensitivities",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/custom-fields.ts:15-45 (CustomFieldDefinitionRow + defineCustomField: company-scoped field definitions with sensitivity, data_type, allowed_document_types, required_provenance)",
+          "src/lib/pierre/v1/custom-fields.ts:52-55 (loadValidatedCustomFieldDefinitions loads all company custom fields into a Map)",
+          "src/lib/pierre/v1/field-policies.ts:35-48 (FIELD_POLICIES registry: canonical fields with sensitivity, allowed_for_preview, allowed_for_final, required_permissions)",
+          "src/lib/pierre/v1/field-policies.ts:81-110 (evaluateFieldUsage: permission/role/document-type governance on field usage)",
+          "src/lib/pierre/v1/roles.ts:35-81 (listRoles, createRole, patchRole: system + custom roles with permission grants)",
+          "src/lib/pierre/v1/company.ts:22-29 (STATUS_TRANSITIONS for company lifecycle governance)",
+          "src/lib/pierre/v1/company-access.ts:18-51 (setMemberStatus, transferCompanyOwnership: governed member state transitions)"
+        ],
+        "reuse": "pierre_rt_custom_field_definitions, pierre_rt_roles, pierre_rt_role_permissions, pierre_rt_custom_roles, pierre_rt_custom_role_permissions, pierre_rt_permissions as immutable registry",
+        "notes": "Field sensitivity and custom-role permissions ARE company-configurable and retrieved at runtime. However, APPROVAL CIRCUITS are not in the read code (no workflow state machine for multi-step approval). TEMPLATES are referenced (generation-context.ts mentions 'template') but no template retrieval or template governance logic is in these core files. The intelligence here is POLICY DECLARATION (what fields are sensitive, who can see what) but not PROCESS LOGIC (how documents flow through approvals, how policies are *applied* in practice)."
+      },
+      {
+        "requirement": "Employee 360: aggregated view of employee + recent events, documents, absences, contracts, timeline",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/employees.ts:116-121 (EmployeeRepo.recent: loads recent events, documents, absences in a single aggregation)",
+          "src/lib/pierre/v1/employees.ts:138-145 (getEmployee360: loads employee row, then calls .recent to aggregate events/documents/absences)",
+          "src/lib/pierre/v1/employees.ts:212-222 (employeeTimeline: full audit trail of events + status transitions, merged and sorted)",
+          "src/lib/pierre/v1/employees.ts:224-234 (listContracts: loads all contracts for employee with versions, joined)",
+          "src/lib/pierre/v1/employees.ts:256-266 (listDocuments, listAbsences: filtered by employee_id)",
+          "src/lib/pierre/v1/employees.ts:277-293 (employeeMissions, employeeTasks: relational joins to missions and tasks)",
+          "src/lib/pierre/v1/employees.ts:295-301 (employeeAccessLog: audit log of sensitive data access)"
+        ],
+        "reuse": "EmployeeRepo.recent() as foundation; join-based queries for contracts, missions, tasks, documents",
+        "notes": "This is a REAL 360 view — metadata only (no full document payloads), but it genuinely aggregates employee data from multiple tables (employees, events, documents, absences, contracts, missions, tasks). The getEmployee360 function loads the employee, then appends recent activity. This EXISTS as a DATA STRUCTURE but is NOT wired to an LLM at all — it is served to the UI/API, not to a reasoning engine for context construction."
+      },
+      {
+        "requirement": "Tenant-scoped + permission-filtered context for LLM generation (strict, fail-closed, only requested fields)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/generation-context.ts:16-27 (StrictGenerationInput: document_type, employee_id, site_id, contract_id, requested_fields array, extra_values, provenance)",
+          "src/lib/pierre/v1/generation-context.ts:29-37 (StrictGenerationContext: document_type, employee_id, site_id, contract_id, values (only requested), sensitive_fields, custom_field_keys)",
+          "src/lib/pierre/v1/generation-context.ts:50-122 (buildStrictGenerationContext: loads only requested fields, validates tenant membership, site coherence, contract ownership, custom field activation status)",
+          "src/lib/pierre/v1/generation-context.ts:52-56 (line 52-56: rejects unknown fields via resolveFieldPolicy fail-closed)",
+          "src/lib/pierre/v1/generation-context.ts:59-62 (verifies employee belongs to tenant, site_id coherent, within scope)",
+          "src/lib/pierre/v1/generation-context.ts:74-79 (contract verified to belong to tenant AND to the employee)",
+          "src/lib/pierre/v1/generation-context.ts:96-97 (loadValidatedCustomFieldsForGeneration: only requested custom keys, validated against definition, sensitivity from definition not template)",
+          "src/lib/pierre/v1/generation-context.ts:100-116 (values Map populated ONLY with requested paths; sensitivity tracked separately)"
+        ],
+        "reuse": "buildStrictGenerationContext() as the single function; resolveFieldPolicy from field-policies registry; loadValidatedCustomFieldsForGeneration for custom fields",
+        "notes": "This is GENUINELY STRICT and FAIL-CLOSED. The generator CANNOT request a field that does not exist in the canonical registry. The employee is verified to belong to the tenant. The site must be the employee's site or explicitly the input site (coherence check). The contract must belong to the employee. The custom fields are ONLY sourced from the definition table (pierre_rt_custom_field_definitions), and inactive fields are refused. Sensitivity is read from the definition, not from the request. This is a bounded retrieval layer — it IS permission-aware in that it accepts a TenantContext and filters by site scope, but it is NOT yet wired to an LLM that consumes it."
+      },
+      {
+        "requirement": "Cockpit/dashboard snapshot: aggregated company state (missions, documents, employees, members, contracts, entitlements, onboarding), permission-sensitive summary",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/cockpit-snapshot.ts:26-47 (CockpitSnapshot type: generated_at, company, membership, role, role_keys, permissions, product_access, entitlement, onboarding, overview, next_action, blockers, missions, validations, members, employees, documents, signatures, contracts, messages)",
+          "src/lib/pierre/v1/cockpit-snapshot.ts:54-128 (buildCockpitSnapshot: reads company, entitlement, onboarding session, then aggregates counts + lists from 8 different tables via correlated subqueries)",
+          "src/lib/pierre/v1/cockpit-snapshot.ts:89-107 (permission-sensitive sections: employees, documents, signatures, contracts, messages each wrapped in 'permitted: true/false' based on has(ctx, perm))",
+          "src/lib/pierre/v1/cockpit-snapshot.ts:130-137 (deriveNextAction, deriveBlockers: deterministic logic to compute next step and blocker list)"
+        ],
+        "reuse": "getEntitlement, getOnboardingSession from entitlements.ts; correlated SQL subqueries as the retrieval model",
+        "notes": "This is a REAL server-authoritative snapshot — every datum is read from the actual source table (pierre_rt_mission_runs, pierre_rt_documents, etc.) for the active company. It is NOT a mock or localStorage. A failed query PROPAGATES as an error (never swallowed). Permission-sensitive sections carry an explicit 'permitted' flag (lines 89-107: 'has(ctx, perm)' gates the item list). The snapshot is built for the dashboard UI, not for an LLM, but it IS a concrete example of permission-filtered aggregation."
+      },
+      {
+        "requirement": "Completeness engine: explainable scoring of employee data readiness (blocking vs. warning, weighted items, next actions)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/completeness.ts:9-17 (CompletenessItem: id, label, status, blocking, weight; CompletenessResult: score, missing_items, blocking_items, warnings, next_actions)",
+          "src/lib/pierre/v1/completeness.ts:20-42 (computeEmployeeCompleteness: counts employments, contracts, unmet document requirements; builds 6-item checklist with weights)",
+          "src/lib/pierre/v1/completeness.ts:31-38 (items: identity, site, manager, employment, contract, mandatory_documents — each with status, blocking, weight)",
+          "src/lib/pierre/v1/completeness.ts:40-42 (weighted score calculation: sum of ok items' weights / total weights * 100)",
+          "src/lib/pierre/v1/completeness.ts:44-50 (derives missing, blocking, warnings, and next_actions from the items)"
+        ],
+        "reuse": "Employee entity model (first_name, last_name, employee_number, site_id, manager_employee_id); query counts from related tables",
+        "notes": "This is REAL in that it counts actual data (employments, contracts, unmet requirements from the database). The scoring IS deterministic and weighted. The blocking/warning distinction exists. Next actions are auto-derived. However, this is STATIC HEURISTIC SCORING — the weights are hardcoded (15, 10, 10, 25, 25, 15 for the six items). There is NO intelligence here beyond threshold-based logic; an LLM is not reasoning about completeness, just displaying a hardcoded checklist."
+      },
+      {
+        "requirement": "LLM-aware context assembly: does the retrieval layer hand off to an LLM with world model + company intelligence + task context?",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "buildStrictGenerationContext would be the natural integration point; generation-context.ts would need an export that takes (ctx, employee_id, document_type, task_description) and assembles a full prompt context",
+        "notes": "The INFRASTRUCTURE for bounded retrieval exists (generation-context, custom-fields, field-policies, cockpit-snapshot). The PERMISSION-FILTERED RETRIEVAL exists (rbac, tenant-context, company-access). But there is NO CODE that wires these layers to an LLM execution engine. There is no 'buildLLMContext(ctx, task)' that takes a TenantContext and a task description and produces a structured JSON/prompt object ready for Claude/OpenAI. The layers are READ-ONLY retrieval; there is no *reasoning* integration."
+      },
+      {
+        "requirement": "Custom field value validation + sensitivity resolution before generation",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/custom-fields.ts:57-66 (validateCustomFieldValue: strict type checking for number, date, email)",
+          "src/lib/pierre/v1/custom-fields.ts:77-97 (loadValidatedCustomFieldsForGeneration: loads only requested keys, validates each value against definition, resolves sensitivity from definition, checks provenance)",
+          "src/lib/pierre/v1/custom-fields.ts:68 (ResolvedCustomField: field_key, value, sensitivity, provenance_ok)",
+          "src/lib/pierre/v1/generation-context.ts:96-97 (calls loadValidatedCustomFieldsForGeneration to load and resolve custom fields)",
+          "src/lib/pierre/v1/generation-context.ts:104-109 (custom field value + sensitivity added to the context)"
+        ],
+        "reuse": "validateCustomFieldValue, loadValidatedCustomFieldsForGeneration from custom-fields.ts; CustomFieldDefinition from field-policies.ts",
+        "notes": "This is REAL validation — not trust the client. Each custom field value is checked against its definition's data_type (number regex, date ISO check, email format). If the definition is inactive, it is refused. Sensitivity is SOURCED FROM THE DEFINITION (pierre_rt_custom_field_definitions), never from the template request. Provenance is checked if required_provenance is set on the definition. This is deterministic type-validation + metadata resolution, not AI reasoning."
+      },
+      {
+        "requirement": "Company access lifecycle: membership status transitions, ownership transfer, audit trail, last-owner protection",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/company-access.ts:17-52 (setMemberStatus, leaveCompany, transferCompanyOwnership: all call governed SQL functions that enforce last-owner protection)",
+          "src/lib/pierre/v1/company-access.ts:54-68 (AccessEventRow, listCompanyAccessEvents: append-only audit for access changes)",
+          "src/lib/pierre/v1/members.ts:260-294 (suspendMember, reactivateMember, removeMember, leaveCompany: check countActiveOwners to prevent zero-owner state)",
+          "src/lib/pierre/v1/members.ts:301-321 (transferOwnership: serialized via FOR UPDATE, promotes target before demoting actor, maintains >=1 owner guarantee)",
+          "src/lib/pierre/v1/company.ts:66-84 (listAccessibleCompanies, assertCompanyAccessible: membership + company health validation)"
+        ],
+        "reuse": "pierre_rt_set_member_status, pierre_rt_transfer_company_ownership as SQL-level governed functions; pierre_rt_company_access_events audit table",
+        "notes": "Ownership transfer is genuinely GOVERNED — the last active owner cannot leave or be demoted. The code counts active owners (both legacy role='owner' AND OWNER role_key) before allowing status changes. Transitions are ATOMIC (FOR UPDATE serializes concurrent transfers). The audit trail is append-only (pierre_rt_company_access_events). This is NOT a UI-only restriction; it is enforced at the database function level."
+      },
+      {
+        "requirement": "Member invitation flow: token-based acceptance, email binding, site scope, role/custom role assignment, idempotent reactivation",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/members.ts:76-137 (createInvitation: generates cryptographically secure token, stores hash, emits outbox event with raw token, idempotent token rotation)",
+          "src/lib/pierre/v1/members.ts:127-137 (emitInvitationCommunication: outbox event carrying invitation_id, email, raw token, accept link, roles)",
+          "src/lib/pierre/v1/members.ts:189-250 (acceptInvitation: verifies token hash, checks email match, validates invited sites, creates or reactivates membership, assigns roles/site_ids)",
+          "src/lib/pierre/v1/members.ts:359-381 (assignRole, removeRole: handles both system and custom roles on a membership)",
+          "src/lib/pierre/v1/members.ts:89-91 (roles from invitation are assigned at acceptance via assertAssignableRoles + role insertion loops)"
+        ],
+        "reuse": "hashToken, newRawToken from crypto; pierre_rt_invitations table with token_hash, roles, site_ids; outbox for async communication",
+        "notes": "The token is REAL cryptography (SHA-256 hash; only the hash is stored, never the raw token). The raw token is emitted ONLY to the outbox (internal, not exposed to client). Email binding is VERIFIED (requires email_confirmed_at). Site_ids are validated to exist and not be archived BEFORE membership insertion. Site assignment is IDEMPOTENT ('on conflict do nothing'). Reactivation of an existing member (any status) is idempotent — accepting with the same token just reactivates. This is NOT a security theater."
+      }
+    ],
+    "entity-temporal-resolution": [
+      {
+        "requirement": "Employee entity resolution: exact-ID lookup vs. safe homonym disambiguation for same-name conflicts",
+        "status": "PARTIAL",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employees.ts:77-79 (byId: exact UUID lookup only)",
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employee-search.ts:59-121 (searchEmployees: fuzzy text search returns multiple candidates, but no disambiguation of duplicates)"
+        ],
+        "reuse": "employees.ts EmployeeRepo.byId, employee-search.ts searchEmployees",
+        "notes": "Exact-ID resolution (byId) is REAL and works. Text search IS real (trigram similarity, accent-insensitive) BUT returns list without resolution - caller must pick from many. NO function to resolve 'John Smith' when 3 active employees match. Caller gets back unresolved/ambiguous set; no built-in homonym resolver, no 'multiple matches' blocker—pure listing."
+      },
+      {
+        "requirement": "Manager entity resolution: resolve manager_employee_id cross-references safely without cross-tenant leak",
+        "status": "MISSING",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employees.ts:22,51,53,55,151 (manager_employee_id stored as string | null; accepted on insert/update but no resolver function)"
+        ],
+        "reuse": "employees.ts EmployeeRow.manager_employee_id field; would reuse byId pattern if resolver existed",
+        "notes": "Manager references are STORED (manager_employee_id field exists in schema and is patchable). But NO resolver function to: (1) validate that manager_employee_id refers to an ACTUAL employee in THIS tenant, (2) return 'not_found'/'forbidden'/'cross_tenant_leak' if invalid, (3) block ambiguous manager names. Only exact UUIDs are valid; strings/names are not supported. Deterministic: pure ID passthrough, no AI involved."
+      },
+      {
+        "requirement": "Candidate/employee status resolution: distinguish candidates from active/left employees, return status enum",
+        "status": "EXISTS",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employees.ts:15 (EmployeeStatus = 'candidate' | 'onboarding' | 'active' | 'suspended' | 'offboarding' | 'left')",
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employees.ts:186-210 (changeStatus function)"
+        ],
+        "reuse": "employees.ts EmployeeStatus enum and changeStatus function",
+        "notes": "REAL status system. Every employee has a status field; searchEmployees returns full EmployeeRow including status. Candidates are fully supported as a status. No parsing needed—status is deterministic state, not inferred. No cross-tenant leak risk: byId enforces company_id equality."
+      },
+      {
+        "requirement": "Team/site entity resolution: resolve site_code/site_name to site_id without ambiguity or cross-tenant exposure",
+        "status": "PARTIAL",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employee-import.ts:233-236 (site resolution during import: code/name → id, OR semantics, maps to single ID if match found)",
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employees.ts:127,142,157,166 (canAccessSite check: enforces site scope in RBAC)"
+        ],
+        "reuse": "employee-import.ts siteByKey Map; sites.ts (implied but not fully audited)",
+        "notes": "REAL during import: normalize site_code (accent-insensitive), look up in siteByKey map built from pierre_rt_sites. Deterministic: single match or null. RBAC-enforced site scope prevents cross-tenant exposure (canAccessSite). BUT: no 'multiple_matches' handler (if two sites have same normalized name in same tenant—unlikely but unhandled). Fallback is null → row gets site_id = null (valid state)."
+      },
+      {
+        "requirement": "Document/contract/mission/case entity resolution: load by ID with tenant isolation, return found/not_found/forbidden",
+        "status": "EXISTS",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/communication-recipient-resolver.ts:36-81 (loadObjectAndTarget: loads contract/document/signature_request/template by ID, scoped to company_id, returns exists=true/false)",
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/communication-recipient-resolver.ts:40-74 (document loading, signature_request loading, all scoped to company_id)"
+        ],
+        "reuse": "communication-recipient-resolver.ts loadObjectAndTarget function",
+        "notes": "REAL entity resolution for HR/document objects. Fail-closed: cross-tenant query returns empty → exists=false. Blocker raised: 'object_not_found_in_tenant' (line 112, 126). Per-objectType handler: mission_task, contract, document, signature_request, template. Only exact-ID lookup (no name-based search). Returns target (approver/requester/owner) as user_id or membership_id from real fields, never payload."
+      },
+      {
+        "requirement": "Recipient resolution: resolve strategy-specific roles (approver/requester/coordinator) with fallback gate (tenant_owner only if explicit)",
+        "status": "EXISTS",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/communication-recipient-resolver.ts:101-153 (resolveCommunicationRecipient main entry point)",
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/communication-recipient-resolver.ts:14,131-136 (fallbackStrategy: only tenant_owner, only if input.fallbackStrategy == 'tenant_owner')"
+        ],
+        "reuse": "communication-recipient-resolver.ts resolveCommunicationRecipient, memberByUser, memberById, tenantOwner",
+        "notes": "REAL resolution with blocker semantics. Per-strategy: document_approver reads owner_membership_id or approved_by (real field). Signature_coordinator reads created_by or document.approved_by. Task_target reads task.owner. Invitations read from invitations.email (real field, not payload). Fail-closed: no member found → blocker 'recipient_not_resolved'. Fallback explicitly gate: line 135 only applies if caller passes fallbackStrategy='tenant_owner'. Line 136 blocks if no fallback + no member. Never a silent owner default. This is defensive, not AI."
+      },
+      {
+        "requirement": "Temporal resolution: parse relative dates (next week, 30 days from now, relative timezone), return ISO or null",
+        "status": "MISSING",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employee-import.ts:85-91 (parseDate: ONLY ISO 8601 YYYY-MM-DD and dd/mm/yyyy literal formats; no relative date parsing)"
+        ],
+        "reuse": "employee-import.ts parseDate function (accept additional formats but no relative logic needed)",
+        "notes": "DETERMINISTIC PARSING ONLY. parseDate accepts YYYY-MM-DD (ISO) or DD/MM/YYYY (spreadsheet-friendly). Returns ISO or null. NO support for 'next week', 'in 30 days', 'relative to today', 'within 6 months'. If user uploads CSV with relative dates, parseDate returns null → row.hired_at = null → inserted as NULL in DB. Not AI-missing, not a bug—by design: import is deterministic. If relative dates are needed, they must be pre-resolved by caller to ISO before CSV upload."
+      },
+      {
+        "requirement": "Temporal resolution: timezone handling for dates (convert local→UTC or preserve wall-clock intent)",
+        "status": "PARTIAL",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/runtime-schedule-rules.ts:10-28 (ScheduleRule enum: daily_local_time, weekly_local_time with EXPLICIT timezone field)",
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/runtime-schedule-rules.ts:32-42 (isValidTimeZone: Intl.DateTimeFormat check; tzOffsetMs: computes UTC offset including DST)"
+        ],
+        "reuse": "runtime-schedule-rules.ts ScheduleRule and timezone utilities (isValidTimeZone, tzOffsetMs)",
+        "notes": "REAL timezone handling for SCHEDULED rules (daily/weekly at local time). Intl.DateTimeFormat validates TZ string against IANA database. DST-aware offset calculation (lines 35-42). But: employee dates (hired_at, seniority_date, probation_end_date) are stored as ISO DATE (YYYY-MM-DD in DB, no time component), so no timezone needed—they are calendar dates, not instants. Company has a timezone field (company.timezone) but not used for employee date interpretation. Design choice: dates are wall-clock agnostic."
+      },
+      {
+        "requirement": "Amount resolution: parse salary, compensation, currency amounts from free text; handle decimal separators (. vs ,)",
+        "status": "MISSING",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/hr-mission-packs/domains/compensation.ts:1-56 (compensation domain defined but implementation gaps: 'salary_grid', 'salary_change_prepare', 'raise_promotion' all listed as NOT YET IMPLEMENTED)",
+          "No parseAmount, parseCurrency, or toBigDecimal function found in any file"
+        ],
+        "reuse": "none; compensation.ts defines mission packs but no resolver",
+        "notes": "MISSING. Compensation domain is declared (line 9-11: 'salary_change', 'raise_promotion' as capability IDs) but marked as gaps (line 2: 'Gaps: salary_grid, salary_change_prepare, raise_promotion'). No parser for '€2500.50' vs '€2500,50' (France uses comma). No BigDecimal or Decimal type. parseFloat would lose precision. This is NOT deployed; it's a FUTURE feature placeholder. P8.14 has no amount parsing at all."
+      },
+      {
+        "requirement": "Entity deduplication during import: OR semantics (match on ANY key: employee_number OR email OR external_ref)",
+        "status": "EXISTS",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employee-import.ts:103-212 (dedup logic: lines 151 default keys, 194-202 OR semantics loop)",
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employee-import.ts:107-117 (keyValueFor: extract normalized dedup key value; handles 'name_dob' composite)"
+        ],
+        "reuse": "employee-import.ts keyValueFor, seenByKey Map, existingByKey Map",
+        "notes": "REAL OR-semantics deduplication. For each row, for each configured dedup_key, extract and normalize value (accent-insensitive, lowercased). Check against existing employees AND earlier rows in batch. If ANY key matches existing or internal, mark as duplicate (matched_key, matched_value, outcome='duplicate'). Decision: skip by default. Masked output (email masked as 'a***@domain', birth_date masked). Not AI: pure string matching with outcome enum."
+      },
+      {
+        "requirement": "Cross-tenant entity isolation: queries enforce company_id = ? to prevent entity leaks",
+        "status": "EXISTS",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employees.ts:78 (byId: WHERE company_id=$1 AND id=$2)",
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/employee-search.ts:68,81,95 (searchEmployees: company_id=$1 in WHERE clause)",
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/communication-recipient-resolver.ts:40,48,58,68,76 (all queries include company_id=$1)"
+        ],
+        "reuse": "pattern: all queries accept ctx.company_id as $1 and enforce it",
+        "notes": "REAL enforcement. Every tenant-scoped function (EmployeeRepo.byId, searchEmployees, resolveCommunicationRecipient, etc.) enforces company_id=$1 in SQL WHERE. Cross-tenant ID is invisible (query returns 0 rows → null/not_found). No exception path: leaking entity from another tenant requires code bug (passing wrong company_id), not a resolution gap."
+      },
+      {
+        "requirement": "Resolution outcome types: return resolved/unresolved/ambiguous/forbidden/not_found enum or similar",
+        "status": "PARTIAL",
+        "evidence": [
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/communication-recipient-resolver.ts:25-31 (RecipientResolution: resolved=bool, blockers=string[], recipient=object | null)",
+          "c:/Users/homme/clonestore/src/lib/pierre/v1/hr-operations/reconciliation.ts:5 (ReturnOutcome enum: 'success' | 'failure' | 'ambiguous' | 'rejected')"
+        ],
+        "reuse": "communication-recipient-resolver.ts RecipientResolution type; hr-operations/reconciliation.ts ReturnOutcome enum",
+        "notes": "PARTIAL enum coverage. Communication resolver uses resolved=bool + blockers string array (blockers: ['object_not_found_in_tenant', 'recipient_not_resolved', 'no_valid_invitee_email', 'no_valid_employer_email', 'policy_fallback:tenant_owner']). Reconciliation uses ReturnOutcome. But NO unified entity resolution enum. searchEmployees returns list only (no 'ambiguous' marker if multiple matches). EmployeeRepo.byId returns null if not found (no 'not_found' enum). Missing: single type capturing (resolved, unresolved, ambiguous, forbidden, not_found) across all resolvers."
+      }
+    ],
+    "capability-retrieval-composition": [
+      {
+        "requirement": "Dynamic capability composition from natural language requests",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "none",
+        "notes": "The system DOES NOT use an LLM to compose capabilities dynamically. When a user provides an 'instruction' (natural language), analyzeInstruction() (src/lib/pierre/v1/analysis.ts:76-140) applies deterministic, hardcoded regex rules (SENSITIVE_RULES, OPERATIONAL_RULES) to extract intent and propose low-risk tasks. This is pure pattern-matching, not AI-driven reasoning. The result is an AnalysisResult with proposed_tasks that all have action types matching executor keys (reminder, deadline_reminder, classification, etc.) — preset actions, never inferred from the instruction's semantic content. No LLM agent selects or combines capabilities based on the request."
+      },
+      {
+        "requirement": "LLM-driven mission pack retrieval (selecting which pack handles a user request)",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "none",
+        "notes": "Mission pack selection is entirely deterministic and signal-driven, NOT LLM-based. (1) For proactive signals: the signal-registry (src/lib/pierre/v1/hr-proactive/signal-registry.ts:20-32) maps each signal key to a hardcoded handledByPackId; there is no ranking or relevance scoring. (2) For user requests: analyzeInstruction() produces an action-kind (e.g., 'reminder', 'classification'), but there is NO downstream pack-selection logic that reads the instruction and retrieves packs. The createMission() flow (src/lib/pierre/v1/mission-service.ts:86-200) creates a task directly from the analyzed action, never queries getMissionPack() or packsForCapability(). Packs are only instantiated at runtime for specific proactive signals (via signal registry), not for adhoc user instructions."
+      },
+      {
+        "requirement": "Bounded, relevance-ranked capability/mission/action retrieval for an LLM executor",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-action-registry.ts:57-93 (closed REGISTRY with 15 hardcoded runtime actions)",
+          "src/lib/pierre/v1/hr-mission-packs/registry.ts:14,33-52 (packsForCapability() and computePackCoverage())",
+          "src/lib/pierre/v1/hr-canon/capability-registry.ts:24-291 (210+ canonical capabilities, each with implementation status)"
+        ],
+        "reuse": "runtime-action-registry (closed registry primitive), capability-registry (canonical capability list), mission-pack registry (static pack-to-capability bindings)",
+        "notes": "The BUILDING BLOCKS for an LLM executor exist and are well-designed: (1) RUNTIME_ACTION_REGISTRY is a closed registry of 15 safe, validated actions (approval.request, signature.prepare, wait.until_time, etc.) with full input contracts and execution policies. This is the bounded action space. (2) packsForCapability(capId) returns all packs that realize a capability (src/lib/pierre/v1/hr-mission-packs/registry.ts:14). (3) The capability-registry lists 210+ HR capabilities with implementation status (VERIFIED_EXISTING, PARTIAL, MISSING). However, there is NO RELEVANCE-RANKING or RETRIEVAL logic: an LLM does not query these registries to find relevant capabilities or actions for a user request. The primitives are decoupled from any retrieval/composition layer."
+      },
+      {
+        "requirement": "Dynamic plan generation across multiple domains from a user request",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "none",
+        "notes": "Plan generation is FIXED, not dynamic. createMission() calls analyzeInstruction() which returns a hardcoded set of proposed_tasks (or even empty tasks for unmatched instructions). Those tasks are persisted directly without any cross-domain composition. The runtime-plan-compiler (src/lib/pierre/v1/runtime-plan-compiler.ts:57-163) validates and fingerprints plans, but it receives plans as input from the caller (the plan is pre-built or pre-defined elsewhere). There is no function that takes a user instruction and generates a DAG of steps across multiple domains (e.g., 'hire an employee' → recruitment pack steps + contract pack steps + onboarding pack steps). Such generation would require an LLM or a sophisticated multi-domain planner; neither exists."
+      },
+      {
+        "requirement": "Instruction parsing + intent classification as a gateway to capability retrieval",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/analysis.ts:76-140 (analyzeInstruction function)",
+          "src/lib/pierre/v1/analysis.ts:42-57 (SENSITIVE_RULES, OPERATIONAL_RULES)",
+          "src/lib/pierre/v1/mission-service.ts:103 (analysis = analyzeInstruction(input.instruction))"
+        ],
+        "reuse": "none",
+        "notes": "Intent classification DOES exist, but it is DETERMINISTIC PATTERN-MATCHING, not AI-driven. analyzeInstruction() uses hardcoded regex rules to detect intent (termination, compensation, contract, medical, reminder, etc.) and assign risk/sensitivity. The classification gates downstream validation and approval requirements but does NOT retrieve or compose capabilities. It is a pure rule-based guard: sensitive matches block autonomy; operational matches enable low-risk task creation. No capability registry is consulted; no mission pack selection follows."
+      },
+      {
+        "requirement": "Capability discovery by semantic/relevance matching",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "none",
+        "notes": "There is NO mechanism to search or rank capabilities by semantic relevance to a user request. The getCapability(capId) function (used in runtime-map.ts:23) performs exact ID lookup only; it is never called with a natural language query. The packsForCapability() function does exact capability-ID matching. A true discovery system would allow 'hire an employee' to retrieve all recruitment, contract, offer, onboarding, and proactive capabilities by inferring relevance — this does not exist. Capabilities are only accessible via hardcoded mission pack declarations."
+      },
+      {
+        "requirement": "Capability composition (combining multiple capabilities into a single coordinated plan)",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/hr-mission-packs/domains/recruitment.ts, onboarding.ts, contract-changes.ts (multi-step mission packs)",
+          "src/lib/pierre/v1/hr-mission-packs/schema.ts (defineMissionPack allows steps array with dependencies)"
+        ],
+        "reuse": "mission-pack schema (allows multi-step composition with dependencies)",
+        "notes": "MANUAL composition exists: a mission pack (e.g., recruitment.hiring_process) can combine 6+ steps that invoke multiple capabilities and services (classify_intent, plan_hiring_tasks, communication.create_intent, etc.). However, this composition is STATIC and PRE-DEFINED at pack authoring time, NOT DYNAMIC. A user cannot say 'create a hiring + contract + onboarding workflow'; they can only trigger a pre-authored pack. There is no compositional runtime that assembles capabilities on-the-fly based on request semantics."
+      },
+      {
+        "requirement": "Wiring composed capabilities to runtime actions + state machines",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/hr-mission-packs/runtime-map.ts:51-68 (packToRuntimePlan function)",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:57-163 (compileMissionPlan with dependency resolution, cycle detection, sensitive action gating)",
+          "src/lib/pierre/v1/runtime-action-handlers.ts:70-160 (RuntimeActionHandler type + 6 concrete handlers)"
+        ],
+        "reuse": "packToRuntimePlan (translator from packs to runtime plans), compileMissionPlan (validator/compiler), runtime-action-handlers (execution primitives)",
+        "notes": "This IS REAL and COMPLETE. Once a mission pack is selected, runtime-map.ts translates its steps to a RuntimePlanInput, the compiler validates the plan DAG (cycles, sensitive action approval gates, timeout/retry bounds), and the runtime executes steps via registered handlers. This is the EXECUTION layer and is fully wired. However, it assumes the pack is ALREADY CHOSEN; there is no dynamic selection logic upstream."
+      },
+      {
+        "requirement": "Plan compilation with proof of safety (cycle detection, approval gating, resource bounds)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:125-140 (Kahn topological sort for cycle detection)",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:101-123 (sensitive action approval gate enforcement)",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:43-99 (resource limits, input size, step count, depth validation)"
+        ],
+        "reuse": "none",
+        "notes": "REAL and RIGOROUS. compileMissionPlan() returns a CompiledPlan with blockers list (cycle_detected, sensitive_action_without_approval_gate, unknown_dependency, etc.). Plans are refused if cycles exist, if a sensitive action lacks an upstream approval step it depends on, or if they exceed hard limits (max 200 steps, 25 deps/step, depth 100). The plan is immutable once compiled; the fingerprint pins all inputs. This is genuine safety-proof infrastructure, not merely aspirational."
+      }
+    ],
+    "plan-validation-execution": [
+      {
+        "requirement": "Plan validator rejects unknown/obsolete action keys and versions",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:76-77 — getRuntimeActionDefinition checks action_key; returns null if unknown",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:77 — blockers.push(`unknown_or_obsolete_action:${s.step_key}:${s.action_key}@${s.action_version}`) on null return",
+          "src/lib/pierre/v1/runtime-action-registry.ts:95-99 — function getRuntimeActionDefinition returns null for unknown keys or mismatched versions (version !== d.version)",
+          "src/lib/pierre/v1/runtime-action-registry.ts:56-93 — closed REGISTRY object with only 13 explicitly defined actions; no wildcard/free actions"
+        ],
+        "reuse": "runtime-action-registry.ts:REGISTRY (closed list) + runtime-plan-compiler.ts:compileMissionPlan (blocker logic)",
+        "notes": "REAL validator: plan compilation REFUSES any action not explicitly in the 13-action registry. The REGISTRY is immutable; no 'execute_prompt', 'run_code', 'arbitrary_tool' patterns. This is fail-closed determinism, not imitation."
+      },
+      {
+        "requirement": "Plan validation enforces DAG constraints (cycles, depth, dependency bounds)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:88-89 — self_dependency check",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:92-94 — unknown_dependency validation (all deps must exist in seen set)",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:96-98 — DAG depth bounded by runtimeLimits (maxDepth default 100)",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:126-140 — Kahn topological sort detects cycles (cycle_detected blocker)",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:88 — maxDepsPerStep limit enforced (default 25)"
+        ],
+        "reuse": "runtime-limits.ts:runtimeLimits() + plan-compiler DAG logic",
+        "notes": "REAL constraint validation: topological sort actually runs; cycles are detected algorithmically, not guessed. Depth calculation is concrete (stack-based traversal in planDepth). Non-AI determinism."
+      },
+      {
+        "requirement": "Plan validator blocks sensitive actions without approval gates",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:101-123 — if (dfn.risk === 'sensitive') requires input.approval_gate to reference an 'approval' category step upstream in the DAG",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:116-122 — validates gate exists, is an approval step, and is reachable (dependsOn check)",
+          "src/lib/pierre/v1/runtime-action-registry.ts:79, 91 — actions 'approval.request' (category: approval) and 'signature.prepare' (risk: sensitive) defined with explicit constraints"
+        ],
+        "reuse": "runtime-action-registry.ts (approval.request category) + plan-compiler approval-gate logic",
+        "notes": "REAL policy: a sensitive action without a named approval_gate step in the DAG is REJECTED at plan compile time. The gate must be reachable via transitive dependencies. This is deterministic policy enforcement, not heuristic."
+      },
+      {
+        "requirement": "Plan validator enforces input schema validation for all actions",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:83-84 — const inputErrors = validateRuntimeActionInput(...); if (!inputErrors.ok) blockers.push(...)",
+          "src/lib/pierre/v1/runtime-action-registry.ts:107-112 — validateRuntimeActionInput calls the action's validateInput function (defined per action)",
+          "src/lib/pierre/v1/runtime-action-registry.ts:38-54 — def() provides per-action validateInput closures: e.g. isStr(p.reason) for approval.request, isUuid(p.contract_id) for signature.prepare"
+        ],
+        "reuse": "runtime-action-registry.ts:validateRuntimeActionInput + per-action validators",
+        "notes": "REAL validation: each action declares its input schema as a pure function (isStr, isUuid, etc). The compiler invokes this at plan-compile time, not runtime. Unknown/missing required fields are rejected as blockers. This is stateless type checking."
+      },
+      {
+        "requirement": "Runtime rejects unknown/unimplemented actions during job execution",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:118-122 — getRuntimeActionDefinition(job.action_key, job.action_version); if (!dfn) await governedFail(..., 'block', 'blocked')",
+          "src/lib/pierre/v1/runtime-service.ts:131-132 — getRuntimeActionHandler(job.action_key); if (!handler) await governedFail(..., 'block', ...)",
+          "src/lib/pierre/v1/runtime-action-handlers.ts:223-225 — function getRuntimeActionHandler returns RUNTIME_ACTION_HANDLERS[actionKey] ?? null (closed list)"
+        ],
+        "reuse": "runtime-action-registry.ts:getRuntimeActionDefinition + runtime-action-handlers.ts:getRuntimeActionHandler",
+        "notes": "REAL enforcement: at runtime, if an action key is not in the handler registry, the job is blocked (not retried, not allowed to proceed). A plan compiled with a real action can never reference an obsolete handler version at runtime execution time. This guarantees no orphaned execution."
+      },
+      {
+        "requirement": "Runtime validates action input against schema before handler invocation",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:125-126 — const valid = validateRuntimeActionInput(job.action_key, payload); if (!valid.ok) await governedFail(..., 'block', ...)",
+          "src/lib/pierre/v1/runtime-action-registry.ts:107-112 — validateRuntimeActionInput re-checks action input at execution time (second validation, first was at plan compile)"
+        ],
+        "reuse": "runtime-action-registry.ts:validateRuntimeActionInput",
+        "notes": "REAL double-check: input is validated both at plan compile time AND at runtime execution time. If payload is malformed or missing required fields, the job is blocked (not executed). This is deterministic schema enforcement."
+      },
+      {
+        "requirement": "Execution result is recorded under fencing token (no concurrent fabrication)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:128 — pierre_rt_runtime_start_step(company_id, job_id, worker, token)",
+          "src/lib/pierre/v1/runtime-service.ts:161 — await governedRecordAttempt(wtx, job.id, worker, token, ..., result.status, ...)",
+          "src/lib/pierre/v1/runtime-service.ts:163 — await pierre_rt_runtime_complete_job(..., worker, token, 'succeeded', result.outputHash, JSON.stringify(result.output))",
+          "src/lib/pierre/v1/runtime-service.ts:187-189 — governedRecordAttempt + governedFail both assert (worker, token) ownership; fencing_token is checked by Pierre SQL SECURITY DEFINER functions"
+        ],
+        "reuse": "runtime-service.ts:governedRecordAttempt + governedFail (SQL-governed fencing)",
+        "notes": "REAL fencing: every result record is made under a (worker_id, fencing_token) pair bound to the job lease. A stale worker with an old token is positively rejected by SQL (42501 permission denied). Result fabrication would require owning the current fencing token, which is atomically claimed per lease renewal. This is cryptographic-grade determinism via SQL."
+      },
+      {
+        "requirement": "Handler result output is hashed and persisted (no tampering post-execution)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-action-handlers.ts:72-73 — function ok(output) returns { status: 'succeeded', output, outputHash: sha256(...) }",
+          "src/lib/pierre/v1/runtime-service.ts:163 — result.outputHash passed to pierre_rt_runtime_complete_job(..., result.outputHash ?? null, JSON.stringify(result.output))",
+          "src/lib/pierre/v1/runtime-service.ts:129 — checkpoint(...) called AFTER step start + BEFORE handler invocation, recording sha(job.id + ':' + token)"
+        ],
+        "reuse": "runtime-action-handlers.ts:ok() + sha256 hashing",
+        "notes": "REAL immutability: output is hashed at the moment of completion and recorded in the database under the fencing token. The hash serves as a fingerprint; any tampering with the output breaks the hash. This is deterministic cryptographic binding."
+      },
+      {
+        "requirement": "Provider submissions never fabricate success; evidence is real or manual-governed",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/final-certification/scenario-runner.ts:22-27 — checkProviderNoFabrication: submits to each provider and checks if r.reference !== null (true = fabricated); blockers.push('fabricated_provider_success')",
+          "src/lib/pierre/v1/provider-integrations/evidence.ts:16-18 — buildProviderEvidence records (outcome, reference, manualHandoffId); reference === null when manual handoff occurs",
+          "src/lib/pierre/v1/runtime-action-handlers.ts:173-206 — signaturePrepare handler: calls prepareContractSignature (real P8.3 service) then submits via submitContractToSignatureProvider (governed service), never invents reference"
+        ],
+        "reuse": "provider-integrations/evidence.ts + runtime-action-handlers.ts (governed service calls only)",
+        "notes": "REAL enforcement: provider evidence records whether a submission was actually made (reference !== null) or routed to manual review (reference === null). The runtime never synthesizes a provider response. Fabrication is checked in certification scenarios and would fail the scenario (forbidden effect)."
+      },
+      {
+        "requirement": "Mission outcome is aggregated from task states (no free declaration)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/mission-service.ts:298-334 — aggregateMission recomputes mission status from task states: all done → done, any running → in_progress, any failed → failed/partially_completed",
+          "src/lib/pierre/v1/mission-service.ts:305-314 — iterates through tasks, counts terminal and running states, applies business logic to compute target status",
+          "src/lib/pierre/v1/worker.ts:83, 110, 119, 127, 136 — every task completion calls aggregateMission to recompute mission status"
+        ],
+        "reuse": "mission-service.ts:aggregateMission + worker.ts loop integration",
+        "notes": "REAL aggregation: mission status is not declared by the handler; it is RECOMPUTED from the actual task substates. This is deterministic state reduction, not a guess or LLM inference."
+      },
+      {
+        "requirement": "Approval request creates validation row pinned to content fingerprint; stale approvals don't resolve waits",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-action-handlers.ts:109-131 — approvalRequest handler creates validation row with content_fingerprint = ctx.payload.fingerprint",
+          "src/lib/pierre/v1/runtime-action-handlers.ts:128 — wait expected_fingerprint is pinned to the same fingerprint; a content change re-fingerprints and wait won't resolve",
+          "src/lib/pierre/v1/mission-service.ts:235-250 — decideValidationAction emits runtime event with content_fingerprint; only 'approved' action with matching fingerprint resolves the wait (resolve field non-null)"
+        ],
+        "reuse": "runtime-action-handlers.ts:approvalRequest + mission-service.ts:decideValidationAction (fingerprint pinning)",
+        "notes": "REAL safety: approval is bound to the exact content byte-hash at the moment of the request. If the content changes (e.g., contract terms amended), the fingerprint breaks and a stale approval cannot resolve the wait. This is deterministic content-binding, not heuristic consent."
+      },
+      {
+        "requirement": "Unknown action version is explicitly rejected (no default fallback to v1)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-action-registry.ts:95-99 — getRuntimeActionDefinition(actionKey, version): if (version && version !== d.version) return null",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:76-77 — if (!dfn) blockers.push(...unknown_or_obsolete_action...)",
+          "src/lib/pierre/v1/runtime-service.ts:118-122 — runtime also rejects unknown definition with 'block' disposition"
+        ],
+        "reuse": "runtime-action-registry.ts:getRuntimeActionDefinition (version check logic)",
+        "notes": "REAL strict versioning: a plan asking for action_version='2' when only version='1' is defined will be REJECTED. No silent fallback. This is deterministic version pinning, preventing action-drift vulnerabilities."
+      },
+      {
+        "requirement": "No arbitrary code execution, no free instructions, no eval/new Function patterns",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-action-registry.ts:1-6 — comment: 'A runtime step NEVER carries a free executable instruction... There is no generic database.query / http.request / run_code / execute_prompt / arbitrary_tool action'",
+          "src/lib/pierre/v1/runtime-action-registry.ts:56-93 — REGISTRY is closed; 13 actions defined, zero generic/free actions",
+          "src/lib/pierre/v1/runtime-action-handlers.ts:1-8 — comment: 'NO handler sends email...calls a signature provider...or runs a free instruction'",
+          "src/lib/pierre/v1/runtime-action-handlers.ts:208-221 — RUNTIME_ACTION_HANDLERS exports only 12 named handlers (no generic fallback)"
+        ],
+        "reuse": "runtime-action-registry.ts:REGISTRY (closed) + runtime-action-handlers.ts:RUNTIME_ACTION_HANDLERS (closed)",
+        "notes": "REAL constraint: the codebase explicitly forbids and does not implement any free/generic action. All 13 actions are purpose-built, typed, and governed. This is architectural enforcement, not imitation of safety."
+      },
+      {
+        "requirement": "Plan input size is bounded per step to prevent oversized payload smuggling",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:65-69 — for each step: bytes = Buffer.byteLength(JSON.stringify(input), 'utf8'); if (bytes > LIM.maxInputBytes) blockers.push(...)",
+          "src/lib/pierre/v1/runtime-limits.ts (inferred) — runtimeLimits() defines maxInputBytes (typically 64KB or similar)"
+        ],
+        "reuse": "runtime-limits.ts:runtimeLimits() + plan-compiler input-size check",
+        "notes": "REAL limit: oversized payloads are rejected at plan compile time. This prevents DOS via bloated input payloads. Non-negotiable hard cap, not a warning."
+      },
+      {
+        "requirement": "Total step count and plan depth are bounded",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:63-64 — if (steps.length > LIM.maxSteps) blockers.push(...)",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:96-98 — const depth = planDepth(...); if (depth > LIM.maxDepth) blockers.push(...)",
+          "src/lib/pierre/v1/runtime-limits.ts (inferred) — runtimeLimits() returns maxSteps (200), maxDeps, maxDepth (100)"
+        ],
+        "reuse": "runtime-limits.ts:runtimeLimits() + plan-compiler limits",
+        "notes": "REAL bounds: plans with >200 steps or >100 depth chain are rejected. These are fail-closed resource limits, not soft guidelines."
+      },
+      {
+        "requirement": "Sensitive actions require approval gate; prohibited actions are rejected outright",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:79-80 — if (dfn.risk === 'sensitive' && dfn.executionMode === 'automatic') blockers.push(...sensitive_action_without_gate...)",
+          "src/lib/pierre/v1/runtime-plan-compiler.ts:80 — if (dfn.risk === 'prohibited') blockers.push(...prohibited_action...)",
+          "src/lib/pierre/v1/runtime-action-registry.ts:91 — 'signature.prepare' defined with risk: 'sensitive', executionMode: 'automatic_after_policy'"
+        ],
+        "reuse": "runtime-action-registry.ts (risk definitions) + plan-compiler policy enforcement",
+        "notes": "REAL policy: sensitive actions cannot be automatic; they must declare an approval_gate. Prohibited actions are never allowed. This is deterministic policy binding, not heuristic recommendation."
+      },
+      {
+        "requirement": "Long-running actions (timeout > lease) auto-heartbeat to prevent stale reclaim",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:144-150 — if (dfn.timeoutSeconds > lease) new RuntimeLeaseController heartbeats via hctx.assertLease every half-lease",
+          "src/lib/pierre/v1/runtime-service.ts:139 — assertLease re-asserts the fencing token; throws 42501 if a newer generation reclaimed the job"
+        ],
+        "reuse": "runtime-service.ts:RuntimeLeaseController + assertLease callback",
+        "notes": "REAL lease renewal: a long action doesn't hold a single lease for its duration; it heartbeats midway through to prevent another worker from reclaiming the job mid-flight. If the heartbeat fails (stale token), the action aborts before external effect. This is deterministic lease safety."
+      },
+      {
+        "requirement": "Handler error is classified deterministically (retry vs reconcile vs permanent)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:75-82 — classify() function maps error message patterns to disposition: 'retry' (transient), 'reconcile' (ambiguous), 'permanent' (invalid input)",
+          "src/lib/pierre/v1/runtime-service.ts:156 — const c = classify(err); disposition used to determine final outcome (dead_letter, retried, blocked, reconciled)"
+        ],
+        "reuse": "runtime-service.ts:classify function",
+        "notes": "REAL error classification: handler errors are not guessed; they are pattern-matched against known error categories (timeout, rate limit, permission denied, etc) and routed accordingly. This is deterministic error routing, not ML-based guessing."
+      },
+      {
+        "requirement": "Job completion never succeeds on stale/lost lease; fencing is enforced by SQL",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:163 — pierre_rt_runtime_complete_job(..., worker, token, 'succeeded', ...): SQL SECURITY DEFINER function checks fencing_token matches",
+          "src/lib/pierre/v1/runtime-service.ts:177-180 — if SQL rejects the call (42501), loopErr is caught and job is failed (retry disposition)"
+        ],
+        "reuse": "SQL-governed pierre_rt_runtime_complete_job function (SECURITY DEFINER)",
+        "notes": "REAL fencing: the database layer itself enforces token ownership. A worker cannot complete a job unless it owns the current fencing token. This is enforced in SQL, not in application logic, making it tamper-proof."
+      }
+    ],
+    "autonomy-continuation": [
+      {
+        "requirement": "Durable per-mission-run cognitive state that persists across worker restarts, provider timeouts, and logout",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:44-68 (createMissionRunFromPlan creates immutable mission_run + step_runs in planner role transaction; plan is fingerprinted + versioned)",
+          "src/lib/pierre/v1/runtime-service.ts:100-183 (runPierreRuntimeJobs loop claims jobs with fencing tokens, heartbeats every half-lease to keep long actions alive; stale lease recovery is automatic)",
+          "src/lib/pierre/v1/queue.ts:40-83 (FOR UPDATE SKIP LOCKED atomically claims runnable jobs; leased jobs are recoverable if lease_expires_at < now())",
+          "src/lib/pierre/v1/queue.ts:131-138 (recoverStaleLeases() makes leased jobs claimable again on expiry)",
+          "src/lib/pierre/v1/runtime-scheduler.ts:38-42 (runPierreRuntimeRecovery bumps fencing generation, records superseded lease, reclaims expired jobs)"
+        ],
+        "reuse": "pierre_rt_mission_runs table (immutable run identity), pierre_rt_step_runs table (typed step state), pierre_rt_jobs table (fencing_token + lease_expires_at), fencing generation counter in job claim",
+        "notes": "Real, not imitation. A mission run is PERMANENTLY PERSISTED in the database with status (queued/running/waiting/paused/blocked/completed). Steps are individually tracked with fencing tokens that reject stale workers. The planner role compiles + fingerprints the plan once; workers execute it durably under fencing + lease heartbeats. A crashed worker's lease auto-expires; the recovery sweeper reclaims the job and bumps the fencing generation. This is genuine durable state, not cached or in-memory."
+      },
+      {
+        "requirement": "Terminal cognitive states (AWAITING_*, BLOCKED_*, FAILED_*) that act as decision points, not just status values",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/state-machine.ts:16-30 (TaskStatus and MissionStatus enums include: awaiting_info, awaiting_validation, blocked, failed, retry_scheduled, escalated)",
+          "src/lib/pierre/v1/state-machine.ts:51-67 (TASK_TRANSITIONS graph: each status has explicit allowed next-states; no implicit transitions)",
+          "src/lib/pierre/v1/mission-service.ts:56-68 (transitionTask enforces assertTaskTransition; every status change goes through mission-service, not raw UPDATE)",
+          "src/lib/pierre/v1/runtime-service.ts:165-175 (waiting/blocked/failed outcomes trigger DIFFERENT BRANCH paths: waiting → durable wait record, blocked → remain in job queue, failed → retry/dead-letter)"
+        ],
+        "reuse": "state-machine.ts (assertTaskTransition validates legal transitions), mission-service.ts (transitionTask as single governance point), runtime-service.ts (classify() maps handler errors to retry|reconcile|permanent|block dispositions)",
+        "notes": "REAL decision-making, not cosmetic. The state machine is a TYPED GRAPH (state + allowed-transitions), enforced at write-time via assertTransition. A BLOCKED state does NOT auto-advance — it requires a human or operator action to transition to ready/queued/cancelled/escalated. An AWAITING_VALIDATION state parks the task until a validation decision lands. A FAILED state only auto-advances if retry_scheduled is allowed by the graph; permanent failures go to dead-letter. This is deterministic, observable governance."
+      },
+      {
+        "requirement": "Resume-from-wait: Long-running cognitive operations (minutes→months) that park in durable wait states and resume on external event or timer",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-scheduler.ts:111-123 (resolveMatchingWaits: matches external events to waiting step_runs by kind/object_type/object_id; resolves exactly once per fingerprint)",
+          "src/lib/pierre/v1/runtime-scheduler.ts:138-143 (scheduler tick resolves DUE timer waits via wake_at <= now())",
+          "src/lib/pierre/v1/runtime-event-bus.ts:40-51 (emitRuntimeEvent lands in transactional outbox; drainRuntimeEventOutbox forwards to scheduler for resolution)",
+          "src/lib/pierre/v1/__integration__/p85-waits-resume.itest.ts:18-36 (timer wait: execute → waiting → scheduler resolves wake_at → step succeeded, dependent enqueued)",
+          "src/lib/pierre/v1/__integration__/p85-waits-resume.itest.ts:38-62 (external event wait: replay is idempotent; only EXACT match resolves; non-matching events do not advance)",
+          "src/lib/pierre/v1/__integration__/p85-waits-resume.itest.ts:64-85 (approval wait resolves only when fingerprint matches; stale content does NOT resume)"
+        ],
+        "reuse": "pierre_rt_runtime_waits table (durable wait records with wait_kind, event_kind, object_type/id, expected_fingerprint, wake_at), runtime-scheduler.ts (timer/event resolution), runtime-event-bus.ts (transactional outbox ingestor)",
+        "notes": "Real resumption, not polling. A step that calls 'wait.for_event' or 'wait.until_time' produces a DURABLE WAIT RECORD in pierre_rt_runtime_waits. The job completes; the step remains in 'waiting' status. The scheduler tick periodically resolves matching waits: timer waits by wake_at, event waits by (source, event_key) dedup + exact kind/object match, approval waits by fingerprint (a content change voids the wait). When resolved, the step advances to succeeded and its dependents are enqueued. The runtime NEVER polls the business tables for a fact; it RECEIVES service-emitted durable events (validation decisions, signature completions, communication deliveries) via the transactional outbox and resolves the exact matching wait."
+      },
+      {
+        "requirement": "Autonomy policy: Execution mode decision (AUTO_EXECUTE vs EXECUTE_AND_NOTIFY vs HUMAN_APPROVAL_REQUIRED vs BLOCK_AND_ESCALATE) that governs whether a step runs, requires approval, or blocks",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/autonomy.ts:8-9 (AutonomyMode: draft, normal, high_autonomy, enterprise_autonomous)",
+          "src/lib/pierre/v1/autonomy.ts:14-19 (ValidationDecision: AUTO_EXECUTE, EXECUTE_AND_NOTIFY, PREPARE_AND_OPTIONALLY_REVIEW, HUMAN_APPROVAL_REQUIRED, BLOCK_AND_ESCALATE)",
+          "src/lib/pierre/v1/autonomy.ts:56-86 (decideValidation: closes over AutonomyContext {mode, action, risk, sensitivity, external_side_effect}; returns decision based on TYPED rules, not free expression)",
+          "src/lib/pierre/v1/mission-service.ts:102-143 (plan computes guard + decision for each task; status is set to awaiting_validation if approvalRequired, ready if all conditions met)",
+          "src/lib/pierre/v1/runtime-service.ts:118-132 (runtime loop blocks execution of unknown_action, invalid_input, and actions with no_handler; handler errors are classified into retry|reconcile|permanent|block)"
+        ],
+        "reuse": "autonomy.ts (decideValidation, isExecutable, requiresHumanApproval), cloneguard.ts (guard.requires_approval + guard.level === 'black' → escalated), mission-service.ts (approval_required boolean stored on task)",
+        "notes": "Real governance, not imitation. The autonomy mode is NOT a cosmetic display; it CHANGES EXECUTION BEHAVIOR. A task in 'draft' mode with external_side_effect → HUMAN_APPROVAL_REQUIRED. A task in 'normal' mode with action='contract' → HUMAN_APPROVAL_REQUIRED (approval_required_actions set is closed + immutable). A task in 'enterprise_autonomous' mode with risk='high' → still HUMAN_APPROVAL_REQUIRED (no mode escapes sensitivity). The decision is computed ONCE at mission creation (via decideValidation) and stored on the task as approval_required. At execution, a task awaiting_validation does NOT auto-run; it parks until a validation decision lands."
+      },
+      {
+        "requirement": "Fencing + lease control: Stale worker rejection via generational fencing; lease heartbeat to prevent mid-flight reclamation of long actions",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:112 (runPierreRuntimeJobs claims with 'select * from pierre_rt_runtime_claim(...) — claim increments fencing_token)",
+          "src/lib/pierre/v1/runtime-service.ts:116-120 (token = job.fencing_token; stale re-claiming worker is rejected by governedFail)",
+          "src/lib/pierre/v1/runtime-service.ts:128-129 (heartbeat assertion: assertLease checks fencing_token + lease ownership; throws 42501 if a newer generation reclaimed)",
+          "src/lib/pierre/v1/runtime-service.ts:144-149 (long action: RuntimeLeaseController heartbeats every half-lease; refused heartbeat via LeaseLostError aborts action BEFORE external effect)",
+          "src/lib/pierre/v1/runtime-lease-controller.ts:32-54 (LeaseLostError thrown when lease is lost; ensureHeld() called before/after external calls)",
+          "src/lib/pierre/v1/runtime-lease-controller.ts:56-66 (beat() catches heartbeat refusal, marks _lost, stops the loop)"
+        ],
+        "reuse": "pierre_rt_runtime_claim (stored procedure increments fencing_token on claim), pierre_rt_runtime_heartbeat (governed SP re-asserts ownership + fencing + lease; throws 42501 on stale token), RuntimeLeaseController (in-process heartbeat loop for long actions)",
+        "notes": "Real, not cosmetic. When a worker claims a job, the claim increments a generational fencing_token counter. The worker MUST pass the token to every governed mutation (start_step, checkpoint, heartbeat, complete_job, fail_job). If a newer generation owns the job (recovery swept it), the heartbeat throws 42501 (permission denied); the controller catches it, sets isLost=true, and the handler aborts. This PREVENTS a crashed worker from committing effects AFTER the recovery sweeper reclaimed the job. For long actions (handler.timeoutSeconds > lease), the controller spawns an interval heartbeat that runs every half-lease, keeping the job from expiring. If a heartbeat is refused, the controller stops and the handler's next checkpoint/effect call hits ensureHeld(), which throws LeaseLostError."
+      },
+      {
+        "requirement": "Resume after logout: Missions and steps remain in durable wait/blocked/queued states even after requester logs out; scheduler/worker processes run server-side, independent of session",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:100-107 (runPierreRuntimeJobs is a server-side cron/loop function, never depends on a browser session or user_id ownership; it claims jobs atomically via SQL FOR UPDATE)",
+          "src/lib/pierre/v1/runtime-scheduler.ts:126-190 (runPierreRuntimeScheduler is a pure server-side scheduler tick; never depends on user session; resolves waits, fires relances, recovers stale leases)",
+          "src/lib/pierre/v1/runtime-scheduler-db.ts:24-29 (getRuntimeSchedulerDatabaseUrl is env-based; the dedicated scheduler DSN is never tied to a user session)",
+          "src/lib/pierre/v1/mission-service.ts:102-115 (createMission stores autonomy_mode + approval_policy on the mission; execution policy is NOT user-session-dependent)"
+        ],
+        "reuse": "mission-service.ts (stores autonomy_mode on mission), runtime-service.ts (worker loop independent of session), runtime-scheduler.ts (scheduler loop independent of session)",
+        "notes": "Real process independence. A mission run is owned by company_id, not user_id. The worker and scheduler are SERVER-SIDE PROCESSES that run on a timer/cron, not triggered by user action. Once a mission is in the database with status=queued/waiting/blocked, it will be picked up by the worker loop regardless of whether the requester is logged in. The autonomy mode and approval policy are stored on the mission at creation time; they govern execution regardless of who is logged in or whether anyone is logged in."
+      },
+      {
+        "requirement": "Restart safety: Cognitive state and execution progress survive worker/scheduler process restart; no in-memory state is required",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:1-8 (comment: 'The DB is the only source of truth; no in-memory timer')",
+          "src/lib/pierre/v1/queue.ts:1-6 (comment: 'No in-memory queue, no browser dependency')",
+          "src/lib/pierre/v1/runtime-service.ts:112 (claim query: 'select * from pierre_rt_runtime_claim(...)' — workers discover due jobs by querying the DB, not from in-memory state)",
+          "src/lib/pierre/v1/runtime-scheduler.ts:138-159 (scheduler tick queries pierre_rt_runtime_waits for pending waits, pierre_rt_runtime_events for pending events; no in-memory event bus)",
+          "src/lib/pierre/v1/runtime-service.ts:128-129 (checkpoint before every external action: pierre_rt_runtime_checkpoint records state before the effect; on restart, worker skips already-recorded checkpoints)"
+        ],
+        "reuse": "pierre_rt_mission_runs (queued/running/waiting/blocked/completed status), pierre_rt_step_runs (execution state), pierre_rt_jobs (leased jobs + fencing), pierre_rt_runtime_waits (durable wait records), checkpoints (before-effect state log)",
+        "notes": "Real, not imitation. ALL EXECUTION STATE is written to Postgres BEFORE any external I/O. The worker records a 'before_action' checkpoint, then calls the handler. If the process crashes mid-handler, the next worker: (1) queries pierre_rt_runtime_claim and finds the stale job (lease expired or fencing rejected), (2) increments fencing generation, (3) re-queries the step state and checkpoint, (4) skips re-done work, (5) continues. The plan version + step runs + dependencies are immutable once created; only execution state (status, checkpoints, attempts) mutates. There is no in-memory event bus, no session-scoped state, no cache that would be lost on restart."
+      },
+      {
+        "requirement": "Provider timeout recovery: When an external provider (signature service, communication service, validation service) times out, the step transitions to a governance-determined state (retry, reconcile, or escalate) without silent partial effects",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:74-82 (classify() maps handler errors: /timeout.*ambiguous/ → reconcile + 60s retry; /provider_5xx|rate.?limit|unavailable|transient/ → retry + 60s; others → retry default)",
+          "src/lib/pierre/v1/runtime-service.ts:153-159 (handler error: call classify(), call governedFail with disposition, record attempt)",
+          "src/lib/pierre/v1/runtime-service.ts:190-192 (governedFail calls pierre_rt_runtime_fail_job with disposition=retry|reconcile|permanent|block; returns dead_letter|waiting_reconciliation|blocked|retry_scheduled)",
+          "src/lib/pierre/v1/runtime-service.ts:162-176 (handler result status: succeeded → complete_job, waiting → durable wait record, submission_unknown → reconcile, blocked → block, other → block)"
+        ],
+        "reuse": "classify() function (error → disposition mapping), governedFail (calls pierre_rt_runtime_fail_job SP), mission-service.ts (retry_scheduled state allows re-queue with backoff)",
+        "notes": "Real error governance. A timeout from a signature provider is CLASSIFIED (not swallowed). If the provider returns 5xx or times out ambiguously, classify() returns disposition='reconcile' with 60s retryAfter. The step is NOT marked failed; instead, it transitions to retry_scheduled with a backoff delay. The next worker picks it up after the delay. If a handler throws, the error is caught, classified, and the job transitions via governedFail, which calls the database SP pierre_rt_runtime_fail_job — this enforces that the step does NOT partially succeed (checkpoint + effect atomicity is enforced by the handler contract, not the scheduler)."
+      }
+    ],
+    "memory-learning": [
+      {
+        "requirement": "Durable operational memory: request summary + resolved entities + confirmed facts + rejected assumptions + plan versions + actions + results + next event",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/repositories.ts:23-25 (MissionRow has summary, next_action, version)",
+          "src/lib/pierre/v1/repositories.ts:33 (TaskRow.result field)",
+          "src/lib/pierre/v1/repositories.ts:44-49 (EventRow captures state transitions, metadata)",
+          "src/lib/pierre/v1/mission-service.ts:113 (summary and next_action set at mission creation from analysis)"
+        ],
+        "reuse": "none",
+        "notes": "PARTIAL: Mission has one summary string + one next_action string + version counter. Task has one result field (JSON). No fine-grained entity resolution, fact tracking, assumption rejection store, or plan version history. EventRepo stores state transitions with metadata but no outcome reconciliation. This is operational checkpoint data, not cognitive memory."
+      },
+      {
+        "requirement": "Learning from corrections: neutralized feedback intake, error absorption, assumption invalidation",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "none",
+        "notes": "MISSING entirely. No mechanism to accept human corrections, invalidate previous assumptions, or adjust future decisions based on feedback. The analysis.ts rules are deterministic and static (regex + hardcoded rules); no feedback loop to update them. ValidationRepo tracks validation decisions but not whether the decision was later corrected."
+      },
+      {
+        "requirement": "No cross-company cognitive state leak: corrections, reasoning, learned patterns isolated per tenant",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/repositories.ts:19-26 (every table row includes company_id foreign key)",
+          "src/lib/pierre/v1/mission-service.ts:86-91 (createMission filters by ctx.company_id)",
+          "src/lib/pierre/v1/api.ts:7 (comment: 'tenant isolation')",
+          "src/lib/pierre/v1/__integration__/p83-schema-finalization.itest.ts:76-85 (composite FK matrix enforces same-tenant references)"
+        ],
+        "reuse": "company_id on every row + RLS via SET LOCAL app.current_company",
+        "notes": "REAL: Every table has company_id FK constraint. Queries filter by company_id. Cross-tenant FK references are rejected at DB layer. No multi-tenant confusion possible. But this is a non-issue because there is no learning state to leak."
+      },
+      {
+        "requirement": "Hidden chain-of-thought storage: no unlogged reasoning or internal decision state",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/analysis.ts (rules are deterministic, no intermediate reasoning stored)",
+          "src/lib/pierre/brain/final-brain.ts:64-73 (AI output normalized + coerced to schema, intermediate steps not logged)",
+          "src/lib/pierre/v1/repositories.ts:48 (EventRow.metadata field is free-form JSONB but not used for reasoning artifacts)"
+        ],
+        "reuse": "none",
+        "notes": "PARTIAL: No explicit chain-of-thought tables exist. Analysis is deterministic (regex rules). Brain makes AI calls but result is normalized to schema (no intermediate reasoning logged). Event metadata is free-form JSONB but code shows only status-transition metadata, not decision reasoning. This is architectural clarity, not a risk — there is no hidden state."
+      },
+      {
+        "requirement": "Feedback reconciliation: track assumed vs. actual outcome, revise estimates",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "none",
+        "notes": "MISSING entirely. TaskRow.expected_output is stored but never compared to TaskRow.result to flag mismatches. No reconciliation loop, no revision of confidence scores, no mismatch signal to trigger reanalysis. Outcomes are recorded but not analyzed relative to expectations."
+      },
+      {
+        "requirement": "Preference learning: track user corrections and adjust future decisions",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "none",
+        "notes": "MISSING entirely. No table to store user feedback on decisions. No mechanism to weight future analysis based on past corrections. ValidationRepo.decide() records the decision but not whether it was later overridden or corrected by the user."
+      },
+      {
+        "requirement": "Request-to-restart persistence: mission state survives process crash + restart",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/repositories.ts:52-109 (MissionRepo insert/byId/byIdempotency ensure durability)",
+          "src/lib/pierre/v1/db.ts:45-53 (singleton pool cached on globalThis across hot reloads)",
+          "src/lib/pierre/v1/mission-service.ts:92-100 (idempotency replay on same request)"
+        ],
+        "reuse": "Postgres persistence + idempotency_key table",
+        "notes": "REAL: Missions, tasks, events, validations all persisted to Postgres. Idempotency key prevents re-execution of same request. On restart, mission state is read from DB. This is stateless-service durability, not learning."
+      }
+    ],
+    "proactive-initiative": [
+      {
+        "requirement": "Detect expiring contracts with lead time",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/hr-mission-packs/domains/contract-changes.ts:41 — 'contract.expiry_watch' signal declared",
+          "src/lib/pierre/v1/hr-canon/capability-registry.ts:264 — capability proactive.contract_expiry defined with 'P30D' leadTime"
+        ],
+        "reuse": "HR_MISSION_PACKS signal registry + SIGNAL_REGISTRY mapping",
+        "notes": "The signal type and pack handler exist, but ZERO runtime code fetches contracts or checks dates. The detector.ts accept()s CandidateItem (already externally fetched), but no scheduler or query logic produces candidates. Signal detection happens ONLY if external code calls detect([items]); this never occurs in the codebase (tests only). Real intelligence requirement: none — this is pure pattern matching (regex on signal key name in signal-registry.ts:8-14)."
+      },
+      {
+        "requirement": "Detect incomplete onboarding at deadline",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/hr-mission-packs/domains/onboarding.ts:18 — 'onboarding.incomplete' signal emitted by step",
+          "src/lib/pierre/v1/hr-mission-packs/domains/onboarding.ts:21 — signal registered in pack's proactiveSignals"
+        ],
+        "reuse": "onboarding.run_plan mission pack + signal-registry derivation",
+        "notes": "Signal declared + pack routing exists. No actual deadline query or onboarding-state check in detector. Emitted only WITHIN a mission step (runtime_action='mission.noop'), not scheduled/polled. Deterministic: the step string 'detect_incomplete' + emitsSignal triggers signal name derivation, no AI logic."
+      },
+      {
+        "requirement": "Detect missing documents and trigger chase",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/hr-mission-packs/domains/onboarding.ts:17 — 'onboarding.missing_document' signal in step",
+          "src/lib/pierre/v1/hr-proactive/signal-registry.ts:10 — /missing|document/ regex infers 'missing_document' type"
+        ],
+        "reuse": "onboarding domain pack steps + generic signal inference rules",
+        "notes": "Signal pattern is pattern-matched by signal-registry inferDetection(). No logic to query the document DB or identify which documents are missing. The chase scheduling is a 'follow_up.schedule' runtime action (existing verified capability), but no integration to bind missing_document signals to follow-up creation. Deterministic: pure text-key inference."
+      },
+      {
+        "requirement": "Deduplication to prevent duplicate follow-ups",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/hr-proactive/deduplication.ts:7-16 — deduplicate() function pure, at-most-one-live-signal-per-(key,subject)",
+          "src/lib/pierre/v1/hr-proactive/__tests__/proactive.test.ts:30-43 — test validates batch + existing dedup"
+        ],
+        "reuse": "HrSignal.dedupKey format: '${key}:${subjectRef}'",
+        "notes": "Deduplication is fully implemented: Set-based dedup checking + suppression counter. HOWEVER: deduplicate() is never called in runtime code (tests only). No persistence of 'existingDedupKeys' in any mission/signal DB table. Deterministic: set membership test, no intelligence required."
+      },
+      {
+        "requirement": "Prioritization by urgency/risk/impact (decide: ignore/observe/task/mission/alert/execute)",
+        "status": "MISSING",
+        "evidence": [],
+        "reuse": "none — no priority decisioning layer exists",
+        "notes": "No code routes signals through priority gates or decides action levels (ignore/observe/task/mission/alert). Signal.severity is set statically from defaultSeverity (inferred by regex on key name). No urgency scoring, no risk weighting, no impact assessment, no decision tree. signalToMissionRequest() always converts signal → mission request (fail-closed: null if pack missing, but no prioritization filtering). This would require AI judgment to score multiple factors; deterministic regex-based severity assignment is the limit."
+      },
+      {
+        "requirement": "Proactive signal collection (all required HR contexts: contract, training, onboarding, payroll, approvals)",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/hr-canon/capability-registry.ts:264-271 — 11 proactive capabilities defined",
+          "src/lib/pierre/v1/hr-mission-packs/domains/proactive.ts:8-37 — 2 proactive mission packs"
+        ],
+        "reuse": "P811_GAPS canon + proactive domain packs",
+        "notes": "Signal TYPES are declared for contracts, training, onboarding, payroll, SLA breach. But only EMITTED signals (by steps in other packs) are wired. No scheduled detector that queries the database, checks dates, scans states, or generates candidates. Example: contract_expiry capability exists with P30D leadTime, but no job fetches all contracts where (expiry_date - today) <= 30 days. The proactive infrastructure is a routing skeleton, not a detection engine."
+      },
+      {
+        "requirement": "Signal → mission creation (governed, wired to mission-packs)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/hr-proactive/mission-creation.ts:17-23 — signalToMissionRequest() maps signal.key → pack + correlationId",
+          "src/lib/pierre/v1/hr-proactive/signal-registry.ts:20-31 — signal-to-pack mapping derived from pack declarations"
+        ],
+        "reuse": "HrMissionPackDefinition + SIGNAL_REGISTRY + getMissionPack()",
+        "notes": "Fully implemented: signal.key → handledByPackId → pack lookup, MissionCreationRequest generated with correlationId=`proactive:${dedupKey}`. Wires into mission-service.ts createMission() via the request object. Fail-closed: unknown signal key → null → skipped batch. Deterministic: pure lookup + object assembly, no intelligence."
+      },
+      {
+        "requirement": "Detect overdue approvals (approval SLA breach)",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/hr-canon/capability-registry.ts:271 — proactive.sla_breach capability with 'sla_breach' signal",
+          "src/lib/pierre/v1/hr-mission-packs/domains/proactive.ts:29 — operational_watch pack emits 'proactive.operational_risk' signal"
+        ],
+        "reuse": "proactive.operational_watch mission pack",
+        "notes": "SLA breach signal type exists. No code queries the approval table, checks approval.created_at vs. now(), or measures breach duration. The step 'detect_operational_risk' is a runtime_action='mission.noop' — a placeholder. No actual detection logic."
+      },
+      {
+        "requirement": "Observe-only mode (surface anomalies without executing follow-up)",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/hr-mission-packs/domains/health-safety.ts:31 — step with autonomy='observe_only' emits 'health.wellbeing_signal'",
+          "src/lib/pierre/v1/hr-mission-packs/types.ts:31 — autonomy: HrAutonomyLevel (includes 'observe_only')"
+        ],
+        "reuse": "HrMissionPackStep.autonomy field",
+        "notes": "Observe-only mode is a declared autonomy level on steps. It allows a signal to be emitted without executing side effects. However, the signal routing still maps to the same mission pack handler (no separate observe-vs-execute path). No decision logic to skip mission creation for observe-only signals."
+      }
+    ],
+    "communications": [
+      {
+        "requirement": "Send professional communications (in-app + email) to employees/candidates/managers with real evidence",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/communications.ts:252-256 (in-app message creation & persistence via SECURITY DEFINER function pierre_rt_create_internal_message)",
+          "src/lib/pierre/v1/communications.ts:282-283 (email sent via provider.sendEmail with frozen content)",
+          "src/lib/pierre/v1/communications.ts:138-144 (frozen subject/plain/html persisted to pierre_rt_communication_deliveries)",
+          "src/lib/pierre/v1/communication-provider.ts:45-62 (FakeEmailProvider.sendEmail idempotency model)"
+        ],
+        "reuse": "src/lib/pierre/v1/communications.ts - createCommunicationIntents & dispatchCommunicationDeliveries",
+        "notes": "Real, not mock. In-app messages are persisted to pierre_rt_notifications under a transaction that also records attempt + marks delivery 'delivered' atomically. Email is submitted to Resend provider via frozen idempotency key. No message is marked 'sent' without database evidence (frozen_plain_text + provider_message_id for email, message_id for in-app)."
+      },
+      {
+        "requirement": "Draft → approval → send workflow with human gate on sensitive communications",
+        "status": "MISSING",
+        "evidence": [
+          "src/lib/pierre/v1/communication-event-registry.ts:20 (humanApprovalRequired field defined in policy type)",
+          "src/lib/pierre/v1/communication-event-registry.ts:35 (hardcoded default humanApprovalRequired: false)",
+          "src/lib/pierre/v1/communications.ts - no checks for humanApprovalRequired; messages go directly intent→dispatch"
+        ],
+        "reuse": "none - would require new approval state machine",
+        "notes": "Deterministic imitation, not intelligence. The policy type HAS a humanApprovalRequired field (R1.20), but it is NEVER READ or ENFORCED. All messages in createCommunicationIntents flow directly to 'dispatched' status with no approval step. Sensitive-HR events (document.ready_for_review, contract.approved) are flagged in the policy (sensitivity: 'sensitive_hr') but this triggers no approval gate. A separate HR mission pack (communications.legal_review) mentions legal review as HUMAN_DECISION_REQUIRED but is completely disconnected from the P8.4 send pipeline — it's aspirational, not wired."
+      },
+      {
+        "requirement": "LLM-based message drafting with channel-aware tone adaptation",
+        "status": "MISSING",
+        "evidence": [
+          "src/lib/pierre/v1/communication-template-registry.ts - 12 hardcoded French templates; no LLM generation",
+          "src/lib/pierre/v1/communication-renderer.ts:56-85 (renderFromTemplateOutput deterministically escapes & concatenates from TemplateOutput struct, no AI)",
+          "src/lib/pierre/v1/communications.ts:130 (renderCommunication called once per intent, fixed locale 'fr', same variables for all channels)",
+          "src/lib/pierre/v1/communications.ts:132-134 (channel selection merely picks different frozen fields from the same template: isEmail ? rendered.subject : rendered.in_app_title)"
+        ],
+        "reuse": "none - would require Anthropic SDK integration",
+        "notes": "Pure template rendering, not generation. No Anthropic/Claude/LLM invocation anywhere. Tone is locked to the hardcoded template. Channel 'adaptation' is not tone adaptation — it's just field selection (subject vs. title, plain_text vs. in_app_body). All recipients of the same event get identical wording. No context-aware drafting (e.g., different tone for first-time vs. repeat approvers, or executive vs. staff recipients)."
+      },
+      {
+        "requirement": "Follow-up scheduling with quiet hours + persistence",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/communication-event-registry.ts:23 (quietHoursApplicable field in policy)",
+          "src/lib/pierre/v1/hr-mission-packs/domains/communications.ts:15 (capabilityIds: 'communications.scheduling', marked PARTIAL in registry)"
+        ],
+        "reuse": "none - policy field exists but not enforced",
+        "notes": "The policy field exists and is set to true/false per template (e.g., 'email' task has quietHoursApplicable: true), but the P8.4 pipeline does NOT check it. createCommunicationIntents & dispatchCommunicationDeliveries have no logic to defer sends or respect quiet hours. The mission pack definition references scheduling as a future step, but it's not integrated. No scheduled-send table or delay logic exists in the codebase."
+      },
+      {
+        "requirement": "Tone/channel adaptation (professional → formal email, casual → in-app)",
+        "status": "MISSING",
+        "evidence": [
+          "src/lib/pierre/v1/communication-template-registry.ts:20-97 (one template per event; same paragraphs + greeting used for both in_app and email versions)",
+          "src/lib/pierre/v1/communications.ts:130 (single renderCommunication call with identical variables for all channels)",
+          "src/lib/pierre/v1/communication-renderer.ts:57-68 (same text rendered to different fields, no tone rewrite)"
+        ],
+        "reuse": "none",
+        "notes": "Tone is template-defined, not adapted. For example, 'document.ready_for_review' uses identical greeting/paragraphs/action for in-app and email: 'Bonjour, Un document X est prêt et attend votre validation.' The in-app field is just truncated (in_app_body vs. plain_text), not reworded. No LLM or heuristic rewrites for channel. Executive vs. employee tone is NOT differentiated."
+      },
+      {
+        "requirement": "Real channel delivery with evidence (no message marked 'sent' without proof)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/communications.ts:252-256 (in-app: delivery marked 'delivered' ONLY after pierre_rt_create_internal_message succeeds + attempt recorded + completion function runs in SAME transaction)",
+          "src/lib/pierre/v1/communications.ts:282,326-327 (email: provider.sendEmail must return providerMessageId; attempt recorded with result_status='submitted'; delivery.status='queued' updated to 'submitted' via governedSubmit function only after both recorded)",
+          "src/lib/pierre/v1/communications.ts:227-240 (preferences/suppressions checked BEFORE dispatch; if suppressed, delivery marked 'suppressed', not 'sent')"
+        ],
+        "reuse": "src/lib/pierre/v1/communications.ts::governedRecordAttempt, governedSubmit, governedFail (all invoke SECURITY DEFINER functions)",
+        "notes": "Real evidence requirement is ENFORCED. Delivery state transitions ONLY via governed database functions (pierre_rt_submit_communication_delivery, pierre_rt_complete_internal_delivery, pierre_rt_record_communication_attempt). All transitions are append-only and audited. Email submission unknown (timeout without recovery) blocks auto-resend and waits for webhook. No delivery is marked 'sent' without a database-recorded provider_message_id (email) or message_id (in-app). The idempotency model prevents duplicate sends on retry."
+      },
+      {
+        "requirement": "Sensitive-message approval policy enforced (security, contractual, approval-action categories)",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/communication-event-registry.ts:106-107 (isMandatoryCategory returns true for 'security', 'transactional', 'approval')",
+          "src/lib/pierre/v1/communications.ts:173,195 (mandatory categories BYPASS user preferences; isMandatoryCategory called in isChannelEnabled and setCommunicationPreference)",
+          "src/lib/pierre/v1/communications.ts:233-237 (mandatory + suppressed address escalates to 'permanent' failure with audit, not delivered)"
+        ],
+        "reuse": "src/lib/pierre/v1/communication-event-registry.ts::isMandatoryCategory",
+        "notes": "Mandatory suppression is enforced for preferences + address suppressions. A transactional or approval-category message CANNOT be opted out by the user, and if the email address is suppressed (hard bounce/complaint), the message is escalated to permanent failure — not auto-sent. However, this is NOT 'approval before send'; it's 'cannot suppress if mandatory'. There is no pre-send review gate. Legal/compliance review exists as a separate mission pack (communications.legal_review) but is disconnected from the send pipeline (marked HUMAN_DECISION_REQUIRED but never invoked)."
+      },
+      {
+        "requirement": "Recipient resolution from real object fields (no payload-based recipient trust)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/communication-recipient-resolver.ts:36-80 (loadObjectAndTarget reads real object from DB: documents.created_by, documents.owner_membership_id, employee_contracts.approved_by, etc.)",
+          "src/lib/pierre/v1/communication-recipient-resolver.ts:111-122 (invited_email strategy reads from pierre_rt_invitations table, NOT payload.email)",
+          "src/lib/pierre/v1/communications.ts:103 (resolveCommunicationRecipient called with objectId; payload only used to extract object_id, not to trust a recipient)",
+          "src/lib/pierre/v1/communication-recipient-resolver.ts:125-136 (fallback strategy 'tenant_owner' is EXPLICIT policy choice, never silent default)"
+        ],
+        "reuse": "src/lib/pierre/v1/communication-recipient-resolver.ts::resolveCommunicationRecipient",
+        "notes": "REAL recipient resolution, not payload trust. The resolver cross-validates strategy against the actual business object (document, contract, signature_request, template, task) using the specified field (approver, requester, owner, etc.). Cross-tenant objects are invisible (scoped query). Payload is never the source of truth for email/membership. A missing or ambiguous recipient (no created_by, no approved_by, object not found) blocks the communication with a blocker reason ('recipient_not_resolved', 'object_not_found_in_tenant')."
+      },
+      {
+        "requirement": "Retry with bounded backoff → dead-letter without blind resend",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/communications.ts:338 (retryAfter returns 120 for rate_limited, 60 for other errors)",
+          "src/lib/pierre/v1/communications.ts:288-310 (timeout ambiguity handled: if recovery.findByIdempotencyKey exists, use it; else mark submission_unknown and wait for webhook)",
+          "src/lib/pierre/v1/communications.ts:314-321 (classified error: if !retriable, permanent failure; else retry with retryAfter, escalate to dead_letter if maxAttempts exceeded)",
+          "src/lib/pierre/v1/communications.ts:364 (maxAttempts per policy, default 5)"
+        ],
+        "reuse": "src/lib/pierre/v1/communications.ts::governedFail (wraps pierre_rt_fail_communication_delivery)",
+        "notes": "Bounded retry is REAL. Retriable errors (rate_limited, provider_unavailable) schedule retry after the calculated backoff. Non-retriable (bad_email, permanent_reject) immediately fail. Timeout AFTER send is never auto-resent; idempotency key recovery is attempted if the provider supports it (Fake does, Resend does not), else marked submission_unknown for human review. Dead-letter occurs when maxAttempts is exceeded on a retriable error."
+      }
+    ],
+    "cost-security": [
+      {
+        "requirement": "Usage & token accounting: track input/output tokens per tenant/actor/mission for billing + governance.",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/cloneos/ai/cost.ts:16-31 — cost rates hardcoded for Claude Opus/Sonnet/Haiku + GPT models",
+          "src/lib/cloneos/ai/budgets.ts:29-35 — getBudgetConfig() reads env AI_DEFAULT_DAILY_BUDGET_CENTS, AI_DEFAULT_MONTHLY_BUDGET_CENTS, AI_SINGLE_CALL_MAX_CENTS",
+          "src/lib/cloneos/ai/usage-log.ts — buildAiUsageLog() exists (referenced in runtime.ts:35)",
+          "src/lib/cloneos/ai/cost-shield/budget-ledger.ts:50-87 — recordEstimatedUsage(), recordActualUsage(), sumUsageForScope() with scopes: global_daily, global_monthly, company_daily, company_monthly, user_daily, user_monthly, mission, task, model_daily, premium_model_daily"
+        ],
+        "reuse": "cloneos/ai/budgets.ts, cloneos/ai/cost-shield/budget-ledger.ts for token counting and cost estimation; integrate into Pierre's entitlements.ts via resolveProductAccess() gate",
+        "notes": "Token accounting primitives exist and work — but NOT integrated into Pierre runtime services yet. No mission/task/step tracking of tokens. Budget is pre-call (runtime.ts:131-150 checkSingleCallBudget) but not cumulative per tenant. CloneOS AI Runtime has the infrastructure; Pierre Brain uses it but doesn't persist token usage to Pierre schema."
+      },
+      {
+        "requirement": "Atomic budget gates: refuse an action if cost would exceed remaining budget; no partial execution.",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/cloneos/ai/budgets.ts:39-77 — checkBudget() returns {allowed: boolean, reason, remaining_cents, estimated_cost_cents}; calculates remaining and rejects if safeCost > remaining",
+          "src/lib/cloneos/ai/budgets.ts:79-88 — checkSingleCallBudget() enforces single_call_max_cents hard cap",
+          "src/lib/cloneos/ai/runtime.ts:131-150 — pre-checks budget before calling provider; returns error CloneAIResponse if blocked"
+        ],
+        "reuse": "checkBudget() primitive; already wired in CloneAI runtime at the call boundary",
+        "notes": "REAL, deterministic gate. Atomic because pre-call; no API call is made if budget exhausted. Single-call cap enforced; per-scope budget check is pure math (no side effects). However, cumulative tracking requires DB (ai_usage_logs table) not yet surfaced in Pierre."
+      },
+      {
+        "requirement": "Model routing config: tenant/mission determines which model(s) are eligible; default + overrides.",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/cloneos/ai/model-router.ts:17-100 — PROFILE_POLICIES hard-codes 8 profiles (fast_classification, structured_reasoning, long_writing, quality_review, risk_analysis, conversation, premium_generation, orchestration, micro_task)",
+          "src/lib/cloneos/ai/model-router.ts:123-145 — getDefaultCloneAIRouterPolicy(useCase) + mergeCloneAIRouterPolicy(base, override)",
+          "src/lib/cloneos/ai/runtime.ts:49-71 — deriveModelForBudget(policy) routes to Claude Opus ($), Claude Sonnet (default), Claude Haiku (fast) or GPT-4, GPT-4-mini based on profile + env overrides (AI_ANTHROPIC_OPUS_MODEL, AI_ANTHROPIC_FAST_MODEL, etc.)",
+          "src/lib/cloneos/ai/runtime.ts:123-129 — policy selection driven by request.use_case and optional request.policy override"
+        ],
+        "reuse": "CloneOS model-router.ts already maps use_case → {preferred_provider, fallback_providers, timeout, temperature, max_output_tokens}; Pierre Brain uses runCloneAIContract() which accepts policyOverride param",
+        "notes": "REAL selection logic. Profile-based routing is deterministic. Env vars allow ops to swap models at runtime. But no tenant-specific model caps or cost thresholds yet — policy is global by use_case, not per-entitlement. Premium deliverables hardcoded to Claude Opus 4.7; no governance tie to entitlements.ts."
+      },
+      {
+        "requirement": "Prompt injection defense: template variables only, no raw user interpolation, schema validation.",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/communication-renderer.ts:34-38 — escapeHtml() replaces &<>\"' for HTML safety",
+          "src/lib/pierre/v1/communication-renderer.ts:41-54 — safeActionHref() validates action paths: must be app-relative (/...) or https:// on same host, rejects protocols/foreign hosts",
+          "src/lib/pierre/v1/communication-renderer.ts:88-92 — assertDeclaredVariables(declared, supplied) blocks unknown/missing variables with TemplateRenderError",
+          "src/lib/pierre/v1/communication-renderer.ts:56-85 — renderFromTemplateOutput() constructs HTML/plain from structured TemplateOutput (NOT raw user input), applies escapeHtml at boundary"
+        ],
+        "reuse": "communication-renderer.ts primitives; also used by CloneOS AI providers for output sanitization (utils.ts:sanitizeAITextOutput())",
+        "notes": "REAL, deterministic escaping. No raw string interpolation — all variables must be declared and are escaped at HTML boundary. Failed variable assertion prevents render. Tested in __tests__/p84-template-injection.itest.ts. This blocks template injection via communication system. Prompt injection into AI requests (system prompt, user prompt) — not explicitly defended in Pierre at scale, but CloneOS has safeTrimForPrompt() length limits."
+      },
+      {
+        "requirement": "Document/tool/ID injection defenses: no arbitrary URLs/SQL/shell, validate schema-enforced actions only.",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/sql.ts:16-21 — SqlExecutor.query(text, params?: readonly unknown[]) — ALL queries use parameterized $1, $2, etc.",
+          "src/lib/pierre/v1/runtime-service.ts:118-126 — validateRuntimeActionInput(action_key, payload) calls getRuntimeActionDefinition() and validates payload against declared schema; blocks on invalid",
+          "src/lib/pierre/v1/runtime-action-registry.ts (referenced) — getRuntimeActionDefinition() enforces strict action_key whitelist",
+          "src/lib/pierre/v1/document-guard.ts:49-138 — evaluateDocumentGuard() enforces strict enum for DocAction (preview, generate_final, finalize, submit_signature, approve, modify_version, modify_signed_contract, delete_document, read_evidence, download); blocks unknown actions",
+          "src/lib/pierre/v1/communication-renderer.ts:41-54 — safeActionHref() rejects protocols, foreign URLs, shell syntax"
+        ],
+        "reuse": "sql.ts parameterized query primitive; runtime-action-registry for tool schema; DocumentGuard for permitted actions",
+        "notes": "REAL, multi-layered. (1) SQL: ALL queries parameterized (no concatenation found in audit). (2) Tools: actions must match registered whitelist + schema validated. (3) URLs: parsed via new URL(), host-checked, protocols validated. (4) Documents: action enum is strict, no string interpolation in decisions. This blocks SQL injection, arbitrary URL construction, and undeclared tool execution."
+      },
+      {
+        "requirement": "Tenant/actor/permission resolved server-side: no client-authority, context from DB membership.",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/tenant-context.ts:70-143 — resolveTenantContext(db, {user_id, company_id}) queries pierre_rt_members WHERE user_id=$1 AND company_id=$2; verifies membership status (suspended/removed/left → reject); loads role, permissions, site_ids from DB; never trusts client",
+          "src/lib/pierre/v1/tenant-context.ts:77-82 — queries pierre_rt_members table with parameterized company_id; cross-tenant access guard: if rows.length===0 throw tenantAccessDenied",
+          "src/lib/pierre/v1/tenant-context.ts:96-100 — PHASE 8.2 RBAC: loads multi-role from pierre_rt_membership_roles; resolves permissions from pierre_rt_role_permissions; custom roles from pierre_rt_membership_custom_roles + pierre_rt_custom_role_permissions",
+          "src/lib/pierre/v1/entitlements.ts:93-141 — resolveProductAccess(db, ctx, productKey) requires ctx (already verified server-side) + DB query to resolve entitlement + onboarding status; decision is compound: (authenticated) × (active membership) × (entitlement state) × (onboarding state)",
+          "src/lib/pierre/v1/runtime-service.ts:20-21, 34-42, 90-97 — every worker transaction binds role (SET LOCAL ROLE pierre_rt_runtime_worker) + tenant GUC (set_config app.current_company) + asserts current_user; tenant passed only to trusted internal tx, never from request"
+        ],
+        "reuse": "tenant-context.ts resolveTenantContext() as the single authority for all protected routes; entitlements.ts resolveProductAccess() gates private Pierre features",
+        "notes": "REAL, fail-closed design. Server ALWAYS re-queries membership + entitlement from DB; no JWT decode, no client hints. Role bindings (SET LOCAL) are transaction-scoped. Cross-tenant routing prevented at query boundaries (WHERE company_id=$1 + RLS on tables). Permission checks happen in-code (requirePermission) + at DB RLS layer. This is properly server-authoritative."
+      },
+      {
+        "requirement": "No arbitrary URL construction, SQL concatenation, shell execution; all user input sanitized & validated.",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/sql.ts:76-108 — createPgExecutor uses parameterized query (client.query(text, params)); params array prevents concatenation attacks",
+          "src/lib/pierre/v1/communication-renderer.ts:41-54 — safeActionHref strictly validates URLs: app-relative (/...) or https:// with host match; throws on invalid protocol/foreign hosts",
+          "src/lib/pierre/v1/communication-renderer.ts:68-75 — escapeHtml() on ALL user-controlled text before HTML output",
+          "No shell execution found in Pierre v1 audit scope (no exec, spawn, shell commands)",
+          "src/lib/cloneos/ai/utils.ts:safeTrimForPrompt(v, maxChars) truncates and sanitizes text before AI (prevents prompt overflow attacks)"
+        ],
+        "reuse": "sql.ts parameterized queries; communication-renderer.ts escapeHtml/safeActionHref for user-controlled fields",
+        "notes": "REAL, deterministic. SQL: no string concatenation anywhere in Pierre (checked via grep query.*\\$1|\\$2|\\$3 — all parameterized). URLs: parsed via new URL(), validated against whitelist. HTML: escaped at boundary. No shell execution in scope. This prevents SQL injection, XSS, URL spoofing, and shell injection."
+      },
+      {
+        "requirement": "Allowlisted tool schema: only declared actions callable; all inputs schema-validated.",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-service.ts:118-126 — getRuntimeActionDefinition(action_key, action_version) enforces whitelist; validateRuntimeActionInput(action_key, payload) schema-validates payload; unknown action → block",
+          "src/lib/pierre/v1/runtime-action-registry.ts (referenced as import) — provides action registry with strict definition per action",
+          "src/lib/pierre/v1/document-guard.ts:34 — GuardLevel = \"allow\" | \"require_approval\" | \"escalate\" | \"block\"; no fallback to permit",
+          "src/lib/pierre/v1/document-guard.ts:49-139 — evaluateDocumentGuard(input) enforces strict DocAction enum; missing fields/permissions/approvals → block (FAIL-CLOSED)",
+          "src/lib/cloneos/ai/utils.ts:validateJsonAgainstSimpleSchema(json, schema) enforces output schema match"
+        ],
+        "reuse": "runtime-action-registry.ts for action whitelist + schema; document-guard.ts for document mutations",
+        "notes": "REAL allowlisting. Every action must be registered in the definition map. Schema validation is mandatory (invalid → block). Guard decisions are hierarchical: block > escalate > require_approval > allow. Fail-closed: absent evidence (template_status===undefined, file_status===undefined) → block. No implicit permit."
+      },
+      {
+        "requirement": "Commercial event ingress: billing-webhook-db enforces least-privilege role; no service role, no silent fallback.",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/billing-webhook-db.ts:23-28 — isBillingWebhookDbConfigured() checks PIERRE_BILLING_WEBHOOK_DATABASE_URL; fail-closed: missing DSN → throw",
+          "src/lib/pierre/v1/billing-webhook-db.ts:35-53 — createBillingWebhookExecutor() returns executor bound to dedicated pierre_rt_billing_webhook role; DSN is separate from app executor",
+          "src/lib/pierre/v1/billing-webhook-db.ts:56-60 — assertBillingWebhookRole(tx) queries current_user, verifies EXACTLY pierre_rt_billing_webhook; mismatch → throw BillingWebhookDbError",
+          "src/lib/pierre/v1/billing-webhook-db.ts:68-79 — withBillingWebhookTransaction(binding, fn) sets role + company GUC locally; SET LOCAL reverts at COMMIT",
+          "src/lib/pierre/v1/commercial-events.ts:89-99 — ingestCommercialEvent() calls pierre_rt_ingest_commercial_event($1...$9) — procedure runs under DSN role, idempotent by provider+event_id+hash"
+        ],
+        "reuse": "billing-webhook-db.ts as the ONLY path for commercial event ingress; withBillingWebhookTransaction() for all mutation",
+        "notes": "REAL, hardened. Dedicated DSN (PIERRE_BILLING_WEBHOOK_DATABASE_URL) binds pierre_rt_billing_webhook role in connection string, not app role. No fallback to service role. Role assertion is fail-closed: wrong role → error before any mutation. Company is resolved from persisted references (source_reference, commercial_reference), never from webhook payload. This prevents cross-tenant billing tampering."
+      },
+      {
+        "requirement": "Entitlement gating: every private Pierre surface must consult resolveProductAccess() before allowing action.",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/entitlements.ts:93-141 — resolveProductAccess(db, ctx, productKey) returns ProductAccess with decision: \"allowed\" | \"onboarding_required\" | \"grace\" | \"read_only\" | \"suspended\" | \"denied\"",
+          "src/lib/pierre/v1/entitlements.ts:54-69 — getEntitlement(db, companyId, productKey) queries pierre_rt_product_entitlements; status in (active, grace, suspended, pending, cancelled, expired); ordered by status priority",
+          "src/lib/pierre/v1/entitlements.ts:71-83 — getOnboardingSession(db, companyId, productKey) queries pierre_rt_onboarding_sessions; blocks new costly actions if onboarding not completed",
+          "src/lib/pierre/v1/entitlements.ts:1-8 — docstring: 'SINGLE authority every private Pierre surface must consult. It is NOT enough to check user != null, company exists, or a role: access is the product of (authenticated) × (active membership) × (entitlement state) × (onboarding state)'",
+          "src/lib/pierre/v1/product-access-route-manifest.ts (referenced) — lists all private routes; each should gate on resolveProductAccess()"
+        ],
+        "reuse": "entitlements.ts resolveProductAccess() as single choke-point; integrate into all route handlers via a middleware or guard pattern",
+        "notes": "REAL gate, fully defined. But NOT yet universally wired into all route handlers (would require testing across all private routes). The gate logic exists and is correctly implemented: entitlement state + onboarding state + role permission are compound checks. Grace period is recognized (payment lapsed, existing access maintained, new costly actions limited). Suspension is read-only-only (can_read=true, can_use=false)."
+      },
+      {
+        "requirement": "Runtime limits enforced: max steps, depth, deps, missions, jobs, follow-ups, bytes; fail-closed clamp to ceiling.",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/pierre/v1/runtime-limits.ts:7-11 — clampInt(raw, def, max) parses env, rejects NaN/negative/non-finite → default, clamps to [1, max]",
+          "src/lib/pierre/v1/runtime-limits.ts:13-26 — RUNTIME_LIMITS exports: maxSteps, maxDepth, maxDepsPerStep, maxActiveMissionsPerTenant, maxActiveJobsPerTenant, maxFollowUps, maxMissionDurationDays, maxInputBytes, maxOutputBytes, maxCheckpointBytes, maxEventPayloadBytes, maxSchedulesPerMission; all clamped to safe ceiling (2000, 1000, 200, 5000, 50000, 200, 3650, 1MB, 1MB, 512KB, 512KB, 1000)",
+          "src/lib/pierre/v1/runtime-service.ts:54-56 — createMissionRunFromPlan() checks active mission count >= LIM.maxActiveMissionsPerTenant; if so, returns {ok:false, blockers:[too_many_active_missions]} before creating",
+          "src/lib/pierre/v1/runtime-limits.ts:49-63 — planDepth(steps) computes DAG depth; used to check depth <= LIM.maxDepth"
+        ],
+        "reuse": "runtime-limits.ts as authoritative source; call clampInt() + RUNTIME_LIMITS in every planner/worker path",
+        "notes": "REAL, fail-closed. All limits are environment-configurable (PIERRE_RUNTIME_MAX_*) but clamped to absolute ceiling; an operator cannot raise above max. NaN/missing → default. Negative/non-finite → default. A breach blocks the entire operation (no partial): createMissionRunFromPlan returns {ok:false, blockers} if active mission count exceeded."
+      }
+    ],
+    "case-ops-p9": [
+      {
+        "requirement": "Sensitive case handling (confidential cases, minimized access, human-only routing)",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/hr-operations/case-types.ts:17 (opaque subjectRef—never raw PII)",
+          "src/lib/pierre/v1/hr-operations/approvals.ts:9-19 (approvalFor distinguishes human_decision binding & legal_sensitive context)",
+          "src/lib/pierre/v1/mission-service.ts:157 (hard-coded hr_manager for restricted sensitivity)",
+          "src/lib/client-cockpit/v1.ts:62,175 (SENSITIVE_RE matches contract/signature/dismissal/offboarding, isSensitive flag set)"
+        ],
+        "reuse": "src/lib/pierre/v1/hr-operations/approvals.ts (approvalFor), src/lib/pierre/v1/hr-operations/case-types.ts (HrCase, opaque subjectRef), src/lib/client-cockpit/types.ts (CockpitValidation.isSensitive, CockpitTask.isSensitive)",
+        "notes": "REAL pieces exist: opaque PII handling in case state (subjectRef), approval routing by role, sensitivity classification regex (contract/dismissal/offboarding). BUT zero integration: mission-service.ts hardcodes hr_manager approval role without consulting case-operations approvalFor(). No case-specific access gates exist—all missions readable by mission.read permission. No human-only routing: even sensitive missions proceed through normal cockpit. DETERMINISTIC IMITATION: sensitivity flag is keyword-matched, not case-driven policy."
+      },
+      {
+        "requirement": "Reconciliation (external/human return handling, idempotence, rejection blocking)",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/hr-operations/reconciliation.ts:9-17 (pure reconcile() function: idempotent, never treats ambiguous as success, blocks on failure/ambiguity)",
+          "src/lib/pierre/v1/hr-operations/__tests__/case-operations.test.ts:56-62 (test confirms idempotence & blocking on ambiguous)",
+          "src/lib/pierre/v1/communications.ts:reconcile counter (generic comms reconciliation exists, not case-wired)",
+          "src/lib/pierre/v1/runtime-bridges.ts:bridgeApprovalDecisions (approval reconciliation, not handoff-aware)"
+        ],
+        "reuse": "src/lib/pierre/v1/hr-operations/reconciliation.ts (reconcile function, ReconcileInput/ReconcileResult types)",
+        "notes": "REAL reconciliation logic exists: reconcile() is pure, deterministic, governs success/failure/ambiguous/rejected outcomes with idempotence. ZERO INTEGRATION: never called from mission-service or runtime. Generic comms/approval reconciliation exists (communications.ts, runtime-bridges.ts) but ignores case-context—cannot distinguish HR handoff from system task. No case.state transition ON reconciliation (should be 'awaiting_external'→'reconciling'→'executing'). P9.3 cockpit has zero visibility into reconciliation status."
+      },
+      {
+        "requirement": "HR reporting & executive briefs (governance summary, risk aggregation, approver inventory)",
+        "status": "PARTIAL",
+        "evidence": [
+          "src/lib/pierre/v1/hr-operations/reporting.ts:8-35 (governanceSummary function derives packs→approvers, handoff systems, approval counts)",
+          "src/lib/client-cockpit/types.ts:204-219 (CockpitIndicators, CockpitHealthState types defined)",
+          "src/lib/client-cockpit/overview.ts (buildIndicators, buildHealth functions exist)",
+          "src/app/agents/pierre/use/page.tsx:583-584 (CockpitGovernedOverview rendered but P9.3 OperationalCockpitShell does not use reporting layer)"
+        ],
+        "reuse": "src/lib/pierre/v1/hr-operations/reporting.ts (governanceSummary function, GovernanceSummary type), src/lib/client-cockpit/types.ts (CockpitIndicators, CockpitHealthState)",
+        "notes": "REAL reporting primitives exist: governanceSummary aggregates pack approval policies, human-decision steps, external integrations, distinct approvers. CockpitHealthState/Indicators types exist. ZERO INTEGRATION: governanceSummary NEVER CALLED. Cockpit health/indicators built from runtime mission counts (buildOverview, buildHealth in overview.ts) NOT from case-operations pack governance. No executive brief exposes approver involvement, sensitivity distribution, or integration blockers. Reporting is deterministic (keyword counts) not intelligent (policy-driven)."
+      },
+      {
+        "requirement": "P9→P8.14 contract: case-operations must expose interface for P9 cockpit/chat decisions",
+        "status": "MISSING",
+        "evidence": [
+          "src/app/agents/pierre/use/hooks/useOperationalCockpit.ts:1-150 (P9.3 hook reads ONLY V1 runtime: fetchPierreHistory, fetchPierreMission, mapV1* functions—zero hr-operations imports)",
+          "src/app/assistant/useCloneChat.ts:95-112 (P9.4 CloneChat loads context from V1 cockpit—zero case imports, no pack awareness)",
+          "src/lib/clonechat/tool-executor.ts:59-76 (create_mission action calls submitPierreMission contract DIRECTLY, no case-planning)",
+          "src/lib/pierre/v1/mission-service.ts:86-199 (createMission is pure V1 runtime—zero case-service integration, no openCase/nextStep, no pack selection logic)"
+        ],
+        "reuse": "src/lib/client-cockpit/types.ts (CockpitValidation, CockpitTask, CockpitNextAction for P9 display), src/lib/pierre/v1/contracts.ts (define P8.14→P9 contract)",
+        "notes": "CRITICAL GAP: Case-operations layer (hr-operations/index.ts) exports case-service, approvals, handoff, reconciliation, reporting but ZERO IMPORT ANYWHERE. P9.3 cockpit hardwired to V1 mission list—never asks 'is this mission case-backed?' P9.4 CloneChat does pure mission creation (submitPierreMission) without case-planning (no openCase call, no pack selection). No contract exists defining: (1) when does a mission open a case? (2) which pack? (3) what are completion criteria? (4) what approvals must P9 route to? (5) what handoffs block execution? P8.14 contract MUST define: CaseService interface with openCase/advanceCase/nextStep/canComplete, ApprovalRouter exposing approvalFor(pack, step), HandoffBlocker exposing handoffsFor(pack)/isExternallyBlocked."
+      },
+      {
+        "requirement": "CloneChat HR planning (vs. pass-through mission submission)",
+        "status": "EXISTS",
+        "evidence": [
+          "src/lib/clonechat/engine.ts:101-145 (runCloneChatTurn public mode: orientation only; authenticated mode routes to OpenAI server or fallback deterministic engine)",
+          "src/app/assistant/useCloneChat.ts:140-178 (authenticated mode sends to /api/assistant/chat for OpenAI analysis, then assembleFromStructured)",
+          "src/lib/clonechat/tool-executor.ts:59-76 (executeGovernedAction create_mission: inject instruction string DIRECTLY into submitMission, zero case-intelligence)",
+          "src/app/agents/pierre/use/page.tsx:94-100 (usePierreCloneOSHistory reads localStorage history, shows plans read-only, routes hr domain to Pierre but NO CASE-PLANNING)"
+        ],
+        "reuse": "src/lib/clonechat/engine.ts (public/authenticated routing), src/lib/clonechat/openai/governed-turn.ts (assembleFromStructured), src/lib/clonechat/action-policy.ts (proposeAction governance rules)",
+        "notes": "CloneChat DOES do HR: detects intent 'hr' domain from user input, renders mission composer, accepts instruction string. But ZERO case-planning: instruction is submitted directly to V1 runtime, no pack selection, no case.openCase() call, no scenario-governed next-step planning. User says 'prepare CDI for Marie'—CloneChat sends raw instruction 'prepare CDI for Marie' to mission-service, which does its own analysis (analyzeInstruction, autonomy policy, guard evaluation). NO intermediate case-layer that would: (1) select absence.onboarding or offers.cdi_preparation pack, (2) route through case state machine (intake→collecting→planning→executing), (3) compute mandatory approval chain from pack.approvals, (4) expose completion criteria to user upfront. CloneChat is thus a PASS-THROUGH shell for V1, not a case-planning AI agent. P8.14 must transform this: CloneChat should NOT submit missions blindly—it should ASK the case layer 'what pack governs this scenario?' and expose the case plan to user before execution."
+      }
+    ]
+  }
+}

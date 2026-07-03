@@ -18,7 +18,8 @@ import {
 import { enqueueJob, cancelJobsForTask } from "./queue";
 import { emitRuntimeEvent } from "./runtime-event-bus";
 import { createHash } from "crypto";
-import { analyzeInstruction, type AnalyzedTask } from "./analysis";
+import { type AnalyzedTask } from "./analysis";
+import { cognitiveAnalyze } from "./cognitive-runtime/cognitive-analyzer";
 import { evaluateGuard } from "./cloneguard";
 import { decideValidation, requiresHumanApproval, type AutonomyMode } from "./autonomy";
 import {
@@ -89,6 +90,12 @@ export async function createMission(db: SqlExecutor, ctx: TenantContext, input: 
 
   const idem = input.idempotency_key ?? idempotencyKey([ctx.company_id, ctx.user_id, "mission", input.instruction.trim()]);
 
+  // P8.14 — AUTHORITATIVE cognitive analysis (LLM when enabled+available; deterministic regex as the
+  // degraded fallback + a safety floor the model can never breach). Computed OUTSIDE the transaction so a
+  // model call never holds a DB transaction open. The governed pipeline below (guard/validation/queue)
+  // is unchanged and remains the fail-closed authority over whatever the analysis proposed.
+  const analysis = await cognitiveAnalyze(input.instruction);
+
   return db.transaction(async (tx) => {
     // 1) Idempotency replay — same key returns the stored result, no re-create.
     const replay = (await IdempotencyRepo.get(tx, ctx.company_id, "mission.create", idem)) as MissionView | null;
@@ -100,7 +107,6 @@ export async function createMission(db: SqlExecutor, ctx: TenantContext, input: 
     }
 
     const autonomy: AutonomyMode = input.autonomy_mode ?? "normal";
-    const analysis = analyzeInstruction(input.instruction);
 
     // 2) Persist mission (analyzing -> planned/awaiting_*).
     const missionId = newUuid();

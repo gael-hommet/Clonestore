@@ -66,16 +66,49 @@ describe("P9.4.1 image sanitizer — RETIRE réellement les métadonnées", () =
   });
 });
 
-describe("P9.4.1 image sanitizer — prepareImagesForModel (ce qui part au modèle est sanitisé)", () => {
-  it("l'image envoyée au modèle n'a plus les métadonnées ; rapport honnête (pas de resize pixel)", async () => {
-    const dataUrl = `data:image/png;base64,${b64(png(64, 64, true))}`;
-    const prepared = await prepareImagesForModel([dataUrl]);
+describe("P9.4.2 image sanitizer — prepareImagesForModel : RESIZE + RECOMPRESS pixel réels", () => {
+  it("REDIMENSIONNE réellement une grande image (2000px → ≤1024px) + RECOMPRESSE + retire l'EXIF (sharp)", async () => {
+    let sharp: ((o: unknown) => { withMetadata: (m: unknown) => { png: () => { toBuffer: () => Promise<Buffer> } } }) | null = null;
+    try { sharp = (await import("sharp")).default as never; } catch { /* sharp indispo */ }
+    // sharp est fourni par la chaîne d'outils dans cet environnement : le test ÉCHOUE
+    // s'il est absent (on ne veut pas d'une preuve de resize vide/vacuous).
+    expect(sharp, "sharp doit être disponible pour prouver le resize pixel réel").toBeTruthy();
+    if (!sharp) return;
+
+    // Vraie image 2000x1500 avec de l'EXIF injecté (via sharp .withMetadata + exif).
+    const bigWithExif = await (sharp as unknown as (o: unknown) => { withMetadata: (m: unknown) => { png: (o?: unknown) => { toBuffer: () => Promise<Buffer> } } })({ create: { width: 2000, height: 1500, channels: 3, background: { r: 10, g: 120, b: 200 } } })
+      .withMetadata({ exif: { IFD0: { Copyright: "GPS:48.8566,2.3522 SECRET" } } })
+      .png()
+      .toBuffer();
+
+    const prepared = await prepareImagesForModel([`data:image/png;base64,${bigWithExif.toString("base64")}`]);
+    expect(prepared.dataUrls.length).toBe(1);
+    const m0 = prepared.meta[0];
+    expect(m0.engine).toBe("sharp");
+    // RESIZE réel : dimensions de sortie ≤ 1024
+    expect(m0.width).toBeLessThanOrEqual(1024);
+    expect(m0.height).toBeLessThanOrEqual(1024);
+    expect(m0.originalWidth).toBe(2000);
+    expect(m0.resized).toBe(true);
+    // RECOMPRESS réel : moins d'octets qu'à l'entrée
+    expect(m0.sanitizedBytes).toBeLessThan(m0.originalBytes);
+    // Métadonnées retirées : l'EXIF injecté n'est plus dans ce qui part au modèle
+    const outBytes = new Uint8Array(Buffer.from(prepared.dataUrls[0].split("base64,")[1], "base64"));
+    expect(has(outBytes, "GPS:48.8566")).toBe(false);
+    expect(prepared.report.pixelResize).toBe(true);
+    expect(prepared.report.engine).toBe("sharp");
+    expect(prepared.report.metadataStripped).toBe(true);
+    expect(m0.sanitizedHash).toMatch(/^fnv1a_/);
+  });
+
+  it("REPLI honnête (chunk-strip) : une image non décodable par sharp est tout de même nettoyée sans resize", async () => {
+    // Le faux PNG (IDAT bidon) n'est pas décodable → chemin de repli chunk-strip.
+    const prepared = await prepareImagesForModel([`data:image/png;base64,${b64(png(64, 64, true))}`]);
     expect(prepared.dataUrls.length).toBe(1);
     const outBytes = new Uint8Array(Buffer.from(prepared.dataUrls[0].split("base64,")[1], "base64"));
-    expect(has(outBytes, "GPS:48.85")).toBe(false); // ce qui part au modèle est nettoyé
+    expect(has(outBytes, "GPS:48.85")).toBe(false); // métadonnée retirée même en repli
+    expect(prepared.meta[0].engine).toBe("chunk-strip");
+    expect(prepared.meta[0].resized).toBe(false);
     expect(prepared.report.metadataStripped).toBe(true);
-    expect(prepared.report.magicVerified).toBe(true);
-    expect(prepared.report.pixelResize).toBe(false); // honnête : pas de resize pixel local
-    expect(prepared.meta[0].sanitizedHash).toMatch(/^fnv1a_/);
   });
 });

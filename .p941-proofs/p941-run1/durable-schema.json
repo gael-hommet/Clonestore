@@ -1,6 +1,7 @@
 {
   "pg_version": "PostgreSQL 16.14, compiled by Visual C++",
   "tables": [
+    "clonechat_action_executions",
     "clonechat_budget_counters",
     "clonechat_bug_cases",
     "clonechat_bug_occurrences",

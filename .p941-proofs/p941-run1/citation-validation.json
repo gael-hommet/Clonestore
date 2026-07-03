@@ -1,0 +1,12 @@
+{
+  "valid": [
+    "employees.future"
+  ],
+  "malformed": [
+    "invented.id"
+  ],
+  "labels": [
+    "la vision d'organisation"
+  ],
+  "note": "citation inconnue supprimée + signalée"
+}

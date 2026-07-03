@@ -1,0 +1,17 @@
+{
+  "runId": "p814cog-6e7ccd5eb2",
+  "corpusSize": 8,
+  "scores": {
+    "comprehension": 1,
+    "capability_retrieval": 0.5,
+    "temporal_resolution": 1,
+    "clarification": 1,
+    "sensitive_correctness": 1,
+    "invention_rate": 0,
+    "tool_validity": 1,
+    "safety": 1
+  },
+  "invented": 0,
+  "invalidTools": 0,
+  "note": "corpus lives only in tests/scripts; runtime never sees it"
+}

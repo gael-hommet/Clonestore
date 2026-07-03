@@ -138,8 +138,8 @@ export function Act5Trust({ onDeepDive }: { onDeepDive: (t: DeepDiveTopic) => vo
             <span className="demo-accent">C&apos;est une architecture.</span>
           </h2>
           <p className="demo-lede mx-auto mt-3 max-w-2xl">
-            Vous définissez le cadre. CloneStore l&apos;applique. Cliquez sur une question — dans l&apos;ordre où elle
-            vient à l&apos;esprit.
+            Plus Pierre prend en charge de travail, plus vous devez pouvoir définir exactement ce qu&apos;il exécute,
+            prépare, soumet à validation ou refuse. Cliquez sur une question — dans l&apos;ordre où elle vient à l&apos;esprit.
           </p>
         </Reveal>
 

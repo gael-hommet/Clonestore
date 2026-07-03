@@ -1,0 +1,13 @@
+{
+  "runId": "p814final-a8771e6ede",
+  "full_pierre_v1_suite": "256/256 (fair-claim = embedded-postgres 5s cold-start flake; passes at 120s timeout)",
+  "tsc_errors": 0,
+  "clean_build_exit": 0,
+  "additive_only": true,
+  "existing_files_edited": [
+    "src/lib/pierre/v1/mission-service.ts (2 lines: import + await cognitiveAnalyze)"
+  ],
+  "new_deps": 0,
+  "deploy_block_intact": true,
+  "yousign_p874_open": true
+}

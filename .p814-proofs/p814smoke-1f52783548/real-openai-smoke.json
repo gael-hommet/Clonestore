@@ -1,0 +1,74 @@
+{
+  "runId": "p814smoke-1f52783548",
+  "status": "EXECUTED",
+  "key_exposed": false,
+  "ai_mode": "production",
+  "scenarios_total": 5,
+  "scenarios_passed": 5,
+  "total_tokens": 5306,
+  "estimated_cost_usd": 0.0159,
+  "all_structured_parsed": true,
+  "sensitive_all_flagged": true,
+  "results": [
+    {
+      "id": "simple_onboarding",
+      "ok": true,
+      "provider": "openai",
+      "model_profile": "structured_reasoning",
+      "structured_json_parsed": true,
+      "tokens": 1049,
+      "latency_ms": 10276,
+      "analyzer_llm_authoritative": true,
+      "sensitivity_correct": true,
+      "error": null
+    },
+    {
+      "id": "multi_domain_change",
+      "ok": true,
+      "provider": "openai",
+      "model_profile": "structured_reasoning",
+      "structured_json_parsed": true,
+      "tokens": 1242,
+      "latency_ms": 11507,
+      "analyzer_llm_authoritative": true,
+      "sensitivity_correct": true,
+      "error": null
+    },
+    {
+      "id": "termination_human_only",
+      "ok": true,
+      "provider": "openai",
+      "model_profile": "structured_reasoning",
+      "structured_json_parsed": true,
+      "tokens": 950,
+      "latency_ms": 10201,
+      "analyzer_llm_authoritative": true,
+      "sensitivity_correct": true,
+      "error": null
+    },
+    {
+      "id": "harassment_case",
+      "ok": true,
+      "provider": "openai",
+      "model_profile": "structured_reasoning",
+      "structured_json_parsed": true,
+      "tokens": 1151,
+      "latency_ms": 8055,
+      "analyzer_llm_authoritative": true,
+      "sensitivity_correct": true,
+      "error": null
+    },
+    {
+      "id": "optimization",
+      "ok": true,
+      "provider": "openai",
+      "model_profile": "structured_reasoning",
+      "structured_json_parsed": true,
+      "tokens": 914,
+      "latency_ms": 7159,
+      "analyzer_llm_authoritative": true,
+      "sensitivity_correct": true,
+      "error": null
+    }
+  ]
+}

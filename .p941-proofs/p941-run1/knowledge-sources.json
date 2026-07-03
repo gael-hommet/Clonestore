@@ -1,0 +1,69 @@
+{
+  "total": 64,
+  "byKind": {
+    "product_vision": 4,
+    "employee_catalogue": 2,
+    "technology_catalogue": 13,
+    "pricing_config": 2,
+    "public_page": 14,
+    "route_registry": 10,
+    "client_surface": 10,
+    "runtime_capability": 1,
+    "legal_limit": 3,
+    "release_state": 2,
+    "support_procedure": 1,
+    "known_issue": 2
+  },
+  "byAuthority": {
+    "public-catalog.ts": 5,
+    "technologies/registry.ts": 14,
+    "commercial-state.ts": 2,
+    "nav/route-registry.ts": 23,
+    "route-registry.ts": 8,
+    "client-cockpit": 1,
+    "hr-canon/capability-registry.ts (read-only)": 2,
+    "governance-policy": 3,
+    "client-cockpit/permissions": 1,
+    "product-availability.ts": 2,
+    "support-memory": 1,
+    "support-memory (verified)": 2
+  },
+  "sample": [
+    {
+      "id": "vision.platform",
+      "authority": "public-catalog.ts",
+      "visibility": "PUBLIC",
+      "hash": "fnv1a_e359fd89"
+    },
+    {
+      "id": "vision.employee",
+      "authority": "public-catalog.ts",
+      "visibility": "PUBLIC",
+      "hash": "fnv1a_e78d804b"
+    },
+    {
+      "id": "vision.governance",
+      "authority": "public-catalog.ts",
+      "visibility": "PUBLIC",
+      "hash": "fnv1a_9d3cdd9b"
+    },
+    {
+      "id": "vision.suite",
+      "authority": "technologies/registry.ts",
+      "visibility": "PUBLIC",
+      "hash": "fnv1a_0f6810f7"
+    },
+    {
+      "id": "employee.pierre",
+      "authority": "public-catalog.ts",
+      "visibility": "PUBLIC",
+      "hash": "fnv1a_5d891741"
+    },
+    {
+      "id": "employees.future",
+      "authority": "public-catalog.ts",
+      "visibility": "PUBLIC",
+      "hash": "fnv1a_f142ab81"
+    }
+  ]
+}

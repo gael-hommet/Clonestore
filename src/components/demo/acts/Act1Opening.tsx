@@ -31,13 +31,13 @@ export function Act1Opening({ onDirectPierre }: { onDirectPierre: () => void }) 
         <Reveal>
           <p className="demo-kicker">{SCENE_OPENING.brandLine}</p>
           <h1 className="demo-title demo-title--hero mt-4">
-            N&apos;ajoutez pas simplement un logiciel.
+            N&apos;achetez plus seulement des logiciels.
             <br />
-            <span className="demo-accent">Ouvrez un poste.</span>
+            <span className="demo-accent">Ouvrez des postes d&apos;employés IA.</span>
           </h1>
           <p className="demo-lede mt-5 max-w-xl">
-            CloneStore fournit à votre entreprise des employés IA spécialisés qui comprennent votre organisation,
-            prennent en charge des missions et travaillent sous votre contrôle.
+            CloneStore fournit à votre entreprise des employés IA spécialisés capables de prendre en charge un
+            périmètre de travail complet — à partir de vos règles, vos données et vos validations, sous votre contrôle.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <DemoCTAButton onClick={goNext} variant="primary" withArrow>
@@ -59,7 +59,7 @@ export function Act1Opening({ onDirectPierre }: { onDirectPierre: () => void }) 
                 <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[var(--cs-ink-4)]">
-                Vous confiez un objectif
+                Vous confiez un objectif — pas une tâche
               </p>
             </div>
             <div className="px-5 py-5">
@@ -67,7 +67,7 @@ export function Act1Opening({ onDirectPierre }: { onDirectPierre: () => void }) 
                 « {SCENE_OPENING.initialMission} »
               </p>
               <div className="mt-3 flex items-center gap-2 text-[0.74rem] font-semibold text-[var(--demo-violet)]">
-                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /> CloneStore en fait une mission menée jusqu&apos;au résultat
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /> CloneStore en fait une mission prise en charge jusqu&apos;au résultat
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 {COMPREHENSION.map(({ Icon, label }) => (

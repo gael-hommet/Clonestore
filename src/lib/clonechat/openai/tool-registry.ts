@@ -64,7 +64,10 @@ export const TOOL_REGISTRY: Readonly<Record<CloneChatToolName, ToolSpec>> = {
   find_document: { name: "find_document", authenticated: true, effect: false, actionKind: null, args: ["query"], availability: "advisory" },
   open_document: { name: "open_document", authenticated: true, effect: false, actionKind: "open_document", args: ["document_id"], availability: "advisory" },
   find_known_issue: { name: "find_known_issue", authenticated: false, effect: false, actionKind: null, args: ["symptom"], availability: "advisory" },
-  report_issue: { name: "report_issue", authenticated: true, effect: true, actionKind: null, args: ["symptom"], availability: "wired" },
+  // report_issue = advisory : le signalement est consigné SERVEUR (mémoire de support
+  // durable) sur détection de problème ; le modèle peut ESCALADER vers create_support_case
+  // (le vrai outil effectful). report_issue lui-même n'exécute pas d'effet direct.
+  report_issue: { name: "report_issue", authenticated: true, effect: false, actionKind: null, args: ["symptom"], availability: "advisory" },
   retrieve_bug: { name: "retrieve_bug", authenticated: false, effect: false, actionKind: null, args: ["symptom"], availability: "advisory" },
   create_support_case: { name: "create_support_case", authenticated: true, effect: true, actionKind: "create_support_case", args: ["summary"], availability: "wired" },
   navigate: { name: "navigate", authenticated: false, effect: false, actionKind: "navigate", args: ["route"], availability: "advisory" },

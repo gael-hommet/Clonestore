@@ -8,7 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Bot, FileText, Loader2, Paperclip, RotateCcw, Send, ShieldAlert, Sparkles, Square, UserRound, Workflow, X } from "lucide-react";
+import { ArrowRight, Bot, FileText, Loader2, MessageSquarePlus, Paperclip, RotateCcw, Send, ShieldAlert, Sparkles, Square, Trash2, UserRound, Workflow, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusChip } from "@/components/pierre/cockpit/primitives";
 import { useCloneChat, type CloneChatUiMode } from "@/app/assistant/useCloneChat";
@@ -73,10 +73,29 @@ export function CloneChatWorkspace() {
               <p className="text-[0.8rem] text-[var(--cs-ink-4)]">{chat.modeLabel}{chat.mode === "authenticated" ? " · connecté à votre entreprise" : ""}</p>
             </div>
           </div>
-          <Link href="/agents/pierre/use" data-tour-id="clonechat-cockpit-link" className="cs-liquid-button">
-            <Workflow className="h-4 w-4" /><span className="hidden sm:inline">Cockpit Pierre</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            {chat.mode === "authenticated" ? (
+              <button type="button" onClick={() => void chat.newConversation()} aria-label="Nouvelle conversation" data-tour-id="clonechat-new" className="cs-liquid-button">
+                <MessageSquarePlus className="h-4 w-4" /><span className="hidden sm:inline">Nouvelle</span>
+              </button>
+            ) : null}
+            <Link href="/agents/pierre/use" data-tour-id="clonechat-cockpit-link" className="cs-liquid-button">
+              <Workflow className="h-4 w-4" /><span className="hidden sm:inline">Cockpit Pierre</span>
+            </Link>
+          </div>
         </section>
+
+        {/* Historique des conversations durables (multi-device) */}
+        {chat.mode === "authenticated" && chat.conversations.length > 1 ? (
+          <div data-tour-id="clonechat-history" className="flex flex-wrap gap-2">
+            {chat.conversations.slice(0, 8).map((c) => (
+              <span key={c.id} className={cn("group inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[0.76rem]", c.id === chat.conversationId ? "border-[var(--cs-violet)] bg-[var(--cs-violet-soft)] text-[var(--cs-violet)]" : "border-[var(--cs-line-soft)] bg-white/50 text-[var(--cs-ink-3)]")}>
+                <button type="button" onClick={() => void chat.openConversation(c.id)} className="max-w-[16ch] truncate">{c.title}</button>
+                <button type="button" aria-label={`Supprimer ${c.title}`} onClick={() => void chat.deleteConversation(c.id)} className="opacity-0 transition group-hover:opacity-100"><Trash2 className="h-3 w-3" /></button>
+              </span>
+            ))}
+          </div>
+        ) : null}
 
         {/* Fil */}
         <div ref={threadRef} data-tour-id="clonechat-thread" className="cs-panel min-h-0 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">

@@ -1,0 +1,10 @@
+{
+  "runId": "p814cog-6e7ccd5eb2",
+  "results": {
+    "unique": "resolved",
+    "homonym": "ambiguous",
+    "foreign_id": "not_found",
+    "forbidden": "forbidden"
+  },
+  "cross_tenant_leaks": 0
+}

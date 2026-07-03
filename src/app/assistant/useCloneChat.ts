@@ -42,8 +42,12 @@ import type { CloneChatMessage, CloneChatProposedAction, CloneChatContentBlock }
 
 export type CloneChatUiMode = "loading" | "public" | "authenticated";
 
+// Préfixe UNIQUE par chargement de page : évite toute collision de clé React entre les
+// messages hydratés depuis localStorage/serveur (ids d'une session antérieure) et les
+// messages créés en direct (le compteur repart de 0 à chaque chargement de module).
 let idCounter = 0;
-function mkId(seed: string): string { idCounter += 1; return `${seed}-${idCounter}`; }
+const ID_SESSION = (() => { try { return Math.random().toString(36).slice(2, 8); } catch { return "s"; } })();
+function mkId(seed: string): string { idCounter += 1; return `${seed}-${ID_SESSION}-${idCounter}`; }
 
 function msg(role: CloneChatMessage["role"], blocks: CloneChatContentBlock[], provenance: CloneChatMessage["provenance"], status: CloneChatMessage["status"] = "complete"): CloneChatMessage {
   return { id: mkId(role), role, createdAt: nowIso(), content: blocks, status, provenance };
@@ -194,7 +198,10 @@ export function useCloneChat() {
         return;
       }
       const assembled = assembleFromStructured(data.structured, ctx, data.usageTokens ?? 0, t);
-      push(msg("assistant", [...assembled.blocks], "company"));
+      const blocks = [...assembled.blocks];
+      // Citations discrètes (« D'après … ») — jamais de chemin de fichier / table au client.
+      if (Array.isArray(data.citationLabels) && data.citationLabels.length > 0) blocks.push({ type: "boundary", provenance: "system", text: `D'après ${data.citationLabels.slice(0, 3).join(", ")}.` });
+      push(msg("assistant", blocks, "company"));
     } catch (e) {
       if ((e as { name?: string }).name === "AbortError") {
         push(msg("assistant", [{ type: "text", text: "Réponse interrompue." }], "system"));
@@ -225,10 +232,28 @@ export function useCloneChat() {
       {
         alreadyExecuted: idem.current.alreadyExecuted,
         markExecuted: idem.current.markExecuted,
-        submitMission: async (instruction) => {
+        // Idempotence DURABLE cross-session : réserve/confirme côté serveur (fingerprint
+        // calculé serveur à partir de la vraie entreprise). Repli silencieux sur la garde
+        // de session si la route échoue.
+        claimDurable: async (kind, key) => {
+          try {
+            const res = await fetch("/api/assistant/execute", { method: "POST", headers: { "Content-Type": "application/json", ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}) }, credentials: "same-origin", body: JSON.stringify({ op: "claim", kind, key }) });
+            const d = await res.json().catch(() => null);
+            if (res.ok && d?.ok) return { fingerprint: d.fingerprint as string, status: d.status as "new" | "duplicate" | "in_flight" };
+          } catch { /* ignore */ }
+          return { fingerprint: "", status: "new" as const }; // repli : la garde de session reste active
+        },
+        settleDurable: async (fingerprint, ok) => {
+          if (!fingerprint) return;
+          try { await fetch("/api/assistant/execute", { method: "POST", headers: { "Content-Type": "application/json", ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}) }, credentials: "same-origin", body: JSON.stringify({ op: ok ? "commit" : "fail", fingerprint }) }); } catch { /* ignore */ }
+        },
+        submitMission: async (instruction, idempotencyKey) => {
           setBusy(true);
           try {
-            const r = await submitPierreMission({ input: instruction, source: "clonechat" });
+            // Idempotence en couches : (1) registre de session client (double-clic) via
+            // idempotencyKey=action.id ; (2) le runtime V1 est idempotent côté serveur.
+            // `source` trace l'origine + la clé pour l'observabilité.
+            const r = await submitPierreMission({ input: instruction, source: `clonechat:${idempotencyKey}` });
             if (!r.ok) return { ok: false, error: "mission_not_created" };
             const view = mapV1MissionView(r.data);
             lastMissionView = view ?? null;

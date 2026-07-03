@@ -115,11 +115,11 @@ isolation_AB      : Tenant B ne voit NI la mission de A NI « Marie Dupont »
 - REAL MISSION CREATION (V1 réel, idempotent) — **VERIFIED**
 - SENSITIVE CONFIRMATION REQUIRED — **VERIFIED**
 - MULTIMODAL SCREENSHOT ANALYSIS (réel, honnête) — **VERIFIED**
-- CLONESTORE KNOWLEDGE BRAIN (borné, hashé, 4 visibilités, invalidation) — **VERIFIED (P9.4 = 14 chunks statiques ; ⚠️ NON exhaustif ; P9.4.1 grounde sur sources réelles)**
-- ~~PERSISTENT~~ BUG & SOLUTION MEMORY (tenant-safe) — **VERIFIED en IN-MEMORY par processus** (⚠️ **PAS durable ni multi-instance** ; corrigé/durabilisé par P9.4.1)
-- ~~SERVER-SIDE HARD BUDGET GATES~~ / USAGE ACCOUNTING — réels **par processus, non atomiques, non durables** (⚠️ voir P9.4.1 pour ledger atomique durable)
-- CONVERSATION CONTINUITY — **localStorage mono-navigateur** (⚠️ **PAS multi-device ni durable serveur** ; durabilisé par P9.4.1)
-- BOUNDED CONTEXT & TENANT ISOLATION (A/B) — **VERIFIED**
+- KNOWLEDGE BRAIN — **P9.4 : 14 chunks STATIQUES hardcodés (NON exhaustif, NON durable). NOT a complete brain.** ⇒ remplacé par le registre grounded P9.4.1 (voir `P9_4_1_KNOWLEDGE_BRAIN.md`).
+- BUG & SOLUTION MEMORY — **P9.4 : IN-MEMORY par processus (Map globalThis). NON persistant, NON multi-instance, perdu au restart.** ⇒ durabilisé (Postgres) en P9.4.1 (`P9_4_1_BUG_MEMORY.md`).
+- BUDGET GATES / USAGE ACCOUNTING — **P9.4 : compteurs IN-MEMORY par processus, NON atomiques multi-instance, NON durables au restart.** ⇒ ledger Postgres atomique en P9.4.1 (`P9_4_1_BUDGET_GOVERNANCE.md`).
+- CONVERSATION CONTINUITY — **P9.4 : localStorage MONO-NAVIGATEUR. PAS de multi-device, PAS de persistance serveur.** ⇒ conversations serveur durables en P9.4.1 (`P9_4_1_DURABLE_CONVERSATIONS.md`).
+- BOUNDED CONTEXT & TENANT ISOLATION (A/B, single-process) — **VERIFIED**
 - OPENAI KEY SECRET (serveur, hors bundle client) — **VERIFIED**
 - MINIMAL REAL-PROVIDER QA COST (≈ 0,0012 $) — **VERIFIED**
 - REAL UI (composer image, stop, retry, mobile, provenance) — **VERIFIED**

@@ -1,0 +1,5 @@
+{
+  "runId": "p814final-a8771e6ede",
+  "note": "P8.14 QA used deterministic/mock/in-memory only (no real DB records, no live provider, no OpenAI calls). No QA users/companies/employees/missions created in any database.",
+  "cleanup_residue": 0
+}

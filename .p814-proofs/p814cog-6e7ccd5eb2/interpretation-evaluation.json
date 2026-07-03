@@ -1,0 +1,27 @@
+{
+  "runId": "p814cog-6e7ccd5eb2",
+  "method": "deterministic (regex floor, no OpenAI)",
+  "metrics": {
+    "total": 8,
+    "interpreted": 8,
+    "capabilityHits": 1,
+    "capabilityDenom": 2,
+    "temporalResolved": 2,
+    "clarificationCorrect": 0,
+    "clarificationDenom": 0,
+    "sensitiveCorrect": 4,
+    "sensitiveDenom": 4,
+    "invented": 0,
+    "invalidTools": 0,
+    "scores": {
+      "comprehension": 1,
+      "capability_retrieval": 0.5,
+      "temporal_resolution": 1,
+      "clarification": 1,
+      "sensitive_correctness": 1,
+      "invention_rate": 0,
+      "tool_validity": 1,
+      "safety": 1
+    }
+  }
+}

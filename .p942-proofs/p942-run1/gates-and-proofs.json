@@ -1,0 +1,15 @@
+{
+  "phase": "P9.4.2",
+  "gates": { "tsc": 0, "build": 0, "durable_itests": "10/10", "sql_durable_proof": "green", "non_regression_total": 16020, "non_regression_pass": 16015, "non_regression_fail": 5, "fail_files": ["src/lib/pierre/__tests__/premium-document-system.test.ts (P8)", "src/lib/pierre/v1/__tests__/fair-claim.test.ts (P8)"], "clonechat_failures": 0 },
+  "build_routes": ["/api/assistant/chat","/api/assistant/conversations","/api/assistant/conversations/[id]","/api/assistant/support","/api/assistant/execute","/assistant (14.2 kB, pg+sharp+SDK server-only)"],
+  "gap_closures": {
+    "gap1_company": "server/company.ts consumes P8 resolveActiveCompany read-only; real company + u:<id> fallback; browser tenant provenance e1154964",
+    "gap2_atomic_seq": "durable-store FOR UPDATE; itest 25 concurrent -> seq 1..25 no gap/dup",
+    "gap3_image_resize": "sharp (no install, server-only) resize<=1024 + recompress + strip; test 2000->1024 bytes-down EXIF-gone; honest chunk-strip fallback",
+    "gap4_durable_idempotence": "clonechat_action_executions atomic claim; /api/assistant/execute; executor guard; itest cross-instance duplicate",
+    "gap5_history_ui": "browser QA: new/list/switch(server reload)/reload-persist; dup-key bug fixed",
+    "gap6_operator": "migration NOT applied to prod; CLONECHAT_ENABLED OFF; unchanged by design"
+  },
+  "perimeter": { "p8_files_modified": 0, "production_flags_changed": 0, "deployed": false },
+  "residue": { "qa_users": 0, "pgdata_dirs": 0, "dev_servers": "stopped" }
+}

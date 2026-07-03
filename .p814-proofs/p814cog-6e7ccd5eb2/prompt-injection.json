@@ -1,0 +1,10 @@
+{
+  "runId": "p814cog-6e7ccd5eb2",
+  "invented_dropped": 2,
+  "droppedStepKeys": [
+    "b",
+    "c"
+  ],
+  "plan_certified": false,
+  "note": "invented/arbitrary actions dropped; plan not certified"
+}

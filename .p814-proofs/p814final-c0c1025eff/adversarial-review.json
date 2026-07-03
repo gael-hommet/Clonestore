@@ -1,0 +1,32 @@
+{
+  "runId": "p814final-c0c1025eff",
+  "passes": 3,
+  "progression": [
+    "pass1: 3 CONFIRMED / 5 WEAK → NOT VERIFIED",
+    "pass2: 5 CONFIRMED / 3 REFUTED",
+    "pass3: 8/8 CONFIRMED → VERIFIED"
+  ],
+  "dimensions": {
+    "intelligence": "CONFIRMED",
+    "execution": "CONFIRMED",
+    "coverage": "CONFIRMED",
+    "autonomy": "CONFIRMED",
+    "safety": "CONFIRMED",
+    "memory_learning": "CONFIRMED",
+    "product_honesty": "CONFIRMED",
+    "evidence": "CONFIRMED"
+  },
+  "verified": true,
+  "lead_verdict": "P8.14 COGNITIVE RUNTIME VERIFIED (8/8)",
+  "out_of_scope_disclosed": {
+    "external": [
+      "lawyer-VERIFIED country rules",
+      "live providers",
+      "Yousign P8.7.4 OPEN",
+      "production unblock NOT AUTHORIZED"
+    ],
+    "in_repo_backlog": [
+      "~81 MISSING + 36 PARTIAL canon HR capabilities (P8.10-8.13 substrate build-out)"
+    ]
+  }
+}
