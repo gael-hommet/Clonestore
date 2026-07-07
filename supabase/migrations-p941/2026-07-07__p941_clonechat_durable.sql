@@ -89,6 +89,11 @@ create table if not exists clonechat_support_cases (
   updated_at    timestamptz not null default now()
 );
 create index if not exists cc_case_company_idx on clonechat_support_cases (company_id, created_at desc);
+-- P9.4.2 r2 : idempotence des cas ouverts par une COMMANDE gouvernée. Le fingerprint
+-- (SHA-256 de la commande) rend la création idempotente : une reprise après commit perdu
+-- ne crée pas de doublon. Index partiel (les cas ouverts manuellement, sans fingerprint,
+-- restent multiples).
+create unique index if not exists cc_case_fp_idx on clonechat_support_cases (company_id, fingerprint) where fingerprint is not null;
 
 -- ── Global neutralized bug/solution knowledge (cross-tenant, redacted only) ───
 -- Reusable ONLY when a workaround/solution has been VERIFIED. No tenant PII here.

@@ -1,0 +1,96 @@
+
+[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90mC:/Users/homme/clonestore[39m
+
+ [31m❯[39m src/lib/pierre/__tests__/premium-document-system.test.ts [2m([22m[2m150 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 213[2mms[22m[39m
+[31m     [31m×[31m detects absence from various keywords[39m[32m 50[2mms[22m[39m
+[31m     [31m×[31m detects performance[39m[32m 4[2mms[22m[39m
+[31m     [31m×[31m detects offboarding from departure keywords[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m detects employee_summary[39m[32m 2[2mms[22m[39m
+ [31m❯[39m src/lib/pierre/v1/__tests__/fair-claim.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 11512[2mms[22m[39m
+[31m     [31m×[31m reproduces the defect: global claimJobs lets a noisy tenant monopolize; fairClaimRound serves everyone[39m[33m 11340[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 5 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/lib/pierre/__tests__/premium-document-system.test.ts[2m > [22minferPremiumDocumentFamily[2m > [22mdetects absence from various keywords
+[31m[1mAssertionError[22m: expected 'generic_hr' to be 'absence' // Object.is equality[39m
+
+Expected: [32m"absence"[39m
+Received: [31m"generic_hr"[39m
+
+[36m [2m❯[22m src/lib/pierre/__tests__/premium-document-system.test.ts:[2m261:60[22m[39m
+    [90m259|[39m
+    [90m260|[39m   [34mit[39m([32m"detects absence from various keywords"[39m[33m,[39m () [33m=>[39m {
+    [90m261|[39m     expect(inferPremiumDocumentFamily("demande de congé")).toBe("absen…
+    [90m   |[39m                                                            [31m^[39m
+    [90m262|[39m     expect(inferPremiumDocumentFamily("arrêt maladie")).toBe("absence"…
+    [90m263|[39m     expect(inferPremiumDocumentFamily("justificatif absence")).toBe("a…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/lib/pierre/__tests__/premium-document-system.test.ts[2m > [22minferPremiumDocumentFamily[2m > [22mdetects performance
+[31m[1mAssertionError[22m: expected 'generic_hr' to be 'performance' // Object.is equality[39m
+
+Expected: [32m"performance"[39m
+Received: [31m"generic_hr"[39m
+
+[36m [2m❯[22m src/lib/pierre/__tests__/premium-document-system.test.ts:[2m272:66[22m[39m
+    [90m270|[39m
+    [90m271|[39m   [34mit[39m([32m"detects performance"[39m[33m,[39m () [33m=>[39m {
+    [90m272|[39m     expect(inferPremiumDocumentFamily("entretien d'évaluation")).toBe(…
+    [90m   |[39m                                                                  [31m^[39m
+    [90m273|[39m   })[33m;[39m
+    [90m274|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/lib/pierre/__tests__/premium-document-system.test.ts[2m > [22minferPremiumDocumentFamily[2m > [22mdetects offboarding from departure keywords
+[31m[1mAssertionError[22m: expected 'generic_hr' to be 'offboarding' // Object.is equality[39m
+
+Expected: [32m"offboarding"[39m
+Received: [31m"generic_hr"[39m
+
+[36m [2m❯[22m src/lib/pierre/__tests__/premium-document-system.test.ts:[2m282:64[22m[39m
+    [90m280|[39m     expect(inferPremiumDocumentFamily("licenciement")).toBe("offboardi…
+    [90m281|[39m     expect(inferPremiumDocumentFamily("rupture conventionnelle")).toBe…
+    [90m282|[39m     expect(inferPremiumDocumentFamily("solde de tout compte")).toBe("o…
+    [90m   |[39m                                                                [31m^[39m
+    [90m283|[39m   })[33m;[39m
+    [90m284|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/lib/pierre/__tests__/premium-document-system.test.ts[2m > [22minferPremiumDocumentFamily[2m > [22mdetects employee_summary
+[31m[1mAssertionError[22m: expected 'generic_hr' to be 'employee_summary' // Object.is equality[39m
+
+Expected: [32m"employee_summary"[39m
+Received: [31m"generic_hr"[39m
+
+[36m [2m❯[22m src/lib/pierre/__tests__/premium-document-system.test.ts:[2m286:60[22m[39m
+    [90m284|[39m
+    [90m285|[39m   [34mit[39m([32m"detects employee_summary"[39m[33m,[39m () [33m=>[39m {
+    [90m286|[39m     expect(inferPremiumDocumentFamily("synthèse salarié")).toBe("emplo…
+    [90m   |[39m                                                            [31m^[39m
+    [90m287|[39m     expect(inferPremiumDocumentFamily("fiche salarié")).toBe("employee…
+    [90m288|[39m   })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/lib/pierre/v1/__tests__/fair-claim.test.ts[2m > [22mfair-claim primitive[2m > [22mreproduces the defect: global claimJobs lets a noisy tenant monopolize; fairClaimRound serves everyone
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m src/lib/pierre/v1/__tests__/fair-claim.test.ts:[2m42:3[22m[39m
+    [90m 40|[39m
+    [90m 41|[39m [34mdescribe[39m([32m"fair-claim primitive"[39m[33m,[39m () [33m=>[39m {
+    [90m 42|[39m   it("reproduces the defect: global claimJobs lets a noisy tenant mono…
+    [90m   |[39m   [31m^[39m
+    [90m 43|[39m     h [33m=[39m [35mawait[39m [34mcreateHarness[39m()[33m;[39m
+    [90m 44|[39m     [35mconst[39m noisy [33m=[39m [35mawait[39m [34mmakeTenant[39m([32m"noisy"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m335 passed[39m[22m[90m (337)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m16091 passed[39m[22m[90m (16096)[39m
+[2m   Start at [22m 12:09:00
+[2m   Duration [22m 94.27s[2m (transform 64.74s, setup 0ms, import 120.03s, tests 223.94s, environment 168ms)[22m
+

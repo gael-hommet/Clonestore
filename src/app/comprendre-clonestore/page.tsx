@@ -127,6 +127,143 @@ export default function ComprendreCloneStorePage() {
             </div>
           </header>
 
+          {/* Pitch — le manifeste CloneStore */}
+          <section id="pitch-clonestore" className="mt-16 scroll-mt-24">
+            <p className="cs-eyebrow">Le pitch CloneStore</p>
+            <h2 className="cs-heading mt-2 text-[clamp(1.8rem,3.6vw,2.9rem)] leading-[1.05]">
+              C’est quoi CloneStore ?
+            </h2>
+            <p className="mt-5 max-w-[700px] text-[1.05rem] leading-8 text-[var(--cs-ink-2)]">
+              CloneStore part d’un constat simple. Pour avancer plus vite, une entreprise n’a longtemps eu que deux
+              options : recruter plus de monde, ou acheter plus de logiciels. Mais les logiciels ne font pas le travail.
+            </p>
+
+            {/* Le problème */}
+            <div className="mt-8 max-w-[700px]">
+              <p className="cs-eyebrow">Le problème</p>
+              <p className="mt-2 text-[0.98rem] leading-8 text-[var(--cs-ink-2)]">
+                Ils donnent des tableaux, des boutons, des espaces, des dossiers. Derrière, il faut encore quelqu’un
+                pour comprendre la demande, retrouver les informations, préparer les documents, relancer les bonnes
+                personnes, suivre les échéances, vérifier ce qui manque, demander les validations et rendre compte.
+              </p>
+            </div>
+
+            {/* La rupture — phrase 1 + phrase 2 */}
+            <div className="cs-panel mt-7 border-l-2 border-[var(--cs-violet)] px-6 py-6">
+              <p className="cs-eyebrow">La rupture</p>
+              <p className="mt-2 text-[1.25rem] font-semibold leading-9 text-[var(--cs-ink-1)]">
+                Un logiciel aide votre équipe à faire le travail. CloneStore fournit l’employé IA qui le prend en charge.
+              </p>
+              <p className="mt-3 text-[0.95rem] leading-7 text-[var(--cs-ink-3)]">
+                Un assistant IA peut répondre à une question. Un agent IA exécute une action. Un employé IA assume un
+                périmètre de travail. CloneStore ne vend pas des agents isolés : il fournit des employés IA complets,
+                spécialisés, capables de prendre en charge un périmètre opérationnel dans la durée — avec les règles, les
+                données, les permissions, les validations et les habitudes de l’entreprise.
+              </p>
+            </div>
+
+            {/* Pierre — phrase 3 */}
+            <div className="mt-8 max-w-[720px]">
+              <p className="cs-eyebrow">Pierre, le premier employé IA</p>
+              <p className="mt-2 text-[0.98rem] leading-8 text-[var(--cs-ink-2)]">
+                Le premier employé IA de CloneStore s’appelle Pierre. Il est spécialisé dans les ressources humaines.
+              </p>
+              <p className="mt-3 text-[1.05rem] font-semibold leading-8 text-[var(--cs-ink-1)]">
+                Pierre n’est pas un assistant RH. C’est un employé IA RH complet qui organise, produit, suit, relance,
+                fait valider et conserve la trace.
+              </p>
+              <p className="mt-3 text-[0.98rem] leading-8 text-[var(--cs-ink-2)]">
+                Il peut recevoir une demande RH, comprendre le contexte, retrouver les règles de l’entreprise, organiser
+                la mission, produire les documents, préparer les communications, suivre les échéances, signaler les
+                informations manquantes, relancer, demander une validation humaine quand c’est nécessaire, puis conserver
+                l’historique complet. Recrutement opérationnel, onboarding, administration, dossiers salariés, absences,
+                relances, suivi, conformité interne, communications, offboarding : ce n’est pas une tâche isolée, ni une
+                checklist, ni un générateur de texte. C’est une fonction RH opérationnelle qui avance en continu.
+              </p>
+            </div>
+
+            {/* L'économie — phrase 4 + 449 € HT */}
+            <div className="cs-panel mt-7 border-l-2 border-[var(--cs-violet)] px-6 py-6">
+              <p className="cs-eyebrow">L’économie</p>
+              <p className="mt-2 text-[0.98rem] leading-8 text-[var(--cs-ink-2)]">
+                Dans beaucoup d’entreprises, ce travail mobilise plusieurs personnes, parfois une équipe RH entière —
+                salaires, charges, outils, absences, oublis, relances manquées, temps perdu. Pierre, lui, coûte 449 € HT
+                par mois.
+              </p>
+              <p className="mt-3 text-[1.2rem] font-semibold leading-9 text-[var(--cs-ink-1)]">
+                Pour une fraction du coût d’une équipe humaine équivalente, l’entreprise obtient une capacité
+                opérationnelle continue, rapide, gouvernée et traçable.
+              </p>
+              <p className="mt-3 text-[0.95rem] leading-7 text-[var(--cs-ink-3)]">
+                Le gain ne vient pas seulement du prix. Pierre travaille en parallèle, garde le contexte, reprend une
+                mission après une attente, relance sans oublier et ne laisse jamais une demande disparaître entre deux
+                logiciels. L’humain garde les décisions, les arbitrages, la relation, le management et la responsabilité ;
+                Pierre prend l’opérationnel répétitif, dispersé et chronophage. Il ne remplace pas le jugement humain — il
+                retire à l’humain la charge de tout ce qui l’empêche d’avancer vite.
+              </p>
+            </div>
+
+            {/* L'Empreinte + technologies */}
+            <div className="mt-8 max-w-[720px]">
+              <p className="cs-eyebrow">L’Empreinte Entreprise</p>
+              <p className="mt-2 text-[0.98rem] leading-8 text-[var(--cs-ink-2)]">
+                Contrairement à une IA générique, Pierre devient unique à chaque entreprise grâce à l’Empreinte
+                Entreprise : la mémoire opérationnelle de l’organisation — ses règles, ses documents, ses modèles, ses
+                rôles, son ton, ses circuits de validation, ses permissions et ses habitudes. Opérationnel dès le départ,
+                adapté après une semaine, il devient au fil des mois une mémoire opérationnelle qui conserve les missions,
+                les décisions, les validations, les documents, les exceptions et les traces. La valeur, elle, commence dès
+                les premières missions.
+              </p>
+              <p className="mt-3 text-[0.95rem] leading-7 text-[var(--cs-ink-3)]">
+                Et tout est encadré : CloneOS organise le travail, CloneADN l’adapte à l’entreprise, CloneGuard définit ce
+                qu’il fait seul, prépare, fait valider ou refuse, CloneContinuum garde les missions actives et CloneTrace
+                conserve la preuve de chaque action. L’entreprise ne confie pas son organisation à une IA aveugle : elle
+                ouvre un poste numérique, spécialisé, gouverné, traçable et adapté à son fonctionnement.
+              </p>
+            </div>
+
+            {/* La vision — phrase 5 */}
+            <div className="cs-panel mt-7 border-l-2 border-[var(--cs-violet)] px-6 py-6">
+              <p className="cs-eyebrow">La vision</p>
+              <p className="mt-2 text-[1.2rem] font-semibold leading-9 text-[var(--cs-ink-1)]">
+                Pierre est le premier employé. Les RH sont le premier périmètre. CloneStore construit l’infrastructure des
+                futures organisations augmentées par des employés IA.
+              </p>
+              <p className="mt-3 text-[0.95rem] leading-7 text-[var(--cs-ink-3)]">
+                Demain, CloneStore pourra proposer des employés IA pour la finance, les opérations, le support,
+                l’administration, le juridique, la communication et l’ingénierie. Une entreprise ne construira plus
+                seulement son organisation avec des humains et des logiciels : elle pourra ouvrir des postes numériques,
+                composés d’employés IA spécialisés, chacun adapté, encadré et traçable, chacun capable de prendre en
+                charge un périmètre complet.
+              </p>
+            </div>
+
+            {/* La vraie question — phrase 6, citation de clôture */}
+            <blockquote className="mx-auto mt-9 max-w-[760px] text-center">
+              <p className="text-[clamp(1.3rem,2.6vw,1.8rem)] font-semibold leading-[1.35] text-[var(--cs-ink-1)]">
+                La vraie question n’est pas «&nbsp;est-ce qu’une entreprise va utiliser des employés IA&nbsp;?&nbsp;» La
+                vraie question, c’est combien de temps elle acceptera encore de payer beaucoup plus cher pour avancer
+                beaucoup plus lentement.
+              </p>
+            </blockquote>
+
+            {/* Conclusion + CTA */}
+            <div className="cs-command-surface mt-9 space-y-4 text-center">
+              <p className="mx-auto max-w-[620px] text-[1.05rem] leading-8 text-[var(--cs-ink-1)]">
+                <strong>Gagnez du temps et de l’argent.</strong> Pas avec un logiciel de plus. Avec des employés IA qui
+                prennent le travail en charge.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3 pt-1">
+                <Link href="/demo/pierre" className="inline-flex h-11 items-center gap-2 rounded-full bg-[var(--cs-violet)] px-6 text-sm font-semibold text-white shadow-lg">
+                  Voir Pierre travailler <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <Link href="/reserver/pierre" className="inline-flex h-11 items-center gap-2 rounded-full border border-[var(--cs-line)] px-6 text-sm font-semibold text-[var(--cs-ink-1)]">
+                  Réserver Pierre
+                </Link>
+              </div>
+            </div>
+          </section>
+
           {/* Catégorie */}
           <Section id="categorie" eyebrow="La catégorie" title="Logiciel, assistant, agent, employé IA">
             <div className="overflow-x-auto">

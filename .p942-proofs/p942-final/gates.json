@@ -1,0 +1,29 @@
+{
+  "runId": "p942-final",
+  "phase": "P9.4.2 round 2 — CloneChat final durability & multi-user closure",
+  "deficits_closed": {
+    "D1_company_fail_closed": { "gate": "§1/§8", "status": "GREEN", "proof": "company-resolution.test.ts 15/15; fail-closed on no-membership/suspended/removed/DB-outage; u:<id> fallback only behind CLONECHAT_ALLOW_USER_TENANT_FALLBACK and never on DB error; chat+execute routes refuse before side effects" },
+    "D2_sha256_command_identity": { "gate": "§2", "status": "GREEN", "proof": "command-ledger.ts SHA-256(company,actor,conversation,proposal,kind,payloadHash); no day-bucket, no FNV; durable lifecycle confirmed→executing→succeeded|failed_recoverable|failed_terminal|cancelled; proposal persisted server-side, client submits reference only" },
+    "D3_server_side_execute": { "gate": "§3", "status": "GREEN", "proof": "execute/route.ts confirm proposalId → load proposal (company+actor scoped) → canonical command → atomic claim → governed effect (V1 loopback / durable support) → re-read → commit; execute-route.test.ts 8/8 (mission/cancel/validation/support, concurrency single-exec, duplicate, foreign 404, terminal); ledger itest recovery/lease/duplicate" },
+    "D4_sharp_mandatory": { "gate": "§4/§9", "status": "GREEN", "proof": "sharp 0.34.4 direct pinned dep + serverExternalPackages; mandatory transform (decode/orientation/resize/recompress/strip/validate); reject when unavailable/failed (no original, no silent metadata-only); degraded only under CLONECHAT_IMAGE_DEGRADED_OK=1; image-sanitizer.test.ts 13/13 + prod smoke IMAGE_PROD_TRANSFORM_OK + built server boot" },
+    "D5_atomic_60_appends": { "gate": "§5", "status": "GREEN", "proof": "clonechat-durable.itest.ts: 60 concurrent appends across 2 independent pools → seq 1..60 exact, 0 dup/missing, persisted==accepted, tenant B cannot append to A, restart order identical" },
+    "D6_multi_user_tenancy": { "gate": "§6", "status": "GREEN", "proof": "durable itest (4): private per-user conversations, shared company budget (150=100+50) with distinct per-user counters, company-scoped support + B isolation, actor-scoped commands; resolution (3): two users→same company, removed membership refused, site scope" },
+    "D7_browser_qa": { "gate": "§7", "status": "PARTIAL", "proof": "UI matrix VERIFIED on production (4 viewports 1440/1280/390/360: no h-overflow, 0 unnamed controls, keyboard focus, reduced-motion, long-content, 0 console errors, screenshots)", "gap": "authenticated action-flow browser states NOT re-driven in-browser (Supabase login egress blocked in headless env); behaviour proven at route(8)+itest(21)+unit(15) level; UI wiring typechecked" }
+  },
+  "validation": {
+    "tsc": "0 errors",
+    "clonechat_assistant_unit": "147/147",
+    "durable_integration_itest": "21/21 (0 unhandled errors)",
+    "full_unit_suite": "16091 passed, 5 failed (all PRE-EXISTING P8-lane: premium-document-system keyword inference ×4, fair-claim harness ×1 — files untouched)",
+    "production_build": "next build exit 0 (sharp externalized; /assistant client 13.1kB, SDK out of client bundle)",
+    "built_server_boot": "next start ready 2.5s, /assistant 200, /api/assistant/execute fail-closed 503 (flag off)"
+  },
+  "perimeter": {
+    "p8_lane_modified": false,
+    "changed_areas": ["src/lib/clonechat/**", "src/app/api/assistant/**", "src/app/assistant/useCloneChat.ts", "supabase/migrations-p941/", "package.json (sharp)", "next.config.ts (sharp external)", "scripts/", ".p942-proofs/"],
+    "production_flags_unchanged": "CLONECHAT_ENABLED default OFF; CLONECHAT_ALLOW_USER_TENANT_FALLBACK unset; CLONECHAT_IMAGE_DEGRADED_OK unset",
+    "migration_applied_to_supabase": false,
+    "staged_committed_pushed_deployed": false
+  },
+  "verdict": "PENDING_ADVERSARIAL_REVIEW"
+}

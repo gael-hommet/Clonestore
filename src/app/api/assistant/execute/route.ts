@@ -86,7 +86,9 @@ export async function POST(req: Request) {
       case "create_support_case": {
         const summary = String(p.summary ?? "").trim();
         if (!summary) return { ok: false, terminal: true, error: "empty_summary" };
-        const c = await stores.support.createSupportCase({ companyId, userId }, { title: summary.slice(0, 120), summary, at: new Date().toISOString() });
+        // fingerprint = identité de la commande → création IDEMPOTENTE (reprise après commit
+        // perdu ne crée pas de doublon ; l'effet support est le seul non couvert par V1).
+        const c = await stores.support.createSupportCase({ companyId, userId }, { title: summary.slice(0, 120), summary, fingerprint, at: new Date().toISOString() });
         return { ok: true, targetRef: c.id, result: { caseId: c.id } };
       }
       default:

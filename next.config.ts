@@ -4,11 +4,13 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // @electric-sql/pglite est une devDependency chargée UNIQUEMENT par le chemin
-  // dev/E2E local de CloneStory (gardé par CLONESTORY_LOCAL_PGLITE). On le traite
-  // comme paquet serveur externe pour qu'il résolve ses assets natifs normalement.
-  // Aucun effet en production (jamais importé sans la variable).
-  serverExternalPackages: ["@electric-sql/pglite"],
+  // Paquets serveurs à NE PAS bundler (bindings natifs résolus normalement à l'exécution) :
+  //  - @electric-sql/pglite : devDependency du chemin dev/E2E local de CloneStory ;
+  //  - sharp : transformation d'image OBLIGATOIRE de CloneChat (P9.4.2 §9). Externaliser
+  //    garantit que le binding natif est chargé tel quel dans le serveur de production
+  //    (jamais mangé/mangled par le bundler) — sinon la transformation échouerait et l'image
+  //    serait refusée. `pg` (durable CloneChat) est déjà chargé par import dynamique server-only.
+  serverExternalPackages: ["@electric-sql/pglite", "sharp"],
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },

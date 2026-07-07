@@ -105,3 +105,64 @@ describe("positionnement — prix cohérent 449 € HT (pas d'équivalence faibl
     expect(h).not.toContain("postes automatisés");
   });
 });
+
+// Normalise apostrophes (droites/typographiques) + espaces (retours à la ligne
+// JSX) pour comparer un texte de pitch aux phrases obligatoires du fondateur.
+const norm = (s: string) => s.replace(/[’']/g, "'").replace(/\s+/g, " ");
+
+describe("pitch — section manifeste « C'est quoi CloneStore ? » sur /comprendre-clonestore", () => {
+  const raw = read(REFERENCE);
+  const src = norm(raw);
+
+  it("contient la section d'ancrage #pitch-clonestore", () => {
+    expect(raw).toContain('id="pitch-clonestore"');
+  });
+
+  it("affiche le titre du pitch", () => {
+    expect(src).toContain(norm("C'est quoi CloneStore ?"));
+  });
+
+  const PHRASES = [
+    "Un logiciel aide votre équipe à faire le travail. CloneStore fournit l'employé IA qui le prend en charge.",
+    "Un agent IA exécute une action. Un employé IA assume un périmètre de travail.",
+    "Pierre n'est pas un assistant RH. C'est un employé IA RH complet qui organise, produit, suit, relance, fait valider et conserve la trace.",
+    "Pour une fraction du coût d'une équipe humaine équivalente, l'entreprise obtient une capacité opérationnelle continue, rapide, gouvernée et traçable.",
+    "Pierre est le premier employé. Les RH sont le premier périmètre. CloneStore construit l'infrastructure des futures organisations augmentées par des employés IA.",
+  ];
+  for (const p of PHRASES) {
+    it(`contient la phrase exacte : « ${p.slice(0, 46)}… »`, () => {
+      expect(src).toContain(norm(p));
+    });
+  }
+
+  it("contient la question de clôture (phrase 6)", () => {
+    expect(src).toContain(norm("La vraie question n'est pas"));
+    expect(src).toContain(
+      norm("combien de temps elle acceptera encore de payer beaucoup plus cher pour avancer beaucoup plus lentement"),
+    );
+  });
+
+  it("porte les CTA vers /demo/pierre et /reserver/pierre", () => {
+    expect(raw).toContain('href="/demo/pierre"');
+    expect(raw).toContain('href="/reserver/pierre"');
+  });
+
+  it("affiche le prix 449 € HT", () => {
+    expect(raw).toContain("449 € HT");
+  });
+
+  it("ne réintroduit aucun ancien positionnement", () => {
+    expect(src).not.toContain(norm("assistant RH intelligent"));
+    expect(src).not.toContain(norm("boutique d'agents"));
+    expect(raw).not.toContain("Assistant RH Automatisé");
+  });
+
+  it("le pitch ne contient aucune revendication absolue interdite", () => {
+    const start = raw.indexOf('id="pitch-clonestore"');
+    const end = raw.indexOf('id="categorie"');
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const pitch = raw.slice(start, end);
+    for (const re of FORBIDDEN) expect(pitch).not.toMatch(re);
+  });
+});

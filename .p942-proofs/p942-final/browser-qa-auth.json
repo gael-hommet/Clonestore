@@ -1,0 +1,25 @@
+{
+  "runId": "p942-final",
+  "base": "http://127.0.0.1:3222",
+  "email": "p94-e2e-a-p941b81879572@example.invalid",
+  "steps": {
+    "login": {
+      "attempted": true,
+      "session": "none",
+      "url": "http://127.0.0.1:3222/login"
+    },
+    "assistant": {
+      "reached": true,
+      "url": "http://127.0.0.1:3222/assistant",
+      "chatSource": null,
+      "companyRequired": false,
+      "noFakeCompanyUsed": true,
+      "effectfulActionButtons": 0,
+      "noHorizontalOverflow": true,
+      "consoleErrors": [
+        "TypeError: Failed to fetch\n    at http://127.0.0.1:3222/_next/static/chunks/3587-f92952410a7e99ac.js:21:37479\n    at tO (http://127.0.0.1:3222/_next/static/chunks/3587-f92952410a7e99ac.js:21:42473)\n    at tT (http://127.0.0.1:3222/_next/static/chunks/3587-f92952410a7e99ac.js:21:41971)\n    at t5.signInWithPassword (http://127.0.0.1:3222/_next/static/chunks/3587-f92952410a7e99ac.js:21:67455)\n    at O (http://127.0.0.1:3222/_next/static/chunks/app/login/page-ff7aac3191fe8f39.js:1:3928)\n    at V (http://127.0.0.1:3222/_next/static/chunks/app/login/page-ff7aac3191fe8f39.js:1:4696)\n    at i8 (http://127.0.0.1:3222/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js:1:135369)\n    at http://127.0.0.1:3222/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js:1:141455\n    at nz (http://127.0.0.1:3222/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js:1:19203)\n    at sn (http://127.0.0.1:3222/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js:1:136602)"
+      ]
+    }
+  },
+  "verdict": "AUTH_QA_ISSUES"
+}

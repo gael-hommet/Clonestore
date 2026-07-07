@@ -1,0 +1,31 @@
+{
+  "runId": "p942-final",
+  "section": "§7 browser / mobile / accessibility QA",
+  "target": "production server (next start, pre-compiled chunks) at http://127.0.0.1:3222",
+  "uiQualityMatrix": {
+    "verdict": "BROWSER_QA_OK",
+    "viewports": ["desktop-1440 (1440x900)", "laptop-1280 (1280x800)", "mobile-390 (390x844)", "narrow-360 (360x740)"],
+    "perViewport": {
+      "noHorizontalOverflow": "all 4 pass (docScrollW <= innerW)",
+      "composerVisibleNotClipped": "all 4 pass",
+      "accessibility": "0 unnamed interactive controls (all buttons/links have aria-label/title/text); keyboard Tab moves focus to interactive element with visible focus",
+      "reducedMotion": "rendered under prefers-reduced-motion: reduce",
+      "longContentNoOverflow": "typing a long message keeps body non-scrolling horizontally",
+      "consoleErrors": "0 unexpected on all 4 viewports (production build)"
+    },
+    "screenshots": ["p942-desktop-1440.png", "p942-laptop-1280.png", "p942-mobile-390.png", "p942-narrow-360.png"],
+    "note": "A dev-mode-only 'Invalid or unexpected token' on one viewport was a Next.js on-demand chunk-compile artifact; production build (pre-compiled chunks) is clean on all 4 viewports."
+  },
+  "authenticatedStates": {
+    "verdict": "BROWSER_DRIVE_BLOCKED (environment) — behaviour backend-proven",
+    "reason": "Ephemeral Supabase user login from the headless browser failed with 'Failed to fetch' to the Supabase auth endpoint (network egress restriction in this session). Supabase URL confirmed baked into the client bundle → not a build/code defect.",
+    "ephemeralUserCleanup": "DELETED — ZERO RESIDUE",
+    "backingProofs": {
+      "companyRequiredFailClosed": "src/lib/clonechat/server/__tests__/company-resolution.test.ts (15 tests) + tenantRefusalResponse (503/200 structured)",
+      "actionProposalConfirmDuplicateInflightTerminalForeign": "src/app/api/assistant/__tests__/execute-route.test.ts (8 tests) + durable ledger itest (recovery/concurrency/duplicate)",
+      "conversationCrudDurable": "clonechat-durable.itest.ts (conversations private per user, history, restart) + round-1 gap5 browser history proof",
+      "uiWiring": "action_preview → executeAction(proposalId) → /api/assistant/execute ; tsc clean; SDK out of client bundle (/assistant 13.1kB)"
+    }
+  },
+  "honestScope": "The responsive / mobile / accessibility / console gate is browser-VERIFIED on production across 4 viewports. The authenticated action-flow UI states were NOT re-driven in-browser this round (Supabase login egress blocked); their behaviour is proven at the route + itest + unit level and the UI wiring is typechecked."
+}

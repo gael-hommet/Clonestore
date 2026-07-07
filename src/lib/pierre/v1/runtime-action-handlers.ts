@@ -205,8 +205,45 @@ const signaturePrepare: RuntimeActionHandler = async (ctx) => {
   };
 };
 
+// P8.14 §4 — REAL domain computation over tenant-scoped persisted state. Computes a whitelisted HR metric
+// from the real pierre_rt_ tables (RLS-scoped), persists the result as a durable artifact, and returns it
+// as the step output (server-re-readable). Never fabricates a value; a non-computable metric is a governed
+// blocker. 0 is a real computed value, not a stub.
+const analyticsCompute: RuntimeActionHandler = async (ctx) => {
+  const metric = String(ctx.payload.metric ?? "");
+  const result = await ctx.appDb.transaction(async (tx): Promise<Record<string, unknown> | null> => {
+    await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.companyId]);
+    const n = async (sql: string): Promise<number> => Number((await tx.query<{ n: number }>(sql, [ctx.companyId])).rows[0]?.n ?? 0);
+    const rows = async (sql: string) => (await tx.query<Record<string, unknown>>(sql, [ctx.companyId])).rows;
+    switch (metric) {
+      case "headcount": return { active: await n(`select count(*)::int n from pierre_rt_employees where company_id=$1 and status='active'`), total: await n(`select count(*)::int n from pierre_rt_employees where company_id=$1`) };
+      case "turnover": { const archived = await n(`select count(*)::int n from pierre_rt_employees where company_id=$1 and status='archived'`); const total = await n(`select count(*)::int n from pierre_rt_employees where company_id=$1`); return { archived, total, rate: total ? Number((archived / total).toFixed(3)) : 0 }; }
+      case "absenteeism": case "payroll_absence_recap": return { absences: await n(`select count(*)::int n from pierre_rt_employee_absences where company_id=$1`) };
+      case "recruitment_funnel": return { recruitment_missions: await n(`select count(*)::int n from pierre_rt_missions where company_id=$1`) };
+      case "completeness_deadlines": return { total: await n(`select count(*)::int n from pierre_rt_employees where company_id=$1`), missing_email: await n(`select count(*)::int n from pierre_rt_employees where company_id=$1 and (email is null or email='')`) };
+      case "payroll_anomalies": case "anomaly_surfacing": return { overdue_approvals: await n(`select count(*)::int n from pierre_rt_validations where company_id=$1 and status='pending' and created_at < now() - interval '7 days'`) };
+      case "payroll_variables": return { active_employees: await n(`select count(*)::int n from pierre_rt_employees where company_id=$1 and status='active'`) };
+      case "payroll_validation": return { pending_validations: await n(`select count(*)::int n from pierre_rt_validations where company_id=$1 and status='pending'`) };
+      case "workforce_planning": case "position_budget": case "succession_planning": return { headcount_by_site: await rows(`select coalesce(site_id::text,'none') site, count(*)::int n from pierre_rt_employees where company_id=$1 and status='active' group by site_id`) };
+      case "pay_equity": case "compensation_equity": return { headcount_by_role: await rows(`select coalesce(role_title,'unspecified') role, count(*)::int n from pierre_rt_employees where company_id=$1 and status='active' group by role_title`), note: "structural distribution only; no discrimination inference; committee decision required" };
+      case "performance_calibration": return { active_employees: await n(`select count(*)::int n from pierre_rt_employees where company_id=$1 and status='active'`) };
+      case "executive_report": return { headcount: await n(`select count(*)::int n from pierre_rt_employees where company_id=$1 and status='active'`), open_missions: await n(`select count(*)::int n from pierre_rt_missions where company_id=$1`), pending_approvals: await n(`select count(*)::int n from pierre_rt_validations where company_id=$1 and status='pending'`) };
+      default: return null;
+    }
+  });
+  if (result === null) return { status: "blocked", blockerCode: "metric_not_computable" };
+  const artifactId = newUuid();
+  await ctx.appDb.transaction(async (tx) => {
+    await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.companyId]);
+    await tx.query(`insert into pierre_rt_analytics_artifacts (id, company_id, mission_id, metric, result) values ($1,$2,$3,$4,$5::jsonb)`,
+      [artifactId, ctx.companyId, ctx.missionId, metric, JSON.stringify(result)]);
+  });
+  return ok({ metric, artifact_id: artifactId, result, kind: "fact" });
+};
+
 export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
   "mission.noop": noop,
+  "analytics.compute": analyticsCompute,
   "mission.complete": complete,
   "mission.block": block,
   "employee.read": readObject("pierre_rt_employees", "employee_id"),

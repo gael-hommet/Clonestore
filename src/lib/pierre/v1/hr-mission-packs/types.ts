@@ -13,7 +13,7 @@ import type {
 
 // How a pack step binds to the verified runtime. This is the ONLY way a step executes.
 export type StepBinding =
-  | { type: "runtime_action"; actionKey: string }                 // MUST be in the closed runtime-action-registry
+  | { type: "runtime_action"; actionKey: string; input?: Record<string, unknown> } // closed registry action + optional typed input (e.g. analytics metric)
   | { type: "governed_service"; capabilityId: string }            // a canon capability realized by a governed service fn
   | { type: "human_decision"; role: string }                      // legally-reserved decision → routed to a human
   | { type: "external_handoff"; system: HrIntegrationDependency["system"] }; // provider not yet integrated (blocked)

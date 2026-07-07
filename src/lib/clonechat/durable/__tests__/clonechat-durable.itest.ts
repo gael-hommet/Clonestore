@@ -20,6 +20,7 @@ const URL = `postgres://postgres:postgres@127.0.0.1:${PORT}/ccdb`;
 
 const CFG = { maxInputTokens: 6000, maxOutputTokens: 700, userDailyTokenCap: 1000, companyDailyTokenCap: 2000, globalDailyTokenCap: 3000, globalMonthlyTokenCap: 100000 } as CloneChatOpenAIConfig;
 const A = { companyId: "11111111-1111-4111-8111-111111111111", userId: "aaaaaaaa-1111-4111-8111-111111111111" };
+const A2 = { companyId: "11111111-1111-4111-8111-111111111111", userId: "aaaaaaaa-2222-4111-8111-222222222222" }; // 2e membre RÉEL de l'entreprise A
 const B = { companyId: "22222222-2222-4222-8222-222222222222", userId: "bbbbbbbb-2222-4222-8222-222222222222" };
 
 interface Epg { initialise(): Promise<void>; start(): Promise<void>; stop(): Promise<void>; }
@@ -274,6 +275,44 @@ describe("P9.4.2 §2/§3 durable command ledger (SHA-256, single-exec, recovery)
   });
 });
 
+describe("P9.4.2 §D1/§D2 — corrections adversariales (fencing + idempotence support)", () => {
+  const cmd = (over: Partial<CanonicalCommand> = {}): CanonicalCommand => ({ companyId: A.companyId, actorId: A.userId, conversationId: null, proposalId: "30000000-0000-4000-8000-000000000001", actionKind: "create_mission", payload: { instruction: "fence" }, ...over });
+
+  it("§D2 FENCING : un worker au mauvais lease ne peut PAS écraser un 'succeeded'", async () => {
+    const { commandFingerprint } = await import("../command-ledger");
+    const c = cmd({ proposalId: "30000000-0000-4000-8000-000000000002" });
+    const a = await durable.commands.claim(c, "worker-A", 10000);
+    expect(a.kind).toBe("acquired");
+    expect(await durable.commands.commit(c, "m-A", { missionId: "m-A" }, "worker-A")).toBe(true); // A détient le lease → OK
+    // Worker fantôme (lease périmé/volé) tente de committer/échouer → FENCÉ (0 ligne), statut inchangé.
+    expect(await durable.commands.fail(c, false, "ghost")).toBe(false);
+    expect(await durable.commands.commit(c, "m-ghost", {}, "ghost")).toBe(false);
+    const row = await durable.commands.get(commandFingerprint(c as CanonicalCommand), { companyId: c.companyId, actorId: c.actorId });
+    expect(row?.status).toBe("succeeded");   // jamais retombé en échec
+    expect(row?.targetRef).toBe("m-A");       // cible d'A préservée
+  });
+
+  it("§D2 FENCING : commit hors 'executing' ne s'applique pas (double commit no-op)", async () => {
+    const c = cmd({ proposalId: "30000000-0000-4000-8000-000000000003" });
+    await durable.commands.claim(c, "w", 10000);
+    expect(await durable.commands.commit(c, "m1", {}, "w")).toBe(true);
+    expect(await durable.commands.commit(c, "m2", {}, "w")).toBe(false); // déjà succeeded → no-op
+  });
+
+  it("§D1 IDEMPOTENCE : create_support_case avec fingerprint ne crée PAS de doublon", async () => {
+    const fp = "cmd-fp-d1-support-0001";
+    const c1 = await durable.support.createSupportCase(A, { title: "Bug X", summary: "le bouton X plante en prod", fingerprint: fp, at: iso(50) });
+    const c2 = await durable.support.createSupportCase(A, { title: "Bug X", summary: "le bouton X plante en prod", fingerprint: fp, at: iso(51) });
+    expect(c2.id).toBe(c1.id);   // même cas → idempotent (reprise après commit perdu = 1 seul cas)
+    const all = await durable.support.listSupportCases(A, 50);
+    expect(all.filter((x) => x.id === c1.id).length).toBe(1);
+    // Sans fingerprint (ouverture manuelle), deux cas distincts sont autorisés.
+    const m1 = await durable.support.createSupportCase(A, { title: "Manuel", summary: "cas manuel un", at: iso(52) });
+    const m2 = await durable.support.createSupportCase(A, { title: "Manuel", summary: "cas manuel deux", at: iso(52) });
+    expect(m2.id).not.toBe(m1.id);
+  });
+});
+
 describe("P9.4.2 §2 — proposal store (server-authoritative, tenant-scoped)", () => {
   it("crée + recharge une proposition ; un autre tenant ne peut pas la charger", async () => {
     const p = await durable.proposals.create(A, { conversationId: null, actionKind: "create_mission", payload: { instruction: "CDI Marie" }, at: iso(30) });
@@ -281,6 +320,57 @@ describe("P9.4.2 §2 — proposal store (server-authoritative, tenant-scoped)", 
     expect(loaded?.actionKind).toBe("create_mission");
     expect((loaded?.payload as { instruction?: string }).instruction).toBe("CDI Marie");
     expect(await durable.proposals.load(p.id, B)).toBeNull(); // isolation tenant
+  });
+});
+
+describe("P9.4.2 §6 multi-user MÊME entreprise (deux membres réels A1/A2, entreprise B isolée)", () => {
+  it("conversations PRIVÉES par membre : A2 ne voit/écrit rien dans la conversation de A1", async () => {
+    const conv = await durable.conversations.createConversation(A, { title: "Privé A1", at: iso(40) });
+    await durable.conversations.appendMessage(conv.id, A, { role: "user", content: [{ type: "text", text: "secret A1" }], at: iso(40) });
+    // A1 (propriétaire) voit ; A2 (même entreprise) ne voit RIEN de cette conversation privée.
+    expect((await durable.conversations.listConversations(A)).some((c) => c.id === conv.id)).toBe(true);
+    expect((await durable.conversations.listConversations(A2)).some((c) => c.id === conv.id)).toBe(false);
+    expect(await durable.conversations.getConversation(conv.id, A2)).toBeNull();
+    expect(await durable.conversations.getMessages(conv.id, A2)).toHaveLength(0);
+    await expect(durable.conversations.appendMessage(conv.id, A2, { role: "user", content: [{ type: "text", text: "intrusion" }], at: iso(40) })).rejects.toThrow();
+    // A2 a sa PROPRE conversation privée, invisible pour A1.
+    const conv2 = await durable.conversations.createConversation(A2, { title: "Privé A2", at: iso(41) });
+    expect((await durable.conversations.listConversations(A)).some((c) => c.id === conv2.id)).toBe(false);
+  });
+
+  it("budget entreprise PARTAGÉ entre membres ; compteur par-utilisateur DISTINCT", async () => {
+    const day = iso(42);
+    const r1 = await durable.budget.reserve(CFG, A, 50, day); expect(r1.granted).toBe(true);
+    await durable.budget.commit(r1, 100);
+    const r2 = await durable.budget.reserve(CFG, A2, 50, day); expect(r2.granted).toBe(true);
+    await durable.budget.commit(r2, 50);
+    const snapA1 = await durable.budget.snapshot(A, day);
+    const snapA2 = await durable.budget.snapshot(A2, day);
+    expect(snapA1.userDailyTokens).toBe(100);              // par-utilisateur distinct
+    expect(snapA2.userDailyTokens).toBe(50);
+    expect(snapA1.companyDailyTokens).toBe(150);           // entreprise = agrégat des deux membres
+    expect(snapA2.companyDailyTokens).toBe(150);           // même compteur entreprise, vu par A2
+    // Entreprise B a son PROPRE compteur (aucune fuite depuis A).
+    const snapB = await durable.budget.snapshot(B, day);
+    expect(snapB.companyDailyTokens).toBe(0);
+  });
+
+  it("support entreprise-scopé (partagé entre membres) ; entreprise B ne voit rien", async () => {
+    const c = await durable.support.createSupportCase(A, { title: "Export KO", summary: "Le bouton export ne répond pas", at: iso(43) });
+    // A2 (même entreprise) VOIT le cas (partagé entreprise) ; B (autre entreprise) ne voit RIEN.
+    expect((await durable.support.listSupportCases(A2, 20)).some((x) => x.id === c.id)).toBe(true);
+    expect((await durable.support.listSupportCases(A, 20)).some((x) => x.id === c.id)).toBe(true);
+    expect((await durable.support.listSupportCases(B, 20)).some((x) => x.id === c.id)).toBe(false);
+  });
+
+  it("commande d'un membre invisible pour l'autre (scope company+actor)", async () => {
+    const cmd = { companyId: A.companyId, actorId: A.userId, conversationId: null, proposalId: "20000000-0000-4000-8000-000000000001", actionKind: "create_mission", payload: { instruction: "priv" } };
+    await runGovernedCommand(durable.commands, cmd, async () => ({ ok: true, targetRef: "m-a1", result: {} }), { leaseOwner: "w", leaseMs: 5000 });
+    const { commandFingerprint } = await import("../command-ledger");
+    const fp = commandFingerprint(cmd as CanonicalCommand);
+    expect(await durable.commands.get(fp, { companyId: A.companyId, actorId: A.userId })).not.toBeNull();   // A1 voit
+    expect(await durable.commands.get(fp, { companyId: A.companyId, actorId: A2.userId })).toBeNull();       // A2 (même entreprise) ne voit pas la commande d'A1
+    expect(await durable.commands.get(fp, { companyId: B.companyId, actorId: B.userId })).toBeNull();        // B ne voit rien
   });
 });
 

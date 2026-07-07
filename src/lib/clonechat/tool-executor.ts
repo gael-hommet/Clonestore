@@ -1,4 +1,10 @@
 // src/lib/clonechat/tool-executor.ts
+// ⚠️ SUPERSÉDÉ (P9.4.2 r2) — `executeGovernedAction` (exécution pilotée CLIENT) est REMPLACÉ
+// par l'exécution AUTHORITATIVE côté serveur : /api/assistant/execute → runGovernedCommand
+// (server/command-executor.ts) + registre de commandes durable (durable/command-ledger.ts).
+// Aucun consommateur en production (ni route, ni useCloneChat). Ce module est CONSERVÉ pour ses
+// tests unitaires uniquement ; ne pas le recâbler sur le chemin d'exécution.
+//
 // P9.4 — Exécuteur d'action GOUVERNÉ (pur, testable). Une proposition d'outil déjà
 // VALIDÉE (allowlist + permission + mode + confirmation du sensible) est traduite ici
 // en EFFET RÉEL via un contrat V1 injecté. Deux garanties :

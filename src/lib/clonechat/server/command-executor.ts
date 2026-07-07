@@ -6,7 +6,7 @@
 // testable : une seule exécution, reprise après lease expiré (crash), doublon renvoie le
 // résultat existant, in_flight pour une exécution concurrente. Server-only.
 
-import type { CommandLedger, CanonicalCommand } from "../durable/command-ledger";
+import { commandFingerprint, type CommandLedger, type CanonicalCommand } from "../durable/command-ledger";
 
 export interface EffectResult {
   readonly ok: boolean;
@@ -43,19 +43,34 @@ export async function runGovernedCommand(
     return { status: "failed", terminal: claim.command.status === "failed_terminal" || claim.command.status === "cancelled", error: claim.command.status };
   }
 
-  // acquired | recovered → exécuter l'effet (idempotent) puis re-lire + commit.
+  // acquired | recovered → exécuter l'effet (idempotent) puis re-lire + commit FENCÉ.
   const recovered = claim.kind === "recovered";
+  const owner = opts.leaseOwner;
   try {
     const r = await effect();
     if (!r.ok) {
-      await ledger.fail(cmd, !!r.terminal, { error: r.error ?? null });
+      const applied = await ledger.fail(cmd, !!r.terminal, owner, { error: r.error ?? null });
+      // Lease volé pendant l'effet (un autre worker a repris + réglé) → NE PAS écraser :
+      // on reconcilie sur l'état réel du registre (jamais un faux échec sur un succès réel).
+      if (!applied) return reconcile(ledger, cmd);
       return { status: "failed", terminal: !!r.terminal, error: r.error ?? "effect_failed" };
     }
-    await ledger.commit(cmd, r.targetRef ?? null, r.result ?? null);
+    const applied = await ledger.commit(cmd, r.targetRef ?? null, r.result ?? null, owner);
+    if (!applied) return reconcile(ledger, cmd);
     return { status: "succeeded", targetRef: r.targetRef ?? null, result: r.result ?? null, recovered };
   } catch (e) {
     // Panne pendant l'exécution : échec RÉCUPÉRABLE (le lease expirera → reprise possible).
-    await ledger.fail(cmd, false, { error: (e as { message?: string })?.message ?? "exception" });
+    const applied = await ledger.fail(cmd, false, owner, { error: (e as { message?: string })?.message ?? "exception" });
+    if (!applied) return reconcile(ledger, cmd);
     return { status: "failed", terminal: false, error: "execution_error" };
   }
+}
+
+/** Le lease a été repris par un autre worker : on renvoie l'état AUTORITATIF du registre. */
+async function reconcile(ledger: CommandLedger, cmd: CanonicalCommand): Promise<CommandExecResult> {
+  const row = await ledger.get(commandFingerprint(cmd), { companyId: cmd.companyId, actorId: cmd.actorId });
+  if (row?.status === "succeeded") return { status: "duplicate", targetRef: row.targetRef, result: row.result };
+  if (row?.status === "executing") return { status: "in_flight" };
+  const terminal = row?.status === "failed_terminal" || row?.status === "cancelled";
+  return { status: "failed", terminal, error: row?.status ?? "superseded" };
 }

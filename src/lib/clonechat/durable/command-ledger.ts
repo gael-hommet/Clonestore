@@ -59,8 +59,13 @@ function mapRow(r: Record<string, unknown>): CommandRow {
 export interface CommandLedger {
   /** Réserve atomiquement la commande (ou reprend un lease expiré). Scopé company+actor. */
   claim(c: CanonicalCommand, leaseOwner: string, leaseMs: number): Promise<ClaimOutcome>;
-  commit(c: CanonicalCommand, targetRef: string | null, result: unknown): Promise<void>;
-  fail(c: CanonicalCommand, terminal: boolean, recovery?: unknown): Promise<void>;
+  /** Committe le succès — FENCÉ : ne s'applique QUE si le lease appartient encore à ce
+   *  worker ET le statut est 'executing'. Renvoie true si appliqué, false si le lease a été
+   *  volé (worker superseded → ne doit PAS écraser l'état d'un autre worker). */
+  commit(c: CanonicalCommand, targetRef: string | null, result: unknown, leaseOwner: string): Promise<boolean>;
+  /** Échec — FENCÉ de la même manière (un worker au lease expiré ne peut pas retomber un
+   *  'succeeded' en 'failed'). Renvoie true si appliqué. */
+  fail(c: CanonicalCommand, terminal: boolean, leaseOwner: string, recovery?: unknown): Promise<boolean>;
   cancel(c: CanonicalCommand): Promise<void>;
   get(fingerprint: string, ctx: { companyId: string; actorId: string }): Promise<CommandRow | null>;
 }
@@ -101,24 +106,28 @@ export function createDurableCommandLedger(db: ClonechatDb): CommandLedger {
       });
     },
 
-    async commit(c, targetRef, result) {
+    async commit(c, targetRef, result, leaseOwner) {
       const fp = commandFingerprint(c);
-      await db.withTenant(tenant(c), async (q) => {
-        await q.query(
-          "update clonechat_commands set status='succeeded', target_ref=$2, result=$3::jsonb, lease_owner=null, lease_expiry=null, updated_at=now() where fingerprint=$1 and company_id=$4 and actor_id=$5",
-          [fp, targetRef, result === undefined ? null : JSON.stringify(result), c.companyId, c.actorId],
+      return db.withTenant(tenant(c), async (q) => {
+        // FENCING : lease_owner + status='executing'. Un worker au lease volé ⇒ 0 lignes.
+        const r = await q.query(
+          "update clonechat_commands set status='succeeded', target_ref=$2, result=$3::jsonb, lease_owner=null, lease_expiry=null, updated_at=now() where fingerprint=$1 and company_id=$4 and actor_id=$5 and lease_owner=$6 and status='executing'",
+          [fp, targetRef, result === undefined ? null : JSON.stringify(result), c.companyId, c.actorId, leaseOwner],
         );
+        return r.rowCount > 0;
       });
     },
 
-    async fail(c, terminal, recovery) {
+    async fail(c, terminal, leaseOwner, recovery) {
       const fp = commandFingerprint(c);
-      await db.withTenant(tenant(c), async (q) => {
-        await q.query(
+      return db.withTenant(tenant(c), async (q) => {
+        // FENCING : ne retombe JAMAIS un 'succeeded' (ou l'état d'un autre worker) en échec.
+        const r = await q.query(
           `update clonechat_commands set status=$2, recovery=$3::jsonb, lease_owner=null, lease_expiry=null, updated_at=now()
-             where fingerprint=$1 and company_id=$4 and actor_id=$5`,
-          [fp, terminal ? "failed_terminal" : "failed_recoverable", recovery === undefined ? null : JSON.stringify(recovery), c.companyId, c.actorId],
+             where fingerprint=$1 and company_id=$4 and actor_id=$5 and lease_owner=$6 and status='executing'`,
+          [fp, terminal ? "failed_terminal" : "failed_recoverable", recovery === undefined ? null : JSON.stringify(recovery), c.companyId, c.actorId, leaseOwner],
         );
+        return r.rowCount > 0;
       });
     },
 
@@ -139,26 +148,29 @@ export function createDurableCommandLedger(db: ClonechatDb): CommandLedger {
 }
 
 // ── In-memory (tests / repli sans DB — par processus, non durable multi-instance) ──
-interface MemCmd { fp: string; companyId: string; actorId: string; status: CommandStatus; targetRef: string | null; result: unknown | null; attemptCount: number; leaseExpiryMs: number | null; }
+interface MemCmd { fp: string; companyId: string; actorId: string; status: CommandStatus; targetRef: string | null; result: unknown | null; attemptCount: number; leaseExpiryMs: number | null; leaseOwner: string | null; }
 export function createInMemoryCommandLedger(nowMs: () => number = () => Date.now()): CommandLedger {
   const rows = new Map<string, MemCmd>();
   const scoped = (r: MemCmd | undefined, ctx: { companyId: string; actorId: string }) => (r && r.companyId === ctx.companyId && r.actorId === ctx.actorId ? r : undefined);
+  // FENCING identique au durable : commit/fail ne s'appliquent que si le worker détient
+  // encore le lease ET status='executing'.
+  const fenced = (c: CanonicalCommand, leaseOwner: string) => { const r = rows.get(commandFingerprint(c)); return r && r.companyId === c.companyId && r.actorId === c.actorId && r.leaseOwner === leaseOwner && r.status === "executing" ? r : null; };
   return {
-    async claim(c, _leaseOwner, leaseMs) {
+    async claim(c, leaseOwner, leaseMs) {
       const fp = commandFingerprint(c);
       const existing = rows.get(fp);
       const now = nowMs();
-      if (!existing) { rows.set(fp, { fp, companyId: c.companyId, actorId: c.actorId, status: "executing", targetRef: null, result: null, attemptCount: 1, leaseExpiryMs: now + leaseMs }); return { kind: "acquired", command: pub(rows.get(fp)!) }; }
+      if (!existing) { rows.set(fp, { fp, companyId: c.companyId, actorId: c.actorId, status: "executing", targetRef: null, result: null, attemptCount: 1, leaseExpiryMs: now + leaseMs, leaseOwner }); return { kind: "acquired", command: pub(rows.get(fp)!) }; }
       if (existing.status === "succeeded") return { kind: "duplicate_succeeded", command: pub(existing) };
       if (existing.status === "executing" && (existing.leaseExpiryMs ?? 0) > now) return { kind: "in_flight", command: pub(existing) };
       if (existing.status === "confirmed" || existing.status === "failed_recoverable" || (existing.status === "executing" && (existing.leaseExpiryMs ?? 0) <= now)) {
-        existing.status = "executing"; existing.attemptCount += 1; existing.leaseExpiryMs = now + leaseMs; return { kind: "recovered", command: pub(existing) };
+        existing.status = "executing"; existing.attemptCount += 1; existing.leaseExpiryMs = now + leaseMs; existing.leaseOwner = leaseOwner; return { kind: "recovered", command: pub(existing) };
       }
       return { kind: "terminal", command: pub(existing) };
     },
-    async commit(c, targetRef, result) { const r = rows.get(commandFingerprint(c)); if (r && r.companyId === c.companyId && r.actorId === c.actorId) { r.status = "succeeded"; r.targetRef = targetRef; r.result = result ?? null; r.leaseExpiryMs = null; } },
-    async fail(c, terminal) { const r = rows.get(commandFingerprint(c)); if (r && r.companyId === c.companyId && r.actorId === c.actorId) { r.status = terminal ? "failed_terminal" : "failed_recoverable"; r.leaseExpiryMs = null; } },
-    async cancel(c) { const r = rows.get(commandFingerprint(c)); if (r && r.companyId === c.companyId && r.actorId === c.actorId && r.status !== "succeeded") { r.status = "cancelled"; r.leaseExpiryMs = null; } },
+    async commit(c, targetRef, result, leaseOwner) { const r = fenced(c, leaseOwner); if (!r) return false; r.status = "succeeded"; r.targetRef = targetRef; r.result = result ?? null; r.leaseExpiryMs = null; r.leaseOwner = null; return true; },
+    async fail(c, terminal, leaseOwner) { const r = fenced(c, leaseOwner); if (!r) return false; r.status = terminal ? "failed_terminal" : "failed_recoverable"; r.leaseExpiryMs = null; r.leaseOwner = null; return true; },
+    async cancel(c) { const r = rows.get(commandFingerprint(c)); if (r && r.companyId === c.companyId && r.actorId === c.actorId && r.status !== "succeeded") { r.status = "cancelled"; r.leaseExpiryMs = null; r.leaseOwner = null; } },
     async get(fp, ctx) { const r = scoped(rows.get(fp), ctx); return r ? pub(r) : null; },
   };
   function pub(r: MemCmd): CommandRow { return { fingerprint: r.fp, status: r.status, targetRef: r.targetRef, result: r.result, attemptCount: r.attemptCount }; }

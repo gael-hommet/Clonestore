@@ -9,13 +9,33 @@ evidence is preserved, not erased.
 # P8.14 — PIERRE COGNITIVE RUNTIME: VERIFIED
 # P8 — COMPLETE AI HR EMPLOYEE: NOT YET VERIFIED
 
-**Owner correction (accepted):** the 8/8 adversarial result certifies the **cognitive-runtime layer**, not
-the completion of every operational HR capability. The canon still carries **128 OPEN capabilities**
-(81 MISSING + 36 PARTIAL + 6 CONTRACT_ONLY + 5 IMPLEMENTED_UNVERIFIED of 215). Those are unfinished
-**product** work — not out-of-scope backlog. P8 stays OPEN until the capability closure rules (§4) are met
-(MISSING/PARTIAL/CONTRACT_ONLY/IMPLEMENTED_UNVERIFIED = 0; EXTERNAL/HUMAN_ONLY/LEGAL allowed only with
-complete surrounding automation). The earlier 8/8 cognitive result remains valid evidence and is not
-falsified. Closure matrix: [P8_14_COMPLETE_HR_CAPABILITY_CLOSURE.md](P8_14_COMPLETE_HR_CAPABILITY_CLOSURE.md).
+**Owner correction (accepted):** the 8/8 cognitive result certifies the **cognitive-runtime layer**, not
+the completion of every operational HR capability. The raw P8.10 audit carried **128 OPEN** capabilities.
+
+**Capability-closure attempt + terminal adversarial correction (this run — honest):** an evidence-linked
+closure transform was built (`capability-closure.ts`), and a terminal 8-reviewer product review **caught it
+inflating the count** — it had promoted 97 capabilities to `IMPLEMENTED_GOVERNED` on the strength of mission
+packs whose core steps were `mission.noop` skeletons (compile proves plan *shape*, not behaviour). That
+finding is **accepted and fixed**: `IMPLEMENTED_GOVERNED` now requires a pack that both **compiles and
+carries a genuine business effect** (≥1 non-control-flow runtime action). This **honestly re-opened 34**
+skeleton capabilities.
+
+**Honest closed-canon state now:** 128 → **34 OPEN** (28 MISSING + 3 PARTIAL + 2 IMPLEMENTED_UNVERIFIED + 1
+CONTRACT_ONLY). 94 were legitimately closed: **63 `IMPLEMENTED_GOVERNED`** (compiling **and** effectful
+packs — real governed *administrative orchestration*), **27 `IMPLEMENTED_LEGAL_BLOCKED`** (fail-closed),
+**4 `IMPLEMENTED_EXTERNAL_GOVERNED`** (governed manual). Integrity: 0 governed-without-compiling-pack, 0
+legal/external mislabelled, every closed capability evidence-backed. Raw P8.10 audit preserved for
+provenance.
+
+**P8 — COMPLETE AI HR EMPLOYEE: NOT VERIFIED.** Two honest reasons: (1) **34 capabilities remain open** —
+analytics/computation (payroll anomaly detection, workforce planning, reporting analytics, pay equity,
+performance calibration) + sensitive cases that likely warrant human-only/legal reclassification (relations
+complaints/mediation/harassment, health incident/mental-health). (2) **The closed runtime action registry
+has NO domain-mutation/computation action** (only reads/waits/approval/communication/follow-up/
+signature-prepare), so even the 63 `IMPLEMENTED_GOVERNED` are governed *administrative orchestration*, not
+bespoke computation/mutation. Genuinely finishing the product requires **new registered runtime actions +
+real handlers** (domain mutations + computation) and the analytics logic — real, large, multi-session work.
+Closure matrix: [P8_14_COMPLETE_HR_CAPABILITY_CLOSURE.md](P8_14_COMPLETE_HR_CAPABILITY_CLOSURE.md).
 
 ### Cognitive-runtime verdict (unchanged, still valid)
 

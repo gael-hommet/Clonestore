@@ -1,0 +1,672 @@
+{
+  "runId": "p814pack-f51ed58c96",
+  "packs_total": 43,
+  "packs_compiled_ok": 43,
+  "packs_compile_fail": 0,
+  "capabilities_realized_by_compiling_pack": 104,
+  "failures": [],
+  "packs": [
+    {
+      "id": "org.structure_management",
+      "domain": "org",
+      "capabilityIds": [
+        "org.manage_org_structure"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "org.workforce_planning",
+      "domain": "org",
+      "capabilityIds": [
+        "org.workforce_planning",
+        "org.position_budget"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "analytics.compute",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "org.succession_planning",
+      "domain": "org",
+      "capabilityIds": [
+        "org.succession_planning"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "analytics.compute",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "recruitment.open_requisition",
+      "domain": "recruitment",
+      "capabilityIds": [
+        "recruitment.classify_intent",
+        "recruitment.job_requisition",
+        "recruitment.posting"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "approval.request",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "recruitment.pipeline_management",
+      "domain": "recruitment",
+      "capabilityIds": [
+        "recruitment.sourcing",
+        "recruitment.pipeline",
+        "recruitment.interview_scheduling",
+        "recruitment.reference_checks"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "follow_up.schedule",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "recruitment.decision",
+      "domain": "recruitment",
+      "capabilityIds": [
+        "recruitment.screening_decision",
+        "recruitment.candidate_rejection"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "offer.negotiation_and_signature",
+      "domain": "offer",
+      "capabilityIds": [
+        "offer.negotiation",
+        "offer.signature_collection"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "approval.request",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "offer.candidate_conversion",
+      "domain": "offer",
+      "capabilityIds": [
+        "offer.candidate_to_employee"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "follow_up.schedule",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "contract.change_via_amendment",
+      "domain": "contract",
+      "capabilityIds": [
+        "contract.role_change",
+        "contract.salary_change"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "approval.request",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "contract.suspension_and_expiration",
+      "domain": "contract",
+      "capabilityIds": [
+        "contract.suspension",
+        "contract.expiration"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "approval.request",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "contract.submit_signature",
+      "domain": "contract",
+      "capabilityIds": [
+        "contract.submit_signature"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "approval.request",
+        "signature.prepare",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "onboarding.run_plan",
+      "domain": "onboarding",
+      "capabilityIds": [
+        "onboarding.employee_onboarding_plan",
+        "onboarding.document_collection",
+        "onboarding.incomplete_handling"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "communication.create_intent",
+        "follow_up.schedule",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "onboarding.access_provisioning",
+      "domain": "onboarding",
+      "capabilityIds": [
+        "onboarding.access_provisioning"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "data_gdpr.right_to_object",
+      "domain": "data_gdpr",
+      "capabilityIds": [
+        "data_gdpr.right_to_object"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "absence.request_to_decision",
+      "domain": "absence",
+      "capabilityIds": [
+        "absence.create_request",
+        "absence.approval_workflow",
+        "absence.conflict_detection",
+        "absence.list"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "approval.request",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "absence.payroll_transmission",
+      "domain": "absence",
+      "capabilityIds": [
+        "absence.payroll_transmission"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "absence.timeclock_integration",
+      "domain": "absence",
+      "capabilityIds": [
+        "absence.timeclock_integration"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "payroll.prepare_period",
+      "domain": "payroll",
+      "capabilityIds": [
+        "payroll.collect_variables",
+        "payroll.absence_recap",
+        "payroll.anomaly_detection",
+        "payroll.validation",
+        "payroll.calendar",
+        "payroll.correction"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "analytics.compute",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "payroll.transmit_and_reconcile",
+      "domain": "payroll",
+      "capabilityIds": [
+        "payroll.provider_reconciliation",
+        "payroll.payslip_distribution"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "compensation.salary_change",
+      "domain": "compensation",
+      "capabilityIds": [
+        "compensation.salary_grid",
+        "compensation.salary_change_prepare",
+        "compensation.raise_promotion",
+        "compensation.variable_pay",
+        "compensation.salary_review"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "follow_up.schedule",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "compensation.benefits_and_expenses",
+      "domain": "compensation",
+      "capabilityIds": [
+        "compensation.benefits",
+        "compensation.vouchers",
+        "compensation.expenses"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "approval.request",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "compensation.equity_and_equity_review",
+      "domain": "compensation",
+      "capabilityIds": [
+        "compensation.equity",
+        "compensation.pay_equity"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "analytics.compute",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "performance.review_cycle",
+      "domain": "performance",
+      "capabilityIds": [
+        "performance.objectives",
+        "performance.annual_review",
+        "performance.feedback_360",
+        "performance.one_to_one",
+        "performance.recognition"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "follow_up.schedule",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "performance.calibration_and_pip",
+      "domain": "performance",
+      "capabilityIds": [
+        "performance.calibration",
+        "performance.pip"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "analytics.compute",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "training.plan_and_enroll",
+      "domain": "training",
+      "capabilityIds": [
+        "training.skills_mapping",
+        "training.plan",
+        "training.enrollment",
+        "training.evaluation"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "training.certification_tracking",
+      "domain": "training",
+      "capabilityIds": [
+        "training.certification_tracking"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "follow_up.schedule",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "career.wishes_and_mentoring",
+      "domain": "career",
+      "capabilityIds": [
+        "career.wishes",
+        "career.mentoring"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "follow_up.schedule",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "career.mobility",
+      "domain": "career",
+      "capabilityIds": [
+        "career.internal_mobility",
+        "career.geographic_mobility",
+        "career.succession_transition"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "relations.hr_requests",
+      "domain": "relations",
+      "capabilityIds": [
+        "relations.hr_requests"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "follow_up.schedule",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "relations.complaints_and_alerts",
+      "domain": "relations",
+      "capabilityIds": [
+        "relations.complaints",
+        "relations.mediation",
+        "relations.harassment_alert"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "disciplinary.case_governance",
+      "domain": "disciplinary",
+      "capabilityIds": [
+        "disciplinary.file_report",
+        "disciplinary.chain_of_custody",
+        "disciplinary.appeal",
+        "disciplinary.closure"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "follow_up.schedule",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "health.incident_and_risk",
+      "domain": "health",
+      "capabilityIds": [
+        "health.incident_reporting",
+        "health.risk_assessment",
+        "health.safety_clearances"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "health.accommodations_wellbeing",
+      "domain": "health",
+      "capabilityIds": [
+        "health.accommodations",
+        "health.mental_health"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "communications.governed_campaign",
+      "domain": "communications",
+      "capabilityIds": [
+        "communications.templates",
+        "communications.scheduling",
+        "communications.read_receipt"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "follow_up.schedule",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "communications.legal_review",
+      "domain": "communications",
+      "capabilityIds": [
+        "communications.legal_review"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "policy.lifecycle",
+      "domain": "policy",
+      "capabilityIds": [
+        "policy.define",
+        "policy.version_publish",
+        "policy.acceptance",
+        "policy.impact_diffusion"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "approval.request",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "policy.enforcement_audit",
+      "domain": "policy",
+      "capabilityIds": [
+        "policy.enforcement_audit"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "offboarding.orchestrate",
+      "domain": "offboarding",
+      "capabilityIds": [
+        "offboarding.orchestrate",
+        "offboarding.exit_interview"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "reporting.hr_dashboards",
+      "domain": "reporting",
+      "capabilityIds": [
+        "reporting.headcount_turnover",
+        "reporting.absenteeism",
+        "reporting.recruitment_funnel",
+        "reporting.completeness_deadlines"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "analytics.compute",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "reporting.executive_and_anomalies",
+      "domain": "reporting",
+      "capabilityIds": [
+        "reporting.executive_report",
+        "reporting.anomaly_surfacing"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "analytics.compute",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "proactive.deadline_watch",
+      "domain": "proactive",
+      "capabilityIds": [
+        "proactive.contract_expiry",
+        "proactive.expiring_training",
+        "proactive.missing_document"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "follow_up.schedule",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "proactive.operational_watch",
+      "domain": "proactive",
+      "capabilityIds": [
+        "proactive.blocked_signature",
+        "proactive.payroll_anomaly",
+        "proactive.sla_breach"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "communication.create_intent",
+        "mission.complete"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "pierre_admin.country_config",
+      "domain": "pierre_admin",
+      "capabilityIds": [
+        "pierre_admin.country_config"
+      ],
+      "compiled": true,
+      "actions": [
+        "mission.noop",
+        "approval.request",
+        "mission.complete"
+      ],
+      "blockers": []
+    }
+  ]
+}

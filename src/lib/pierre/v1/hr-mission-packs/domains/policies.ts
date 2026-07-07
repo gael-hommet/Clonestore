@@ -27,7 +27,7 @@ export const POLICY_PACKS: HrMissionPackDefinition[] = [
     id: "policy.enforcement_audit", domain: "policy", title: "Policy enforcement & exception audit",
     description: "Audit policy application, surface exceptions, and report.",
     capabilityIds: ["policy.enforcement_audit"], subjectTypes: ["company"],
-    steps: [...intakeSkeleton(), rt("audit", "validate", "Audit application & exceptions", "mission.noop", { dependsOn: ["validate"] }), ...closeSkeleton("audit")],
+    steps: [...intakeSkeleton(), rt("audit", "collect", "Audit application & exceptions (compute completeness/gaps)", "analytics.compute", { dependsOn: ["validate"], input: { metric: "completeness_deadlines" } }), ...closeSkeleton("audit")],
     completionCriteria: [cc("policy.audited", "Enforcement audited.", "state")],
     runtimeStatus: "IMPLEMENTED",
   }),

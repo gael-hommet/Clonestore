@@ -227,89 +227,46 @@ export function useCloneChat() {
     if (last && !busy) void send(last.text, last.images);
   }, [busy, send]);
 
-  // ── Exécution d'une action confirmée (contrat V1 réel, gouverné + idempotent) ─
+  // ── Exécution d'une action confirmée — AUTHORITATIVE CÔTÉ SERVEUR (P9.4.2 r2 §3) ─
+  // Le client ne détient JAMAIS le payload canonique : il ne soumet que la RÉFÉRENCE de la
+  // proposition persistée (proposalId). Le serveur charge la proposition, calcule l'identité
+  // SHA-256, claim atomiquement, exécute l'effet gouverné (V1 loopback / support durable),
+  // re-lit la cible et commit. Navigation / ouverture : pas d'effet serveur (deep-link direct).
   const executeAction = useCallback(async (action: CloneChatProposedAction, confirmed = true) => {
     if (busy) return { ok: false };
-    let lastMissionView: CockpitMissionSummary | null = null;
-    const outcome = await executeGovernedAction(
-      action,
-      {
-        alreadyExecuted: idem.current.alreadyExecuted,
-        markExecuted: idem.current.markExecuted,
-        // Idempotence DURABLE cross-session : réserve/confirme côté serveur (fingerprint
-        // calculé serveur à partir de la vraie entreprise). Repli silencieux sur la garde
-        // de session si la route échoue.
-        claimDurable: async (kind, key) => {
-          try {
-            const res = await fetch("/api/assistant/execute", { method: "POST", headers: { "Content-Type": "application/json", ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}) }, credentials: "same-origin", body: JSON.stringify({ op: "claim", kind, key }) });
-            const d = await res.json().catch(() => null);
-            if (res.ok && d?.ok) return { fingerprint: d.fingerprint as string, status: d.status as "new" | "duplicate" | "in_flight" };
-          } catch { /* ignore */ }
-          return { fingerprint: "", status: "new" as const }; // repli : la garde de session reste active
-        },
-        settleDurable: async (fingerprint, ok) => {
-          if (!fingerprint) return;
-          try { await fetch("/api/assistant/execute", { method: "POST", headers: { "Content-Type": "application/json", ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}) }, credentials: "same-origin", body: JSON.stringify({ op: ok ? "commit" : "fail", fingerprint }) }); } catch { /* ignore */ }
-        },
-        submitMission: async (instruction, idempotencyKey) => {
-          setBusy(true);
-          try {
-            // Idempotence en couches : (1) registre de session client (double-clic) via
-            // idempotencyKey=action.id ; (2) le runtime V1 est idempotent côté serveur.
-            // `source` trace l'origine + la clé pour l'observabilité.
-            const r = await submitPierreMission({ input: instruction, source: `clonechat:${idempotencyKey}` });
-            if (!r.ok) return { ok: false, error: "mission_not_created" };
-            const view = mapV1MissionView(r.data);
-            lastMissionView = view ?? null;
-            return { ok: true, missionId: view?.id };
-          } finally { if (mounted.current) setBusy(false); }
-        },
-        decideValidation: async (validationId, decision, version) => {
-          setBusy(true);
-          try {
-            const r = decision === "reject" ? await rejectPierreValidation(validationId, version)
-              : decision === "request_changes" ? await requestPierreValidationChanges(validationId, version)
-              : await approvePierreValidation(validationId, version);
-            return r.ok ? { ok: true } : { ok: false, error: "decision_not_saved" };
-          } finally { if (mounted.current) setBusy(false); }
-        },
-        cancelMission: async (missionId) => {
-          setBusy(true);
-          try { const r = await cancelPierreMission(missionId); return r.ok ? { ok: true } : { ok: false, error: "cancel_failed" }; }
-          finally { if (mounted.current) setBusy(false); }
-        },
-        createSupportCase: async (summary) => {
-          setBusy(true);
-          try {
-            const res = await fetch("/api/assistant/support", { method: "POST", headers: { "Content-Type": "application/json", ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}) }, credentials: "same-origin", body: JSON.stringify({ summary }) });
-            const d = await res.json().catch(() => null);
-            return res.ok && d?.ok ? { ok: true, id: d.case?.id } : { ok: false, error: "support_case_failed" };
-          } finally { if (mounted.current) setBusy(false); }
-        },
-      },
-      confirmed,
-    );
-
-    switch (outcome.kind) {
-      case "navigate":
-        return { ok: true, href: outcome.href };
-      case "executed": {
-        const blocks: CloneChatContentBlock[] = [{ type: "text", text: outcome.message ?? "C'est fait — Pierre a reçu votre mission." }];
-        if (lastMissionView) blocks.push({ type: "mission", mission: lastMissionView });
-        blocks.push({ type: "boundary", provenance: "company", text: "Résultat réel confirmé par le serveur." });
-        push(msg("assistant", blocks, "company"));
-        return { ok: true, href: outcome.href };
-      }
-      case "duplicate":
-        push(msg("assistant", [{ type: "text", text: outcome.message }], "system"));
-        return { ok: true, href: null };
-      case "failed":
-        push(msg("assistant", [{ type: "error", category: "runtime", message: outcome.message === "mission_not_created" ? "La mission n'a pas pu être créée. Réessayez." : "L'action n'a pas pu aboutir. Réessayez.", recovery: [{ kind: "retry", label: "Réessayer", href: null }] }], "pierre"));
-        return { ok: false };
-      case "refused":
-      default:
-        return { ok: false };
+    if (!action.proposalId) {
+      if (action.kind === "navigate" || action.kind.startsWith("open_")) return { ok: true, href: action.href ?? "/" };
+      return { ok: false };
     }
+    if (action.requiresConfirmation && !confirmed) return { ok: false };
+    setBusy(true);
+    try {
+      const res = await fetch("/api/assistant/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}) },
+        credentials: "same-origin",
+        body: JSON.stringify({ proposalId: action.proposalId }),
+      });
+      const d = await res.json().catch(() => null);
+      if (!d) { push(msg("assistant", [{ type: "error", category: "runtime", message: "L'action n'a pas abouti. Réessayez.", recovery: [{ kind: "retry", label: "Réessayer", href: null }] }], "pierre")); return { ok: false }; }
+
+      if (d.status === "executed" || d.status === "duplicate") {
+        const blocks: CloneChatContentBlock[] = [{ type: "text", text: d.message ?? "C'est fait." }];
+        blocks.push({ type: "boundary", provenance: "company", text: "Résultat réel confirmé par le serveur." });
+        push(msg("assistant", blocks, d.status === "duplicate" ? "system" : "company"));
+        return { ok: true, href: d.href ?? null };
+      }
+      if (d.status === "in_flight") {
+        push(msg("assistant", [{ type: "text", text: d.message ?? "Votre action est en cours de traitement." }], "system"));
+        return { ok: true, href: null };
+      }
+      // failed (terminal) ou retry (récupérable)
+      push(msg("assistant", [{ type: "error", category: "runtime", message: d.message ?? "L'action n'a pas abouti.", recovery: d.terminal ? [] : [{ kind: "retry", label: "Réessayer", href: null }] }], "pierre"));
+      return { ok: false };
+    } catch {
+      push(msg("assistant", [{ type: "error", category: "runtime", message: "L'action n'a pas abouti. Réessayez.", recovery: [{ kind: "retry", label: "Réessayer", href: null }] }], "pierre"));
+      return { ok: false };
+    } finally { if (mounted.current) setBusy(false); }
   }, [busy, push]);
 
   // ── Gestion des conversations durables (multi-device) ──────────────────────

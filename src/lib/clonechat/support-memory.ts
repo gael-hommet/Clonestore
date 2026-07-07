@@ -77,7 +77,7 @@ interface GlobalCase { fingerprint: string; title: string; symptoms: string[]; w
 export function createInMemorySupportMemory(seed: ReusableCase[] = SEED_REUSABLE): SupportMemory {
   const cases = new Map<string, GlobalCase>();
   for (const s of seed) cases.set(s.fingerprint, { fingerprint: s.fingerprint, title: s.title, symptoms: [s.title], workaround: s.workaround, solution: s.solution, status: s.status, reusable: s.reusable, occurrences: s.occurrences });
-  const supportCases: Array<SupportCase & { companyId: string }> = [];
+  const supportCases: Array<SupportCase & { companyId: string; fingerprint?: string | null }> = [];
   let n = 0;
 
   return {
@@ -108,7 +108,13 @@ export function createInMemorySupportMemory(seed: ReusableCase[] = SEED_REUSABLE
       c.reusable = true;
     },
     async createSupportCase(ctx, input) {
-      const sc: SupportCase & { companyId: string } = { id: `case-${++n}`, companyId: ctx.companyId, title: input.title.slice(0, 120), status: "reported", severity: input.severity ?? "normal", redactedSummary: redactSymptom(input.summary), createdAt: input.at };
+      // IDEMPOTENCE (miroir du durable) : un fingerprint déjà vu pour cette entreprise renvoie
+      // le cas EXISTANT (pas de doublon en reprise). Sans fingerprint → toujours un nouveau cas.
+      if (input.fingerprint) {
+        const dup = supportCases.find((c) => c.companyId === ctx.companyId && c.fingerprint === input.fingerprint);
+        if (dup) return strip(dup);
+      }
+      const sc: SupportCase & { companyId: string; fingerprint?: string | null } = { id: `case-${++n}`, companyId: ctx.companyId, fingerprint: input.fingerprint ?? null, title: input.title.slice(0, 120), status: "reported", severity: input.severity ?? "normal", redactedSummary: redactSymptom(input.summary), createdAt: input.at };
       supportCases.push(sc); return strip(sc);
     },
     async listSupportCases(ctx, limit = 20) {

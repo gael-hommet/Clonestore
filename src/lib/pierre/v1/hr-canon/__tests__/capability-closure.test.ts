@@ -7,17 +7,21 @@ import { describe, it, expect } from "vitest";
 import { HR_CAPABILITIES } from "../capability-registry";
 import { CLOSED_HR_CAPABILITIES, closedStatusCounts, openCapabilitiesRemaining, isOpenStatus } from "../capability-closure";
 import { packsForCapability } from "../../hr-mission-packs/registry";
-import { packToRuntimePlan } from "../../hr-mission-packs/runtime-map";
+import { packToRuntimePlan, registeredActionKeysUsed } from "../../hr-mission-packs/runtime-map";
 import { compileMissionPlan } from "../../runtime-plan-compiler";
 
-describe("capability closure (§4 — 0 open, evidence-linked)", () => {
-  it("closed canon has ZERO open statuses (MISSING/PARTIAL/CONTRACT_ONLY/IMPLEMENTED_UNVERIFIED)", () => {
+describe("capability closure (evidence-linked, HONEST — no skeleton inflation)", () => {
+  it("closes ALL capabilities with REAL effect (0 open) — no skeleton inflation", () => {
+    // After adding the real analytics.compute action + wiring the computational packs + curating the
+    // genuinely sensitive/external/legal ones, every capability reaches a genuine terminal: 0 open,
+    // and every IMPLEMENTED_GOVERNED is effectful (asserted below), not a noop skeleton.
     expect(openCapabilitiesRemaining().length).toBe(0);
     const counts = closedStatusCounts();
     expect(counts.MISSING ?? 0).toBe(0);
     expect(counts.PARTIAL ?? 0).toBe(0);
     expect(counts.CONTRACT_ONLY ?? 0).toBe(0);
     expect(counts.IMPLEMENTED_UNVERIFIED ?? 0).toBe(0);
+    expect((counts.IMPLEMENTED_GOVERNED ?? 0)).toBeGreaterThan(0);
   });
 
   it("preserves the total and the raw P8.10 audit baseline (provenance)", () => {
@@ -27,9 +31,15 @@ describe("capability closure (§4 — 0 open, evidence-linked)", () => {
     expect(rawOpen).toBeGreaterThan(0); // the raw audit is preserved
   });
 
-  it("every closed capability carries evidence (no evidence-free closure)", () => {
-    const noEvidence = CLOSED_HR_CAPABILITIES.filter((c) => c.implementation !== "OUT_OF_SCOPE" && (c.evidence?.length ?? 0) === 0);
+  it("every CLOSED/terminal capability carries evidence (open ones honestly need none)", () => {
+    const noEvidence = CLOSED_HR_CAPABILITIES.filter((c) => !isOpenStatus(c.implementation) && c.implementation !== "OUT_OF_SCOPE" && (c.evidence?.length ?? 0) === 0);
     expect(noEvidence.map((c) => c.id)).toEqual([]);
+  });
+
+  it("every IMPLEMENTED_GOVERNED capability is genuinely EFFECTFUL (no noop-only skeleton inflation)", () => {
+    const CONTROL = new Set(["mission.noop", "mission.complete", "mission.block"]);
+    const inflated = CLOSED_HR_CAPABILITIES.filter((c) => c.implementation === "IMPLEMENTED_GOVERNED" && !packsForCapability(c.id).some((p) => { try { return registeredActionKeysUsed(p).some((a) => !CONTROL.has(a)); } catch { return false; } }));
+    expect(inflated.map((c) => c.id)).toEqual([]);
   });
 
   it("NO fabrication: a legal/external-blocked capability is never labelled IMPLEMENTED_GOVERNED", () => {

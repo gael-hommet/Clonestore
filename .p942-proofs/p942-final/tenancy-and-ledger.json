@@ -1,0 +1,23 @@
+{
+  "runId": "p942-final",
+  "durableItest": { "file": "src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts", "engine": "embedded-postgres PG16 (real, restart-durable)", "tests": 21, "passed": 21, "unhandledErrors": 0 },
+  "§2_command_ledger": {
+    "identity": "SHA-256(company, actor, conversation, proposal, kind, canonicalPayloadSha256) — no day bucket, no FNV",
+    "singleExecutionUnderConcurrency": true, "duplicateReturnsExistingResult": true,
+    "recoveryAfterLeaseExpiry": true, "foreignTenantRevealsNothing": true,
+    "payloadChangeNewCommand": true, "terminalNotReplayed": true, "recoverableRetryable": true,
+    "proposalStoreTenantScoped": true
+  },
+  "§5_atomic_appends": { "concurrentAppends": 60, "independentPools": 2, "sequenceExact": "1..60", "duplicates": 0, "missing": 0, "persistedEqualsAccepted": true, "tenantBCannotAppendToA": true, "restartOrderIdentical": true },
+  "§6_multi_user_same_company": {
+    "twoRealMembers": ["A1", "A2"],
+    "privateConversationsPerUser": "A2 cannot list/read/append to A1's conversation; each has own private thread",
+    "sharedCompanyBudget": "company daily counter aggregates A1(100)+A2(50)=150; per-user counters distinct (100 vs 50)",
+    "companyScopedSupport": "A2 sees A1's company support case; company B sees nothing",
+    "actorScopedCommands": "A1's command invisible to A2 (same company) and to B",
+    "secondCompanyIsolated": true,
+    "resolutionLayer": { "twoUsersSameCompanyId": true, "removedMembershipRefused": "MEMBERSHIP_REQUIRED", "suspendedRefused": "MEMBERSHIP_SUSPENDED", "siteScopeSurfaced": true, "forgedCompanyIgnored": "resolver takes only userId; execute pins server companyId; V1 re-verifies x-pierre-company membership" }
+  },
+  "§3_execute_route": { "file": "src/app/api/assistant/__tests__/execute-route.test.ts", "tests": 8, "passed": 8, "proves": ["mission/cancel/validation/support server-side effect", "SHA-256 idempotency_key reaches V1", "re-read before commit", "concurrent single-execution", "duplicate returns result", "foreign proposal 404", "terminal failure not replayed"] },
+  "§1_company_resolution": { "file": "src/lib/clonechat/server/__tests__/company-resolution.test.ts", "tests": 15, "passed": 15 }
+}

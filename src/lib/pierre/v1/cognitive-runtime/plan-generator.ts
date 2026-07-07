@@ -56,6 +56,7 @@ export const ALLOWED_ACTION_KEYS: readonly string[] = [
   "employee.read", "contract.read", "document.read",
   "wait.until_time", "wait.for_event",
   "approval.request", "communication.create_intent", "follow_up.schedule", "signature.prepare",
+  "analytics.compute", // P8.14 §4 — real domain computation over tenant state
 ];
 
 function isRegistered(actionKey: string): boolean {

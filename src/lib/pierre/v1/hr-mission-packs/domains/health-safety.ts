@@ -13,7 +13,7 @@ export const HEALTH_PACKS: HrMissionPackDefinition[] = [
     steps: [
       ...intakeSkeleton(),
       rt("record_incident", "collect", "Record incident/accident facts", "mission.noop", { dependsOn: ["validate"] }),
-      rt("prepare_assessment", "prepare_document", "Prepare risk assessment / prevention plan", "mission.noop", { dependsOn: ["record_incident"] }),
+      rt("prepare_assessment", "collect", "Prepare risk assessment (surface risks/gaps)", "analytics.compute", { dependsOn: ["record_incident"], input: { metric: "anomaly_surfacing" } }),
       human("safety_owner", "Route to safety owner / decision", "hr_manager", { dependsOn: ["prepare_assessment"] }),
       ...closeSkeleton("safety_owner"),
     ],
@@ -28,7 +28,7 @@ export const HEALTH_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["health.accommodations", "health.mental_health"], subjectTypes: ["employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("surface_signal", "validate", "Surface wellbeing/workload signals (non-diagnostic)", "mission.noop", { dependsOn: ["validate"], autonomy: "observe_only", emitsSignal: "health.wellbeing_signal" }),
+      rt("surface_signal", "collect", "Surface wellbeing/workload signals (non-diagnostic)", "analytics.compute", { dependsOn: ["validate"], input: { metric: "absenteeism" }, autonomy: "observe_only", emitsSignal: "health.wellbeing_signal" }),
       human("qualified_decision", "Qualified human decision (occupational health/HR)", "hr_manager", { dependsOn: ["surface_signal"] }),
       ...closeSkeleton("qualified_decision"),
     ],

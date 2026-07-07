@@ -13,9 +13,9 @@ export const PAYROLL_PACKS: HrMissionPackDefinition[] = [
     subjectTypes: ["company", "payroll_run"],
     steps: [
       ...intakeSkeleton(),
-      rt("collect_variables", "collect", "Collect variables (hours, premiums, bonuses)", "mission.noop", { dependsOn: ["validate"] }),
-      rt("absence_recap", "collect", "Build the absence recap", "mission.noop", { dependsOn: ["collect_variables"] }),
-      rt("detect_anomalies", "validate", "Detect payroll anomalies", "mission.noop", { dependsOn: ["absence_recap"], emitsSignal: "payroll.anomaly" }),
+      rt("collect_variables", "collect", "Collect variables (active employees / inputs)", "analytics.compute", { dependsOn: ["validate"], input: { metric: "payroll_variables" } }),
+      rt("absence_recap", "collect", "Build the absence recap", "analytics.compute", { dependsOn: ["collect_variables"], input: { metric: "payroll_absence_recap" } }),
+      rt("detect_anomalies", "collect", "Detect payroll anomalies", "analytics.compute", { dependsOn: ["absence_recap"], input: { metric: "payroll_anomalies" }, emitsSignal: "payroll.anomaly" }),
       human("validate_payroll", "Human validation of payroll variables", "payroll_operator", { dependsOn: ["detect_anomalies"] }),
       ...closeSkeleton("validate_payroll"),
     ],

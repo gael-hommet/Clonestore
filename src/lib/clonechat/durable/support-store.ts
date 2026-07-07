@@ -77,9 +77,16 @@ export function createDurableSupportMemory(db: ClonechatDb): SupportMemory {
 
     async createSupportCase(ctx: SupportCtx, input: CreateCaseInput) {
       return db.withTenant({ companyId: ctx.companyId, userId: ctx.userId ?? "" }, async (q) => {
+        // IDEMPOTENCE : quand un fingerprint est fourni (cas ouvert par une commande gouvernée),
+        // ON CONFLICT sur l'index partiel (company_id, fingerprint) renvoie le cas EXISTANT →
+        // une reprise après commit perdu ne crée pas de doublon. Sans fingerprint (ouverture
+        // manuelle), l'index partiel ne s'applique pas → insertion normale.
         const r = await q.query(
           `insert into clonechat_support_cases (company_id, user_id, fingerprint, title, severity, redacted_summary, created_at, updated_at)
-           values ($1,$2,$3,$4,$5,$6,$7,$7) returning *`,
+           values ($1,$2,$3,$4,$5,$6,$7,$7)
+           on conflict (company_id, fingerprint) where fingerprint is not null
+             do update set updated_at = excluded.updated_at
+           returning *`,
           [ctx.companyId, ctx.userId ?? "", input.fingerprint ?? null, input.title.slice(0, 120), input.severity ?? "normal", redactSymptom(input.summary), input.at],
         );
         return mapCase(r.rows[0]);

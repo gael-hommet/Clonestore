@@ -81,10 +81,22 @@ create table if not exists pierre_rt_cognitive_learning (
 );
 create index if not exists idx_rt_learning_company_scope on pierre_rt_cognitive_learning (company_id, scope, approved);
 
+-- ── P8.14 §4/§5: durable analytics/computation artifacts (real domain-computation output, persisted) ──
+create table if not exists pierre_rt_analytics_artifacts (
+  id            uuid primary key default gen_random_uuid(),
+  company_id    uuid not null,
+  mission_id    uuid,
+  metric        text not null,          -- e.g. headcount, turnover, absenteeism, payroll_anomalies, pay_equity_gap
+  scope         text not null default 'company',
+  result        jsonb not null,         -- the computed values (facts, never fabricated)
+  computed_at   timestamptz not null default now()
+);
+create index if not exists idx_rt_analytics_company_metric on pierre_rt_analytics_artifacts (company_id, metric, computed_at desc);
+
 do $$
 declare t text;
 begin
-  foreach t in array array['pierre_rt_proactive_signals','pierre_rt_cognitive_learning']
+  foreach t in array array['pierre_rt_proactive_signals','pierre_rt_cognitive_learning','pierre_rt_analytics_artifacts']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('alter table %I force row level security', t);

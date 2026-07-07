@@ -1,0 +1,14 @@
+{
+  "runId": "p942-final",
+  "section": "§4 sharp direct dependency + mandatory transform + built server",
+  "sharp": { "directPinnedDependency": "0.34.4", "npmLsDirect": true, "serverExternalPackages": ["@electric-sql/pglite", "sharp"] },
+  "productionBuild": { "command": "next build", "exit": 0, "compiled": "successfully in 42s", "assistantRoutesCompiled": true, "clientAssistantKb": 13.1, "sdkOutOfClientBundle": true },
+  "builtServerBoot": { "command": "next start -p 3111", "ready": "2.5s", "assistantPage": 200, "executeRoute": 503, "executeRouteNote": "CLONECHAT flag OFF by default → fail-closed 503 (route bundle loaded, no crash)" },
+  "imageProdSmoke": "image-prod-smoke.json → IMAGE_PROD_TRANSFORM_OK (NODE_ENV=production, real sharp: PNG-EXIF-resize, JPEG, WebP, orientation, malformed-rejected, original-never-sent)",
+  "sourceTests": "src/lib/clonechat/openai/__tests__/image-sanitizer.test.ts → 13/13 (production behaviour: mandatory sharp; reject when unavailable; degraded only under CLONECHAT_IMAGE_DEGRADED_OK=1)",
+  "mandatoryTransform": {
+    "productionDefault": "sharp REQUIRED; unavailable or transform-fail → image REJECTED, original never sent, no silent metadata-only downgrade",
+    "degradedFlag": "CLONECHAT_IMAGE_DEGRADED_OK=1 (local/test only) enables chunk-strip fallback (no pixel resize)",
+    "chatRoute": "images submitted but none survive → honest source:image_unavailable, budget released (0 tokens)"
+  }
+}

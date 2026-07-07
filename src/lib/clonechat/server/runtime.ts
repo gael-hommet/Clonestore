@@ -8,18 +8,20 @@ import { getClonechatDurable } from "../durable";
 import { createInMemoryBudget } from "../budget-memory";
 import { createInMemorySupportMemory, type SupportMemory } from "../support-memory";
 import { createInMemoryConversationStore } from "../conversations/memory-store";
-import { createInMemoryIdempotency, type IdempotencyStore } from "../durable/idempotency-store";
 import { createInMemoryCommandLedger, type CommandLedger } from "../durable/command-ledger";
 import { createInMemoryProposalStore, type ProposalStore } from "../durable/proposal-store";
 import type { ConversationStore } from "../conversations/types";
 import type { DurableBudget } from "../durable/budget-store";
 
+// NOTE (P9.4.2 r2) : l'ancien `idempotency` store (durable/idempotency-store.ts) est SUPERSÉDÉ
+// par le registre de COMMANDES durable (`commands`/`proposals` + command-executor). Il n'est
+// PLUS exposé ici (aucun consommateur en production) : l'exécution effective passe uniquement
+// par le command ledger. Le module durable/index.ts le construit encore pour ses tests d'intégration.
 export interface CloneChatStores {
   readonly durable: boolean;
   readonly budget: DurableBudget;
   readonly support: SupportMemory;
   readonly conversations: ConversationStore;
-  readonly idempotency: IdempotencyStore;
   readonly commands: CommandLedger;
   readonly proposals: ProposalStore;
 }
@@ -29,14 +31,12 @@ const g = globalThis as unknown as {
   __cc941Budget?: DurableBudget;
   __cc941Support?: SupportMemory;
   __cc941Conv?: ConversationStore;
-  __cc941Idem?: IdempotencyStore;
   __cc942Cmd?: CommandLedger;
   __cc942Prop?: ProposalStore;
 };
 function memBudget(): DurableBudget { return (g.__cc941Budget ??= createInMemoryBudget()); }
 function memSupport(): SupportMemory { return (g.__cc941Support ??= createInMemorySupportMemory()); }
 function memConv(): ConversationStore { return (g.__cc941Conv ??= createInMemoryConversationStore()); }
-function memIdem(): IdempotencyStore { return (g.__cc941Idem ??= createInMemoryIdempotency()); }
 function memCmd(): CommandLedger { return (g.__cc942Cmd ??= createInMemoryCommandLedger()); }
 function memProp(): ProposalStore { return (g.__cc942Prop ??= createInMemoryProposalStore()); }
 
@@ -44,7 +44,7 @@ function memProp(): ProposalStore { return (g.__cc942Prop ??= createInMemoryProp
 export async function getCloneChatStores(): Promise<CloneChatStores> {
   const durable = await getClonechatDurable();
   if (durable) {
-    return { durable: true, budget: durable.budget, support: durable.support, conversations: durable.conversations, idempotency: durable.idempotency, commands: durable.commands, proposals: durable.proposals };
+    return { durable: true, budget: durable.budget, support: durable.support, conversations: durable.conversations, commands: durable.commands, proposals: durable.proposals };
   }
-  return { durable: false, budget: memBudget(), support: memSupport(), conversations: memConv(), idempotency: memIdem(), commands: memCmd(), proposals: memProp() };
+  return { durable: false, budget: memBudget(), support: memSupport(), conversations: memConv(), commands: memCmd(), proposals: memProp() };
 }

@@ -42,6 +42,7 @@ function defaultActionInput(actionKey: string): Record<string, unknown> {
     case "communication.create_intent": return { event_kind: "hr.mission_notification", object_type: "mission", object_id: NIL_UUID };
     case "follow_up.schedule": return { reason: "governed mission-pack follow-up", delay_seconds: 86400 };
     case "signature.prepare": return { contract_id: NIL_UUID };
+    case "analytics.compute": return { metric: "executive_report" }; // default; packs override with the capability-appropriate metric
     default: return {};
   }
 }
@@ -53,9 +54,10 @@ export function packToRuntimePlan(pack: HrMissionPackDefinition): RuntimePlanInp
   const rtKeys = new Set(rtSteps.map((s) => s.key));
   const approvalStepKeys = rtSteps.filter((s) => s.binding.type === "runtime_action" && (s.binding).actionKey === "approval.request").map((s) => s.key);
   const steps: RuntimePlanStepInput[] = rtSteps.map((s) => {
-    const actionKey = (s.binding as Extract<StepBinding, { type: "runtime_action" }>).actionKey;
+    const bind = s.binding as Extract<StepBinding, { type: "runtime_action" }>;
+    const actionKey = bind.actionKey;
     const depends_on = (s.dependsOn ?? []).filter((d) => rtKeys.has(d)); // only deps that are runtime steps
-    const input: Record<string, unknown> = defaultActionInput(actionKey);
+    const input: Record<string, unknown> = { ...defaultActionInput(actionKey), ...(bind.input ?? {}) }; // pack-declared input overrides defaults
     const dfn = getRuntimeActionDefinition(actionKey);
     if (dfn?.risk === "sensitive") {
       // pick an upstream approval step this step depends on (transitively via declared deps)

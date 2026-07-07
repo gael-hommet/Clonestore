@@ -90,7 +90,20 @@ const REGISTRY: Record<string, RuntimeActionDefinition> = {
   // signature — NEVER calls the provider directly; calls the P8.3 governed services then waits
   "signature.prepare": def({ actionKey: "signature.prepare", category: "signature", risk: "sensitive", executionMode: "automatic_after_policy", requiredPermission: "document.write", requiredObjectTypes: ["contract"], idempotencyStrategy: "idempotency_key", ambiguousFailurePolicy: "reconcile", compensationStrategy: "external_reconciliation", allowedWaitEvents: ["external_event"],
     validateInput: (p) => (isUuid(p.contract_id) ? [] : ["contract_id (uuid) required"]) }),
+
+  // P8.14 §4 — real domain COMPUTATION over tenant-scoped persisted state (read-only, autonomous-eligible).
+  // Computes a whitelisted HR metric and persists the result as an artifact. NEVER fabricates a value; a
+  // metric it cannot compute returns a governed blocker. This is the missing analytics/computation surface.
+  "analytics.compute": def({ actionKey: "analytics.compute", category: "read", risk: "read_only", requiredPermission: "audit.read", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (typeof p.metric === "string" && ANALYTICS_METRICS.has(p.metric) ? [] : [`metric must be one of: ${[...ANALYTICS_METRICS].join(", ")}`]) }),
 };
+
+// The whitelisted HR metrics analytics.compute may compute (no free-form computation).
+export const ANALYTICS_METRICS: ReadonlySet<string> = new Set([
+  "headcount", "turnover", "absenteeism", "recruitment_funnel", "completeness_deadlines", "executive_report",
+  "anomaly_surfacing", "payroll_variables", "payroll_absence_recap", "payroll_anomalies", "payroll_validation",
+  "workforce_planning", "position_budget", "succession_planning", "pay_equity", "compensation_equity", "performance_calibration",
+]);
 
 export function getRuntimeActionDefinition(actionKey: string, version?: string): RuntimeActionDefinition | null {
   const d = REGISTRY[actionKey];

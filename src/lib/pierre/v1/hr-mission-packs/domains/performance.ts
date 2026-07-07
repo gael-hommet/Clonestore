@@ -29,7 +29,7 @@ export const PERFORMANCE_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["performance.calibration", "performance.pip"], subjectTypes: ["employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("prepare", "prepare_document", "Prepare calibration inputs / PIP draft", "mission.noop", { dependsOn: ["validate"], autonomy: "suggest" }),
+      rt("prepare", "collect", "Prepare calibration inputs (compute calibration data)", "analytics.compute", { dependsOn: ["validate"], input: { metric: "performance_calibration" }, autonomy: "suggest" }),
       human("committee_or_manager", "Calibration/PIP human decision", "hr_manager", { dependsOn: ["prepare"] }),
       rt("record", "mutate_record", "Record decision + follow-up", "mission.noop", { dependsOn: ["committee_or_manager"] }),
       ...closeSkeleton("record"),

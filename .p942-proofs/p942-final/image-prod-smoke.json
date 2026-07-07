@@ -1,0 +1,52 @@
+{
+  "runId": "p942-final",
+  "nodeEnv": "production",
+  "sharpVersion": "0.34.4",
+  "cases": {
+    "png_exif_resize": {
+      "fmt": "png",
+      "inW": 2000,
+      "inH": 1500,
+      "inBytes": 45749,
+      "outW": 1024,
+      "outH": 768,
+      "outBytes": 3460,
+      "gpsRemoved": true,
+      "originalNeverSent": true,
+      "resized": true,
+      "recompressed": true,
+      "withinTarget": true
+    },
+    "jpeg": {
+      "fmt": "jpeg",
+      "inW": 1400,
+      "inH": 900,
+      "inBytes": 7793,
+      "outW": 1024,
+      "outH": 658,
+      "outBytes": 2343,
+      "withinTarget": true,
+      "format": "jpeg"
+    },
+    "webp": {
+      "fmt": "webp",
+      "inW": 1300,
+      "inH": 700,
+      "inBytes": 1724,
+      "outW": 1024,
+      "outH": 551,
+      "outBytes": 1102,
+      "withinTarget": true,
+      "format": "webp"
+    },
+    "orientation": {
+      "inW": 120,
+      "inH": 60,
+      "outW": 60,
+      "outH": 120,
+      "normalizedToPortrait": true
+    },
+    "malformed_rejected": true
+  },
+  "verdict": "IMAGE_PROD_TRANSFORM_OK"
+}

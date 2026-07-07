@@ -83,6 +83,37 @@ describe("P9.4.2 §1 — company resolution FAIL-CLOSED", () => {
   });
 });
 
+describe("P9.4.2 §6 — multi-user MÊME entreprise (résolution)", () => {
+  it("deux utilisateurs distincts, membres actifs de l'entreprise A → MÊME companyId", async () => {
+    getRuntimeDb.mockResolvedValue(fakeDb(null, ["site-1"]));
+    listCompaniesForUser.mockResolvedValue([{ id: CA, name: "Acme", role: "owner", status: "active", member_status: "active" }]);
+    const r1 = await resolveCloneChatTenant("userA1");
+    listCompaniesForUser.mockResolvedValue([{ id: CA, name: "Acme", role: "member", status: "active", member_status: "active" }]);
+    const r2 = await resolveCloneChatTenant("userA2");
+    expect(r1.ok && r2.ok).toBe(true);
+    if (r1.ok && r2.ok) {
+      expect(r1.companyId).toBe(CA);
+      expect(r2.companyId).toBe(CA);        // même entreprise résolue pour les deux membres
+      expect(r1.role).toBe("owner");
+      expect(r2.role).toBe("member");        // rôles distincts (portée de rôle appliquée en aval par V1)
+    }
+  });
+
+  it("membership RETIRÉ (member_status=removed) → refusé immédiatement (aucune entreprise active)", async () => {
+    getRuntimeDb.mockResolvedValue(fakeDb(null));
+    listCompaniesForUser.mockResolvedValue([{ id: CA, name: "Acme", role: "member", status: "active", member_status: "removed" }]);
+    expect(await resolveCloneChatTenant("userA2")).toEqual({ ok: false, code: "MEMBERSHIP_REQUIRED" });
+  });
+
+  it("portée de site : les siteIds du membre sont remontés (restriction appliquée en aval)", async () => {
+    getRuntimeDb.mockResolvedValue(fakeDb(null, ["site-paris", "site-lyon"]));
+    listCompaniesForUser.mockResolvedValue([{ id: CA, name: "Acme", role: "site_manager", status: "active", member_status: "active" }]);
+    const r = await resolveCloneChatTenant("userA3");
+    expect(r.ok).toBe(true);
+    if (r.ok) { expect(r.siteIds).toEqual(["site-paris", "site-lyon"]); expect(r.role).toBe("site_manager"); }
+  });
+});
+
 describe("P9.4.2 §1 — repli par-utilisateur SEULEMENT sous flag explicite", () => {
   it("sans flag : MEMBERSHIP_REQUIRED remonte (pas de repli)", async () => {
     getRuntimeDb.mockResolvedValue(fakeDb(null));

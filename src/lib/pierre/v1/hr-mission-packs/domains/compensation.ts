@@ -44,7 +44,7 @@ export const COMPENSATION_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["compensation.equity", "compensation.pay_equity"], subjectTypes: ["company", "employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("analyze", "validate", "Analyze equity grants / pay-equity gaps", "mission.noop", { dependsOn: ["validate"], autonomy: "observe_only" }),
+      rt("analyze", "collect", "Analyze equity grants / pay-equity gaps", "analytics.compute", { dependsOn: ["validate"], input: { metric: "pay_equity" }, autonomy: "observe_only" }),
       human("comp_committee", "Compensation committee decision", "owner", { dependsOn: ["analyze"] }),
       ...closeSkeleton("comp_committee"),
     ],

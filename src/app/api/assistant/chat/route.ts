@@ -129,6 +129,13 @@ export async function POST(req: Request) {
     if (rawImgs.accepted.length > 0) {
       try {
         const prepared = await prepareImagesForModel(rawImgs.accepted);
+        // Transformation pixel OBLIGATOIRE (§9) : si des images ont été soumises mais qu'AUCUNE
+        // n'a survécu (sharp indisponible/échec en production), on REFUSE honnêtement — jamais
+        // l'originale, jamais une analyse sans image. La réservation budget est libérée (0 token).
+        if (rawImgs.accepted.length > 0 && prepared.dataUrls.length === 0) {
+          await commit(0);
+          return noStore({ ok: true, source: "image_unavailable", structured: { answer: "Je ne peux pas traiter cette image pour le moment (transformation d'image indisponible). Réessayez, ou décrivez ce que vous voyez.", honesty: "unknown", tool_call: null, citations: [] }, imageSanitization: prepared.report, rejectedImages: [...rawImgs.rejected, ...prepared.rejected], durable: stores.durable });
+        }
         const shot = await analyzeScreenshotReal(key, { model: cfg.model, userText: message, imageDataUrls: prepared.dataUrls, maxOutputTokens: reservation.maxOutputTokens });
         const tokens = shot.usage.inputTokens + shot.usage.outputTokens;
         await commit(tokens);

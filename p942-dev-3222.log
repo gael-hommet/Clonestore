@@ -1,0 +1,31 @@
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3222
+   - Network:      http://192.168.1.29:3222
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Ready in 6.8s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 2s (198 modules)
+ ○ Compiling /assistant ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (118kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled /assistant in 39.7s (1781 modules)
+ GET /assistant 200 in 43073ms
+ GET /assistant 200 in 431ms
+ ✓ Compiled in 23.6s (799 modules)
+ ✓ Compiled in 7s (799 modules)
+ GET /assistant 200 in 3617ms
+ ⚠ Cross origin request detected from 127.0.0.1 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ✓ Compiled in 6.2s (799 modules)
+ ✓ Compiled in 5s (799 modules)
+ GET /assistant 200 in 6300ms
+ ✓ Compiled in 3.4s (799 modules)
+ GET /assistant 200 in 1042ms
+ ✓ Compiled in 2.8s (799 modules)
+ GET /assistant 200 in 776ms
+ ✓ Compiled in 2.7s (799 modules)
+ ✓ Compiled in 2.7s (799 modules)
+[?25h

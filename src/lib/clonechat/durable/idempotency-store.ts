@@ -1,4 +1,10 @@
 // src/lib/clonechat/durable/idempotency-store.ts
+// ⚠️ SUPERSÉDÉ (P9.4.2 r2) — remplacé par le registre de COMMANDES durable
+// (durable/command-ledger.ts : identité SHA-256 company+actor+conversation+proposal+kind+
+// payloadHash, SANS bucket-jour, claim atomique + lease + reprise). Ce store (fingerprint
+// day-bucketé) n'est PLUS exposé par server/runtime.ts et n'a aucun consommateur en production.
+// Conservé pour ses tests d'intégration ; ne pas le recâbler sur le chemin d'exécution.
+//
 // P9.4.2 — Idempotence DURABLE cross-session/instance des actions effectives. Le
 // fingerprint est calculé CÔTÉ SERVEUR à partir de l'identité résolue (company+user) +
 // kind + clé stable + jour ⇒ une même action logique confirmée ne s'exécute pas deux

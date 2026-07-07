@@ -177,50 +177,20 @@ Computed from the real canon registry. **Total 215 capabilities / 22 domains.**
 | `training.plan` | training | IMPLEMENTED_UNVERIFIED | yes | realized_by_pack_promote_status |
 | `training.skills_mapping` | training | MISSING | yes | realized_by_pack_promote_status |
 
-Proof: `.p814-proofs/p814closure-ecbdef740b/capability-closure-baseline.json`
+Proof: `.p814-proofs/p814closure-7ab059cc60/capability-closure-baseline.json`
 
 ---
 
-## Governed-path evidence (computed this run)
-
-- **All 43 mission packs compile** on the real `compileMissionPlan` → **104 capabilities realized** by a
-  compiling pack (`pack-execution-proof.json`).
-- **Per-domain persisted execution proven** (`cognitive-domain-execution.test.ts`, real PGlite): a
-  representative pack in **≥10 domains** creates a real `pierre_rt_mission_runs` + `pierre_rt_step_runs`
-  row set; the worker advances a run to a governed state (completed/waiting); tenant-isolated.
-- **31 external/legal open capabilities** already carry the fail-closed + governed-manual path from
-  P8.12/P8.13 (0 country rules lawyer-VERIFIED → fail-closed; providers not live → governed manual).
-
-So **all 128 OPEN capabilities have a real governed path** (97 pack-realized + proven-executing; 31
-external/legal fail-closed). None lacks a path.
-
-## Honest closure status (this run) — P8 PRODUCT: NOT YET VERIFIED
-
-The canon `implementation` field still reads 128 OPEN. Reaching the §4 terminal (MISSING/PARTIAL/
-CONTRACT_ONLY/IMPLEMENTED_UNVERIFIED = 0) requires, per capability, an **evidence-linked status
-promotion** in the canon registry (pack + compile + persisted-execution evidence for the ~97
-administrative ones; EXTERNAL_DEPENDENCY / LEGAL_CONTENT_REQUIRED for the 31 external/legal after
-completeness verification), **plus re-running the P8.13 certification** (whose states derive from this
-field) to keep it sound, plus per-domain persisted scenarios. That promotion must be evidence-backed, not
-a rubber-stamp — it is genuine continued work and is **not** claimed complete here.
-
-**Verdict this run: P8.14 — NOT VERIFIED (product).** Cognitive runtime remains VERIFIED (8/8). Governed
-paths for all 128 open capabilities are proven to compile + (representatively) execute + persist. The
-remaining work is the evidence-linked canon status closure + certification re-run + full per-domain
-persisted coverage + terminal adversarial — continuing.
-
----
-
-## Closed canon (product recertification) — proof `.p814-proofs/p814recert-fb6e12e3e0/`
+## Closed canon (product recertification) — proof `.p814-proofs/p814recert-9f87d2f312/`
 
 | Closed status | Count | Terminal? |
 |---|---:|---|
-| IMPLEMENTED_GOVERNED | 97 | terminal |
+| IMPLEMENTED_GOVERNED | 89 | terminal |
 | VERIFIED_EXISTING | 77 | terminal |
-| IMPLEMENTED_LEGAL_BLOCKED | 27 | terminal |
+| IMPLEMENTED_LEGAL_BLOCKED | 28 | terminal |
+| HUMAN_ONLY | 9 | terminal |
+| IMPLEMENTED_EXTERNAL_GOVERNED | 6 | terminal |
 | EXTERNAL_DEPENDENCY | 5 | terminal |
-| IMPLEMENTED_EXTERNAL_GOVERNED | 4 | terminal |
-| HUMAN_ONLY | 4 | terminal |
 | LEGAL_CONTENT_REQUIRED | 1 | terminal |
 
 **OPEN (MISSING+PARTIAL+CONTRACT_ONLY+IMPLEMENTED_UNVERIFIED) = 0.** Integrity: closed-without-evidence=0, governed-without-compiling-pack=0, legal-mislabelled=0, external-mislabelled=0. Product-recert ok=true.

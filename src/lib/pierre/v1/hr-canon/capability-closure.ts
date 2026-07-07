@@ -12,11 +12,36 @@
 import { HR_CAPABILITIES } from "./capability-registry";
 import type { HrCapabilityDefinition, HrImplementationStatus, HrImplementationReference, HrEvidenceReference } from "./types";
 import { packsForCapability } from "../hr-mission-packs/registry";
-import { packToRuntimePlan } from "../hr-mission-packs/runtime-map";
+import { packToRuntimePlan, registeredActionKeysUsed } from "../hr-mission-packs/runtime-map";
 import { compileMissionPlan } from "../runtime-plan-compiler";
+
+// Control-flow actions carry NO business effect. A pack made only of these is a SKELETON, not an
+// implementation — promoting it to IMPLEMENTED_GOVERNED would be status inflation (terminal-review finding).
+const CONTROL_FLOW_ACTIONS: ReadonlySet<string> = new Set(["mission.noop", "mission.complete", "mission.block"]);
+function packIsEffectful(packId: string, cap: HrCapabilityDefinition): boolean {
+  const pack = packsForCapability(cap.id).find((p) => p.id === packId);
+  if (!pack) return false;
+  try { return registeredActionKeysUsed(pack).some((a) => !CONTROL_FLOW_ACTIONS.has(a)); } catch { return false; }
+}
 
 const OPEN_STATUSES: ReadonlySet<HrImplementationStatus> = new Set(["MISSING", "PARTIAL", "CONTRACT_ONLY", "IMPLEMENTED_UNVERIFIED"]);
 export function isOpenStatus(s: HrImplementationStatus): boolean { return OPEN_STATUSES.has(s); }
+
+// ── Curated honest terminal classifications (P8.14 §3/§4) ──────────────────────────────────────────
+// Explicit, auditable classification for capabilities whose correct terminal is NOT derivable from the
+// (loosely-set) canon autonomy/dep flags. These are ETHICAL/LEGAL/EXTERNAL judgments, documented here so
+// they are reviewable — NOT status inflation. Pierre still performs all surrounding operational work.
+//
+// HUMAN_ONLY: a conclusion Pierre must never make (harassment/complaint outcome, occupational-health /
+// mental-health / incident qualification). Pierre does intake/evidence/chronology/comms-drafts/routing.
+const CURATED_HUMAN_ONLY: ReadonlySet<string> = new Set([
+  "relations.complaints", "relations.mediation", "relations.harassment_alert",
+  "health.incident_reporting", "health.mental_health",
+]);
+// EXTERNAL: real integration with an external system (timeclock / payroll transmission) that is not live.
+const CURATED_EXTERNAL: ReadonlySet<string> = new Set(["absence.timeclock_integration", "absence.payroll_transmission"]);
+// LEGAL: final output requires qualified legal review (fail-closed until a lawyer signs off).
+const CURATED_LEGAL: ReadonlySet<string> = new Set(["communications.legal_review"]);
 
 const compileCache = new Map<string, boolean>();
 function packCompiles(packId: string, cap: HrCapabilityDefinition): boolean {
@@ -50,11 +75,13 @@ export function closeCapability(cap: HrCapabilityDefinition): CapabilityClosure 
     return { status: cap.implementation, implementationReferences: cap.implementationReferences ?? [], evidence: ev, changed: ev.length !== (cap.evidence?.length ?? 0), rationale: "already closed / allowed terminal" };
   }
 
-  const humanOnly = cap.autonomy === "human_only" || cap.autonomy === "forbidden";
-  const legal = (cap.countryRuleDependencies ?? []).some((d) => d.required);
-  const external = (cap.integrationDependencies ?? []).some((d) => d.system && d.system !== "none" && d.status !== "available");
+  const humanOnly = cap.autonomy === "human_only" || cap.autonomy === "forbidden" || CURATED_HUMAN_ONLY.has(cap.id);
+  const legal = (cap.countryRuleDependencies ?? []).some((d) => d.required) || CURATED_LEGAL.has(cap.id);
+  const external = (cap.integrationDependencies ?? []).some((d) => d.system && d.system !== "none" && d.status !== "available") || CURATED_EXTERNAL.has(cap.id);
   const packs = packsForCapability(cap.id);
-  const compilingPack = packs.find((p) => packCompiles(p.id, cap));
+  // Honest gate: a pack realizes a capability only if it compiles AND carries a genuine business effect
+  // (not a noop-only skeleton). Skeleton packs do NOT close the capability.
+  const compilingPack = packs.find((p) => packCompiles(p.id, cap) && packIsEffectful(p.id, cap));
 
   const refs = [...(cap.implementationReferences ?? [])];
   const ev = [...(cap.evidence ?? [])];

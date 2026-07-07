@@ -9,7 +9,7 @@
 
    Creating an optimized production build ...
 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (118kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
- ⚠ Compiled with warnings in 8.5s
+ ⚠ Compiled with warnings in 5.5s
 
 ./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
 A Node.js API is used (process.versions at line: 32) which is not supported in the Edge Runtime.
@@ -19,7 +19,7 @@ Import trace for requested module:
 ./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
 ./node_modules/@supabase/realtime-js/dist/module/index.js
 ./node_modules/@supabase/supabase-js/dist/module/index.js
-./node_modules/@supabase/ssr/dist/module/createServerClient.js
+./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
 ./node_modules/@supabase/ssr/dist/module/index.js
 
 ./node_modules/@supabase/supabase-js/dist/module/index.js
@@ -28,26 +28,26 @@ Learn more: https://nextjs.org/docs/api-reference/edge-runtime
 
 Import trace for requested module:
 ./node_modules/@supabase/supabase-js/dist/module/index.js
-./node_modules/@supabase/ssr/dist/module/createServerClient.js
+./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
 ./node_modules/@supabase/ssr/dist/module/index.js
 
- ✓ Compiled successfully in 4.0min
+ ✓ Compiled successfully in 111s
    Skipping linting
    Checking validity of types ...
    Collecting page data ...
-   Generating static pages (0/191) ...
-   Generating static pages (47/191) 
-   Generating static pages (95/191) 
-   Generating static pages (143/191) 
- ✓ Generating static pages (191/191)
+   Generating static pages (0/192) ...
+   Generating static pages (48/192) 
+   Generating static pages (96/192) 
+   Generating static pages (144/192) 
+ ✓ Generating static pages (192/192)
    Finalizing page optimization ...
    Collecting build traces ...
 
 Route (app)                                                           Size  First Load JS
-┌ ○ /                                                              10.4 kB         124 kB
+┌ ○ /                                                              10.5 kB         124 kB
 ├ ○ /_not-found                                                      816 B         103 kB
 ├ ƒ /activate/pierre                                               5.35 kB         163 kB
-├ ○ /agents                                                          219 B         106 kB
+├ ○ /agents                                                          221 B         106 kB
 ├ ƒ /agents/[slug]                                                   816 B         103 kB
 ├ ƒ /agents/[slug]/use                                             4.61 kB         170 kB
 ├ ○ /agents/alex                                                     816 B         103 kB
@@ -55,7 +55,7 @@ Route (app)                                                           Size  Firs
 ├ ○ /agents/emma                                                     816 B         103 kB
 ├ ○ /agents/noah                                                     816 B         103 kB
 ├ ƒ /agents/orders/me                                                816 B         103 kB
-├ ○ /agents/pierre                                                   219 B         106 kB
+├ ○ /agents/pierre                                                   221 B         106 kB
 ├ ƒ /agents/pierre/company-history                                   816 B         103 kB
 ├ ƒ /agents/pierre/employees                                       7.14 kB         173 kB
 ├ ƒ /agents/pierre/setup                                           11.1 kB         137 kB
@@ -360,39 +360,40 @@ Route (app)                                                           Size  Firs
 ├ ƒ /api/webhooks/pierre/communications                              816 B         103 kB
 ├ ƒ /api/webhooks/pierre/signature                                   816 B         103 kB
 ├ ƒ /api/webhooks/stripe                                             816 B         103 kB
-├ ○ /assistant                                                     14.2 kB         217 kB
+├ ○ /assistant                                                     13.1 kB         216 kB
 ├ ○ /checkout                                                      7.14 kB         173 kB
-├ ● /clonestore/[slug]                                               219 B         106 kB
+├ ● /clonestore/[slug]                                               221 B         106 kB
 ├   ├ /clonestore/vision
 ├   ├ /clonestore/technologies
 ├   ├ /clonestore/fonctionnement
 ├   └ [+4 more paths]
-├ ○ /demo                                                          27.6 kB         184 kB
+├ ○ /comprendre-clonestore                                           221 B         106 kB
+├ ○ /demo                                                          27.7 kB         184 kB
 ├ ƒ /demo/pierre                                                   23.9 kB         129 kB
-├ ○ /diagnostic-rh                                                  5.2 kB         111 kB
+├ ○ /diagnostic-rh                                                 5.21 kB         111 kB
 ├ ƒ /founder                                                         129 B         121 kB
 ├ ƒ /founding-partners                                             1.11 kB         106 kB
 ├ ƒ /founding-partners/admin                                       1.76 kB         104 kB
 ├ ○ /founding-partners/conditions                                    816 B         103 kB
-├ ƒ /founding-partners/confirm                                       219 B         106 kB
+├ ƒ /founding-partners/confirm                                       221 B         106 kB
 ├ ƒ /founding-partners/join                                        3.33 kB         161 kB
-├ ƒ /founding-partners/merci                                         219 B         106 kB
+├ ƒ /founding-partners/merci                                         221 B         106 kB
 ├ ƒ /founding-partners/my-registry                                 1.93 kB         104 kB
 ├ ƒ /founding-partners/r/[token]                                     390 B         106 kB
-├ ƒ /founding-partners/refuse                                        219 B         106 kB
-├ ƒ /founding-partners/verify                                        219 B         106 kB
+├ ƒ /founding-partners/refuse                                        221 B         106 kB
+├ ƒ /founding-partners/verify                                        221 B         106 kB
 ├ ○ /healt                                                           816 B         103 kB
 ├ ƒ /internal/[slug]/command-center                                  128 B         121 kB
 ├ ƒ /internal/[slug]/command-center/readiness                       2.1 kB         104 kB
-├ ○ /legal/cgu                                                       219 B         106 kB
-├ ○ /legal/cgv                                                       219 B         106 kB
-├ ○ /legal/confidentialite                                           219 B         106 kB
-├ ○ /legal/dpa                                                       219 B         106 kB
-├ ○ /legal/mentions                                                  219 B         106 kB
+├ ○ /legal/cgu                                                       221 B         106 kB
+├ ○ /legal/cgv                                                       221 B         106 kB
+├ ○ /legal/confidentialite                                           221 B         106 kB
+├ ○ /legal/dpa                                                       221 B         106 kB
+├ ○ /legal/mentions                                                  221 B         106 kB
 ├ ○ /login                                                         5.24 kB         171 kB
 ├ ƒ /p/[token]                                                       816 B         103 kB
-├ ○ /paiement                                                        219 B         106 kB
-├ ○ /paiement/cancel                                                 219 B         106 kB
+├ ○ /paiement                                                        221 B         106 kB
+├ ○ /paiement/cancel                                                 221 B         106 kB
 ├ ○ /paiement/success                                              5.18 kB         171 kB
 ├ ƒ /profile                                                       11.8 kB         189 kB
 ├ ƒ /profile/agents                                                39.6 kB         242 kB
@@ -401,7 +402,7 @@ Route (app)                                                           Size  Firs
 ├ ƒ /profile/messages                                               109 kB         307 kB
 ├ ƒ /profile/onboarding                                            16.1 kB         210 kB
 ├ ƒ /profile/technologies                                          11.3 kB         171 kB
-├ ○ /questions                                                       219 B         106 kB
+├ ○ /questions                                                       221 B         106 kB
 ├ ƒ /r/[token]                                                       816 B         103 kB
 ├ ƒ /reserver/pierre                                               6.33 kB         112 kB
 ├ ○ /signup                                                        5.61 kB         171 kB

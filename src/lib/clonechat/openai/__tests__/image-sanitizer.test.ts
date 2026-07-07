@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { sanitizeImageBuffer, prepareImagesForModel } from "../image-sanitizer";
 
 // Construit un PNG structurellement valide avec un chunk tEXt (métadonnée) à retirer.
@@ -25,6 +25,16 @@ function jpeg(): Uint8Array {
 const b64 = (b: Uint8Array) => Buffer.from(b).toString("base64");
 const has = (b: Uint8Array, s: string) => Buffer.from(b).toString("latin1").includes(s);
 
+// sharp réel (fourni par la dépendance directe épinglée 0.34.4). `any` assumé côté test.
+type SharpFactory = (input?: unknown, opts?: unknown) => { [k: string]: (...a: unknown[]) => unknown };
+async function loadSharp(): Promise<SharpFactory> {
+  const mod = await import("sharp");
+  return (mod as { default?: unknown }).default as unknown as SharpFactory;
+}
+const outUrlBytes = (u: string) => new Uint8Array(Buffer.from(u.split("base64,")[1], "base64"));
+
+afterEach(() => vi.unstubAllEnvs());
+
 describe("P9.4.1 image sanitizer — magic bytes, dimensions, bombs", () => {
   it("vérifie les magic bytes (rejette un faux)", () => {
     expect(sanitizeImageBuffer(new Uint8Array([1, 2, 3, 4, 5])).ok).toBe(false);
@@ -43,72 +53,111 @@ describe("P9.4.1 image sanitizer — magic bytes, dimensions, bombs", () => {
   });
 });
 
-describe("P9.4.1 image sanitizer — RETIRE réellement les métadonnées", () => {
-  it("PNG : le chunk tEXt (contenant GPS) est retiré ; l'image reste un PNG valide", () => {
+describe("P9.4.1 image sanitizer — RETIRE réellement les métadonnées (bas niveau)", () => {
+  it("PNG : le chunk tEXt (GPS) est retiré ; PNG valide", () => {
     const original = png(50, 50, true);
-    expect(has(original, "GPS:48.85")).toBe(true); // présent dans l'original
+    expect(has(original, "GPS:48.85")).toBe(true);
     const r = sanitizeImageBuffer(original);
     expect(r.ok).toBe(true);
     expect(r.strippedChunks).toContain("tEXt");
-    expect(has(r.sanitized!, "GPS:48.85")).toBe(false); // RETIRÉ
-    expect(r.sanitized!.length).toBeLessThan(original.length);
-    // toujours un PNG (signature conservée) + IHDR/IEND
+    expect(has(r.sanitized!, "GPS:48.85")).toBe(false);
     expect(has(r.sanitized!, "IHDR")).toBe(true);
     expect(has(r.sanitized!, "IEND")).toBe(true);
   });
   it("JPEG : le segment APP1 (EXIF) est retiré", () => {
-    const original = jpeg();
-    expect(has(original, "Exif")).toBe(true);
-    const r = sanitizeImageBuffer(original);
+    const r = sanitizeImageBuffer(jpeg());
     expect(r.ok).toBe(true);
-    expect(has(r.sanitized!, "Exif")).toBe(false); // EXIF RETIRÉ
+    expect(has(r.sanitized!, "Exif")).toBe(false);
     expect(r.strippedChunks.length).toBeGreaterThan(0);
   });
 });
 
-describe("P9.4.2 image sanitizer — prepareImagesForModel : RESIZE + RECOMPRESS pixel réels", () => {
-  it("REDIMENSIONNE réellement une grande image (2000px → ≤1024px) + RECOMPRESSE + retire l'EXIF (sharp)", async () => {
-    let sharp: ((o: unknown) => { withMetadata: (m: unknown) => { png: () => { toBuffer: () => Promise<Buffer> } } }) | null = null;
-    try { sharp = (await import("sharp")).default as never; } catch { /* sharp indispo */ }
-    // sharp est fourni par la chaîne d'outils dans cet environnement : le test ÉCHOUE
-    // s'il est absent (on ne veut pas d'une preuve de resize vide/vacuous).
-    expect(sharp, "sharp doit être disponible pour prouver le resize pixel réel").toBeTruthy();
-    if (!sharp) return;
-
-    // Vraie image 2000x1500 avec de l'EXIF injecté (via sharp .withMetadata + exif).
-    const bigWithExif = await (sharp as unknown as (o: unknown) => { withMetadata: (m: unknown) => { png: (o?: unknown) => { toBuffer: () => Promise<Buffer> } } })({ create: { width: 2000, height: 1500, channels: 3, background: { r: 10, g: 120, b: 200 } } })
-      .withMetadata({ exif: { IFD0: { Copyright: "GPS:48.8566,2.3522 SECRET" } } })
-      .png()
-      .toBuffer();
-
-    const prepared = await prepareImagesForModel([`data:image/png;base64,${bigWithExif.toString("base64")}`]);
+describe("P9.4.2 r2 §9 — transformation PIXEL OBLIGATOIRE (sharp), production", () => {
+  it("PNG 2000×1500 + EXIF/GPS → décodé, RESIZE ≤1024, RECOMPRESS, métadonnées retirées, original jamais envoyé", async () => {
+    const sharp = await loadSharp();
+    const bigWithExif = await (sharp({ create: { width: 2000, height: 1500, channels: 3, background: { r: 10, g: 120, b: 200 } } }) as never as { withMetadata: (m: unknown) => { png: () => { toBuffer: () => Promise<Buffer> } } })
+      .withMetadata({ exif: { IFD0: { Copyright: "GPS:48.8566,2.3522 SECRET" } } }).png().toBuffer();
+    const inputB64 = bigWithExif.toString("base64");
+    const prepared = await prepareImagesForModel([`data:image/png;base64,${inputB64}`]);
     expect(prepared.dataUrls.length).toBe(1);
     const m0 = prepared.meta[0];
     expect(m0.engine).toBe("sharp");
-    // RESIZE réel : dimensions de sortie ≤ 1024
     expect(m0.width).toBeLessThanOrEqual(1024);
     expect(m0.height).toBeLessThanOrEqual(1024);
     expect(m0.originalWidth).toBe(2000);
     expect(m0.resized).toBe(true);
-    // RECOMPRESS réel : moins d'octets qu'à l'entrée
     expect(m0.sanitizedBytes).toBeLessThan(m0.originalBytes);
-    // Métadonnées retirées : l'EXIF injecté n'est plus dans ce qui part au modèle
-    const outBytes = new Uint8Array(Buffer.from(prepared.dataUrls[0].split("base64,")[1], "base64"));
-    expect(has(outBytes, "GPS:48.8566")).toBe(false);
+    const out = outUrlBytes(prepared.dataUrls[0]);
+    expect(has(out, "GPS:48.8566")).toBe(false);              // EXIF/GPS retiré
+    expect(Buffer.from(out).toString("base64")).not.toBe(inputB64); // l'originale n'est JAMAIS envoyée
     expect(prepared.report.pixelResize).toBe(true);
     expect(prepared.report.engine).toBe("sharp");
+    expect(prepared.report.sharpRequired).toBe(true);
     expect(prepared.report.metadataStripped).toBe(true);
-    expect(m0.sanitizedHash).toMatch(/^fnv1a_/);
   });
 
-  it("REPLI honnête (chunk-strip) : une image non décodable par sharp est tout de même nettoyée sans resize", async () => {
-    // Le faux PNG (IDAT bidon) n'est pas décodable → chemin de repli chunk-strip.
+  it("JPEG réel : décodé + recompressé (sortie JPEG valide re-décodable)", async () => {
+    const sharp = await loadSharp();
+    const jpg = await (sharp({ create: { width: 1400, height: 900, channels: 3, background: { r: 200, g: 30, b: 30 } } }) as never as { jpeg: () => { toBuffer: () => Promise<Buffer> } }).jpeg().toBuffer();
+    const prepared = await prepareImagesForModel([`data:image/jpeg;base64,${jpg.toString("base64")}`]);
+    expect(prepared.meta[0]?.engine).toBe("sharp");
+    expect(prepared.meta[0].mime).toBe("image/jpeg");
+    expect(prepared.meta[0].width).toBeLessThanOrEqual(1024);
+    const outMd = await (sharp(outUrlBytes(prepared.dataUrls[0])) as never as { metadata: () => Promise<{ width?: number; format?: string }> }).metadata();
+    expect(outMd.width).toBeLessThanOrEqual(1024);
+  });
+
+  it("WebP réel : décodé + recompressé (sortie WebP valide)", async () => {
+    const sharp = await loadSharp();
+    const webp = await (sharp({ create: { width: 1300, height: 700, channels: 3, background: { r: 20, g: 200, b: 90 } } }) as never as { webp: () => { toBuffer: () => Promise<Buffer> } }).webp().toBuffer();
+    const prepared = await prepareImagesForModel([`data:image/webp;base64,${webp.toString("base64")}`]);
+    expect(prepared.meta[0]?.engine).toBe("sharp");
+    expect(prepared.meta[0].mime).toBe("image/webp");
+    expect(prepared.meta[0].width).toBeLessThanOrEqual(1024);
+  });
+
+  it("ORIENTATION EXIF normalisée : un paysage orienté 90° devient portrait en sortie", async () => {
+    const sharp = await loadSharp();
+    // 120×60 paysage + orientation=6 (rotation 90° horaire) → après .rotate(), 60×120 portrait.
+    const oriented = await (sharp({ create: { width: 120, height: 60, channels: 3, background: { r: 5, g: 5, b: 5 } } }) as never as { withMetadata: (m: unknown) => { png: () => { toBuffer: () => Promise<Buffer> } } })
+      .withMetadata({ orientation: 6 }).png().toBuffer();
+    const prepared = await prepareImagesForModel([`data:image/png;base64,${oriented.toString("base64")}`]);
+    const m0 = prepared.meta[0];
+    expect(m0.engine).toBe("sharp");
+    expect((m0.height ?? 0)).toBeGreaterThan(m0.width ?? 0); // orientation appliquée puis retirée
+  });
+
+  it("MIME usurpé : déclaré image/png mais octets JPEG → sharp décode le VRAI contenu", async () => {
+    const sharp = await loadSharp();
+    const realJpeg = await (sharp({ create: { width: 300, height: 200, channels: 3, background: { r: 1, g: 2, b: 3 } } }) as never as { jpeg: () => { toBuffer: () => Promise<Buffer> } }).jpeg().toBuffer();
+    const prepared = await prepareImagesForModel([`data:image/png;base64,${realJpeg.toString("base64")}`]); // mime menteur
+    expect(prepared.dataUrls.length).toBe(1);
+    expect(prepared.meta[0].mime).toBe("image/jpeg"); // format RÉEL, pas le mime déclaré
+  });
+
+  it("fichier malformé → REFUSÉ (jamais envoyé)", async () => {
+    const prepared = await prepareImagesForModel([`data:image/png;base64,${Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]).toString("base64")}`]);
+    expect(prepared.dataUrls.length).toBe(0);
+    expect(prepared.rejected.length).toBe(1);
+  });
+});
+
+describe("P9.4.2 r2 §9 — sharp OBLIGATOIRE : indisponible/échec → REFUS (pas de dégradation silencieuse)", () => {
+  it("image non décodable par sharp SANS drapeau dégradé → REFUSÉE (pas de chunk-strip)", async () => {
+    // Le faux PNG (IDAT bidon) n'est pas décodable par sharp. En production, on REFUSE.
+    const prepared = await prepareImagesForModel([`data:image/png;base64,${b64(png(64, 64, true))}`]);
+    expect(prepared.dataUrls.length).toBe(0);
+    expect(prepared.report.engine).toBe("rejected");
+    expect(prepared.rejected[0]?.reason).toBe("sharp_transform_failed");
+    expect(prepared.report.metadataStripped).toBe(false);
+  });
+
+  it("MODE DÉGRADÉ LOCAL/TEST (CLONECHAT_IMAGE_DEGRADED_OK=1) : chunk-strip autorisé, sans resize", async () => {
+    vi.stubEnv("CLONECHAT_IMAGE_DEGRADED_OK", "1");
     const prepared = await prepareImagesForModel([`data:image/png;base64,${b64(png(64, 64, true))}`]);
     expect(prepared.dataUrls.length).toBe(1);
-    const outBytes = new Uint8Array(Buffer.from(prepared.dataUrls[0].split("base64,")[1], "base64"));
-    expect(has(outBytes, "GPS:48.85")).toBe(false); // métadonnée retirée même en repli
     expect(prepared.meta[0].engine).toBe("chunk-strip");
     expect(prepared.meta[0].resized).toBe(false);
-    expect(prepared.report.metadataStripped).toBe(true);
+    expect(has(outUrlBytes(prepared.dataUrls[0]), "GPS:48.85")).toBe(false); // métadonnée quand même retirée
   });
 });

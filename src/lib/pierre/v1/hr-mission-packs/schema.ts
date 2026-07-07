@@ -9,11 +9,11 @@ import type {
 } from "./types";
 import type { HrAutonomyLevel, HrIntegrationDependency } from "../hr-canon/types";
 
-type StepOpts = { autonomy?: HrAutonomyLevel; optional?: boolean; dependsOn?: string[]; requiresApproval?: boolean; emitsSignal?: string };
+type StepOpts = { autonomy?: HrAutonomyLevel; optional?: boolean; dependsOn?: string[]; requiresApproval?: boolean; emitsSignal?: string; input?: Record<string, unknown> };
 
 /** step bound to a CLOSED runtime action (validated against runtime-action-registry). */
 export function rt(key: string, kind: MissionPackStepKind, label: string, actionKey: string, o: StepOpts = {}): HrMissionPackStep {
-  return { key, kind, label, binding: { type: "runtime_action", actionKey }, autonomy: o.autonomy ?? "execute_autonomous", optional: o.optional, dependsOn: o.dependsOn, requiresApproval: o.requiresApproval, emitsSignal: o.emitsSignal };
+  return { key, kind, label, binding: { type: "runtime_action", actionKey, ...(o.input ? { input: o.input } : {}) }, autonomy: o.autonomy ?? "execute_autonomous", optional: o.optional, dependsOn: o.dependsOn, requiresApproval: o.requiresApproval, emitsSignal: o.emitsSignal };
 }
 /** step realized by a governed service (a canon capability). */
 export function svc(key: string, kind: MissionPackStepKind, label: string, capabilityId: string, o: StepOpts = {}): HrMissionPackStep {

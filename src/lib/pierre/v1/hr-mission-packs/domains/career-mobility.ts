@@ -19,7 +19,7 @@ export const CAREER_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["career.internal_mobility", "career.geographic_mobility", "career.succession_transition"], subjectTypes: ["employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("assess", "validate", "Assess the mobility request", "mission.noop", { dependsOn: ["validate"] }),
+      rt("assess", "collect", "Assess the mobility request (workforce context)", "analytics.compute", { dependsOn: ["validate"], input: { metric: "workforce_planning" } }),
       human("mobility_decision", "Manager/HR mobility decision", "hr_manager", { dependsOn: ["assess"] }),
       svc("feed_amendment", "mutate_record", "Feed contract amendment (site/role)", "contract.create_amendment", { dependsOn: ["mobility_decision"] }),
       ...closeSkeleton("feed_amendment"),

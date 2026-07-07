@@ -64,22 +64,25 @@ export async function readMissionV1(v1: V1Ctx, missionId: string): Promise<{ exi
   return { exists: true, status: (r.body?.status as string) ?? undefined };
 }
 
-/** Annule une mission puis RE-LIT le statut (doit être cancelled/terminal). */
+/** Annule une mission. Le 2xx de V1 (autorité de sa propre machine à états) EST le succès ;
+ *  la re-lecture est CONFIRMATOIRE (enrichit le résultat avec le statut courant, best-effort). */
 export async function cancelMissionV1(v1: V1Ctx, missionId: string): Promise<V1EffectResult> {
   const r = await v1Fetch(v1, `/api/pierre/v1/missions/${encodeURIComponent(missionId)}/cancel`, "POST", {});
   if (!r.ok) return { ok: false, terminal: isTerminalStatus(r.status), error: `mission_cancel_${r.status}` };
-  const read = await readMissionV1(v1, missionId);
+  const read = await readMissionV1(v1, missionId); // confirmatoire (statut courant), pas un gate
   return { ok: true, targetRef: missionId, result: { missionId, status: read.status } };
 }
 
 const DECISION_PATH = { approve: "approve", reject: "reject", request_changes: "request-changes" } as const;
 
-/** Décide une validation (V1 version-checkée + idempotente) puis RE-LIT son statut. */
+/** Décide une validation. V1 est version-checké + idempotent : son 2xx EST le succès autoritatif.
+ *  La re-lecture (via la mission) est CONFIRMATOIRE — elle enrichit le résultat avec le statut
+ *  courant quand un missionId est connu, sans être un gate (statut potentiellement asynchrone). */
 export async function decideValidationV1(v1: V1Ctx, missionId: string | null, validationId: string, decision: "approve" | "reject" | "request_changes", version: number): Promise<V1EffectResult> {
   const seg = DECISION_PATH[decision];
   const r = await v1Fetch(v1, `/api/pierre/v1/validations/${encodeURIComponent(validationId)}/${seg}`, "POST", { version });
   if (!r.ok) return { ok: false, terminal: isTerminalStatus(r.status), error: `validation_decide_${r.status}` };
-  // RE-READ : le statut de la validation doit refléter la décision (via la mission).
+  // Re-lecture confirmatoire (best-effort) du statut courant.
   let status: string | undefined;
   if (missionId) {
     const list = await v1Fetch(v1, `/api/pierre/v1/missions/${encodeURIComponent(missionId)}/validations`, "GET");
