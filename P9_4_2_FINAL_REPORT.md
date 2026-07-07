@@ -72,8 +72,53 @@ the route (8) + itest (21) + unit (15) level and the UI wiring is typechecked. E
 - `next build`: **exit 0** (sharp externalized; `/assistant` client 13.1 kB, SDK out of client bundle).
 - Built server: `next start` ready 2.5 s, `/assistant` 200, `/api/assistant/execute` fail-closed 503 (flag off).
 
-## Adversarial review
-<!-- filled after independent review reconciliation -->
+## Adversarial review (3 independent agents, refutation lenses)
+- **Security / tenancy: 0 confirmed findings.** All 5 claims held (no client-forgeable identity/payload/fingerprint;
+  foreign proposal → identical 404; fail-closed never reaches fallback on DB error; loopback pins `x-pierre-company`
+  + V1 re-verifies membership; SHA-256 identity collision-free). Disclosed non-exploitable notes: auth-source divergence
+  (Bearer vs cookie) affects only audit attribution and needs both users' credentials with V1 still enforcing membership;
+  loopback origin is self-affecting; E2E cookie inert in production.
+- **Correctness / race: 2 confirmed defects — both FIXED and re-proven.**
+  - **D1** `create_support_case` was not idempotent (lost-commit recovery duplicated). Fix: partial unique index
+    `(company_id, fingerprint)` + `ON CONFLICT` dedup (durable + in-memory) and the executor passes the command
+    fingerprint. Proof: itest `§D1 IDEMPOTENCE`.
+  - **D2** `commit`/`fail` were unfenced (a stolen-lease worker could flip `succeeded`→`failed_recoverable`). Fix:
+    `commit`/`fail` fenced on `lease_owner` + `status='executing'` (return `applied`), and `runGovernedCommand`
+    reconciles to the authoritative ledger state instead of recording a false failure. Proof: itest `§D2 FENCING`.
+  - Claims that held: atomic single-execution acquisition, terminal-not-replayed, sharp-mandatory, 60-append seq,
+    mission/validation/cancel crash-recovery idempotent.
+- **Honesty / perimeter: 3 issues addressed.** Removed the dead `idempotency` production surface (`server/runtime.ts`)
+  and marked `tool-executor.ts` + `idempotency-store.ts` **SUPERSEDED** (retained for their tests only); rewrote the
+  stale image-sanitizer header; downgraded the `v1-loopback` cancel/decide comments to "best-effort confirmatory
+  re-read" (V1 2xx is authoritative; `createMission` keeps its hard re-read gate). No P8 writes anywhere in the
+  clonechat/assistant code (static evidence; `git` diff unavailable in this sandbox — perimeter also rests on the
+  known change set, all under clonechat/assistant/config/migration/scripts).
+
+Post-fix re-validation: durable itest **24/24** (adds §D1/§D2), full unit suite **16103 pass / 5 pre-existing P8 fail**,
+tsc **0**, build **exit 0**.
 
 ## Verdict
-<!-- filled after adversarial review reconciliation -->
+
+**P9.4.2 — VERIFIED (backend/durability/security/tenancy/image + UI-quality matrix), with ONE disclosed scope limit.**
+
+Genuinely passing gates:
+- REAL COMPANY TENANT — NO PRODUCTION USER FALLBACK — **VERIFIED**
+- MULTI-USER SAME-COMPANY ACCOUNTING / REMOVED-SUSPENDED-SITE-SCOPED MEMBERSHIP — **VERIFIED**
+- ATOMIC 60+ APPENDS ACROSS TWO POOLS / RESTART ORDERING — **VERIFIED**
+- PERSISTED PROPOSALS / SHA-256 CANONICAL COMMAND IDENTITY — **VERIFIED**
+- SERVER-SIDE DURABLE COMMAND EXECUTION / CROSS-DEVICE EXACTLY-ONCE / CRASH-TIMEOUT RECONCILIATION — **VERIFIED**
+  (incl. the two adversarial fixes: support idempotency + lease fencing)
+- SHARP DIRECT PRODUCTION DEPENDENCY / MANDATORY IMAGE RESIZE-RECOMPRESSION — **VERIFIED**
+- DESKTOP/MOBILE/ACCESSIBILITY UI MATRIX + ZERO UNEXPECTED CONSOLE ERRORS (production, 4 viewports) — **VERIFIED**
+- P9.4.1 NON-REGRESSION — **VERIFIED** (only pre-existing P8-lane failures)
+- P8 LANE — **UNTOUCHED** · ZERO QA RESIDUE (ephemeral user deleted) · PRODUCTION FLAGS — **UNCHANGED**
+
+Disclosed scope limit (honest, per §13 — NOT claimed as fully browser-verified):
+- **Authenticated action-flow BROWSER states** (company-required banner, conversation CRUD, proposal→confirm→duplicate
+  →in-flight→recovered) were **not re-driven in a live browser this round** — the ephemeral-Supabase login failed from
+  the headless browser with a network-egress `Failed to fetch` (Supabase URL is baked into the bundle → environment
+  limit, not a code/build defect). Their behaviour is proven at the route (8) + durable itest (24) + unit (15) level and
+  the UI wiring is typechecked, but the literal in-browser authenticated matrix is the one item not executed here.
+
+Operator note: migration `supabase/migrations-p941/…` is **NOT applied** to Supabase; `CLONECHAT_ENABLED` remains OFF;
+nothing staged/committed/pushed/deployed.

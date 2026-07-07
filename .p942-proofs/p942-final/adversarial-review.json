@@ -1,0 +1,29 @@
+{
+  "runId": "p942-final",
+  "reviewers": 3,
+  "method": "3 independent adversarial agents (distinct lenses), each instructed to REFUTE the claims",
+  "security_tenancy": {
+    "confirmedFindings": 0,
+    "claimsHeld": ["client cannot forge company/actor/payload/fingerprint (execute route reads only proposalId)", "foreign/nonexistent proposal → identical 404, scoped company AND user + RLS", "fail-closed resolution: DB outage → COMPANY_UNAVAILABLE, never reaches u:<id> fallback", "loopback pins x-pierre-company (does not copy client header) + V1 re-verifies membership", "SHA-256 identity collision-free incl company+actor"],
+    "disclosedObservations": [
+      "auth-source divergence (CloneChat prefers Bearer, V1 uses cookie) — only affects audit attribution and requires holding BOTH users' credentials; V1 still enforces membership on the pinned company → no tenant crossing (defense-in-depth note, not a defect)",
+      "loopback origin from req.url (proxy Host trust) — self-affecting only",
+      "E2E identity cookie inert in production (gated by PIERRE_E2E_TEST_MODE + NODE_ENV!=production)"
+    ]
+  },
+  "correctness_race": {
+    "confirmedDefects": 2,
+    "D1_support_not_idempotent": { "status": "FIXED", "fix": "partial unique index (company_id, fingerprint) + ON CONFLICT dedup in durable + in-memory stores; executor passes command fingerprint as case fingerprint", "proof": "itest §D1 IDEMPOTENCE (same fingerprint → same case id; no-fingerprint manual cases stay distinct)" },
+    "D2_commit_fail_unfenced": { "status": "FIXED", "fix": "commit/fail now fenced on lease_owner + status='executing' (return applied:boolean); runGovernedCommand reconciles to authoritative ledger state when fenced out (never a false failure on a real success)", "proof": "itest §D2 FENCING (ghost worker cannot flip succeeded→failed; double-commit no-op)" },
+    "claimsHeld": ["atomic single-execution acquisition (ON CONFLICT WHERE)", "terminal not replayed", "sharp mandatory in production", "60 concurrent appends across two pools → 1..N no gap/dup", "mission/validation/cancel crash-recovery idempotent"]
+  },
+  "honesty_perimeter": {
+    "confirmedIssues": 3,
+    "dead_code_cluster": { "status": "ADDRESSED", "action": "removed dead `idempotency` from CloneChatStores production surface (server/runtime.ts); marked tool-executor.ts + idempotency-store.ts SUPERSEDED in headers (retained for their tests only); FINAL_REPORT states command-ledger is THE live mechanism" },
+    "stale_image_header": { "status": "FIXED", "action": "image-sanitizer.ts header rewritten to describe the mandatory sharp pixel transform (no longer says 'resize not done here')" },
+    "v1_loopback_reread_comments": { "status": "FIXED", "action": "cancel/decide comments downgraded to 'best-effort confirmatory re-read'; V1 2xx is the authoritative success (createMission keeps its hard re-read gate on exists)" },
+    "clean": ["client holds no payload / calls no /api/pierre/v1 directly (confirms by proposalId only)", "no direct writes to pierre_rt_* from clonechat (all V1 effects via loopback to V1's public API)", "migration: no pierre_v prefix, in company-GUC RLS foreach", "no TODO/simulated-as-real effects"],
+    "perimeter_caveat": "git binary permission-blocked in this sandbox (cannot diff); P8-untouched claim rests on static evidence (no P8 writes anywhere in clonechat/assistant) + the known change set (all edits under clonechat/assistant/config/migration/scripts)"
+  },
+  "netOutcome": "0 security findings; 2 correctness defects FIXED + re-proven (itest 24/24); 3 honesty issues addressed. All confirmed defects closed."
+}

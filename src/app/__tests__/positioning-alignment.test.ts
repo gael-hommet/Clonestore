@@ -166,3 +166,81 @@ describe("pitch — section manifeste « C'est quoi CloneStore ? » sur /compren
     for (const re of FORBIDDEN) expect(pitch).not.toMatch(re);
   });
 });
+
+describe("positionnement — Pierre = employé IA autonome sous gouvernance (pas un assistant validé partout)", () => {
+  const raw = read(REFERENCE);
+  const src = norm(raw);
+  const CLAIMS_SRC = read(CLAIMS);
+
+  it("expose une section Autonomie et une section Modèles d'organisation", () => {
+    expect(raw).toContain('id="autonomie"');
+    expect(raw).toContain('id="modeles"');
+  });
+
+  it("présente les trois modes d'autonomie : brouillon, validation, autonome", () => {
+    expect(raw).toContain('t: "Brouillon"');
+    expect(raw).toContain('t: "Validation"');
+    expect(raw).toContain('t: "Autonome"');
+    expect(src).toContain(norm("brouillon, validation ou autonomie encadrée"));
+  });
+
+  it("affirme que Pierre exécute réellement le travail RH opérationnel autorisé", () => {
+    expect(src).toContain(norm("exécute réellement le travail RH opérationnel autorisé"));
+  });
+
+  it("explique que l'humain ne valide pas tout (validation ciblée sur le sensible)", () => {
+    expect(src).toContain(norm("L'humain ne valide pas tout"));
+    expect(src).toMatch(/sensible[^.]{0,60}(engageant|ambigu|hors périmètre)/i);
+  });
+
+  it("ne présente PAS Pierre comme assistant/préparateur seulement", () => {
+    for (const weak of [
+      "assiste seulement",
+      "prépare seulement",
+      "ne fait rien à la place",
+      "il ne fait rien à votre place",
+      "Pierre prépare et vous sollicite",
+      "l'humain doit valider toutes les actions",
+      "l'humain valide toutes les actions",
+    ]) {
+      expect(src, `ne doit pas contenir « ${weak} »`).not.toContain(norm(weak));
+    }
+  });
+
+  it("mentionne les messageries, documents, workflows, signatures et outils connectés", () => {
+    for (const term of ["messageries", "documents", "workflows", "signatures", "outils connectés"]) {
+      expect(src, `terme ${term}`).toContain(norm(term));
+    }
+    expect(src).toContain(norm("circuits de signature encadrés"));
+    expect(src).toContain(norm("il ne signe jamais à la place d'un humain"));
+  });
+
+  it("explique les trois modèles d'organisation", () => {
+    expect(raw).toContain('t: "Équipe IA seule"');
+    expect(raw).toContain('t: "Équipe hybride"');
+    expect(raw).toContain('t: "RH humain augmenté"');
+  });
+
+  it("le statement de limite reste légalement sûr (mentionne avocat, ne survend pas)", () => {
+    // getPierreLegalLimitStatement, rendu sur la page + FAQ.
+    expect(CLAIMS_SRC).toMatch(/getPierreLegalLimitStatement[\s\S]{0,700}avocat/);
+    expect(CLAIMS_SRC).not.toMatch(/getPierreLegalLimitStatement[\s\S]{0,700}(juridiquement autonome|garantit la conformité)/);
+  });
+
+  it("ne contient aucune revendication substring interdite (isPierreClaimSafe)", () => {
+    for (const forbidden of [
+      "Pierre remplace votre service juridique",
+      "Pierre garantit la conformité légale de vos documents RH",
+      "Pierre remplace votre logiciel de paie",
+      "Pierre prend les décisions RH à votre place",
+      "Pierre garantit zéro erreur",
+      "Pierre envoie automatiquement vos communications RH",
+      "Pierre remplace un expert-comptable",
+      "Pierre peut licencier un salarié automatiquement",
+      "Pierre est juridiquement autonome",
+      "Pierre soumet votre DSN",
+    ]) {
+      expect(raw, `revendication interdite: ${forbidden}`).not.toContain(forbidden);
+    }
+  });
+});

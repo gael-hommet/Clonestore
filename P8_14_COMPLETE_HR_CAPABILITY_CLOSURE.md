@@ -194,3 +194,19 @@ Proof: `.p814-proofs/p814closure-7ab059cc60/capability-closure-baseline.json`
 | LEGAL_CONTENT_REQUIRED | 1 | terminal |
 
 **OPEN (MISSING+PARTIAL+CONTRACT_ONLY+IMPLEMENTED_UNVERIFIED) = 0.** Integrity: closed-without-evidence=0, governed-without-compiling-pack=0, legal-mislabelled=0, external-mislabelled=0. Product-recert ok=true.
+
+---
+
+## Closed canon (product recertification) — proof `.p814-proofs/p814recert-dce56974c7/`
+
+| Closed status | Count | Terminal? |
+|---|---:|---|
+| IMPLEMENTED_GOVERNED | 89 | terminal |
+| VERIFIED_EXISTING | 77 | terminal |
+| IMPLEMENTED_LEGAL_BLOCKED | 28 | terminal |
+| HUMAN_ONLY | 9 | terminal |
+| IMPLEMENTED_EXTERNAL_GOVERNED | 6 | terminal |
+| EXTERNAL_DEPENDENCY | 5 | terminal |
+| LEGAL_CONTENT_REQUIRED | 1 | terminal |
+
+**OPEN (MISSING+PARTIAL+CONTRACT_ONLY+IMPLEMENTED_UNVERIFIED) = 0.** Integrity: closed-without-evidence=0, governed-without-compiling-pack=0, legal-mislabelled=0, external-mislabelled=0. Product-recert ok=true.

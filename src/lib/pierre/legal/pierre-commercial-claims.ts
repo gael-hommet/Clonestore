@@ -215,5 +215,5 @@ export function getPierrePositioningStatement(): string {
 }
 
 export function getPierreLegalLimitStatement(): string {
-  return "Pierre n'est pas un avocat, juriste, expert-comptable, logiciel de paie certifié, ni un service de conseil légal. Il prépare et assiste — il ne décide pas seul, ne garantit pas la conformité, et ne signe pas à la place de l'humain.";
+  return "Pierre exécute un périmètre opérationnel RH sous gouvernance : il comprend, organise, prépare, suit, relance et trace le travail de bout en bout. Ce qu'il ne fait jamais seul : décider une mesure officielle (licenciement, sanction), certifier la conformité légale, ou signer un acte officiel à la place de l'humain — ces actes restent sous responsabilité humaine. Pierre n'est ni avocat, ni juriste, ni expert-comptable, ni logiciel de paie certifié.";
 }

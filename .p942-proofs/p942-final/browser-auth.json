@@ -1,0 +1,97 @@
+{
+  "runId": "p942authdbd06c58",
+  "userId": "ba88fbe3-acbf-4a51-a195-fb389c91e5f2",
+  "email": "p942-e2e-p942authdbd06c58@example.invalid",
+  "sessionMinted": true,
+  "cookieNames": [
+    "sb-zdoigpfkyhilpzcsrdmc-auth-token"
+  ],
+  "viewports": {
+    "auth-1280": {
+      "size": "1280x800",
+      "authenticated": true,
+      "serverAuthValidated": true,
+      "composerState": {
+        "textarea": false,
+        "textareaDisabled": null,
+        "sendButton": false,
+        "sendDisabled": null
+      },
+      "apiProbe": {
+        "chatStatus": 200,
+        "chatSource": "company_required",
+        "conversationsStatus": 200,
+        "conversationsSource": "company_required"
+      },
+      "chatRequestCount": 1,
+      "chatSource": "company_required",
+      "companyRequired": true,
+      "noFakeCompany": true,
+      "effectfulButtons": 0,
+      "clientExecuteCalls": 0,
+      "noHorizontalOverflow": true,
+      "keyboardFocusInteractive": true,
+      "unnamedControls": 0,
+      "consoleErrors": [],
+      "pass": true
+    },
+    "auth-mobile-390": {
+      "size": "390x844",
+      "authenticated": true,
+      "serverAuthValidated": true,
+      "composerState": {
+        "textarea": false,
+        "textareaDisabled": null,
+        "sendButton": false,
+        "sendDisabled": null
+      },
+      "apiProbe": {
+        "chatStatus": 200,
+        "chatSource": "company_required",
+        "conversationsStatus": 200,
+        "conversationsSource": "company_required"
+      },
+      "chatRequestCount": 1,
+      "chatSource": "company_required",
+      "companyRequired": true,
+      "noFakeCompany": true,
+      "effectfulButtons": 0,
+      "clientExecuteCalls": 0,
+      "noHorizontalOverflow": true,
+      "keyboardFocusInteractive": true,
+      "unnamedControls": 0,
+      "consoleErrors": [],
+      "pass": true
+    },
+    "auth-narrow-360": {
+      "size": "360x740",
+      "authenticated": true,
+      "serverAuthValidated": true,
+      "composerState": {
+        "textarea": false,
+        "textareaDisabled": null,
+        "sendButton": false,
+        "sendDisabled": null
+      },
+      "apiProbe": {
+        "chatStatus": 200,
+        "chatSource": "company_required",
+        "conversationsStatus": 200,
+        "conversationsSource": "company_required"
+      },
+      "chatRequestCount": 1,
+      "chatSource": "company_required",
+      "companyRequired": true,
+      "noFakeCompany": true,
+      "effectfulButtons": 0,
+      "clientExecuteCalls": 0,
+      "noHorizontalOverflow": true,
+      "keyboardFocusInteractive": true,
+      "unnamedControls": 0,
+      "consoleErrors": [],
+      "pass": true
+    }
+  },
+  "verdict": "BROWSER_AUTH_FAILCLOSED_OK",
+  "cleanup": "DELETED — ZERO RESIDUE"
+}

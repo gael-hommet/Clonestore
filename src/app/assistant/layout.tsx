@@ -3,6 +3,11 @@ import { MessageSquareMore } from "lucide-react";
 import AccessLockScreen from "@/components/site/AccessLockScreen";
 import { isCloneChatEnabled } from "@/lib/features/product-availability";
 
+// Le drapeau `CLONECHAT_ENABLED` est un flag d'environnement de RUNTIME : ce layout doit être
+// rendu à la demande (jamais figé au build), sinon l'état du drapeau serait gelé au moment du
+// build et la « réactivation par une seule variable d'env » documentée serait sans effet.
+export const dynamic = "force-dynamic";
+
 // Blocage RÉEL de CloneChat côté serveur.
 //
 // La PAGE CloneChat (src/app/assistant/page.tsx) reste strictement intacte —

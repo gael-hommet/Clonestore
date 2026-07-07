@@ -4,15 +4,15 @@
      · optimizePackageImports
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 49s
+ ✓ Compiled successfully in 52s
    Skipping linting
    Checking validity of types ...
    Collecting page data ...
-   Generating static pages (0/192) ...
-   Generating static pages (48/192) 
-   Generating static pages (96/192) 
-   Generating static pages (144/192) 
- ✓ Generating static pages (192/192)
+   Generating static pages (0/191) ...
+   Generating static pages (47/191) 
+   Generating static pages (95/191) 
+   Generating static pages (143/191) 
+ ✓ Generating static pages (191/191)
    Finalizing page optimization ...
    Collecting build traces ...
 
@@ -333,7 +333,7 @@ Route (app)                                                           Size  Firs
 ├ ƒ /api/webhooks/pierre/communications                              816 B         103 kB
 ├ ƒ /api/webhooks/pierre/signature                                   816 B         103 kB
 ├ ƒ /api/webhooks/stripe                                             816 B         103 kB
-├ ○ /assistant                                                     13.1 kB         216 kB
+├ ƒ /assistant                                                     13.1 kB         216 kB
 ├ ○ /checkout                                                      7.14 kB         173 kB
 ├ ● /clonestore/[slug]                                               221 B         106 kB
 ├   ├ /clonestore/vision

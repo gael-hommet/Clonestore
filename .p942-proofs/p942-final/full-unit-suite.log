@@ -1,13 +1,13 @@
 
 [1m[46m RUN [49m[22m [36mv4.1.0 [39m[90mC:/Users/homme/clonestore[39m
 
- [31m❯[39m src/lib/pierre/__tests__/premium-document-system.test.ts [2m([22m[2m150 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 213[2mms[22m[39m
-[31m     [31m×[31m detects absence from various keywords[39m[32m 50[2mms[22m[39m
-[31m     [31m×[31m detects performance[39m[32m 4[2mms[22m[39m
-[31m     [31m×[31m detects offboarding from departure keywords[39m[32m 2[2mms[22m[39m
+ [31m❯[39m src/lib/pierre/__tests__/premium-document-system.test.ts [2m([22m[2m150 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 186[2mms[22m[39m
+[31m     [31m×[31m detects absence from various keywords[39m[32m 23[2mms[22m[39m
+[31m     [31m×[31m detects performance[39m[32m 23[2mms[22m[39m
+[31m     [31m×[31m detects offboarding from departure keywords[39m[32m 4[2mms[22m[39m
 [31m     [31m×[31m detects employee_summary[39m[32m 2[2mms[22m[39m
- [31m❯[39m src/lib/pierre/v1/__tests__/fair-claim.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 11512[2mms[22m[39m
-[31m     [31m×[31m reproduces the defect: global claimJobs lets a noisy tenant monopolize; fairClaimRound serves everyone[39m[33m 11340[2mms[22m[39m
+ [31m❯[39m src/lib/pierre/v1/__tests__/fair-claim.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 8334[2mms[22m[39m
+[31m     [31m×[31m reproduces the defect: global claimJobs lets a noisy tenant monopolize; fairClaimRound serves everyone[39m[33m 8265[2mms[22m[39m
 
 [31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 5 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
 
@@ -90,7 +90,7 @@ If this is a long-running test, pass a timeout value as the last argument or con
 
 
 [2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m335 passed[39m[22m[90m (337)[39m
-[2m      Tests [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m16091 passed[39m[22m[90m (16096)[39m
-[2m   Start at [22m 12:09:00
-[2m   Duration [22m 94.27s[2m (transform 64.74s, setup 0ms, import 120.03s, tests 223.94s, environment 168ms)[22m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m16103 passed[39m[22m[90m (16108)[39m
+[2m   Start at [22m 12:52:12
+[2m   Duration [22m 87.25s[2m (transform 59.53s, setup 0ms, import 115.49s, tests 210.05s, environment 144ms)[22m
 

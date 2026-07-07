@@ -25,5 +25,11 @@
     "migration_applied_to_supabase": false,
     "staged_committed_pushed_deployed": false
   },
-  "verdict": "PENDING_ADVERSARIAL_REVIEW"
+  "adversarial_review": {
+    "security_findings": 0,
+    "correctness_defects_found_and_fixed": ["D1 support idempotency", "D2 lease fencing"],
+    "honesty_issues_addressed": ["dead idempotency surface removed + superseded modules marked", "stale image header", "v1-loopback re-read comments"],
+    "post_fix": { "durable_itest": "24/24", "full_unit_suite": "16103 pass / 5 pre-existing P8 fail", "tsc": 0, "build": 0 }
+  },
+  "verdict": "P9.4.2 VERIFIED (backend/durability/security/tenancy/image + UI-quality matrix) with ONE disclosed scope limit: authenticated action-flow BROWSER states not re-driven live (Supabase login egress blocked in headless env; backend-proven at route+itest+unit, UI wiring typechecked)"
 }

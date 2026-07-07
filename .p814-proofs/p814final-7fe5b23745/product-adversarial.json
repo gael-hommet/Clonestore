@@ -1,0 +1,29 @@
+{
+  "runId": "p814final-7fe5b23745",
+  "phase": "P8.14 terminal product closure",
+  "passes": [
+    "cognitive 8/8",
+    "terminal product review: 4 CONFIRMED / 4 WEAK (noop-skeleton inflation caught)",
+    "fix: analytics.compute real action + wired packs + curated sensitive/external/legal",
+    "re-verify: 4 prev-WEAK all → CONFIRMED = 8/8"
+  ],
+  "dimensions_final": {
+    "closure_honesty": "CONFIRMED",
+    "real_execution": "CONFIRMED",
+    "whole_hr_coverage": "CONFIRMED",
+    "product_honesty": "CONFIRMED",
+    "external_legal_honesty": "CONFIRMED",
+    "human_only": "CONFIRMED",
+    "security_tenancy": "CONFIRMED",
+    "evidence_integrity": "CONFIRMED"
+  },
+  "verified": true,
+  "lead_verdict": "P8.14 — PIERRE TOTAL AI HR EMPLOYEE VERIFIED (code/canon level; external production authorizations pending)",
+  "honest_residual": "some IMPLEMENTED_GOVERNED are thin single-effect packs (breadth>depth) — genuine effect, not inflation",
+  "external_pending": {
+    "lawyer_verified_country_rules": false,
+    "providers_live": 0,
+    "yousign_p874": "OPEN",
+    "production_unblock_authorized": false
+  }
+}

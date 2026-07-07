@@ -30,9 +30,9 @@ const MISSION_STEPS = [
   { n: "02", t: "Compréhension", d: "L'employé IA lit la demande et en extrait les objectifs, les personnes et les échéances, sans rien inventer." },
   { n: "03", t: "Contexte", d: "Il relit l'Empreinte Entreprise : vos règles, vos modèles, vos validateurs, vos habitudes." },
   { n: "04", t: "Organisation", d: "La demande devient des missions, des tâches, des dépendances et des échéances." },
-  { n: "05", t: "Exécution", d: "Il produit les documents, prépare les communications et fait avancer plusieurs missions en parallèle." },
+  { n: "05", t: "Exécution", d: "Il exécute les actions opérationnelles autorisées — relances, suivis, mises à jour de dossiers, notifications — produit les documents et fait avancer plusieurs missions en parallèle." },
   { n: "06", t: "Information manquante", d: "S'il manque une donnée, il la signale et bloque la tâche concernée — il ne comble jamais le trou seul." },
-  { n: "07", t: "Validation humaine", d: "Sur une action sensible, il s'arrête et vous sollicite : rien de sensible ne part sans votre accord." },
+  { n: "07", t: "Validation humaine", d: "L'humain ne valide pas tout : Pierre s'arrête et sollicite un accord uniquement sur le sensible, l'engageant ou l'ambigu." },
   { n: "08", t: "Continuité", d: "La mission reste active dans le temps : il attend, reprend, relance et suit jusqu'à la clôture." },
   { n: "09", t: "Traçabilité", d: "Chaque action, source, document, décision et validation reste visible et vérifiable." },
 ];
@@ -47,40 +47,70 @@ const TECHS = [
 
 const HR_TODAY = [
   "Réception et compréhension de demandes RH en langage naturel",
+  "Relances, rappels et mises à jour de dossiers exécutés en autonomie encadrée",
   "Onboarding : préparation de l'arrivée, checklists, communications",
   "Recrutement opérationnel : offres, grilles, invitations, relances, comparatifs",
-  "Documents RH : courriers, avenants, notes, comptes rendus (brouillons à valider)",
+  "Documents RH : courriers, avenants, notes, comptes rendus",
   "Dossiers salariés : rassemblement, contrôle, signalement des pièces manquantes",
   "Absences et suivi administratif récurrent",
-  "Communications internes et relances programmées",
+  "Communications autorisées et circuits de signature encadrés",
   "Continuité : reprise des missions, gestion des échéances, suivi jusqu'à la clôture",
-  "Traçabilité complète des actions et des validations",
+  "Traçabilité complète de chaque action et de chaque validation",
 ];
 
 const HUMAN_VALIDATES = [
-  "Décisions et arbitrages RH",
+  "Décision légale, exécution de la paie, décision de licenciement ou de sanction, signature d'un acte officiel",
   "Sujets disciplinaires, juridiques et contractuels sensibles",
-  "Envoi réel d'une communication ou déclenchement d'une signature",
-  "Toute action marquée sensible par les règles de l'entreprise",
+  "Envoi d'une communication sensible ou action engageante",
+  "Toute action marquée sensible ou ambiguë par les règles de l'entreprise",
+];
+
+// Modes d'autonomie configurables (ancrés sur les enums réels du moteur :
+// draft / normal / high_autonomy / enterprise_autonomous — src/lib/pierre/v1/autonomy.ts).
+const AUTONOMY_MODES = [
+  { t: "Brouillon", tag: "Contrôle maximal", d: "Pierre prépare le travail — documents, messages, actions — mais n'envoie et n'exécute rien seul. Idéal pour les premières semaines, les décisions sensibles ou un contrôle fort." },
+  { t: "Validation", tag: "Par défaut", d: "Pierre fait avancer la mission et prépare les actions, puis demande une validation avant certaines étapes : communication externe, signature, modification de dossier, action engageante." },
+  { t: "Autonome", tag: "Capacité maximale", d: "Pierre exécute directement, sans interruption humaine, les actions internes autorisées — relances, suivis, mises à jour de dossiers, notifications, tâches récurrentes. Les envois externes suivent les intégrations et la configuration activées ; les exceptions sensibles remontent toujours à l'humain." },
+];
+
+// Trois modèles d'organisation possibles.
+const ORG_MODELS = [
+  { t: "Équipe IA seule", d: "Un dirigeant ou une direction garde les décisions sensibles, et Pierre prend en charge l'opérationnel RH quotidien." },
+  { t: "Équipe hybride", d: "Pierre absorbe l'exécution, les relances, les documents, les suivis et les workflows, pendant que les humains gardent la relation, le management, les arbitrages et les cas complexes." },
+  { t: "RH humain augmenté", d: "Pierre travaille avec le service RH existant pour multiplier sa capacité, réduire les délais, supprimer les oublis et industrialiser la continuité." },
+];
+
+// Ce que Pierre peut faire dans les outils connectés lorsque son périmètre l'y autorise.
+const TOOLS_ACTIONS = [
+  "Préparer les messages et — selon les intégrations et la configuration activées — envoyer les communications autorisées (les envois sensibles passent par une validation)",
+  "Suivre les conversations entrantes et les rattacher au bon dossier ou à la bonne mission",
+  "Relancer et planifier les relances aux bonnes échéances",
+  "Mettre à jour les dossiers et faire avancer plusieurs missions en parallèle",
+  "Préparer les documents et les faire circuler dans un workflow gouverné",
+  "Préparer, suivre — et déclencher selon les règles et l'autorisation — un circuit de signature encadré",
+  "Conserver la trace de chaque action, décision et validation",
 ];
 
 const GOVERNANCE = [
+  { t: "Autonomie encadrée", d: "Chaque action est classée avant d'agir : exécutée, préparée, soumise à validation ou refusée. Autonomie ne veut pas dire absence de contrôle — elle veut dire exécution dans un cadre défini par l'entreprise." },
   { t: "Permissions", d: "L'employé IA n'accède qu'à ce qui est nécessaire, autorisé et pertinent pour la mission." },
-  { t: "Validation humaine", d: "Les actions sensibles sont préparées puis soumises à la bonne personne avant exécution." },
+  { t: "Validation ciblée", d: "L'humain ne valide pas tout : la validation ne se déclenche que sur le sensible, l'engageant, l'ambigu ou le hors-périmètre." },
   { t: "Refus", d: "Les demandes hors périmètre ou contraires aux règles sont bloquées, avec une alternative proposée." },
   { t: "Isolation", d: "Chaque organisation dispose de son propre environnement, de ses propres règles et de ses propres données." },
-  { t: "Traçabilité", d: "Chaque étape reste visible et retrouvable : rien n'avance sans laisser de trace." },
+  { t: "Traçabilité", d: "Chaque action, validée ou non, reste visible et retrouvable : rien n'avance sans laisser de trace." },
 ];
 
 const FAQ = [
   { q: "CloneStore, c'est un logiciel de plus ?", a: "Non. Un logiciel équipe votre équipe pour faire le travail. CloneStore fournit un employé IA qui prend en charge un périmètre de travail, sous vos règles et votre contrôle." },
-  { q: "Quelle différence avec ChatGPT ou un assistant IA ?", a: "Un assistant produit une réponse puis s'arrête ; l'humain doit ensuite tout exécuter. Un employé IA reçoit un objectif, organise une mission, la fait avancer, attend, relance, fait valider et garde la trace jusqu'au résultat." },
+  { q: "Quelle différence avec ChatGPT ou un assistant IA ?", a: "Un assistant produit une réponse puis s'arrête ; l'humain doit ensuite tout exécuter. Un employé IA reçoit un objectif, organise une mission, exécute le travail autorisé, attend, relance, fait valider ce qui est sensible et garde la trace jusqu'au résultat." },
   { q: "Et un agent IA ?", a: "Un agent IA exécute une action. CloneStore lui apporte le contexte de l'entreprise, la continuité, les règles, la gouvernance et la traçabilité nécessaires pour devenir un employé IA responsable d'un périmètre." },
-  { q: "Pierre remplace-t-il mon équipe RH ?", a: "Non. Pierre absorbe le travail opérationnel confié ; votre équipe garde les décisions, la relation humaine et les situations sensibles. Dans de nombreuses organisations, un employé IA peut absorber un volume de travail qui mobiliserait autrement plusieurs collaborateurs." },
-  { q: "Pierre peut-il agir tout seul ?", a: "Uniquement sur les actions autorisées par vos règles et permissions. Les actions sensibles sont préparées puis soumises à une validation humaine ; les actions interdites sont bloquées." },
-  { q: "Comment Pierre connaît-il mon entreprise ?", a: "Grâce à l'Empreinte Entreprise : vos règles, vos modèles, vos validateurs, votre ton et vos habitudes. Son environnement se personnalise en quelques jours, puis chaque mission et chaque correction améliorent sa précision." },
+  { q: "Pierre remplace-t-il mon équipe RH ?", a: "Pierre peut prendre en charge une grande partie du périmètre RH opérationnel, et devenir dans certaines organisations l'équipe RH IA principale. Il traite les demandes, les documents, les relances, les suivis, les dossiers, les communications, les workflows, les circuits de signature encadrés et la traçabilité. L'entreprise choisit son modèle : IA seule, hybride, ou RH humain augmenté. Les humains gardent les décisions sensibles, la relation, les arbitrages et la responsabilité." },
+  { q: "Pierre peut-il agir tout seul ?", a: "Oui, lorsque les actions sont autorisées par les règles, les permissions, les intégrations et le niveau d'autonomie choisis. Pierre fonctionne en mode brouillon, validation ou autonome. En mode autonome, il exécute directement les tâches autorisées et ne sollicite l'humain que pour les actions sensibles, ambiguës, interdites ou hors périmètre. L'humain ne valide pas tout — seulement ce que l'entreprise définit comme sensible, engageant ou hors périmètre." },
+  { q: "Pierre peut-il envoyer des messages ou gérer des signatures ?", a: "Oui, si les intégrations et les permissions sont configurées. Pierre peut agir dans les messageries, les documents, les workflows, les signatures et les outils connectés lorsque son périmètre l'y autorise. Les signatures et actions engageantes peuvent être préparées, suivies ou exécutées selon les règles configurées : brouillon, validation humaine ou autonomie autorisée. Il gère des circuits de signature encadrés — avec permissions, traçabilité et validation humaine quand l'action est sensible ; il ne signe jamais à la place d'un humain." },
+  { q: "Et si mon RH connaît déjà très bien l'entreprise ?", a: "Pierre apprend l'entreprise par l'Empreinte Entreprise : règles, modèles, équipes, circuits, validations, historiques, habitudes et exceptions. Dès les premières missions, il est utile. Après quelques semaines, il devient profondément adapté. Avec le temps, il devient une mémoire opérationnelle RH extrêmement difficile à égaler, parce qu'il conserve tout ce qui est fait, validé, corrigé et décidé — pour cette entreprise uniquement." },
+  { q: "Comment Pierre connaît-il mon entreprise ?", a: "Grâce à l'Empreinte Entreprise : vos règles, vos modèles, vos validateurs, votre ton et vos habitudes. Son environnement se personnalise en quelques jours, puis chaque mission et chaque correction approuvée améliorent sa précision, pour cette entreprise uniquement." },
   { q: "Combien coûte Pierre ?", a: `${EMPLOYEE_PRICE}. Le tarif fondateur est conservé tant que l'abonnement reste actif. Aucun paiement ne se déclenche tant que vous ne créez pas votre compte.` },
-  { q: "Pourquoi est-ce économiquement intéressant ?", a: "L'écart de coût avec une équipe humaine équivalente ne vient pas seulement du tarif : il vient du volume traité, de la vitesse, de la continuité, de la conservation du contexte et du travail en parallèle. CloneStore donne accès à une capacité proche de celle d'un service, pour une fraction de son coût structurel." },
+  { q: "Pourquoi est-ce économiquement intéressant ?", a: `Dans de nombreuses organisations, Pierre peut absorber un volume de travail RH qui mobiliserait autrement plusieurs collaborateurs. Pour ${EMPLOYEE_PRICE}, l'entreprise obtient une capacité RH opérationnelle continue, rapide, traçable et configurable. L'écart de coût ne vient pas seulement du prix : il vient de la vitesse, du travail en parallèle, de la continuité, de l'absence d'oubli et de la disponibilité.` },
   { q: "Devons-nous remplacer nos outils ?", a: "Non. Pierre peut s'intégrer progressivement à votre environnement. Les connexions disponibles sont présentées selon leur état réel." },
   { q: "Quelles sont les limites ?", a: getPierreLegalLimitStatement() },
   { q: "S'adapte-t-il à ma taille d'entreprise ?", a: "Oui. La compétence reste la même ; le périmètre, le volume, les règles et le niveau d'autonomie s'adaptent, de la petite entreprise au groupe multisite." },
@@ -306,6 +336,52 @@ export default function ComprendreCloneStorePage() {
             </div>
           </Section>
 
+          {/* Autonomie */}
+          <Section id="autonomie" eyebrow="L'autonomie" title="Brouillon, validation, ou autonomie encadrée — vous choisissez">
+            <p className="text-[0.98rem] leading-8 text-[var(--cs-ink-2)]">
+              Pierre exécute réellement le travail RH opérationnel autorisé. Son autonomie est configurable :
+              brouillon, validation ou autonomie encadrée, selon les actions, les outils et le niveau de confiance
+              choisi. Autonomie ne veut pas dire absence de contrôle — elle veut dire exécution dans un cadre défini
+              par l&apos;entreprise.
+            </p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {AUTONOMY_MODES.map((m) => (
+                <div key={m.t} className="cs-panel px-5 py-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold text-[var(--cs-ink-1)]">{m.t}</p>
+                    <span className="text-[0.6rem] font-bold uppercase tracking-[0.1em] text-[var(--cs-violet)]">{m.tag}</span>
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--cs-ink-3)]">{m.d}</p>
+                </div>
+              ))}
+            </div>
+            <div className="cs-panel mt-4 border-l-2 border-[var(--cs-violet)] px-5 py-4">
+              <p className="text-sm leading-relaxed text-[var(--cs-ink-2)]">
+                <strong>Les exceptions sensibles restent humaines.</strong> Même en mode autonome, Pierre remonte à
+                l&apos;humain ce qui est sensible, engageant, ambigu ou hors périmètre. Quatre catégories restent
+                toujours humaines et ne sont jamais exécutées seules : décision légale, exécution de la paie, décision
+                de licenciement ou de sanction, et signature d&apos;un contrat à la place d&apos;un humain.
+              </p>
+            </div>
+          </Section>
+
+          {/* Modèles d'organisation */}
+          <Section id="modeles" eyebrow="Modèles d'organisation" title="IA seule, hybride, ou RH humain augmenté">
+            <p className="text-[0.98rem] leading-8 text-[var(--cs-ink-2)]">
+              L&apos;entreprise choisit son modèle. Pierre peut fonctionner comme une équipe RH IA complète, ou comme
+              le cœur opérationnel d&apos;une équipe hybride — jusqu&apos;à devenir le cœur opérationnel RH de
+              l&apos;entreprise.
+            </p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {ORG_MODELS.map((m) => (
+                <div key={m.t} className="cs-panel px-5 py-4">
+                  <p className="font-semibold text-[var(--cs-ink-1)]">{m.t}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-[var(--cs-ink-3)]">{m.d}</p>
+                </div>
+              ))}
+            </div>
+          </Section>
+
           {/* Empreinte */}
           <Section id="empreinte" eyebrow="Le contexte" title="L'Empreinte Entreprise">
             <div className="cs-panel px-6 py-6">
@@ -341,6 +417,10 @@ export default function ComprendreCloneStorePage() {
           {/* Pierre */}
           <Section id="pierre" eyebrow="L'employé IA ouvert aujourd'hui" title={`Pierre — ${PIERRE_PUBLIC.role}`}>
             <p className="text-[0.98rem] leading-8 text-[var(--cs-ink-2)]">{PIERRE_PUBLIC.tagline}</p>
+            <p className="mt-2 text-[0.98rem] font-semibold leading-8 text-[var(--cs-ink-1)]">
+              Pierre exécute réellement le travail RH opérationnel autorisé — pas seulement des brouillons, pas
+              seulement des propositions.
+            </p>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <div className="cs-panel px-5 py-4">
                 <p className="cs-eyebrow">Ce que Pierre prend en charge aujourd&apos;hui</p>
@@ -349,15 +429,39 @@ export default function ComprendreCloneStorePage() {
                 </ul>
               </div>
               <div className="cs-panel px-5 py-4">
-                <p className="cs-eyebrow">Ce qui exige une validation humaine</p>
+                <p className="cs-eyebrow">Ce qui reste toujours humain</p>
                 <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-[var(--cs-ink-2)]">
                   {HUMAN_VALIDATES.map((x) => <li key={x}>{x}</li>)}
                 </ul>
                 <p className="mt-3 text-xs text-[var(--cs-ink-4)]">
-                  Pierre prépare et vous sollicite exactement quand un arbitrage reste nécessaire. Il ne décide pas seul
-                  sur le sensible.
+                  Pierre exécute directement les actions opérationnelles autorisées ; il ne sollicite l&apos;humain que
+                  pour ces cas — pas pour tout.
                 </p>
               </div>
+            </div>
+
+            {/* Outils connectés & signatures */}
+            <div className="cs-panel mt-3 px-5 py-4">
+              <p className="cs-eyebrow">Messageries, documents, workflows, signatures &amp; outils connectés</p>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--cs-ink-2)]">
+                Pierre peut agir dans les messageries, les documents, les workflows, les signatures et les outils
+                connectés lorsque son périmètre l&apos;y autorise.
+              </p>
+              <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
+                {TOOLS_ACTIONS.map((x) => (
+                  <li key={x} className="flex items-start gap-2 text-sm text-[var(--cs-ink-2)]">
+                    <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--cs-violet)]" />
+                    {x}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs leading-relaxed text-[var(--cs-ink-4)]">
+                Les signatures et actions engageantes peuvent être préparées, suivies — et, lorsqu&apos;un prestataire
+                de signature est raccordé et activé, exécutées — selon les règles configurées : brouillon, validation
+                humaine ou autonomie autorisée. Pierre gère des circuits de signature encadrés — avec permissions,
+                traçabilité et validation humaine quand l&apos;action est sensible ; il ne signe jamais à la place
+                d&apos;un humain.
+              </p>
             </div>
           </Section>
 
