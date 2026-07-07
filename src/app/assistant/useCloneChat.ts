@@ -185,6 +185,17 @@ export function useCloneChat() {
         push(msg("assistant", visionBlocks(data.analysis, data.knownBug), "company"));
         return;
       }
+      // P9.4.2 r2 §1 — Entreprise requise (fail-closed) : le serveur refuse SANS entreprise réelle
+      // (aucune fausse entreprise). On rend un état CLAIR « rattachez-vous à une entreprise » plutôt
+      // qu'un repli générique. Aucune action à effet n'est proposée dans cet état.
+      if (res.ok && data?.source === "company_required") {
+        const message = typeof data.message === "string" ? data.message : "Vous n'êtes rattaché à aucune entreprise active.";
+        push(msg("assistant", [
+          { type: "text", text: message },
+          { type: "boundary", provenance: "company", text: "Connectez-vous à votre entreprise pour que Pierre agisse en votre nom." },
+        ], "company"));
+        return;
+      }
       if (!res.ok || !data?.structured) {
         const r = runCloneChatTurn(t, ctx);
         push(msg("assistant", [...r.blocks], r.provenance));

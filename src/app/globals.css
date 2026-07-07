@@ -5826,3 +5826,109 @@ html[data-clone-appearance="graphite"] .cs-app-drawer-panel {
     padding: 22px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   OPTIMISATION GRANDS ÉCRANS (≥1600px) — layout scaling uniquement.
+   But : mieux occuper la toile sur 1680 / 1728 / 1920 sans changer le design
+   (palette, composants, effets, animations inchangés). PUREMENT ADDITIF :
+   n'affecte QUE les très grands viewports, aucune régression laptop/tablette/
+   mobile. En dessous de 1600px (dont 1536 / 1540) le layout d'origine (1480px)
+   est conservé : à ces largeurs les gouttières sont déjà minces, rien à gagner.
+
+   Principe : on élargit la zone utile via `min(cap, 100vw - marge)` afin de
+   VERROUILLER une gouttière confortable (jamais plein-cadre) — le rail fixe garde
+   toujours sa voie et ne chevauche pas le contenu. La hero se rééquilibre, le
+   texte / la légende remplissent la largeur ; le visuel orbital garde sa
+   géométrie interne (600–640px, cartes flottantes intactes) et gagne seulement de
+   la respiration. La largeur du shell est portée par des variables (--cs-shell-w /
+   --cs-header-w) pour que le rail suive exactement la même gouttière que le shell.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 1600px) {
+  :root {
+    --cs-shell-w: min(1560px, calc(100vw - 96px));
+    --cs-header-w: min(1620px, calc(100vw - 24px));
+  }
+  .cs-shell,
+  .cs-page-shell {
+    width: var(--cs-shell-w);
+  }
+  .cs-header .cs-shell {
+    width: var(--cs-header-w);
+  }
+  /* le rail latéral fixe suit la gouttière exacte du shell élargi (même variable),
+     donc il conserve sa voie et son adjacence d'origine au bord du contenu */
+  .clone-home-rail-wrap {
+    left: max(18px, calc((100vw - var(--cs-shell-w)) / 2 + 18px));
+  }
+  /* hero : le visuel gagne un peu de place et respire, le texte remplit ;
+     le padding interne reste ≥ à l'origine (jamais réduit) et la colonne de
+     texte reçoit un léger retrait gauche pour dégager franchement le rail fixe */
+  .clone-hero-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(520px, 1.02fr);
+    gap: clamp(56px, 5vw, 104px);
+  }
+  .clone-hero-shell {
+    padding: clamp(56px, 3.6vw, 66px);
+  }
+  .clone-hero-copy {
+    padding-left: clamp(12px, 1.3vw, 24px);
+  }
+  .clone-hero-title {
+    max-width: 900px;
+  }
+  .clone-hero-text {
+    max-width: 800px;
+  }
+  .clone-tech-legend {
+    max-width: 560px;
+  }
+  .clone-metrics-grid {
+    gap: 16px;
+  }
+  .clone-metric-card {
+    padding: 19px 22px;
+  }
+}
+
+@media (min-width: 1680px) {
+  :root {
+    --cs-shell-w: min(1620px, calc(100vw - 96px));
+    --cs-header-w: min(1680px, calc(100vw - 24px));
+  }
+  .clone-hero-title {
+    max-width: 960px;
+  }
+  .clone-hero-text {
+    max-width: 840px;
+  }
+  .clone-tech-legend {
+    max-width: 580px;
+  }
+}
+
+@media (min-width: 1728px) {
+  :root {
+    --cs-shell-w: min(1680px, calc(100vw - 100px));
+    --cs-header-w: min(1760px, calc(100vw - 24px));
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --cs-shell-w: min(1780px, calc(100vw - 120px));
+    --cs-header-w: min(1860px, calc(100vw - 24px));
+  }
+  .clone-hero-grid {
+    gap: clamp(72px, 5vw, 128px);
+  }
+  .clone-hero-title {
+    max-width: 1040px;
+  }
+  .clone-hero-text {
+    max-width: 900px;
+  }
+  .clone-tech-legend {
+    max-width: 620px;
+  }
+}

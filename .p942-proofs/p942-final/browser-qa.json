@@ -7,10 +7,11 @@
       "noHorizontalOverflow": true,
       "longContentNoOverflow": true,
       "composer": {
-        "found": false
+        "visible": true,
+        "width": 1296
       },
       "a11y": {
-        "interactiveControls": 29,
+        "interactiveControls": 34,
         "unnamedControls": 0,
         "unnamedSamples": []
       },
@@ -29,10 +30,11 @@
       "noHorizontalOverflow": true,
       "longContentNoOverflow": true,
       "composer": {
-        "found": false
+        "visible": true,
+        "width": 1136
       },
       "a11y": {
-        "interactiveControls": 29,
+        "interactiveControls": 34,
         "unnamedControls": 0,
         "unnamedSamples": []
       },
@@ -51,10 +53,11 @@
       "noHorizontalOverflow": true,
       "longContentNoOverflow": true,
       "composer": {
-        "found": false
+        "visible": true,
+        "width": 266
       },
       "a11y": {
-        "interactiveControls": 29,
+        "interactiveControls": 34,
         "unnamedControls": 0,
         "unnamedSamples": []
       },
@@ -73,10 +76,11 @@
       "noHorizontalOverflow": true,
       "longContentNoOverflow": true,
       "composer": {
-        "found": false
+        "visible": true,
+        "width": 236
       },
       "a11y": {
-        "interactiveControls": 29,
+        "interactiveControls": 34,
         "unnamedControls": 0,
         "unnamedSamples": []
       },

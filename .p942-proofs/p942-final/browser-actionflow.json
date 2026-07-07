@@ -1,0 +1,34 @@
+{
+  "runId": "p942flow6df8b58e",
+  "userId": "eea85864-5249-45f6-b3ad-092b27e2e4d0",
+  "email": "p942-flow-p942flow6df8b58e@example.invalid",
+  "steps": {
+    "composerState": {
+      "textarea": false,
+      "disabled": null,
+      "sendBtn": false,
+      "sendDisabled": null
+    },
+    "tourDismissed": false,
+    "proposal": {
+      "chatStatus": 404,
+      "chatSource": null,
+      "serverPersistedProposalId": null,
+      "proposalKind": null,
+      "confirmButtonRendered": false
+    },
+    "confirm": {
+      "executeAcceptsProposalId": null,
+      "exec1Kind": null,
+      "exec1Status": null,
+      "injectionIgnored": false,
+      "injectedResponseKind": null,
+      "injectedStatus": null,
+      "uiConfirmClicked": false,
+      "uiExecuteSendsOnlyProposalId": null
+    }
+  },
+  "verdict": "BROWSER_ACTIONFLOW_CHECK",
+  "consoleErrors": [],
+  "cleanup": "DELETED — ZERO RESIDUE"
+}

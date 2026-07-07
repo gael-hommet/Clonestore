@@ -1,7 +1,7 @@
 {
-  "runId": "p942authdbd06c58",
-  "userId": "ba88fbe3-acbf-4a51-a195-fb389c91e5f2",
-  "email": "p942-e2e-p942authdbd06c58@example.invalid",
+  "runId": "p942auth3947adb2",
+  "userId": "6ecd93e8-99e7-4ed1-9ae7-8f6db019ec9e",
+  "email": "p942-e2e-p942auth3947adb2@example.invalid",
   "sessionMinted": true,
   "cookieNames": [
     "sb-zdoigpfkyhilpzcsrdmc-auth-token"
@@ -12,10 +12,10 @@
       "authenticated": true,
       "serverAuthValidated": true,
       "composerState": {
-        "textarea": false,
-        "textareaDisabled": null,
-        "sendButton": false,
-        "sendDisabled": null
+        "textarea": true,
+        "textareaDisabled": false,
+        "sendButton": true,
+        "sendDisabled": true
       },
       "apiProbe": {
         "chatStatus": 200,
@@ -40,10 +40,10 @@
       "authenticated": true,
       "serverAuthValidated": true,
       "composerState": {
-        "textarea": false,
-        "textareaDisabled": null,
-        "sendButton": false,
-        "sendDisabled": null
+        "textarea": true,
+        "textareaDisabled": false,
+        "sendButton": true,
+        "sendDisabled": true
       },
       "apiProbe": {
         "chatStatus": 200,
@@ -51,7 +51,7 @@
         "conversationsStatus": 200,
         "conversationsSource": "company_required"
       },
-      "chatRequestCount": 1,
+      "chatRequestCount": 2,
       "chatSource": "company_required",
       "companyRequired": true,
       "noFakeCompany": true,
@@ -68,10 +68,10 @@
       "authenticated": true,
       "serverAuthValidated": true,
       "composerState": {
-        "textarea": false,
-        "textareaDisabled": null,
-        "sendButton": false,
-        "sendDisabled": null
+        "textarea": true,
+        "textareaDisabled": false,
+        "sendButton": true,
+        "sendDisabled": true
       },
       "apiProbe": {
         "chatStatus": 200,
@@ -79,7 +79,7 @@
         "conversationsStatus": 200,
         "conversationsSource": "company_required"
       },
-      "chatRequestCount": 1,
+      "chatRequestCount": 2,
       "chatSource": "company_required",
       "companyRequired": true,
       "noFakeCompany": true,
