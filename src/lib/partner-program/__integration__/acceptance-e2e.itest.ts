@@ -139,23 +139,21 @@ describe("RECETTE E2E — Cabinets Fondateurs (Test Mode)", () => {
     expect(res.status).toBe(200);
     expect((await res.json()).ok).toBe(true);
     const row = await withService(h.db, (tx) => tx.query<{ id: string; status: string }>(`select id, status from clonestore_pp_applications where email_normalized='lea@cabinet-alpha.fr'`));
-    expect(row.rows[0].status).toBe("received");
+    expect(row.rows[0].status).toBe("auto_approved"); // admission AUTOMATIQUE
   });
 
-  it("Étape 2 — acceptation via la vraie route admin (gate + raison + code une fois)", async () => {
-    const app = await withService(h.db, (tx) => tx.query<{ id: string }>(`select id from clonestore_pp_applications where email_normalized='lea@cabinet-alpha.fr'`));
-    const { POST } = await import("@/app/api/partners/admin/action/route");
-    const res = await POST(new Request("http://localhost/api/partners/admin/action", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "accept_application", id: app.rows[0].id, reason: "dossier complet, cabinet vérifié" }) }));
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.ok).toBe(true);
-    expect(body.referralCode).toMatch(/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/); // code fort, montré une fois
-    partnerId = body.partnerId; publicSlug = body.publicSlug; referralCode = body.referralCode;
+  it("Étape 2 — AUCUNE acceptation admin : le partenaire est déjà provisionné", async () => {
+    const { getShareableCode } = await import("../server/partners");
+    const row = await withService(h.db, (tx) => tx.query<{ id: string; public_slug: string }>(`select id, public_slug from clonestore_pp_partners where email_normalized='lea@cabinet-alpha.fr'`));
+    expect(row.rows).toHaveLength(1); // créé automatiquement, sans aucun clic admin
+    const code = await withService(h.db, (tx) => getShareableCode(tx, row.rows[0].id));
+    expect(code?.code).toMatch(/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/);
+    partnerId = row.rows[0].id; publicSlug = row.rows[0].public_slug; referralCode = code?.code ?? "";
   });
 
   it("Étape 3 — le partenaire est créé correctement (contract_pending, paramètres 20 %)", async () => {
     const p = await withService(h.db, (tx) => tx.query<{ status: string; commission_rate_bps: number; reserve_days: number; payout_threshold_minor: number; public_slug: string }>(`select status, commission_rate_bps, reserve_days, payout_threshold_minor, public_slug from clonestore_pp_partners where id=$1`, [partnerId]));
-    expect(p.rows[0].status).toBe("contract_pending");
+    expect(p.rows[0].status).toBe("onboarding_pending");
     expect(p.rows[0].commission_rate_bps).toBe(2000); // 20 %
     expect(p.rows[0].payout_threshold_minor).toBe(10000);
     expect(p.rows[0].public_slug).toBe(publicSlug);
@@ -172,7 +170,7 @@ describe("RECETTE E2E — Cabinets Fondateurs (Test Mode)", () => {
     const { acceptContract } = await import("../server/partners");
     await withService(h.db, (tx) => acceptContract(tx, partnerId, "v1"));
     const p = await withService(h.db, (tx) => tx.query<{ status: string; contract_accepted_at: string | null }>(`select status, contract_accepted_at from clonestore_pp_partners where id=$1`, [partnerId]));
-    expect(p.rows[0].status).toBe("stripe_pending");
+    expect(p.rows[0].status).toBe("onboarding_pending"); // Stripe pas encore terminé
     expect(p.rows[0].contract_accepted_at).toBeTruthy();
   });
 
@@ -180,16 +178,17 @@ describe("RECETTE E2E — Cabinets Fondateurs (Test Mode)", () => {
     await withService(h.db, (tx) => tx.query(`update clonestore_pp_partners set account_user_id=$2 where id=$1`, [partnerId, PARTNER_ACCOUNT]));
     H.session.userId = PARTNER_ACCOUNT; H.session.email = "lea@cabinet-alpha.fr";
     const { GET } = await import("@/app/api/partners/me/route");
-    const res = await GET();
+    const res = await GET(new Request("http://localhost/api/partners/me"));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.partner.displayName).toBe("Cabinet Fondateur Alpha");
-    expect(body.link).toContain(`partner=${publicSlug}`);
-    expect(body.codeHint.last4).toHaveLength(4); // seul l'indice, jamais le code
+    expect(body.link).toContain(`/partenaires/r/${publicSlug}`); // URL publique propre
+    expect(body.code.hint).toHaveLength(4);
+    expect(body.code.retrievable).toBe(true); // code RE-PARTAGEABLE
     expect(body.overview.balances.availableMinor).toBe(0);
   });
 
-  it("Étape 6 — onboarding Connect (route réelle) + account.updated webhook + activation admin réelle", async () => {
+  it("Étape 6 — onboarding Connect + account.updated → ACTIVATION AUTOMATIQUE (aucun admin)", async () => {
     const { POST } = await import("@/app/api/partners/connect/onboard/route");
     const res = await POST();
     expect(res.status).toBe(200);
@@ -200,12 +199,10 @@ describe("RECETTE E2E — Cabinets Fondateurs (Test Mode)", () => {
     const p = await withService(h.db, (tx) => tx.query<{ stripe_onboarding_status: string; payouts_enabled: boolean }>(`select stripe_onboarding_status, payouts_enabled from clonestore_pp_partners where id=$1`, [partnerId]));
     expect(p.rows[0].stripe_onboarding_status).toBe("complete");
     expect(p.rows[0].payouts_enabled).toBe(true);
-    // Activation FINANCIÈRE via la vraie route admin (fail-closed : exige contrat + onboarding complet).
-    const act = await import("@/app/api/partners/admin/action/route");
-    const actRes = await act.POST(new Request("http://localhost/api/partners/admin/action", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "activate_partner", id: partnerId, reason: "onboarding Stripe complet, cabinet prêt" }) }));
-    expect(actRes.status).toBe(200);
-    const p2 = await withService(h.db, (tx) => tx.query<{ status: string }>(`select status from clonestore_pp_partners where id=$1`, [partnerId]));
+    // ACTIVATION AUTOMATIQUE : aucun appel admin. L'événement account.updated a suffi.
+    const p2 = await withService(h.db, (tx) => tx.query<{ status: string; activation_mode: string }>(`select status, activation_mode from clonestore_pp_partners where id=$1`, [partnerId]));
     expect(p2.rows[0].status).toBe("active");
+    expect(p2.rows[0].activation_mode).toBe("automatic");
   });
 
   it("Étapes 7-8 — entreprise apportée : clic (touch serveur + cookie) puis attribution au signup", async () => {
@@ -279,7 +276,7 @@ describe("RECETTE E2E — Cabinets Fondateurs (Test Mode)", () => {
   it("Étape 12 — la commission apparaît dans l'espace partenaire (statut « en réserve »)", async () => {
     H.session.userId = PARTNER_ACCOUNT; H.session.email = "lea@cabinet-alpha.fr";
     const { GET } = await import("@/app/api/partners/me/route");
-    const body = await (await GET()).json();
+    const body = await (await GET(new Request("http://localhost/api/partners/me"))).json();
     expect(body.commissions).toHaveLength(1);
     expect(body.commissions[0].commissionMinor).toBe(8_980);
     expect(body.overview.balances.pendingReserveMinor).toBe(8_980); // en réserve, PAS annoncée acquise
@@ -332,32 +329,33 @@ describe("RECETTE E2E — Cabinets Fondateurs (Test Mode)", () => {
     // job, on abaisse le seuil et on vérifie l'éligibilité sur la base disponible réelle.
     // La commission nette (4490) < seuil défaut (10000) et est encore en réserve → on prouve le
     // comportement CORRECT : rien à verser ce mois-ci.
-    const deps: PayoutDeps = { createTransfer: async () => { throw new Error("Stripe interdit en dry-run"); }, stripeIsLive: () => false, productionAuthorized: () => false };
+    const deps: PayoutDeps = { createTransfer: async () => { throw new Error("Stripe interdit en dry-run"); }, findTransfer: async () => { throw new Error("Stripe interdit en dry-run"); }, stripeIsLive: () => false, productionAuthorized: () => false, stripeMode: () => "test" };
     const now = new Date();
     const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 15));
     const run1 = await runMonthlyPayouts(h.db, deps, { now: nextMonth, dryRunOverride: true });
-    expect(run1.runId).toBeTruthy(); // batch immuable créé
-    const mine = run1.perPartner.find((x) => x.partnerId === partnerId);
-    expect(mine?.status).toBe("skipped"); // réserve non écoulée / sous seuil → pas de versement (correct)
+    expect(run1.dryRun).toBe(true);
+    expect(run1.runId).toBeNull(); // une simulation ne prend AUCUN verrou de période
+    const line = run1.preview?.lines.find((l) => l.partnerId === partnerId);
+    expect(line?.outcome).toBe("excluded"); // réserve non écoulée / sous seuil → rien à verser (correct)
 
-    // Second lancement même période → verrou : jamais de double.
+    // Rejouable : le dry-run n'écrit rien, donc rien ne se « consomme ».
     const run2 = await runMonthlyPayouts(h.db, deps, { now: nextMonth, dryRunOverride: true });
-    expect(run2.skipped).toBe("already_running_or_done");
+    expect(run2.skipped).toBeUndefined();
     const runs = await withService(h.db, (tx) => tx.query<{ n: number }>(`select count(*)::int n from clonestore_pp_payout_runs`));
-    expect(runs.rows[0].n).toBe(1); // un seul batch pour la période
+    expect(runs.rows[0].n).toBe(0); // AUCUN lot créé par une prévisualisation
   });
 
-  it("Étape 20bis — payout dry-run avec commission MATURE → lot payé, second run sans double", async () => {
+  it("Étape 20bis — commission MATURE : dry-run sans mutation, PUIS transfert réel unique", async () => {
     // Nouveau cabinet dédié, réserve 0 + seuil bas, pour prouver le versement effectif du lot.
-    const { createApplication, acceptApplication } = await import("../server/applications");
+    const { createApplication } = await import("../server/applications");
     const { attachAttributionAtSignup } = await import("../server/attribution");
     const { applyPartnerCommercialEvent } = await import("../server/commission");
     const subj = "00000000-0000-4000-8000-0000000000f2";
     const pid = await withService(h.db, async (tx) => {
       const app = await createApplication(tx, { cabinetName: "Cabinet Payout", firstName: "P", lastName: "Q", email: "payout@cab-p.fr", country: "FR", cabinetType: "expertise_comptable", consentContact: true, consentPrivacy: true });
       if (!app.ok) throw new Error("app");
-      const acc = await acceptApplication(tx, app.applicationId, "admin", "ok");
-      if (!acc.ok) throw new Error("acc");
+      if (app.duplicate || app.admitted !== "auto") throw new Error("auto-provisioning attendu");
+      const acc = { partnerId: app.partnerId };
       await tx.query(`update clonestore_pp_partners set status='active', contract_accepted_at=now(), stripe_connected_account_id='acct_payout', stripe_onboarding_status='complete', payouts_enabled=true, activated_at=now(), reserve_days=0, payout_threshold_minor=5000 where id=$1`, [acc.partnerId]);
       const t = await tx.query<{ touch_key: string }>(`insert into clonestore_pp_referral_touches (partner_id, source, expires_at) values ($1,'link', now()+interval '90 days') returning touch_key`, [acc.partnerId]);
       await attachAttributionAtSignup(tx, { subjectUserId: subj, subjectEmail: "c2@soc2.fr", touchKey: t.rows[0].touch_key });
@@ -365,28 +363,52 @@ describe("RECETTE E2E — Cabinets Fondateurs (Test Mode)", () => {
     });
     await withService(h.db, (tx) => applyPartnerCommercialEvent(tx, { eventId: "evt_inv_payout", type: "invoice.paid", livemode: false, eventCreated: 1, subscriptionId: "sub_payout", customerId: "cus_payout", subjectUserId: subj, invoiceId: "in_payout", paymentIntentId: "pi_payout", totalMinor: 53_880, taxMinor: 8_980, totalExcludingTaxMinor: 44_900, amountPaidMinor: 53_880, currency: "eur" }));
 
-    const deps: PayoutDeps = { createTransfer: async () => { throw new Error("dry-run: pas de transfert Stripe"); }, stripeIsLive: () => false, productionAuthorized: () => false };
     const now = new Date();
     const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 2, 15)); // période distincte
-    const run = await runMonthlyPayouts(h.db, deps, { now: nextMonth, dryRunOverride: true });
-    const mine = run.perPartner.find((x) => x.partnerId === pid);
-    expect(mine?.status).toBe("dry_run");
+
+    // 1) DRY-RUN : prévisualise le versement, sans jamais toucher à l'argent.
+    const dryDeps: PayoutDeps = {
+      createTransfer: async () => { throw new Error("Stripe interdit en dry-run"); },
+      findTransfer: async () => { throw new Error("Stripe interdit en dry-run"); },
+      stripeIsLive: () => false, productionAuthorized: () => false, stripeMode: () => "test",
+    };
+    const dry = await runMonthlyPayouts(h.db, dryDeps, { now: nextMonth, dryRunOverride: true });
+    expect(dry.preview?.lines.find((l) => l.partnerId === pid)?.amountMinor).toBe(8_980);
+    const stillAvailable = await withService(h.db, (tx) => tx.query<{ s: string }>(`select coalesce(sum(commission_minor),0) s from clonestore_pp_commission_entries where partner_id=$1 and status='pending' and available_at <= now()`, [pid]));
+    expect(Number(stillAvailable.rows[0].s)).toBe(8_980); // toujours disponible
+    const notPaid = await withService(h.db, (tx) => tx.query<{ n: number }>(`select count(*)::int n from clonestore_pp_commission_entries where partner_id=$1 and status='paid'`, [pid]));
+    expect(notPaid.rows[0].n).toBe(0); // RIEN n'est payé par une simulation
+
+    // 2) MODE RÉEL (Test Mode) : exactement un transfert, puis les écritures passent à `paid`.
+    const calls: string[] = [];
+    const realDeps: PayoutDeps = {
+      createTransfer: async (i) => { calls.push(i.idempotencyKey); return { id: `tr_${calls.length}` }; },
+      findTransfer: async () => null,
+      stripeIsLive: () => false, productionAuthorized: () => false, stripeMode: () => "test",
+    };
+    const real = await runMonthlyPayouts(h.db, realDeps, { now: nextMonth, dryRunOverride: false });
+    const mine = real.perPartner.find((x) => x.partnerId === pid);
+    expect(mine?.status).toBe("transferred");
     expect(mine?.amountMinor).toBe(8_980);
-    // Écritures marquées payées.
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatch(new RegExp(`^partner-payout:${pid}:\\d{4}-\\d{2}:[0-9a-f]{32}$`));
+
     const paid = await withService(h.db, (tx) => tx.query<{ s: string }>(`select coalesce(sum(commission_minor),0) s from clonestore_pp_commission_entries where partner_id=$1 and status='paid'`, [pid]));
-    expect(Number(paid.rows[0].s)).toBe(8_980);
-    // Second run → aucun double transfert.
-    const run2 = await runMonthlyPayouts(h.db, deps, { now: nextMonth, dryRunOverride: true });
-    expect(run2.skipped).toBe("already_running_or_done");
-    const transfers = await withService(h.db, (tx) => tx.query<{ n: number }>(`select count(*)::int n from clonestore_pp_transfers where partner_id=$1 and status='paid'`, [pid]));
+    expect(Number(paid.rows[0].s)).toBe(8_980); // payées APRÈS confirmation du transfert
+    const transfers = await withService(h.db, (tx) => tx.query<{ n: number; sid: string }>(`select count(*)::int n, min(stripe_transfer_id) sid from clonestore_pp_transfers where partner_id=$1 and status='transferred'`, [pid]));
     expect(transfers.rows[0].n).toBe(1);
+    expect(transfers.rows[0].sid).toBe("tr_1"); // un VRAI identifiant Stripe, jamais 'dry_run'
   });
 
   it("Étape 23 — logs : audit + événements append-only tracés", async () => {
     const audit = await withService(h.db, (tx) => tx.query<{ action: string }>(`select action from clonestore_pp_admin_audit order by occurred_at`));
     const actions = audit.rows.map((r) => r.action);
-    expect(actions).toContain("application.accepted");
+    expect(actions).toContain("application.auto_approved");
+    expect(actions).toContain("partner.activated_automatically");
     expect(actions).toContain("connect.account_updated");
+    // Le parcours nominal ne contient AUCUNE décision humaine d'admission.
+    expect(actions).not.toContain("application.accepted_manually");
+    expect(actions).not.toContain("partner.activated");
     const commEvents = await withService(h.db, (tx) => tx.query<{ type: string }>(`select distinct type from clonestore_pp_commission_events where partner_id=$1`, [partnerId]));
     const types = commEvents.rows.map((r) => r.type);
     expect(types).toContain("commission_recorded");
@@ -400,8 +422,8 @@ describe("RECETTE E2E — Cabinets Fondateurs (Test Mode)", () => {
   it("Étape 24 — emails : outbox alimentée + worker les envoie (mode local)", async () => {
     const kinds = await withService(h.db, (tx) => tx.query<{ kind: string }>(`select distinct kind from clonestore_pp_email_outbox`));
     const set = kinds.rows.map((r) => r.kind);
-    expect(set).toContain("application_received");
-    expect(set).toContain("application_accepted");
+    expect(set).toContain("onboarding_access"); // lien + code envoyés IMMÉDIATEMENT
+    expect(set).toContain("terms_accepted");
     expect(set).toContain("partner_activated");
     expect(set).toContain("commission_recorded");
     const res = await processPartnerEmailOutbox(h.db, withService, 100);
@@ -414,7 +436,7 @@ describe("RECETTE E2E — Cabinets Fondateurs (Test Mode)", () => {
     // Nouveau cabinet non-onboardé → action requise « compléter Stripe ».
     H.session.userId = PARTNER_ACCOUNT; H.session.email = "lea@cabinet-alpha.fr";
     const { GET } = await import("@/app/api/partners/me/route");
-    const body = await (await GET()).json();
+    const body = await (await GET(new Request("http://localhost/api/partners/me"))).json();
     expect(Array.isArray(body.actionsRequired)).toBe(true);
     // Ce cabinet est complet → aucune action Stripe requise.
     expect(body.actionsRequired).not.toContain("complete_stripe_onboarding");
@@ -431,7 +453,7 @@ describe("RECETTE E2E — Cabinets Fondateurs (Test Mode)", () => {
     // Un utilisateur sans cabinet ne voit rien.
     H.session.userId = "00000000-0000-4000-8000-00000000dead"; H.session.email = "nobody@x.fr";
     const { GET } = await import("@/app/api/partners/me/route");
-    const res = await GET();
+    const res = await GET(new Request("http://localhost/api/partners/me"));
     expect(res.status).toBe(404);
     expect((await res.json()).code).toBe("NOT_A_PARTNER");
   });

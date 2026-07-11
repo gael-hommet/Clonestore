@@ -24,8 +24,9 @@ async function setupActivePartner(): Promise<{ partnerId: string; slug: string; 
       country: "FR", cabinetType: "expertise_comptable", consentContact: true, consentPrivacy: true,
     });
     if (!app.ok) throw new Error("application failed");
-    const accepted = await acceptApplication(tx, app.applicationId, "admin@clonestore", "dossier complet");
-    if (!accepted.ok) throw new Error("accept failed");
+    // La candidature PROVISIONNE désormais le partenaire automatiquement (aucun admin).
+    if (app.duplicate || app.admitted !== "auto") throw new Error("auto-provisioning attendu");
+    const accepted = { partnerId: app.partnerId, publicSlug: app.publicSlug };
     const partnerId = accepted.partnerId;
     // Simule contrat + onboarding Connect complet + activation.
     await tx.query(
@@ -115,37 +116,53 @@ describe("flux commission de bout en bout", () => {
     expect(after.pendingReserveMinor).toBe(8_980);
   });
 
-  it("versement dry-run : lot créé, écritures marquées payées, PAS de double", async () => {
+  it("versement dry-run : PRÉVISUALISATION PURE — zéro mutation, rejouable à l'infini", async () => {
     // Réserve 0 → la commission est immédiatement disponible (available_at est immuable
     // par conception : on ne la mute jamais, on crée le cabinet avec la bonne réserve).
     const { partnerId } = await freshPartnerWithInvoice(0);
-    // Seuil abaissé pour ce cabinet : 1 mois (89,80 €) dépasse alors le minimum de versement
-    // (le défaut de 100 € exigerait 2 mois — comportement réaliste prouvé par le test précédent).
     await withService(h.db, (tx) => tx.query(`update clonestore_pp_partners set payout_threshold_minor=5000 where id=$1`, [partnerId]));
 
     const deps: PayoutDeps = {
-      createTransfer: async () => { throw new Error("Stripe ne doit pas être appelé en dry-run"); },
+      createTransfer: async () => { throw new Error("Stripe ne doit JAMAIS être appelé en dry-run"); },
+      findTransfer: async () => { throw new Error("Stripe ne doit JAMAIS être interrogé en dry-run"); },
       stripeIsLive: () => false,
       productionAuthorized: () => false,
+      stripeMode: () => "test",
     };
     const now = new Date();
     const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 15));
 
     const run1 = await runMonthlyPayouts(h.db, deps, { now: nextMonth, dryRunOverride: true });
-    const mine = run1.perPartner.find((x) => x.partnerId === partnerId);
-    expect(mine?.status).toBe("dry_run");
-    expect(mine?.amountMinor).toBe(8_980);
+    expect(run1.dryRun).toBe(true);
+    expect(run1.transfersCreated).toBe(0); // aucun transfert : c'est une prévisualisation
+    const line = run1.preview?.lines.find((l) => l.partnerId === partnerId);
+    expect(line?.outcome).toBe("included");
+    expect(line?.amountMinor).toBe(8_980); // ce QUI SERAIT versé
 
-    // Écritures marquées payées.
+    // AUCUNE mutation financière : la commission reste disponible, rien n'est payé.
     const bal = await withService(h.db, (tx) => getPartnerBalances(tx, partnerId));
-    expect(bal.paidMinor).toBe(8_980);
-    expect(bal.availableMinor).toBe(0);
+    expect(bal.availableMinor).toBe(8_980);
+    expect(bal.paidMinor).toBe(0);
 
-    // Second run même période → aucun double (déjà terminé / rien de payable).
+    // Aucun lot, aucun transfert, aucun run : la simulation n'écrit RIEN.
+    const rows = await withService(h.db, (tx) => tx.query<{ t: number; i: number; r: number }>(
+      `select
+         (select count(*)::int from clonestore_pp_transfers where partner_id=$1) t,
+         (select count(*)::int from clonestore_pp_transfer_items where partner_id=$1) i,
+         (select count(*)::int from clonestore_pp_payout_runs) r`,
+      [partnerId],
+    ));
+    expect(rows.rows[0].t).toBe(0);
+    expect(rows.rows[0].i).toBe(0);
+    expect(rows.rows[0].r).toBe(0); // pas même un verrou de période : le vrai run reste possible
+
+    // Rejouable : un second dry-run donne exactement le même résultat.
     const run2 = await runMonthlyPayouts(h.db, deps, { now: nextMonth, dryRunOverride: true });
-    expect(run2.skipped).toBe("already_running_or_done");
-    const transfers = await withService(h.db, (tx) => tx.query(`select 1 from clonestore_pp_transfers where partner_id=$1 and status='paid'`, [partnerId]));
-    expect(transfers.rows).toHaveLength(1);
+    expect(run2.skipped).toBeUndefined(); // aucun verrou consommé
+    expect(run2.preview?.lines.find((l) => l.partnerId === partnerId)?.amountMinor).toBe(8_980);
+    const bal2 = await withService(h.db, (tx) => getPartnerBalances(tx, partnerId));
+    expect(bal2.availableMinor).toBe(8_980);
+    expect(bal2.paidMinor).toBe(0);
   });
 });
 
@@ -161,8 +178,8 @@ async function freshPartnerWithInvoice(reserveDays?: number): Promise<{ partnerI
   const partnerId = await withService(h.db, async (tx) => {
     const app = await createApplication(tx, { cabinetName: `Cabinet ${seq}`, firstName: "A", lastName: "B", email: `p${seq}@cab-${seq}.fr`, country: "FR", cabinetType: "expertise_comptable", consentContact: true, consentPrivacy: true });
     if (!app.ok) throw new Error("app");
-    const acc = await acceptApplication(tx, app.applicationId, "admin", "ok");
-    if (!acc.ok) throw new Error("acc");
+    if (app.duplicate || app.admitted !== "auto") throw new Error("auto-provisioning attendu");
+    const acc = { partnerId: app.partnerId, publicSlug: app.publicSlug, referralCode: app.referralCode };
     await tx.query(`update clonestore_pp_partners set status='active', contract_accepted_at=now(), stripe_connected_account_id=$2, stripe_onboarding_status='complete', payouts_enabled=true, activated_at=now(), reserve_days=$3 where id=$1`, [acc.partnerId, `acct_${seq}`, reserveDays ?? 30]);
     const t = await tx.query<{ touch_key: string }>(`insert into clonestore_pp_referral_touches (partner_id, source, expires_at) values ($1,'link', now() + interval '90 days') returning touch_key`, [acc.partnerId]);
     await attachAttributionAtSignup(tx, { subjectUserId: subject, subjectEmail: `client${seq}@societe${seq}.fr`, touchKey: t.rows[0].touch_key });

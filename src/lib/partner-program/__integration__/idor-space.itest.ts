@@ -26,8 +26,8 @@ async function seedPartnerWithCommission(tag: string, accountUserId: string, sub
   const partnerId = await withService(h.db, async (tx) => {
     const app = await createApplication(tx, { cabinetName: `Cabinet ${tag}`, firstName: "A", lastName: "B", email: `${tag}@cab-${tag}.fr`, country: "FR", cabinetType: "expertise_comptable", consentContact: true, consentPrivacy: true });
     if (!app.ok) throw new Error("app");
-    const acc = await acceptApplication(tx, app.applicationId, "admin", "ok");
-    if (!acc.ok) throw new Error("acc");
+    if (app.duplicate || app.admitted !== "auto") throw new Error("auto-provisioning attendu");
+    const acc = { partnerId: app.partnerId, publicSlug: app.publicSlug, referralCode: app.referralCode };
     await tx.query(`update clonestore_pp_partners set status='active', account_user_id=$2, reserve_days=0 where id=$1`, [acc.partnerId, accountUserId]);
     const t = await tx.query<{ touch_key: string }>(`insert into clonestore_pp_referral_touches (partner_id, source, expires_at) values ($1,'link', now()+interval '90 days') returning touch_key`, [acc.partnerId]);
     await attachAttributionAtSignup(tx, { subjectUserId: subject, subjectEmail: `c${tag}@soc.fr`, touchKey: t.rows[0].touch_key });
@@ -48,7 +48,7 @@ describe("GET /api/partners/me — isolation par session (anti-IDOR)", () => {
 
     // Session A → seulement les données de A.
     current.userId = userA; current.email = "mine@cab-mine.fr";
-    const resA = await GET();
+    const resA = await GET(new Request("http://localhost/api/partners/me"));
     const bodyA = await resA.json();
     expect(resA.status).toBe(200);
     expect(bodyA.partner.displayName).toBe("Cabinet mine");
@@ -59,7 +59,7 @@ describe("GET /api/partners/me — isolation par session (anti-IDOR)", () => {
 
     // Session B → seulement les données de B.
     current.userId = userB; current.email = "other@cab-other.fr";
-    const resB = await GET();
+    const resB = await GET(new Request("http://localhost/api/partners/me"));
     const bodyB = await resB.json();
     expect(bodyB.partner.displayName).toBe("Cabinet other");
     expect(bodyB.commissions[0].stripeInvoiceId).toBe("in_other");
@@ -69,7 +69,7 @@ describe("GET /api/partners/me — isolation par session (anti-IDOR)", () => {
   it("session d'un utilisateur SANS cabinet → 404 NOT_A_PARTNER (aucune fuite)", async () => {
     const { GET } = await import("@/app/api/partners/me/route");
     current.userId = "00000000-0000-4000-8000-00000000ffff"; current.email = "nobody@example.com";
-    const res = await GET();
+    const res = await GET(new Request("http://localhost/api/partners/me"));
     expect(res.status).toBe(404);
     expect((await res.json()).code).toBe("NOT_A_PARTNER");
   });

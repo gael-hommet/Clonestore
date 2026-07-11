@@ -2,16 +2,20 @@
 // SERVER-ONLY. Mode service pour l'écriture ; la lecture « espace cabinet » passe par withPartner.
 
 import type { SqlExecutor } from "@/lib/pierre/v1/sql";
-import { sha256, generateReferralCode } from "./identity";
+import { sha256, generateReferralCode, encryptCode, decryptCode } from "./identity";
 import { recordAudit } from "./audit";
 import { enqueuePartnerEmailTx } from "./emails";
+import { decideAutoActivation, remainingOnboardingSteps, BLOCKING_RISKS } from "../onboarding-rules";
+import { getBaseUrl } from "@/lib/base-url";
 
 export type PartnerRow = {
   id: string;
   public_slug: string;
   display_name: string;
   email_normalized: string;
-  status: "pending" | "contract_pending" | "stripe_pending" | "active" | "suspended" | "archived";
+  status:
+    | "pending" | "onboarding_pending" | "contract_pending" | "stripe_pending"
+    | "manual_review" | "active" | "suspended" | "archived";
   account_user_id: string | null;
   commission_rate_bps: number;
   attribution_window_days: number;
@@ -62,7 +66,7 @@ export async function resolvePartnerByCode(tx: SqlExecutor, code: string): Promi
   return getPartnerById(tx, rows[0].partner_id);
 }
 
-/** Rotation du code : révoque l'actif, en émet un nouveau (retourné en clair une fois). Audité. */
+/** Rotation du code : révoque l'actif, en émet un nouveau (chiffré + haché). Audité. */
 export async function rotateReferralCode(tx: SqlExecutor, partnerId: string, actor: string, reason: string): Promise<{ code: string }> {
   const cur = await tx.query<{ generation: number }>(
     `select generation from clonestore_pp_partner_codes where partner_id = $1 and status = 'active' order by generation desc limit 1`,
@@ -74,24 +78,115 @@ export async function rotateReferralCode(tx: SqlExecutor, partnerId: string, act
     [partnerId, reason],
   );
   const code = generateReferralCode();
+  const enc = encryptCode(code.code);
   await tx.query(
-    `insert into clonestore_pp_partner_codes (partner_id, code_hash, code_hint, generation, status) values ($1,$2,$3,$4,'active')`,
-    [partnerId, code.hash, code.hint, nextGen],
+    `insert into clonestore_pp_partner_codes (partner_id, code_hash, code_hint, generation, status, code_cipher, code_cipher_iv, code_cipher_tag)
+     values ($1,$2,$3,$4,'active',$5,$6,$7)`,
+    [partnerId, code.hash, code.hint, nextGen, enc?.cipher ?? null, enc?.iv ?? null, enc?.tag ?? null],
   );
   await recordAudit(tx, { actor, action: "partner.code_rotated", entityType: "partner", entityId: partnerId, reason, next: { generation: nextGen } });
   return { code: code.code };
 }
 
-/** Enregistre l'acceptation électronique du contrat. */
-export async function acceptContract(tx: SqlExecutor, partnerId: string, contractVersion: string): Promise<void> {
+/**
+ * Code de recommandation RE-PARTAGEABLE : déchiffré à la demande, pour le partenaire
+ * propriétaire uniquement. Retourne null si le chiffrement n'est pas configuré (le
+ * partenaire peut alors en régénérer un). Le code n'est jamais stocké en clair.
+ */
+export async function getShareableCode(
+  tx: SqlExecutor, partnerId: string,
+): Promise<{ code: string | null; hint: string; generation: number } | null> {
+  const { rows } = await tx.query<{ code_hint: string; generation: number; code_cipher: string | null; code_cipher_iv: string | null; code_cipher_tag: string | null }>(
+    `select code_hint, generation, code_cipher, code_cipher_iv, code_cipher_tag
+     from clonestore_pp_partner_codes where partner_id=$1 and status='active' limit 1`,
+    [partnerId],
+  );
+  const r = rows[0];
+  if (!r) return null;
+  return {
+    code: decryptCode({ cipher: r.code_cipher ?? undefined, iv: r.code_cipher_iv ?? undefined, tag: r.code_cipher_tag ?? undefined }),
+    hint: r.code_hint,
+    generation: r.generation,
+  };
+}
+
+/** Un risque BLOQUANT ouvert existe-t-il pour ce partenaire ? (empêche l'activation auto) */
+export async function hasBlockingRiskFlag(tx: SqlExecutor, partnerId: string): Promise<boolean> {
+  const kinds = [...BLOCKING_RISKS];
+  const { rows } = await tx.query(
+    `select 1 from clonestore_pp_risk_flags where partner_id=$1 and status='open' and kind = any($2) limit 1`,
+    [partnerId, kinds],
+  );
+  return rows.length > 0;
+}
+
+export type AutoActivationResult =
+  | { activated: true; partnerId: string }
+  | { activated: false; code: string; reason: string; remaining: string[] };
+
+/**
+ * ACTIVATION AUTOMATIQUE — aucune intervention administrateur.
+ * Appelée après chaque étape du parcours (acceptation des conditions, account.updated
+ * Stripe, résolution d'un risk flag). Idempotente : si le partenaire est déjà actif,
+ * elle ne fait rien. Fail-closed : sans conditions réunies, aucune activation.
+ */
+export async function tryAutoActivate(tx: SqlExecutor, partnerId: string): Promise<AutoActivationResult> {
+  const p = await getPartnerById(tx, partnerId);
+  if (!p) return { activated: false, code: "partner_not_found", reason: "Cabinet introuvable.", remaining: [] };
+
+  const blocking = await hasBlockingRiskFlag(tx, partnerId);
+  const state = {
+    status: p.status,
+    contractAccepted: Boolean(p.contract_accepted_at),
+    onboardingStatus: p.stripe_onboarding_status,
+    payoutsEnabled: p.payouts_enabled,
+    hasBlockingRiskFlag: blocking,
+  };
+  const decision = decideAutoActivation(state);
+  if (!decision.activate) {
+    return { activated: false, code: decision.code, reason: decision.reason, remaining: remainingOnboardingSteps(state) };
+  }
+
   await tx.query(
     `update clonestore_pp_partners
-       set contract_accepted_at = now(), contract_version = $2,
-           status = case when status = 'contract_pending' then 'stripe_pending' else status end,
-           updated_at = now()
+       set status='active', activated_at=coalesce(activated_at, now()), activation_mode='automatic', updated_at=now()
+     where id=$1 and status <> 'active'`,
+    [partnerId],
+  );
+  await recordAudit(tx, {
+    actor: "system", action: "partner.activated_automatically", entityType: "partner", entityId: partnerId,
+    reason: "conditions acceptées + Stripe Connect complet + aucun risque bloquant",
+  });
+  await enqueuePartnerEmailTx(tx, {
+    partnerId, kind: "partner_activated", toEmail: p.email_normalized,
+    idempotencyKey: `pp-email:partner_activated:${partnerId}`,
+    payload: { referralUrl: `${getBaseUrl()}/partenaires/r/${p.public_slug}`, spaceUrl: `${getBaseUrl()}/partenaires/espace` },
+  });
+  return { activated: true, partnerId };
+}
+
+/**
+ * Acceptation électronique des conditions du programme, puis TENTATIVE d'activation
+ * automatique (si Stripe Connect est déjà complet, le partenaire devient actif ici même).
+ */
+export async function acceptContract(
+  tx: SqlExecutor, partnerId: string, contractVersion: string,
+): Promise<AutoActivationResult> {
+  await tx.query(
+    `update clonestore_pp_partners
+       set contract_accepted_at = coalesce(contract_accepted_at, now()), contract_version = $2, updated_at = now()
      where id = $1`,
     [partnerId, contractVersion],
   );
+  const p = await getPartnerById(tx, partnerId);
+  if (p) {
+    await enqueuePartnerEmailTx(tx, {
+      partnerId, kind: "terms_accepted", toEmail: p.email_normalized,
+      idempotencyKey: `pp-email:terms_accepted:${partnerId}`,
+      payload: { spaceUrl: `${getBaseUrl()}/partenaires/espace` },
+    });
+  }
+  return tryAutoActivate(tx, partnerId);
 }
 
 /** Lie un compte Supabase au cabinet (no-steal : jamais d'écrasement d'un lien existant). */
@@ -116,11 +211,21 @@ export async function linkPartnerAccount(tx: SqlExecutor, partnerId: string, acc
 export async function activatePartner(tx: SqlExecutor, partnerId: string, actor: string, reason: string): Promise<{ ok: boolean; error?: string }> {
   const p = await getPartnerById(tx, partnerId);
   if (!p) return { ok: false, error: "partner_not_found" };
+  if (p.status === "active") return { ok: false, error: "already_active" };
+  if (p.status === "suspended" || p.status === "archived") return { ok: false, error: "partner_suspended" };
+  if (await hasBlockingRiskFlag(tx, partnerId)) return { ok: false, error: "blocking_risk_flag" };
   if (!p.contract_accepted_at) return { ok: false, error: "contract_not_accepted" };
   if (p.stripe_onboarding_status !== "complete" || !p.payouts_enabled) return { ok: false, error: "stripe_onboarding_incomplete" };
-  await tx.query(`update clonestore_pp_partners set status='active', activated_at=coalesce(activated_at, now()), updated_at=now() where id=$1`, [partnerId]);
+  await tx.query(
+    `update clonestore_pp_partners set status='active', activated_at=coalesce(activated_at, now()), activation_mode='manual', updated_at=now() where id=$1`,
+    [partnerId],
+  );
   await recordAudit(tx, { actor, action: "partner.activated", entityType: "partner", entityId: partnerId, reason });
-  await enqueuePartnerEmailTx(tx, { partnerId, kind: "partner_activated", toEmail: p.email_normalized, idempotencyKey: `pp-email:partner_activated:${partnerId}` });
+  await enqueuePartnerEmailTx(tx, {
+    partnerId, kind: "partner_activated", toEmail: p.email_normalized,
+    idempotencyKey: `pp-email:partner_activated:${partnerId}`,
+    payload: { referralUrl: `${getBaseUrl()}/partenaires/r/${p.public_slug}`, spaceUrl: `${getBaseUrl()}/partenaires/espace` },
+  });
   return { ok: true };
 }
 

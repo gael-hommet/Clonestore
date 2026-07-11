@@ -49,15 +49,18 @@ describe("POST /api/partners/apply — candidature réelle", () => {
     expect(await countApplications()).toBe(before);
   });
 
-  it("candidature valide → 200 et une ligne persistée + email enfilé", async () => {
+  it("candidature valide → 200, admission AUTOMATIQUE, accès envoyé immédiatement", async () => {
     const before = await countApplications();
     const { POST } = await import("@/app/api/partners/apply/route");
     const res = await POST(applyReq(validBody("b@cabinet-b.fr")));
     expect(res.status).toBe(200);
-    expect((await res.json()).ok).toBe(true);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.admitted).toBe("auto"); // aucune validation humaine
+    expect(body.spaceReady).toBe(true);
     expect(await countApplications()).toBe(before + 1);
-    // Email « candidature reçue » enfilé dans l'outbox.
-    const email = await withService(h.db, (tx) => tx.query(`select 1 from clonestore_pp_email_outbox where kind='application_received' and to_email='b@cabinet-b.fr'`));
+    // Email d'ACCÈS (lien + code) enfilé dès la candidature — pas un simple accusé de réception.
+    const email = await withService(h.db, (tx) => tx.query(`select 1 from clonestore_pp_email_outbox where kind='onboarding_access' and to_email='b@cabinet-b.fr'`));
     expect(email.rows).toHaveLength(1);
   });
 

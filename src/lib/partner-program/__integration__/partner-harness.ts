@@ -43,6 +43,9 @@ function wrap(pg: PGlite): SqlExecutor {
 export type PartnerHarness = { db: SqlExecutor; pg: PGlite; close(): Promise<void> };
 
 export async function createPartnerHarness(): Promise<PartnerHarness> {
+  // Clé de chiffrement des codes de recommandation (test only) : sans elle, le code
+  // n'est pas re-partageable et l'espace cabinet ne peut pas le réafficher.
+  process.env.CLONESTORE_PP_CODE_KEY ??= "itest_code_key_0123456789_abcdefgh";
   const pg = await PGlite.create();
   for (const sql of migrationSql()) await pg.exec(sql);
   return { db: wrap(pg), pg, close: () => pg.close() };

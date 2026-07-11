@@ -90,12 +90,23 @@ export async function bridgePartnerCommercial(event: Stripe.Event, deps: Partner
       const acct = rec(event.data.object);
       const accountId = str(acct, "id");
       if (!accountId) return;
+      // Exigences Stripe encore dues : uniquement des NOMS de champs (jamais de valeurs,
+      // jamais de coordonnées bancaires — celles-ci ne quittent jamais Stripe).
+      const req = rec(acct?.["requirements"]);
+      const due = [
+        ...(Array.isArray(req?.["currently_due"]) ? (req["currently_due"] as unknown[]) : []),
+        ...(Array.isArray(req?.["past_due"]) ? (req["past_due"] as unknown[]) : []),
+      ].filter((v): v is string => typeof v === "string");
+      const disabled = typeof req?.["disabled_reason"] === "string" ? (req["disabled_reason"] as string) : null;
+
       await withService(db, (tx) =>
         applyAccountUpdated(tx, {
           accountId,
           detailsSubmitted: acct?.["details_submitted"] === true,
           chargesEnabled: acct?.["charges_enabled"] === true,
           payoutsEnabled: acct?.["payouts_enabled"] === true,
+          requirementsDue: [...new Set(due)],
+          disabledReason: disabled,
         }),
       );
       return;
