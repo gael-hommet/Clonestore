@@ -6,7 +6,7 @@
   "baseBranch": "main",
   "rule": "AUCUN `git add .` — seuls les fichiers listés ici entrent dans le commit.",
   "counts": {
-    "filesInRelease": 76,
+    "filesInRelease": 77,
     "changedOrAdded": 44,
     "unchangedButInPerimeter": 31,
     "filesFromDeployedBranch": 7068,
@@ -643,6 +643,14 @@
       "state": "modified",
       "included": true,
       "sha256": "5db0b7aac209d8c8e1dfdad06613d0de59d8daedaecbe4c2e49cf4f5e61f8a3b"
+    },
+    {
+      "path": "src/app/api/webhooks/stripe/route.ts",
+      "category": "B — payout automation",
+      "rationale": "Webhook : accepte le secret de l endpoint CONNECT (account.updated des comptes connectés) — vérification de signature toujours obligatoire.",
+      "state": "modified",
+      "included": true,
+      "sha256": "cf7328a7c02ccf4287a1cfefd81140db6f0c8ac7630ab48e054c5386abae23b1"
     }
   ]
 }

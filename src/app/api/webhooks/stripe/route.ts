@@ -295,19 +295,31 @@ export async function POST(req: Request) {
     const sig = req.headers.get("stripe-signature");
     if (!sig) return json(400, { error: "Missing stripe-signature" });
 
-    const secret = process.env.STRIPE_WEBHOOK_SECRET;
-    if (!secret) return json(500, { error: "Missing STRIPE_WEBHOOK_SECRET" });
+    // Stripe distingue DEUX familles d'endpoints, chacune avec SON secret :
+    //   • endpoint « compte »   → événements de la plateforme (invoice.paid, charge.refunded…) ;
+    //   • endpoint « Connect »  → événements des comptes connectés (account.updated).
+    // L'activation automatique d'un cabinet dépend d'account.updated : il faut donc accepter
+    // les deux secrets. La vérification cryptographique reste OBLIGATOIRE — un événement doit
+    // être signé par l'un de NOS endpoints, sinon il est rejeté.
+    const secrets = [process.env.STRIPE_WEBHOOK_SECRET, process.env.STRIPE_WEBHOOK_SECRET_CONNECT]
+      .map((s) => (s ?? "").trim())
+      .filter((s) => s.length > 0);
+    if (!secrets.length) return json(500, { error: "Missing STRIPE_WEBHOOK_SECRET" });
 
     const rawBody = await req.text();
     const stripe = getStripe();
 
-    let event: Stripe.Event;
-    try {
-      event = stripe.webhooks.constructEvent(rawBody, sig, secret);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Webhook signature verification failed";
-      return json(400, { error: msg });
+    let event: Stripe.Event | null = null;
+    let lastError = "Webhook signature verification failed";
+    for (const secret of secrets) {
+      try {
+        event = stripe.webhooks.constructEvent(rawBody, sig, secret);
+        break;
+      } catch (e: unknown) {
+        lastError = e instanceof Error ? e.message : lastError;
+      }
     }
+    if (!event) return json(400, { error: lastError });
 
     // Dépendances (injectables en test) résolues APRÈS vérification de signature.
     const deps = resolveDeps();
