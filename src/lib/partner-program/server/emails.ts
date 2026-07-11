@@ -11,7 +11,12 @@ export type PartnerEmailKind =
   | "contract_pending" | "stripe_onboarding_pending" | "partner_activated"
   | "introduction_received" | "client_converted" | "client_active"
   | "commission_recorded" | "commission_available" | "monthly_statement"
-  | "transfer_executed" | "transfer_failed" | "partner_suspended";
+  | "transfer_executed" | "transfer_failed" | "partner_suspended"
+  // Parcours AUTOMATIQUE (aucune validation humaine sur le chemin normal) :
+  | "onboarding_access" | "terms_accepted" | "manual_review_pending"
+  | "prospect_signed_up" | "attribution_conflict"
+  // Circuit de VERSEMENT (jamais envoyés en dry-run) :
+  | "connect_ready" | "payout_blocked";
 
 // ── Templates (HTML inline sombre + version texte) ───────────────────────────
 
@@ -51,11 +56,49 @@ export function renderPartnerEmail(kind: PartnerEmailKind, payload: Payload): { 
     case "monthly_statement":
       return { subject: `Votre relevé mensuel ${s(payload, "period")}`, html: shell(`Relevé ${s(payload, "period")}`, p(`Total des commissions de la période : ${s(payload, "total")}. Détail disponible dans votre espace.`)), text: `Relevé ${s(payload, "period")} : ${s(payload, "total")}.` };
     case "transfer_executed":
-      return { subject: "Votre versement a été envoyé", html: shell("Versement envoyé", p(`Un versement de ${s(payload, "amount")} a été transmis vers votre compte pour la période ${s(payload, "period")}.`)), text: `Versement envoyé : ${s(payload, "amount")} (${s(payload, "period")}).` };
+      return { subject: `Votre versement de ${s(payload, "amount")} a été envoyé via Stripe`, html: shell("Versement envoyé", p(`Un versement de ${s(payload, "amount")} a été transmis via Stripe vers votre compte, pour la période ${s(payload, "period")}.`)), text: `Votre versement de ${s(payload, "amount")} a été envoyé via Stripe (${s(payload, "period")}).` };
+    case "connect_ready":
+      return { subject: "Votre compte est prêt à recevoir des versements", html: shell("Compte prêt", p("Stripe a confirmé votre configuration : votre compte est prêt à recevoir des versements. Vos commissions disponibles seront versées automatiquement au prochain cycle, dès le seuil atteint.")), text: "Votre compte est prêt à recevoir des versements." };
+    case "payout_blocked":
+      return { subject: "Une action est nécessaire pour recevoir votre versement", html: shell("Action nécessaire", p(`Votre versement n'a pas pu être envoyé : ${s(payload, "reason")}`) + p(`Ce qu'il faut faire : ${s(payload, "action")}`) + p("Vos commissions ne sont pas perdues : elles restent disponibles et seront réintégrées au prochain versement.")), text: `Action nécessaire pour recevoir votre versement. Motif : ${s(payload, "reason")} — ${s(payload, "action")}` };
     case "transfer_failed":
       return { subject: "Votre versement n'a pas pu être envoyé", html: shell("Versement en échec", p("Un versement n'a pas pu aboutir. Nous le réessaierons automatiquement ; vérifiez la configuration de votre compte si besoin.")), text: "Un versement a échoué et sera réessayé automatiquement." };
     case "partner_suspended":
       return { subject: "Votre partenariat est suspendu", html: shell("Partenariat suspendu", p("Votre partenariat est temporairement suspendu. Contactez-nous pour en connaître les modalités.")), text: "Votre partenariat est suspendu." };
+
+    // ── Parcours automatique ───────────────────────────────────────────────
+    case "onboarding_access":
+      return {
+        subject: "Votre espace Cabinet Fondateur est ouvert",
+        html: shell("Bienvenue — votre espace est ouvert", p("Votre cabinet est enregistré. Aucune validation n’est requise : votre espace partenaire est déjà actif.")
+          + p("Il reste deux étapes pour activer vos commissions : accepter les conditions du programme, puis finaliser votre compte de versement Stripe.")
+          + p(`Votre espace : ${s(payload, "spaceUrl")}`) + p(`Votre lien de recommandation : ${s(payload, "referralUrl")}`)),
+        text: `Votre espace Cabinet Fondateur est ouvert : ${s(payload, "spaceUrl")}. Lien de recommandation : ${s(payload, "referralUrl")}. Prochaines étapes : accepter les conditions, finaliser Stripe.`,
+      };
+    case "terms_accepted":
+      return {
+        subject: "Conditions acceptées — finalisez vos versements",
+        html: shell("Conditions acceptées", p("Merci. Dernière étape : finalisez votre compte de versement Stripe pour activer vos commissions.") + p(`Votre espace : ${s(payload, "spaceUrl")}`)),
+        text: `Conditions acceptées. Finalisez votre compte Stripe depuis votre espace : ${s(payload, "spaceUrl")}`,
+      };
+    case "manual_review_pending":
+      return {
+        subject: "Votre candidature est en cours de vérification",
+        html: shell("Vérification en cours", p("Votre candidature nécessite une vérification complémentaire de notre part. Nous revenons vers vous rapidement.")),
+        text: "Votre candidature est en cours de vérification. Nous revenons vers vous rapidement.",
+      };
+    case "prospect_signed_up":
+      return {
+        subject: "Une entreprise que vous avez présentée vient de s’inscrire",
+        html: shell("Nouveau prospect inscrit", p(`${s(payload, "companyName") || "Une entreprise que vous avez présentée"} vient de créer son compte. Elle vous est attribuée.`)),
+        text: "Une entreprise que vous avez présentée vient de s’inscrire.",
+      };
+    case "attribution_conflict":
+      return {
+        subject: "Une attribution nécessite un arbitrage",
+        html: shell("Attribution en revue", p("Une entreprise a été présentée par plusieurs cabinets. Notre équipe arbitre l’attribution et revient vers vous.")),
+        text: "Une attribution est en cours d’arbitrage.",
+      };
     default:
       return { subject: "Cabinets Fondateurs CloneStore", html: shell("Notification", p("Vous avez une nouvelle notification dans votre espace.")), text: "Nouvelle notification." };
   }

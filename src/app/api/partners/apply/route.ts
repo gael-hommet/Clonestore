@@ -58,8 +58,14 @@ export async function POST(req: Request) {
       if (res.error === "program_closed") return fail(503, "program_closed");
       return fail(422, res.error);
     }
-    // Réponse neutre : ne révèle jamais si une candidature existait déjà.
-    return ok();
+    // Réponse neutre : ne révèle jamais si une candidature existait déjà, ni les signaux
+    // de risque. On indique seulement si l'espace partenaire est immédiatement accessible
+    // (admission automatique) ou si une vérification complémentaire est en cours.
+    const admitted = "admitted" in res ? res.admitted : null;
+    return ok({
+      admitted: admitted === "auto" ? "auto" : admitted === "manual_review" ? "review" : "received",
+      spaceReady: admitted === "auto",
+    });
   } catch {
     return fail(503, "unavailable");
   }

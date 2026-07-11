@@ -380,7 +380,7 @@ function StructuralPower() {
 const STEPS = [
   {
     t: "Vous identifiez cinq entreprises",
-    c: "Choisissez les cinq clients pour lesquels les lenteurs, les coûts, la dispersion ou l’absence de fonction RH structurée créent le plus de friction.",
+    c: "Choisissez les cinq clients pour lesquels les lenteurs, les coûts, la dispersion ou l’absence de fonction RH structurée créent le plus de friction. Cinq est un point de départ, jamais une limite : vous pouvez en présenter autant que vous le souhaitez.",
   },
   {
     t: "Vous réalisez la mise en relation",
@@ -410,6 +410,11 @@ function PartnerRole() {
             <h2 className="pf-heading pf-mt-md pf-max">
               Présentez-nous cinq entreprises. On s’occupe du reste.
             </h2>
+            <p className="pf-body pf-mt-md pf-max">
+              Cinq, c’est le point de départ que nous recommandons — pas un plafond. Une seule
+              entreprise suffit pour commencer, et rien ne vous empêche d’en présenter vingt,
+              cinquante ou davantage : votre rémunération suit le même principe, sans limite.
+            </p>
           </div>
         </Reveal>
 
@@ -801,7 +806,11 @@ const FAQ_ITEMS = [
   },
   {
     q: "Pourquoi cinq entreprises ?",
-    a: "Nous ne vous demandons pas de promouvoir Pierre à tout votre portefeuille. Nous vous demandons de sélectionner les cinq entreprises où sa valeur sera la plus évidente.",
+    a: "Parce que c’est le point de départ le plus efficace : plutôt que de promouvoir Pierre à tout votre portefeuille, vous sélectionnez les entreprises où sa valeur sera la plus évidente. Cinq est une recommandation, pas une règle.",
+  },
+  {
+    q: "Puis-je présenter plus de cinq entreprises ?",
+    a: "Oui, sans aucune limite. Une, cinq, vingt, cent : vous présentez autant d’entreprises que vous le souhaitez, quand vous le souhaitez. Chaque client actif qui vous est attribué génère la même commission de 20 % des montants HT réellement encaissés, aussi longtemps qu’il reste client.",
   },
   {
     q: "Comment suis-je rémunéré ?",
@@ -927,6 +936,8 @@ function ApplicationForm() {
 
   const [errors, setErrors] = React.useState<Partial<Record<FieldKey, string>>>({});
   const [status, setStatus] = React.useState<"idle" | "loading" | "success" | "error">("idle");
+  // Issue décidée par le SERVEUR : admission automatique, ou revue humaine d'exception.
+  const [admitted, setAdmitted] = React.useState<"auto" | "review">("auto");
 
   const toggleService = (value: string) => {
     setServices((prev) =>
@@ -985,10 +996,12 @@ function ApplicationForm() {
       });
 
       const data = (await res.json().catch(() => null)) as
-        | { ok: boolean; error?: string }
+        | { ok: boolean; error?: string; admitted?: "auto" | "review" | "received"; spaceReady?: boolean }
         | null;
 
       if (data?.ok) {
+        // Le serveur décide seul : accès immédiat, ou revue humaine par exception.
+        setAdmitted(data.admitted === "review" ? "review" : "auto");
         setStatus("success");
         return;
       }
@@ -1013,11 +1026,29 @@ function ApplicationForm() {
                 <path d="M20 6 9 17l-5-5" />
               </svg>
             </div>
-            <h2 className="pf-heading">Candidature reçue.</h2>
-            <p className="pf-copy" style={{ margin: "18px auto 0" }}>
-              Merci. Votre candidature au programme Cabinets Fondateurs CloneStore a
-              bien été enregistrée. Notre équipe revient vers vous pour la suite.
-            </p>
+            {admitted === "review" ? (
+              <>
+                <h2 className="pf-heading">Candidature enregistrée.</h2>
+                <p className="pf-copy" style={{ margin: "18px auto 0" }}>
+                  Votre dossier demande une vérification rapide avant l’ouverture de votre
+                  espace. Nous vous écrivons dès qu’elle est terminée — vous n’avez rien à faire.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="pf-heading">Votre espace est ouvert.</h2>
+                <p className="pf-copy" style={{ margin: "18px auto 0" }}>
+                  Aucune validation à attendre : votre lien de recommandation et votre code
+                  viennent de vous être envoyés par e-mail. Deux étapes vous restent, à votre
+                  rythme — accepter les conditions du programme et renseigner vos coordonnées
+                  bancaires (Stripe). Dès qu’elles sont faites, votre cabinet est activé
+                  automatiquement et votre lien devient rémunérateur.
+                </p>
+                <a className="pf-btn pf-btn--primary" href="/partenaires/espace" style={{ marginTop: 24 }}>
+                  Ouvrir mon espace partenaire
+                </a>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -1035,9 +1066,10 @@ function ApplicationForm() {
         </Reveal>
         <Reveal delay={0.14}>
           <p className="pf-copy pf-mt-md">
-            Sélectionnez cinq entreprises. Nous prenons en charge la démonstration,
-            la vente, le déploiement et le support. Vous percevez 20 % de commission
-            récurrente.
+            Votre espace, votre lien et votre code sont créés dès l’envoi de ce formulaire :
+            aucun comité, aucune validation à attendre. Nous prenons en charge la démonstration,
+            la vente, le déploiement et le support. Vous percevez 20 % de commission récurrente,
+            sur autant d’entreprises que vous le souhaitez.
           </p>
         </Reveal>
 

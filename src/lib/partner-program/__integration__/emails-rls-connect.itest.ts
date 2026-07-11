@@ -18,8 +18,8 @@ async function activePartner(tag: string): Promise<string> {
   return withService(h.db, async (tx) => {
     const app = await createApplication(tx, { cabinetName: `Cab ${tag}`, firstName: "A", lastName: "B", email: `${tag}@cab-${tag}.fr`, country: "FR", cabinetType: "expertise_comptable", consentContact: true, consentPrivacy: true });
     if (!app.ok) throw new Error("app");
-    const acc = await acceptApplication(tx, app.applicationId, "admin", "ok");
-    if (!acc.ok) throw new Error("acc");
+    if (app.duplicate || app.admitted !== "auto") throw new Error("auto-provisioning attendu");
+    const acc = { partnerId: app.partnerId, publicSlug: app.publicSlug, referralCode: app.referralCode };
     await tx.query(`update clonestore_pp_partners set status='active', reserve_days=0 where id=$1`, [acc.partnerId]);
     return acc.partnerId;
   });

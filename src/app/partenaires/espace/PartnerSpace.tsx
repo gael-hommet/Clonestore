@@ -32,6 +32,8 @@ type PartnerInfo = {
   stripeOnboardingStatus: string;
   payoutsEnabled: boolean;
   contractAccepted: boolean;
+  /** Un signal de risque bloquant est ouvert : une vérification humaine est en cours. */
+  underReview: boolean;
 };
 
 type Balances = {
@@ -72,14 +74,33 @@ type IntroductionLine = {
   protectedUntil: string | null;
 };
 
+type IntroductionPage = {
+  items: IntroductionLine[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+};
+
+type ReferralCode = {
+  /** Code en clair, re-partageable. `null` si le chiffrement n'est pas configuré. */
+  value: string | null;
+  hint: string;
+  generation: number;
+  retrievable: boolean;
+};
+
 type MeResponse = {
   ok: true;
   partner: PartnerInfo;
   link: string;
-  codeHint: { last4: string; generation: number } | null;
+  code: ReferralCode | null;
   overview: Overview;
+  stats: { clicks: number; prospectsAttributed: number; clientsLost: number };
   commissions: CommissionLine[];
-  introductions: IntroductionLine[];
+  introductions: IntroductionPage; // paginé — aucun plafond
+  /** Étapes restantes AVANT activation automatique : accept_terms, complete_stripe_onboarding, awaiting_review. */
+  onboardingSteps: string[];
   actionsRequired: string[];
 };
 
@@ -321,6 +342,7 @@ function PartnerReady({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <PartnerStatusPill partner={partner} />
           <StripePill partner={partner} />
           <span className="cs-status" title="Taux de commission de référence">
             {(partner.commissionRateBps / 100).toLocaleString("fr-FR")} % de commission
@@ -328,8 +350,8 @@ function PartnerReady({
         </div>
       </header>
 
-      {data.actionsRequired.length > 0 ? (
-        <ActionsRequired actions={data.actionsRequired} contractHint={!partner.contractAccepted} />
+      {data.onboardingSteps.length > 0 ? (
+        <OnboardingSteps steps={data.onboardingSteps} onDone={onRefresh} />
       ) : null}
 
       <nav className="cs-panel flex flex-wrap gap-1 p-1.5" aria-label="Sections de l'espace partenaire" role="tablist">
@@ -359,7 +381,7 @@ function PartnerReady({
 
       <div role="tabpanel" id={`ppanel-${tab}`} aria-labelledby={`ptab-${tab}`}>
         {tab === "overview" ? <OverviewSection data={data} /> : null}
-        {tab === "link" ? <LinkSection data={data} /> : null}
+        {tab === "link" ? <LinkSection data={data} onRefresh={onRefresh} /> : null}
         {tab === "invite" ? <InviteSection onSubmitted={onRefresh} /> : null}
         {tab === "prospects" ? <ProspectsSection data={data} /> : null}
         {tab === "commissions" ? <CommissionsSection data={data} /> : null}
@@ -382,15 +404,61 @@ function StripePill({ partner }: { partner: PartnerInfo }) {
   );
 }
 
-// ------------------------------ Alertes / actions requises ------------------------------
+// ------------------------------ Statut du cabinet ------------------------------
 
-function ActionsRequired({ actions, contractHint }: { actions: string[]; contractHint: boolean }) {
-  const [busy, setBusy] = useState(false);
+const PARTNER_STATUS: Record<string, { label: string; tone: Tone }> = {
+  active: { label: "Actif", tone: "success" },
+  onboarding_pending: { label: "Activation en cours", tone: "warn" },
+  manual_review: { label: "Vérification en cours", tone: "info" },
+  suspended: { label: "Suspendu", tone: "danger" },
+  archived: { label: "Archivé", tone: "neutral" },
+};
+
+function PartnerStatusPill({ partner }: { partner: PartnerInfo }) {
+  const s = PARTNER_STATUS[partner.status] ?? { label: partner.status, tone: "neutral" as Tone };
+  return <span className={statusClass(s.tone)}>{s.label}</span>;
+}
+
+// ------------------------------ Étapes avant activation AUTOMATIQUE ------------------------------
+
+/**
+ * L'activation n'attend AUCUNE décision humaine : dès que les conditions sont acceptées et
+ * que Stripe Connect est terminé, le cabinet devient actif tout seul. Ce panneau ne liste
+ * donc que ce que le CABINET doit faire — jamais ce qu'un administrateur devrait valider.
+ */
+function OnboardingSteps({ steps, onDone }: { steps: string[]; onDone: () => void }) {
+  const [busy, setBusy] = useState<"terms" | "stripe" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const needsTerms = steps.includes("accept_terms");
+  const needsStripe = steps.includes("complete_stripe_onboarding");
+  const awaitingReview = steps.includes("awaiting_review");
+
+  async function acceptTerms() {
+    if (busy) return;
+    setBusy("terms");
+    setError(null);
+    try {
+      const res = await fetch("/api/partners/contract/accept", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { accept: "application/json" },
+      });
+      const json = (await res.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+      if (res.ok && json?.ok) {
+        onDone(); // le serveur a peut-être DÉJÀ activé le cabinet : on relit l'état réel.
+        return;
+      }
+      setError(json?.message ?? "Impossible d'enregistrer votre acceptation pour le moment.");
+    } catch {
+      setError("Erreur réseau. Réessayez.");
+    }
+    setBusy(null);
+  }
 
   async function startStripe() {
     if (busy) return;
-    setBusy(true);
+    setBusy("stripe");
     setError(null);
     try {
       const res = await fetch("/api/partners/connect/onboard", {
@@ -400,7 +468,7 @@ function ActionsRequired({ actions, contractHint }: { actions: string[]; contrac
       });
       if (res.status === 503) {
         setError("Les versements ne sont pas encore ouverts. Réessayez un peu plus tard.");
-        setBusy(false);
+        setBusy(null);
         return;
       }
       const json = (await res.json().catch(() => null)) as { ok?: boolean; url?: string } | null;
@@ -409,46 +477,63 @@ function ActionsRequired({ actions, contractHint }: { actions: string[]; contrac
         return;
       }
       setError("Impossible de démarrer l'onboarding Stripe pour le moment.");
-      setBusy(false);
+      setBusy(null);
     } catch {
       setError("Erreur réseau. Réessayez.");
-      setBusy(false);
+      setBusy(null);
     }
   }
 
-  const hasStripe = actions.includes("complete_stripe_onboarding");
-  const hasContract = actions.includes("accept_contract") || contractHint;
-
   return (
-    <section className="cs-panel p-5" data-testid="partner-actions" aria-label="Actions requises">
+    <section className="cs-panel p-5" data-testid="partner-actions" aria-label="Étapes restantes">
       <div className="flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4 text-[var(--cs-warn)]" aria-hidden />
-        <h2 className="text-[1rem] font-semibold text-[var(--cs-ink-1)]">Actions requises</h2>
+        <ListChecks className="h-4 w-4 text-[var(--cs-ink-3)]" aria-hidden />
+        <h2 className="text-[1rem] font-semibold text-[var(--cs-ink-1)]">Il vous reste à…</h2>
       </div>
+      <p className="mt-1 text-[0.82rem] leading-5 text-[var(--cs-ink-4)]">
+        Votre lien et votre code sont déjà créés. Ils deviennent rémunérateurs dès que ces étapes
+        sont terminées : votre cabinet est alors activé <strong>automatiquement</strong>, sans
+        qu'aucun administrateur ait à valider quoi que ce soit.
+      </p>
       <ul className="mt-4 space-y-3">
-        {hasContract ? (
+        {needsTerms ? (
           <li className="flex flex-col gap-2 rounded-2xl border border-[var(--cs-line-soft)] bg-white/50 p-4 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-[0.9rem] text-[var(--cs-ink-2)]">
-              Acceptez le contrat partenaire pour activer votre compte.
+              Accepter les conditions du programme (20 % des montants HT réellement encaissés).
             </span>
-            <Link href="/partenaires" className="cs-liquid-button self-start sm:self-auto">
-              Voir le contrat <ArrowRight className="h-4 w-4" />
-            </Link>
+            <button
+              type="button"
+              onClick={acceptTerms}
+              disabled={busy !== null}
+              className="cs-liquid-button cs-liquid-button--primary self-start disabled:opacity-60 sm:self-auto"
+              data-testid="accept-terms"
+            >
+              {busy === "terms" ? "Enregistrement…" : "J'accepte les conditions"} <CheckCircle2 className="h-4 w-4" />
+            </button>
           </li>
         ) : null}
-        {hasStripe ? (
+        {needsStripe ? (
           <li className="flex flex-col gap-2 rounded-2xl border border-[var(--cs-line-soft)] bg-white/50 p-4 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-[0.9rem] text-[var(--cs-ink-2)]">
-              Terminez l'onboarding Stripe pour recevoir vos versements.
+              Renseigner vos coordonnées bancaires via Stripe, pour recevoir vos versements.
             </span>
             <button
               type="button"
               onClick={startStripe}
-              disabled={busy}
+              disabled={busy !== null}
               className="cs-liquid-button cs-liquid-button--primary self-start disabled:opacity-60 sm:self-auto"
             >
-              {busy ? "Ouverture…" : "Terminer l'onboarding Stripe"} <ExternalLink className="h-4 w-4" />
+              {busy === "stripe" ? "Ouverture…" : "Terminer l'onboarding Stripe"} <ExternalLink className="h-4 w-4" />
             </button>
+          </li>
+        ) : null}
+        {awaitingReview ? (
+          <li className="flex items-start gap-2 rounded-2xl border border-[var(--cs-line-soft)] bg-white/50 p-4">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-warn)]" aria-hidden />
+            <span className="text-[0.9rem] leading-6 text-[var(--cs-ink-2)]">
+              Une vérification est en cours sur votre dossier. Elle est traitée par notre équipe :
+              vous n'avez rien à faire. Vous serez prévenu dès qu'elle est levée.
+            </span>
           </li>
         ) : null}
       </ul>
@@ -536,21 +621,67 @@ function OverviewSection({ data }: { data: MeResponse }) {
 
 // ------------------------------ Lien & code ------------------------------
 
-function LinkSection({ data }: { data: MeResponse }) {
-  const [copied, setCopied] = useState(false);
+function LinkSection({ data, onRefresh }: { data: MeResponse; onRefresh: () => void }) {
+  const [copied, setCopied] = useState<"link" | "code" | null>(null);
+  const [rotating, setRotating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const code = data.code;
 
-  async function copy() {
+  async function copyText(value: string, what: "link" | "code") {
     try {
-      await navigator.clipboard.writeText(data.link);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
+      await navigator.clipboard.writeText(value);
+      setCopied(what);
+      setTimeout(() => setCopied(null), 1800);
     } catch {
       /* copie manuelle possible */
     }
   }
 
+  async function rotate() {
+    if (rotating) return;
+    setRotating(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/partners/code", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { accept: "application/json" },
+      });
+      if (res.ok) {
+        onRefresh();
+        return;
+      }
+      setError("Impossible de régénérer votre code pour le moment.");
+    } catch {
+      setError("Erreur réseau. Réessayez.");
+    }
+    setRotating(false);
+  }
+
   return (
     <div className="space-y-4">
+      {data.partner.status !== "active" ? (
+        <section className="cs-panel p-5" role="status">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--cs-warn)]" aria-hidden />
+            <p className="text-[0.88rem] leading-6 text-[var(--cs-ink-2)]">
+              Votre lien et votre code existent déjà, mais une entreprise qui arriverait maintenant
+              ne vous serait <strong>pas encore rattachée</strong> : votre cabinet doit d'abord être
+              actif. Terminez les étapes ci-dessus — l'activation est ensuite automatique.
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="cs-panel p-5" aria-label="Statistiques du lien">
+        <p className="cs-eyebrow mb-3">Ce que produit votre lien</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Metric icon={Link2} label="Clics" value={data.stats.clicks.toLocaleString("fr-FR")} hint="Visites enregistrées côté serveur" />
+          <Metric icon={UserCheck} label="Prospects rattachés" value={data.stats.prospectsAttributed.toLocaleString("fr-FR")} />
+          <Metric icon={Building2} label="Clients perdus" value={data.stats.clientsLost.toLocaleString("fr-FR")} hint="Abonnements résiliés" />
+        </div>
+      </section>
+
       <section className="cs-panel p-5" aria-label="Mon lien de recommandation">
         <div className="flex items-center gap-2">
           <Link2 className="h-4 w-4 text-[var(--cs-ink-3)]" aria-hidden />
@@ -558,13 +689,14 @@ function LinkSection({ data }: { data: MeResponse }) {
         </div>
         <p className="mt-1 text-[0.85rem] leading-6 text-[var(--cs-ink-3)]">
           Partagez ce lien : toute entreprise qui arrive par votre intermédiaire vous est rattachée.
+          Aucune limite d'entreprises.
         </p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
           <code className="flex-1 overflow-x-auto rounded-2xl border border-[var(--cs-line-soft)] bg-white/55 px-4 py-3 text-[0.82rem] text-[var(--cs-ink-2)]">
             {data.link}
           </code>
-          <button type="button" onClick={copy} className="cs-liquid-button shrink-0">
-            <Copy className="h-4 w-4" /> {copied ? "Copié" : "Copier le lien"}
+          <button type="button" onClick={() => copyText(data.link, "link")} className="cs-liquid-button shrink-0">
+            <Copy className="h-4 w-4" /> {copied === "link" ? "Copié" : "Copier le lien"}
           </button>
         </div>
       </section>
@@ -574,21 +706,46 @@ function LinkSection({ data }: { data: MeResponse }) {
           <KeyRound className="h-4 w-4 text-[var(--cs-ink-3)]" aria-hidden />
           <h2 className="text-[1rem] font-semibold text-[var(--cs-ink-1)]">Mon code</h2>
         </div>
-        {data.codeHint ? (
+        {code?.retrievable && code.value ? (
           <>
-            <p className="mt-3 font-mono text-[1.1rem] tracking-[0.18em] text-[var(--cs-ink-1)]">
-              •••• {data.codeHint.last4}
+            <p className="mt-1 text-[0.85rem] leading-6 text-[var(--cs-ink-3)]">
+              Utile lorsqu’un dirigeant s’inscrit sans passer par votre lien : il le saisit à
+              l’inscription et vous êtes rattaché.
             </p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <code className="flex-1 rounded-2xl border border-[var(--cs-line-soft)] bg-white/55 px-4 py-3 font-mono text-[1rem] tracking-[0.14em] text-[var(--cs-ink-1)]">
+                {code.value}
+              </code>
+              <button type="button" onClick={() => copyText(code.value as string, "code")} className="cs-liquid-button shrink-0">
+                <Copy className="h-4 w-4" /> {copied === "code" ? "Copié" : "Copier le code"}
+              </button>
+            </div>
+          </>
+        ) : code ? (
+          <>
+            <p className="mt-3 font-mono text-[1.1rem] tracking-[0.18em] text-[var(--cs-ink-1)]">•••• {code.hint}</p>
             <p className="mt-2 text-[0.8rem] leading-5 text-[var(--cs-ink-4)]">
-              Pour votre sécurité, seuls les 4 derniers caractères sont affichés. Communiquez de
-              préférence votre lien de recommandation.
+              Ce code ne peut pas être réaffiché en clair. Régénérez-en un nouveau pour en obtenir
+              un que vous pourrez partager.
             </p>
           </>
         ) : (
           <p className="mt-3 text-[0.86rem] text-[var(--cs-ink-3)]">
-            Aucun code actif pour l'instant. Utilisez votre lien de recommandation ci-dessus.
+            Aucun code actif pour l’instant. Utilisez votre lien de recommandation ci-dessus.
           </p>
         )}
+        <button type="button" onClick={rotate} disabled={rotating} className="cs-liquid-button mt-4 disabled:opacity-60">
+          <RefreshCw className="h-4 w-4" /> {rotating ? "Régénération…" : "Régénérer mon code"}
+        </button>
+        <p className="mt-2 text-[0.78rem] leading-5 text-[var(--cs-ink-4)]">
+          L’ancien code cesse immédiatement de fonctionner. Vos clients déjà rattachés ne sont pas
+          affectés.
+        </p>
+        {error ? (
+          <p className="mt-3 text-[0.84rem] text-[var(--cs-danger)]" role="alert">
+            {error}
+          </p>
+        ) : null}
       </section>
     </div>
   );
@@ -628,27 +785,24 @@ function InviteSection({ onSubmitted }: { onSubmitted: () => void }) {
       });
       const json = (await res.json().catch(() => null)) as
         | { ok: true; duplicate?: boolean }
-        | { ok: false; error?: string }
+        | { ok: false; error?: string; message?: string }
         | null;
 
       if (res.ok && json?.ok) {
         setStatus("done");
         setMessage(
           json.duplicate
-            ? "Cette entreprise figurait déjà parmi vos introductions."
-            : "Entreprise présentée. Nous revenons vers vous après vérification.",
+            ? "Cette entreprise figurait déjà parmi vos introductions : elle reste protégée à votre nom."
+            : "Entreprise enregistrée et protégée à votre nom. Nous prenons le relais.",
         );
         form.reset();
         onSubmitted();
         return;
       }
-      const code = json && !json.ok ? json.error : undefined;
+      // Le serveur renvoie un message explicite et actionnable : on l'affiche tel quel.
       setError(
-        code === "company_already_protected"
-          ? "Cette entreprise est déjà protégée par un autre cabinet."
-          : code === "company_required"
-            ? "Le nom de l'entreprise est obligatoire."
-            : "Présentation impossible. Vérifiez les informations et réessayez.",
+        (json && !json.ok && json.message) ||
+          "Enregistrement impossible. Vérifiez les informations et réessayez.",
       );
       setStatus("idle");
     } catch {
@@ -662,8 +816,10 @@ function InviteSection({ onSubmitted }: { onSubmitted: () => void }) {
       <p className="cs-eyebrow mb-1">Développez votre portefeuille</p>
       <h2 className="text-[1.1rem] font-semibold text-[var(--cs-ink-1)]">Présenter une entreprise</h2>
       <p className="mt-2 max-w-2xl text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
-        Présentez-nous jusqu'à cinq entreprises pour démarrer. Tant qu'une introduction n'est pas
-        validée, aucune commission n'est revendiquée.
+        Présentez autant d'entreprises que vous le souhaitez — il n'y a aucune limite. Présenter une
+        entreprise la protège à votre nom : si un autre cabinet l'a déjà présentée, nous vous le
+        disons immédiatement. Tant qu'une entreprise n'est pas cliente, aucune commission n'est
+        revendiquée.
       </p>
 
       <form onSubmit={onSubmit} noValidate className="mt-5 grid max-w-2xl gap-4">
@@ -746,12 +902,41 @@ function InviteSection({ onSubmitted }: { onSubmitted: () => void }) {
 // ------------------------------ Prospects / introductions ------------------------------
 
 function ProspectsSection({ data }: { data: MeResponse }) {
-  const rows = data.introductions;
+  // Pagination serveur : le cabinet peut présenter 1, 20, 100 entreprises ou davantage.
+  const [page, setPage] = useState<IntroductionPage>(data.introductions);
+  const [loading, setLoading] = useState(false);
+
+  const fetchPage = useCallback(async (offset: number) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/partners/introductions?limit=${page.limit}&offset=${offset}`, {
+        credentials: "same-origin",
+        headers: { accept: "application/json" },
+        cache: "no-store",
+      });
+      const json = (await res.json().catch(() => null)) as ({ ok?: boolean } & Partial<IntroductionPage>) | null;
+      if (res.ok && json?.ok && Array.isArray(json.items)) {
+        setPage({
+          items: json.items, total: json.total ?? 0, limit: json.limit ?? page.limit,
+          offset: json.offset ?? offset, hasMore: json.hasMore ?? false,
+        });
+      }
+    } catch {
+      /* la page courante reste affichée */
+    }
+    setLoading(false);
+  }, [page.limit]);
+
+  const rows = page.items;
+  const from = page.total === 0 ? 0 : page.offset + 1;
+  const to = page.offset + rows.length;
+
   return (
     <section className="cs-panel p-5" aria-label="Vos prospects">
       <div className="flex items-center gap-2">
         <ListChecks className="h-4 w-4 text-[var(--cs-ink-3)]" aria-hidden />
         <h2 className="text-[1rem] font-semibold text-[var(--cs-ink-1)]">Vos prospects</h2>
+        <span className="cs-status">{page.total.toLocaleString("fr-FR")} au total</span>
       </div>
       {rows.length === 0 ? (
         <p className="mt-4 text-[0.88rem] text-[var(--cs-ink-3)]">
@@ -786,6 +971,30 @@ function ProspectsSection({ data }: { data: MeResponse }) {
               })}
             </tbody>
           </table>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[0.8rem] text-[var(--cs-ink-4)]">
+              {from}–{to} sur {page.total.toLocaleString("fr-FR")}
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => fetchPage(Math.max(0, page.offset - page.limit))}
+                disabled={loading || page.offset === 0}
+                className="cs-liquid-button disabled:opacity-40"
+              >
+                Précédent
+              </button>
+              <button
+                type="button"
+                onClick={() => fetchPage(page.offset + page.limit)}
+                disabled={loading || !page.hasMore}
+                className="cs-liquid-button disabled:opacity-40"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </section>

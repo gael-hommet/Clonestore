@@ -2,11 +2,72 @@
 // Le code de recommandation à forte entropie n'est JAMAIS stocké en clair (SHA-256).
 // Le slug public est dérivé du nom, non devinable-mais-lisible, distinct de l'id interne.
 
-import { createHash, randomBytes } from "crypto";
+import { createHash, randomBytes, createCipheriv, createDecipheriv } from "crypto";
 
 /** Normalise un email (minuscule, trim). */
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
+}
+
+/**
+ * Normalise un domaine web : minuscule, sans schéma, sans « www. », sans chemin ni port.
+ * L'attribution ne doit JAMAIS reposer sur une comparaison de texte non normalisée.
+ * Retourne null si rien d'exploitable.
+ */
+export function normalizeDomain(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  let s = raw.trim().toLowerCase();
+  if (!s) return null;
+  s = s.replace(/^[a-z][a-z0-9+.-]*:\/\//, ""); // schéma
+  s = s.split("/")[0].split("?")[0].split("#")[0]; // chemin/query/ancre
+  s = s.split("@").pop() ?? s; // tolère une adresse e-mail complète
+  s = s.split(":")[0]; // port
+  s = s.replace(/^www\./, "");
+  s = s.replace(/\.$/, "");
+  if (!s.includes(".") || s.length < 4) return null;
+  return s;
+}
+
+// ── Code de recommandation : chiffrement réversible (AES-256-GCM) ────────────
+// Le partenaire doit pouvoir RE-CONSULTER son code (il le partage régulièrement).
+// Le code n'est jamais stocké en clair : il est chiffré avec une clé qui vit hors
+// base (variable d'environnement). Le HASH reste la seule voie de VÉRIFICATION.
+
+function codeKey(): Buffer | null {
+  const raw = process.env.CLONESTORE_PP_CODE_KEY;
+  if (!raw) return null;
+  // Clé dérivée de façon déterministe (32 octets) — accepte n'importe quel secret fort.
+  return createHash("sha256").update(raw).digest();
+}
+
+/** Le chiffrement du code est-il configuré ? Sinon, seule la rotation reste possible. */
+export function isCodeCipherConfigured(): boolean {
+  return codeKey() !== null;
+}
+
+export type CodeCipher = { cipher: string; iv: string; tag: string };
+
+/** Chiffre un code en clair. Retourne null si aucune clé n'est configurée. */
+export function encryptCode(plain: string): CodeCipher | null {
+  const key = codeKey();
+  if (!key) return null;
+  const iv = randomBytes(12);
+  const c = createCipheriv("aes-256-gcm", key, iv);
+  const enc = Buffer.concat([c.update(plain, "utf8"), c.final()]);
+  return { cipher: enc.toString("base64"), iv: iv.toString("base64"), tag: c.getAuthTag().toString("base64") };
+}
+
+/** Déchiffre un code. Retourne null si la clé manque ou si l'intégrité est rompue. */
+export function decryptCode(payload: Partial<CodeCipher> | null): string | null {
+  const key = codeKey();
+  if (!key || !payload?.cipher || !payload.iv || !payload.tag) return null;
+  try {
+    const d = createDecipheriv("aes-256-gcm", key, Buffer.from(payload.iv, "base64"));
+    d.setAuthTag(Buffer.from(payload.tag, "base64"));
+    return Buffer.concat([d.update(Buffer.from(payload.cipher, "base64")), d.final()]).toString("utf8");
+  } catch {
+    return null;
+  }
 }
 
 /** SHA-256 hex d'une valeur (codes, empreintes). */
