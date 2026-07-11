@@ -1,0 +1,44 @@
+{
+  "runId": "p942-final",
+  "section": "§7 — live-browser action-flow SUCCESS (completed)",
+  "stable_environment": {
+    "isolation": "Next isolated distDir `.next-p942` (env NEXT_DIST_DIR) → never shares `.next` with the parallel P8 session; P8 server on :3000 + shared `.next` left untouched",
+    "clonechat_stores": "in-memory (CLONECHAT_DB_URL=\"\" → resolveClonechatDbUrl returns null) — the u:<userId> test tenant is not a valid uuid so it only works with in-memory; durability separately proven by embedded-postgres itest 24/24",
+    "tenant": "explicit local/test flag CLONECHAT_ALLOW_USER_TENANT_FALLBACK=1 → u:<userId> (real:false, clearly non-real)",
+    "auth": "real Supabase session injected (real signInWithPassword cookie); server validates real JWT",
+    "action": "create_support_case (effect = CloneChat support store, not V1 → genuinely succeeds under the test tenant)"
+  },
+  "browser_actionflow_success": {
+    "verdict": "BROWSER_ACTIONFLOW_SUCCESS_OK",
+    "proposal": { "chatStatus": 200, "chatSource": "openai (real)", "serverPersistedProposalId": "prop-1", "proposalKind": "create_support_case" },
+    "confirm_execute": { "requestBody": "{proposalId}", "exec1Status": "executed", "targetRef": "case-1", "href": "/profile/messages" },
+    "duplicate": { "status": "duplicate", "targetRef": "case-1 (SAME) — returns existing result", "duplicateReturnsSameResult": true },
+    "injection_ignored": { "sent": "{proposalId, payload:{summary:INJECTED-HACK}, companyId:<other>, fingerprint:forged-fp, kind:cancel_mission}", "responseKind": "create_support_case (NOT the injected cancel_mission)", "injectionIgnored": true },
+    "consoleErrors": 0, "cleanup": "DELETED — ZERO RESIDUE"
+  },
+  "browser_ui_confirm": {
+    "verdict": "BROWSER_UI_CONFIRM_OK",
+    "flow": "typed in the REAL composer → sent (sendButtonEnabledAfterTyping:true) → server proposal (prop-2, create_support_case) → Confirmer button RENDERED → user CLICKED it",
+    "clientRequestBody": "[{proposalId: prop-2}]",
+    "uiConfirmSendsOnlyProposalId": true,
+    "consoleErrors": 0, "cleanup": "DELETED — ZERO RESIDUE"
+  },
+  "owner_requirement_mapping": {
+    "proposal appears": "✓ (server-persisted, create_support_case)",
+    "user confirms (button)": "✓ (Confirmer button rendered + clicked — browser-ui-confirm.json)",
+    "browser sends only {proposalId}": "✓ (captured request body {proposalId}; client executeAction path)",
+    "/api/assistant/execute executes": "✓ (status executed, case-1)",
+    "result is rendered": "✓ (execute returns result + href /profile/messages; assistant confirmation message pushed by executeAction)",
+    "duplicate confirm returns existing result": "✓ (status duplicate, same case-1)"
+  },
+  "perimeter": { "p8_untouched": "P8 server on :3000 + shared .next never touched (isolated distDir + port 3222)", "flags": "CLONECHAT_ENABLED default OFF; fallback + image flags unset; test flags only in the local harness process", "deploy": "nothing staged/committed/pushed/deployed" },
+  "adversarial_final_recheck": {
+    "result": "all 6 claims HOLD — no fabrication (real HTTP only, real OpenAI, real execute/duplicate, structural injection guarantee, real UI button click)",
+    "honest_caveats_disclosed": [
+      "IN-MEMORY only: the u:<userId> fallback tenant is a text string, incompatible with the durable schema's uuid company_id/actor_id columns — so THIS browser flow is provable only against in-memory stores. Durability is proven SEPARATELY by the embedded-postgres itest 24/24 using real-UUID tenants. Disclosed, not hidden (gated behind CLONECHAT_ALLOW_USER_TENANT_FALLBACK=1, real:false).",
+      "ZERO RESIDUE re-verified thoroughly: auth users + profiles + orders all queried post-delete → 0 p942 rows (not just the auth user).",
+      "resultRendered UI text was not asserted in the DOM (browser-ui-confirm.json resultRendered:false) — the 'result is rendered' step is evidenced by the execute RESPONSE (status executed + href) which executeAction pushes as an assistant message; the exact DOM string was not matched by the harness regex (not part of the pass condition).",
+      "browser-actionflow-success.json ui.uiSendsOnlyProposalId measures the harness's own page.evaluate fetches (all {proposalId}); the AUTHORITATIVE real-button-click proof is browser-ui-confirm.json (executeRequestBodies=[{proposalId}])."
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "onboardingCompany": "co-1",
+  "foreignRejected": true,
+  "foreignReason": "Entité(s) hors périmètre (cross-tenant) référencée(s) : Paul — Pierre n'agit pas.",
+  "ready": true
+}

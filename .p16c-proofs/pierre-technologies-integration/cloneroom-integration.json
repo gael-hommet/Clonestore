@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "allViaCloneOS": true,
+  "peerToPeerBlocked": true,
+  "governance": {
+    "effectiveState": "VALIDATION_REQUIRED",
+    "decidedBy": "pierre_disposition",
+    "contributions": [
+      {
+        "gate": "pierre_disposition",
+        "state": "VALIDATION_REQUIRED",
+        "reason": "Disposition Pierre: validation_required."
+      },
+      {
+        "gate": "clonetrust",
+        "state": "PREPARE_LOCAL",
+        "reason": "CloneTrust plafonne l'autonomie à « prepare_only »."
+      },
+      {
+        "gate": "production",
+        "state": "VALIDATION_REQUIRED",
+        "reason": "Production OFF — aucun effet externe/live autorisé (externallyExecutable=false)."
+      }
+    ],
+    "executableLocally": false,
+    "externallyExecutable": false,
+    "exactBlockers": [
+      "[VALIDATION_REQUIRED] Disposition Pierre: validation_required."
+    ]
+  },
+  "missionCandidates": 1
+}

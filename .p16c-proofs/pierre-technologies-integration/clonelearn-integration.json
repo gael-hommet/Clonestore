@@ -1,0 +1,20 @@
+{
+  "adnMutated": false,
+  "artifact": {
+    "artifactKind": "clonelearn_candidates",
+    "candidates": [
+      {
+        "sourceEventType": "correction",
+        "occurrences": 3,
+        "preferenceSuggestion": "Préférence observée (correction) : vouvoyer",
+        "confidence": 0.9000000000000001,
+        "classification": "habit",
+        "adnEnrichmentProposal": "Proposer d'ajouter au profil CloneADN : « vouvoyer » (validé 3×).",
+        "approvalRequired": true
+      }
+    ],
+    "adnMutated": false,
+    "modelTrained": false,
+    "mutationPolicy": "proposal_only"
+  }
+}

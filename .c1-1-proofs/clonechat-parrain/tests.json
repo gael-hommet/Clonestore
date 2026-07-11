@@ -1,0 +1,31 @@
+{
+  "runId": "clonechat-parrain",
+  "date": "2026-07-10",
+  "suites": {
+    "c1_1_targeted": {
+      "command": "npx vitest run src/lib/clonechat/intelligence/c1-1",
+      "files": 2,
+      "tests": "105 + 1 proof-generator = 106 passed",
+      "the104Checks": "les 104 preuves du prompt maître (A.1 → L.104) sont couvertes par c1-1-parrain.test.ts (numérotées), appelant les modules réels + fixtures binaires PDF/CSV/TXT/ZIP + mocks de délégation conformes au vrai contrat"
+    },
+    "clonechat_and_assistant_api": {
+      "command": "npx vitest run src/lib/clonechat src/app/api/assistant",
+      "result": "17 files / 314 tests passed",
+      "note": "un flake ponctuel observé sur le test sharp image-sanitizer (3.3s) a réussi sur 2 réexécutions consécutives ; classé flake d'environnement, pas régression C1.1"
+    },
+    "t1_t2_ultimate_production": {
+      "command": "npx vitest run src/lib/clonestore/product-technologies/t2 src/lib/clonestore/technologies/t1 src/lib/clonestore/ultimate src/lib/clonestore/production",
+      "result": "17 files / 210 tests passed"
+    },
+    "pierre_v1": {
+      "command": "npx vitest run src/lib/pierre/v1 --testTimeout=120000",
+      "result": "37 files / 295 tests passed"
+    },
+    "tsc": { "command": "npx tsc --noEmit", "result": "0 errors" }
+  },
+  "classification": {
+    "c1_1_regressions": 0,
+    "preexisting_baseline_failures": 0,
+    "environment_flakes": 1
+  }
+}

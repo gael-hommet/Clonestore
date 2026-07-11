@@ -1,0 +1,45 @@
+{
+  "runId": "t2-product-technologies",
+  "generatedAt": "2026-07-10T02:18:00+02:00",
+  "method": "workflow de 8 vérificateurs contradictoires indépendants (une lentille imposée chacun, §8 du bloc), 668k tokens, 202 tool calls, sondes runtime réelles",
+  "lenses": {
+    "1_cloneos_not_hr_brain": "REFUTED (lettre) → FIXED",
+    "2_clonevoice_no_fake_live": "HELD (durcissements appliqués)",
+    "3_clonecall_no_fake_telephony": "REFUTED → FIXED",
+    "4_cloneroom_no_anarchic_p2p": "HELD (durcissements appliqués)",
+    "5_clonelearn_no_silent_mutation": "HELD (durcissements appliqués)",
+    "6_guard_policy_trust_coherence": "HELD (durcissements appliqués)",
+    "7_orchestrator_no_live_effects": "HELD (durcissements audit appliqués)",
+    "8_perimeter_honesty": "HELD (durcissements appliqués)"
+  },
+  "refutationsFixed": [
+    {
+      "refutation": "Les pipelines CloneCall/CloneRoom sautaient ClonePolicy et CloneTrust (seul CloneGuard tournait) — une règle d'entreprise ou le score de confiance étaient structurellement inatteignables pour les missions issues d'appel/salle.",
+      "fix": "ClonePolicy + CloneTrust composés DANS les contrats clonecall/cloneroom (policyRules optionnelles en input ; risque Guard → plafond Policy → Trust) ; décisions embarquées dans les artefacts ; testé (R2).",
+      "mitigatingFactsBefore": "aucune décision RH n'échappait (executed:false, needs_validation, governanceRequired:true, Guard actif)"
+    },
+    {
+      "refutation": "La garde téléphonie de CloneCall (clés exactes + scalaires) était contournable : outbound:'oui'/'vrai'/1, dialNumber:[…]/number, clés phone/tel/numero/callTarget, formes imbriquées {call:{outbound:true}} produisaient une session au lieu d'un blocage.",
+      "fix": "Coercition totale (toute string non vide sur un drapeau sortant), hasDialTarget sur toute valeur significative, + BACKSTOP couche entière wantsTelephonyIntent() dans la fabrique de contrats (motif de clés téléphonie, un niveau d'imbrication, faux positif = blocage) ; testé (R1).",
+      "mitigatingFactsBefore": "aucun effet live possible même en cas d'évasion (artefact inerte, telephonyProvider:'none', validation humaine)"
+    }
+  ],
+  "hardeningsApplied": [
+    "Anti-forge : audioProcessed ajouté aux drapeaux interdits ; drapeaux REQUIS à true par techno (peerToPeerBlocked, outboundLivePathBlocked, textAuthoritative, onlyProvidedFacts, preparedNeverClaimedAsDone, governanceRequired, criticalAlwaysHumanOnly) ; routes cloneroom toutes via:'cloneos' vérifiées structurellement (R6)",
+    "CloneGuard : termes critiques multilingues (EN/DE/euphémismes FR) ; refus critique joignable depuis le CONTENU (finalité de décision), plus seulement le kind ; « live » en segment isolé (deliver ≠ live) (R3)",
+    "CloneOS : termes RH sensibles multilingues ; note de routage honnête (spécialiste vs généraliste vs aucun)",
+    "ClonePolicy : allowlist de canaux explicite AUTORITAIRE (externe hors liste = block) ; règle horaire + heure inconnue = validation forcée (fail-closed) ; autonomyCap hors vocabulaire → human_only (normalizeAutonomyLevel) (R4)",
+    "CloneTrust : riskLevel hors vocabulaire → sensible ; policyCap malformé → human_only ; note doctrine (risque DOIT venir de Guard, history assertée) (R5)",
+    "Orchestrateur : journaux d'audit PAR RUN (isolation tenant + concurrence — plus de fuite inter-sociétés dans les résultats) ; listAuditEntries(companyId) filtré ; gouvernance fail-closed (policy null/error ferme la porte) ; run bloqué → missionPlan null ; gated reflète Guard ET Policy ; canal aval dérivé de l'intention (draft_email → external_email) (R7, R8)",
+    "Fabrique : gardes scope/live/téléphonie DANS le try (input piégé → productError audité, jamais une sortie sans audit)",
+    "Registre : readyForP16A/readyForP16C PAR ENTRÉE dérivés structurellement (plus de littéraux déclarés)",
+    "Command center : blocker somme-des-statuts (statut hors vocabulaire ferme la porte) ; readyForP16C exige la résolution réelle des consommations T1 déclarées ; sondes supplémentaires guard/trace/brief ; CloneRoom : participants non déclarés traités employé-IA (fail-closed)"
+  ],
+  "acceptedResiduals": [
+    "Les compositions internes de CloneCall/CloneRoom (Voice/OS/Guard/Policy/Trust appelés dans prepareArtifact) n'émettent pas d'entrées d'audit séparées dans le journal de l'orchestrateur — leurs décisions sont EMBARQUÉES dans l'artefact audité + tracées (CloneTrace/T1 evidence) ; à réévaluer en P16C si un journal pas-à-pas est requis",
+    "Les classifications par mots-clés (Guard/CloneOS) restent des heuristiques locales : elles sur-incluent volontairement (fail-closed) et ne remplacent NI la validation humaine (toujours requise) NI la revue légale",
+    "L'historique CloneTrust est asserté par l'appelant à cette couche — le registre réel (ledger) arrive avec P16C ; l'orchestrateur ne transmet jamais d'history",
+    "Les émetteurs de proofs P10/P11 (non gated) réécrivent leurs JSON untracked à chaque run de la suite production — comportement pré-existant, hors périmètre T2 (DO NOT REOPEN P10/P11)"
+  ],
+  "reRunAfterFixes": { "t2": "48/48", "tsc": 0, "nonRegression": "6936/6936" }
+}

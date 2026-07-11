@@ -1,0 +1,158 @@
+{
+  "example": {
+    "version": 1,
+    "requestId": "p-dis",
+    "companyId": "co-1",
+    "actorId": "user-1",
+    "instruction": "Licencie Paul",
+    "nowIso": "2026-07-13",
+    "understanding": {
+      "normalizedObjective": "Cas sensible détecté: termination",
+      "requestKind": "OPERATION",
+      "desiredOutcomes": [
+        "Synthèse factuelle + points de vigilance (aucune décision)"
+      ],
+      "relevantDomains": [],
+      "confidence": 0.75,
+      "resolvedDates": [],
+      "resolvedEntities": [],
+      "multiIntent": false
+    },
+    "clarification": {
+      "questions": [],
+      "blocksExecution": false
+    },
+    "selectedCapabilityIds": [],
+    "selectedCapabilities": [],
+    "capabilityCount": 215,
+    "capabilityCountDerivedFromRegistry": true,
+    "missionProposal": {
+      "objective": "Cas sensible détecté: termination",
+      "tasks": [],
+      "deliverables": [],
+      "completionCriteria": [
+        "Tous les livrables préparés et relus.",
+        "Décision(s) sensible(s) tranchée(s) par un humain (jamais par Pierre)."
+      ],
+      "executableNow": false,
+      "blockers": [],
+      "source": "none"
+    },
+    "autonomy": {
+      "overallDisposition": "human_only",
+      "requiredValidations": [
+        "Décision humaine requise: dismissal"
+      ],
+      "humanOnlyDecisions": [
+        {
+          "category": "dismissal",
+          "reason": "Licenciement / rupture = décision finale réservée à un humain.",
+          "evidence": "analyzeInstruction:intent=termination",
+          "guardLevel": "black"
+        }
+      ],
+      "guardLevel": "black"
+    },
+    "continuity": {
+      "isContinuation": false,
+      "kind": "none",
+      "isCorrection": false,
+      "targetKind": "none",
+      "targetId": null,
+      "ambiguousCandidates": [],
+      "requiresAuthoritativeRead": false,
+      "nextStep": "PREPARE_PLAN",
+      "reason": "no_continuity_cue"
+    },
+    "contextRequirements": [],
+    "documentEvidenceRequirements": [],
+    "providerDependencies": [],
+    "legalDependencies": [],
+    "blockedReasons": [
+      {
+        "code": "human_only_final_decision",
+        "detail": "dismissal"
+      }
+    ],
+    "t1Needs": [
+      {
+        "techId": "workflow",
+        "reason": "Orchestration de workflow gouverné (le moteur de missions V1 reste la source).",
+        "liveBlocked": false,
+        "blockedReason": null
+      },
+      {
+        "techId": "evidence",
+        "reason": "Trace/preuve d'audit réutilisable.",
+        "liveBlocked": false,
+        "blockedReason": null
+      }
+    ],
+    "t2Needs": [
+      {
+        "techId": "clonecontinuum",
+        "reason": "Continuité de mission durable."
+      },
+      {
+        "techId": "cloneguard",
+        "reason": "Gate de qualité/risque RH."
+      },
+      {
+        "techId": "clonetrace",
+        "reason": "Traçabilité/preuve."
+      },
+      {
+        "techId": "clonepolicy",
+        "reason": "Politique/vigilance applicable."
+      }
+    ],
+    "cloneChatExplanation": {
+      "summary": "Décision sensible (dismissal) réservée à un humain — Pierre prépare uniquement.",
+      "disclosure": "Pierre prépare le travail RH et transforme vos demandes en missions gouvernées ; toute action sensible passe par une validation humaine et rien n'est envoyé ni signé sans provider actif. L'exécution légale automatique par pays n'est PAS disponible aujourd'hui (0 règle pays vérifiée par un juriste).",
+      "safeToShowUser": true
+    },
+    "authoritativeReferences": [
+      "hr-canon/capability-registry (HR_CAPABILITIES)",
+      "hr-canon/capability-closure (CLOSED_HR_CAPABILITIES)",
+      "cloneguard.evaluateGuard",
+      "autonomy.decideValidation"
+    ],
+    "canonicalItemsInvolved": [
+      "pierre.mission_depth",
+      "pierre.employee_relations_sensitive",
+      "pierre.hr_quality_control"
+    ],
+    "statusExplanation": "Décision sensible (dismissal) réservée à un humain — Pierre prépare uniquement.",
+    "nextSafeStep": "Préparer une synthèse factuelle + options et escalader la décision finale à un humain."
+  },
+  "fields": [
+    "version",
+    "requestId",
+    "companyId",
+    "actorId",
+    "instruction",
+    "nowIso",
+    "understanding",
+    "clarification",
+    "selectedCapabilityIds",
+    "selectedCapabilities",
+    "capabilityCount",
+    "capabilityCountDerivedFromRegistry",
+    "missionProposal",
+    "autonomy",
+    "continuity",
+    "contextRequirements",
+    "documentEvidenceRequirements",
+    "providerDependencies",
+    "legalDependencies",
+    "blockedReasons",
+    "t1Needs",
+    "t2Needs",
+    "cloneChatExplanation",
+    "authoritativeReferences",
+    "canonicalItemsInvolved",
+    "statusExplanation",
+    "nextSafeStep"
+  ],
+  "secretsScan": true
+}

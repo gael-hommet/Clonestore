@@ -1,0 +1,74 @@
+{
+  "runId": "p16-0-master-split",
+  "recommendation": "two_sessions_plus_integration_gate",
+  "rationale": [
+    "Plus sûr : deux périmètres séparés (Pierre RH vs technologies réutilisables) limitent le rayon de casse.",
+    "Moins de pollution de contexte : chaque session reste focalisée + testable.",
+    "Meilleures frontières de test + non-régression indépendante.",
+    "Technologies réutilisables : évite le hardcode dans Pierre (les technos doivent servir de futurs employés IA).",
+    "Facile d'arrêter une piste si elle crée du risque sans bloquer l'autre.",
+    "L'intégration (P16C) reste une porte dédiée qui ne s'ouvre qu'une fois A et B prêts + testés."
+  ],
+  "buildableBeforeStripe": [
+    "pierre.mission_depth",
+    "pierre.document_depth",
+    "pierre.dossier_360",
+    "pierre.onboarding_offboarding",
+    "pierre.absences_prepayroll",
+    "pierre.interview_perf_training",
+    "pierre.employee_relations_sensitive",
+    "pierre.proactive_followup",
+    "pierre.monthly_value_report",
+    "pierre.hr_helpdesk_quality",
+    "pierre.hr_quality_control",
+    "tech.document",
+    "tech.mail",
+    "tech.calendar",
+    "tech.signature",
+    "tech.notification",
+    "tech.memory",
+    "tech.evidence",
+    "tech.workflow",
+    "tech.analytics",
+    "tech.file",
+    "tech.export",
+    "tech.permission",
+    "tech.bus",
+    "int.document_adapter",
+    "int.mail_adapter",
+    "int.calendar_adapter",
+    "int.signature_adapter",
+    "int.notification_adapter",
+    "int.analytics_adapter",
+    "int.evidence_adapter",
+    "int.workflow_adapter",
+    "int.permission_adapter"
+  ],
+  "byNextPhase": {
+    "P16A": 11,
+    "T1": 13,
+    "P16C": 9,
+    "later": 16
+  },
+  "externalBlocked": [
+    "ext.stripe_live",
+    "ext.yousign_live",
+    "ext.email_provider",
+    "ext.legal_tax",
+    "ext.sirh_payroll",
+    "ext.monitoring_provider"
+  ],
+  "mustNotClaim": [
+    "mnc.legal_compliance",
+    "mnc.autonomous_drh",
+    "mnc.payroll_engine",
+    "mnc.live_signature_if_fallback",
+    "mnc.live_stripe_if_unverified",
+    "mnc.final_sensitive_decisions"
+  ],
+  "exactNextPrompts": [
+    "Session A → « START P16A — PIERRE ULTIMATE COMPLETION » (profondeur RH, flags sûrs, non-prod).",
+    "Session B → « START T1 — CLONESTORE TECHNOLOGIES LAYER » (technos réutilisables + TechnologyBus).",
+    "Session C (porte) → « START P16C — PIERRE x TECHNOLOGIES INTEGRATION » (adaptateurs Pierre→Techno, dégradation sûre)."
+  ]
+}

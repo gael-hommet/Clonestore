@@ -1,0 +1,141 @@
+{
+  "runId": "p96-run1",
+  "base": "http://127.0.0.1:3260",
+  "steps": {
+    "supabase_user": {
+      "userId": "3f2dc9d7",
+      "pierreAccess": true
+    },
+    "supabase_session": {
+      "minted": true,
+      "cookieNames": [
+        "sb-zdoigpfkyhilpzcsrdmc-auth-token"
+      ]
+    },
+    "binding": {
+      "e2eSessionBoundToSupabaseId": true,
+      "cookiePresent": true
+    },
+    "provision": {
+      "companyId": "56cfca57",
+      "companyIdIsUuid": true,
+      "accessDecision": "allowed"
+    }
+  },
+  "browser": {
+    "A_readiness": {
+      "companyResolved": true,
+      "currentMode": "validation",
+      "journeyLevelVisible": true,
+      "journeyItemsCount": 6,
+      "companyItemState": "done",
+      "journeySummary": "Entreprise prête. Confiez une première mission à Pierre."
+    },
+    "B_autonomy": {
+      "postOk": true,
+      "postMode": "controlled",
+      "persistedMode": "controlled",
+      "persisted": true
+    },
+    "C_composer": {
+      "hasTextarea": true,
+      "textareaDisabled": false,
+      "authenticatedMode": true,
+      "placeholder": "Demandez à CloneChat (missions, validations, salariés, documents…)",
+      "cookieVisibleNames": [
+        "sb-zdoigpfkyhilpzcsrdmc-auth-token",
+        "__next_hmr_refresh_hash__"
+      ],
+      "sbCookieVisibleLen": 2746,
+      "sbCookiePrefix": "sb-zdoigpfkyhilpzcsrdmc-auth-token=base6"
+    },
+    "C_chat": {
+      "status": 200,
+      "source": "openai",
+      "tool": "prepare_mission",
+      "hasProposal": true,
+      "proposalId": "present",
+      "proposalKind": "create_mission",
+      "autonomyReflected": {
+        "productModeId": "controlled",
+        "label": "Exécution contrôlée",
+        "tagline": "Pierre exécute le travail autorisé, demande pour le risqué.",
+        "engineMode": "high_autonomy"
+      },
+      "companyRequired": false
+    },
+    "D_execute": {
+      "confirmClicked": true,
+      "usedFetchFallback": false,
+      "status": 200,
+      "execStatus": "executed",
+      "kind": "create_mission",
+      "targetRef": "present",
+      "href": "/agents/pierre/use?view=missions&mission=60b8ebbb-0218-49e2-84a2-1233d6f53628",
+      "uiExecuteBodyKeys": [
+        "proposalId"
+      ],
+      "onlyProposalIdSent": true,
+      "forgedReplayStatus": "duplicate"
+    },
+    "E_mission": {
+      "missionExists": true,
+      "missionRef": "present",
+      "missionStatus": "awaiting_validation",
+      "autonomyModeOnRecord": "not_exposed"
+    },
+    "F_cockpit": {
+      "missionTitleOnRecord": "Plan cognitif: 3 tâche(s)",
+      "missionVisibleInDom": true,
+      "missionInServerList": true,
+      "missionStatusShown": true,
+      "noAssistantFraming": true
+    },
+    "G_reload": {
+      "missionCountAfterReload": 1,
+      "missionStillPresent": true
+    },
+    "H_no_double": {
+      "duplicateStatus": "duplicate",
+      "isDuplicate": true,
+      "totalMissionsInCompany": 1,
+      "exactlyOne": true
+    },
+    "J_validation": {
+      "hadPendingValidation": true,
+      "approvedCount": 3,
+      "allApproved": true,
+      "missionStatusBefore": "awaiting_validation",
+      "missionStatusAfter": "awaiting_validation",
+      "progressed": false,
+      "tasksCompletedAfter": 0,
+      "validationStatusesAfter": [
+        "approved",
+        "approved",
+        "approved"
+      ],
+      "allValidationsApproved": true
+    },
+    "I_security": {
+      "companyResolvedTrue": true,
+      "noUserTenantFallback": true,
+      "executeByReferenceOnly": true,
+      "forgedFieldsIgnored": true,
+      "noDoubleExecution": true,
+      "humanValidationExercised": true,
+      "framingClean": true,
+      "consoleErrors": [],
+      "rawConsoleAll": [
+        "pageerror: Invalid or unexpected token",
+        "pageerror: Invalid or unexpected token"
+      ],
+      "pageErrorStacks": [
+        "",
+        ""
+      ],
+      "devModeNote": "run en next dev (NODE_ENV≠production requis pour le runtime PGlite E2E) — bruit HMR/Fast-Refresh attendu"
+    }
+  },
+  "verdict": "P96_JOURNEY_OK",
+  "cleanup": "DELETED — ZERO RESIDUE"
+}

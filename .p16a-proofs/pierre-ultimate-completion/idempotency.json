@@ -1,0 +1,4 @@
+{
+  "deterministic": true,
+  "runtimeIdempotency": "fenced worker + unique constraints (reused P8 engine)"
+}

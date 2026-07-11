@@ -1,0 +1,49 @@
+{
+  "runId": "t1-technologies-layer",
+  "generatedAt": "2026-07-10T00:19:00+02:00",
+  "claim": "T1 est ADDITIF AU NIVEAU SESSION : la session T1 a créé UNIQUEMENT des fichiers nouveaux sous src/lib/clonestore/technologies/t1/ (+ .t1-proofs/ + T1_*.md). Aucun fichier existant du repo n'a été modifié par T1.",
+  "claimScopeNote": "Revendication reformulée après round 2 adversarial : le working tree GLOBAL n'a jamais été propre — les blocs antérieurs (P9.x–P16.0) n'ont jamais été commités (dernier commit 7ba3282 du 2026-07-07, antérieur à P10+). git.exe est bloqué au niveau OS (« Accès refusé ») — le snapshot « clean » du harness était cet échec, pas la réalité. L'additivité de T1 est donc prouvée par forensics mtime + audit isomorphic-git (outil maison c:/Users/homme/gittool), pas par git status.",
+  "evidence": {
+    "mtimeForensics": {
+      "method": "Get-ChildItem -Recurse src | Where LastWriteTime > (session start)",
+      "filesTouchedUnderSrcDuringT1Session": [
+        "src/lib/clonestore/technologies/t1/index.ts",
+        "src/lib/clonestore/technologies/t1/technology-audit.ts",
+        "src/lib/clonestore/technologies/t1/technology-bus.ts",
+        "src/lib/clonestore/technologies/t1/technology-command-center.ts",
+        "src/lib/clonestore/technologies/t1/technology-contract.ts",
+        "src/lib/clonestore/technologies/t1/technology-contracts.ts",
+        "src/lib/clonestore/technologies/t1/technology-fallbacks.ts",
+        "src/lib/clonestore/technologies/t1/technology-permissions.ts",
+        "src/lib/clonestore/technologies/t1/technology-registry.ts",
+        "src/lib/clonestore/technologies/t1/technology-result.ts",
+        "src/lib/clonestore/technologies/t1/technology-status.ts",
+        "src/lib/clonestore/technologies/t1/technology-types.ts",
+        "src/lib/clonestore/technologies/t1/technology-validation.ts",
+        "src/lib/clonestore/technologies/t1/__tests__/t1-proof-generator.test.ts",
+        "src/lib/clonestore/technologies/t1/__tests__/t1-technologies-layer.test.ts"
+      ],
+      "filesModifiedOutsideT1": "AUCUN sous src/ (vérifié avant et après le round 2 de correctifs)"
+    },
+    "isomorphicGitAudit": {
+      "tool": "node C:/Users/homme/gittool/gitaudit.cjs (isomorphic-git — git.exe bloqué OS)",
+      "preExistingUncommittedWork": "~3359 fichiers untracked + 25 vrais diffs de contenu vs HEAD, TOUS antérieurs à la session T1 (mtime max 18:09 vs début T1 22:38) et tous rattachés aux blocs documentés P9.4.2/P12/P15/P15.1 ; 474 faux positifs CRLF",
+      "legacyTechnologiesFiles": "technologies/index.ts + technologies/technology-permissions.ts (B46/TECH-03) : contenu identique à HEAD après normalisation CRLF — NON modifiés par T1"
+    },
+    "testSideEffectsObserved": [
+      "tsconfig.tsbuildinfo (cache tsc, attendu)",
+      ".p10-proofs/.p11-proofs régénérés par les suites P10/P11 elles-mêmes (fichiers untracked, émetteurs non gated antérieurs à l'idiome P14) — comportement pré-existant de ces suites, non modifié par T1"
+    ]
+  },
+  "untouchedPerimeters": {
+    "pierreV1Runtime": "src/lib/pierre/v1/** — 0 fichier touché ; la couche t1 n'importe RIEN de src/lib/pierre (prouvé par test 24, scan récursif des imports)",
+    "blocsP8toP16_0": "aucun module P8–P16.0 modifié ; imports T1 en lecture seule : p10-production-gate (const PRODUCTION_AUTHORIZED), p15-1-payment-mode (resolvePaymentMode), stripe-pricing-config (type Env), p16-master-split (grounding registre)",
+    "legacyTechnologiesB46Tech03": "collision de noms évitée par le sous-dossier t1/ (les fichiers exigés technology-permissions.ts et index.ts existaient déjà en B46/TECH-03) — 0 fichier legacy modifié",
+    "productionGuards": "PRODUCTION_AUTHORIZED=false (const, jamais levée) ; resolvePaymentMode({})=disabled ; clés live forgées → jamais \"live\" (testé)",
+    "noDeploy": "aucun déploiement, aucun paiement, aucun provider live, aucun secret imprimé"
+  },
+  "residualNotesForOwner": [
+    "Les blocs P9.x–P16.0 vérifiés n'ont JAMAIS été commités (git.exe bloqué OS) — recommandation : débloquer git et committer la baseline vérifiée avant P16A/P16C",
+    "tsconfig.json du working tree diffère de HEAD (résidu documenté P9.4.2, antérieur à T1) — tsc passe à 0 erreur avec la version actuelle"
+  ]
+}

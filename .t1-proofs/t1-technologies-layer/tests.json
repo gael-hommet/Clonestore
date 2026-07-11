@@ -1,0 +1,57 @@
+{
+  "runId": "t1-technologies-layer",
+  "generatedAt": "2026-07-10T00:19:00+02:00",
+  "gates": {
+    "t1Suite": {
+      "command": "npx vitest run src/lib/clonestore/technologies/t1",
+      "files": 2,
+      "tests": 42,
+      "passed": 42,
+      "failed": 0,
+      "covers": "les 25 preuves exigées par le bloc T1 (§7) + 7 verrous du round 2 adversarial + génération de preuves"
+    },
+    "technologiesUltimateProduction": {
+      "command": "npx vitest run src/lib/clonestore/technologies src/lib/clonestore/ultimate src/lib/clonestore/production",
+      "files": 20,
+      "tests": 655,
+      "passed": 655,
+      "failed": 0,
+      "note": "inclut les suites legacy B46/TECH-03 du dossier technologies/ (non modifiées) + P16.0 + P10/P11/P15/P15.1"
+    },
+    "typecheck": {
+      "command": "npx tsc --noEmit",
+      "sourceErrors": 0
+    },
+    "nonRegression": {
+      "command": "npx vitest run src/lib/nav src/lib/clonestore src/lib/clonechat src/app/api/assistant src/components",
+      "files": 130,
+      "tests": 6888,
+      "passed": 6888,
+      "failed": 0,
+      "baselineBeforeT1": 6846,
+      "delta": "+42 = les tests T1 uniquement (34 preuves initiales + 7 verrous round 2 + 1 générateur de preuves)"
+    }
+  },
+  "twentyFiveRequiredProofs": "toutes couvertes par src/lib/clonestore/technologies/t1/__tests__/t1-technologies-layer.test.ts (numérotées 1–25 dans les intitulés de tests)",
+  "adversarialRound2": {
+    "workflow": "8 vérificateurs contradictoires indépendants (une lentille chacun), 620k tokens, 178 tool calls",
+    "outcome": "5 claims tenus / 3 réfutations RÉELLES corrigées + durcissements appliqués",
+    "refutationsFixed": [
+      "R1 anti-blanchiment : un résultat needs_validation re-étiqueté vers une techno requiresValidation:false (evidence/permission/bus) passait la validation avec humanValidationRequired:false — corrigé par cross-check artifactKind + invariants d'effets interdits (technology-validation.ts)",
+      "R3 assainisseur poreux : sk-proj-(OpenAI), Bearer+espace, AKIA(AWS), ghp_(GitHub), AIza(Google), URI credentials (postgres://u:p@) fuyaient — SECRET_PATTERNS élargi (technology-result.ts)",
+      "Périmètre : la revendication « working tree = seulement t1 » était littéralement fausse (travaux P9–P16.0 antérieurs jamais commités, git.exe bloqué OS) — reformulée en additivité de SESSION prouvée par forensics mtime (voir perimeter.json)"
+    ],
+    "hardeningsApplied": [
+      "LIVE_INTENT_FLAGS élargi aux synonymes (dispatch/publish/commit/apply/submit/schedule/trigger/deliver/upload/sync/post/broadcast/notify/activate) + coercition booléens-chaînes (\"true\"/\"1\"/\"on\"/\"yes\"/nombres) + scan d'un niveau d'imbrication — faux positif = blocage (fail-closed)",
+      "WorkflowTech : garde decideHrOutcome par truthiness (pas seulement ===true) + drapeau advisory sensitiveHrLanguageDetected (esprit SENSITIVE_SIGNALS P14)",
+      "Command center : 3 sondes permission (employé vide/société vide/techno inconnue), sonde audit falsifiable (écho périmètre + fallback tracé + secret expurgé), cross-check P16.0 TOUJOURS bloquant, blocker missing/disabled, champ entriesInjected, boucle contrat null-safe",
+      "Surfaces gelées : Object.freeze sur les 15 contrats, la table ALL_TECHNOLOGY_CONTRACTS, le registre et ses entrées, TECHNOLOGY_FALLBACKS",
+      "Tests : balayage source récursif + détection import dynamique/require"
+    ],
+    "acceptedResidualNotes": [
+      "bus.getTechnology() reste découverte-seule (documenté) : un appel direct contract.prepare saute la permission par employé + l'audit du bus, mais JAMAIS les gardes scope/anti-live du contrat",
+      "Les artefacts échoient le texte fourni par l'appelant sans assainissement (pass-through documenté ; les champs message/audit sont assainis) — à réévaluer en P16C",
+      "Les suites P10/P11 (npx vitest run src/lib/clonestore/production) réécrivent leurs propres proofs non gérés par flag (.p10-proofs/.p11-proofs, fichiers untracked, idiome antérieur au générateur gated P14) — comportement pré-existant, hors périmètre T1 (DO NOT REOPEN P10/P11)"
+    ]
+  }
+}

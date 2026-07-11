@@ -1,0 +1,18 @@
+{
+  "runId": "p15-run1",
+  "packet": "P15_OWNER_GO_LIVE_APPROVAL_PACKET.md",
+  "signed": false,
+  "ownerGate": {
+    "key": "owner_approval",
+    "title": "Approbation owner",
+    "pass": false,
+    "blockers": [
+      "Artefact d'approbation owner (approve_production) absent."
+    ],
+    "detail": {
+      "present": false,
+      "decision": null
+    }
+  },
+  "note": "Non signé localement → gate owner=false → aucune autorisation de production. La production reste impossible même signée tant que le plancher dur P10 n'est pas levé par un changement de code."
+}

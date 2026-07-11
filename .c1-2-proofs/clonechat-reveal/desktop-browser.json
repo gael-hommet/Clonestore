@@ -1,0 +1,22 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "viewport": "1440x900",
+  "url": "http://localhost:3123/assistant",
+  "observed": {
+    "hasArriveBientot": false,
+    "hasBientotDisponible": false,
+    "hasTemporairementIndisponible": false,
+    "hasTourEntry": true,
+    "hasHeader": true,
+    "hasComposer": true,
+    "messageSubmitted": true,
+    "governedResponseAppeared": true,
+    "responseMentionsPierre": true,
+    "responseWasDeterministicOrientation": true,
+    "noOpenAIForAnonymous": true,
+    "refreshPersistsRealWorkspace": true
+  },
+  "screenshot": ".playwright-mcp/c1-2-assistant-desktop-1440.png",
+  "modeLabel": "Assistant d'orientation (public, non authentifie) — workspace REEL, pas le placeholder"
+}

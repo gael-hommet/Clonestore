@@ -1,0 +1,33 @@
+{
+  "runId": "t2-product-technologies",
+  "generatedAt": "2026-07-10T02:18:00+02:00",
+  "gates": {
+    "t2Suite": {
+      "command": "npx vitest run src/lib/clonestore/product-technologies/t2",
+      "files": 2,
+      "tests": 48,
+      "passed": 48,
+      "failed": 0,
+      "covers": "les 45 preuves exigées (numérotées dans les intitulés) + verrous round 2 (R1–R8) + anti-forge/assainissement/gel + générateur de preuves"
+    },
+    "t1Ultimateproduction": {
+      "command": "npx vitest run src/lib/clonestore/technologies/t1 src/lib/clonestore/ultimate src/lib/clonestore/production",
+      "files": 15,
+      "tests": 162,
+      "passed": 162,
+      "failed": 0,
+      "note": "T1 (42) + P16.0 (14) + production P10/P11/P15/P15.1 — tous intacts"
+    },
+    "typecheck": { "command": "npx tsc --noEmit", "sourceErrors": 0 },
+    "nonRegression": {
+      "command": "npx vitest run src/lib/nav src/lib/clonestore src/lib/clonechat src/app/api/assistant src/components",
+      "files": 132,
+      "tests": 6936,
+      "passed": 6936,
+      "failed": 0,
+      "baselineAfterT1": 6888,
+      "delta": "+48 = les tests T2 uniquement"
+    }
+  },
+  "fortyFiveRequiredProofs": "couvertes par src/lib/clonestore/product-technologies/t2/__tests__/t2-product-technologies.test.ts (intitulés numérotés 1–45)"
+}

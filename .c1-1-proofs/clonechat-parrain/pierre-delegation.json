@@ -1,0 +1,45 @@
+{
+  "runId": "clonechat-parrain",
+  "classify": {
+    "hrWork": "hr_work",
+    "explanation": "explanation",
+    "lookup": "account_lookup",
+    "humanOnly": "hr_decision_human_only"
+  },
+  "hrWork": {
+    "delegated": true,
+    "requestKind": "hr_work",
+    "pierreRequestId": "prop-x",
+    "missionId": null,
+    "status": "proposed",
+    "clarification": null,
+    "validationRequired": true,
+    "proposedActions": [
+      {
+        "proposalId": "prop-x",
+        "kind": "create_mission",
+        "label": "Prépare l'onboarding"
+      }
+    ],
+    "authoritativeSource": "proposition persistée serveur (pipeline P9.4.2 — confirmation humaine requise)",
+    "executed": false,
+    "blockedReason": null,
+    "citations": [],
+    "nextStep": "Confirmer la proposition pour que Pierre exécute sous gouvernance (idempotent, exactly-once)."
+  },
+  "humanOnlyBlocked": {
+    "delegated": false,
+    "requestKind": "hr_decision_human_only",
+    "pierreRequestId": null,
+    "missionId": null,
+    "status": "blocked",
+    "clarification": null,
+    "validationRequired": true,
+    "proposedActions": [],
+    "authoritativeSource": "none",
+    "executed": false,
+    "blockedReason": "Décision sensible finale (disciplinaire/salariale/signature) : plancher dur — Pierre prépare le dossier, l'humain décide. Jamais automatisé.",
+    "citations": [],
+    "nextStep": "Expliquer la préparation possible — la décision finale reste humaine."
+  }
+}

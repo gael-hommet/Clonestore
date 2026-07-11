@@ -1,0 +1,30 @@
+{
+  "iso": {
+    "status": "resolved",
+    "original": "2026-09-01",
+    "iso": "2026-09-01",
+    "kind": "absolute",
+    "reason": "iso"
+  },
+  "relativeDay": {
+    "status": "resolved",
+    "original": "demain",
+    "iso": "2026-07-14",
+    "kind": "relative_day",
+    "reason": "tomorrow"
+  },
+  "weekday": {
+    "status": "resolved",
+    "original": "lundi prochain",
+    "iso": "2026-07-20",
+    "kind": "weekday",
+    "reason": "weekday_lundi"
+  },
+  "unresolved": {
+    "status": "unresolved",
+    "original": "bientôt",
+    "iso": null,
+    "kind": "none",
+    "reason": "no_pattern"
+  }
+}

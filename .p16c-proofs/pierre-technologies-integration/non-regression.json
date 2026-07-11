@@ -1,0 +1,9 @@
+{
+  "fullScoped": "7549 passed / 1 skipped / 0 failed",
+  "tsc": 0,
+  "perimeter": {
+    "p16a": 147,
+    "clonechat": 201,
+    "production": 120
+  }
+}

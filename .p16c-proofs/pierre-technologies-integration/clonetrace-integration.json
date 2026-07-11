@@ -1,0 +1,35 @@
+{
+  "traceRequirements": [
+    "Chaque décision d'intégration, plan technologique et sortie est tracée (provenance préservée).",
+    "Complétion JAMAIS marquée sans preuve autoritaire (l'exécution reste derrière la confirmation).",
+    "Événement à tracer: « Proposition de mission gouvernée créée » avec pointeur de reprise et provenance.",
+    "Preuve T1 EvidenceTech présente."
+  ],
+  "event": {
+    "artifactKind": "clonetrace_event",
+    "eventId": "trace-15",
+    "at": "2026-07-11T00:07:19.358Z",
+    "subject": "mission-Demande opérationnelle: general",
+    "action": "Proposition de mission gouvernée créée",
+    "reason": "Préparation locale permise ; tout envoi/effet restera soumis à validation.",
+    "links": {
+      "missionId": null,
+      "taskId": null,
+      "artifactIds": [],
+      "validationIds": []
+    },
+    "resumePointer": {
+      "missionId": null,
+      "lastEventId": "trace-15"
+    },
+    "t1Evidence": {
+      "artifactKind": "evidence_entry",
+      "subject": "mission-Demande opérationnelle: general",
+      "action": "Proposition de mission gouvernée créée",
+      "employeeId": "pierre",
+      "companyId": "co-1"
+    },
+    "orchestrates": false,
+    "decidesRisk": false
+  }
+}

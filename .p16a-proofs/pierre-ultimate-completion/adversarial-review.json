@@ -1,0 +1,26 @@
+{
+  "method": "manual, single-session, no subagents (per §19)",
+  "lenses": [
+    { "n": 1, "lens": "a canonical item silently missing", "verdict": "SAFE", "control": "crossCheckCanonicalItems() fails on missing/invented; META keys asserted === master-split ids (test A3/A4)" },
+    { "n": 2, "lens": "a static file counted as real behavior", "verdict": "REFUTED→FIXED", "control": "gap-matrix uses sync PROBES over real modules; sector_adaptation probe was reading a static metadata field — CHANGED to behavioral (legal caps never autonomous + legal-conclusion human-only)" },
+    { "n": 3, "lens": "capability count hardcoded", "verdict": "SAFE", "control": "pierreCapabilityCount()=HR_CAPABILITIES.length; test B7 greps source for 'return 215'" },
+    { "n": 4, "lens": "a second HR brain/runtime", "verdict": "SAFE", "control": "no 2nd registry (count derived), no 2nd planner (contract maps the reused plan or a labeled non-executable outline); import-grep J72; secondHrBrainCreated=false" },
+    { "n": 5, "lens": "generic CloneOS behavior duplicated in Pierre", "verdict": "SAFE", "control": "contract is HR-specific; no routing/shell/execution logic" },
+    { "n": 6, "lens": "a dangerous HR decision became autonomous", "verdict": "SAFE", "control": "human-only floor tested un-weakenable in enterprise_autonomous (family I + scenarios 12/13/14)" },
+    { "n": 7, "lens": "legal/provider dependency hidden", "verdict": "SAFE", "control": "legalDependencies+providerDependencies+blockedReasons+t1Needs.liveBlocked (E32/E33, legalTruthReady, providerTruthReady)" },
+    { "n": 8, "lens": "'prepared' became 'sent/signed/completed'", "verdict": "SAFE", "control": "noFabricatedCompletion regex; tests F41/F42, outputQualityReady" },
+    { "n": 9, "lens": "continuity resolves the wrong mission/artifact", "verdict": "SAFE", "control": "content-noun + latest-cue + unique resolution; ambiguity→ASK_CLARIFICATION (H51-58, scenarios 6/7/8/9)" },
+    { "n": 10, "lens": "duplicate request creates duplicate work", "verdict": "SAFE", "control": "deterministic contract (idempotencyReady, scenario 18==1); contract has NO effect; runtime idempotency = reused fenced engine" },
+    { "n": 11, "lens": "company/employee data leaks across tenants", "verdict": "SAFE", "control": "entities INJECTED (never fetched cross-tenant); forbidden entity→permission_forbidden_entity block (scenario 19)" },
+    { "n": 12, "lens": "company context fabricated", "verdict": "SAFE", "control": "contextRequirements say 'jamais fabriqué'; only injected subjects used (test C15)" },
+    { "n": 13, "lens": "document explanation fabricates provenance", "verdict": "SAFE", "control": "documentEvidenceRequirements admit missing lineage honestly; correction requires lineage (G49/G50)" },
+    { "n": 14, "lens": "P16A performs P16C integration", "verdict": "SAFE", "control": "no T1/T2/C1 wiring in runtime contract (import-grep J72); command-center imports them READ-ONLY for perimeter only; t1/t2 needs are declared strings" },
+    { "n": 15, "lens": "C1/C1.1/C1.2 regresses", "verdict": "SAFE", "control": "non-reg green (C1.1+assistant 251 tests); perimeter c1/c11/c12 intact" },
+    { "n": 16, "lens": "CloneChat becomes hidden", "verdict": "SAFE", "control": "isCloneChatEnabled()=true (c12); product-availability untouched (K81)" },
+    { "n": 17, "lens": "production/payment/provider floor lifted", "verdict": "SAFE", "control": "PRODUCTION_AUTHORIZED=false, resolvePaymentMode!==live, liveProvidersBlocked; gates untouched (K83-85)" },
+    { "n": 18, "lens": "tests pass via hardcoded readiness not behavior", "verdict": "SAFE", "control": "command center runs REAL contracts + sync primitives + gap probes; no hardcoded green" }
+  ],
+  "realRefutations": 1,
+  "fixed": ["#2 sector_adaptation probe changed from static-field read to behavioral (legal caps never autonomous + legal-conclusion human-only); regression stays in the same probe + family E32/E33"],
+  "residual": []
+}

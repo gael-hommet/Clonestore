@@ -1,0 +1,41 @@
+{
+  "runId": "clonechat-total-intelligence",
+  "launchPricing": [
+    {
+      "country": "FR",
+      "currency": "EUR",
+      "amount": 449,
+      "display": "449 € / mois",
+      "group": "EUR_LAUNCH"
+    },
+    {
+      "country": "BE",
+      "currency": "EUR",
+      "amount": 449,
+      "display": "449 € / mois",
+      "group": "EUR_LAUNCH"
+    },
+    {
+      "country": "LU",
+      "currency": "EUR",
+      "amount": 449,
+      "display": "449 € / mois",
+      "group": "EUR_LAUNCH"
+    },
+    {
+      "country": "CH",
+      "currency": "CHF",
+      "amount": 499,
+      "display": "499 CHF / mois",
+      "group": "CHF_LAUNCH"
+    }
+  ],
+  "rules": [
+    "France, Belgique, Luxembourg : 449 € / mois (offre EUR).",
+    "Suisse : 499 CHF / mois — un utilisateur suisse voit et paiera l'offre suisse, jamais l'offre EUR.",
+    "Pays non déterminé → on demande le pays ; jamais d'offre par défaut « la moins chère ».",
+    "Le lancement public payant est fermé tant que les preuves externes (paiement, légal/fiscal) ne sont pas réunies.",
+    "La démo, la réservation et l'accès fondateur sont ouverts — aucun paiement demandé.",
+    "Pas d'essai gratuit. Pas de bêta. Démo interactive / lancement premium."
+  ]
+}

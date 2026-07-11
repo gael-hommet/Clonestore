@@ -1,0 +1,19 @@
+{
+  "runId": "p11-run1",
+  "tsc": "0 errors",
+  "suites": {
+    "p11_stripe_live_readiness": { "file": "src/lib/clonestore/production/__tests__/p11-stripe-live-readiness.test.ts", "passed": 9, "proves": ["test key blocks production", "missing EUR blocks", "missing CHF blocks (no EUR fallback)", "missing webhook blocks", "flag off blocks", "live+prices+webhook+flag STILL not ready (live API not attested)", "never exposes secret values", "verifyStripePrice EUR active/eur/44900/monthly, no trial", "verifyStripePrice CHF active/chf/49900/monthly"] },
+    "p11_stripe_country_reconciliation": { "file": "src/lib/clonestore/production/__tests__/p11-stripe-country-reconciliation.test.ts", "passed": 10, "proves": ["selected FR + billing CH → refund_required", "selected CH + billing FR → review/block", "company CH + billing FR → blocked", "billing missing → review_required", "matching → allowed (EUR/CHF)", "weak geo alone → warning not proof", "tax conflict → review", "payment-method conflict → review", "no expected → manual_review"] },
+    "p11_legal_tax_readiness": { "file": "src/lib/clonestore/production/__tests__/p11-legal-tax-readiness.test.ts", "passed": 6, "proves": ["no external proof → LEGAL_TAX_READY false", "all 4 countries listed", "all required documents listed", "all external_pending without proof (never self-verified)", "cross-border tax questions (CHF/EUR, reverse charge, entity)", "verified ONLY with BOTH proof artifacts"] },
+    "p11_provider_readiness": { "file": "src/lib/clonestore/production/__tests__/p11-provider-readiness.test.ts", "passed": 7, "proves": ["detectSignatureMode sandbox/live/unknown", "sandbox Yousign → NOT ready + PROVIDER_SIGNATURE_NOT_LIVE + sandbox blocker", "missing API key blocks", "missing webhook blocks", "no owner live attestation → NOT ready even with live URL", "manual fallback → warning not readiness", "FR/BE/LU/CH coverage"] },
+    "p11_final_golive_command_center": { "file": "src/lib/clonestore/production/__tests__/p11-final-golive-command-center.test.ts", "passed": 8, "proves": ["empty env → NOT_READY, production not authorized, launches false", "finalVerdict=TECHNICAL_READINESS_VERIFIED_EXTERNAL_GOLIVE_BLOCKED, P10 const stays false", "owner approval derived from explicit artifact (needs flag+signer)", "all external verified, no owner → READY_FOR_OWNER_REVIEW (still not authorized)", "+owner, no deploy → OWNER_APPROVED_READY_TO_LAUNCH (never LAUNCHED)", "LAUNCHED only with explicit deploy proof", "single missing external item → NOT_READY", "test Stripe key never satisfies stripe live"] },
+    "p11_emit_proofs": { "file": "src/lib/clonestore/production/__tests__/p11-emit-proofs.test.ts", "passed": 5, "proves": ["proof JSONs computed from real modules; no secret values in proofs"] },
+    "p10_production_gate": { "file": "src/lib/clonestore/production/__tests__/p10-production-gate.test.ts", "passed": 8, "note": "P10 gate non-regression (still PRODUCTION_AUTHORIZED=false)" }
+  },
+  "totals": { "production_dir": 53, "pricing_dir": 61 },
+  "non_regression": {
+    "checkout_founder_golive_productionReadiness_p9": "774/774 (src/app/api/checkout + src/lib/founder-access + src/lib/go-live + src/lib/production-readiness + pierre-journey + pierre-autonomy + src/app/api/assistant + src/lib/clonechat)",
+    "durable_itest": "24/24 (clonechat-durable.itest.ts)"
+  },
+  "browser_smoke": "P11_SMOKE_OK (see browser-smoke.json) — public FR 449€/CH 499CHF/unknown-selector/mobile no-overflow; authenticated no_country→COUNTRY_REQUIRED, CH→STRIPE_PRICE_NOT_CONFIGURED (fail-closed even forging EUR); ZERO Stripe sessions created; ZERO RESIDUE"
+}

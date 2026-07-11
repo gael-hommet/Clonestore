@@ -1,0 +1,11 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "activeBuild": {
+    "command": "$env:CLONECHAT_ENABLED=true; npm run build",
+    "result": "SUCCESS — full route table printed, no errors"
+  },
+  "assistantRouteType": "Dynamic (no static assistant.html baked)",
+  "defaultUnsetBuild": "second full build NOT run (expensive) ; unset canonical rule proven by test 18 (isCloneChatEnabled true for unset/empty) + dev-server runtime GET /assistant 200 with CLONECHAT_ENABLED unset",
+  "serverOnlyLeak": "none (build succeeded; C1.1 server leaves not in client bundle)"
+}

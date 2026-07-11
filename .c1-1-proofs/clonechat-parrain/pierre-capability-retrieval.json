@@ -1,0 +1,17 @@
+{
+  "runId": "clonechat-parrain",
+  "onboarding": [
+    "onboarding.get_session",
+    "onboarding.complete_step",
+    "onboarding.reopen_step",
+    "onboarding.complete_session",
+    "onboarding.registry_steps"
+  ],
+  "absence": [
+    "absence.create_request",
+    "absence.list",
+    "absence.approval_workflow",
+    "absence.balance_calculation",
+    "absence.conflict_detection"
+  ]
+}

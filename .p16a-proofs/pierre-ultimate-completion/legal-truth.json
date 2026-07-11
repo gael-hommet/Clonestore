@@ -1,0 +1,26 @@
+{
+  "sectorLegal": [
+    "disciplinary_procedure",
+    "probation_periods",
+    "Sourcing légal/sectoriel externe (jamais inventer le droit) — bloqué."
+  ],
+  "blocked": [
+    {
+      "code": "provider_blocked",
+      "detail": "Provider calendrier live indisponible."
+    },
+    {
+      "code": "provider_blocked",
+      "detail": "Push temps réel indisponible — rappels cockpit uniquement."
+    },
+    {
+      "code": "provider_blocked",
+      "detail": "Connecteurs SIRH/paie/Slack externes non vérifiés."
+    },
+    {
+      "code": "legal_blocked",
+      "detail": "disciplinary_procedure; probation_periods; Sourcing légal/sectoriel externe (jamais inventer le droit) — bloqué."
+    }
+  ],
+  "disclosure": "Pierre prépare le travail RH et transforme vos demandes en missions gouvernées ; toute action sensible passe par une validation humaine et rien n'est envoyé ni signé sans provider actif. L'exécution légale automatique par pays n'est PAS disponible aujourd'hui (0 règle pays vérifiée par un juriste)."
+}

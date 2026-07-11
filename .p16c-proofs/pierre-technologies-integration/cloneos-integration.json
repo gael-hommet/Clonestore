@@ -1,0 +1,13 @@
+{
+  "plan": {
+    "title": "Demande opérationnelle: general",
+    "objective": "Réaliser, sous gouvernance : Demande opérationnelle: general",
+    "taskIds": [
+      "task-1"
+    ],
+    "decidesHrOutcomes": false,
+    "executed": false
+  },
+  "decidesHrOutcomes": false,
+  "executed": false
+}

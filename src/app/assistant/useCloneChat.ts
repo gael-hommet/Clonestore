@@ -36,6 +36,30 @@ import type { CloneChatMessage, CloneChatProposedAction, CloneChatContentBlock }
 
 export type CloneChatUiMode = "loading" | "public" | "authenticated";
 
+/**
+ * C1.1 — Pièce jointe DOCUMENTAIRE (PDF/DOCX/XLSX/CSV/TXT/MD). Le client ne fait que
+ * transporter : le serveur re-détecte le MIME par signature, recalcule taille et hash,
+ * applique la politique fail-closed et décide seul du statut de parsing. Aucun champ
+ * déclaré ici n'est digne de confiance côté serveur (par conception).
+ */
+export interface CloneChatDocAttachment {
+  readonly filename: string;
+  readonly mimeType: string;
+  readonly sizeBytes: number;
+  /** base64 nu (pas de data: URL) — transport en ligne borné, aucun stockage durable. */
+  readonly data: string;
+}
+
+/** Statut de pièce jointe renvoyé par le serveur (autoritaire). */
+export interface CloneChatServerAttachment {
+  readonly filename: string;
+  readonly supportStatus: string;
+  readonly format: string;
+  readonly pageCount: number | null;
+  readonly sheetCount: number | null;
+  readonly warnings: readonly string[];
+}
+
 // Préfixe UNIQUE par chargement de page : évite toute collision de clé React entre les
 // messages hydratés depuis localStorage/serveur (ids d'une session antérieure) et les
 // messages créés en direct (le compteur repart de 0 à chaque chargement de module).
@@ -64,7 +88,7 @@ export function useCloneChat() {
   const setConv = useCallback((id: string | null) => { conversationIdRef.current = id; setConversationId(id); }, []);
   const authHeaders = useCallback((): Record<string, string> => ({ "Content-Type": "application/json", ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}) }), []);
   const abortRef = useRef<AbortController | null>(null);
-  const lastUserRef = useRef<{ text: string; images: string[] } | null>(null);
+  const lastUserRef = useRef<{ text: string; images: string[]; docs: CloneChatDocAttachment[] } | null>(null);
 
   // ── Détection de mode + chargement du contexte réel ────────────────────────
   useEffect(() => {
@@ -151,14 +175,15 @@ export function useCloneChat() {
 
   const push = useCallback((m: CloneChatMessage) => setMessages((prev) => [...prev, m]), []);
 
-  // ── Envoi d'un message (texte + captures d'écran optionnelles) ──────────────
-  const send = useCallback(async (rawText: string, images: string[] = []) => {
+  // ── Envoi d'un message (texte + captures + documents optionnels) ────────────
+  const send = useCallback(async (rawText: string, images: string[] = [], docs: CloneChatDocAttachment[] = []) => {
     const t = rawText.trim();
-    if ((!t && images.length === 0) || busy) return;
-    lastUserRef.current = { text: t, images };
+    if ((!t && images.length === 0 && docs.length === 0) || busy) return;
+    lastUserRef.current = { text: t, images, docs };
     const userBlocks: CloneChatContentBlock[] = [];
     if (t) userBlocks.push({ type: "text", text: t });
     if (images.length) userBlocks.push({ type: "text", text: `📎 ${images.length} capture${images.length > 1 ? "s" : ""} jointe${images.length > 1 ? "s" : ""}` });
+    if (docs.length) userBlocks.push({ type: "text", text: `📄 ${docs.map((d) => d.filename).join(", ")}` });
     push(msg("user", userBlocks, "user"));
     setBusy(true);
     const ac = new AbortController();
@@ -166,18 +191,25 @@ export function useCloneChat() {
     try {
       const ctx = { ...ctxRef.current, companyLabel };
       if (ctx.mode === "public") {
-        if (images.length) { push(msg("assistant", [{ type: "text", text: "Connectez-vous pour que j'analyse vos captures d'écran en mode opérationnel." }, { type: "boundary", provenance: "public", text: "Assistant d'orientation — je n'accède pas aux données d'une entreprise." }], "public")); return; }
+        // Public : aucune pièce jointe (ni capture ni document) — pas de contexte entreprise.
+        if (images.length || docs.length) { push(msg("assistant", [{ type: "text", text: "Connectez-vous pour que j'analyse vos captures d'écran et vos documents en mode opérationnel." }, { type: "boundary", provenance: "public", text: "Assistant d'orientation — je n'accède pas aux données d'une entreprise." }], "public")); return; }
         const r = runCloneChatTurn(t, ctx);
         push(msg("assistant", [...r.blocks], r.provenance));
         return;
       }
-      // Mode authentifié → route serveur (OpenAI réel gouverné, multimodal inclus).
+      // Mode authentifié → route serveur (OpenAI réel gouverné, grounding C1.1, multimodal inclus).
       const res = await fetch("/api/assistant/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}) },
         credentials: "same-origin",
         signal: ac.signal,
-        body: JSON.stringify({ message: t, history: recentHistory(messages), conversation_id: conversationIdRef.current, ...(images.length ? { images } : {}) }),
+        body: JSON.stringify({
+          message: t,
+          history: recentHistory(messages),
+          conversation_id: conversationIdRef.current,
+          ...(images.length ? { images } : {}),
+          ...(docs.length ? { attachments: docs.map((d) => ({ filename: d.filename, mime_type: d.mimeType, size_bytes: d.sizeBytes, transport: "inline_base64", data: d.data })) } : {}),
+        }),
       });
       const data = await res.json().catch(() => null);
       // Chemin multimodal : analyse structurée honnête.
@@ -207,12 +239,22 @@ export function useCloneChat() {
       // serveur a persisté une PROPOSITION (référence proposalId). Le client ne détient jamais
       // le payload canonique : la confirmation appellera /api/assistant/execute avec la référence.
       const blocks: CloneChatContentBlock[] = assembled.blocks.filter((b) => !(b.type === "action_preview" && b.action.requiresConfirmation));
-      const prop = data.proposal as { id?: string; kind?: CloneChatProposedAction["kind"]; label?: string } | null | undefined;
+      const prop = data.proposal as { id?: string; kind?: CloneChatProposedAction["kind"]; label?: string; autonomy?: { productModeId: string; label: string; tagline: string; engineMode: string } } | null | undefined;
       if (prop?.id && prop.kind) {
         blocks.push({ type: "action_preview", action: {
           id: `srv-${prop.id}`, kind: prop.kind, label: prop.label ?? "Confirmer", risk: prop.kind === "cancel_mission" ? "irreversible" : "sensitive",
           requiresConfirmation: true, allowed: true, reason: null, payload: {}, href: null, proposalId: prop.id,
         } });
+        // P9.5 — reflète le niveau d'autonomie (résolu serveur) sous lequel Pierre opérera la mission.
+        if (prop.autonomy) blocks.push({ type: "boundary", provenance: "company", text: `Pierre opérera cette mission en mode « ${prop.autonomy.label} » — ${prop.autonomy.tagline}` });
+      }
+      // C1.1 — Statut HONNÊTE des pièces jointes (autoritaire serveur) + limites connues.
+      const serverAttachments = Array.isArray(data.attachments) ? (data.attachments as CloneChatServerAttachment[]) : [];
+      if (serverAttachments.length > 0) {
+        blocks.push({ type: "boundary", provenance: "system", text: serverAttachments.map((a) => `${a.filename} — ${describeSupport(a.supportStatus)}`).join(" · ") });
+      }
+      if (Array.isArray(data.knownLimitations) && data.knownLimitations.length > 0) {
+        blocks.push({ type: "boundary", provenance: "system", text: (data.knownLimitations as string[]).slice(0, 2).join(" ") });
       }
       // Citations discrètes (« D'après … ») — jamais de chemin de fichier / table au client.
       if (Array.isArray(data.citationLabels) && data.citationLabels.length > 0) blocks.push({ type: "boundary", provenance: "system", text: `D'après ${data.citationLabels.slice(0, 3).join(", ")}.` });
@@ -235,7 +277,7 @@ export function useCloneChat() {
   // Réémettre le dernier message utilisateur.
   const retry = useCallback(() => {
     const last = lastUserRef.current;
-    if (last && !busy) void send(last.text, last.images);
+    if (last && !busy) void send(last.text, last.images, last.docs);
   }, [busy, send]);
 
   // ── Exécution d'une action confirmée — AUTHORITATIVE CÔTÉ SERVEUR (P9.4.2 r2 §3) ─
@@ -334,6 +376,21 @@ function visionBlocks(
   if (a.next_action) blocks.push({ type: "text", text: `Prochaine étape suggérée : ${a.next_action}` });
   blocks.push({ type: "boundary", provenance: "company", text: "Analyse basée uniquement sur votre capture. Rien n'a été exécuté." });
   return blocks;
+}
+
+/** Traduit le statut de support serveur en langage clair — jamais de jargon de parseur. */
+function describeSupport(status: string): string {
+  switch (status) {
+    case "fully_parsed": return "lu intégralement";
+    case "text_extracted": return "texte extrait";
+    case "structured_partial": return "valeurs lues (aucune formule exécutée)";
+    case "image_only": return "contenu visuel (aucun texte lu)";
+    case "metadata_only": return "métadonnées seulement";
+    case "unsupported": return "format non pris en charge";
+    case "parse_failed": return "lecture impossible";
+    case "manual_review_required": return "mis en quarantaine (revue manuelle)";
+    default: return status;
+  }
 }
 
 function recentHistory(messages: CloneChatMessage[]): Array<{ role: "user" | "assistant"; text: string }> {

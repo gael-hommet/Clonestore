@@ -1,0 +1,28 @@
+{
+  "runId": "p11-run1",
+  "reviewer": "3 independent adversarial agents (opus, high effort), read-only",
+  "result": { "totalClaims": 13, "holds_initial": 9, "partial_initial": 4, "refuted": 0 },
+  "claims": {
+    "1_production_not_enabled": "HOLDS. PRODUCTION_AUTHORIZED=false const; command center never LAUNCHED/authorized without owner+deploy; productionAuthorized derived (now with the P10 const as a HARD FLOOR after review). Local env → NOT_READY.",
+    "2_test_key_not_live": "HOLDS. detectStripeMode: only sk_live_/rk_live_→live; liveApiVerified requires live mode AND owner attestation; test key can never pass.",
+    "3_no_cross_currency_bypass": "HOLDS. CHF strict (no alias); EUR legacy alias same-currency only; missing→STRIPE_PRICE_NOT_CONFIGURED; CH never reaches EUR.",
+    "13_live_keys_not_falsely_verified": "HOLDS. liveApiVerified false without owner dry-run attestation; P11 makes no Stripe call. (Attestation is a flag representing the dry-run — disclosed.)",
+    "14_price_verification_real": "HOLDS. verifyStripePrice checks active/currency/44900|49900/monthly/no-trial against the pure canon; demo includes real failing cases; no live call claimed.",
+    "4_ch_cannot_pay_eur": "PARTIAL→FIXED. P10 guard forces the currency (airtight). Reconciliation caught CH-billing-on-EUR (refund_required) but MISSED the billing===expected currency case. FIXED: reconcileStripeCountry now checks chargedCurrency vs expected currency UNCONDITIONALLY (CH billed EUR / FR billed CHF → refund_required). Test added.",
+    "5_reconciliation_real": "PARTIAL (disclosed). reconcileStripeCountry is real code + 12 tests, but NOT wired into the live Stripe webhook (no app consumer). Honestly reflected: countryReconciliation.ready=false / liveDataVerified=false. It is a tested library to integrate at go-live, not current runtime enforcement — disclosed in report + owner packet.",
+    "6_legal_tax_not_false_verified": "PARTIAL (reframed). Local env: all external_pending, LEGAL_TAX_READY=false, FR/BE/LU/CH + 11 docs present (honest). The two flags are OWNER ATTESTATIONS (not P11-verified artifacts); reframed in module note + test name. Fail-closed by default.",
+    "7_provider_not_false_live": "PARTIAL (reframed). Sandbox/default honest (PROVIDER_SIGNATURE_NOT_LIVE, P8.7.4 surfaced). The live path requires an OWNER ATTESTATION flag (CLONESTORE_SIGNATURE_LIVE_VERIFIED) — owner-gated, false locally. Disclosed as attestation, not P11-verified lifting of P8.7.4.",
+    "9_no_secret_leak": "HOLDS. Only env-presence booleans + names + guidance text; no secret VALUES in any module or proof (grep clean). detectSignatureMode emits only sandbox/live/unknown.",
+    "10_p8_p9_p10_untouched": "HOLDS. All 6 P11 modules are NEW; consume P10/final-certification read-only via imports; no writes to P8/P9/P10 source. (git sandbox-restricted → verified at code/import level.)",
+    "11_tests_proofs_real": "HOLDS. 45+ discriminating assertions; emit-proofs computes JSON from the real evaluate* functions; blocker/warning counts cross-checked; positive state-machine path tested.",
+    "12_owner_approval_not_faked": "HOLDS. readOwnerApproval requires flag AND signer; productionAuthorized derived (+P10 const floor); never hardcoded. Local: artifactPresent=false."
+  },
+  "fixes_applied_after_review": [
+    "Reconciliation currency gap CLOSED: chargedCurrency now validated against the expected country's currency UNCONDITIONALLY (billing===expected path included) → CH-billed-EUR / FR-billed-CHF → refund_required. Test added.",
+    "P10 const made a REAL hard floor: productionAuthorized = externalTechnicalReady && ownerApproved && P10_PRODUCTION_AUTHORIZED(const). LAUNCHED requires productionAuthorized → unreachable via env flags while the const is false (deliberate code change required). Test updated to prove the floor.",
+    "Honesty reframing: legal/tax + provider + stripe-live 'proof' language clarified as OWNER ATTESTATIONS (flags the owner sets AFTER real external work), not P11-verified artifacts. Module notes + test names updated."
+  ],
+  "disclosed_attestation_model": "Go-live readiness dimensions (stripe-live, legal, tax, provider, country-recon-live, monitoring, owner, deploy) are OWNER-ATTESTATION env flags — trust-based, not artifact/signature-bound. This is inherent to an owner-approval dossier: P11 cannot verify the external world. It is FAIL-CLOSED and honest in the real environment (all flags absent → globalStatus NOT_READY, productionAuthorized false, finalVerdict TECHNICAL_READINESS_VERIFIED_EXTERNAL_GOLIVE_BLOCKED). A future hardening could bind each flag to a signed artifact (like the go-live proof registry); documented as a recommendation.",
+  "not_reachable_locally": "No path reaches LAUNCHED or productionAuthorized=true in the real env; the P10 const floor additionally requires a deliberate code change even if all attestations were set.",
+  "outcome": "SOUND — 0 refuted; 2 concrete code fixes applied (reconciliation currency, P10 const hard floor) + honesty reframing; residual attestation-model + not-yet-wired reconciliation disclosed. Re-run: 54/54 production tests, tsc 0. Honest verdict: TECHNICAL READINESS VERIFIED / EXTERNAL GO-LIVE BLOCKED."
+}

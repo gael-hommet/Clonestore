@@ -17,6 +17,7 @@ import {
   Waypoints,
 } from "lucide-react";
 import { EMPLOYEE_PRICE } from "@/lib/catalog/public-catalog";
+import { CountryPricingCard } from "@/components/pricing/CountryPricingCard";
 
 // Le tarif affiché provient de la source de vérité unique (commercial-state via
 // public-catalog). Le littéral « 449 » est conservé dans la description pour la
@@ -174,6 +175,20 @@ export default function PierrePage() {
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
+          </section>
+
+          {/* P10 — TARIFICATION PAR PAYS (résolue serveur ; FR/BE/LU 449€, CH 499CHF). */}
+          <section id="tarif-pays" className="cs-panel">
+            <SectionHead
+              kicker="Tarif par pays"
+              title="Le bon prix selon votre pays de facturation."
+              text="France, Belgique, Luxembourg : 449 € / mois. Suisse : 499 CHF / mois. Le pays est revérifié au paiement."
+            />
+            <div className="mt-6 flex justify-center">
+              <div className="w-full max-w-xl">
+                <CountryPricingCard />
               </div>
             </div>
           </section>

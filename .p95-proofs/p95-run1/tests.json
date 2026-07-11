@@ -1,0 +1,49 @@
+{
+  "runId": "p95-run1",
+  "suites": {
+    "product_model": {
+      "file": "src/lib/clonestore/pierre-autonomy/__tests__/model.test.ts",
+      "passed": 8,
+      "proves": [
+        "5 product modes → valid P8 engine modes; all 4 engine modes covered",
+        "HARD FLOORS: approval-required/restricted never auto-executed in ANY mode (controlled/governed/dirigeant included)",
+        "modes change behavior (status_update: prepare→alone→notify)",
+        "effective autonomy monotonic draft<validation≤controlled≤governed",
+        "engineModeFor guard-rails unknown ids to 'normal'"
+      ]
+    },
+    "autonomy_route": {
+      "file": "src/app/api/assistant/__tests__/autonomy-route.test.ts",
+      "passed": 7,
+      "proves": [
+        "GET returns current mode (from P8 column) + 5 modes + matrix derived from decideValidation",
+        "POST maps product→engine mode; PATCHes P8 company with ONLY {default_autonomy_mode, version}",
+        "NO client-forged escalation: injected engineMode/default_autonomy_mode/version IGNORED (server uses productModeId + its own read version)",
+        "unknown product mode → 400",
+        "PATCH 403 (P8 permission) → FORBIDDEN — no escalation",
+        "persistence: POST then GET reflects the new mode",
+        "dirigeant echoed on apply; reload re-presents enterprise_autonomous as governed (disclosed)"
+      ]
+    },
+    "execute_autonomy_wiring": {
+      "file": "src/app/api/assistant/__tests__/execute-route.test.ts",
+      "passed": 14,
+      "p95_additions": [
+        "persisted autonomyMode reaches V1 createMission (autonomy_mode in POST body)",
+        "forged autonomyMode in /execute body IGNORED (server reads persisted proposal)",
+        "invalid autonomyMode omitted (guard against unknown engine mode)"
+      ]
+    },
+    "wider_suite": {
+      "scope": "src/lib/clonechat + src/app/api/assistant + src/lib/clonestore/pierre-autonomy + client-cockpit permissions",
+      "passed": 165,
+      "note": "P9.4.2 non-regression green (auth refactor requireCompanyUser + all prior)"
+    },
+    "durable_itest": {
+      "file": "src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts",
+      "status": "24/24 (0 unhandled) — P9.4.2 non-regression green"
+    }
+  },
+  "tsc": "0 errors",
+  "targeted_total": 26
+}

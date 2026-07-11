@@ -13,6 +13,8 @@ import {
   isAccessGranted,
 } from "@/lib/billing/stripe-activation";
 import { upsertOrderActivation } from "@/lib/billing/order-activation";
+// P15 — billing-country reconciliation on the confirm activation path (additive, flag-gated).
+import { extractCountrySignalsFromSession, evaluateCheckoutReconciliationGate } from "@/lib/clonestore/production/p15-checkout-reconciliation-gate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -150,6 +152,22 @@ export async function POST(request: NextRequest) {
       typeof session.customer === "string"
         ? session.customer
         : (session.customer as Stripe.Customer | null)?.id ?? null;
+
+    // 9b. P15 — réconciliation pays (flag-gated). Un conflit fort (CH facturé EUR, FR/BE/LU en CHF,
+    // conflit entreprise, devise incohérente) N'ACTIVE PAS l'accès payant : on renvoie review_required
+    // (pas d'écriture d'ordre actif). Flag OFF (défaut) → comportement inchangé, audit loggé.
+    const reconSignals = extractCountrySignalsFromSession(session as unknown as Record<string, unknown>);
+    const reconGate = evaluateCheckoutReconciliationGate({
+      companyCountry: reconSignals.companyCountry,
+      selectedCountry: reconSignals.selectedCountry,
+      stripeBillingCountry: reconSignals.stripeBillingCountry,
+      stripeTaxCountry: reconSignals.stripeTaxCountry,
+      chargedCurrency: reconSignals.chargedCurrency,
+    }, { env: process.env });
+    console.log("[checkout/confirm][p15-reconciliation]", JSON.stringify(reconGate.audit));
+    if (!reconGate.shouldActivate) {
+      return json(200, { ok: true, activated: false, review_required: true, code: reconGate.decision.code, status: reconGate.activationStatus });
+    }
 
     // 10. Upsert orders — idempotent
     await upsertOrderActivation(supabaseAdmin, {

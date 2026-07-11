@@ -1,0 +1,131 @@
+{
+  "runId": "clonechat-parrain",
+  "price": {
+    "persona": null,
+    "personaProfile": null,
+    "detectedPains": [],
+    "matchedObjectionId": "price",
+    "diagnosticQuestion": null,
+    "recommendedCTA": {
+      "route": "/reserver/pierre",
+      "label": "Réserver Pierre"
+    },
+    "groundingChunks": [
+      {
+        "id": "product.identity",
+        "sourceId": "src.c1_product_truth",
+        "title": "Identité CloneStore",
+        "kind": "product_config",
+        "category": "vision",
+        "visibility": "PUBLIC",
+        "authority": "src.c1_product_truth",
+        "version": "c1.1",
+        "reviewedAt": "2026-07-10",
+        "freshnessStatus": "CURRENT",
+        "text": "CloneStore est la boutique d'employés IA d'entreprise : des employés IA opérationnels, gouvernés et tracés — le premier est Pierre, employé IA RH. Un employé suit une mission ; un assistant ne fait que répondre. Tout est tracé : vous pouvez toujours reconstituer qui a fait quoi, quand, pourquoi. Les décisions sensibles restent sous validation humaine, par construction. La mémoire d'entreprise est durable et isolée — vous ne réexpliquez pas tout à chaque fois. État honnête : Version de lancement prête et démontrable (démo immersive, réservation fondateur). Le paiement en ligne n'est pas encore ouvert. Les activations externes (signature, envoi d'e-mails, voix, téléphonie, connecteurs) restent en préparation.",
+        "citationLabel": "la présentation CloneStore",
+        "contentHash": "fnv1a_a6078d53",
+        "parrainSourceType": "product_registry",
+        "parrainAuthority": "verified_report",
+        "parrainVisibility": "PUBLIC",
+        "tenantCompanyId": null,
+        "stale": false
+      },
+      {
+        "id": "pricing.catalog",
+        "sourceId": "src.pricing_resolver",
+        "title": "Grille tarifaire de lancement",
+        "kind": "pricing_config",
+        "category": "prices",
+        "visibility": "PUBLIC",
+        "authority": "src.pricing_resolver",
+        "version": "c1.1",
+        "reviewedAt": "2026-07-10",
+        "freshnessStatus": "CURRENT",
+        "text": "Pays de lancement : FR, BE, LU, CH. FR/BE/LU: 449 € / mois · CH: 499 CHF / mois. Un client suisse voit et paiera l'offre suisse (CHF). Pays non déterminé → demander le pays, jamais d'offre par défaut. Le paiement en ligne n'est pas encore ouvert ; la réservation fondateur est disponible sans paiement. Pas d'essai gratuit, pas de bêta.",
+        "citationLabel": "la grille tarifaire",
+        "contentHash": "fnv1a_727bae33",
+        "parrainSourceType": "pricing_registry",
+        "parrainAuthority": "canonical_runtime",
+        "parrainVisibility": "PUBLIC",
+        "tenantCompanyId": null,
+        "stale": false
+      },
+      {
+        "id": "cap.compensation.vouchers",
+        "sourceId": "src.capability_registry",
+        "title": "Meal vouchers / titres",
+        "kind": "runtime_capability",
+        "category": "employees",
+        "visibility": "PUBLIC",
+        "authority": "src.capability_registry",
+        "version": "c1.1",
+        "reviewedAt": "2026-07-10",
+        "freshnessStatus": "CURRENT",
+        "text": "Meal vouchers / titres : Meal vouchers / titres Mode de fonctionnement : préparation de brouillon — l'humain envoie/décide.",
+        "citationLabel": "la capacité « Meal vouchers / titres »",
+        "contentHash": "fnv1a_a98bf28c",
+        "parrainSourceType": "capability_registry",
+        "parrainAuthority": "canonical_runtime",
+        "parrainVisibility": "PUBLIC",
+        "tenantCompanyId": null,
+        "stale": false
+      }
+    ],
+    "availabilitySplit": "Séparation honnête à maintenir : disponible maintenant (démo, réservation fondateur, préparation gouvernée en local) · préparé/local-sûr (documents, e-mails, sessions CloneCall texte) · prêt pour intégration (technologies T1/T2) · bloqué externe (paiement en ligne, signature, envoi auto, voix, téléphonie) · planifié (Pierre Ultimate P16A). Une fonctionnalité en roadmap n'est jamais vendue comme disponible."
+  },
+  "chatgpt": {
+    "persona": null,
+    "personaProfile": null,
+    "detectedPains": [],
+    "matchedObjectionId": "already_chatgpt",
+    "diagnosticQuestion": null,
+    "recommendedCTA": {
+      "route": "/demo",
+      "label": "Réserver une démo"
+    },
+    "groundingChunks": [
+      {
+        "id": "product.identity",
+        "sourceId": "src.c1_product_truth",
+        "title": "Identité CloneStore",
+        "kind": "product_config",
+        "category": "vision",
+        "visibility": "PUBLIC",
+        "authority": "src.c1_product_truth",
+        "version": "c1.1",
+        "reviewedAt": "2026-07-10",
+        "freshnessStatus": "CURRENT",
+        "text": "CloneStore est la boutique d'employés IA d'entreprise : des employés IA opérationnels, gouvernés et tracés — le premier est Pierre, employé IA RH. Un employé suit une mission ; un assistant ne fait que répondre. Tout est tracé : vous pouvez toujours reconstituer qui a fait quoi, quand, pourquoi. Les décisions sensibles restent sous validation humaine, par construction. La mémoire d'entreprise est durable et isolée — vous ne réexpliquez pas tout à chaque fois. État honnête : Version de lancement prête et démontrable (démo immersive, réservation fondateur). Le paiement en ligne n'est pas encore ouvert. Les activations externes (signature, envoi d'e-mails, voix, téléphonie, connecteurs) restent en préparation.",
+        "citationLabel": "la présentation CloneStore",
+        "contentHash": "fnv1a_a6078d53",
+        "parrainSourceType": "product_registry",
+        "parrainAuthority": "verified_report",
+        "parrainVisibility": "PUBLIC",
+        "tenantCompanyId": null,
+        "stale": false
+      },
+      {
+        "id": "pricing.catalog",
+        "sourceId": "src.pricing_resolver",
+        "title": "Grille tarifaire de lancement",
+        "kind": "pricing_config",
+        "category": "prices",
+        "visibility": "PUBLIC",
+        "authority": "src.pricing_resolver",
+        "version": "c1.1",
+        "reviewedAt": "2026-07-10",
+        "freshnessStatus": "CURRENT",
+        "text": "Pays de lancement : FR, BE, LU, CH. FR/BE/LU: 449 € / mois · CH: 499 CHF / mois. Un client suisse voit et paiera l'offre suisse (CHF). Pays non déterminé → demander le pays, jamais d'offre par défaut. Le paiement en ligne n'est pas encore ouvert ; la réservation fondateur est disponible sans paiement. Pas d'essai gratuit, pas de bêta.",
+        "citationLabel": "la grille tarifaire",
+        "contentHash": "fnv1a_727bae33",
+        "parrainSourceType": "pricing_registry",
+        "parrainAuthority": "canonical_runtime",
+        "parrainVisibility": "PUBLIC",
+        "tenantCompanyId": null,
+        "stale": false
+      }
+    ],
+    "availabilitySplit": "Séparation honnête à maintenir : disponible maintenant (démo, réservation fondateur, préparation gouvernée en local) · préparé/local-sûr (documents, e-mails, sessions CloneCall texte) · prêt pour intégration (technologies T1/T2) · bloqué externe (paiement en ligne, signature, envoi auto, voix, téléphonie) · planifié (Pierre Ultimate P16A). Une fonctionnalité en roadmap n'est jamais vendue comme disponible."
+  }
+}

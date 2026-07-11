@@ -1,0 +1,31 @@
+{
+  "runId": "clonechat-total-intelligence",
+  "doctrine": [
+    "L'apprentissage est proposition-uniquement par défaut.",
+    "Aucune mutation globale silencieuse.",
+    "Validation admin/fondateur requise pour la connaissance globale.",
+    "La mémoire de compte reste isolée par entreprise.",
+    "La connaissance obsolète est dépréciée, jamais supprimée silencieusement.",
+    "Confiance et preuves requises sur chaque candidat."
+  ],
+  "candidate": {
+    "id": "learn_022aee56",
+    "sourceType": "user_question",
+    "proposedKnowledgeType": "faq_entry",
+    "summary": "probe preuve",
+    "suggestedAnswer": "…",
+    "confidence": 0.5,
+    "scope": "global",
+    "accountId": null,
+    "requiresValidation": true,
+    "evidence": [
+      "probe"
+    ],
+    "status": "candidate",
+    "validatedBy": null,
+    "createdAt": "2026-07-10T00:00:00.000Z",
+    "updatedAt": "2026-07-10T00:00:00.000Z"
+  },
+  "rejectedWithoutValidator": true,
+  "approvedGlobal": 1
+}

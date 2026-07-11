@@ -1,0 +1,56 @@
+{
+  "runId": "p13-run1",
+  "review": "P13 — Founder Vision Acceptance & Launch Country Fit — independent adversarial review",
+  "method": "3 independent Opus attackers (read-only), each told to REFUTE with file:line evidence + a concrete gap. Groups: A honesty/no-inflation/copy-scan, B country-fit derivation/pricing, C perimeter/guardrails/browser-proof.",
+  "workflowRunId": "wf_5a228b2b-dfd",
+  "totals": { "claims": 9, "holds": 5, "partial": 4, "refuted": 0, "securityDefects": 0 },
+  "refutedClaims": [],
+  "verdict_on_review": "0 refuted, 0 security defects. The load-bearing claims HOLD: launch-country-fit REALLY derives readiness from the verified P10/P11 evaluators (legal/tax/provider/launch honestly false by default); pricing correct (FR/BE/LU=449 EUR, CH=499 CHF; CH can never be EUR, FR/BE/LU never CHF; unsupported=BLOCKED); launch_allowed false with P10 const HARD FLOOR; PENDING_EXTERNAL not laundered as launch-ready; P8–P12 + Pierre V1 untouched; no 2nd HR brain; production OFF. The 4 PARTIALs were honesty/methodology issues — all addressed.",
+  "holds": [
+    "B1 — launch-country-fit derives legal_ready/tax_ready/provider_ready/launch_allowed from evaluateLegalTaxReadiness/evaluateProviderReadiness/evaluateP11FinalGoLiveReadiness; false by default (no external attestation env).",
+    "B2 — pricing FR/BE/LU=449 EUR, CH=499 CHF; cross-currency structurally impossible; unknown/unsupported → BLOCKED not cheapest.",
+    "B3 — launch_allowed=false with P10 const hard floor; verdict tiers honest; PENDING_EXTERNAL surfaced distinctly from launch-allowed, never presented as final.",
+    "C1 — P8/P9/P10/P11/P12 + Pierre V1 untouched (P13 only adds founder-acceptance files + tests + proofs; 0 P13 markers in protected dirs).",
+    "C2 — no 2nd HR brain (pure evaluators; HR data via real V1 hook); Pierre never assistant; PRODUCTION_AUTHORIZED=false."
+  ],
+  "findings": [
+    {
+      "id": "A1",
+      "claim": "Scorecard 34/36 ACCEPTED is honest, not inflated.",
+      "verdict": "PARTIAL",
+      "gap": "The two '2' discounts are well-justified, but mobile_usability=3 wasn't fully supported: the proof itself recorded mobile-390 Pierre composeButton:false because the founderSignals.mission_composer signal was DESKTOP-derived, and Pierre's 'Confier une mission' label is hidden (sm:inline) on mobile → icon-only.",
+      "resolution": "ADDRESSED. (1) Strengthened the proof: it now measures the mission-composer BUTTON ELEMENT on mobile (composeBtnVisible=true → affordance reachable, icon-only), and mission_composer now requires desktop label AND mobile button. (2) Scored mobile_usability 3→2 (honest icon-only-label caveat) → total 34→33, still ACCEPTED with margin, no weak pillar. (3) The scorecard total is now recomputed via evaluateFounderScorecard in a unit test (not hand-asserted).",
+      "status": "resolved"
+    },
+    {
+      "id": "A2",
+      "claim": "Country-copy QA '0 product-facing overclaims across 2439 files' is COMPLETE.",
+      "verdict": "PARTIAL",
+      "gap": "Substance holds (independent re-grep found 0 unguarded overclaim), but 'COMPLETE' overstates a fixed-14-phrase ripgrep. Two softer strings outside the lexicon exist in product copy (profile/messages/page.tsx:809 'CloneGuard a évalué la conformité', :819 'Note de conformité Guard') — safe only via point-of-use disclaimer. File count off by 1 (2440 not 2439).",
+      "resolution": "ADDRESSED. Reframed the method as 'fixed-lexicon denylist + manual + adversarial classification, NOT exhaustive NLP' with an explicit method_limitation_disclosed; added the 2 strings classified safe (contextually disclaimed — CloneGuard EVALUATES, does not GUARANTEE; deliverable is a draft note); corrected count to 2440. The practical conclusion (0 real product-facing overclaims) survives.",
+      "status": "resolved"
+    },
+    {
+      "id": "A3",
+      "claim": "Founder-vision-contract + scenarios are real testable artifacts with evaluators that actually gate.",
+      "verdict": "PARTIAL",
+      "gap": "The evaluators gate SYNTHETIC inputs only: the live proof pipeline never imported evaluateAllScenarios/evaluateFounderScorecard (used a parallel inline predicate), the scorecard JSON was hand-authored, and the unit test built scenario signals from each scenario's own mustShow (can never fail) — a tautology; the two could silently drift.",
+      "resolution": "ADDRESSED. Added a unit test that READS the actual browser proof (.p13-proofs/p13-run1/browser-founder-feel.json), extracts the REAL measured founderSignals, and runs them through the REAL evaluateAllScenarios — asserting every scenario A–G passes on live signals (not synthetic). Also recomputes the 33/36 total via evaluateFounderScorecard. The real browser signals now gate through the real evaluators; drift (e.g. the mobile gap) would now surface.",
+      "status": "resolved"
+    },
+    {
+      "id": "C3",
+      "claim": "Browser proof is real not cosmetic; 0 console errors; large screen; nothing deployed.",
+      "verdict": "PARTIAL",
+      "gap": "The harness is genuinely real, but '0 console errors' meant 0 after a BROAD benign filter that swallowed hydration mismatches, JS parse errors, and network 4xx/5xx — a real hydration/parse bug would have been hidden. And 'large screen' scenario G was derived from the desktop-1280 result (no true >1280 monitor). directSeed is a weaker URL-seed hand-off.",
+      "resolution": "ADDRESSED. (1) TIGHTENED the filter so it no longer swallows hydration/parse errors → real errors now fail. Re-running surfaced hydration ('caret-color') + 'Invalid or unexpected token'. INVESTIGATED with 4 evidence points (caret-color absent from ALL source; 0 errors on public pages; 0 on a clean authed load via p13-cockpit-error-probe — only a benign ERR_ABORTED; appear only under heavy dev multi-context navigation = HMR/cold-chunk). Classified as dev/HMR transients, RECORDED transparently in browser-founder-feel.json devTransients (14, non-blocking), with the hydration matcher requiring the proven caret-color attribute so a real hydration bug on any other attribute still fails. REAL consoleErrors=0. (2) Added a true large-1600 viewport for scenario G. (3) cloneRoomFlow already does the FULL message→mission hand-off (directSeed is the supplementary URL-seed check). Nothing staged/committed/pushed/deployed; tsconfig restored.",
+      "status": "resolved"
+    }
+  ],
+  "residual_disclosures": [
+    "Browser proof runs on next dev (isolated :3273/.next-p13), so dev/HMR transients exist; classified + recorded transparently, not hidden. A production-build run would eliminate them but was out of scope for this QA gate.",
+    "The country-copy scan is a denylist + manual classification, not exhaustive semantic review (disclosed).",
+    "The scorecard's numeric per-dimension scores are calibrated editorial judgments backed by the browser proof + code, not a pure computation (inherent to a qualitative founder-feel scorecard); the ACCEPT/BLOCK gating logic is fully unit-tested and now also fed the real browser signals.",
+    "mobile Pierre 'Confier une mission' is icon-only on <640px (affordance reachable, label hidden) — a minor P12 polish item, disclosed, not fixed here (P12 not reopened)."
+  ]
+}

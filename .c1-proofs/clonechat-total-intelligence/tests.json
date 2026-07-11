@@ -1,0 +1,29 @@
+{
+  "runId": "clonechat-total-intelligence",
+  "date": "2026-07-10",
+  "suites": {
+    "c1": {
+      "command": "npx vitest run src/lib/clonechat/intelligence/c1",
+      "result": "56/56 passed (50 preuves numérotées + R1–R5 adversarial + proof generator)",
+      "files": [
+        "src/lib/clonechat/intelligence/c1/__tests__/c1-clonechat-intelligence.test.ts",
+        "src/lib/clonechat/intelligence/c1/__tests__/c1-proof-generator.test.ts"
+      ]
+    },
+    "t2": { "command": "npx vitest run src/lib/clonestore/product-technologies/t2", "result": "passed (inclus dans le run groupé 210/210)" },
+    "t1": { "command": "npx vitest run src/lib/clonestore/technologies/t1", "result": "passed (inclus dans le run groupé 210/210)" },
+    "ultimate": { "command": "npx vitest run src/lib/clonestore/ultimate", "result": "passed (inclus dans le run groupé 210/210)" },
+    "production": { "command": "npx vitest run src/lib/clonestore/production", "result": "passed (inclus dans le run groupé 210/210)" },
+    "groupedPerimeterRun": {
+      "command": "npx vitest run src/lib/clonestore/product-technologies/t2 src/lib/clonestore/technologies/t1 src/lib/clonestore/ultimate src/lib/clonestore/production",
+      "result": "17 files / 210 tests passed"
+    },
+    "tsc": { "command": "npx tsc --noEmit", "result": "0 errors" },
+    "nonRegression": {
+      "command": "npx vitest run src/lib/nav src/lib/clonestore src/lib/clonechat src/app/api/assistant src/components",
+      "result": "134 files / 6987 tests passed (6936 pré-C1 + 51 C1 au moment du run ; suite C1 finale = 56 après ajout R1–R5)"
+    }
+  },
+  "the50RequiredChecks": "couvertes par les tests numérotés 1–50 dans c1-clonechat-intelligence.test.ts (mêmes numéros que le prompt C1)",
+  "note": "Les preuves JSON de ce dossier sont générées par c1-proof-generator.test.ts sous C1_WRITE_PROOFS=1 (idiome maison T1/T2/P14/P15)."
+}

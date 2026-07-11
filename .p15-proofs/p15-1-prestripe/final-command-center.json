@@ -1,0 +1,12 @@
+{
+  "runId": "p15-1-prestripe",
+  "demoOnlyAllowed": true,
+  "publicPaidLaunchAllowed": false,
+  "productionAuthorizationAllowed": false,
+  "stripeLiveReady": false,
+  "ownerApprovalPresent": false,
+  "paymentMode": "disabled",
+  "globalStatus": "TECHNICAL_READY_EXTERNAL_BLOCKED",
+  "p10HardFloorRespected": true,
+  "nextStep": "Wait for live Stripe account, then run the P15 owner external proof run (P15_1_STRIPE_OWNER_SETUP_CHECKLIST.md → node scripts/p15-verify-stripe-live-readonly.mjs → attest)."
+}

@@ -1,0 +1,19 @@
+{
+  "server": "next dev :3100",
+  "anonChat": {
+    "method": "POST /api/assistant/chat",
+    "http": 401,
+    "code": "AUTH_REQUIRED"
+  },
+  "anonExecute": {
+    "method": "POST /api/assistant/execute",
+    "http": 401,
+    "code": "AUTH_REQUIRED"
+  },
+  "assistantRender": {
+    "http": 200,
+    "placeholderArriveBientot": 0,
+    "htmlBytes": 34128
+  },
+  "note": "Flow authentifié gouverné = déterministe, prouvé par les tests d'intégration (P16C runtime sans OpenAI)."
+}

@@ -1,0 +1,412 @@
+{
+  "runId": "p14-run1",
+  "total_requirements": 58,
+  "verified_count": 19,
+  "partial_count": 21,
+  "architecture_ready_count": 2,
+  "future_roadmap_count": 3,
+  "external_blocked_count": 2,
+  "legal_blocked_count": 4,
+  "provider_blocked_count": 1,
+  "must_not_claim_count": 6,
+  "group_summary": {
+    "identity_positioning": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "mission_engine": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "request_analysis": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "task_system": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "employee_dossier_360": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "recruitment_operations": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "hiring_contracts_amendments": {
+      "total": 2,
+      "statuses": {
+        "VERIFIED": 1,
+        "LEGAL_BLOCKED": 1
+      }
+    },
+    "signature_documents": {
+      "total": 1,
+      "statuses": {
+        "PROVIDER_BLOCKED": 1
+      }
+    },
+    "preboarding_onboarding": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "personnel_administration": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "absences_leave": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "pre_payroll_variables": {
+      "total": 2,
+      "statuses": {
+        "PARTIAL": 1,
+        "MUST_NOT_CLAIM": 1
+      }
+    },
+    "planning_impact": {
+      "total": 1,
+      "statuses": {
+        "ARCHITECTURE_READY": 1
+      }
+    },
+    "internal_hr_communications": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "hr_helpdesk": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "employee_relations_sensitive": {
+      "total": 2,
+      "statuses": {
+        "PARTIAL": 1,
+        "MUST_NOT_CLAIM": 1
+      }
+    },
+    "interviews": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "performance_operations": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "training_operations": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "compensation_benefits": {
+      "total": 2,
+      "statuses": {
+        "PARTIAL": 1,
+        "MUST_NOT_CLAIM": 1
+      }
+    },
+    "hr_compliance_workflow": {
+      "total": 2,
+      "statuses": {
+        "LEGAL_BLOCKED": 1,
+        "MUST_NOT_CLAIM": 1
+      }
+    },
+    "reporting": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "offboarding": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "multi_site_franchise": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "sector_adaptation": {
+      "total": 1,
+      "statuses": {
+        "LEGAL_BLOCKED": 1
+      }
+    },
+    "clonevoice_voice": {
+      "total": 1,
+      "statuses": {
+        "FUTURE_ROADMAP": 1
+      }
+    },
+    "inputs_files": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "outputs_documents_exports": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "cloneadn_footprint": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "email_identity": {
+      "total": 1,
+      "statuses": {
+        "EXTERNAL_BLOCKED": 1
+      }
+    },
+    "controlled_autonomy": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "cloneguard_risk": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "clonetrace_audit": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "anti_hallucination_source_of_truth": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "memory": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "continuity_multi_day": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "demo_scenarios": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "seven_day_value_pack": {
+      "total": 1,
+      "statuses": {
+        "FUTURE_ROADMAP": 1
+      }
+    },
+    "mobile_notifications": {
+      "total": 2,
+      "statuses": {
+        "VERIFIED": 1,
+        "FUTURE_ROADMAP": 1
+      }
+    },
+    "quality_control": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "error_handling": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "integrations": {
+      "total": 1,
+      "statuses": {
+        "EXTERNAL_BLOCKED": 1
+      }
+    },
+    "roles_permissions": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "proactivity": {
+      "total": 1,
+      "statuses": {
+        "PARTIAL": 1
+      }
+    },
+    "roi_value_report": {
+      "total": 1,
+      "statuses": {
+        "ARCHITECTURE_READY": 1
+      }
+    },
+    "other_ai_employees_cloneos": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "commercial_positioning": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    },
+    "legal_responsibility_doctrine": {
+      "total": 3,
+      "statuses": {
+        "VERIFIED": 1,
+        "MUST_NOT_CLAIM": 2
+      }
+    },
+    "ai_act_sensitive_governance": {
+      "total": 1,
+      "statuses": {
+        "LEGAL_BLOCKED": 1
+      }
+    },
+    "launch_v1_vs_ultimate": {
+      "total": 1,
+      "statuses": {
+        "VERIFIED": 1
+      }
+    }
+  },
+  "launch_critical_summary": {
+    "total": 17,
+    "verified": 14,
+    "partial": 0,
+    "blocked": 2,
+    "mustNot": 1,
+    "roadmap": 0
+  },
+  "top_verified_items": [
+    "Pierre = employé IA RH, pas un assistant",
+    "Moteur de missions réel",
+    "Analyse de demande",
+    "Système de tâches",
+    "Préparation contrats/avenants",
+    "Helpdesk RH",
+    "Entrées / fichiers",
+    "Autonomie contrôlée",
+    "CloneTrace / audit",
+    "Anti-hallucination / source de vérité",
+    "Mémoire durable",
+    "Scénarios de démo",
+    "Mobile utilisable",
+    "Gestion d'erreur",
+    "Rôles / permissions",
+    "CloneOS orchestration",
+    "Positionnement commercial",
+    "Doctrine de responsabilité",
+    "Launch V1 vs ambition ultime"
+  ],
+  "top_gaps": [
+    "Dossier salarié 360 [PARTIAL]",
+    "Opérations de recrutement [PARTIAL]",
+    "Validité juridique des contrats [LEGAL_BLOCKED]",
+    "Signature électronique [PROVIDER_BLOCKED]",
+    "Pré-boarding / onboarding [PARTIAL]",
+    "Administration du personnel [PARTIAL]",
+    "Absences / congés / retards [PARTIAL]",
+    "Pré-paie / éléments variables [PARTIAL]",
+    "Communications RH internes [PARTIAL]",
+    "Cas sensibles — préparation [PARTIAL]",
+    "Entretiens — préparation [PARTIAL]",
+    "Workflow de conformité RH [LEGAL_BLOCKED]",
+    "Reporting opérationnel [PARTIAL]",
+    "Offboarding [PARTIAL]",
+    "Sorties / documents / exports [PARTIAL]",
+    "CloneADN / empreinte entreprise [PARTIAL]",
+    "CloneGuard / risque [PARTIAL]",
+    "Continuité multi-jours [PARTIAL]",
+    "Contrôle qualité [PARTIAL]",
+    "Proactivité [PARTIAL]",
+    "Gouvernance sensible / AI Act [LEGAL_BLOCKED]"
+  ],
+  "launch_safe_claims": [
+    "Pierre est un employé IA RH.",
+    "Pierre n'est pas un assistant ni un chatbot.",
+    "Pierre transforme les demandes RH en missions structurées.",
+    "Pierre prépare des documents, e-mails, validations et suivis RH.",
+    "Pierre centralise le travail RH dans un cockpit.",
+    "Pierre conserve trace et historique.",
+    "Pierre supporte une autonomie contrôlée.",
+    "Pierre aide à réduire la charge RH quotidienne.",
+    "Pierre peut absorber une grande partie de l'exécution RH opérationnelle.",
+    "Pierre garde les décisions sensibles sous validation humaine.",
+    "Pierre est conçu pour être plus rapide, plus régulier et plus traçable qu'une équipe humaine sur le travail RH répétitif et opérationnel.",
+    "Pierre coûte 449 € / mois en France, Belgique et Luxembourg, et 499 CHF / mois en Suisse.",
+    "Pierre peut remplacer une grande partie de l'exécution RH quotidienne.",
+    "Pierre peut agir comme une équipe RH opérationnelle sur le travail numérique, répétitif, documentaire, de suivi et de coordination.",
+    "Pierre peut faire gagner de nombreuses heures par mois.",
+    "Pierre peut revenir moins cher que d'embaucher ou de maintenir une capacité d'exécution RH."
+  ],
+  "launch_forbidden_claims": [
+    "Pierre remplace toute la RH.",
+    "Pierre remplace la responsabilité légale.",
+    "Pierre garantit la conformité légale.",
+    "Pierre prend les décisions disciplinaires finales.",
+    "Pierre décide seul des licenciements, sanctions, décisions salariales sensibles ou promotions.",
+    "Pierre remplace un moteur de paie / logiciel DSN.",
+    "Pierre est pleinement adapté juridiquement à la Suisse / Belgique / Luxembourg sans revue externe.",
+    "Pierre est en production live.",
+    "Pierre dispose de Stripe / Yousign live vérifiés.",
+    "Pierre est parfait / sans erreur.",
+    "Pierre ne nécessite aucune validation humaine.",
+    "Pierre est un DRH autonome.",
+    "Moteur de paie / DSN complet",
+    "Décisions disciplinaires finales",
+    "Décisions salariales/promotions finales",
+    "Remplacement total de la RH humaine",
+    "DRH autonome",
+    "Garantie de conformité pays"
+  ],
+  "honest_verdict": "LAUNCH VISION VERIFIED / ULTIMATE VISION ROADMAP DISCLOSED — Pierre couvre les piliers de lancement (identité, moteur de missions, analyse de demande, tâches, autonomie contrôlée, trace, mémoire, source de vérité, rôles, gestion d'erreur, cockpit/CloneOS, mobile) VERIFIED ; une large exécution RH opérationnelle est PARTIAL (canon P8.13 certifié, gouverné, non démontré en E2E dédié) ; conformité légale/fiscale pays = LEGAL_BLOCKED, signature = PROVIDER_BLOCKED, intégrations/voix/notifications push/ROI-report = ROADMAP/EXTERNAL ; paie complète + décisions finales disciplinaires/salariales + conformité garantie + remplacement total RH + DRH autonome = MUST_NOT_CLAIM. Production OFF."
+}

@@ -1,0 +1,23 @@
+{
+  "runId": "p95-run1",
+  "p8_lane_untouched": {
+    "claim": "No file under src/lib/pierre/v1/** or src/app/api/pierre/v1/** was modified. P8 is CONSUMED read-only (imports decideValidation/AUTONOMY_MODES; loopback GET/PATCH /company + POST /missions with autonomy_mode — all existing V1 API).",
+    "git_note": "git binary is permission-blocked in this sandbox; claim rests on the known change set + static evidence (no P8 writes anywhere in the P9.5 code)."
+  },
+  "changed_areas_p95": [
+    "src/lib/clonestore/pierre-autonomy/model.ts (+ test) — NEW product model (imports P8 read-only)",
+    "src/app/api/assistant/autonomy/route.ts (+ test) — NEW server-authoritative autonomy route",
+    "src/components/pierre/autonomy/PierreAutonomyPanel.tsx — NEW UI",
+    "src/components/pierre/cockpit/shell-nav.ts + OperationalCockpitShell.tsx — added Autonomie view (additive)",
+    "src/lib/clonechat/server/v1-loopback.ts — added readCompanyAutonomyV1/patchCompanyAutonomyV1 + autonomy_mode param to createMissionV1 (consumes P8 API)",
+    "src/lib/clonechat/server/proposal-builder.ts — resolve+persist autonomy mode for create_mission",
+    "src/app/api/assistant/execute/route.ts — pass persisted autonomyMode to createMissionV1",
+    "src/app/assistant/useCloneChat.ts — reflect autonomy mode in proposal copy",
+    "src/lib/clonechat/server/auth.ts — extracted requireCompanyUser (flag-free) so the autonomy surface works in the cockpit"
+  ],
+  "no_second_hr_brain": "CloneChat/product layer NEVER reimplements HR decisioning: every autonomy classification calls P8 decideValidation; mission governance stays in P8 (createMission → decideValidation).",
+  "production_flags_unchanged": "CLONECHAT_ENABLED default OFF; CLONECHAT_ALLOW_USER_TENANT_FALLBACK / CLONECHAT_IMAGE_DEGRADED_OK unset in prod; test flags used only in the local harness process.",
+  "no_migration": "No production migration. The company setting reuses the EXISTING P8 column pierre_rt_companies.default_autonomy_mode (no new table, no migration).",
+  "isolation": "Browser proof built/served from an isolated Next distDir (.next-p942) — the P8 :3000 server + shared .next were never touched.",
+  "no_deploy": "Nothing staged/committed/pushed/deployed."
+}

@@ -2,8 +2,8 @@ import "./globals.css";
 import "@/styles/liquid-glass.css";
 
 import type { Metadata } from "next";
-import Link from "next/link";
 import SiteHeader from "../components/site/site-header";
+import SiteFooter from "../components/site/site-footer";
 import { LiquidGlassFilters } from "@/components/ui/LiquidGlassFilters";
 import { GuidedTourProvider } from "@/components/guided-tour/GuidedTourProvider";
 
@@ -62,56 +62,7 @@ export default function RootLayout({
           <GuidedTourProvider>{children}</GuidedTourProvider>
         </div>
 
-        <footer className="cs-footer">
-          <div className="cs-shell">
-            <div className="flex flex-col gap-3 py-6 text-sm text-[var(--cs-ink-3)] md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-3">
-                <span className="cs-mark" aria-hidden="true">
-                  <svg viewBox="0 0 24 56" className="h-[38px] w-[16px]" fill="none">
-                    <rect
-                      x="3"
-                      y="3"
-                      width="18"
-                      height="50"
-                      rx="9"
-                      stroke="url(#footerMarkGradient)"
-                      strokeWidth="3.5"
-                    />
-                    <defs>
-                      <linearGradient
-                        id="footerMarkGradient"
-                        x1="3"
-                        y1="3"
-                        x2="21"
-                        y2="53"
-                      >
-                        <stop stopColor="#7E97FF" />
-                        <stop offset="1" stopColor="#8E7AFF" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </span>
-
-                <p>
-                  © {new Date().getFullYear()} CloneStore — gagnez du temps et de
-                  l&apos;argent.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-5">
-                <Link
-                  href="/legal/confidentialite"
-                  className="hover:text-[var(--cs-ink-1)]"
-                >
-                  Confidentialité
-                </Link>
-                <Link href="/questions" className="hover:text-[var(--cs-ink-1)]">
-                  Support
-                </Link>
-              </div>
-            </div>
-          </div>
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );

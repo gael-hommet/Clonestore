@@ -1,0 +1,165 @@
+{
+  "pages": {
+    "/global-error": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/global-error.js"
+    ],
+    "/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
+    ],
+    "/loading": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/loading.js"
+    ],
+    "/not-found": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/not-found.js"
+    ],
+    "/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/page.js"
+    ],
+    "/api/internal/e2e/reset/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/internal/e2e/reset/route.js"
+    ],
+    "/api/assistant/autonomy/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/assistant/autonomy/route.js"
+    ],
+    "/assistant/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/assistant/layout.js"
+    ],
+    "/assistant/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/assistant/page.js"
+    ],
+    "/agents/pierre/use/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/agents/pierre/use/layout.js"
+    ],
+    "/agents/pierre/use/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/agents/pierre/use/page.js"
+    ],
+    "/api/internal/e2e/session/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/internal/e2e/session/route.js"
+    ],
+    "/api/pierre/v1/activation/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/activation/route.js"
+    ],
+    "/api/internal/e2e/commercial-event/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/internal/e2e/commercial-event/route.js"
+    ],
+    "/api/internal/e2e/activation-tick/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/internal/e2e/activation-tick/route.js"
+    ],
+    "/api/pierre/v1/company/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/company/route.js"
+    ],
+    "/api/pierre/v1/onboarding/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/onboarding/route.js"
+    ],
+    "/api/pierre/v1/onboarding/steps/[step]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/onboarding/steps/[step]/route.js"
+    ],
+    "/api/pierre/v1/onboarding/complete/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/onboarding/complete/route.js"
+    ],
+    "/api/pierre/v1/product-access/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/product-access/route.js"
+    ],
+    "/api/checkout/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/checkout/route.js"
+    ],
+    "/api/pierre/v1/missions/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/missions/route.js"
+    ],
+    "/api/pierre/v1/employees/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/employees/route.js"
+    ],
+    "/api/assistant/chat/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/assistant/chat/route.js"
+    ],
+    "/api/assistant/execute/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/assistant/execute/route.js"
+    ],
+    "/api/pierre/v1/missions/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/missions/[id]/route.js"
+    ],
+    "/api/pierre/v1/missions/[id]/validations/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/missions/[id]/validations/route.js"
+    ],
+    "/api/pierre/v1/missions/[id]/timeline/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/missions/[id]/timeline/route.js"
+    ],
+    "/api/assistant/conversations/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/assistant/conversations/route.js"
+    ],
+    "/api/pierre/v1/validations/[id]/[action]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pierre/v1/validations/[id]/[action]/route.js"
+    ],
+    "/api/internal/e2e/runtime-tick/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/internal/e2e/runtime-tick/route.js"
+    ],
+    "/api/internal/e2e/scheduler-tick/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/internal/e2e/scheduler-tick/route.js"
+    ]
+  }
+}

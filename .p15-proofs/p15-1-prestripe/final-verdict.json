@@ -1,0 +1,54 @@
+{
+  "phase": "P15.1 — Pre-Stripe Go-Live Prep / Demo-Only Safe Launch Mode",
+  "runId": "p15-1-prestripe",
+  "verdict": "P15.1 — PRE-STRIPE GO-LIVE PREP VERIFIED / STRIPE LIVE STILL BLOCKED",
+  "date": "2026-07-09",
+  "nature": "Prepare everything possible WITHOUT Stripe live. Not a paid launch, not production authorization, not a live Stripe closure — a safe demo/no-payment preparation mode.",
+  "safety": {
+    "payment_mode": "disabled (local); resolvePaymentMode NEVER returns 'live' while PRODUCTION_AUTHORIZED (P10 const) is false — even with live keys",
+    "paid_access_possible": false,
+    "checkout_session_blocked_when_disabled": true,
+    "demo_founder_flow_activates_paid_access": false,
+    "ch_eur_and_fr_be_lu_chf_reconciliation_blocked": true,
+    "owner_approval_alone_authorizes_production": false,
+    "production_authorized": false,
+    "stripe_live_ready": false,
+    "no_live_claim_in_copy": true,
+    "no_session_or_payment_created": true
+  },
+  "command_center": {
+    "demoOnlyAllowed": true,
+    "publicPaidLaunchAllowed": false,
+    "productionAuthorizationAllowed": false,
+    "stripeLiveReady": false,
+    "ownerApprovalPresent": false,
+    "paymentMode": "disabled",
+    "globalStatus": "TECHNICAL_READY_EXTERNAL_BLOCKED",
+    "p10HardFloorRespected": true,
+    "nextStep": "Wait for live Stripe account, then run the P15 owner external proof run (P15_1_STRIPE_OWNER_SETUP_CHECKLIST.md → node scripts/p15-verify-stripe-live-readonly.mjs → attest)."
+  },
+  "deliverables": {
+    "modules": ["p15-1-payment-mode.ts", "p15-1-prelaunch.ts"],
+    "checkout_guard": "src/app/api/checkout/route.ts — additive paymentExplicitlyBlocked() short-circuit (fires only on explicit disable or live-keys-without-authorization; existing no-key 503 + test-mode flow untouched)",
+    "packets": ["P15_1_LEGAL_TAX_REVIEW_PACKET.md", "P15_1_SIGNATURE_FALLBACK_PACKET.md", "P15_1_STRIPE_OWNER_SETUP_CHECKLIST.md", "P15_MONITORING_ROLLBACK_PACKET.md (existing)"],
+    "proofs": ".p15-proofs/p15-1-prestripe/* (8 proof JSONs + final-verdict)"
+  },
+  "gates": {
+    "p15_1_tests": "15/15 (13 safety incl. copy-linter lock + 2 computed-proof)",
+    "production_pricing_checkout_webhook": "173/173",
+    "tsc": "0 source errors",
+    "non_regression": "6831/6831",
+    "stripe_readonly": "TEST_MODE_BLOCKED (no session/payment/customer; masked)"
+  },
+  "adversarial_review": "8 claims, 7 HOLDS / 1 PARTIAL / 0 REFUTED, no unsafe payment path; the PARTIAL (copy contained 'Stripe live') fixed + locked by a test.",
+  "guardrails": {
+    "no_payment_created": true,
+    "no_production_enabled": true,
+    "production_authorized_untouched_false": true,
+    "no_deploy": true,
+    "no_secrets_printed": true,
+    "no_fake_stripe_live": true,
+    "p8_to_p15_and_pierre_v1_untouched": "Only the additive checkout guard + new p15-1 modules; no Pierre V1 / pricing-canon / P12-P15-module change.",
+    "no_second_hr_brain": true
+  }
+}

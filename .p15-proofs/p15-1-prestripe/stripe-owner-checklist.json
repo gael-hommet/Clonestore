@@ -1,0 +1,19 @@
+{
+  "runId": "p15-1-prestripe",
+  "checklist": "P15_1_STRIPE_OWNER_SETUP_CHECKLIST.md",
+  "steps": [
+    "Créer/vérifier le compte Stripe (mode production)",
+    "Créer le produit Pierre",
+    "Prix EUR 44900 mensuel actif",
+    "Prix CHF 49900 mensuel actif",
+    "Webhook /api/webhooks/stripe (5 events)",
+    "Copier les env vars localement (sans commit)",
+    "node scripts/p15-verify-stripe-live-readonly.mjs",
+    "NE PAS déployer",
+    "NE PAS lever PRODUCTION_AUTHORIZED"
+  ],
+  "pricing": {
+    "FR_BE_LU": "449 EUR",
+    "CH": "499 CHF"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "/api/pierre/v1/missions/route": "app/api/pierre/v1/missions/route.js",
+  "/api/assistant/execute/route": "app/api/assistant/execute/route.js",
+  "/api/pierre/v1/missions/[id]/route": "app/api/pierre/v1/missions/[id]/route.js",
+  "/api/checkout/route": "app/api/checkout/route.js",
+  "/api/pierre/v1/missions/[id]/validations/route": "app/api/pierre/v1/missions/[id]/validations/route.js",
+  "/api/pierre/v1/employees/route": "app/api/pierre/v1/employees/route.js",
+  "/api/pierre/v1/validations/[id]/[action]/route": "app/api/pierre/v1/validations/[id]/[action]/route.js",
+  "/api/internal/e2e/runtime-tick/route": "app/api/internal/e2e/runtime-tick/route.js",
+  "/api/internal/e2e/scheduler-tick/route": "app/api/internal/e2e/scheduler-tick/route.js",
+  "/api/pierre/v1/missions/[id]/timeline/route": "app/api/pierre/v1/missions/[id]/timeline/route.js",
+  "/agents/pierre/use/page": "app/agents/pierre/use/page.js",
+  "/assistant/page": "app/assistant/page.js"
+}

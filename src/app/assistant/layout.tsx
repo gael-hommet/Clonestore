@@ -8,30 +8,32 @@ import { isCloneChatEnabled } from "@/lib/features/product-availability";
 // build et la « réactivation par une seule variable d'env » documentée serait sans effet.
 export const dynamic = "force-dynamic";
 
-// Blocage RÉEL de CloneChat côté serveur.
+// C1.2 — CloneChat est RÉVÉLÉ.
 //
-// La PAGE CloneChat (src/app/assistant/page.tsx) reste strictement intacte —
-// design, textes, animations, composants inchangés. Tant que le produit est
-// désactivé (CLONECHAT_ENABLED ≠ true), ce layout serveur ne monte JAMAIS la
-// page : il rend un écran « bientôt disponible » premium à la place. La page
-// ne peut donc pas être atteinte par URL directe, et son code source est
-// préservé pour une réactivation ultérieure par une seule variable d'env.
+// La surface réelle (src/app/assistant/page.tsx → CloneChatWorkspace) est montée
+// PAR DÉFAUT. Ce layout ne conserve qu'un ARRÊT D'URGENCE : si et seulement si
+// CloneChat est explicitement coupé (`CLONECHAT_ENABLED=false`), il affiche un état
+// « temporairement indisponible » HONNÊTE — jamais l'ancien placeholder de lancement.
+// L'API (/api/assistant/chat) applique la MÊME règle canonique (isCloneChatEnabled)
+// et reste fail-closed sous arrêt d'urgence. L'authentification, la résolution
+// d'entreprise et l'isolation tenant restent gérées par la page + l'API, inchangées.
 
 export default function AssistantLayout({ children }: { children: ReactNode }) {
   if (!isCloneChatEnabled()) {
+    // Arrêt d'urgence explicite uniquement (kill switch armé). État honnête,
+    // temporaire, jamais le placeholder de lancement obsolète.
     return (
       <AccessLockScreen
         eyebrow="CloneChat"
-        title="CloneChat arrive bientôt."
-        description="CloneChat, l'assistant de compréhension et d'orientation CloneStore, est en cours de finalisation. En attendant, Pierre — votre employé IA RH opérationnel — est déjà disponible, et la démonstration vous montre tout en quelques minutes."
+        title="CloneChat est temporairement indisponible."
+        description="CloneChat est momentanément suspendu pour maintenance. Pierre — votre employé IA RH opérationnel — reste disponible, et le support écrit répond à tout moment. Vos conversations et vos données sont préservées."
         bullets={[
-          "Pierre est déjà opérationnel sur le travail RH.",
-          "La démonstration illustre une mission complète.",
-          "Le support écrit reste disponible à tout moment.",
+          "Pierre reste opérationnel sur le travail RH.",
+          "Vos conversations et vos données sont préservées.",
+          "Le support écrit reste disponible.",
         ]}
         actions={[
-          { label: "Voir la démo Pierre", href: "/demo/pierre", primary: true },
-          { label: "Découvrir Pierre", href: "/agents/pierre" },
+          { label: "Ouvrir le cockpit Pierre", href: "/cockpit/pierre", primary: true },
           { label: "Support", href: "/questions" },
         ]}
         icon={<MessageSquareMore className="h-6 w-6" />}

@@ -1,0 +1,5 @@
+{
+  "runId": "clonechat-parrain",
+  "note": "xlsx installé ; cellFormula:false — valeurs affichées uniquement, JAMAIS de formule exécutée ; références feuille/ligne conservées.",
+  "status": "structured_partial"
+}

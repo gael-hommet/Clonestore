@@ -1,0 +1,904 @@
+{
+  "runId": "clonechat-parrain",
+  "pageCount": 36,
+  "pages": [
+    {
+      "route": "/",
+      "dynamicParams": [],
+      "title": "Accueil CloneStore",
+      "description": "Page commerciale publique : le système, les employés IA, les technologies, le cockpit, la confiance.",
+      "purpose": "Premier contact — comprendre CloneStore et découvrir Pierre.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": "Découvrir Pierre",
+      "relatedRoutes": [
+        "/agents/pierre",
+        "/demo",
+        "/comprendre-clonestore"
+      ],
+      "directLink": "/",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/agents",
+      "dynamicParams": [],
+      "title": "Boutique — Employés IA",
+      "description": "Boutique publique des employés IA : Pierre disponible, futurs départements en roadmap.",
+      "purpose": "Parcourir les employés IA disponibles et à venir.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": "Voir Pierre",
+      "relatedRoutes": [
+        "/agents/pierre"
+      ],
+      "directLink": "/agents",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/agents/pierre",
+      "dynamicParams": [],
+      "title": "Pierre — Employé IA RH opérationnel",
+      "description": "Page produit publique de Pierre : missions RH, documents, e-mails/relances préparés, traçabilité, validation humaine.",
+      "purpose": "Le meilleur lien produit à donner à un prospect.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": "Réserver Pierre",
+      "relatedRoutes": [
+        "/demo/pierre",
+        "/reserver/pierre"
+      ],
+      "directLink": "/agents/pierre",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": [
+        "page pierre",
+        "fiche pierre",
+        "produit pierre"
+      ]
+    },
+    {
+      "route": "/agents/[slug]",
+      "dynamicParams": [
+        "slug"
+      ],
+      "title": "Fiche employé",
+      "description": "Redirige vers /agents (fiches futures). Conserver comme placeholder.",
+      "purpose": "Fiche employé",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "stub",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/agents/[slug]",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/demo",
+      "dynamicParams": [],
+      "title": "Démo CloneStore",
+      "description": "Présentation commerciale immersive (E2.1–E2.10) avec repli sans JavaScript.",
+      "purpose": "Voir CloneStore en action sans compte.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": "Lancer la démo",
+      "relatedRoutes": [
+        "/demo/pierre",
+        "/reserver/pierre"
+      ],
+      "directLink": "/demo",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": [
+        "démo",
+        "demonstration",
+        "voir le produit"
+      ]
+    },
+    {
+      "route": "/demo/pierre",
+      "dynamicParams": [],
+      "title": "Démo Pierre",
+      "description": "Démo publique guidée centrée sur Pierre.",
+      "purpose": "Voir Pierre en action.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": "Réserver Pierre",
+      "relatedRoutes": [
+        "/demo",
+        "/agents/pierre"
+      ],
+      "directLink": "/demo/pierre",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/reserver/pierre",
+      "dynamicParams": [],
+      "title": "Réserver Pierre",
+      "description": "Réservation accès fondateur : aucun paiement aujourd'hui, prix fondateur 449 € HT/mois conservé tant que l'abonnement reste actif.",
+      "purpose": "Réserver Pierre sans payer (accès fondateur).",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": "Réserver maintenant",
+      "relatedRoutes": [
+        "/agents/pierre",
+        "/demo"
+      ],
+      "directLink": "/reserver/pierre",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": [
+        "réserver",
+        "réservation",
+        "accès fondateur",
+        "reserve"
+      ]
+    },
+    {
+      "route": "/checkout",
+      "dynamicParams": [],
+      "title": "Paiement",
+      "description": "Gating par agent + session + statut de commande.",
+      "purpose": "Paiement",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/checkout",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/login",
+      "dynamicParams": [],
+      "title": "Connexion",
+      "description": "Entrée canonique de l'espace client (auth Supabase).",
+      "purpose": "Se connecter à son espace.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": "Se connecter",
+      "relatedRoutes": [
+        "/signup",
+        "/mon-clonestore"
+      ],
+      "directLink": "/login",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/signup",
+      "dynamicParams": [],
+      "title": "Créer un compte",
+      "description": "Création de compte avec présentation des fonctionnalités.",
+      "purpose": "Créer son compte CloneStore.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": "Créer un compte",
+      "relatedRoutes": [
+        "/login"
+      ],
+      "directLink": "/signup",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/questions",
+      "dynamicParams": [],
+      "title": "Support / FAQ",
+      "description": "Hub support public : choisir un employé IA, comprendre Pierre, paiement & accès, cockpit & missions, sécurité & contrôle, support général.",
+      "purpose": "LA page support/contact du site.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": "Poser une question",
+      "relatedRoutes": [
+        "/comprendre-clonestore"
+      ],
+      "directLink": "/questions",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": [
+        "support",
+        "contact",
+        "faq",
+        "aide"
+      ]
+    },
+    {
+      "route": "/#guided-discovery",
+      "dynamicParams": [],
+      "title": "Découverte guidée",
+      "description": "Overlay non-route : moteur de tour monté globalement (portal). Parcours MULTI-PAGE : / → /agents → /agents/pierre → /assistant → /demo/pierre → /login → /.",
+      "purpose": "Découverte guidée",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/#guided-discovery",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/assistant",
+      "dynamicParams": [],
+      "title": "CloneChat",
+      "description": "Porte d'entrée conversationnelle : orientation publique + mode opérationnel authentifié (pipeline gouverné).",
+      "purpose": "Poser ses questions à CloneChat.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": "CLONECHAT_ENABLED",
+      "availability": "gated",
+      "primaryCTA": "Ouvrir CloneChat",
+      "relatedRoutes": [
+        "/questions"
+      ],
+      "directLink": "/assistant",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": [
+        "clonechat",
+        "chat",
+        "assistant"
+      ]
+    },
+    {
+      "route": "/profile",
+      "dynamicParams": [],
+      "title": "Espace client (héritage P9.2)",
+      "description": "Vue générale héritage de l'espace client (registry-driven).",
+      "purpose": "Surface héritage — coexiste avec /mon-clonestore.",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [
+        "/mon-clonestore"
+      ],
+      "directLink": "/profile",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/profile/agents",
+      "dynamicParams": [],
+      "title": "Mes employés",
+      "description": "Mes employés",
+      "purpose": "Mes employés",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/profile/agents",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/profile/messages",
+      "dynamicParams": [],
+      "title": "Messagerie",
+      "description": "Messagerie",
+      "purpose": "Messagerie",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/profile/messages",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/profile/onboarding",
+      "dynamicParams": [],
+      "title": "Empreinte Entreprise",
+      "description": "Onboarding client (Quick Start / empreinte guidée). Voir fondations P9.1.",
+      "purpose": "Empreinte Entreprise",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/profile/onboarding",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/profile/technologies",
+      "dynamicParams": [],
+      "title": "Technologies",
+      "description": "Technologies",
+      "purpose": "Technologies",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/profile/technologies",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/agents/pierre/use",
+      "dynamicParams": [],
+      "title": "Cockpit Pierre (héritage P9.3)",
+      "description": "Cockpit client historique de Pierre (données V1 réelles, 6 vues).",
+      "purpose": "Surface héritage — préférer /cockpit/pierre.",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [
+        "/cockpit/pierre"
+      ],
+      "directLink": "/agents/pierre/use",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/agents/pierre/setup",
+      "dynamicParams": [],
+      "title": "Configuration Pierre",
+      "description": "Configuration Pierre",
+      "purpose": "Configuration Pierre",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/agents/pierre/setup",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/agents/pierre/employees",
+      "dynamicParams": [],
+      "title": "Employé 360",
+      "description": "Employé 360",
+      "purpose": "Employé 360",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/agents/pierre/employees",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/founder",
+      "dynamicParams": [],
+      "title": "Command Center (fondateur)",
+      "description": "Command center interne fondateur (owner-gate + allowlist).",
+      "purpose": "Pilotage interne.",
+      "audience": "internal",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "internal",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/founder",
+      "safeToShowFor": [
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/internal/[slug]/command-center",
+      "dynamicParams": [
+        "slug"
+      ],
+      "title": "Command Center (interne)",
+      "description": "Command Center (interne)",
+      "purpose": "Command Center (interne)",
+      "audience": "internal",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "internal",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/internal/[slug]/command-center",
+      "safeToShowFor": [
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/founding-partners",
+      "dynamicParams": [],
+      "title": "Cercle des Partenaires Fondateurs (CloneStory)",
+      "description": "Univers institutionnel séparé : registre historique officiel, contribution vérifiée.",
+      "purpose": "Univers CloneStory (flag-gated fail-closed).",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [],
+      "directLink": "/founding-partners",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_b5308775",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/comprendre-clonestore",
+      "dynamicParams": [],
+      "title": "Comprendre CloneStore",
+      "description": "Page de référence complète pour dirigeants : employé IA, missions, Empreinte Entreprise, gouvernance, prix, limites, vision.",
+      "purpose": "LA page qui explique le mieux CloneStore en profondeur.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": "Voir la démo",
+      "relatedRoutes": [
+        "/demo",
+        "/agents/pierre"
+      ],
+      "directLink": "/comprendre-clonestore",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": [
+        "pitch",
+        "comprendre",
+        "présentation",
+        "tarifs",
+        "pricing",
+        "prix"
+      ]
+    },
+    {
+      "route": "/diagnostic-rh",
+      "dynamicParams": [],
+      "title": "Diagnostic RH",
+      "description": "Diagnostic RH progressif gratuit, sans compte ni e-mail, sans donnée sensible.",
+      "purpose": "Qualifier la douleur RH d'un prospect.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": "Faire le diagnostic",
+      "relatedRoutes": [
+        "/agents/pierre",
+        "/demo"
+      ],
+      "directLink": "/diagnostic-rh",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/paiement",
+      "dynamicParams": [],
+      "title": "Paiement (page d'information)",
+      "description": "Page statique d'explication paiement/prix. Le paiement en ligne n'est pas encore ouvert.",
+      "purpose": "Comprendre le fonctionnement du paiement.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": "Réserver Pierre (sans paiement)",
+      "relatedRoutes": [
+        "/reserver/pierre",
+        "/legal/cgv"
+      ],
+      "directLink": "/paiement",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/mon-clonestore",
+      "dynamicParams": [],
+      "title": "Mon CloneStore",
+      "description": "Espace admin client (P12) : compte, données réelles, onboarding.",
+      "purpose": "Administrer son espace client.",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [
+        "/cockpit"
+      ],
+      "directLink": "/mon-clonestore",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": []
+    },
+    {
+      "route": "/cockpit",
+      "dynamicParams": [],
+      "title": "Cockpit global (CloneOS)",
+      "description": "Console CloneOS première de l'espace connecté (P12).",
+      "purpose": "Piloter l'ensemble depuis un seul écran.",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [
+        "/cockpit/pierre",
+        "/cockpit/room"
+      ],
+      "directLink": "/cockpit",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": [
+        "cockpit",
+        "console"
+      ]
+    },
+    {
+      "route": "/cockpit/pierre",
+      "dynamicParams": [],
+      "title": "Cockpit Pierre",
+      "description": "Cockpit opérationnel de Pierre dans le shell CloneOS : missions, validations, documents, evidence, réglages, autonomie.",
+      "purpose": "Suivre et valider le travail de Pierre.",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [
+        "/cockpit",
+        "/cockpit/pierre/missions",
+        "/cockpit/pierre/validations"
+      ],
+      "directLink": "/cockpit/pierre",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": [
+        "cockpit pierre",
+        "missions",
+        "validations"
+      ]
+    },
+    {
+      "route": "/cockpit/room",
+      "dynamicParams": [],
+      "title": "CloneRoom",
+      "description": "Salle de coordination humains + employés IA (P12) — extraction d'actions vers le vrai composeur de missions.",
+      "purpose": "Collaborer autour des missions.",
+      "audience": "authenticated",
+      "authRequired": true,
+      "flagRequired": null,
+      "availability": "gated",
+      "primaryCTA": null,
+      "relatedRoutes": [
+        "/cockpit"
+      ],
+      "directLink": "/cockpit/room",
+      "safeToShowFor": [
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": [
+        "cloneroom",
+        "salle",
+        "salon"
+      ]
+    },
+    {
+      "route": "/legal/cgu",
+      "dynamicParams": [],
+      "title": "CGU",
+      "description": "Conditions générales d'utilisation (limites de l'IA, responsabilité humaine, données RH sensibles, usages interdits).",
+      "purpose": "Cadre d'utilisation du service.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": null,
+      "relatedRoutes": [
+        "/legal/cgv",
+        "/legal/confidentialite"
+      ],
+      "directLink": "/legal/cgu",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": [
+        "cgu",
+        "conditions d'utilisation"
+      ]
+    },
+    {
+      "route": "/legal/cgv",
+      "dynamicParams": [],
+      "title": "CGV",
+      "description": "Conditions générales de vente : abonnement Pierre 449 € / mois, facturation, résiliation, périmètre inclus/exclu.",
+      "purpose": "Cadre commercial de l'abonnement.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": null,
+      "relatedRoutes": [
+        "/legal/cgu"
+      ],
+      "directLink": "/legal/cgv",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": [
+        "cgv",
+        "conditions de vente"
+      ]
+    },
+    {
+      "route": "/legal/confidentialite",
+      "dynamicParams": [],
+      "title": "Politique de confidentialité",
+      "description": "Politique de confidentialité (slug français — il n'y a pas de /privacy).",
+      "purpose": "Protection des données personnelles.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": null,
+      "relatedRoutes": [
+        "/legal/dpa"
+      ],
+      "directLink": "/legal/confidentialite",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": [
+        "privacy",
+        "confidentialité",
+        "politique de confidentialité"
+      ]
+    },
+    {
+      "route": "/legal/dpa",
+      "dynamicParams": [],
+      "title": "DPA",
+      "description": "Data Processing Agreement.",
+      "purpose": "Accord de traitement des données.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": null,
+      "relatedRoutes": [
+        "/legal/confidentialite"
+      ],
+      "directLink": "/legal/dpa",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": [
+        "dpa",
+        "data processing agreement"
+      ]
+    },
+    {
+      "route": "/legal/mentions",
+      "dynamicParams": [],
+      "title": "Mentions légales",
+      "description": "Mentions légales du site (slug /legal/mentions — il n'y a pas de /mentions-legales).",
+      "purpose": "Informations légales de l'éditeur.",
+      "audience": "public",
+      "authRequired": false,
+      "flagRequired": null,
+      "availability": "active",
+      "primaryCTA": null,
+      "relatedRoutes": [
+        "/legal/cgu"
+      ],
+      "directLink": "/legal/mentions",
+      "safeToShowFor": [
+        "public",
+        "client",
+        "founder"
+      ],
+      "sourceHash": "pfnv_a1611347",
+      "knownIssues": [],
+      "aliases": [
+        "mentions légales",
+        "mentions-legales"
+      ]
+    }
+  ]
+}

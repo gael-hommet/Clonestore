@@ -1,0 +1,107 @@
+{
+  "runId": "p10-run1",
+  "cases": {
+    "selected_CH": {
+      "resolvedCountry": "CH",
+      "confidence": "selected",
+      "supported": true,
+      "price": {
+        "amount": 499,
+        "currency": "CHF",
+        "display": "499 CHF / mois",
+        "stripePriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY"
+      },
+      "requiresCountrySelection": false,
+      "requiresCheckoutRevalidation": true,
+      "auditReason": "EXPLICIT_SELECTION"
+    },
+    "selected_FR": {
+      "resolvedCountry": "FR",
+      "confidence": "selected",
+      "supported": true,
+      "price": {
+        "amount": 449,
+        "currency": "EUR",
+        "display": "449 € / mois",
+        "stripePriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY"
+      },
+      "requiresCountrySelection": false,
+      "requiresCheckoutRevalidation": true,
+      "auditReason": "EXPLICIT_SELECTION"
+    },
+    "verified_CH_beats_selected_FR": {
+      "resolvedCountry": "CH",
+      "confidence": "verified",
+      "supported": true,
+      "price": {
+        "amount": 499,
+        "currency": "CHF",
+        "display": "499 CHF / mois",
+        "stripePriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY"
+      },
+      "requiresCountrySelection": false,
+      "requiresCheckoutRevalidation": true,
+      "auditReason": "VERIFIED_COMPANY_COUNTRY"
+    },
+    "selected_FR_beats_geo_CH": {
+      "resolvedCountry": "FR",
+      "confidence": "selected",
+      "supported": true,
+      "price": {
+        "amount": 449,
+        "currency": "EUR",
+        "display": "449 € / mois",
+        "stripePriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY"
+      },
+      "requiresCountrySelection": false,
+      "requiresCheckoutRevalidation": true,
+      "auditReason": "EXPLICIT_SELECTION"
+    },
+    "geo_CH_suggests": {
+      "resolvedCountry": "CH",
+      "confidence": "geo",
+      "supported": true,
+      "price": {
+        "amount": 499,
+        "currency": "CHF",
+        "display": "499 CHF / mois",
+        "stripePriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY"
+      },
+      "requiresCountrySelection": false,
+      "requiresCheckoutRevalidation": true,
+      "auditReason": "GEO_SUGGESTION"
+    },
+    "weak_acceptlanguage_CH": {
+      "resolvedCountry": "CH",
+      "confidence": "weak",
+      "supported": true,
+      "price": {
+        "amount": 499,
+        "currency": "CHF",
+        "display": "499 CHF / mois",
+        "stripePriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY"
+      },
+      "requiresCountrySelection": true,
+      "requiresCheckoutRevalidation": true,
+      "auditReason": "WEAK_LOCALE_HINT"
+    },
+    "unknown": {
+      "resolvedCountry": null,
+      "confidence": "unknown",
+      "supported": false,
+      "price": null,
+      "requiresCountrySelection": true,
+      "requiresCheckoutRevalidation": true,
+      "auditReason": "COUNTRY_REQUIRED"
+    },
+    "verified_unsupported_US": {
+      "resolvedCountry": "US",
+      "confidence": "verified",
+      "supported": false,
+      "price": null,
+      "requiresCountrySelection": true,
+      "requiresCheckoutRevalidation": true,
+      "auditReason": "COUNTRY_NOT_SUPPORTED"
+    }
+  }
+}

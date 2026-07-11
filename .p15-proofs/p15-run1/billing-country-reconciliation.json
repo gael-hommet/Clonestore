@@ -1,0 +1,138 @@
+{
+  "runId": "p15-run1",
+  "wiredInto": "src/app/api/webhooks/stripe/route.ts (checkout.session.completed, ADDITIVE, flag STRIPE_COUNTRY_RECONCILIATION_ENABLED)",
+  "scenarios": [
+    {
+      "label": "CH billed EUR",
+      "input": {
+        "companyCountry": "CH",
+        "stripeBillingCountry": "CH",
+        "chargedCurrency": "eur"
+      },
+      "result": "refund_required",
+      "shouldActivate": false,
+      "activationStatus": "review_required",
+      "refundRequired": true
+    },
+    {
+      "label": "FR billed CHF",
+      "input": {
+        "companyCountry": "FR",
+        "stripeBillingCountry": "FR",
+        "chargedCurrency": "chf"
+      },
+      "result": "refund_required",
+      "shouldActivate": false,
+      "activationStatus": "review_required",
+      "refundRequired": true
+    },
+    {
+      "label": "BE billed CHF",
+      "input": {
+        "companyCountry": "BE",
+        "stripeBillingCountry": "BE",
+        "chargedCurrency": "chf"
+      },
+      "result": "refund_required",
+      "shouldActivate": false,
+      "activationStatus": "review_required",
+      "refundRequired": true
+    },
+    {
+      "label": "LU billed CHF",
+      "input": {
+        "companyCountry": "LU",
+        "stripeBillingCountry": "LU",
+        "chargedCurrency": "chf"
+      },
+      "result": "refund_required",
+      "shouldActivate": false,
+      "activationStatus": "review_required",
+      "refundRequired": true
+    },
+    {
+      "label": "FR billed EUR (ok)",
+      "input": {
+        "companyCountry": "FR",
+        "stripeBillingCountry": "FR",
+        "chargedCurrency": "eur"
+      },
+      "result": "allowed",
+      "shouldActivate": true,
+      "activationStatus": "active",
+      "refundRequired": false
+    },
+    {
+      "label": "BE billed EUR (ok)",
+      "input": {
+        "companyCountry": "BE",
+        "stripeBillingCountry": "BE",
+        "chargedCurrency": "eur"
+      },
+      "result": "allowed",
+      "shouldActivate": true,
+      "activationStatus": "active",
+      "refundRequired": false
+    },
+    {
+      "label": "LU billed EUR (ok)",
+      "input": {
+        "companyCountry": "LU",
+        "stripeBillingCountry": "LU",
+        "chargedCurrency": "eur"
+      },
+      "result": "allowed",
+      "shouldActivate": true,
+      "activationStatus": "active",
+      "refundRequired": false
+    },
+    {
+      "label": "CH billed CHF (ok)",
+      "input": {
+        "companyCountry": "CH",
+        "stripeBillingCountry": "CH",
+        "chargedCurrency": "chf"
+      },
+      "result": "allowed",
+      "shouldActivate": true,
+      "activationStatus": "active",
+      "refundRequired": false
+    },
+    {
+      "label": "missing billing country",
+      "input": {
+        "companyCountry": "FR",
+        "stripeBillingCountry": null,
+        "chargedCurrency": "eur"
+      },
+      "result": "review_required",
+      "shouldActivate": false,
+      "activationStatus": "review_required",
+      "refundRequired": false
+    },
+    {
+      "label": "forged selected FR, billing CH",
+      "input": {
+        "selectedCountry": "FR",
+        "stripeBillingCountry": "CH",
+        "chargedCurrency": "eur"
+      },
+      "result": "refund_required",
+      "shouldActivate": false,
+      "activationStatus": "review_required",
+      "refundRequired": true
+    },
+    {
+      "label": "company FR vs billing BE (conflict)",
+      "input": {
+        "companyCountry": "FR",
+        "stripeBillingCountry": "BE"
+      },
+      "result": "blocked",
+      "shouldActivate": false,
+      "activationStatus": "payment_country_conflict",
+      "refundRequired": false
+    }
+  ],
+  "note": "Flag ON : shouldActivate=false pour tout conflit fort (CH/EUR, FR-BE-LU/CHF, pays manquant, conflit entreprise, selected forgé). Flag OFF (défaut) : activation préservée mais audit toujours loggé. Idempotence : orders upsert onConflict user_id,agent_slug ; signature vérifiée par constructEvent avant tout effet."
+}

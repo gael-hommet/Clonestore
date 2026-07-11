@@ -1,0 +1,121 @@
+{
+  "runId": "p10-run1",
+  "note": "Même avec un env Stripe parfait, la production reste FERMÉE (legal/provider/owner). PRODUCTION_AUTHORIZED=false.",
+  "verdict": {
+    "ok": false,
+    "productionAuthorized": false,
+    "countryPricingEnabled": true,
+    "stripeMode": "live",
+    "blockers": [
+      {
+        "id": "legal_country",
+        "severity": "blocker",
+        "owner": "legal",
+        "title": "Revue légale pays pending",
+        "detail": "Revue légale par pays (FR/BE/LU/CH) NON finalisée — 0/4 launch-grade (cf. certification pays P8.13, WITHHELD).",
+        "blocksLaunch": true
+      },
+      {
+        "id": "legal_tax",
+        "severity": "blocker",
+        "owner": "legal",
+        "title": "Traitement TVA/fiscal pending",
+        "detail": "Traitement TVA/fiscal par pays NON revu externellement (CHF vs EUR, TVA CH vs UE).",
+        "blocksLaunch": true
+      },
+      {
+        "id": "deploy_owner",
+        "severity": "blocker",
+        "owner": "owner",
+        "title": "Production non autorisée",
+        "detail": "PRODUCTION_AUTHORIZED=false — autorisation owner requise (go-live non lancé par le code).",
+        "blocksLaunch": true
+      }
+    ],
+    "warnings": [
+      {
+        "id": "provider_yousign",
+        "severity": "warning",
+        "owner": "provider",
+        "title": "Providers non live",
+        "detail": "Fournisseurs (signature/Yousign) non live (cf. P8.7.4 OPEN) — hors périmètre pricing mais requis pour le go-live global.",
+        "blocksLaunch": false
+      }
+    ],
+    "requiredEnv": [
+      {
+        "name": "STRIPE_SECRET_KEY",
+        "present": true,
+        "required": true
+      },
+      {
+        "name": "STRIPE_WEBHOOK_SECRET",
+        "present": true,
+        "required": true
+      },
+      {
+        "name": "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+        "present": true,
+        "required": true
+      },
+      {
+        "name": "STRIPE_PRICE_PIERRE_CHF_MONTHLY",
+        "present": true,
+        "required": true
+      },
+      {
+        "name": "STRIPE_COUNTRY_PRICING_ENABLED",
+        "present": true,
+        "required": true
+      }
+    ],
+    "countryPricingReadiness": {
+      "ready": true,
+      "blockers": [],
+      "warnings": [],
+      "notes": []
+    },
+    "stripeReadiness": {
+      "ready": true,
+      "blockers": [],
+      "warnings": [
+        "Vérifier EXTERNELLEMENT que les price_id EUR/CHF appartiennent bien au mode Stripe déclaré (test↔live)."
+      ],
+      "notes": [
+        "mode=live"
+      ]
+    },
+    "legalReadiness": {
+      "ready": false,
+      "blockers": [
+        "Revue légale par pays (FR/BE/LU/CH) NON finalisée — 0/4 launch-grade (cf. certification pays P8.13, WITHHELD).",
+        "Traitement TVA/fiscal par pays NON revu externellement (CHF vs EUR, TVA CH vs UE)."
+      ],
+      "warnings": [],
+      "notes": [
+        "P10 ne formule AUCUN conseil juridique/fiscal final ; validation avocat requise avant go-live."
+      ]
+    },
+    "providerReadiness": {
+      "ready": false,
+      "blockers": [
+        "Fournisseurs (signature/Yousign) non live (cf. P8.7.4 OPEN) — hors périmètre pricing mais requis pour le go-live global."
+      ],
+      "warnings": [],
+      "notes": [
+        "Le pricing par pays est indépendant des providers HR, mais le go-live global les requiert."
+      ]
+    },
+    "deploymentReadiness": {
+      "ready": false,
+      "blockers": [
+        "PRODUCTION_AUTHORIZED=false — autorisation owner requise (go-live non lancé par le code)."
+      ],
+      "warnings": [],
+      "notes": [
+        "P10 rend le système launch-ready sans lancer."
+      ]
+    },
+    "summary": "P10 production gate: FERMÉ — 3 bloqueur(s). Production NON autorisée (PRODUCTION_AUTHORIZED=false)."
+  }
+}

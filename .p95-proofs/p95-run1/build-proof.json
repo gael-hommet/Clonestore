@@ -1,0 +1,33 @@
+{
+  "runId": "p95-run1",
+  "isolated_build": {
+    "command": "NEXT_DIST_DIR=.next-p942 npx next build",
+    "exit": 0,
+    "compiled": "Compiled successfully in 3.0min",
+    "artifacts": { "BUILD_ID": true, "build-manifest.json": true, "prerender-manifest.json": true },
+    "routes_compiled": ["app/agents/pierre/use/page.js", "app/api/assistant/autonomy/route.js", "app/api/assistant/execute/route.js"],
+    "isolation": "built/served from .next-p942 — shared .next + P8 :3000 server never touched",
+    "tsconfig_restored": "the auto-added .next-p942/types include line was removed after the proof"
+  },
+  "browser_proof": {
+    "file": ".p95-proofs/p95-run1/ui-proof.json",
+    "verdict": "P95_AUTONOMY_UI_OK",
+    "server": "next start -p 3242 (isolated distDir) + CLONECHAT_ALLOW_USER_TENANT_FALLBACK=1 (local/test)",
+    "viewports": ["desktop-1280", "mobile-390"],
+    "per_viewport": {
+      "autonomy_route_api": "200; 5 modes; 14 matrix entries; framing 'Pierre — votre employé IA RH'; hard floor termination→human_only present",
+      "cockpit_autonomy_tab": true,
+      "panel_rendered": "radiogroup with 5 named modes; matrix mentions (fait seul / propose / réservé humain)",
+      "framing_ai_hr_employee": true,
+      "no_assistant_or_copilot_framing": true,
+      "accessibility": "0 unnamed controls; keyboard focus interactive",
+      "no_horizontal_overflow": true,
+      "console_errors": 0
+    },
+    "fix_applied": "the Autonomie view is a SETTINGS surface — moved to render regardless of the cockpit's operational data load state (LoadingView/ErrorView), so it renders even when missions/validations are unavailable",
+    "honest_scope": "companyResolved:false (ephemeral user, no resolved tenant) → the browser proof covers RENDER + READ (5 modes + decideValidation-derived matrix + hard floor + framing), with the mode selector disabled. The select/write/persist path (product→engine, PATCH P8 column, no-forged-escalation, permission-403, persistence) is proven at the server route level (autonomy-route.test.ts 7/7), not in-browser.",
+    "cleanup": "ephemeral Supabase user DELETED — ZERO RESIDUE",
+    "screenshots": ["docs/qa-screenshots/p9-5/p95-autonomy-desktop-1280.png", "docs/qa-screenshots/p9-5/p95-autonomy-mobile-390.png"]
+  },
+  "non_regression": { "tsc": 0, "clonechat_assistant_autonomy_suite": "164/164", "durable_itest_p942": "24/24 (0 unhandled)" }
+}

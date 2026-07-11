@@ -1,0 +1,22 @@
+{
+  "p16a": {
+    "verdict": "P16A LOCALLY VERIFIED / EXTERNAL LIVE BLOCKED",
+    "readyForP16C": true,
+    "canonicalItems": 12,
+    "capabilityCount": 215
+  },
+  "t1": {
+    "verified": true,
+    "registryCount": 15
+  },
+  "t2": {
+    "verified": true,
+    "count": 14
+  },
+  "cloneChat": {
+    "c1": true,
+    "c11": true,
+    "c12_revealed": true,
+    "defaultActive": true
+  }
+}

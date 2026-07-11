@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { COCKPIT_NAV, isCockpitView, parseCockpitView } from "../shell-nav";
 
 describe("cockpit shell-nav", () => {
-  it("expose exactement les 6 vues, dans l'ordre", () => {
+  it("expose les vues dans l'ordre (P9.5 + « autonomie », P9.6 + « parcours »)", () => {
     expect(COCKPIT_NAV.map((n) => n.view)).toEqual([
-      "overview", "missions", "validations", "documents", "employees", "activity",
+      "overview", "journey", "missions", "validations", "documents", "employees", "activity", "autonomy",
     ]);
   });
 

@@ -1,0 +1,20 @@
+{
+  "runId": "p10-run1",
+  "tsc": "0 errors",
+  "suites": {
+    "country_pricing_canon": { "file": "src/lib/clonestore/pricing/__tests__/country-pricing.test.ts", "passed": 9, "proves": ["FR/BE/LU=449 EUR", "CH=499 CHF", "unparseable→country_required", "valid-ISO-unsupported→unsupported (never a fake price)", "messy/full-name normalization", "CH cannot buy EUR", "FR/BE/LU cannot buy CHF", "null-safe helpers", "explain codes"] },
+    "stripe_pricing_config": { "file": "src/lib/clonestore/pricing/__tests__/stripe-pricing-config.test.ts", "passed": 9, "proves": ["mode detection", "correct country price id", "missing CHF fails closed (no EUR fallback)", "missing EUR fails closed (no CHF fallback)", "unsupported→COUNTRY_NOT_SUPPORTED", "production requires LIVE", "live+all→prod ok", "no invented defaults", "legacy STRIPE_PRICE_PIERRE = EUR alias only, never CHF"] },
+    "public_pricing_resolver": { "file": "src/lib/clonestore/pricing/__tests__/public-pricing-resolver.test.ts", "passed": 10, "proves": ["selected CH→CHF", "selected FR→EUR", "verified company CH beats selected FR", "selected beats weak geo", "geo suggests + revalidates", "weak accept-language requires selection", "unknown→country_required no price", "verified unsupported→no price", "no cheapest default", "accept-language region parsing"] },
+    "checkout_country_guard": { "file": "src/lib/clonestore/pricing/__tests__/checkout-country-guard.test.ts", "passed": 12, "proves": ["CH+EUR→forced CHF", "FR/BE/LU+CHF→forced EUR", "company CH vs selected FR→COMPANY_COUNTRY_CONFLICT review", "billing conflict", "weak geo not blocked but logged", "client priceId/currency ignored", "no country→COUNTRY_REQUIRED", "unsupported→COUNTRY_NOT_SUPPORTED", "CHF not configured→STRIPE_PRICE_NOT_CONFIGURED (no EUR fallback)", "EUR not configured→fail closed", "requireProduction+not ready→PRODUCTION_DISABLED", "happy path FR→ALLOWED EUR"] },
+    "checkout_pricing_server": { "file": "src/lib/clonestore/pricing/__tests__/checkout-pricing-server.test.ts", "passed": 7, "proves": ["CH+forged EUR→forced CHF price id (client ignored)", "FR→EUR price id", "verified company CH beats selected FR→conflict", "no country→COUNTRY_REQUIRED", "unsupported→COUNTRY_NOT_SUPPORTED", "CHF not configured→fail-closed no EUR leak", "geo read from x-vercel-ip-country + logged"] },
+    "pricing_audit": { "file": "src/lib/clonestore/pricing/__tests__/pricing-audit.test.ts", "passed": 4, "proves": ["hashIp never returns raw IP, deterministic, null-safe", "audit record hashes IP + no raw IP anywhere", "recordPricingDecision returns auditId + injected sink", "best-effort (throwing sink does not throw out)"] },
+    "p10_production_gate": { "file": "src/lib/clonestore/production/__tests__/p10-production-gate.test.ts", "passed": 8, "proves": ["PRODUCTION_AUTHORIZED=false", "perfect Stripe env still CLOSED (legal/provider/owner)", "anti-abuse invariants auto-verified", "missing CHF→blocker", "missing EUR→blocker", "test key→live blocker", "flag off→not ready + cp_flag blocker", "all readiness dimensions + requiredEnv"] },
+    "p10_emit_proofs": { "file": "src/lib/clonestore/pricing/__tests__/p10-emit-proofs.test.ts", "passed": 6, "proves": ["proof JSONs computed from real modules (canon/resolver/guard/config/gate/audit)"] }
+  },
+  "totals": { "pricing_and_production": 65, "note": "src/lib/clonestore/pricing + src/lib/clonestore/production = 65/65" },
+  "non_regression": {
+    "checkout_founder_golive_billing_legal_productionReadiness": "747/747 (src/app/api/checkout + src/lib/founder-access + src/lib/go-live + src/lib/features + src/lib/billing + src/lib/legal-commercial + src/lib/production-readiness)",
+    "p9_suites": "183/183 (src/lib/clonestore/pierre-journey + pierre-autonomy + src/app/api/assistant + src/lib/clonechat)"
+  },
+  "e2e": "P10_PRICING_OK (see ui-proof.json) — public card FR 449€/CH 499CHF + mobile no-overflow + authenticated checkout-guard matrix (CH fail-closed even forging EUR; FR always EUR)"
+}

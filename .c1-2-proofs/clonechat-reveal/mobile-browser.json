@@ -1,0 +1,14 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "viewport": "390x844",
+  "url": "http://localhost:3123/assistant",
+  "observed": {
+    "hasArriveBientot": false,
+    "realWorkspace": true,
+    "composerVisibleInViewport": true,
+    "headerVisible": true,
+    "noHorizontalOverflow": true
+  },
+  "screenshot": ".playwright-mcp/c1-2-assistant-mobile-390.png"
+}

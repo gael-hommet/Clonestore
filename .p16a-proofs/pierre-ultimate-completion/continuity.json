@@ -1,0 +1,24 @@
+{
+  "continue": {
+    "isContinuation": true,
+    "kind": "continue",
+    "isCorrection": false,
+    "targetKind": "mission",
+    "targetId": "mis-1",
+    "ambiguousCandidates": [],
+    "requiresAuthoritativeRead": true,
+    "nextStep": "RESUME_EXISTING_WORK",
+    "reason": "resolved_unique"
+  },
+  "statusQuery": {
+    "isContinuation": true,
+    "kind": "status",
+    "isCorrection": false,
+    "targetKind": "mission",
+    "targetId": "mis-1",
+    "ambiguousCandidates": [],
+    "requiresAuthoritativeRead": true,
+    "nextStep": "RESUME_EXISTING_WORK",
+    "reason": "resolved_unique"
+  }
+}

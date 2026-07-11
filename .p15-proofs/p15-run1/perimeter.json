@@ -1,0 +1,33 @@
+{
+  "runId": "p15-run1",
+  "scope": "P15 — External Go-Live Closure / Live Stripe Webhook Reconciliation / Owner Authorization. Real-world closure phase.",
+  "new_files": [
+    "src/lib/clonestore/production/p15-external-golive-contract.ts (gates A-G, statuses, evaluate/compute/canAuthorize/explain)",
+    "src/lib/clonestore/production/p15-stripe-live-verification.ts (read-only verify + webhook readiness, masked)",
+    "src/lib/clonestore/production/p15-checkout-reconciliation-gate.ts (pure gate around P11 reconcileStripeCountry)",
+    "src/lib/clonestore/production/p15-legal-tax-artifact-registry.ts (15 artifacts, no bare-boolean readiness)",
+    "src/lib/clonestore/production/p15-provider-closure.ts (Yousign live / fallback, reuses P11)",
+    "src/lib/clonestore/production/p15-monitoring-rollback.ts (checks + owner attestation)",
+    "src/lib/clonestore/production/p15-final-command-center.ts (aggregate + statuses + hard floors)",
+    "src/lib/clonestore/production/__tests__/p15-external-golive.test.ts (32 tests)",
+    "src/lib/clonestore/production/__tests__/p15-proof-generator.test.ts (2 tests, computes proofs)",
+    "scripts/p15-verify-stripe-live-readonly.mjs (read-only, no payment, masked)",
+    "P15_OWNER_GO_LIVE_APPROVAL_PACKET.md",
+    "P15_MONITORING_ROLLBACK_PACKET.md",
+    "P15_EXTERNAL_GO_LIVE_CLOSURE_REPORT.md",
+    ".p15-proofs/p15-run1/* (12 proof JSONs)"
+  ],
+  "modified_files": [
+    "src/app/api/webhooks/stripe/route.ts — ADDITIVE, FLAG-GATED reconciliation on ALL activation events: checkout.session.completed + customer.subscription.created + customer.subscription.updated (with best-effort customer-billing fetch). Flag OFF → ZERO behavior change + audit log. Flag ON → hard conflict writes a review order status (no paid access). Justified adapter for the proven go-live integration gap (P11 reconciliation built-not-wired). [reconciliation wired into all 4 paths after adversarial review found the first pass covered only 1.]",
+    "src/app/api/checkout/confirm/route.ts — ADDITIVE flag-gated reconciliation on the /paiement/success auto-POST activation path (the review found this bypassed the gate).",
+    "src/app/api/checkout/route.ts — ADDITIVE: propagate the server-resolved country (P10) + expected currency into the Stripe session + subscription metadata (so subscription.* events carry the country signal). No pricing/guard logic changed.",
+    "src/lib/clonestore/conversion/__tests__/bloc3-checkout-route-wiring.test.ts — source-scan updated to the reconciliation-aware isAccessGranted(activationStatus); guard intent preserved."
+  ],
+  "pierre_v1_untouched": true,
+  "p8_to_p14_untouched": "No file under src/lib/pierre/v1/**, src/app/api/pierre/v1/**, src/lib/clonestore/pricing/**, or the P12/P13/P14 modules modified. P15 REUSES P10 (country-pricing, production-gate) + P11 (reconciliation, stripe/provider/legal readiness, command-center) read-only. The only product-code touch is the additive flag-gated reconciliation gate in the pre-existing Stripe webhook (B31.7), which is the justified go-live adapter.",
+  "no_second_hr_brain": true,
+  "production": "PRODUCTION_AUTHORIZED (P10) untouched (false as const — HARD FLOOR). No production enabled by default. No requirement/gate can authorize production from env alone. No migration applied.",
+  "no_live_payment": "No live Stripe checkout/session/payment/customer/subscription created. Read-only script is prices.retrieve-only (and local key is TEST → TEST_MODE_BLOCKED, so no live call even attempted).",
+  "no_secrets_printed": true,
+  "git": "nothing staged/committed/pushed/deployed."
+}

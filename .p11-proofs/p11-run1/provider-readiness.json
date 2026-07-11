@@ -1,0 +1,79 @@
+{
+  "runId": "p11-run1",
+  "readiness": {
+    "ready": false,
+    "blockers": [
+      "PROVIDER_SIGNATURE_NOT_LIVE — la signature (Yousign) n'est pas en mode LIVE / non attestée / bloquée.",
+      "Signature bloquée : P8.7.4 — Yousign sandbox org-membership blocker (FINAL PRODUCTION UNBLOCK: NOT AUTHORIZED)",
+      "CLONESTORE_SIGNATURE_API_KEY absent.",
+      "CLONESTORE_SIGNATURE_WEBHOOK_SECRET absent — webhook signature non vérifié.",
+      "Attestation owner de signature LIVE absente (CLONESTORE_SIGNATURE_LIVE_VERIFIED) — P8.7.4 à lever + vérif live."
+    ],
+    "warnings": [
+      "Chemin manuel gouverné disponible — NE constitue PAS une readiness d'intégration live.",
+      "0 provider live à l'échelle de la certification (cf. P8.13/P8.7.4)."
+    ],
+    "signature": {
+      "provider": null,
+      "mode": "unknown",
+      "live": false,
+      "apiKeyPresent": false,
+      "webhookConfigured": false,
+      "manualPathAvailable": true,
+      "blockedReason": "P8.7.4 — Yousign sandbox org-membership blocker (FINAL PRODUCTION UNBLOCK: NOT AUTHORIZED)",
+      "countryCoverage": {
+        "FR": true,
+        "BE": true,
+        "LU": true,
+        "CH": true
+      }
+    },
+    "providers": [
+      {
+        "provider": "yousign",
+        "status": "blocked",
+        "liveGrade": false,
+        "manualPathAvailable": true,
+        "blockedReason": "P8.7.4 — Yousign sandbox org-membership blocker (FINAL PRODUCTION UNBLOCK: NOT AUTHORIZED)"
+      },
+      {
+        "provider": "payroll",
+        "status": "not_configured",
+        "liveGrade": false,
+        "manualPathAvailable": true,
+        "blockedReason": null
+      },
+      {
+        "provider": "identity",
+        "status": "not_configured",
+        "liveGrade": false,
+        "manualPathAvailable": true,
+        "blockedReason": null
+      },
+      {
+        "provider": "time_attendance",
+        "status": "not_configured",
+        "liveGrade": false,
+        "manualPathAvailable": true,
+        "blockedReason": null
+      },
+      {
+        "provider": "benefits",
+        "status": "not_configured",
+        "liveGrade": false,
+        "manualPathAvailable": true,
+        "blockedReason": null
+      },
+      {
+        "provider": "training",
+        "status": "not_configured",
+        "liveGrade": false,
+        "manualPathAvailable": true,
+        "blockedReason": null
+      }
+    ],
+    "liveProviderCount": 0,
+    "note": "P11 n'active aucun provider et n'appelle aucun provider live. La signature doit être LIVE + non bloquée pour lever le blocage go-live."
+  },
+  "note": "Aucune clé secrète exposée."
+}

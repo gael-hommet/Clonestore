@@ -1,0 +1,8 @@
+{
+  "runId": "clonechat-parrain",
+  "publicCanReach": false,
+  "clientCanReach": false,
+  "founderCanReach": true,
+  "internalAdapterUsableByClient": false,
+  "founderViewerWithoutProof": null
+}

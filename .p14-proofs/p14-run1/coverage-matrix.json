@@ -1,0 +1,1438 @@
+{
+  "runId": "p14-run1",
+  "summary": {
+    "total": 58,
+    "byStatus": {
+      "VERIFIED": 19,
+      "PARTIAL": 21,
+      "LEGAL_BLOCKED": 4,
+      "PROVIDER_BLOCKED": 1,
+      "MUST_NOT_CLAIM": 6,
+      "ARCHITECTURE_READY": 2,
+      "FUTURE_ROADMAP": 3,
+      "EXTERNAL_BLOCKED": 2
+    },
+    "byGroup": {
+      "identity_positioning": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "mission_engine": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "request_analysis": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "task_system": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "employee_dossier_360": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "recruitment_operations": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "hiring_contracts_amendments": {
+        "total": 2,
+        "statuses": {
+          "VERIFIED": 1,
+          "LEGAL_BLOCKED": 1
+        }
+      },
+      "signature_documents": {
+        "total": 1,
+        "statuses": {
+          "PROVIDER_BLOCKED": 1
+        }
+      },
+      "preboarding_onboarding": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "personnel_administration": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "absences_leave": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "pre_payroll_variables": {
+        "total": 2,
+        "statuses": {
+          "PARTIAL": 1,
+          "MUST_NOT_CLAIM": 1
+        }
+      },
+      "planning_impact": {
+        "total": 1,
+        "statuses": {
+          "ARCHITECTURE_READY": 1
+        }
+      },
+      "internal_hr_communications": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "hr_helpdesk": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "employee_relations_sensitive": {
+        "total": 2,
+        "statuses": {
+          "PARTIAL": 1,
+          "MUST_NOT_CLAIM": 1
+        }
+      },
+      "interviews": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "performance_operations": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "training_operations": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "compensation_benefits": {
+        "total": 2,
+        "statuses": {
+          "PARTIAL": 1,
+          "MUST_NOT_CLAIM": 1
+        }
+      },
+      "hr_compliance_workflow": {
+        "total": 2,
+        "statuses": {
+          "LEGAL_BLOCKED": 1,
+          "MUST_NOT_CLAIM": 1
+        }
+      },
+      "reporting": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "offboarding": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "multi_site_franchise": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "sector_adaptation": {
+        "total": 1,
+        "statuses": {
+          "LEGAL_BLOCKED": 1
+        }
+      },
+      "clonevoice_voice": {
+        "total": 1,
+        "statuses": {
+          "FUTURE_ROADMAP": 1
+        }
+      },
+      "inputs_files": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "outputs_documents_exports": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "cloneadn_footprint": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "email_identity": {
+        "total": 1,
+        "statuses": {
+          "EXTERNAL_BLOCKED": 1
+        }
+      },
+      "controlled_autonomy": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "cloneguard_risk": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "clonetrace_audit": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "anti_hallucination_source_of_truth": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "memory": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "continuity_multi_day": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "demo_scenarios": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "seven_day_value_pack": {
+        "total": 1,
+        "statuses": {
+          "FUTURE_ROADMAP": 1
+        }
+      },
+      "mobile_notifications": {
+        "total": 2,
+        "statuses": {
+          "VERIFIED": 1,
+          "FUTURE_ROADMAP": 1
+        }
+      },
+      "quality_control": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "error_handling": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "integrations": {
+        "total": 1,
+        "statuses": {
+          "EXTERNAL_BLOCKED": 1
+        }
+      },
+      "roles_permissions": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "proactivity": {
+        "total": 1,
+        "statuses": {
+          "PARTIAL": 1
+        }
+      },
+      "roi_value_report": {
+        "total": 1,
+        "statuses": {
+          "ARCHITECTURE_READY": 1
+        }
+      },
+      "other_ai_employees_cloneos": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "commercial_positioning": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      },
+      "legal_responsibility_doctrine": {
+        "total": 3,
+        "statuses": {
+          "VERIFIED": 1,
+          "MUST_NOT_CLAIM": 2
+        }
+      },
+      "ai_act_sensitive_governance": {
+        "total": 1,
+        "statuses": {
+          "LEGAL_BLOCKED": 1
+        }
+      },
+      "launch_v1_vs_ultimate": {
+        "total": 1,
+        "statuses": {
+          "VERIFIED": 1
+        }
+      }
+    },
+    "launchCritical": {
+      "total": 17,
+      "verified": 14,
+      "partial": 0,
+      "blocked": 2,
+      "mustNot": 1,
+      "roadmap": 0
+    },
+    "topVerified": [
+      "Pierre = employé IA RH, pas un assistant",
+      "Moteur de missions réel",
+      "Analyse de demande",
+      "Système de tâches",
+      "Préparation contrats/avenants",
+      "Helpdesk RH",
+      "Entrées / fichiers",
+      "Autonomie contrôlée",
+      "CloneTrace / audit",
+      "Anti-hallucination / source de vérité",
+      "Mémoire durable",
+      "Scénarios de démo",
+      "Mobile utilisable",
+      "Gestion d'erreur",
+      "Rôles / permissions",
+      "CloneOS orchestration",
+      "Positionnement commercial",
+      "Doctrine de responsabilité",
+      "Launch V1 vs ambition ultime"
+    ],
+    "topGaps": [
+      "Dossier salarié 360 [PARTIAL]",
+      "Opérations de recrutement [PARTIAL]",
+      "Validité juridique des contrats [LEGAL_BLOCKED]",
+      "Signature électronique [PROVIDER_BLOCKED]",
+      "Pré-boarding / onboarding [PARTIAL]",
+      "Administration du personnel [PARTIAL]",
+      "Absences / congés / retards [PARTIAL]",
+      "Pré-paie / éléments variables [PARTIAL]",
+      "Communications RH internes [PARTIAL]",
+      "Cas sensibles — préparation [PARTIAL]",
+      "Entretiens — préparation [PARTIAL]",
+      "Workflow de conformité RH [LEGAL_BLOCKED]",
+      "Reporting opérationnel [PARTIAL]",
+      "Offboarding [PARTIAL]",
+      "Sorties / documents / exports [PARTIAL]",
+      "CloneADN / empreinte entreprise [PARTIAL]",
+      "CloneGuard / risque [PARTIAL]",
+      "Continuité multi-jours [PARTIAL]",
+      "Contrôle qualité [PARTIAL]",
+      "Proactivité [PARTIAL]",
+      "Gouvernance sensible / AI Act [LEGAL_BLOCKED]"
+    ]
+  },
+  "results": [
+    {
+      "id": "identity.employee_not_assistant",
+      "group": "identity_positioning",
+      "title": "Pierre = employé IA RH, pas un assistant",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "browser",
+        "report"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P12 CloneOS shell + cockpits (browser P12_SHELL_OK)",
+        "P13 founder acceptance (browser P13_FOUNDER_FEEL_OK 33/36)",
+        "framing 'Employé IA RH' proven all viewports"
+      ]
+    },
+    {
+      "id": "mission.engine",
+      "group": "mission_engine",
+      "title": "Moteur de missions réel",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "P9.6 end-to-end journey browser (real UI Confirmer→real V1 mission)",
+        "real V1 mission created via browser Confirmer"
+      ]
+    },
+    {
+      "id": "request.analysis",
+      "group": "request_analysis",
+      "title": "Analyse de demande",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute)",
+        "P9.4 CloneChat governed pipeline (real OpenAI)"
+      ]
+    },
+    {
+      "id": "task.system",
+      "group": "task_system",
+      "title": "Système de tâches",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute)",
+        "P9.6 end-to-end journey browser (real UI Confirmer→real V1 mission)",
+        "'Plan cognitif: N tâche(s)' in cockpit"
+      ]
+    },
+    {
+      "id": "dossier.360",
+      "group": "employee_dossier_360",
+      "title": "Dossier salarié 360",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon capability-registry (employee dossier caps governed)"
+      ]
+    },
+    {
+      "id": "recruitment.operations",
+      "group": "recruitment_operations",
+      "title": "Opérations de recrutement",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon recruitment caps (governed, prep-level)"
+      ]
+    },
+    {
+      "id": "contracts.preparation",
+      "group": "hiring_contracts_amendments",
+      "title": "Préparation contrats/avenants",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report"
+      ],
+      "sensitive": true,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "P9.6 end-to-end journey browser (real UI Confirmer→real V1 mission)",
+        "document preparation governed; legal validity NOT claimed"
+      ]
+    },
+    {
+      "id": "contracts.legal_validity",
+      "group": "hiring_contracts_amendments",
+      "title": "Validité juridique des contrats",
+      "status": "LEGAL_BLOCKED",
+      "launch_importance": "launch_critical",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "legal",
+        "external"
+      ],
+      "sensitive": true,
+      "reason": "Nécessite une validation juridique externe (absente) — jamais marqué conforme sans preuve externe.",
+      "provenBy": [
+        "P11 legal/tax readiness = false without external attestation",
+        "P8.12 country execution fail-closed, 0 VERIFIED rules"
+      ]
+    },
+    {
+      "id": "signature.esign",
+      "group": "signature_documents",
+      "title": "Signature électronique",
+      "status": "PROVIDER_BLOCKED",
+      "launch_importance": "important",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "provider",
+        "external"
+      ],
+      "sensitive": false,
+      "reason": "Nécessite un provider live vérifié (ex. Yousign) — non live (P8.7.4).",
+      "provenBy": [
+        "P11 provider readiness = false (Yousign P8.7.4, signature not live)"
+      ]
+    },
+    {
+      "id": "onboarding.preboarding",
+      "group": "preboarding_onboarding",
+      "title": "Pré-boarding / onboarding",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-mission-packs onboarding pack"
+      ]
+    },
+    {
+      "id": "admin.personnel",
+      "group": "personnel_administration",
+      "title": "Administration du personnel",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon admin caps"
+      ]
+    },
+    {
+      "id": "absences.leave",
+      "group": "absences_leave",
+      "title": "Absences / congés / retards",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon absence caps"
+      ]
+    },
+    {
+      "id": "prepayroll.variables",
+      "group": "pre_payroll_variables",
+      "title": "Pré-paie / éléments variables",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": true,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon pre-payroll caps (prep, not payroll engine)"
+      ]
+    },
+    {
+      "id": "prepayroll.full_engine",
+      "group": "pre_payroll_variables",
+      "title": "Moteur de paie / DSN complet",
+      "status": "MUST_NOT_CLAIM",
+      "launch_importance": "future_enterprise",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "external"
+      ],
+      "sensitive": true,
+      "reason": "Ne doit jamais être revendiqué commercialement (paie complète / décision finale sensible / conformité garantie / remplacement total RH / DRH autonome).",
+      "provenBy": [
+        "explicitly excluded (legal cgv §8), MUST NOT claim"
+      ]
+    },
+    {
+      "id": "planning.impact",
+      "group": "planning_impact",
+      "title": "Impact planning",
+      "status": "ARCHITECTURE_READY",
+      "launch_importance": "roadmap",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "test"
+      ],
+      "sensitive": false,
+      "reason": "Architecture/implémentation présente mais fonctionnalité non complète/non prouvée.",
+      "provenBy": [
+        "architecture only (canon caps), no dedicated planning engine"
+      ]
+    },
+    {
+      "id": "comms.internal",
+      "group": "internal_hr_communications",
+      "title": "Communications RH internes",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "communications.ts + providers orchestrated; live send external-pending (see email.identity)"
+      ]
+    },
+    {
+      "id": "helpdesk.hr",
+      "group": "hr_helpdesk",
+      "title": "Helpdesk RH",
+      "status": "VERIFIED",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P9.4 CloneChat public orientation + authenticated operational"
+      ]
+    },
+    {
+      "id": "relations.prepare",
+      "group": "employee_relations_sensitive",
+      "title": "Cas sensibles — préparation",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "report",
+        "browser"
+      ],
+      "sensitive": true,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "fail-closed + HUMAN_ONLY for sensitive decisions"
+      ]
+    },
+    {
+      "id": "relations.decisions",
+      "group": "employee_relations_sensitive",
+      "title": "Décisions disciplinaires finales",
+      "status": "MUST_NOT_CLAIM",
+      "launch_importance": "future_enterprise",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "legal"
+      ],
+      "sensitive": true,
+      "reason": "Ne doit jamais être revendiqué commercialement (paie complète / décision finale sensible / conformité garantie / remplacement total RH / DRH autonome).",
+      "provenBy": [
+        "9 HUMAN_ONLY caps; MUST NOT automate final disciplinary decisions"
+      ]
+    },
+    {
+      "id": "interviews.prepare",
+      "group": "interviews",
+      "title": "Entretiens — préparation",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon interview caps"
+      ]
+    },
+    {
+      "id": "performance.operations",
+      "group": "performance_operations",
+      "title": "Opérations de performance",
+      "status": "PARTIAL",
+      "launch_importance": "roadmap",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": true,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon performance caps (governed)"
+      ]
+    },
+    {
+      "id": "training.operations",
+      "group": "training_operations",
+      "title": "Opérations de formation",
+      "status": "PARTIAL",
+      "launch_importance": "roadmap",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon training caps"
+      ]
+    },
+    {
+      "id": "compensation.prepare",
+      "group": "compensation_benefits",
+      "title": "Rémunération/avantages — préparation",
+      "status": "PARTIAL",
+      "launch_importance": "roadmap",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "report",
+        "browser"
+      ],
+      "sensitive": true,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "sensitive → human-governed"
+      ]
+    },
+    {
+      "id": "compensation.decisions",
+      "group": "compensation_benefits",
+      "title": "Décisions salariales/promotions finales",
+      "status": "MUST_NOT_CLAIM",
+      "launch_importance": "future_enterprise",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "legal"
+      ],
+      "sensitive": true,
+      "reason": "Ne doit jamais être revendiqué commercialement (paie complète / décision finale sensible / conformité garantie / remplacement total RH / DRH autonome).",
+      "provenBy": [
+        "MUST NOT automate final compensation decisions"
+      ]
+    },
+    {
+      "id": "compliance.workflow",
+      "group": "hr_compliance_workflow",
+      "title": "Workflow de conformité RH",
+      "status": "LEGAL_BLOCKED",
+      "launch_importance": "launch_critical",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "legal",
+        "external"
+      ],
+      "sensitive": true,
+      "reason": "Nécessite une validation juridique externe (absente) — jamais marqué conforme sans preuve externe.",
+      "provenBy": [
+        "P8.12 review packets fail-closed; 0 positive legal verdict"
+      ]
+    },
+    {
+      "id": "reporting.operational",
+      "group": "reporting",
+      "title": "Reporting opérationnel",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute) analytics.compute (RLS SQL over pierre_rt_ → persisted artifacts)"
+      ]
+    },
+    {
+      "id": "offboarding.operations",
+      "group": "offboarding",
+      "title": "Offboarding",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": true,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon offboarding caps + proposers"
+      ]
+    },
+    {
+      "id": "multisite.franchise",
+      "group": "multi_site_franchise",
+      "title": "Multi-site / franchise",
+      "status": "PARTIAL",
+      "launch_importance": "future_enterprise",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8.9 multi-tenant ISOLATION substrate proven+tested (100k tenants); multi-site management product feature = roadmap (no dedicated UX/E2E)"
+      ]
+    },
+    {
+      "id": "sector.adaptation",
+      "group": "sector_adaptation",
+      "title": "Adaptation sectorielle",
+      "status": "LEGAL_BLOCKED",
+      "launch_importance": "future_enterprise",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "legal"
+      ],
+      "sensitive": true,
+      "reason": "Nécessite une validation juridique externe (absente) — jamais marqué conforme sans preuve externe.",
+      "provenBy": [
+        "canon country-pack architecture; sector rules require sourcing (never invent)"
+      ]
+    },
+    {
+      "id": "voice.clonevoice",
+      "group": "clonevoice_voice",
+      "title": "CloneVoice / entrée vocale",
+      "status": "FUTURE_ROADMAP",
+      "launch_importance": "future_enterprise",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Pas d'implémentation significative actuelle — roadmap.",
+      "provenBy": [
+        "no dedicated CloneVoice implementation found → roadmap"
+      ]
+    },
+    {
+      "id": "inputs.files",
+      "group": "inputs_files",
+      "title": "Entrées / fichiers",
+      "status": "VERIFIED",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P9.4 multimodal screenshot (openai_vision, EXIF-stripped)"
+      ]
+    },
+    {
+      "id": "outputs.documents",
+      "group": "outputs_documents_exports",
+      "title": "Sorties / documents / exports",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "document renderer + document-types"
+      ]
+    },
+    {
+      "id": "adn.footprint",
+      "group": "cloneadn_footprint",
+      "title": "CloneADN / empreinte entreprise",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "src/lib/clonestore/adn/** (global-enterprise-memory, pierre-adn-bridge)"
+      ]
+    },
+    {
+      "id": "email.identity",
+      "group": "email_identity",
+      "title": "Identité email",
+      "status": "EXTERNAL_BLOCKED",
+      "launch_importance": "roadmap",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "external"
+      ],
+      "sensitive": false,
+      "reason": "Nécessite une preuve/activation externe (absente).",
+      "provenBy": [
+        "communication-provider email; live domain/email external-pending"
+      ]
+    },
+    {
+      "id": "autonomy.controlled",
+      "group": "controlled_autonomy",
+      "title": "Autonomie contrôlée",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser",
+        "report"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P9.5 autonomy (real decideValidation, hard floors) + P13 founder acceptance (browser P13_FOUNDER_FEEL_OK 33/36)"
+      ]
+    },
+    {
+      "id": "guard.risk",
+      "group": "cloneguard_risk",
+      "title": "CloneGuard / risque",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "src/lib/pierre/v1/cloneguard.ts + cloneos/ai/live-validation"
+      ]
+    },
+    {
+      "id": "trace.audit",
+      "group": "clonetrace_audit",
+      "title": "CloneTrace / audit",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "report"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "timeline + durable audit; cockpit shows history"
+      ]
+    },
+    {
+      "id": "truth.source_of_truth",
+      "group": "anti_hallucination_source_of_truth",
+      "title": "Anti-hallucination / source de vérité",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "report"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P8.10 SOURCE_REQUIRED never-invent-law; P9.4.1 server-validated citations"
+      ]
+    },
+    {
+      "id": "memory.durable",
+      "group": "memory",
+      "title": "Mémoire durable",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "report"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute) durable pg memory (pierre_v27 RLS) + company-scoped learning"
+      ]
+    },
+    {
+      "id": "continuity.multi_day",
+      "group": "continuity_multi_day",
+      "title": "Continuité multi-jours",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute) real continuation; hr-operations case FSM"
+      ]
+    },
+    {
+      "id": "demo.scenarios",
+      "group": "demo_scenarios",
+      "title": "Scénarios de démo",
+      "status": "VERIFIED",
+      "launch_importance": "important",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "/demo route + P9.6 journey"
+      ]
+    },
+    {
+      "id": "value.seven_day_pack",
+      "group": "seven_day_value_pack",
+      "title": "Pack de valeur 7 jours",
+      "status": "FUTURE_ROADMAP",
+      "launch_importance": "roadmap",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "report"
+      ],
+      "sensitive": false,
+      "reason": "Pas d'implémentation significative actuelle — roadmap.",
+      "provenBy": [
+        "no dedicated 7-day value pack module → roadmap"
+      ]
+    },
+    {
+      "id": "mobile.usable",
+      "group": "mobile_notifications",
+      "title": "Mobile utilisable",
+      "status": "VERIFIED",
+      "launch_importance": "important",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P12 CloneOS shell + cockpits (browser P12_SHELL_OK)",
+        "P13 founder acceptance (browser P13_FOUNDER_FEEL_OK 33/36)",
+        "mobile 390 proven"
+      ]
+    },
+    {
+      "id": "mobile.push_notifications",
+      "group": "mobile_notifications",
+      "title": "Notifications push",
+      "status": "FUTURE_ROADMAP",
+      "launch_importance": "roadmap",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code"
+      ],
+      "sensitive": false,
+      "reason": "Pas d'implémentation significative actuelle — roadmap.",
+      "provenBy": [
+        "no push-notification delivery implementation → roadmap"
+      ]
+    },
+    {
+      "id": "quality.control",
+      "group": "quality_control",
+      "title": "Contrôle qualité",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "governance + validation gates"
+      ]
+    },
+    {
+      "id": "error.handling",
+      "group": "error_handling",
+      "title": "Gestion d'erreur",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P9.4 idempotency + uncertain-state; fail-closed everywhere"
+      ]
+    },
+    {
+      "id": "integrations.external",
+      "group": "integrations",
+      "title": "Intégrations externes (SIRH/Slack/…)",
+      "status": "EXTERNAL_BLOCKED",
+      "launch_importance": "future_enterprise",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "external"
+      ],
+      "sensitive": false,
+      "reason": "Nécessite une preuve/activation externe (absente).",
+      "provenBy": [
+        "channels architecture only; no live external integration"
+      ]
+    },
+    {
+      "id": "roles.permissions",
+      "group": "roles_permissions",
+      "title": "Rôles / permissions",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "RLS + requireCompanyUser; P9.5 forged writes 403"
+      ]
+    },
+    {
+      "id": "proactivity.signals",
+      "group": "proactivity",
+      "title": "Proactivité",
+      "status": "PARTIAL",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "reason": "Implémenté et prouvé partiellement (une preuve requise manque — souvent la preuve navigateur E2E dédiée).",
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute) proactive opens real missions; hr-proactive signals"
+      ]
+    },
+    {
+      "id": "roi.value_report",
+      "group": "roi_value_report",
+      "title": "Rapport de valeur / ROI mensuel",
+      "status": "ARCHITECTURE_READY",
+      "launch_importance": "roadmap",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "test",
+        "report"
+      ],
+      "sensitive": false,
+      "reason": "Architecture/implémentation présente mais fonctionnalité non complète/non prouvée.",
+      "provenBy": [
+        "analytics.compute exists (raw metrics) but no delivered ROI-report artifact → partial/roadmap"
+      ]
+    },
+    {
+      "id": "cloneos.orchestration",
+      "group": "other_ai_employees_cloneos",
+      "title": "CloneOS orchestration",
+      "status": "VERIFIED",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "browser",
+        "report"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P12 CloneOS shell + cockpits (browser P12_SHELL_OK)",
+        "CloneOS routes/coordinates; 2nd employee = roadmap"
+      ]
+    },
+    {
+      "id": "commercial.positioning",
+      "group": "commercial_positioning",
+      "title": "Positionnement commercial",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "report"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "P13 founder acceptance (browser P13_FOUNDER_FEEL_OK 33/36)",
+        "P14 commercial-truth-matrix (this phase)"
+      ]
+    },
+    {
+      "id": "doctrine.responsibility",
+      "group": "legal_responsibility_doctrine",
+      "title": "Doctrine de responsabilité",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "report"
+      ],
+      "sensitive": true,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "disclaimers (cgu/cgv), human-validation floors, P11/P13"
+      ]
+    },
+    {
+      "id": "aiact.sensitive_governance",
+      "group": "ai_act_sensitive_governance",
+      "title": "Gouvernance sensible / AI Act",
+      "status": "LEGAL_BLOCKED",
+      "launch_importance": "important",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "legal",
+        "external"
+      ],
+      "sensitive": true,
+      "reason": "Nécessite une validation juridique externe (absente) — jamais marqué conforme sans preuve externe.",
+      "provenBy": [
+        "fail-closed + HUMAN_ONLY design present; formal AI-Act compliance = external legal"
+      ]
+    },
+    {
+      "id": "meta.launch_vs_ultimate",
+      "group": "launch_v1_vs_ultimate",
+      "title": "Launch V1 vs ambition ultime",
+      "status": "VERIFIED",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "report"
+      ],
+      "sensitive": false,
+      "reason": "Toutes les preuves REQUISES par l'exigence sont présentes (code + les preuves déclarées : test/rapport et/ou navigateur).",
+      "provenBy": [
+        "this P14 truth matrix"
+      ]
+    },
+    {
+      "id": "doctrine.no_full_hr_replacement",
+      "group": "legal_responsibility_doctrine",
+      "title": "Remplacement total de la RH humaine",
+      "status": "MUST_NOT_CLAIM",
+      "launch_importance": "future_enterprise",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "legal"
+      ],
+      "sensitive": true,
+      "reason": "Ne doit jamais être revendiqué commercialement (paie complète / décision finale sensible / conformité garantie / remplacement total RH / DRH autonome).",
+      "provenBy": [
+        "MUST NOT claim full human HR replacement"
+      ]
+    },
+    {
+      "id": "doctrine.no_autonomous_drh",
+      "group": "legal_responsibility_doctrine",
+      "title": "DRH autonome",
+      "status": "MUST_NOT_CLAIM",
+      "launch_importance": "future_enterprise",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "legal"
+      ],
+      "sensitive": true,
+      "reason": "Ne doit jamais être revendiqué commercialement (paie complète / décision finale sensible / conformité garantie / remplacement total RH / DRH autonome).",
+      "provenBy": [
+        "MUST NOT claim autonomous compliant DRH"
+      ]
+    },
+    {
+      "id": "compliance.country_guarantee",
+      "group": "hr_compliance_workflow",
+      "title": "Garantie de conformité pays",
+      "status": "MUST_NOT_CLAIM",
+      "launch_importance": "launch_critical",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "legal",
+        "external"
+      ],
+      "sensitive": true,
+      "reason": "Ne doit jamais être revendiqué commercialement (paie complète / décision finale sensible / conformité garantie / remplacement total RH / DRH autonome).",
+      "provenBy": [
+        "MUST NOT guarantee country legal compliance without external review"
+      ]
+    }
+  ]
+}

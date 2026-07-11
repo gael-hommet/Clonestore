@@ -1,0 +1,18 @@
+{
+  "dismissal": {
+    "overallDisposition": "human_only",
+    "requiredValidations": [
+      "Décision humaine requise: dismissal"
+    ],
+    "humanOnlyDecisions": [
+      {
+        "category": "dismissal",
+        "reason": "Licenciement / rupture = décision finale réservée à un humain.",
+        "evidence": "analyzeInstruction:intent=termination",
+        "guardLevel": "black"
+      }
+    ],
+    "guardLevel": "black"
+  },
+  "prepare": "provider_blocked"
+}

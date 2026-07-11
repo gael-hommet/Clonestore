@@ -20,6 +20,8 @@ import { EmployeesView } from "./EmployeesView";
 import { ActivityView } from "./ActivityView";
 import { MissionComposer } from "./MissionComposer";
 import { MissionDetailDrawer } from "./MissionDetailDrawer";
+import { PierreAutonomyPanel } from "@/components/pierre/autonomy/PierreAutonomyPanel";
+import { JourneyReadinessView } from "./JourneyReadinessView";
 
 function humanState(tone: string, loading: boolean): { label: string; dot: string } {
   if (loading) return { label: "Chargement…", dot: "bg-[var(--cs-ink-4)]" };
@@ -160,8 +162,21 @@ export function OperationalCockpitShell() {
 
         {cockpit.stale && cockpit.phase === "ready" ? <StaleBanner onRefresh={() => cockpit.refresh()} /> : null}
 
-        {/* Contenu */}
-        {cockpit.phase === "loading" ? (
+        {/* Contenu — la vue « Autonomie » est une surface de RÉGLAGE indépendante des données
+            opérationnelles (missions/validations) : elle charge son propre état et se rend même si
+            le cockpit opérationnel est en chargement/erreur. */}
+        {view === "autonomy" ? (
+          <div aria-live="polite"><PierreAutonomyPanel /></div>
+        ) : view === "journey" ? (
+          <JourneyReadinessView
+            missions={cockpit.missions}
+            artifacts={cockpit.artifacts}
+            pendingValidations={cockpit.pendingValidations.length}
+            onOpenMission={openMission}
+            onGoView={setView}
+            onCompose={() => setComposerOpen(true)}
+          />
+        ) : cockpit.phase === "loading" ? (
           <LoadingView label="Chargement du cockpit de Pierre…" />
         ) : cockpit.phase === "error" && cockpit.missions.length === 0 ? (
           <ErrorView message={cockpit.error ?? "Le cockpit n'a pas pu être chargé."} onRetry={() => cockpit.refresh()} />

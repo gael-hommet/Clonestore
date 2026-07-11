@@ -1,0 +1,60 @@
+{
+  "runId": "p15-1-prestripe",
+  "packet": "P15_MONITORING_ROLLBACK_PACKET.md (existant) + checklists",
+  "monitoring": {
+    "ready": false,
+    "structuralAllPresent": true,
+    "ownerVerified": false,
+    "structuralChecks": [
+      {
+        "key": "checkout_error_logging",
+        "label": "Logging des erreurs de checkout",
+        "structurallyPresent": true,
+        "note": "/api/checkout + /api/webhooks/stripe loggent les erreurs (console.error) et renvoient des statuts non-200 en cas d'échec."
+      },
+      {
+        "key": "webhook_error_logging",
+        "label": "Logging des erreurs webhook",
+        "structurallyPresent": true,
+        "note": "Webhook: 400 signature invalide, 503 DB non prête (Stripe retry), 500 erreur, jamais 200 sans vérif."
+      },
+      {
+        "key": "reconciliation_conflict_logging",
+        "label": "Logging des conflits de réconciliation pays",
+        "structurallyPresent": true,
+        "note": "Le gate de réconciliation P15 émet un audit (best-effort, error-swallowed) pour chaque conflit CH/EUR, FR/CHF, pays manquant, etc."
+      },
+      {
+        "key": "emergency_disable_switch",
+        "label": "Interrupteur d'arrêt d'urgence",
+        "structurallyPresent": true,
+        "note": "STRIPE_COUNTRY_PRICING_ENABLED=off désactive la tarification pays ; PRODUCTION_AUTHORIZED const P10 = plancher dur ; flags kill-switch existants."
+      },
+      {
+        "key": "pricing_disable_steps",
+        "label": "Procédure de désactivation pricing",
+        "structurallyPresent": true,
+        "note": "Retirer STRIPE_COUNTRY_PRICING_ENABLED → chemin legacy ; documenté dans le packet."
+      },
+      {
+        "key": "production_gate_disable",
+        "label": "Désactivation de la porte de production",
+        "structurallyPresent": true,
+        "note": "PRODUCTION_AUTHORIZED = false as const (P10) — changement de code délibéré requis pour lever."
+      }
+    ],
+    "opsChecksPending": [
+      "production_health_route_deployed",
+      "owner_alert_path_verified",
+      "webhook_disable_procedure_rehearsed",
+      "rollback_steps_rehearsed",
+      "incident_log_and_support_template_ready"
+    ],
+    "blockers": [
+      "Plan monitoring/rollback NON attesté vérifié en ops (CLONESTORE_MONITORING_ROLLBACK_VERIFIED absent) — health route déployée, alerting owner, rollback répété."
+    ],
+    "note": "Readiness fail-closed : les invariants de code (logging, kill-switch, plancher P10) sont présents, mais le plan doit être vérifié en ops (health route déployée, alerting, rollback répété) et attesté par l'owner avant lancement public. Voir P15_MONITORING_ROLLBACK_PACKET.md."
+  },
+  "verified": false,
+  "note": "Checklists préparées (health, rollback, disable Stripe, disable d'urgence, templates support/incident). NON marqué vérifié tant que non répété en ops + attesté."
+}

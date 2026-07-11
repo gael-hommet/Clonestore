@@ -1,0 +1,53 @@
+{
+  "runId": "p11-run1",
+  "verdict": "P11 — TECHNICAL READINESS VERIFIED / EXTERNAL GO-LIVE BLOCKED",
+  "date": "2026-07-08",
+  "pricing": { "EUR_LAUNCH": "FR/BE/LU → 449 EUR/mois", "CHF_LAUNCH": "CH → 499 CHF/mois" },
+  "technical_readiness_verified": {
+    "stripe_live_readiness_module": true,
+    "price_verification_logic": "verifyStripePrice (active/currency/44900|49900/monthly/no-trial) — unit-tested",
+    "billing_country_reconciliation": "implemented + tested (12 cases incl. unconditional currency check); NOT yet wired into live webhook (disclosed)",
+    "legal_tax_readiness_packet": "structure ready (11 docs + FR/BE/LU/CH + tax questions)",
+    "provider_readiness_module": true,
+    "final_golive_command_center": true,
+    "owner_approval_packet": "P11_OWNER_APPROVAL_PACKET.md (un-filled)",
+    "tests": "production 54/54, pricing 61/61, tsc 0, non-regression 774/774 + durable itest 24/24, browser smoke P11_SMOKE_OK",
+    "adversarial": "3 agents, 13 claims: 0 refuted / 9 held / 4 PARTIAL → 2 code fixes + honesty reframing"
+  },
+  "external_go_live_blocked": {
+    "live_stripe_verified": false,
+    "eur_price_live_verified": false,
+    "chf_price_live_verified": false,
+    "webhook_live_verified": false,
+    "legal_reviewed_FR_BE_LU_CH": false,
+    "tax_vat_reviewed": false,
+    "provider_yousign_live": false,
+    "monitoring_rollback_verified": false,
+    "owner_golive_signoff": false,
+    "deployment": "none"
+  },
+  "gate": {
+    "globalStatus": "NOT_READY",
+    "productionAuthorized": false,
+    "productionAuthorized_hardFloor": "requires externalTechnicalReady AND owner artifact AND P10 const (false) — deliberate code change required",
+    "publicLaunchAllowed": false,
+    "privatePilotAllowed": false,
+    "paidCustomerAllowed": false,
+    "ownerApprovalRequired": true,
+    "PRODUCTION_AUTHORIZED_p10_const": false,
+    "missingProofsCount": 7
+  },
+  "safety": {
+    "P8_pierre_v1_untouched": true,
+    "P9_P10_untouched": true,
+    "no_live_stripe_used": true,
+    "no_live_payment_created": true,
+    "no_stripe_session_created_in_smoke": true,
+    "no_migration_applied": true,
+    "no_secrets_printed": true,
+    "no_deploy": true,
+    "nothing_staged_committed_pushed": true,
+    "no_final_legal_tax_advice": true
+  },
+  "recommendation_before_go_live": "Wire reconcileStripeCountry into the live Stripe webhook; run owner Stripe live dry-run (read-only); complete external legal+tax reviews (FR/BE/LU/CH); lift P8.7.4 + verify Yousign live; verify monitoring/rollback; owner sign-off; then deliberately flip PRODUCTION_AUTHORIZED + deploy. Consider binding attestation flags to signed artifacts."
+}

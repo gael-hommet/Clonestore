@@ -78,7 +78,9 @@ export async function POST(req: Request) {
   const effect = async (): Promise<EffectResult> => {
     switch (proposal.actionKind) {
       case "create_mission":
-        return createMissionV1(v1, String(p.instruction ?? ""), fingerprint);
+        // P9.5 — autonomyMode figé dans la proposition (résolu serveur depuis le défaut d'entreprise).
+        // Passé à V1 qui gouverne la mission via decideValidation. Le client ne l'a jamais fourni.
+        return createMissionV1(v1, String(p.instruction ?? ""), fingerprint, typeof p.autonomyMode === "string" ? p.autonomyMode : undefined);
       case "cancel_mission":
         return cancelMissionV1(v1, String(p.missionId ?? ""));
       case "decide_validation":

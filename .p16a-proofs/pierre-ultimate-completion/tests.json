@@ -1,0 +1,22 @@
+{
+  "p16a_targeted": { "command": "npx vitest run src/lib/pierre/v1/ultimate/p16a", "files": 3, "passed": 57, "skipped": 1, "note": "1 skipped = gated proof generator (P16A_WRITE_PROOFS)" },
+  "families": {
+    "A_canonical_recovery": "12 items recovered, 0 invented, 0 omitted, statuses probe-derived",
+    "B_capability_canon": "count=215 derived (not hardcoded), bounded retrieval, metadata preserved",
+    "C_request_understanding": "single+multi intent, entity/date resolution, missing-info, unsupported",
+    "D_clarification": "minimum useful, no repeat with context, ambiguity surfaced",
+    "E_mission_intelligence": "capabilities attached, tasks+deps, validations, human-only isolated, provider/legal visible, idempotent",
+    "F_operational_depth": "onboarding/absence/avenant/offboarding governed; pre-payroll prep-only; no live send/sign",
+    "G_outputs": "facts vs assumptions, missing inputs exposed, no legal guarantee, lineage honest",
+    "H_continuity": "continue/correct/latest/status resolve authoritative target; ambiguity asks",
+    "I_risk_autonomy": "dismissal/sanction/salary/promotion/legal human-only even in enterprise_autonomous",
+    "J_architecture": "runtime reused, no 2nd registry/planner, no T1/T2/CloneChat wiring, contract typed/no secrets",
+    "K_perimeter": "T1/T2/C1/C1.1/C1.2 intact, reveal active, anon 401, prod off, payment disabled, live blocked"
+  },
+  "gate_suites": {
+    "ultimate+t1+t2": { "files": 6, "passed": 104 },
+    "c1-1+assistant+production": { "files": 16, "passed": 251 },
+    "cognitive-runtime+hr-canon+final-certification": { "files": 18, "passed": 149 }
+  },
+  "typescript": { "command": "npx tsc --noEmit", "errors": 0 }
+}

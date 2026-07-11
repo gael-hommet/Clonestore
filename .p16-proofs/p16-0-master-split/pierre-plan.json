@@ -1,0 +1,151 @@
+{
+  "runId": "p16-0-master-split",
+  "plan": "P16A_PIERRE_ULTIMATE_COMPLETION_PLAN.md",
+  "items": [
+    {
+      "id": "pierre.mission_depth",
+      "title": "Profondeur du moteur de missions RH",
+      "category": "pierre_ultimate",
+      "current_status": "verified",
+      "owner": "pierre",
+      "launch_importance": "critical",
+      "implementation_risk": "low",
+      "recommended_next_phase": "P16A",
+      "p14Ref": "mission.engine",
+      "reason": "Moteur VERIFIED (P8/P9.6) ; l'ultime = enchaînements/plans plus riches, toujours gouvernés."
+    },
+    {
+      "id": "pierre.document_depth",
+      "title": "Profondeur documentaire RH",
+      "category": "pierre_ultimate",
+      "current_status": "partial",
+      "owner": "pierre",
+      "launch_importance": "critical",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16A",
+      "p14Ref": "outputs.documents",
+      "reason": "Préparation documentaire gouvernée ; approfondir via DocumentTech (contrat), pas de hardcode.",
+      "safeFallback": "Document préparé, à relire/valider par un humain."
+    },
+    {
+      "id": "pierre.dossier_360",
+      "title": "Dossier salarié 360",
+      "category": "pierre_ultimate",
+      "current_status": "partial",
+      "owner": "pierre",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16A",
+      "p14Ref": "dossier.360",
+      "reason": "Capacité canon gouvernée ; à démontrer E2E + vue produit."
+    },
+    {
+      "id": "pierre.onboarding_offboarding",
+      "title": "Onboarding / offboarding en profondeur",
+      "category": "pierre_ultimate",
+      "current_status": "partial",
+      "owner": "pierre",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16A",
+      "p14Ref": "onboarding.preboarding",
+      "reason": "Packs onboarding/offboarding gouvernés ; approfondir workflows + WorkflowTech."
+    },
+    {
+      "id": "pierre.absences_prepayroll",
+      "title": "Absences + préparation pré-paie",
+      "category": "pierre_ultimate",
+      "current_status": "partial",
+      "owner": "pierre",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16A",
+      "p14Ref": "prepayroll.variables",
+      "reason": "Éléments variables préparés (jamais moteur de paie) ; approfondir sous validation humaine."
+    },
+    {
+      "id": "pierre.interview_perf_training",
+      "title": "Entretiens / performance / formation",
+      "category": "pierre_ultimate",
+      "current_status": "partial",
+      "owner": "pierre",
+      "launch_importance": "nice_to_have",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16A",
+      "p14Ref": "interviews.prepare",
+      "reason": "Préparation gouvernée ; dépend de CalendarTech pour convocations/planning."
+    },
+    {
+      "id": "pierre.employee_relations_sensitive",
+      "title": "Cas RH sensibles (préparation)",
+      "category": "pierre_ultimate",
+      "current_status": "partial",
+      "owner": "pierre",
+      "launch_importance": "important",
+      "implementation_risk": "high",
+      "recommended_next_phase": "P16A",
+      "p14Ref": "relations.prepare",
+      "reason": "Préparation seulement ; décisions finales HUMAN_ONLY (jamais automatisées)."
+    },
+    {
+      "id": "pierre.proactive_followup",
+      "title": "Suivi RH proactif",
+      "category": "pierre_ultimate",
+      "current_status": "partial",
+      "owner": "pierre",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16A",
+      "p14Ref": "proactivity.signals",
+      "reason": "Proactivité gouvernée (P8.14) ; dépend de NotificationTech pour les relances."
+    },
+    {
+      "id": "pierre.monthly_value_report",
+      "title": "Rapport de valeur/ROI mensuel",
+      "category": "pierre_ultimate",
+      "current_status": "architecture_ready",
+      "owner": "pierre",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16A",
+      "p14Ref": "roi.value_report",
+      "reason": "analytics.compute existe (métriques brutes) ; le rapport LIVRÉ dépend d'AnalyticsTech."
+    },
+    {
+      "id": "pierre.sector_adaptation",
+      "title": "Adaptation sectorielle RH",
+      "category": "pierre_ultimate",
+      "current_status": "architecture_ready",
+      "owner": "pierre",
+      "launch_importance": "future",
+      "implementation_risk": "high",
+      "recommended_next_phase": "later",
+      "p14Ref": "sector.adaptation",
+      "reason": "Nécessite du sourcing (jamais inventer le droit) → dépend d'items externes/légaux."
+    },
+    {
+      "id": "pierre.hr_helpdesk_quality",
+      "title": "Qualité du helpdesk RH",
+      "category": "pierre_ultimate",
+      "current_status": "verified",
+      "owner": "pierre",
+      "launch_importance": "important",
+      "implementation_risk": "low",
+      "recommended_next_phase": "P16A",
+      "p14Ref": "helpdesk.hr",
+      "reason": "Helpdesk VERIFIED (P9.4) ; l'ultime = qualité/couverture des réponses."
+    },
+    {
+      "id": "pierre.hr_quality_control",
+      "title": "Contrôle qualité RH (CloneGuard)",
+      "category": "pierre_ultimate",
+      "current_status": "partial",
+      "owner": "pierre",
+      "launch_importance": "important",
+      "implementation_risk": "low",
+      "recommended_next_phase": "P16A",
+      "p14Ref": "guard.risk",
+      "reason": "CloneGuard existe ; à approfondir + exposer comme EvidenceTech/quality gate réutilisable."
+    }
+  ]
+}

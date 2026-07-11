@@ -1,0 +1,10 @@
+{
+  "baseline": "P8–P16.0, T1, T2, C1/C1.1/C1.2 frozen verified",
+  "productionAuthorized": false,
+  "paymentMode": "disabled/test",
+  "stripeLive": false,
+  "liveProvidersBlocked": true,
+  "cloneChatEnabledDefault": true,
+  "capabilityCanon": 215,
+  "note": "P16A is additive; reuses the ONE cognitive runtime."
+}

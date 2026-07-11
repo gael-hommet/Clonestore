@@ -1,0 +1,23 @@
+{
+  "runId": "t2-product-technologies",
+  "generatedAt": "2026-07-10T02:18:00+02:00",
+  "claim": "T2 est ADDITIF AU NIVEAU SESSION : la session T2 a créé UNIQUEMENT src/lib/clonestore/product-technologies/t2/** (22 sources + 2 tests) + .t2-proofs/** + T2_*.md. Aucun fichier existant (T1, P8–P16.0, Pierre V1, production, pricing, clonechat, app, components) n'a été modifié.",
+  "evidence": {
+    "mtimeForensics": {
+      "method": "Get-ChildItem -Recurse src | Where LastWriteTime > début de session T2 (2026-07-10 00:30)",
+      "filesTouchedUnderSrc": "exactement les 24 fichiers de product-technologies/t2/ (vérifié avant ET après le round 2 de correctifs) — 0 fichier hors t2/",
+      "t1Untouched": "src/lib/clonestore/technologies/t1/** conserve ses horodatages de la session T1 (2026-07-09) ; suite T1 42/42 re-exécutée verte pendant T2 (test 43)",
+      "gitNote": "git.exe reste bloqué OS (« Accès refusé ») — voir project_git_blocked_gotcha ; l'additivité se prouve par forensics mtime + audit isomorphic-git (gittool), et P9.x–T2 restent non commités (recommandation owner inchangée : débloquer git et committer la baseline vérifiée)"
+    },
+    "importPerimeter": "test 4 : liste d'imports FERMÉE pour t2/ (./ + technologies/t1 + p10-production-gate + p15-1-payment-mode + type Env pricing) — 0 import de src/lib/pierre/**, clonechat/**, next, providers ; scan récursif + interdits fetch/URL/import()/require/process.env(hors command-center)",
+    "productionGuards": "PRODUCTION_AUTHORIZED=false (const P10, test 5) ; resolvePaymentMode({})='disabled', clés live forgées → jamais 'live' (test 6) ; isLiveExecutionAllowed()=false (T1, test 7)",
+    "testSideEffects": "tsconfig.tsbuildinfo (cache tsc) + .p10-proofs/.p11-proofs régénérés par les suites P10/P11 elles-mêmes (untracked, émetteurs non gated pré-existants, contenu déterministe) — hors périmètre T2"
+  },
+  "untouchedPerimeters": {
+    "pierreV1Runtime": "0 fichier, 0 import (le raisonnement RH reste dans le moteur V1 — WorkflowTech/CloneOS ne le dupliquent pas)",
+    "t1Layer": "0 fichier modifié — consommé par contrat uniquement (wantsLiveEffect, sanitize, voiceTech, evidenceTech, isLiveExecutionAllowed, getTechnologyContract)",
+    "blocsP8toP16_0": "0 fichier modifié ; imports lecture seule des évaluateurs réels",
+    "paymentsStripe": "aucun paiement créé, aucun chemin Stripe touché, mode disabled/test",
+    "deploy": "aucun déploiement, aucun provider live, aucun secret imprimé"
+  }
+}

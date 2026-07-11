@@ -1,0 +1,58 @@
+{
+  "runId": "p95adb549537",
+  "email": "p95-p95adb549537@example.invalid",
+  "viewports": {
+    "desktop-1280": {
+      "size": "1280x900",
+      "api": {
+        "status": 200,
+        "modes": 5,
+        "matrixEntries": 14,
+        "framing": "Pierre — votre employé IA RH",
+        "companyResolved": false,
+        "hasHardFloor": true
+      },
+      "dom": {
+        "framingPresent": true,
+        "noAssistantFraming": true,
+        "autonomyNav": true,
+        "radiogroup": true,
+        "radioCount": 5,
+        "namedRadios": 5,
+        "matrixMentions": true,
+        "unnamedControls": 0,
+        "noHorizontalOverflow": true
+      },
+      "keyboardFocusInteractive": true,
+      "consoleErrors": [],
+      "pass": true
+    },
+    "mobile-390": {
+      "size": "390x844",
+      "api": {
+        "status": 200,
+        "modes": 5,
+        "matrixEntries": 14,
+        "framing": "Pierre — votre employé IA RH",
+        "companyResolved": false,
+        "hasHardFloor": true
+      },
+      "dom": {
+        "framingPresent": true,
+        "noAssistantFraming": true,
+        "autonomyNav": true,
+        "radiogroup": true,
+        "radioCount": 5,
+        "namedRadios": 5,
+        "matrixMentions": true,
+        "unnamedControls": 0,
+        "noHorizontalOverflow": true
+      },
+      "keyboardFocusInteractive": true,
+      "consoleErrors": [],
+      "pass": true
+    }
+  },
+  "verdict": "P95_AUTONOMY_UI_OK",
+  "cleanup": "DELETED — ZERO RESIDUE"
+}

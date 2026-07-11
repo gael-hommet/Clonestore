@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Répertoire de build ISOLABLE par variable d'environnement. Par défaut `.next` (comportement
+  // inchangé — aucun effet sur d'autres sessions/builds). Permet à une preuve navigateur locale
+  // de bâtir/servir depuis un distDir dédié (ex. NEXT_DIST_DIR=.next-p942) sans partager `.next`
+  // avec un build concurrent. N'affecte jamais la production (variable non définie ⇒ `.next`).
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   // Paquets serveurs à NE PAS bundler (bindings natifs résolus normalement à l'exécution) :
   //  - @electric-sql/pglite : devDependency du chemin dev/E2E local de CloneStory ;
   //  - sharp : transformation d'image OBLIGATOIRE de CloneChat (P9.4.2 §9). Externaliser

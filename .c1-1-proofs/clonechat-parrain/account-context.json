@@ -1,0 +1,5 @@
+{
+  "runId": "clonechat-parrain",
+  "publicSnapshotIsNull": true,
+  "note": "buildAccountContextSnapshot renvoie null en mode public (fail-closed) ; les ID étrangers sont filtrés (keepOwn)."
+}

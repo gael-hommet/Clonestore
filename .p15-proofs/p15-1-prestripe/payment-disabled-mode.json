@@ -1,0 +1,28 @@
+{
+  "runId": "p15-1-prestripe",
+  "PAYMENT_MODE": "disabled",
+  "resolvedFromLocalEnv": "disabled",
+  "mode": "disabled",
+  "paymentOpen": false,
+  "canCreateCheckoutSession": false,
+  "paidAccessPossible": false,
+  "stripeMode": "unknown",
+  "productionAuthorized": false,
+  "reasons": [
+    "Aucune clé Stripe live/test exploitable → paiement désactivé."
+  ],
+  "allowedActions": [
+    "Voir les tarifs (FR/BE/LU 449 EUR, CH 499 CHF).",
+    "Demander une démo.",
+    "Demander un accès fondateur.",
+    "Être prévenu du lancement.",
+    "Préparer l'onboarding."
+  ],
+  "blockedActions": [
+    "Créer une session de paiement Stripe réelle.",
+    "Activer un accès payant sans paiement vérifié (webhook + réconciliation).",
+    "Charger un client."
+  ],
+  "note": "Le mode live n'est jamais atteignable tant que PRODUCTION_AUTHORIZED (P10) est false. Aucun accès payant sans paiement vérifié (webhook + réconciliation).",
+  "wiredGuard": "src/app/api/checkout/route.ts — paymentExplicitlyBlocked() court-circuite AVANT toute session Stripe (mode disabled / clés live sans autorisation)."
+}

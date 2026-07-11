@@ -1,0 +1,17 @@
+{
+  "missing": {
+    "questions": [
+      {
+        "field": "who",
+        "question": "Quel salarié / candidat / équipe est concerné ?",
+        "options": [],
+        "blocksExecution": true
+      }
+    ],
+    "blocksExecution": true
+  },
+  "known": {
+    "questions": [],
+    "blocksExecution": false
+  }
+}

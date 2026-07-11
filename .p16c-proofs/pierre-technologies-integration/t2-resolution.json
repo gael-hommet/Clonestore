@@ -1,0 +1,50 @@
+[
+  {
+    "techId": "cloneadn",
+    "known": true,
+    "reason": "ADN société (ton/contexte autorisé) pour ancrer les documents.",
+    "status": "integration_ready",
+    "mode": "local_safe",
+    "liveBlockedReason": null,
+    "resultKind": "needs_validation",
+    "requiresHumanValidation": true,
+    "artifactPrepared": true,
+    "artifactKind": "cloneadn_profile"
+  },
+  {
+    "techId": "clonebrief",
+    "known": true,
+    "reason": "Brief de mission/communication structuré.",
+    "status": "local_safe_ready",
+    "mode": "local_safe",
+    "liveBlockedReason": null,
+    "resultKind": "needs_validation",
+    "requiresHumanValidation": true,
+    "artifactPrepared": true,
+    "artifactKind": "clonebrief_artifact"
+  },
+  {
+    "techId": "clonereview",
+    "known": true,
+    "reason": "Relecture/qualité du livrable.",
+    "status": "local_safe_ready",
+    "mode": "local_safe",
+    "liveBlockedReason": null,
+    "resultKind": "needs_validation",
+    "requiresHumanValidation": true,
+    "artifactPrepared": true,
+    "artifactKind": "clonereview_report"
+  },
+  {
+    "techId": "clonecontinuum",
+    "known": true,
+    "reason": "Continuité de mission durable.",
+    "status": "local_safe_ready",
+    "mode": "local_safe",
+    "liveBlockedReason": null,
+    "resultKind": "ok",
+    "requiresHumanValidation": false,
+    "artifactPrepared": true,
+    "artifactKind": "clonecontinuum_state"
+  }
+]

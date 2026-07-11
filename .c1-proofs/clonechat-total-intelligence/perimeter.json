@@ -1,0 +1,41 @@
+{
+  "runId": "clonechat-total-intelligence",
+  "date": "2026-07-10",
+  "method": "forensics mtime+taille (git.exe bloqué OS — gotcha connu) : snapshot AVANT build vs APRÈS build",
+  "protectedPerimeters": {
+    "directories": [
+      "src/lib/clonestore/technologies/t1",
+      "src/lib/clonestore/product-technologies/t2",
+      "src/lib/clonestore/ultimate",
+      "src/lib/pierre/v1",
+      "src/lib/clonestore/pricing",
+      "src/lib/clonestore/production",
+      "src/lib/clonestore/founder-acceptance"
+    ],
+    "filesChecked": 657,
+    "filesChanged": 0
+  },
+  "existingCloneChat": {
+    "directory": "src/lib/clonechat (hors intelligence/)",
+    "filesChecked": 55,
+    "filesChanged": 0
+  },
+  "uiAndApi": {
+    "check": "fichier le plus récent de src/app/api/assistant = 2026-07-07 ; de src/app+src/components = 2026-07-09 (checkout, P15.x) — tous ANTÉRIEURS à la session C1 du 2026-07-10",
+    "conclusion": "aucune route API ni composant UI modifié par C1"
+  },
+  "additions": {
+    "directory": "src/lib/clonechat/intelligence/c1",
+    "files": 19,
+    "detail": "17 sources + 2 tests — additif pur, barrel C1 NON ré-exporté par src/lib/clonechat/index.ts (pas de cycle, pas de collision avec P9.4.x)"
+  },
+  "importDiscipline": "allowlist fermée testée (test 47) : ./ interne, ../../bug-memory (rédaction PII), pricing/country-pricing, pricing/stripe-pricing-config (type Env), production/p10-production-gate, production/p15-1-payment-mode, production/p15-1-prelaunch, founder-acceptance/pierre-commercial-truth-matrix, technologies/t1, product-technologies/t2 — le tout en LECTURE SEULE",
+  "safetyInvariants": {
+    "PRODUCTION_AUTHORIZED": false,
+    "paymentModeEmptyEnv": "disabled",
+    "paymentModeForgedLiveKeys": "disabled (plancher P10)",
+    "liveProvidersCalled": 0,
+    "secretsPrinted": 0,
+    "deploy": "none"
+  }
+}

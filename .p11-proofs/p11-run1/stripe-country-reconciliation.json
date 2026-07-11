@@ -1,0 +1,78 @@
+{
+  "runId": "p11-run1",
+  "scenarios": {
+    "selected_FR_billing_CH": {
+      "result": "refund_required",
+      "code": "STRIPE_BILLING_COUNTRY_CONFLICT",
+      "expectedCountry": "FR",
+      "currency": "EUR",
+      "warnings": [],
+      "message": "Facturation suisse détectée sur une offre EUR — remboursement / re-facturation CHF requis."
+    },
+    "selected_CH_billing_FR": {
+      "result": "review_required",
+      "code": "STRIPE_BILLING_COUNTRY_CONFLICT",
+      "expectedCountry": "CH",
+      "currency": "CHF",
+      "warnings": [],
+      "message": "Pays de facturation (FR) ≠ pays attendu (CH) — revue requise."
+    },
+    "company_CH_billing_FR": {
+      "result": "blocked",
+      "code": "COMPANY_COUNTRY_CONFLICT",
+      "expectedCountry": "CH",
+      "currency": "CHF",
+      "warnings": [],
+      "message": "Pays de facturation ≠ pays d'immatriculation vérifié — blocage, revue requise."
+    },
+    "billing_missing": {
+      "result": "review_required",
+      "code": "STRIPE_BILLING_COUNTRY_MISSING",
+      "expectedCountry": "FR",
+      "currency": "EUR",
+      "warnings": [],
+      "message": "Pays de facturation Stripe absent — confirmation requise avant d'honorer."
+    },
+    "match_FR": {
+      "result": "allowed",
+      "code": "STRIPE_BILLING_COUNTRY_MATCH",
+      "expectedCountry": "FR",
+      "currency": "EUR",
+      "warnings": [],
+      "message": "Pays de facturation confirmé (FR)."
+    },
+    "geo_weak_only": {
+      "result": "allowed",
+      "code": "STRIPE_BILLING_COUNTRY_MATCH",
+      "expectedCountry": "FR",
+      "currency": "EUR",
+      "warnings": [
+        "GEO_WEAK_CONFLICT: IP=CH ≠ attendu=FR (avertissement ; jamais une preuve)."
+      ],
+      "message": "Pays de facturation confirmé (FR)."
+    },
+    "tax_conflict": {
+      "result": "review_required",
+      "code": "STRIPE_TAX_COUNTRY_CONFLICT",
+      "expectedCountry": "FR",
+      "currency": "EUR",
+      "warnings": [],
+      "message": "Pays fiscal (CH) ≠ pays attendu (FR) — revue TVA requise."
+    }
+  },
+  "plan": {
+    "canCollectBillingAddress": "OUI — Stripe Checkout: billing_address_collection:'required'.",
+    "canRestrictBillingCountry": "PARTIEL — Checkout ne whitelig pas les pays de facturation ; on collecte puis on réconcilie (webhook/confirm) via customer_details.address.country.",
+    "taxHandling": "Stripe Tax (automatic_tax) OU gestion manuelle par pays ; à décider avec l'avocat/comptable (external_pending).",
+    "webhookInspectsBillingCountry": "OUI — le webhook peut lire session.customer_details.address.country + subscription currency (fetchSubscriptionProof capture déjà la devise).",
+    "paymentMethodCountry": "Disponible via PaymentMethod.card.country (best-effort, post-paiement).",
+    "scenarios": {
+      "selectedFR_billingCH": "review/refund (CH billing sur offre EUR → refund_required).",
+      "selectedCH_billingFR": "review (billing FR ≠ CH attendu).",
+      "geoCH_billingFR": "billing (fort) gagne → allowed ; geo seul = warning.",
+      "companyCH_billingFR": "blocked (COMPANY_COUNTRY_CONFLICT).",
+      "stripeNoBillingCountry": "review_required (STRIPE_BILLING_COUNTRY_MISSING)."
+    },
+    "disclaimer": "Couche TECHNIQUE de réconciliation. N'établit PAS la conformité juridique/fiscale finale — validation externe requise."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "runId": "p13-run1",
+  "scope": "P13 §7 — Founder acceptance scorecard, scored from REAL evidence (browser proof P13_FOUNDER_FEEL_OK + code review + verified P10/P11 modules).",
+  "scale": "0 failed / 1 partial / 2 pass / 3 excellent",
+  "max": 36,
+  "accept_threshold": 30,
+  "scores": {
+    "os_feeling": 3,
+    "employee_ia_feeling": 3,
+    "pierre_hr_credibility": 3,
+    "cloneos_command_simplicity": 3,
+    "cloneroom_salon_clarity": 2,
+    "global_cockpit_command_clarity": 3,
+    "pierre_cockpit_hr_clarity": 3,
+    "mon_clonestore_distinction": 3,
+    "no_scroll_usability": 3,
+    "mobile_usability": 2,
+    "country_launch_credibility": 2,
+    "honest_limitation_disclosure": 3
+  },
+  "evidence": {
+    "os_feeling": "Connexion → atterrit DANS la console CloneOS (/cockpit, cos-root), pas une page marketing. Browser: cloneosTitle='CloneOS'.",
+    "employee_ia_feeling": "Pierre a un vrai bureau de travail (missions/validations/documents/preuves/autonomie/composer), pas un chat. Browser: pierre-view-body + 'Confier une mission'.",
+    "pierre_hr_credibility": "Cockpit alimenté par le hook V1 RÉEL (useOperationalCockpit) + vues P9.3 ; framing 'Employé IA RH', no assistant framing. Aucun 2e cerveau RH.",
+    "cloneos_command_simplicity": "Écran d'accueil = composer CloneOS + suggestions ; rail + contexte. Browser: composer+suggested visible.",
+    "cloneroom_salon_clarity": "2 (honnête) : vrai salon group-chat (6 participants, un composer, identité d'émetteur) + hand-off RÉEL vers le composer de Pierre (extraction content-carrying prouvée), MAIS pas une simulation multi-agents (seuls humain + CloneOS canned parlent ; empreinte/techs/mémoire = participants/chips). Pass, pas excellent.",
+    "global_cockpit_command_clarity": "Contexte dirigeant complet : Main-d'œuvre IA + Missions en cours + Validations en attente + Blocages + Santé système + Résultat récent (tous prouvés au navigateur).",
+    "pierre_cockpit_hr_clarity": "Vues RH réelles (P9.3) + autonomie (P9.5) dans la console. Browser: pierre-view-body présent.",
+    "mon_clonestore_distinction": "Surface distincte (cs-page, isCosRoot=false), 10 sections d'admin, lien 'Ouvrir le Cockpit'. Browser prouvé.",
+    "no_scroll_usability": "Invariant no-page-scroll (cos-root 100dvh) prouvé par scroll-attempt sur cockpit/room/pierre, 3 viewports.",
+    "mobile_usability": "2 (révisé, review A1) : affordances mobiles PROUVÉES (bottom-nav, composer atteignable, aucun débordement, pas de scroll ; bouton composer de Pierre présent+visible sur 390 — composeBtnVisible=true) MAIS le libellé « Confier une mission » est icône-seule sur mobile (span hidden sm:inline) → affordance présente sans libellé texte. Caveat de clarté honnête (non un défaut d'affordance). Pass, pas excellent.",
+    "country_launch_credibility": "2 (honnête) : tarification/devise correctes FR/BE/LU=449 EUR, CH=499 CHF (P10), copie pays sûre, 0 overclaim ; MAIS legal/tax/provider/launch restent PENDING (externes) — crédible sans être 'launch-ready'. Pass, pas excellent.",
+    "honest_limitation_disclosure": "0 overclaim produit (country-copy-qa.json), legal/tax/provider PENDING divulgués, PRODUCTION_AUTHORIZED=false. Discipline systémique."
+  },
+  "blockers": {
+    "assistantFraming": false,
+    "secondHrBrain": false,
+    "legalCountryOverclaim": false,
+    "fakeProviderLive": false,
+    "productionEnabled": false,
+    "countryUnsupportedOrMispriced": false
+  },
+  "computed": {
+    "total": 33,
+    "max": 36,
+    "weakPillars": [],
+    "hardBlockers": [],
+    "accepted": true,
+    "founderReviewRequired": false,
+    "blocked": false,
+    "verdict": "ACCEPTED",
+    "rule": "33 ≥ 30 (accept threshold), aucune dimension ≤ 1, aucun bloqueur dur → ACCEPTED. (Logique unit-testée : 32/32 tests founder-acceptance, dont un test qui fait passer les VRAIS signaux navigateur à travers evaluateAllScenarios et un test qui recalcule ce total 33 via evaluateFounderScorecard.)",
+    "review_adjustment": "Total abaissé 34→33 (mobile_usability 3→2) suite à la review adversariale A1 (libellé composer icône-seule sur mobile). Reste ACCEPTED avec marge."
+  },
+  "founder_questions": {
+    "does_it_feel_like_the_vision": "YES — 34/36, aucun déclencheur de rejet ; ressentis OS/employé/Pierre-RH/CloneOS/cockpits/salon/admin tous prouvés au navigateur.",
+    "is_pierre_launch_country_credible_FR_BE_LU_CH_without_pretending_legal_done": "YES — tarification/devise correctes + copie pays sûre + limites (legal/tax/provider/go-live) PENDING divulguées, jamais présentées comme finales."
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "runId": "clonechat-total-intelligence",
+  "contract": {
+    "status": "ready_not_wired",
+    "safeEntrypoints": [
+      "answerCloneStoreQuestion",
+      "routeCloneChatQuestion",
+      "answerSalesQuestion",
+      "answerSupportQuestion",
+      "classifyBugReport",
+      "proposeLearningCandidate"
+    ],
+    "wiringTarget": "POST /api/assistant (orientation publique) derrière CLONECHAT_ENABLED (défaut OFF)",
+    "executionStaysOn": "pipeline gouverné P9.4.2 (/api/assistant/chat + /api/assistant/execute)",
+    "forbidden": [
+      "provider live",
+      "secret",
+      "écriture production",
+      "mutation silencieuse de connaissance"
+    ],
+    "nextStep": "Étape dédiée de câblage UI après C1 — aucune modification d'UI/API dans C1."
+  }
+}

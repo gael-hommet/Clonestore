@@ -1,0 +1,22 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "verdict": "C1.2 — CLONECHAT REVEALED / REAL ASSISTANT SURFACE ACTIVE",
+  "gates": {
+    "c1_2_suite": "21/21",
+    "tsc": "0",
+    "nonRegression": "7414/7414",
+    "activeBuild": "green",
+    "browserDesktop": "real workspace, no placeholder, message=>governed response, refresh persists",
+    "browserMobile": "real workspace, composer visible, no overflow",
+    "apiAnonymous": "401 AUTH_REQUIRED (not 503) — active-by-default + auth-gated",
+    "emergencyOff": "fail-closed (test 17 + route wiring)"
+  },
+  "requiredDeploymentEnv": null,
+  "honestlyBlockedOrExternal": [
+    "Deep authenticated in-browser OpenAI messaging not driven (governed fallback proven instead; C1.1 already verified auth path)",
+    "Dedicated emergency-OFF runtime server not spun up (test+wiring proven)",
+    "Production/payment/live providers unchanged (OFF)",
+    "readyForPublicFlagActivation unchanged/false (durable upload substrate still missing)"
+  ]
+}

@@ -108,3 +108,10 @@ p87-validation-results.txt
 tmp-clonestory-*.mjs
 .vercel-prod-pull.env
 .env.p87-webhooks.local
+
+# Cabinets Fondateurs — artefacts locaux de recette (jamais committés)
+/partenaires-*.jpeg
+.pp-*.log
+.ppbuild.log
+.next-ppbuild/
+.partner-proofs/

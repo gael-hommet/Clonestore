@@ -1,0 +1,556 @@
+{
+  "runId": "clonechat-total-intelligence",
+  "pages": [
+    {
+      "id": "home",
+      "route": "/",
+      "title": "Accueil CloneStore",
+      "description": "Page commerciale publique : le système, les employés IA, les technologies, le cockpit, la confiance.",
+      "audience": [
+        "visitor",
+        "prospect"
+      ],
+      "purpose": "Premier contact — comprendre CloneStore et découvrir Pierre.",
+      "cta": "Découvrir Pierre",
+      "relatedPages": [
+        "/agents/pierre",
+        "/demo",
+        "/comprendre-clonestore"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": "Porte les cibles du tour guidé (P9.1)."
+    },
+    {
+      "id": "comprendre",
+      "route": "/comprendre-clonestore",
+      "title": "Comprendre CloneStore",
+      "description": "Page de référence complète pour dirigeants : employé IA, missions, Empreinte Entreprise, gouvernance, prix, limites, vision.",
+      "audience": [
+        "visitor",
+        "prospect"
+      ],
+      "purpose": "LA page qui explique le mieux CloneStore en profondeur.",
+      "cta": "Voir la démo",
+      "relatedPages": [
+        "/demo",
+        "/agents/pierre"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": "Porte aussi le prix (449 € HT/mois)."
+    },
+    {
+      "id": "boutique",
+      "route": "/agents",
+      "title": "Boutique — Employés IA",
+      "description": "Boutique publique des employés IA : Pierre disponible, futurs départements en roadmap.",
+      "audience": [
+        "visitor",
+        "prospect"
+      ],
+      "purpose": "Parcourir les employés IA disponibles et à venir.",
+      "cta": "Voir Pierre",
+      "relatedPages": [
+        "/agents/pierre"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "pierre",
+      "route": "/agents/pierre",
+      "title": "Pierre — Employé IA RH opérationnel",
+      "description": "Page produit publique de Pierre : missions RH, documents, e-mails/relances préparés, traçabilité, validation humaine.",
+      "audience": [
+        "visitor",
+        "prospect"
+      ],
+      "purpose": "Le meilleur lien produit à donner à un prospect.",
+      "cta": "Réserver Pierre",
+      "relatedPages": [
+        "/demo/pierre",
+        "/reserver/pierre"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "demo",
+      "route": "/demo",
+      "title": "Démo CloneStore",
+      "description": "Présentation commerciale immersive (E2.1–E2.10) avec repli sans JavaScript.",
+      "audience": [
+        "visitor",
+        "prospect"
+      ],
+      "purpose": "Voir CloneStore en action sans compte.",
+      "cta": "Lancer la démo",
+      "relatedPages": [
+        "/demo/pierre",
+        "/reserver/pierre"
+      ],
+      "status": "demo",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "demo-pierre",
+      "route": "/demo/pierre",
+      "title": "Démo Pierre",
+      "description": "Démo publique guidée centrée sur Pierre.",
+      "audience": [
+        "visitor",
+        "prospect"
+      ],
+      "purpose": "Voir Pierre en action.",
+      "cta": "Réserver Pierre",
+      "relatedPages": [
+        "/demo",
+        "/agents/pierre"
+      ],
+      "status": "demo",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "reserver-pierre",
+      "route": "/reserver/pierre",
+      "title": "Réserver Pierre",
+      "description": "Réservation accès fondateur : aucun paiement aujourd'hui, prix fondateur 449 € HT/mois conservé tant que l'abonnement reste actif.",
+      "audience": [
+        "visitor",
+        "prospect"
+      ],
+      "purpose": "Réserver Pierre sans payer (accès fondateur).",
+      "cta": "Réserver maintenant",
+      "relatedPages": [
+        "/agents/pierre",
+        "/demo"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": "Soumise à la fenêtre fondateur (phase before_launch/window/closed)."
+    },
+    {
+      "id": "diagnostic-rh",
+      "route": "/diagnostic-rh",
+      "title": "Diagnostic RH",
+      "description": "Diagnostic RH progressif gratuit, sans compte ni e-mail, sans donnée sensible.",
+      "audience": [
+        "visitor",
+        "prospect"
+      ],
+      "purpose": "Qualifier la douleur RH d'un prospect.",
+      "cta": "Faire le diagnostic",
+      "relatedPages": [
+        "/agents/pierre",
+        "/demo"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "questions",
+      "route": "/questions",
+      "title": "Support / FAQ",
+      "description": "Hub support public : choisir un employé IA, comprendre Pierre, paiement & accès, cockpit & missions, sécurité & contrôle, support général.",
+      "audience": [
+        "visitor",
+        "prospect",
+        "client"
+      ],
+      "purpose": "LA page support/contact du site.",
+      "cta": "Poser une question",
+      "relatedPages": [
+        "/comprendre-clonestore"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": "Il n'existe pas de route /contact ni /support — le support passe par /questions."
+    },
+    {
+      "id": "assistant",
+      "route": "/assistant",
+      "title": "CloneChat",
+      "description": "Porte d'entrée conversationnelle : orientation publique + mode opérationnel authentifié (pipeline gouverné).",
+      "audience": [
+        "visitor",
+        "prospect",
+        "client"
+      ],
+      "purpose": "Poser ses questions à CloneChat.",
+      "cta": "Ouvrir CloneChat",
+      "relatedPages": [
+        "/questions"
+      ],
+      "status": "gated",
+      "canLinkDirectly": false,
+      "notes": "Gated serveur par CLONECHAT_ENABLED (défaut OFF → écran verrouillé/503)."
+    },
+    {
+      "id": "paiement",
+      "route": "/paiement",
+      "title": "Paiement (page d'information)",
+      "description": "Page statique d'explication paiement/prix. Le paiement en ligne n'est pas encore ouvert.",
+      "audience": [
+        "visitor",
+        "prospect"
+      ],
+      "purpose": "Comprendre le fonctionnement du paiement.",
+      "cta": "Réserver Pierre (sans paiement)",
+      "relatedPages": [
+        "/reserver/pierre",
+        "/legal/cgv"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": "/paiement/success et /paiement/cancel sont des pages de retour checkout."
+    },
+    {
+      "id": "login",
+      "route": "/login",
+      "title": "Connexion",
+      "description": "Entrée canonique de l'espace client (auth Supabase).",
+      "audience": [
+        "client"
+      ],
+      "purpose": "Se connecter à son espace.",
+      "cta": "Se connecter",
+      "relatedPages": [
+        "/signup",
+        "/mon-clonestore"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "signup",
+      "route": "/signup",
+      "title": "Créer un compte",
+      "description": "Création de compte avec présentation des fonctionnalités.",
+      "audience": [
+        "visitor",
+        "prospect"
+      ],
+      "purpose": "Créer son compte CloneStore.",
+      "cta": "Créer un compte",
+      "relatedPages": [
+        "/login"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "mon-clonestore",
+      "route": "/mon-clonestore",
+      "title": "Mon CloneStore",
+      "description": "Espace admin client (P12) : compte, données réelles, onboarding.",
+      "audience": [
+        "client"
+      ],
+      "purpose": "Administrer son espace client.",
+      "cta": null,
+      "relatedPages": [
+        "/cockpit"
+      ],
+      "status": "gated",
+      "canLinkDirectly": false,
+      "notes": "Session requise (middleware) — rediriger un visiteur vers /login."
+    },
+    {
+      "id": "cockpit",
+      "route": "/cockpit",
+      "title": "Cockpit global (CloneOS)",
+      "description": "Console CloneOS première de l'espace connecté (P12).",
+      "audience": [
+        "client"
+      ],
+      "purpose": "Piloter l'ensemble depuis un seul écran.",
+      "cta": null,
+      "relatedPages": [
+        "/cockpit/pierre",
+        "/cockpit/room"
+      ],
+      "status": "gated",
+      "canLinkDirectly": false,
+      "notes": null
+    },
+    {
+      "id": "cockpit-pierre",
+      "route": "/cockpit/pierre",
+      "title": "Cockpit Pierre",
+      "description": "Cockpit opérationnel de Pierre dans le shell CloneOS : missions, validations, documents, evidence, réglages, autonomie.",
+      "audience": [
+        "client"
+      ],
+      "purpose": "Suivre et valider le travail de Pierre.",
+      "cta": null,
+      "relatedPages": [
+        "/cockpit",
+        "/cockpit/pierre/missions",
+        "/cockpit/pierre/validations"
+      ],
+      "status": "gated",
+      "canLinkDirectly": false,
+      "notes": "Sous-vues : /missions, /validations, /documents, /evidence, /settings."
+    },
+    {
+      "id": "cockpit-room",
+      "route": "/cockpit/room",
+      "title": "CloneRoom",
+      "description": "Salle de coordination humains + employés IA (P12) — extraction d'actions vers le vrai composeur de missions.",
+      "audience": [
+        "client"
+      ],
+      "purpose": "Collaborer autour des missions.",
+      "cta": null,
+      "relatedPages": [
+        "/cockpit"
+      ],
+      "status": "gated",
+      "canLinkDirectly": false,
+      "notes": "CloneRoom n'a PAS de page publique — uniquement l'espace connecté."
+    },
+    {
+      "id": "legal-cgu",
+      "route": "/legal/cgu",
+      "title": "CGU",
+      "description": "Conditions générales d'utilisation (limites de l'IA, responsabilité humaine, données RH sensibles, usages interdits).",
+      "audience": [
+        "visitor",
+        "prospect",
+        "client"
+      ],
+      "purpose": "Cadre d'utilisation du service.",
+      "cta": null,
+      "relatedPages": [
+        "/legal/cgv",
+        "/legal/confidentialite"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "legal-cgv",
+      "route": "/legal/cgv",
+      "title": "CGV",
+      "description": "Conditions générales de vente : abonnement Pierre 449 € / mois, facturation, résiliation, périmètre inclus/exclu.",
+      "audience": [
+        "visitor",
+        "prospect",
+        "client"
+      ],
+      "purpose": "Cadre commercial de l'abonnement.",
+      "cta": null,
+      "relatedPages": [
+        "/legal/cgu"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "legal-confidentialite",
+      "route": "/legal/confidentialite",
+      "title": "Politique de confidentialité",
+      "description": "Politique de confidentialité (slug français — il n'y a pas de /privacy).",
+      "audience": [
+        "visitor",
+        "prospect",
+        "client"
+      ],
+      "purpose": "Protection des données personnelles.",
+      "cta": null,
+      "relatedPages": [
+        "/legal/dpa"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "legal-dpa",
+      "route": "/legal/dpa",
+      "title": "DPA",
+      "description": "Data Processing Agreement.",
+      "audience": [
+        "client",
+        "prospect"
+      ],
+      "purpose": "Accord de traitement des données.",
+      "cta": null,
+      "relatedPages": [
+        "/legal/confidentialite"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "legal-mentions",
+      "route": "/legal/mentions",
+      "title": "Mentions légales",
+      "description": "Mentions légales du site (slug /legal/mentions — il n'y a pas de /mentions-legales).",
+      "audience": [
+        "visitor",
+        "prospect",
+        "client"
+      ],
+      "purpose": "Informations légales de l'éditeur.",
+      "cta": null,
+      "relatedPages": [
+        "/legal/cgu"
+      ],
+      "status": "public",
+      "canLinkDirectly": true,
+      "notes": null
+    },
+    {
+      "id": "agents-pierre-use",
+      "route": "/agents/pierre/use",
+      "title": "Cockpit Pierre (héritage P9.3)",
+      "description": "Cockpit client historique de Pierre (données V1 réelles, 6 vues).",
+      "audience": [
+        "client"
+      ],
+      "purpose": "Surface héritage — préférer /cockpit/pierre.",
+      "cta": null,
+      "relatedPages": [
+        "/cockpit/pierre"
+      ],
+      "status": "gated",
+      "canLinkDirectly": false,
+      "notes": null
+    },
+    {
+      "id": "profile",
+      "route": "/profile",
+      "title": "Espace client (héritage P9.2)",
+      "description": "Vue générale héritage de l'espace client (registry-driven).",
+      "audience": [
+        "client"
+      ],
+      "purpose": "Surface héritage — coexiste avec /mon-clonestore.",
+      "cta": null,
+      "relatedPages": [
+        "/mon-clonestore"
+      ],
+      "status": "gated",
+      "canLinkDirectly": false,
+      "notes": null
+    },
+    {
+      "id": "founding-partners",
+      "route": "/founding-partners",
+      "title": "Cercle des Partenaires Fondateurs (CloneStory)",
+      "description": "Univers institutionnel séparé : registre historique officiel, contribution vérifiée.",
+      "audience": [
+        "visitor",
+        "prospect"
+      ],
+      "purpose": "Univers CloneStory (flag-gated fail-closed).",
+      "cta": null,
+      "relatedPages": [],
+      "status": "gated",
+      "canLinkDirectly": false,
+      "notes": "Univers séparé du produit CloneStore."
+    },
+    {
+      "id": "founder-command-center",
+      "route": "/founder",
+      "title": "Command Center (fondateur)",
+      "description": "Command center interne fondateur (owner-gate + allowlist).",
+      "audience": [
+        "founder",
+        "internal"
+      ],
+      "purpose": "Pilotage interne.",
+      "cta": null,
+      "relatedPages": [],
+      "status": "internal",
+      "canLinkDirectly": false,
+      "notes": null
+    }
+  ],
+  "unavailableRoutes": [
+    {
+      "route": "/clonecall",
+      "planned": true,
+      "closestExistingRoute": "/demo",
+      "note": "CloneCall n'a pas encore de page publique. La technologie existe en local sûr (aucune téléphonie) ; une page pourra venir plus tard."
+    },
+    {
+      "route": "/clonevoice",
+      "planned": true,
+      "closestExistingRoute": "/comprendre-clonestore",
+      "note": "CloneVoice n'a pas de page publique. Architecture voix prête, aucune voix opérationnelle aujourd'hui."
+    },
+    {
+      "route": "/cloneroom",
+      "planned": false,
+      "closestExistingRoute": "/cockpit/room",
+      "note": "CloneRoom existe uniquement dans l'espace connecté (/cockpit/room), pas de page publique."
+    },
+    {
+      "route": "/pricing",
+      "planned": false,
+      "closestExistingRoute": "/comprendre-clonestore",
+      "note": "Pas de page tarifs dédiée : le prix est porté par /comprendre-clonestore, /reserver/pierre, /paiement et /legal/cgv."
+    },
+    {
+      "route": "/tarifs",
+      "planned": false,
+      "closestExistingRoute": "/comprendre-clonestore",
+      "note": "Pas de page /tarifs — voir /comprendre-clonestore."
+    },
+    {
+      "route": "/contact",
+      "planned": false,
+      "closestExistingRoute": "/questions",
+      "note": "Pas de page /contact — le support et les questions passent par /questions."
+    },
+    {
+      "route": "/support",
+      "planned": false,
+      "closestExistingRoute": "/questions",
+      "note": "Pas de route /support — le hub support est /questions."
+    },
+    {
+      "route": "/cgu",
+      "planned": false,
+      "closestExistingRoute": "/legal/cgu",
+      "note": "Les CGU vivent sous /legal/cgu."
+    },
+    {
+      "route": "/cgv",
+      "planned": false,
+      "closestExistingRoute": "/legal/cgv",
+      "note": "Les CGV vivent sous /legal/cgv."
+    },
+    {
+      "route": "/mentions-legales",
+      "planned": false,
+      "closestExistingRoute": "/legal/mentions",
+      "note": "Les mentions légales vivent sous /legal/mentions."
+    },
+    {
+      "route": "/privacy",
+      "planned": false,
+      "closestExistingRoute": "/legal/confidentialite",
+      "note": "La politique de confidentialité vit sous /legal/confidentialite."
+    },
+    {
+      "route": "/dpa",
+      "planned": false,
+      "closestExistingRoute": "/legal/dpa",
+      "note": "Le DPA vit sous /legal/dpa."
+    }
+  ]
+}

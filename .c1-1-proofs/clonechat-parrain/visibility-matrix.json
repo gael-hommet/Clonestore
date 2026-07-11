@@ -1,0 +1,20 @@
+{
+  "runId": "clonechat-parrain",
+  "matrix": {
+    "secret": {
+      "public": false,
+      "client": false,
+      "founder": false
+    },
+    "tenantA": {
+      "public": false,
+      "clientA": true,
+      "clientB": false
+    },
+    "code": {
+      "public": false,
+      "client": false,
+      "founder": true
+    }
+  }
+}

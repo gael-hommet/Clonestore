@@ -1,0 +1,34 @@
+{
+  "runId": "p96-run1",
+  "readiness": {
+    "companyResolved": true,
+    "currentMode": "validation",
+    "journeyLevelVisible": true,
+    "journeyItemsCount": 6,
+    "companyItemState": "done",
+    "journeySummary": "Entreprise prête. Confiez une première mission à Pierre."
+  },
+  "mission": {
+    "missionExists": true,
+    "missionRef": "present",
+    "missionStatus": "awaiting_validation",
+    "autonomyModeOnRecord": "not_exposed"
+  },
+  "cockpit": {
+    "missionTitleOnRecord": "Plan cognitif: 3 tâche(s)",
+    "missionVisibleInDom": true,
+    "missionInServerList": true,
+    "missionStatusShown": true,
+    "noAssistantFraming": true
+  },
+  "reload": {
+    "missionCountAfterReload": 1,
+    "missionStillPresent": true
+  },
+  "no_double": {
+    "duplicateStatus": "duplicate",
+    "isDuplicate": true,
+    "totalMissionsInCompany": 1,
+    "exactlyOne": true
+  }
+}

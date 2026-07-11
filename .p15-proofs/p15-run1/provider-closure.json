@@ -1,0 +1,26 @@
+{
+  "runId": "p15-run1",
+  "status": "MISSING",
+  "liveVerified": false,
+  "fallbackApproved": false,
+  "sandboxDetected": false,
+  "apiKeyLiveShaped": false,
+  "providerProofArtifactPresent": false,
+  "publicPaidLaunchAllowed": false,
+  "liveSignatureClaimAllowed": false,
+  "blockers": [
+    "PROVIDER_SIGNATURE_NOT_LIVE — la signature (Yousign) n'est pas en mode LIVE / non attestée / bloquée.",
+    "Signature bloquée : P8.7.4 — Yousign sandbox org-membership blocker (FINAL PRODUCTION UNBLOCK: NOT AUTHORIZED)",
+    "CLONESTORE_SIGNATURE_API_KEY absent.",
+    "CLONESTORE_SIGNATURE_WEBHOOK_SECRET absent — webhook signature non vérifié.",
+    "Attestation owner de signature LIVE absente (CLONESTORE_SIGNATURE_LIVE_VERIFIED) — P8.7.4 à lever + vérif live.",
+    "Signature ni LIVE ni FALLBACK approuvé — lancement public payant bloqué côté signature."
+  ],
+  "warnings": [
+    "Chemin manuel gouverné disponible — NE constitue PAS une readiness d'intégration live.",
+    "0 provider live à l'échelle de la certification (cf. P8.13/P8.7.4)."
+  ],
+  "fallbackDefinition": "Repli officiel : Pierre PRÉPARE les documents RH ; l'humain les exporte/télécharge ; la signature se fait manuellement ou via un outil externe HORS CloneStore. AUCUNE signature électronique live dans le produit ; AUCUNE revendication « Yousign live ».",
+  "copyRequirement": "Aucune revendication de signature (ni live ni préparée-signable) tant que LIVE_VERIFIED ou FALLBACK_APPROVED n'est pas atteint.",
+  "note": "La readiness provider n'est jamais true depuis un bool nu : LIVE_VERIFIED dérive de la readiness P11 (attestation owner CLONESTORE_SIGNATURE_LIVE_VERIFIED + non-sandbox + clés + webhook). Yousign P8.7.4 reste OPEN par défaut."
+}

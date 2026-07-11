@@ -1,0 +1,36 @@
+{
+  "runId": "clonechat-parrain",
+  "FR": {
+    "status": "ok",
+    "pricing": {
+      "country": "FR",
+      "group": "EUR_LAUNCH",
+      "currency": "EUR",
+      "amount": 449,
+      "amountMinor": 44900,
+      "interval": "month",
+      "display": "449 € / mois",
+      "stripePriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY"
+    }
+  },
+  "CH": {
+    "status": "ok",
+    "pricing": {
+      "country": "CH",
+      "group": "CHF_LAUNCH",
+      "currency": "CHF",
+      "amount": 499,
+      "amountMinor": 49900,
+      "interval": "month",
+      "display": "499 CHF / mois",
+      "stripePriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY"
+    }
+  },
+  "US": {
+    "status": "unsupported",
+    "country": "US"
+  },
+  "unknown": {
+    "status": "country_required"
+  }
+}

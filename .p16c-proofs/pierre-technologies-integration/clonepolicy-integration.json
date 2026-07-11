@@ -1,0 +1,19 @@
+{
+  "artifactKind": "clonepolicy_decision",
+  "applicableRuleIds": [],
+  "requiresValidation": true,
+  "autonomyCap": "execute_with_validation",
+  "allowedChannels": [
+    "internal",
+    "cockpit"
+  ],
+  "timeWindowOk": true,
+  "escalateTo": null,
+  "decision": "require_validation",
+  "policySource": "company_rules_local",
+  "reasons": [
+    "Canal externe « external_email » → validation humaine obligatoire (non désactivable)."
+  ],
+  "executed": false,
+  "replacesCloneGuard": false
+}

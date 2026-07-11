@@ -9,13 +9,17 @@
 
 import type { ProposalStore } from "../durable/proposal-store";
 import type { CloneChatActionKind } from "../types";
-import { buildV1Ctx, resolveCancellableMissionV1, resolvePendingValidationV1 } from "./v1-loopback";
+import { buildV1Ctx, resolveCancellableMissionV1, resolvePendingValidationV1, readCompanyAutonomyV1 } from "./v1-loopback";
+import { productModeForEngine } from "@/lib/clonestore/pierre-autonomy/model";
 
 export interface EffectfulProposal {
   readonly id: string;
   readonly kind: CloneChatActionKind;
   readonly label: string;
   readonly requiresConfirmation: true;
+  /** P9.5 — pour une création de mission : mode d'autonomie (produit) sous lequel Pierre opérera,
+   *  RÉSOLU côté serveur depuis le défaut d'entreprise (jamais du client). Affiché dans l'UI. */
+  readonly autonomy?: { readonly productModeId: string; readonly label: string; readonly tagline: string; readonly engineMode: string };
 }
 
 interface ToolCall { name: string; arguments: Record<string, unknown>; }
@@ -55,11 +59,20 @@ export async function buildAndPersistProposal(args: {
 
   let payload: Record<string, unknown> | null = null;
   let label = "";
+  let autonomy: EffectfulProposal["autonomy"];
 
   if (kind === "create_mission") {
     const instruction = String(a.instruction ?? "").trim() || args.userMessage.trim();
     if (!instruction) return null;
-    payload = { instruction };
+    // P9.5 — RÉSOUT le mode d'autonomie de l'entreprise CÔTÉ SERVEUR (colonne P8 default_autonomy_mode)
+    // et le fige dans le payload : la mission sera gouvernée par ce mode moteur (decideValidation).
+    // Le client ne fournit JAMAIS ce mode (pas d'escalade forgée). Best-effort → défaut moteur 'normal'.
+    const v1 = buildV1Ctx(args.req, args.identity.companyId);
+    let engineMode = "normal";
+    try { const c = await readCompanyAutonomyV1(v1); if (c) engineMode = c.engineMode; } catch { /* défaut normal */ }
+    const pm = productModeForEngine(engineMode);
+    payload = { instruction, autonomyMode: engineMode };
+    autonomy = { productModeId: pm.id, label: pm.label, tagline: pm.tagline, engineMode };
     label = "Confier cette mission à Pierre";
   } else if (kind === "create_support_case") {
     const summary = String(a.summary ?? "").trim() || args.userMessage.trim();
@@ -83,5 +96,5 @@ export async function buildAndPersistProposal(args: {
 
   if (!payload) return null;
   const { id } = await args.proposals.create(args.identity, { conversationId: args.conversationId, actionKind: kind, payload, at: args.at });
-  return { id, kind, label, requiresConfirmation: true };
+  return { id, kind, label, requiresConfirmation: true, ...(autonomy ? { autonomy } : {}) };
 }

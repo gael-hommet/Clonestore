@@ -1,0 +1,229 @@
+{
+  "runId": "t2-product-technologies",
+  "rawRequest": {
+    "kind": "governed_mission_proposal",
+    "adnProfile": {
+      "artifactKind": "cloneadn_profile",
+      "identity": {
+        "companyName": "entreprise-sans-nom"
+      },
+      "tone": "professionnel, direct et chaleureux",
+      "formality": "vouvoiement",
+      "validationCircuitSuggestions": [
+        "Toute communication externe est validée par un humain avant envoi.",
+        "Les documents RH sont relus par le responsable avant usage."
+      ],
+      "relanceStyle": "courtoise, à J+3 puis J+7, jamais insistante",
+      "frequentFormulations": [],
+      "reusableTemplates": [],
+      "expectedBehaviours": [
+        "préparer plutôt qu'exécuter en cas de doute",
+        "respecter les circuits de validation humains",
+        "adopter le ton et la formalité de l'entreprise"
+      ],
+      "usefulContext": "Profil appliqué par les technologies produit (brief, review, call, room) — la source durable reste CloneADN existant (src/lib/clonestore/adn/**).",
+      "mutationPolicy": "proposals_only",
+      "adnMutated": false,
+      "overridesPolicy": false
+    },
+    "missionPlan": {
+      "artifactKind": "cloneos_mission_plan",
+      "intention": {
+        "raw": "Prépare une attestation puis relance le manager",
+        "normalized": "Prépare une attestation puis relance le manager",
+        "intentKind": "prepare_document"
+      },
+      "missionCandidate": {
+        "title": "Prépare une attestation",
+        "objective": "Réaliser, sous gouvernance : Prépare une attestation puis relance le manager"
+      },
+      "tasks": [
+        {
+          "taskId": "task-1",
+          "title": "Prépare une attestation",
+          "domain": "general",
+          "dependsOn": []
+        },
+        {
+          "taskId": "task-2",
+          "title": "relance le manager",
+          "domain": "general",
+          "dependsOn": [
+            "task-1"
+          ]
+        }
+      ],
+      "routing": [
+        {
+          "taskId": "task-1",
+          "domain": "general",
+          "proposedEmployeeId": "employe-rh",
+          "note": "Proposition : employé déclaré sur le domaine « general » (décision finale : gouvernance + humain)."
+        },
+        {
+          "taskId": "task-2",
+          "domain": "general",
+          "proposedEmployeeId": "employe-rh",
+          "note": "Proposition : employé déclaré sur le domaine « general » (décision finale : gouvernance + humain)."
+        }
+      ],
+      "contextHandoffPlan": [
+        {
+          "fromTaskId": "task-1",
+          "toTaskId": "task-2",
+          "context": "Résultat intermédiaire de task-1 transmis à task-2 (centralisé par CloneOS, pas de pair-à-pair)."
+        }
+      ],
+      "resultMergePlan": {
+        "strategy": "sequential_merge",
+        "order": [
+          "task-1",
+          "task-2"
+        ],
+        "finalOutput": "Livrable final unique et cohérent, fusionné par CloneOS puis relu (CloneReview) et validé par l'humain."
+      },
+      "stateTransitionProposal": {
+        "current": "draft",
+        "proposed": "awaiting_governance",
+        "allowed": [
+          "awaiting_governance",
+          "cancelled"
+        ]
+      },
+      "sensitiveHrLanguageDetected": false,
+      "executed": false,
+      "decidesHrOutcomes": false,
+      "governanceRequired": true
+    },
+    "policyDecision": {
+      "artifactKind": "clonepolicy_decision",
+      "applicableRuleIds": [],
+      "requiresValidation": false,
+      "autonomyCap": "execute_with_validation",
+      "allowedChannels": [
+        "internal",
+        "cockpit"
+      ],
+      "timeWindowOk": true,
+      "escalateTo": null,
+      "decision": "allow_prepare",
+      "policySource": "company_rules_local",
+      "reasons": [
+        "Défauts sûrs appliqués — préparation locale permise."
+      ],
+      "executed": false,
+      "replacesCloneGuard": false
+    },
+    "trustDecision": {
+      "artifactKind": "clonetrust_decision",
+      "autonomyScore": 20,
+      "autonomyLevel": "prepare_only",
+      "reason": "Confiance insuffisante ou historique vide → préparation seulement (défaut sûr).",
+      "effectivePermissions": [
+        "préparer des artefacts (aucun envoi)"
+      ],
+      "criticalAlwaysHumanOnly": true,
+      "overridesCloneGuard": false,
+      "executed": false
+    },
+    "guardDecision": {
+      "artifactKind": "cloneguard_decision",
+      "riskLevel": "normal",
+      "decision": "allow_prepare",
+      "reasons": [
+        "Aucun signal critique/sensible — préparation locale autorisée."
+      ],
+      "humanEscalation": null,
+      "explanation": "Préparation locale permise ; tout envoi/effet restera soumis à validation.",
+      "executed": false,
+      "finalLegalDecision": false
+    },
+    "review": {
+      "artifactKind": "clonereview_report",
+      "toneOk": true,
+      "issues": [],
+      "suggestions": [],
+      "revisedDraft": "Réaliser, sous gouvernance : Prépare une attestation puis relance le manager",
+      "qualityScore": 100,
+      "humanReviewNeeded": false,
+      "internalValidationDone": true,
+      "legalGuarantee": false,
+      "correctnessGuaranteed": false
+    },
+    "traceEvent": {
+      "artifactKind": "clonetrace_event",
+      "eventId": "trace-4",
+      "at": "2026-07-10T00:17:37.330Z",
+      "subject": "mission-Prépare une attestation",
+      "action": "Proposition de mission gouvernée créée",
+      "reason": "Préparation locale permise ; tout envoi/effet restera soumis à validation.",
+      "links": {
+        "missionId": null,
+        "taskId": null,
+        "artifactIds": [],
+        "validationIds": []
+      },
+      "resumePointer": {
+        "missionId": null,
+        "lastEventId": "trace-4"
+      },
+      "t1Evidence": {
+        "artifactKind": "evidence_entry",
+        "subject": "mission-Prépare une attestation",
+        "action": "Proposition de mission gouvernée créée",
+        "employeeId": "employe-preuve",
+        "companyId": "company-proof"
+      },
+      "orchestrates": false,
+      "decidesRisk": false
+    },
+    "continuumState": {
+      "artifactKind": "clonecontinuum_state",
+      "missionId": "trace-4",
+      "previousState": "active",
+      "state": "waiting_for_validation",
+      "allowedTransitions": [
+        "resumed",
+        "scheduled_followup",
+        "closed"
+      ],
+      "nextWakeupRecommendation": {
+        "afterHours": 24,
+        "reason": "Validation en attente — recommander une relance (armement humain/CloneSignals)."
+      },
+      "liveSchedulerUsed": false,
+      "cronCreated": false,
+      "executed": false
+    },
+    "signalCandidates": {
+      "artifactKind": "clonesignals_candidates",
+      "missionId": "trace-4",
+      "candidates": [
+        {
+          "signalKind": "validation_late",
+          "detail": "Validation en attente depuis 48h.",
+          "proposedAction": "remind",
+          "recommendedInHours": 4
+        }
+      ],
+      "liveSchedulerUsed": false,
+      "cronCreated": false,
+      "notificationSentLive": false
+    },
+    "gated": false,
+    "blockedByGovernance": false,
+    "executedLive": false,
+    "humanValidationRequired": true,
+    "auditEntries": 9
+  },
+  "call": {
+    "sessionKind": "needs_validation",
+    "executedLive": false
+  },
+  "room": {
+    "coordinationKind": "needs_validation",
+    "briefPresent": true,
+    "executedLive": false
+  },
+  "totalAuditEntries": 12
+}

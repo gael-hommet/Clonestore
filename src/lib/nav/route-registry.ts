@@ -177,9 +177,8 @@ export const ROUTE_REGISTRY: readonly RouteEntry[] = [
     label: "CloneChat",
     space: "clonechat",
     audience: "public",
-    status: "gated",
-    note: "Verrouillé serveur par feature flag (isCloneChatEnabled) — page intacte. L'écran public de verrouillage porte la cible du tour.",
-    futurePhase: "P9.2",
+    status: "active",
+    note: "C1.2 — RÉVÉLÉ : la surface réelle est montée par défaut (isCloneChatEnabled actif par défaut). Le drapeau ne sert plus qu'à un arrêt d'urgence explicite. La cible de tour clonechat-entry est portée par le workspace réel.",
     tourTargets: ["clonechat-entry"],
   },
 

@@ -1,0 +1,125 @@
+{
+  "runId": "p11-run1",
+  "realEnvReadiness": {
+    "ready": false,
+    "mode": "unknown",
+    "liveApiVerified": false,
+    "blockers": [
+      "STRIPE_SECRET_KEY absent.",
+      "Mode Stripe « unknown » : la production LIVE exige sk_live_ (aucune clé/prix TEST en production).",
+      "STRIPE_PRICE_PIERRE_EUR_MONTHLY (ou legacy STRIPE_PRICE_PIERRE) absent — checkout EUR bloqué (aucun repli CHF).",
+      "STRIPE_PRICE_PIERRE_CHF_MONTHLY absent — checkout CH bloqué (aucun repli EUR).",
+      "STRIPE_WEBHOOK_SECRET absent — événements de facturation non vérifiés.",
+      "STRIPE_COUNTRY_PRICING_ENABLED désactivé — tarification par pays inactive.",
+      "Vérification API Stripe LIVE NON attestée — requiert un dry-run read-only owner (prices.retrieve EUR+CHF ; aucun checkout/paiement) puis CLONESTORE_STRIPE_LIVE_VERIFIED."
+    ],
+    "warnings": [
+      "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY absent (Stripe Checkout redirige côté serveur ; à confirmer si Elements est utilisé).",
+      "URL de base publique non définie via env (dérivée de getBaseUrl())."
+    ],
+    "requiredEnv": [
+      {
+        "name": "STRIPE_SECRET_KEY",
+        "present": false,
+        "required": true
+      },
+      {
+        "name": "STRIPE_WEBHOOK_SECRET",
+        "present": false,
+        "required": true
+      },
+      {
+        "name": "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+        "present": false,
+        "required": true
+      },
+      {
+        "name": "STRIPE_PRICE_PIERRE_CHF_MONTHLY",
+        "present": false,
+        "required": true
+      },
+      {
+        "name": "STRIPE_COUNTRY_PRICING_ENABLED",
+        "present": false,
+        "required": true
+      },
+      {
+        "name": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+        "present": false,
+        "required": false
+      },
+      {
+        "name": "CLONESTORE_PUBLIC_APP_URL",
+        "present": false,
+        "required": false
+      }
+    ],
+    "eurPriceConfigured": false,
+    "chfPriceConfigured": false,
+    "webhookConfigured": false,
+    "countryPricingFlag": false,
+    "publishableKeyPresent": false,
+    "baseUrlPresent": false,
+    "expectedPriceCriteria": {
+      "EUR": {
+        "currency": "eur",
+        "unitAmount": 44900,
+        "interval": "month"
+      },
+      "CHF": {
+        "currency": "chf",
+        "unitAmount": 49900,
+        "interval": "month"
+      }
+    },
+    "note": "Aucun appel Stripe live effectué par P11 ; aucun checkout créé. verifyStripePrice() fournit la logique de vérification (unit-testée) pour un dry-run read-only autorisé par l'owner."
+  },
+  "priceVerificationLogicDemo": {
+    "eur_ok": {
+      "ok": true,
+      "issues": [],
+      "observed": {
+        "active": true,
+        "currency": "eur",
+        "unitAmount": 44900,
+        "interval": "month"
+      }
+    },
+    "eur_wrong_amount": {
+      "ok": false,
+      "issues": [
+        "montant attendu 44900, observé 39900"
+      ],
+      "observed": {
+        "active": true,
+        "currency": "eur",
+        "unitAmount": 39900,
+        "interval": "month"
+      }
+    },
+    "chf_ok": {
+      "ok": true,
+      "issues": [],
+      "observed": {
+        "active": true,
+        "currency": "chf",
+        "unitAmount": 49900,
+        "interval": "month"
+      }
+    },
+    "ch_using_eur_price": {
+      "ok": false,
+      "issues": [
+        "devise attendue chf, observée eur",
+        "montant attendu 49900, observé 44900"
+      ],
+      "observed": {
+        "active": true,
+        "currency": "eur",
+        "unitAmount": 44900,
+        "interval": "month"
+      }
+    }
+  },
+  "note": "Aucun appel Stripe live ; verifyStripePrice() unit-testée ; liveApiVerified=false."
+}

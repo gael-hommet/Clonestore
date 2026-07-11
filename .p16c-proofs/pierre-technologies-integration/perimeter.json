@@ -1,0 +1,12 @@
+{
+  "p16aUntouched": true,
+  "t1Untouched": true,
+  "t2Untouched": true,
+  "c1Untouched": true,
+  "c11Untouched": true,
+  "c12Untouched": true,
+  "productionStillOff": true,
+  "paymentStillDisabled": true,
+  "liveProvidersStillBlocked": true,
+  "gitNote": "git.exe OS-blocked in this repo — additivity proven by mtime/perimeter forensics, not by git status."
+}

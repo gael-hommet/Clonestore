@@ -1,0 +1,587 @@
+{
+  "runId": "t1-technologies-layer",
+  "contracts": [
+    {
+      "id": "document",
+      "name": "DocumentTech",
+      "purpose": "Préparer des artefacts documentaires via une abstraction locale de gabarits (aucune garantie légale).",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Document préparé localement — relecture et validation humaines obligatoires (aucune garantie légale).",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "local_safe",
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "prepared_document",
+          "title": "Attestation de travail",
+          "templateSource": "abstraction-locale-de-gabarits",
+          "outline": [
+            "en-tête",
+            "corps (données fournies, non interprétées)",
+            "bloc de validation humaine"
+          ],
+          "legalGuarantee": false,
+          "humanValidationRequired": true
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "document",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "mail",
+      "name": "MailTech",
+      "purpose": "Rédiger des brouillons d'email — l'envoi live est bloqué (provider/domaine externe non vérifié).",
+      "status": "partial",
+      "liveDependency": "provider",
+      "requiresValidation": true,
+      "safeFallback": "Brouillon préparé — l'humain envoie manuellement (aucun envoi live).",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "live_disabled",
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "drafted_email",
+          "to": "rh@example.test",
+          "subject": "Entretien",
+          "body": "Brouillon préparé — intention : convocation. À relire et envoyer manuellement.",
+          "sent": false,
+          "liveSendBlocked": true
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "mail",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "calendar",
+      "name": "CalendarTech",
+      "purpose": "Préparer des objets événement/entretien — aucune création d'événement live.",
+      "status": "partial",
+      "liveDependency": "provider",
+      "requiresValidation": true,
+      "safeFallback": "Événement préparé — l'humain copie/valide (aucune création d'événement live).",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "live_disabled",
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "prepared_calendar_event",
+          "title": "Entretien annuel",
+          "startsAt": null,
+          "endsAt": null,
+          "attendees": [
+            "Alice"
+          ],
+          "createdLive": false
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "calendar",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "signature",
+      "name": "SignatureTech",
+      "purpose": "Préparer un paquet de signature — signature manuelle/externe ; AUCUNE revendication de signature live (Yousign bloqué P8.7.4).",
+      "status": "partial",
+      "liveDependency": "provider",
+      "requiresValidation": true,
+      "safeFallback": "Document préparé — signature manuelle/externe (aucune revendication de signature live).",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "live_disabled",
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "prepared_signature_package",
+          "documentTitle": "Contrat",
+          "signers": [
+            "Alice"
+          ],
+          "liveSignature": false,
+          "provider": "none",
+          "instructions": "Circuit de signature manuel/externe : l'humain fait signer le document préparé."
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "signature",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "voice",
+      "name": "VoiceTech / CloneVoice",
+      "purpose": "Architecture vocale (roadmap) — aucun provider vocal ; l'entrée texte reste la source de vérité.",
+      "status": "architecture_ready",
+      "liveDependency": "provider",
+      "requiresValidation": true,
+      "safeFallback": "L'entrée texte reste la source de vérité (aucun provider vocal).",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "live_disabled",
+      "samplePrepare": {
+        "kind": "fallback",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "voice_fallback",
+          "textAuthoritative": true,
+          "transcript": null,
+          "instructions": "Saisir la demande en texte — l'entrée texte reste la source de vérité."
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "voice",
+        "resultKind": "fallback",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "notification",
+      "name": "NotificationTech",
+      "purpose": "Créer des artefacts de rappel cockpit — aucun provider push.",
+      "status": "partial",
+      "liveDependency": "provider",
+      "requiresValidation": true,
+      "safeFallback": "Rappels dans le cockpit uniquement (aucun push live).",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "live_disabled",
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "cockpit_reminder",
+          "message": "Relancer le dossier onboarding",
+          "channel": "cockpit",
+          "dueAt": null,
+          "pushSent": false
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "notification",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "connector",
+      "name": "ConnectorTech",
+      "purpose": "Architecture de connecteurs (SIRH/paie/Slack) — tout appel live est bloqué ; export/import manuel.",
+      "status": "architecture_ready",
+      "liveDependency": "external",
+      "requiresValidation": true,
+      "safeFallback": "Connecteur indisponible — export/import manuel.",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "live_disabled",
+      "samplePrepare": {
+        "kind": "fallback",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "connector_fallback",
+          "targetSystem": "SIRH",
+          "liveCallBlocked": true,
+          "manualAlternative": "Export/import manuel des données par l'humain."
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "connector",
+        "resultKind": "fallback",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "memory",
+      "name": "MemoryTech",
+      "purpose": "Contrat de lecture/écriture mémoire dans le périmètre société — les stores durables existants (pierre_v27, CloneADN) restent la source.",
+      "status": "verified",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Opération mémoire préparée dans le périmètre société — les stores durables existants restent la source.",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "local_safe",
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "memory_operation",
+          "op": "write",
+          "companyScope": "company-proof",
+          "key": "note",
+          "committed": false,
+          "note": "Écriture PRÉPARÉE (non commitée) — la persistance passe par les stores durables existants, sous validation."
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "memory",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "evidence",
+      "name": "EvidenceTech / TraceTech",
+      "purpose": "Créer des entrées d'audit/preuve — aucun provider externe ; chaque usage de technologie est auditable.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": false,
+      "safeFallback": "Trace d'audit locale toujours disponible (aucun provider externe requis).",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "local_safe",
+      "samplePrepare": {
+        "kind": "ok",
+        "live": false,
+        "requiresHumanValidation": false,
+        "artifact": {
+          "artifactKind": "evidence_entry",
+          "subject": "mission-1",
+          "action": "préparation documentée",
+          "employeeId": "pierre",
+          "companyId": "company-proof"
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "evidence",
+        "resultKind": "ok",
+        "structurallyValid": true,
+        "humanValidationRequired": false,
+        "machineCanAutoApprove": false,
+        "notes": []
+      }
+    },
+    {
+      "id": "workflow",
+      "name": "WorkflowTech",
+      "purpose": "Contrat de workflow GÉNÉRIQUE (étapes/orchestration) — ne décide JAMAIS d'issues RH ; pas un 2e cerveau RH.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Le moteur de missions V1 existant reste la source (aucun 2e cerveau RH).",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "local_safe",
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "workflow_plan",
+          "goal": "préparer un onboarding",
+          "steps": [
+            "collecte",
+            "documents"
+          ],
+          "decidesHrOutcomes": false,
+          "hrReasoningSource": "moteur de missions V1 existant (jamais dupliqué ici)",
+          "executed": false,
+          "sensitiveHrLanguageDetected": false
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "workflow",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "analytics",
+      "name": "AnalyticsTech / ROI",
+      "purpose": "Préparer des artefacts de rapport métriques/valeur — aucune promesse de ROI garanti.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Métriques brutes uniquement (aucune promesse de ROI garanti).",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "local_safe",
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "metrics_report",
+          "metrics": [
+            "headcount",
+            "absenteeism"
+          ],
+          "computedBy": "préparation locale — le calcul réel reste au runtime existant (analytics.compute, RLS)",
+          "roiGuaranteed": false,
+          "deliveredToClient": false
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "analytics",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "file",
+      "name": "FileTech",
+      "purpose": "Préparer l'ingestion de fichiers — aucune hypothèse de parsing ; revue manuelle requise.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Revue manuelle du fichier requise (aucune hypothèse de parsing).",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "local_safe",
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "file_ingestion",
+          "fileName": "scan.png",
+          "mimeType": "image/png",
+          "acceptedForPreparation": true,
+          "parsed": false,
+          "manualReviewRequired": true
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "file",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "export",
+      "name": "ExportTech",
+      "purpose": "Préparer des artefacts d'export — aucun transfert live ; téléchargement/export manuel.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Téléchargement/export manuel (aucun transfert live).",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "local_safe",
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true,
+        "artifact": {
+          "artifactKind": "export_package",
+          "subject": "dossier salarié",
+          "format": "json",
+          "liveTransferBlocked": true,
+          "transferred": false
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "export",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "permission",
+      "name": "PermissionTech",
+      "purpose": "Vérifier le périmètre acteur/société/employé — FAIL-CLOSED ; ne contourne jamais RLS/requireCompanyUser.",
+      "status": "verified",
+      "liveDependency": "none",
+      "requiresValidation": false,
+      "safeFallback": "Refus fail-closed — RLS + requireCompanyUser restent la frontière serveur.",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "local_safe",
+      "samplePrepare": {
+        "kind": "ok",
+        "live": false,
+        "requiresHumanValidation": false,
+        "artifact": {
+          "artifactKind": "permission_decision",
+          "allowed": true,
+          "reason": "Périmètre employé + société présents ; technologie enregistrée et active. (La frontière serveur RLS/requireCompanyUser reste applicable.)",
+          "failClosed": true
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "permission",
+        "resultKind": "ok",
+        "structurallyValid": true,
+        "humanValidationRequired": false,
+        "machineCanAutoApprove": false,
+        "notes": []
+      }
+    },
+    {
+      "id": "integration_bus",
+      "name": "IntegrationBus / TechnologyBus",
+      "purpose": "Coordonner la découverte/consommation des technologies par contrat — aucune logique spécifique à un employé.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": false,
+      "safeFallback": "Coordination par contrats uniquement — toute techno indisponible dégrade en fallback.",
+      "allowedInDemo": true,
+      "allowedInProduction": false,
+      "mode": "local_safe",
+      "samplePrepare": {
+        "kind": "ok",
+        "live": false,
+        "requiresHumanValidation": false,
+        "artifact": {
+          "artifactKind": "bus_summary",
+          "technologiesRegistered": 15,
+          "employeeSpecificLogic": false,
+          "note": "Le bus expose les 15 technologies par contrat ; toute techno indisponible dégrade en fallback."
+        }
+      },
+      "liveAttempt": {
+        "kind": "blocked",
+        "blockedReason": "Effet live demandé — bloqué par défaut en T1 (production OFF, aucun provider live vérifié). L'artefact peut être préparé sans effet."
+      },
+      "validationReport": {
+        "technologyId": "integration_bus",
+        "resultKind": "ok",
+        "structurallyValid": true,
+        "humanValidationRequired": false,
+        "machineCanAutoApprove": false,
+        "notes": []
+      }
+    }
+  ]
+}

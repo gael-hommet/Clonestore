@@ -1,0 +1,42 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "method": "forensics mtime (git.exe bloque OS) ; cutoff = debut session C1.2",
+  "protectedPerimeters": {
+    "checked": [
+      "T1",
+      "T2",
+      "Pierre V1",
+      "C1 base",
+      "production",
+      "pricing"
+    ],
+    "violations": 0
+  },
+  "c1_2_changeSurface": [
+    "src/lib/features/product-availability.ts",
+    "src/app/assistant/layout.tsx",
+    "src/lib/nav/route-registry.ts",
+    "src/lib/guided-tour/registry/public-discovery-tour.ts",
+    "src/components/clonechat/CloneChatWorkspace.tsx",
+    ".env.example",
+    "src/lib/clonechat/intelligence/c1-1/parrain-command-center.ts (additif: reveal-status + flag-state)",
+    "src/lib/clonechat/intelligence/c1-1/__tests__/c1-1-parrain.test.ts (assertion flag-state)",
+    "src/app/assistant/__tests__/clonechat-reveal.test.ts (nouveau)"
+  ],
+  "invariants": {
+    "PRODUCTION_AUTHORIZED": false,
+    "paymentMode": "disabled",
+    "stripeLive": "OFF",
+    "liveEmail": "OFF",
+    "liveSignature": "OFF",
+    "liveVoice": "OFF",
+    "liveTelephony": "OFF",
+    "anonymousModelAccess": "blocked (401)",
+    "deploy": "none",
+    "push": "none",
+    "commit": "none",
+    "secretsPrinted": 0
+  },
+  "gitCleanClaim": "NON revendique (git.exe OS-bloque) — methode mtime honnete (idem C1.1)"
+}

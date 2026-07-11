@@ -1,0 +1,324 @@
+{
+  "runId": "t2-product-technologies",
+  "session": {
+    "artifactKind": "clonecall_session",
+    "sessionId": "call-4",
+    "employeeCalledId": "employe-rh",
+    "objective": "préparer un onboarding",
+    "preparation": {
+      "points": [
+        "Objectif : préparer un onboarding",
+        "Rappeler le contexte de l'entreprise (profil CloneADN).",
+        "Confirmer les actions extraites avant toute exécution."
+      ]
+    },
+    "script": {
+      "opening": "Bonjour, ici votre employé IA « employe-rh ». De quoi avez-vous besoin ?",
+      "questions": [
+        "Quel est l'objectif prioritaire ?",
+        "Quelle échéance ?",
+        "Qui doit valider ?"
+      ],
+      "closing": "Je prépare tout cela et vous le soumets pour validation — rien ne part sans vous."
+    },
+    "transcript": {
+      "source": "text_fallback",
+      "sections": [
+        {
+          "title": "Transcript fourni (texte)",
+          "content": "prépare le dossier puis planifie la visite médicale"
+        }
+      ]
+    },
+    "voice": {
+      "artifactKind": "clonevoice_intent",
+      "source": "text_fallback",
+      "textAuthoritative": true,
+      "liveVoice": false,
+      "audioProcessed": false,
+      "rawTranscript": "prépare le dossier puis planifie la visite médicale",
+      "cleanedTranscript": "prépare le dossier puis planifie la visite médicale",
+      "segments": [
+        "prépare le dossier",
+        "planifie la visite médicale"
+      ],
+      "intents": [
+        {
+          "text": "prépare le dossier",
+          "intentKind": "generic_mission"
+        },
+        {
+          "text": "planifie la visite médicale",
+          "intentKind": "schedule_event"
+        }
+      ],
+      "mainIntentKind": "schedule_event",
+      "oralContext": "Transcript 51 caractères, 2 action(s) détectée(s) — l'humain confirme l'interprétation.",
+      "t1VoiceFallback": {
+        "artifactKind": "voice_fallback",
+        "textAuthoritative": true,
+        "transcript": null,
+        "instructions": "Saisir la demande en texte — l'entrée texte reste la source de vérité."
+      }
+    },
+    "extractedIntents": [
+      {
+        "text": "prépare le dossier",
+        "intentKind": "generic_mission"
+      },
+      {
+        "text": "planifie la visite médicale",
+        "intentKind": "schedule_event"
+      }
+    ],
+    "extractedActions": [
+      "Action proposée (generic_mission) : prépare le dossier",
+      "Action proposée (schedule_event) : planifie la visite médicale"
+    ],
+    "missionCandidate": {
+      "artifactKind": "cloneos_mission_plan",
+      "intention": {
+        "raw": "préparer un onboarding. prépare le dossier puis planifie la visite médicale",
+        "normalized": "préparer un onboarding. prépare le dossier puis planifie la visite médicale",
+        "intentKind": "schedule_event"
+      },
+      "missionCandidate": {
+        "title": "préparer un onboarding",
+        "objective": "Réaliser, sous gouvernance : préparer un onboarding. prépare le dossier puis planifie la visite médicale"
+      },
+      "tasks": [
+        {
+          "taskId": "task-1",
+          "title": "préparer un onboarding",
+          "domain": "hr",
+          "dependsOn": []
+        },
+        {
+          "taskId": "task-2",
+          "title": "prépare le dossier",
+          "domain": "general",
+          "dependsOn": [
+            "task-1"
+          ]
+        },
+        {
+          "taskId": "task-3",
+          "title": "planifie la visite médicale",
+          "domain": "general",
+          "dependsOn": [
+            "task-2"
+          ]
+        }
+      ],
+      "routing": [
+        {
+          "taskId": "task-1",
+          "domain": "hr",
+          "proposedEmployeeId": "employe-rh",
+          "note": "Proposition : employé déclaré sur le domaine « hr » (décision finale : gouvernance + humain)."
+        },
+        {
+          "taskId": "task-2",
+          "domain": "general",
+          "proposedEmployeeId": "employe-rh",
+          "note": "Proposition : employé déclaré sur le domaine « general » (décision finale : gouvernance + humain)."
+        },
+        {
+          "taskId": "task-3",
+          "domain": "general",
+          "proposedEmployeeId": "employe-rh",
+          "note": "Proposition : employé déclaré sur le domaine « general » (décision finale : gouvernance + humain)."
+        }
+      ],
+      "contextHandoffPlan": [
+        {
+          "fromTaskId": "task-1",
+          "toTaskId": "task-2",
+          "context": "Résultat intermédiaire de task-1 transmis à task-2 (centralisé par CloneOS, pas de pair-à-pair)."
+        },
+        {
+          "fromTaskId": "task-2",
+          "toTaskId": "task-3",
+          "context": "Résultat intermédiaire de task-2 transmis à task-3 (centralisé par CloneOS, pas de pair-à-pair)."
+        }
+      ],
+      "resultMergePlan": {
+        "strategy": "sequential_merge",
+        "order": [
+          "task-1",
+          "task-2",
+          "task-3"
+        ],
+        "finalOutput": "Livrable final unique et cohérent, fusionné par CloneOS puis relu (CloneReview) et validé par l'humain."
+      },
+      "stateTransitionProposal": {
+        "current": "draft",
+        "proposed": "awaiting_governance",
+        "allowed": [
+          "awaiting_governance",
+          "cancelled"
+        ]
+      },
+      "sensitiveHrLanguageDetected": false,
+      "executed": false,
+      "decidesHrOutcomes": false,
+      "governanceRequired": true
+    },
+    "guardDecision": {
+      "artifactKind": "cloneguard_decision",
+      "riskLevel": "normal",
+      "decision": "allow_prepare",
+      "reasons": [
+        "Aucun signal critique/sensible — préparation locale autorisée."
+      ],
+      "humanEscalation": null,
+      "explanation": "Préparation locale permise ; tout envoi/effet restera soumis à validation.",
+      "executed": false,
+      "finalLegalDecision": false
+    },
+    "policyDecision": {
+      "artifactKind": "clonepolicy_decision",
+      "applicableRuleIds": [],
+      "requiresValidation": false,
+      "autonomyCap": "execute_with_validation",
+      "allowedChannels": [
+        "internal",
+        "cockpit"
+      ],
+      "timeWindowOk": true,
+      "escalateTo": null,
+      "decision": "allow_prepare",
+      "policySource": "company_rules_local",
+      "reasons": [
+        "Défauts sûrs appliqués — préparation locale permise."
+      ],
+      "executed": false,
+      "replacesCloneGuard": false
+    },
+    "trustDecision": {
+      "artifactKind": "clonetrust_decision",
+      "autonomyScore": 20,
+      "autonomyLevel": "prepare_only",
+      "reason": "Confiance insuffisante ou historique vide → préparation seulement (défaut sûr).",
+      "effectivePermissions": [
+        "préparer des artefacts (aucun envoi)"
+      ],
+      "criticalAlwaysHumanOnly": true,
+      "overridesCloneGuard": false,
+      "executed": false
+    },
+    "traceEvent": {
+      "artifactKind": "clonetrace_event",
+      "eventId": "trace-10",
+      "at": "2026-07-10T00:17:37.340Z",
+      "subject": "call-4",
+      "action": "Session d'appel locale avec employe-rh",
+      "reason": "préparer un onboarding",
+      "links": {
+        "missionId": "call-4",
+        "taskId": null,
+        "artifactIds": [],
+        "validationIds": []
+      },
+      "resumePointer": {
+        "missionId": "call-4",
+        "lastEventId": "trace-10"
+      },
+      "t1Evidence": {
+        "artifactKind": "evidence_entry",
+        "subject": "call-4",
+        "action": "Session d'appel locale avec employe-rh",
+        "employeeId": "employe-preuve",
+        "companyId": "company-proof"
+      },
+      "orchestrates": false,
+      "decidesRisk": false
+    },
+    "continuumState": {
+      "artifactKind": "clonecontinuum_state",
+      "missionId": "call-4",
+      "previousState": "active",
+      "state": "waiting_for_validation",
+      "allowedTransitions": [
+        "resumed",
+        "scheduled_followup",
+        "closed"
+      ],
+      "nextWakeupRecommendation": {
+        "afterHours": 24,
+        "reason": "Validation en attente — recommander une relance (armement humain/CloneSignals)."
+      },
+      "liveSchedulerUsed": false,
+      "cronCreated": false,
+      "executed": false
+    },
+    "signalCandidates": {
+      "artifactKind": "clonesignals_candidates",
+      "missionId": "call-4",
+      "candidates": [
+        {
+          "signalKind": "business_condition_met",
+          "detail": "Condition remplie : relance post-appel à planifier.",
+          "proposedAction": "wake_mission",
+          "recommendedInHours": 1
+        }
+      ],
+      "liveSchedulerUsed": false,
+      "cronCreated": false,
+      "notificationSentLive": false
+    },
+    "callBrief": {
+      "artifactKind": "clonebrief_artifact",
+      "when": "evening",
+      "sections": [
+        {
+          "heading": "Missions",
+          "lines": [
+            "Appel call-4 — préparer un onboarding — PRÉPARÉ (non exécuté)"
+          ]
+        },
+        {
+          "heading": "Blocages",
+          "lines": [
+            "Aucun blocage signalé dans les faits fournis."
+          ]
+        },
+        {
+          "heading": "Validations en attente",
+          "lines": [
+            "Mission issue de l'appel à valider — EN ATTENTE"
+          ]
+        },
+        {
+          "heading": "Actions autonomes (préparations sûres)",
+          "lines": []
+        },
+        {
+          "heading": "Décisions à prendre",
+          "lines": [
+            "Valider (ou non) les actions extraites de l'appel — EN ATTENTE"
+          ]
+        }
+      ],
+      "counts": {
+        "missions": 1,
+        "blockers": 0,
+        "waitingValidations": 1,
+        "autonomousActions": 0,
+        "decisionsNeeded": 1
+      },
+      "onlyProvidedFacts": true,
+      "preparedNeverClaimedAsDone": true,
+      "blockersHidden": false,
+      "inventedFacts": false
+    },
+    "outboundLivePathBlocked": true,
+    "liveCallMade": false,
+    "audioRecorded": false,
+    "telephonyProvider": "none"
+  },
+  "outboundAttempt": {
+    "kind": "blocked",
+    "blockedReason": "Intention de téléphonie/appel sortant détectée — live_blocked en T2 (aucun provider télécom vérifié, cadre légal non validé)."
+  }
+}

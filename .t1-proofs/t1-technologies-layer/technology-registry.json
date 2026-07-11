@@ -1,0 +1,340 @@
+{
+  "runId": "t1-technologies-layer",
+  "crossCheckWithP16MasterSplit": {
+    "ok": true,
+    "registryCount": 15,
+    "masterSplitTechnologyCount": 15,
+    "issues": []
+  },
+  "entries": [
+    {
+      "id": "document",
+      "status": "partial",
+      "preT1Status": "partial",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/clonestore/documents/renderer.ts",
+        "src/lib/clonestore/documents/template-registry.ts",
+        "src/lib/clonestore/document-style-kit/html-renderer.ts"
+      ],
+      "liveBlockedReason": null,
+      "safeLocalImplementation": "Préparation documentaire locale (gabarits abstraits) — validation humaine obligatoire, aucune garantie légale.",
+      "safeFallback": "Document préparé localement — relecture et validation humaines obligatoires (aucune garantie légale).",
+      "testsRequired": [
+        "contrat + fallback",
+        "needs_validation systématique",
+        "aucune garantie légale revendiquée"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.document"
+    },
+    {
+      "id": "mail",
+      "status": "partial",
+      "preT1Status": "partial",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/pierre/v1/communications.ts",
+        "src/lib/pierre/v1/communication-provider.ts"
+      ],
+      "liveBlockedReason": "Envoi live bloqué — domaine/provider email externe non vérifié (ext.email_provider).",
+      "safeLocalImplementation": "Rédaction de brouillons uniquement — l'humain envoie manuellement.",
+      "safeFallback": "Brouillon préparé — l'humain envoie manuellement (aucun envoi live).",
+      "testsRequired": [
+        "brouillon sans envoi",
+        "send:true → blocked",
+        "fallback humain"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.mail"
+    },
+    {
+      "id": "calendar",
+      "status": "partial",
+      "preT1Status": "not_built",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [],
+      "liveBlockedReason": "Aucun provider calendrier live — création d'événements live impossible.",
+      "safeLocalImplementation": "Objet événement préparé — l'humain copie/valide.",
+      "safeFallback": "Événement préparé — l'humain copie/valide (aucune création d'événement live).",
+      "testsRequired": [
+        "événement préparé non créé",
+        "createLive:true → blocked"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.calendar"
+    },
+    {
+      "id": "signature",
+      "status": "partial",
+      "preT1Status": "architecture_ready",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/clonestore/production/p15-provider-closure.ts"
+      ],
+      "liveBlockedReason": "Yousign live bloqué (P8.7.4) — fallback signature préparée, aucune revendication live.",
+      "safeLocalImplementation": "Paquet de signature préparé — circuit manuel/externe.",
+      "safeFallback": "Document préparé — signature manuelle/externe (aucune revendication de signature live).",
+      "testsRequired": [
+        "aucune revendication de signature live",
+        "signLive:true → blocked"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.signature"
+    },
+    {
+      "id": "voice",
+      "status": "architecture_ready",
+      "preT1Status": "architecture_ready",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/clonestore/employee-context-registry/employee-context-registry-clonevoice-contract.ts"
+      ],
+      "liveBlockedReason": "Aucun provider vocal — roadmap ; l'entrée texte reste autoritaire.",
+      "safeLocalImplementation": "Fallback systématique : le texte reste la source de vérité.",
+      "safeFallback": "L'entrée texte reste la source de vérité (aucun provider vocal).",
+      "testsRequired": [
+        "fallback texte autoritaire",
+        "aucune transcription revendiquée"
+      ],
+      "recommendedIntegrationPhase": "later",
+      "p16MasterSplitId": "tech.voice"
+    },
+    {
+      "id": "notification",
+      "status": "partial",
+      "preT1Status": "partial",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/pierre/v1/cockpit-snapshot.ts",
+        "src/lib/pierre/v1/communications.ts"
+      ],
+      "liveBlockedReason": "Aucun provider push — rappels cockpit uniquement.",
+      "safeLocalImplementation": "Artefact de rappel cockpit — aucun push.",
+      "safeFallback": "Rappels dans le cockpit uniquement (aucun push live).",
+      "testsRequired": [
+        "rappel cockpit sans push",
+        "push:true → blocked"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.notification"
+    },
+    {
+      "id": "connector",
+      "status": "architecture_ready",
+      "preT1Status": "architecture_ready",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/pierre/v1/channels.ts"
+      ],
+      "liveBlockedReason": "Connecteurs SIRH/paie/Slack externes non vérifiés — tout appel live bloqué.",
+      "safeLocalImplementation": "Dégradation systématique : export/import manuel.",
+      "safeFallback": "Connecteur indisponible — export/import manuel.",
+      "testsRequired": [
+        "connect:true → blocked",
+        "fallback manuel"
+      ],
+      "recommendedIntegrationPhase": "later",
+      "p16MasterSplitId": "tech.connector"
+    },
+    {
+      "id": "memory",
+      "status": "verified",
+      "preT1Status": "verified",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/pierre/v1/cognitive-runtime/operational-memory.ts",
+        "src/lib/clonestore/adn/index.ts"
+      ],
+      "liveBlockedReason": null,
+      "safeLocalImplementation": "Contrat lecture/écriture dans le périmètre société — stores durables existants = source.",
+      "safeFallback": "Opération mémoire préparée dans le périmètre société — les stores durables existants restent la source.",
+      "testsRequired": [
+        "scope société respecté (fail-closed)",
+        "écriture → needs_validation"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.memory"
+    },
+    {
+      "id": "evidence",
+      "status": "partial",
+      "preT1Status": "partial",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/pierre/hr/audit-trail.ts",
+        "src/lib/pierre/v1/cognitive-runtime/evidence.ts"
+      ],
+      "liveBlockedReason": null,
+      "safeLocalImplementation": "Entrées d'audit locales — chaque usage de techno est auditable, même en fallback.",
+      "safeFallback": "Trace d'audit locale toujours disponible (aucun provider externe requis).",
+      "testsRequired": [
+        "audit disponible pour tous les kinds",
+        "aucun secret dans les traces"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.evidence"
+    },
+    {
+      "id": "workflow",
+      "status": "partial",
+      "preT1Status": "partial",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/pierre/v1/mission-service.ts",
+        "src/lib/pierre/v1/hr-operations/case-state-machine.ts"
+      ],
+      "liveBlockedReason": null,
+      "safeLocalImplementation": "Plan de workflow générique (étapes) — ne décide jamais d'issues RH ; le moteur V1 reste la source.",
+      "safeFallback": "Le moteur de missions V1 existant reste la source (aucun 2e cerveau RH).",
+      "testsRequired": [
+        "decideHrOutcome:true → blocked",
+        "decidesHrOutcomes=false",
+        "pas de 2e cerveau RH"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.workflow"
+    },
+    {
+      "id": "analytics",
+      "status": "partial",
+      "preT1Status": "partial",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/pierre/v1/runtime-action-handlers.ts",
+        "src/lib/pierre/v1/cognitive-runtime/analytics-engine.ts"
+      ],
+      "liveBlockedReason": null,
+      "safeLocalImplementation": "Artefact de rapport métriques — le calcul réel reste à analytics.compute (RLS) ; aucun ROI garanti.",
+      "safeFallback": "Métriques brutes uniquement (aucune promesse de ROI garanti).",
+      "testsRequired": [
+        "roiGuaranteed=false",
+        "rapport → needs_validation"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.analytics"
+    },
+    {
+      "id": "file",
+      "status": "partial",
+      "preT1Status": "partial",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/clonechat/openai/multimodal.ts",
+        "src/lib/clonechat/openai/image-sanitizer.ts"
+      ],
+      "liveBlockedReason": null,
+      "safeLocalImplementation": "Artefact d'ingestion — aucun parsing supposé ; revue manuelle requise ; mime inconnu → fallback.",
+      "safeFallback": "Revue manuelle du fichier requise (aucune hypothèse de parsing).",
+      "testsRequired": [
+        "mime inconnu → fallback",
+        "manualReviewRequired=true"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.file"
+    },
+    {
+      "id": "export",
+      "status": "partial",
+      "preT1Status": "partial",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/pierre/security/pierre-rgpd-export.ts",
+        "src/lib/clonestore/document-style-kit/pdf-ready-renderer.ts"
+      ],
+      "liveBlockedReason": null,
+      "safeLocalImplementation": "Artefact d'export préparé — aucun transfert live ; téléchargement manuel.",
+      "safeFallback": "Téléchargement/export manuel (aucun transfert live).",
+      "testsRequired": [
+        "transferNow:true → blocked",
+        "transferred=false"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.export"
+    },
+    {
+      "id": "permission",
+      "status": "verified",
+      "preT1Status": "verified",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/clonechat/server/auth.ts",
+        "src/lib/pierre/v1/tenant-context.ts",
+        "src/lib/pierre/v1/rbac.ts"
+      ],
+      "liveBlockedReason": null,
+      "safeLocalImplementation": "Décision de permission fail-closed — complète (jamais ne remplace) RLS + requireCompanyUser.",
+      "safeFallback": "Refus fail-closed — RLS + requireCompanyUser restent la frontière serveur.",
+      "testsRequired": [
+        "fail-closed (employé/société manquants)",
+        "techno inconnue → refus"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.permission"
+    },
+    {
+      "id": "integration_bus",
+      "status": "partial",
+      "preT1Status": "architecture_ready",
+      "reusable": true,
+      "pierreOnly": false,
+      "pierreOnlyJustification": null,
+      "futureEmployeesCanUse": true,
+      "sourceModules": [
+        "src/lib/clonestore/employee-context-registry/index.ts"
+      ],
+      "liveBlockedReason": null,
+      "safeLocalImplementation": "Bus de contrats : découverte + permission + prepare + audit — aucune logique par employé.",
+      "safeFallback": "Coordination par contrats uniquement — toute techno indisponible dégrade en fallback.",
+      "testsRequired": [
+        "list/get/prepare",
+        "employé futur = mêmes règles que pierre",
+        "techno inconnue rejetée"
+      ],
+      "recommendedIntegrationPhase": "P16C",
+      "p16MasterSplitId": "tech.bus"
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "runId": "p10-run1",
+  "matrix": {
+    "ch_requests_eur_forced_chf": {
+      "ok": true,
+      "reviewRequired": false,
+      "resolvedCountry": "CH",
+      "resolvedPriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY",
+      "currency": "CHF",
+      "code": "ALLOWED",
+      "message": "Offre applicable : 499 CHF / mois.",
+      "warnings": [
+        "Prix/pays/devise fourni par le client IGNORÉ — le serveur dérive le prix du pays autoritatif.",
+        "CH_REQUIRES_CHF_PRICE: clé de prix demandée « STRIPE_PRICE_PIERRE_EUR_MONTHLY » ignorée ; prix forcé « STRIPE_PRICE_PIERRE_CHF_MONTHLY »."
+      ],
+      "ignoredClientPrice": true
+    },
+    "fr_requests_chf_forced_eur": {
+      "ok": true,
+      "reviewRequired": false,
+      "resolvedCountry": "FR",
+      "resolvedPriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+      "currency": "EUR",
+      "code": "ALLOWED",
+      "message": "Offre applicable : 449 € / mois.",
+      "warnings": [
+        "Prix/pays/devise fourni par le client IGNORÉ — le serveur dérive le prix du pays autoritatif.",
+        "EUR_COUNTRY_REQUIRES_EUR_PRICE: clé de prix demandée « STRIPE_PRICE_PIERRE_CHF_MONTHLY » ignorée ; prix forcé « STRIPE_PRICE_PIERRE_EUR_MONTHLY »."
+      ],
+      "ignoredClientPrice": true
+    },
+    "company_ch_vs_selected_fr": {
+      "ok": false,
+      "reviewRequired": true,
+      "resolvedCountry": "CH",
+      "resolvedPriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY",
+      "currency": "CHF",
+      "code": "COMPANY_COUNTRY_CONFLICT",
+      "message": "Votre pays de facturation indique la Suisse. L'offre applicable est 499 CHF / mois.",
+      "warnings": [],
+      "ignoredClientPrice": false
+    },
+    "geo_ch_cheap_direction_review": {
+      "ok": false,
+      "reviewRequired": true,
+      "resolvedCountry": "FR",
+      "resolvedPriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+      "currency": "EUR",
+      "code": "GEO_WEAK_CONFLICT",
+      "message": "Votre localisation suggère la Suisse. Confirmez votre pays de facturation — l'offre suisse est 499 CHF / mois.",
+      "warnings": [
+        "GEO_WEAK_CONFLICT: IP=CH ≠ pays autoritatif=FR (journalisé)."
+      ],
+      "ignoredClientPrice": false
+    },
+    "geo_same_currency_allowed": {
+      "ok": true,
+      "reviewRequired": false,
+      "resolvedCountry": "FR",
+      "resolvedPriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+      "currency": "EUR",
+      "code": "ALLOWED",
+      "message": "Offre applicable : 449 € / mois.",
+      "warnings": [
+        "GEO_WEAK_CONFLICT: IP=BE ≠ pays autoritatif=FR (journalisé)."
+      ],
+      "ignoredClientPrice": false
+    },
+    "client_priceid_ignored": {
+      "ok": true,
+      "reviewRequired": false,
+      "resolvedCountry": "CH",
+      "resolvedPriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY",
+      "currency": "CHF",
+      "code": "ALLOWED",
+      "message": "Offre applicable : 499 CHF / mois.",
+      "warnings": [
+        "Prix/pays/devise fourni par le client IGNORÉ — le serveur dérive le prix du pays autoritatif.",
+        "CURRENCY_MISMATCH: devise demandée « EUR » ignorée ; devise correcte « CHF »."
+      ],
+      "ignoredClientPrice": true
+    },
+    "no_country": {
+      "ok": false,
+      "reviewRequired": false,
+      "resolvedCountry": null,
+      "resolvedPriceKey": null,
+      "currency": null,
+      "code": "COUNTRY_REQUIRED",
+      "message": "Choisissez votre pays de facturation pour continuer.",
+      "warnings": [],
+      "ignoredClientPrice": false
+    },
+    "unsupported": {
+      "ok": false,
+      "reviewRequired": false,
+      "resolvedCountry": "US",
+      "resolvedPriceKey": null,
+      "currency": null,
+      "code": "COUNTRY_NOT_SUPPORTED",
+      "message": "Ce pays n'est pas encore ouvert au lancement.",
+      "warnings": [],
+      "ignoredClientPrice": false
+    },
+    "ch_chf_not_configured": {
+      "ok": false,
+      "reviewRequired": false,
+      "resolvedCountry": "CH",
+      "resolvedPriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY",
+      "currency": "CHF",
+      "code": "STRIPE_PRICE_NOT_CONFIGURED",
+      "message": "Le paiement pour ce pays n'est pas encore configuré. Réessayez plus tard.",
+      "warnings": [],
+      "ignoredClientPrice": false
+    },
+    "production_disabled": {
+      "ok": false,
+      "reviewRequired": false,
+      "resolvedCountry": "FR",
+      "resolvedPriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+      "currency": "EUR",
+      "code": "PRODUCTION_DISABLED",
+      "message": "Les paiements ne sont pas encore ouverts.",
+      "warnings": [],
+      "ignoredClientPrice": false
+    }
+  }
+}

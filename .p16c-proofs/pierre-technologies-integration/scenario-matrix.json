@@ -1,0 +1,16 @@
+{
+  "onboarding": {
+    "state": "LEGAL_BLOCKED",
+    "status": "human_only"
+  },
+  "dismissal": {
+    "state": "HUMAN_ONLY",
+    "status": "human_only"
+  },
+  "sector": {
+    "state": "LEGAL_BLOCKED"
+  },
+  "foreign": {
+    "rejected": true
+  }
+}

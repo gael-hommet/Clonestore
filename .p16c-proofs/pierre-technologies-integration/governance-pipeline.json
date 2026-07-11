@@ -1,0 +1,117 @@
+{
+  "onboarding": {
+    "effectiveState": "LEGAL_BLOCKED",
+    "decidedBy": "legal",
+    "contributions": [
+      {
+        "gate": "pierre_disposition",
+        "state": "PROVIDER_BLOCKED",
+        "reason": "Disposition Pierre: provider_blocked."
+      },
+      {
+        "gate": "legal",
+        "state": "LEGAL_BLOCKED",
+        "reason": "Dépendance légale/pays: probation_periods; employee_representation; payroll_contributions."
+      },
+      {
+        "gate": "provider",
+        "state": "PROVIDER_BLOCKED",
+        "reason": "Provider live requis (indisponible): identity_provider; Push temps réel indisponible — rappels cockpit uniquement.."
+      },
+      {
+        "gate": "clonetrust",
+        "state": "PREPARE_LOCAL",
+        "reason": "CloneTrust plafonne l'autonomie à « prepare_only »."
+      },
+      {
+        "gate": "production",
+        "state": "PROVIDER_BLOCKED",
+        "reason": "Production OFF — aucun effet externe/live autorisé (externallyExecutable=false)."
+      }
+    ],
+    "executableLocally": false,
+    "externallyExecutable": false,
+    "exactBlockers": [
+      "[PROVIDER_BLOCKED] Disposition Pierre: provider_blocked.",
+      "[LEGAL_BLOCKED] Dépendance légale/pays: probation_periods; employee_representation; payroll_contributions.",
+      "[PROVIDER_BLOCKED] Provider live requis (indisponible): identity_provider; Push temps réel indisponible — rappels cockpit uniquement.."
+    ]
+  },
+  "dismissal": {
+    "effectiveState": "HUMAN_ONLY",
+    "decidedBy": "pierre_disposition",
+    "contributions": [
+      {
+        "gate": "pierre_disposition",
+        "state": "HUMAN_ONLY",
+        "reason": "Disposition Pierre: human_only."
+      },
+      {
+        "gate": "pierre_human_only",
+        "state": "HUMAN_ONLY",
+        "reason": "Décision finale humaine requise: dismissal."
+      },
+      {
+        "gate": "cloneguard",
+        "state": "VALIDATION_REQUIRED",
+        "reason": "CloneGuard exige une validation (risque critical)."
+      },
+      {
+        "gate": "clonetrust",
+        "state": "HUMAN_ONLY",
+        "reason": "CloneTrust plafonne l'autonomie à « human_only »."
+      },
+      {
+        "gate": "production",
+        "state": "HUMAN_ONLY",
+        "reason": "Production OFF — aucun effet externe/live autorisé (externallyExecutable=false)."
+      }
+    ],
+    "executableLocally": false,
+    "externallyExecutable": false,
+    "exactBlockers": [
+      "[HUMAN_ONLY] Disposition Pierre: human_only.",
+      "[HUMAN_ONLY] Décision finale humaine requise: dismissal.",
+      "[VALIDATION_REQUIRED] CloneGuard exige une validation (risque critical).",
+      "[HUMAN_ONLY] CloneTrust plafonne l'autonomie à « human_only »."
+    ]
+  },
+  "sector": {
+    "effectiveState": "LEGAL_BLOCKED",
+    "decidedBy": "legal",
+    "contributions": [
+      {
+        "gate": "pierre_disposition",
+        "state": "PREPARE_LOCAL",
+        "reason": "Disposition Pierre: prepare."
+      },
+      {
+        "gate": "legal",
+        "state": "LEGAL_BLOCKED",
+        "reason": "Dépendance légale/pays: disciplinary_procedure; probation_periods; Sourcing légal/sectoriel externe (jamais inventer le droit) — bloqué.."
+      },
+      {
+        "gate": "provider",
+        "state": "PROVIDER_BLOCKED",
+        "reason": "Provider live requis (indisponible): Provider calendrier live indisponible.; Push temps réel indisponible — rappels cockpit uniquement.; Connecteurs SIRH/paie/Slack externes non vérifiés.."
+      },
+      {
+        "gate": "clonetrust",
+        "state": "PREPARE_LOCAL",
+        "reason": "CloneTrust plafonne l'autonomie à « prepare_only »."
+      },
+      {
+        "gate": "production",
+        "state": "PREPARE_LOCAL",
+        "reason": "Production OFF — aucun effet externe/live autorisé (externallyExecutable=false)."
+      }
+    ],
+    "executableLocally": false,
+    "externallyExecutable": false,
+    "exactBlockers": [
+      "[LEGAL_BLOCKED] Dépendance légale/pays: disciplinary_procedure; probation_periods; Sourcing légal/sectoriel externe (jamais inventer le droit) — bloqué..",
+      "[PROVIDER_BLOCKED] Provider live requis (indisponible): Provider calendrier live indisponible.; Push temps réel indisponible — rappels cockpit uniquement.; Connecteurs SIRH/paie/Slack externes non vérifiés.."
+    ]
+  },
+  "precedenceReady": true
+}

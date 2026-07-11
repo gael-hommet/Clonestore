@@ -1,0 +1,21 @@
+{
+  "t1PermissionsAllowed": [
+    {
+      "techId": "workflow",
+      "allowed": true
+    },
+    {
+      "techId": "notification",
+      "allowed": true
+    },
+    {
+      "techId": "document",
+      "allowed": true
+    },
+    {
+      "techId": "export",
+      "allowed": true
+    }
+  ],
+  "ready": true
+}

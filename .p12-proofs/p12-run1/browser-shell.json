@@ -1,0 +1,145 @@
+{
+  "runId": "p12-run1",
+  "base": "http://127.0.0.1:3272",
+  "surfaces": {
+    "desktop-1280": {
+      "size": "1280x900",
+      "cockpit": {
+        "cosRoot": true,
+        "noPageScroll": true,
+        "noHOverflow": true,
+        "topbar": true,
+        "cloneosTitle": "CloneOS",
+        "composer": true,
+        "suggested": true,
+        "railShown": true,
+        "contextShown": true,
+        "bottomNavShown": false
+      },
+      "room": {
+        "cosRoot": true,
+        "noPageScroll": true,
+        "noHOverflow": true,
+        "participants": 6,
+        "composer": true,
+        "thread": true,
+        "noPublicFooter": true
+      },
+      "pierre": {
+        "cosRoot": true,
+        "noPageScroll": true,
+        "noHOverflow": true,
+        "framing": "Employé IA RH",
+        "noAssistantFraming": true
+      },
+      "mon": {
+        "shell": true,
+        "openCockpit": true,
+        "sections": 10,
+        "isCosRoot": false,
+        "noHOverflow": true
+      }
+    },
+    "tablet-768": {
+      "size": "768x1024",
+      "cockpit": {
+        "cosRoot": true,
+        "noPageScroll": true,
+        "noHOverflow": true,
+        "topbar": true,
+        "cloneosTitle": "CloneOS",
+        "composer": true,
+        "suggested": true,
+        "railShown": true,
+        "contextShown": false,
+        "bottomNavShown": false
+      },
+      "room": {
+        "cosRoot": true,
+        "noPageScroll": true,
+        "noHOverflow": true,
+        "participants": 6,
+        "composer": true,
+        "thread": true,
+        "noPublicFooter": true
+      },
+      "pierre": {
+        "cosRoot": true,
+        "noPageScroll": true,
+        "noHOverflow": true,
+        "framing": "Employé IA RH",
+        "noAssistantFraming": true
+      },
+      "mon": {
+        "shell": true,
+        "openCockpit": true,
+        "sections": 10,
+        "isCosRoot": false,
+        "noHOverflow": true
+      }
+    },
+    "mobile-390": {
+      "size": "390x844",
+      "cockpit": {
+        "cosRoot": true,
+        "noPageScroll": true,
+        "noHOverflow": true,
+        "topbar": true,
+        "cloneosTitle": "CloneOS",
+        "composer": true,
+        "suggested": true,
+        "railShown": false,
+        "contextShown": false,
+        "bottomNavShown": true
+      },
+      "room": {
+        "cosRoot": true,
+        "noPageScroll": true,
+        "noHOverflow": true,
+        "participants": 6,
+        "composer": true,
+        "thread": true,
+        "noPublicFooter": true
+      },
+      "pierre": {
+        "cosRoot": true,
+        "noPageScroll": true,
+        "noHOverflow": true,
+        "framing": "Employé IA RH",
+        "noAssistantFraming": true
+      },
+      "mon": {
+        "shell": true,
+        "openCockpit": true,
+        "sections": 10,
+        "isCosRoot": false,
+        "noHOverflow": true
+      }
+    }
+  },
+  "redirects": {
+    "nonClient": {
+      "finalUrl": "/agents/pierre"
+    },
+    "visitor": {
+      "finalUrl": "/login"
+    }
+  },
+  "verdict": "P12_SHELL_OK",
+  "extraction": {
+    "directSeed": {
+      "probe": "Prépare le contrat CDI de Probe-bb6bd5",
+      "composerValue": "Prépare le contrat CDI de Probe-bb6bd5",
+      "ok": true
+    },
+    "cloneRoomFlow": {
+      "probe": "Recrutement urgent Probe-de6b84",
+      "composeParam": "Recrutement urgent Probe-de6b84",
+      "composerValue": "Recrutement urgent Probe-de6b84",
+      "ok": true
+    }
+  },
+  "consoleErrors": [],
+  "pass": true,
+  "cleanup": "DELETED — ZERO RESIDUE"
+}

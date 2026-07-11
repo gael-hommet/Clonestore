@@ -1,0 +1,36 @@
+{
+  "phase": "P13 — Founder Vision Acceptance & Launch Country Product Fit QA",
+  "runId": "p13-run1",
+  "verdict": "P13 — FOUNDER VISION ACCEPTANCE & LAUNCH COUNTRY PRODUCT FIT VERIFIED",
+  "date": "2026-07-09",
+  "nature": "A founder/product-feel QA gate + country-fit QA gate. NOT a build, NOT a go-live, NOT legal validation.",
+  "founder_questions": {
+    "does_it_feel_like_gael_exact_vision": "YES — scorecard 33/36 → ACCEPTED (≥30, no dimension ≤1, no hard blocker), 0 rejection triggers, browser proof P13_FOUNDER_FEEL_OK with all founder signals true across large-1600/desktop-1280/tablet-768/mobile-390.",
+    "is_pierre_launch_country_credible_FR_BE_LU_CH_without_pretending_legal_done": "YES — pricing/currency correct (FR/BE/LU=449 EUR, CH=499 CHF), safe country copy, 0 unguarded product overclaims; legal/tax/provider/go-live are external-PENDING and disclosed, never presented as final."
+  },
+  "deliverables": {
+    "founder_vision_contract": "src/lib/clonestore/founder-acceptance/founder-vision-contract.ts (12 pillars, acceptance/rejection criteria, checklists, evaluators)",
+    "scenarios": "src/lib/clonestore/founder-acceptance/founder-acceptance-scenarios.ts (A-G)",
+    "launch_country_fit": "src/lib/clonestore/founder-acceptance/launch-country-fit.ts (DERIVES from verified P10 pricing + P11 legal/tax/provider/golive evaluators)",
+    "scorecard": "src/lib/clonestore/founder-acceptance/founder-acceptance-scorecard.ts (12 dims × 0-3, ≥30 accept, hard blockers)"
+  },
+  "gates": {
+    "p13_unit_tests": "32/32 (incl. real-signal A3 test feeding the ACTUAL browser founderSignals through evaluateAllScenarios; and the 33/36 recomputed via evaluateFounderScorecard)",
+    "guardrail_suites": "361/361 (cloneos + pricing + production) — no regression",
+    "tsc": "0 source errors (tsconfig restored — no .next-p13 refs)",
+    "country_copy_qa": "0 unguarded product-facing overclaims (2440 files; fixed-lexicon denylist + manual + adversarial classification, disclosed as not exhaustive NLP)",
+    "browser_proof": "P13_FOUNDER_FEEL_OK / pass:true — 4 viewports (incl. true 1600), all founder signals true, action extraction proven (directSeed + cloneRoomFlow), REAL console errors=0 under a tightened filter, 14 dev transients recorded transparently (investigated, non-product), ZERO RESIDUE",
+    "scorecard": "33/36 ACCEPTED (honest: cloneroom_salon_clarity=2, country_launch_credibility=2, mobile_usability=2; other 9 = 3)",
+    "adversarial_review": "9 claims, 5 HOLDS / 4 PARTIAL / 0 REFUTED, 0 security defects; all 4 PARTIALs addressed"
+  },
+  "guardrails": {
+    "p8_p9_p10_p11_p12_untouched": "P13 only ADDS founder-acceptance files + tests + proofs + scripts. 0 P13 markers under src/lib/pierre/v1, src/app/api/pierre/v1, pricing, production, or the P12 cockpit components.",
+    "pierre_v1_runtime_untouched": true,
+    "no_second_hr_brain": "founder-acceptance modules are pure evaluators; all HR data via the real V1 hook; launch-country-fit reuses the verified P10/P11 evaluators.",
+    "pierre_never_assistant": "framed 'Employé IA RH' (proven all viewports); rejection criteria + scorecard hard-block assistant framing.",
+    "production_off": "PRODUCTION_AUTHORIZED (P10) = false (untouched); launch_allowed derived false with P10 const hard floor.",
+    "no_legal_final_advice": "legal/tax/provider/go-live presented as PENDING; never 'conforme au droit [pays]' / final.",
+    "no_migration_no_deploy": "no migration applied; nothing staged/committed/pushed/deployed.",
+    "zero_residue": "p13-e2e orphan users: 0; no dev server on 3273; tsconfig restored."
+  }
+}

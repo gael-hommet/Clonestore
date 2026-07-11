@@ -1,0 +1,17 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "c1_2_suite": {
+    "command": "npx vitest run src/app/assistant",
+    "result": "1 file / 21 tests passed (20 checks + reveal-status)"
+  },
+  "combined": {
+    "command": "npx vitest run src/app/assistant src/lib/clonechat src/app/api/assistant src/components/clonechat src/lib/nav",
+    "result": "21 files / 350 tests passed"
+  },
+  "c1_1": {
+    "command": "npx vitest run src/lib/clonechat/intelligence/c1-1",
+    "result": "106 tests passed (flag-state assertion updated to active)"
+  },
+  "tsc": "npx tsc --noEmit => 0 errors (avant ET apres build)"
+}

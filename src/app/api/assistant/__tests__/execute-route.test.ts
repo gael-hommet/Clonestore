@@ -142,3 +142,26 @@ describe("P9.4.2 §3 execute route — server-authoritative command execution", 
     expect(calls.filter((c) => c.method === "POST" && c.url.endsWith("/missions")).length).toBe(0);
   });
 });
+
+describe("P9.5 create_mission — mode d'autonomie transmis à V1 (server-authoritative)", () => {
+  const createCall = () => calls.find((c) => c.url.endsWith("/api/pierre/v1/missions") && c.method === "POST");
+
+  it("le mode d'autonomie PERSISTÉ dans la proposition est transmis à V1 createMission", async () => {
+    const proposalId = await seed("create_mission", { instruction: "Préparer un CDI", autonomyMode: "high_autonomy" });
+    await POST(req(proposalId));
+    expect(createCall()?.body?.autonomy_mode).toBe("high_autonomy");
+  });
+
+  it("un autonomyMode FORGÉ dans le corps /execute est IGNORÉ (serveur lit la proposition persistée)", async () => {
+    const proposalId = await seed("create_mission", { instruction: "Préparer un CDI 2", autonomyMode: "normal" });
+    const forged = new Request("http://localhost:3000/api/assistant/execute", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ proposalId, autonomyMode: "enterprise_autonomous", payload: { autonomyMode: "enterprise_autonomous" } }) });
+    await POST(forged);
+    expect(createCall()?.body?.autonomy_mode).toBe("normal");   // persisté, jamais l'escalade forgée
+  });
+
+  it("un autonomyMode invalide dans la proposition est OMIS (garde-fou anti-mode-moteur-inconnu)", async () => {
+    const proposalId = await seed("create_mission", { instruction: "Préparer un CDI 3", autonomyMode: "hacker_mode" });
+    await POST(req(proposalId));
+    expect("autonomy_mode" in (createCall()?.body ?? {})).toBe(false);
+  });
+});

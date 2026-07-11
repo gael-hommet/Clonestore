@@ -88,7 +88,7 @@ export function buildStripeManualChecks(
     {
       id: "stripe_webhook_endpoint_created",
       label: "Endpoint webhook Stripe créé dans le Dashboard",
-      description: "Un endpoint webhook pointant vers /api/stripe/webhook est configuré dans le Stripe Dashboard",
+      description: "Un endpoint webhook pointant vers /api/webhooks/stripe (route canonique) est configuré dans le Stripe Dashboard",
       status: manual.webhook_endpoint_created ? "ok" : "blocking",
       passes: !!manual.webhook_endpoint_created,
       is_manual: true,

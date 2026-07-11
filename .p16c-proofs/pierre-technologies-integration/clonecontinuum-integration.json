@@ -1,0 +1,25 @@
+{
+  "correctionRequirements": [
+    "Re-lire l'état durable AUTORITAIRE de la mission/artefact (jamais depuis le texte du chat).",
+    "Cible de continuité: artifact « a1 » (version courante préservée).",
+    "Correction d'un artefact existant ≠ nouvelle mission — préserver la lignée/version."
+  ],
+  "state": {
+    "artifactKind": "clonecontinuum_state",
+    "missionId": "trace-15",
+    "previousState": "active",
+    "state": "waiting_for_validation",
+    "allowedTransitions": [
+      "resumed",
+      "scheduled_followup",
+      "closed"
+    ],
+    "nextWakeupRecommendation": {
+      "afterHours": 24,
+      "reason": "Validation en attente — recommander une relance (armement humain/CloneSignals)."
+    },
+    "liveSchedulerUsed": false,
+    "cronCreated": false,
+    "executed": false
+  }
+}

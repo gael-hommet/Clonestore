@@ -76,6 +76,31 @@ export type OrderStatusResult = {
   ended_at: string | null;
 } | null;
 
+/**
+ * Retourne le Stripe Customer déjà rattaché à cet utilisateur, tous produits confondus.
+ *
+ * L'identité de facturation Stripe est portée par l'UTILISATEUR, pas par le produit : un
+ * client qui possède Pierre puis achète Clara doit rester le même Customer. La recherche
+ * ignore donc `agent_slug`. Retourne null si aucune ligne `orders` ne porte de customer
+ * (cas du tout premier achat), ou en cas d'erreur de lecture — l'appelant créera alors un
+ * Customer sous clé d'idempotence, ce qui reste sûr.
+ */
+export async function getStripeCustomerIdForUser(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("stripe_customer_id")
+    .eq("user_id", userId)
+    .not("stripe_customer_id", "is", null)
+    .limit(1);
+
+  if (error || !data || data.length === 0) return null;
+  const id = data[0]?.stripe_customer_id;
+  return typeof id === "string" && id ? id : null;
+}
+
 export async function getOrderStatus(
   supabase: SupabaseClient,
   userId: string,

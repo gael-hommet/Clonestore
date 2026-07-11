@@ -1,0 +1,44 @@
+{
+  "runId": "p10-run1",
+  "scope": "P10 — Country pricing & production guardrails (FR/BE/LU=449 EUR, CH=499 CHF)",
+  "new_files": [
+    "src/lib/clonestore/pricing/country-pricing.ts (pure canon)",
+    "src/lib/clonestore/pricing/public-pricing-resolver.ts",
+    "src/lib/clonestore/pricing/checkout-country-guard.ts",
+    "src/lib/clonestore/pricing/checkout-pricing-server.ts",
+    "src/lib/clonestore/pricing/stripe-pricing-config.ts",
+    "src/lib/clonestore/pricing/pricing-audit.ts",
+    "src/lib/clonestore/pricing/pricing-flags.ts",
+    "src/lib/clonestore/production/p10-production-gate.ts",
+    "src/app/api/pricing/public/route.ts",
+    "src/components/pricing/CountryPricingCard.tsx",
+    "src/lib/clonestore/pricing/__tests__/* (7 test files)",
+    "src/lib/clonestore/production/__tests__/p10-production-gate.test.ts",
+    "scripts/p10-pricing-e2e.mjs"
+  ],
+  "modified_files": [
+    "src/lib/features/product-availability.ts (readEnvFlag: added `export` — additive)",
+    "src/app/api/checkout/route.ts (P10 branch, OPT-IN via STRIPE_COUNTRY_PRICING_ENABLED; legacy path untouched when off; PRICE guard now currency-aware)",
+    "src/app/agents/pierre/page.tsx (additive country-pricing section; existing 449 display untouched)",
+    ".env.example (documented STRIPE_PRICE_PIERRE_EUR_MONTHLY / _CHF_MONTHLY / STRIPE_COUNTRY_PRICING_ENABLED)"
+  ],
+  "auto_touched_during_e2e_dev_server": {
+    "tsconfig.json": "Next dev auto-adds '<distDir>/types' when NEXT_DIST_DIR is custom; RESTORED to original after each run (net: unchanged vs baseline).",
+    "next-env.d.ts": "Next-generated, git-ignored; not a source edit."
+  },
+  "P8_pierre_v1_untouched": true,
+  "P8_note": "No file under src/lib/pierre/v1/** or src/app/api/pierre/v1/** modified. Company registration_country read via a read-only SELECT (no mutation).",
+  "P9_proofs_intact": true,
+  "founder_access_untouched": "Founder flow stays EUR-only by design; P10 scopes to the general /api/checkout marketplace flow. Founder tests green.",
+  "production": {
+    "PRODUCTION_AUTHORIZED": false,
+    "STRIPE_COUNTRY_PRICING_ENABLED_default": false,
+    "stripe_mode_local": "test (sk_test_)",
+    "chf_price_configured_local": false,
+    "note": "Country-aware checkout is OPT-IN and OFF by default. Production remains unauthorized (fail-closed)."
+  },
+  "no_migration_applied": true,
+  "no_live_stripe_used": true,
+  "git": "nothing staged/committed/pushed/deployed (git sandbox-restricted; no git write commands run)",
+  "legal_disclosure": "No final legal/tax advice made. Country legal review (FR/BE/LU/CH) and VAT/tax treatment remain EXTERNAL-PENDING (0/4 launch-grade per P8.13 DIM B). Providers (signature/Yousign) not live (P8.7.4 OPEN)."
+}

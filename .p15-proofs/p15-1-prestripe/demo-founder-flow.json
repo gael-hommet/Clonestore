@@ -1,0 +1,55 @@
+{
+  "runId": "p15-1-prestripe",
+  "paymentOpen": false,
+  "demoAvailable": true,
+  "founderAccessAvailable": true,
+  "noneOfTheActionsActivatePaidAccess": true,
+  "copySafe": true,
+  "notice": {
+    "title": "Le paiement en ligne n'est pas encore ouvert.",
+    "body": "L'accès payant sera activé après l'activation du compte de paiement Stripe et la validation des documents externes (juridique/fiscal). En attendant, vous pouvez demander une démo ou un accès fondateur.",
+    "cta_demo": "Demander une démo",
+    "cta_founder": "Demander un accès fondateur"
+  },
+  "actions": [
+    {
+      "key": "request_demo",
+      "label": "Demander une démo",
+      "route": "/demo",
+      "paid": false
+    },
+    {
+      "key": "founder_access",
+      "label": "Demander un accès fondateur",
+      "route": "/reserver/pierre",
+      "paid": false
+    },
+    {
+      "key": "notify_launch",
+      "label": "Être prévenu du lancement",
+      "route": "/reserver/pierre",
+      "paid": false
+    },
+    {
+      "key": "book_call",
+      "label": "Planifier un appel",
+      "route": "/reserver/pierre",
+      "paid": false
+    },
+    {
+      "key": "get_deck",
+      "label": "Recevoir les documents de présentation",
+      "route": "/reserver/pierre",
+      "paid": false
+    }
+  ],
+  "existingRoutesReused": [
+    "/demo",
+    "/reserver/pierre (réservation/accès fondateur, non payant)",
+    "founder-access reservations lib"
+  ],
+  "noStripeCheckoutInFlow": true,
+  "noPayment": true,
+  "noSubscription": true,
+  "noFakeActivation": true
+}

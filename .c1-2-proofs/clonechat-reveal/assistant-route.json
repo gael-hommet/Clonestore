@@ -1,0 +1,8 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "page": "src/app/assistant/page.tsx => CloneChatWorkspace (inchange)",
+  "layout": "monte {children} par defaut ; AccessLockScreen honnete uniquement sous arret d'urgence",
+  "buildRouteType": "Dynamic (force-dynamic honore, aucun assistant.html statique bake)",
+  "browserGet": "GET /assistant => 200 (real workspace, desktop + mobile + apres refresh)"
+}

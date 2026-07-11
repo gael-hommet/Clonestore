@@ -1,0 +1,22 @@
+{
+  "modeTested": "enterprise_autonomous",
+  "dismissal": "human_only",
+  "salary": "human_only",
+  "dismissalDecisions": [
+    {
+      "category": "dismissal",
+      "reason": "Licenciement / rupture = décision finale réservée à un humain.",
+      "evidence": "analyzeInstruction:intent=termination",
+      "guardLevel": "black"
+    }
+  ],
+  "salaryDecisions": [
+    {
+      "category": "salary_change",
+      "reason": "Changement de rémunération = décision finale réservée à un humain.",
+      "evidence": "Augment",
+      "guardLevel": "red"
+    }
+  ],
+  "floorsUnweakenable": true
+}

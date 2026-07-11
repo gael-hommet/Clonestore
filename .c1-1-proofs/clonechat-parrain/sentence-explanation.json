@@ -1,0 +1,22 @@
+{
+  "runId": "clonechat-parrain",
+  "noEvidence": {
+    "sentence": "Phrase sans source.",
+    "matches": [],
+    "confidence": "none",
+    "honestNote": "Aucun passage source ne correspond suffisamment : l'origine exacte de cette phrase ne peut pas être confirmée avec les preuves disponibles."
+  },
+  "withEvidence": {
+    "sentence": "Le salarié bénéficie d'une prime.",
+    "matches": [
+      {
+        "ref": "gabarit §2",
+        "kind": "template",
+        "excerpt": "Le salarié bénéficie d'une prime exceptionnelle.",
+        "similarity": 0.8
+      }
+    ],
+    "confidence": "high",
+    "honestNote": "Correspondance appuyée sur les passages sources listés."
+  }
+}

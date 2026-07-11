@@ -1,0 +1,14 @@
+{
+  "runId": "clonechat-parrain",
+  "result": {
+    "valid": [
+      "cite.ok"
+    ],
+    "labels": [
+      "la page /demo"
+    ],
+    "removed": [
+      "cite.forged"
+    ]
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "objective": "Demande opérationnelle: general",
+  "tasks": [
+    {
+      "key": "outline.1.onboarding.complete_session",
+      "label": "Préparer: Complete onboarding session (READY gate)",
+      "dependsOn": [],
+      "mode": "CONFIRMATION_REQUIRED",
+      "requiresApproval": true
+    },
+    {
+      "key": "outline.2.onboarding.complete_step",
+      "label": "Préparer: Complete onboarding step (server-verified + evidence hash)",
+      "dependsOn": [
+        "outline.1.onboarding.complete_session"
+      ],
+      "mode": "CONFIRMATION_REQUIRED",
+      "requiresApproval": true
+    },
+    {
+      "key": "outline.3.onboarding.document_collection",
+      "label": "Préparer: Onboarding document collection & chase",
+      "dependsOn": [
+        "outline.1.onboarding.complete_session"
+      ],
+      "mode": "CONFIRMATION_REQUIRED",
+      "requiresApproval": true
+    },
+    {
+      "key": "outline.4.onboarding.employee_onboarding_plan",
+      "label": "Préparer: Employee onboarding plan (preboarding, access, equipment, buddy, checkpoints)",
+      "dependsOn": [
+        "outline.1.onboarding.complete_session"
+      ],
+      "mode": "CONFIRMATION_REQUIRED",
+      "requiresApproval": true
+    },
+    {
+      "key": "outline.5.onboarding.get_session",
+      "label": "Préparer: Get onboarding session state + steps",
+      "dependsOn": [
+        "outline.1.onboarding.complete_session"
+      ],
+      "mode": "AUTONOMOUS",
+      "requiresApproval": false
+    },
+    {
+      "key": "outline.6.onboarding.incomplete_handling",
+      "label": "Préparer: Detect & escalate incomplete onboarding",
+      "dependsOn": [
+        "outline.1.onboarding.complete_session"
+      ],
+      "mode": "AUTONOMOUS",
+      "requiresApproval": false
+    },
+    {
+      "key": "outline.7.onboarding.registry_steps",
+      "label": "Préparer: Canonical onboarding step registry",
+      "dependsOn": [
+        "outline.1.onboarding.complete_session"
+      ],
+      "mode": "AUTONOMOUS",
+      "requiresApproval": false
+    },
+    {
+      "key": "outline.8.compensation.salary_change_prepare",
+      "label": "Préparer: Prepare salary change (feeds contract amendment)",
+      "dependsOn": [
+        "outline.1.onboarding.complete_session"
+      ],
+      "mode": "CONFIRMATION_REQUIRED",
+      "requiresApproval": true
+    }
+  ],
+  "deliverables": [],
+  "completionCriteria": [
+    "Tous les livrables préparés et relus.",
+    "Action live débloquée par un provider actif (P16C/externe)."
+  ],
+  "source": "capability_derived_outline"
+}

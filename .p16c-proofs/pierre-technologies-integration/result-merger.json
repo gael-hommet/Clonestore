@@ -1,0 +1,157 @@
+{
+  "onboarding": {
+    "missionStatus": "human_only",
+    "operations": [
+      {
+        "ref": "t1.workflow",
+        "layer": "t1",
+        "status": "prepared_artifact",
+        "detail": "Orchestration de workflow gouverné (le moteur de missions V1 reste la source). — kind=needs_validation, mode=local_safe.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t1.notification",
+        "layer": "t1",
+        "status": "prepared_artifact",
+        "detail": "Relances/rappels gouvernés. — kind=needs_validation, mode=live_disabled (live bloqué).",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t1.document",
+        "layer": "t1",
+        "status": "generated_draft",
+        "detail": "Rendu/gabarits documentaires (préparation, jamais garantie légale). — kind=needs_validation, mode=local_safe.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t1.export",
+        "layer": "t1",
+        "status": "prepared_artifact",
+        "detail": "Export documentaire (téléchargement manuel, aucun transfert live). — kind=needs_validation, mode=local_safe.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t2.clonebrief",
+        "layer": "t2",
+        "status": "prepared_artifact",
+        "detail": "Brief de mission/communication structuré. — kind=needs_validation.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t2.cloneadn",
+        "layer": "t2",
+        "status": "prepared_artifact",
+        "detail": "ADN société (ton/contexte autorisé) pour ancrer les documents. — kind=needs_validation.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t2.clonereview",
+        "layer": "t2",
+        "status": "prepared_artifact",
+        "detail": "Relecture/qualité du livrable. — kind=needs_validation.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t2.clonecontinuum",
+        "layer": "t2",
+        "status": "prepared_artifact",
+        "detail": "Continuité de mission durable. — kind=ok.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "cloneos.mission_plan",
+        "layer": "cloneos",
+        "status": "proposed_action",
+        "detail": "Plan de mission CloneOS proposé (gouverné, non exécuté).",
+        "hasAuthoritativeCompletionEvidence": false
+      }
+    ],
+    "authoritativeCompletion": false,
+    "conflicts": [],
+    "evidenceRefs": [
+      "t1.workflow.artifact",
+      "t1.notification.artifact",
+      "t1.document.artifact",
+      "t1.export.artifact",
+      "t2.clonebrief.clonebrief_artifact",
+      "t2.cloneadn.cloneadn_profile",
+      "t2.clonereview.clonereview_report",
+      "t2.clonecontinuum.clonecontinuum_state",
+      "cloneos.mission_plan"
+    ],
+    "summary": "Décision/complétion réservée à l'humain — Pierre a préparé le nécessaire."
+  },
+  "dismissal": {
+    "missionStatus": "human_only",
+    "operations": [
+      {
+        "ref": "governance.human_only",
+        "layer": "cloneos",
+        "status": "human_only_decision",
+        "detail": "Décision réservée à l'humain: dismissal.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t1.workflow",
+        "layer": "t1",
+        "status": "prepared_artifact",
+        "detail": "Orchestration de workflow gouverné (le moteur de missions V1 reste la source). — kind=needs_validation, mode=local_safe.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t1.evidence",
+        "layer": "t1",
+        "status": "prepared_artifact",
+        "detail": "Trace/preuve d'audit réutilisable. — kind=ok, mode=local_safe.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t2.clonecontinuum",
+        "layer": "t2",
+        "status": "prepared_artifact",
+        "detail": "Continuité de mission durable. — kind=ok.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t2.cloneguard",
+        "layer": "t2",
+        "status": "prepared_artifact",
+        "detail": "Gate de qualité/risque RH. — kind=ok.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t2.clonetrace",
+        "layer": "t2",
+        "status": "prepared_artifact",
+        "detail": "Traçabilité/preuve. — kind=ok.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "t2.clonepolicy",
+        "layer": "t2",
+        "status": "prepared_artifact",
+        "detail": "Politique/vigilance applicable. — kind=ok.",
+        "hasAuthoritativeCompletionEvidence": false
+      },
+      {
+        "ref": "cloneos.mission_plan",
+        "layer": "cloneos",
+        "status": "proposed_action",
+        "detail": "Plan de mission CloneOS proposé (gouverné, non exécuté).",
+        "hasAuthoritativeCompletionEvidence": false
+      }
+    ],
+    "authoritativeCompletion": false,
+    "conflicts": [],
+    "evidenceRefs": [
+      "t1.workflow.artifact",
+      "t1.evidence.artifact",
+      "t2.clonecontinuum.clonecontinuum_state",
+      "t2.cloneguard.cloneguard_decision",
+      "t2.clonetrace.clonetrace_event",
+      "t2.clonepolicy.clonepolicy_decision",
+      "cloneos.mission_plan"
+    ],
+    "summary": "Décision/complétion réservée à l'humain — Pierre a préparé le nécessaire."
+  }
+}

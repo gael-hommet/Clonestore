@@ -1,0 +1,7 @@
+{
+  "runId": "clonechat-parrain",
+  "requiresValidation": true,
+  "emptyValidatorRejected": true,
+  "contradictingRejected": true,
+  "approvedAfterFounder": 1
+}

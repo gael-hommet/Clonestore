@@ -1,0 +1,58 @@
+{
+  "onboarding": {
+    "items": [
+      "pierre.onboarding_offboarding",
+      "pierre.document_depth",
+      "pierre.mission_depth",
+      "pierre.absences_prepayroll"
+    ],
+    "t1": [
+      {
+        "techId": "workflow",
+        "reason": "Orchestration de workflow gouverné (le moteur de missions V1 reste la source).",
+        "liveBlocked": false,
+        "blockedReason": null
+      },
+      {
+        "techId": "notification",
+        "reason": "Relances/rappels gouvernés.",
+        "liveBlocked": true,
+        "blockedReason": "Push temps réel indisponible — rappels cockpit uniquement."
+      },
+      {
+        "techId": "document",
+        "reason": "Rendu/gabarits documentaires (préparation, jamais garantie légale).",
+        "liveBlocked": false,
+        "blockedReason": null
+      },
+      {
+        "techId": "export",
+        "reason": "Export documentaire (téléchargement manuel, aucun transfert live).",
+        "liveBlocked": false,
+        "blockedReason": null
+      }
+    ],
+    "t2": [
+      {
+        "techId": "clonebrief",
+        "reason": "Brief de mission/communication structuré."
+      },
+      {
+        "techId": "cloneadn",
+        "reason": "ADN société (ton/contexte autorisé) pour ancrer les documents."
+      },
+      {
+        "techId": "clonereview",
+        "reason": "Relecture/qualité du livrable."
+      },
+      {
+        "techId": "clonecontinuum",
+        "reason": "Continuité de mission durable."
+      }
+    ],
+    "providers": [
+      "identity_provider",
+      "Push temps réel indisponible — rappels cockpit uniquement."
+    ]
+  }
+}

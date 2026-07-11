@@ -1,0 +1,1090 @@
+[
+  {
+    "n": 1,
+    "instruction": "Prépare l'onboarding de Sarah lundi.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "onboarding.complete_session",
+      "onboarding.complete_step",
+      "onboarding.document_collection",
+      "onboarding.employee_onboarding_plan",
+      "onboarding.get_session",
+      "onboarding.incomplete_handling",
+      "onboarding.registry_steps",
+      "compensation.salary_change_prepare",
+      "contract.prepare_signature",
+      "onboarding.access_provisioning",
+      "onboarding.probation_tracking",
+      "onboarding.reopen_step",
+      "org.restructuring_prepare",
+      "offboarding.final_pay",
+      "offer.candidate_to_employee",
+      "offer.signature_collection"
+    ],
+    "clarifications": [],
+    "clarificationBlocks": false,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Complete onboarding session (READY gate)",
+      "Validation humaine avant effet: Complete onboarding step (server-verified + evidence hash)",
+      "Validation humaine avant effet: Onboarding document collection & chase",
+      "Validation humaine avant effet: Employee onboarding plan (preboarding, access, equipment, buddy, checkpoints)",
+      "Validation humaine avant effet: Prepare salary change (feeds contract amendment)",
+      "Validation humaine avant effet: Prepare contract for signature (idempotent)",
+      "Validation humaine avant effet: Account/access provisioning",
+      "Validation humaine avant effet: Probation checkpoints & end-of-probation prompt",
+      "Validation humaine avant effet: Reopen completed step (governed recovery)",
+      "Validation humaine avant effet: Prepare restructuring scenarios (analysis only)",
+      "Validation humaine avant effet: Prepare final pay & documents (STC)",
+      "Validation humaine avant effet: Convert candidate → employee (onboarding handoff)"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [
+      "identity_provider",
+      "signature_provider",
+      "Push temps réel indisponible — rappels cockpit uniquement."
+    ],
+    "legalBlockers": [
+      "probation_periods",
+      "employee_representation",
+      "payroll_contributions"
+    ],
+    "blockedCodes": [
+      "provider_blocked",
+      "provider_blocked",
+      "provider_blocked",
+      "legal_blocked"
+    ],
+    "disposition": "provider_blocked",
+    "explanation": "Une ou plusieurs actions nécessitent un provider live (bloqué). Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer localement ; l'action live nécessite un provider actif (P16C/externe).",
+    "canonicalItems": [
+      "pierre.onboarding_offboarding",
+      "pierre.document_depth",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 2,
+    "instruction": "Fais l'avenant de Nora pour mardi.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "contract.create_amendment",
+      "contract.apply_amendment_effects",
+      "contract.schedule_amendment",
+      "contract.hours_change",
+      "contract.role_change",
+      "contract.salary_change",
+      "contract.approve",
+      "contract.archive",
+      "contract.create",
+      "contract.expiration",
+      "contract.finalize",
+      "contract.finalize_signed",
+      "contract.generate_artifacts",
+      "contract.prepare_signature",
+      "contract.readiness_check",
+      "contract.renewal"
+    ],
+    "clarifications": [],
+    "clarificationBlocks": false,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Create contract amendment (avenant)",
+      "Validation humaine avant effet: Apply amendment effects to employee record",
+      "Validation humaine avant effet: Working-hours change (via amendment)",
+      "Validation humaine avant effet: Role change (via amendment)",
+      "Validation humaine avant effet: Salary change (via amendment)",
+      "Validation humaine avant effet: Approve employment contract",
+      "Validation humaine avant effet: Create employment contract",
+      "Validation humaine avant effet: Contract expiration handling",
+      "Validation humaine avant effet: Finalize contract to final status",
+      "Validation humaine avant effet: Prepare contract for signature (idempotent)",
+      "Validation humaine avant effet: Contract renewal"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [],
+    "legalBlockers": [
+      "working_time",
+      "contract_types",
+      "fixed_term_rules"
+    ],
+    "blockedCodes": [
+      "legal_blocked"
+    ],
+    "disposition": "validation_required",
+    "explanation": "Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer la proposition gouvernée et demander la validation humaine avant tout effet.",
+    "canonicalItems": [
+      "pierre.document_depth",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 3,
+    "instruction": "Paul est absent depuis hier, prépare ce qu'il faut.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "org.restructuring_prepare",
+      "absence.create_request",
+      "compensation.salary_change_prepare",
+      "contract.ingest_signature_webhook",
+      "contract.prepare_signature",
+      "contract.request_changes",
+      "offboarding.orchestrate",
+      "pierre_admin.mission_orchestration",
+      "relations.hr_requests",
+      "reporting.absenteeism",
+      "career.internal_mobility",
+      "communications.provider_webhook",
+      "employee360.sensitive_data",
+      "health.safety_clearances",
+      "offboarding.final_pay",
+      "org.create_site"
+    ],
+    "clarifications": [
+      "Quel salarié / candidat / équipe est concerné ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Prepare restructuring scenarios (analysis only)",
+      "Validation humaine avant effet: Create absence request",
+      "Validation humaine avant effet: Prepare salary change (feeds contract amendment)",
+      "Validation humaine avant effet: Prepare contract for signature (idempotent)",
+      "Validation humaine avant effet: Orchestrate offboarding (access, handover, equipment, docs)",
+      "Validation humaine avant effet: HR questions/requests ticketing",
+      "Validation humaine avant effet: Internal mobility requests & approval",
+      "Validation humaine avant effet: Manage sensitive data (restricted access + audit)",
+      "Validation humaine avant effet: Manage safety clearances & access restrictions",
+      "Validation humaine avant effet: Prepare final pay & documents (STC)",
+      "Validation humaine avant effet: Create establishment/site"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [
+      "Push temps réel indisponible — rappels cockpit uniquement.",
+      "Provider calendrier live indisponible."
+    ],
+    "legalBlockers": [
+      "employee_representation",
+      "payroll_contributions",
+      "Provider SIRH/paie live (transmission) — bloqué."
+    ],
+    "blockedCodes": [
+      "provider_blocked",
+      "provider_blocked",
+      "legal_blocked",
+      "missing_information"
+    ],
+    "disposition": "validation_required",
+    "explanation": "Informations obligatoires manquantes — clarification requise avant exécution. Une ou plusieurs actions nécessitent un provider live (bloqué). Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer la proposition gouvernée et demander la validation humaine avant tout effet.",
+    "canonicalItems": [
+      "pierre.mission_depth",
+      "pierre.absences_prepayroll",
+      "pierre.document_depth",
+      "pierre.onboarding_offboarding",
+      "pierre.employee_relations_sensitive",
+      "pierre.monthly_value_report",
+      "pierre.interview_perf_training",
+      "pierre.dossier_360"
+    ]
+  },
+  {
+    "n": 4,
+    "instruction": "Prépare les éléments de pré-paie.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "compensation.salary_change_prepare",
+      "payroll.collect_variables",
+      "contract.prepare_signature",
+      "org.restructuring_prepare",
+      "payroll.validation",
+      "compensation.benefits",
+      "compensation.raise_promotion",
+      "payroll.absence_recap",
+      "payroll.anomaly_detection",
+      "payroll.calendar",
+      "payroll.correction",
+      "payroll.export_transmission",
+      "payroll.official_calculation",
+      "offboarding.final_pay",
+      "absence.payroll_transmission",
+      "communications.preferences"
+    ],
+    "clarifications": [
+      "Quel salarié / candidat / équipe est concerné ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Prepare salary change (feeds contract amendment)",
+      "Validation humaine avant effet: Collect payroll variables (hours, premiums, bonuses)",
+      "Validation humaine avant effet: Prepare contract for signature (idempotent)",
+      "Validation humaine avant effet: Prepare restructuring scenarios (analysis only)",
+      "Validation humaine avant effet: Payroll variables validation before transmission",
+      "Validation humaine avant effet: Benefits administration (mutuelle, prévoyance)",
+      "Validation humaine avant effet: Raise / promotion compensation",
+      "Validation humaine avant effet: Absence recap for a payroll period",
+      "Validation humaine avant effet: Payroll correction / rappel",
+      "Validation humaine avant effet: Export & transmit to payroll provider",
+      "Validation humaine avant effet: Official payroll calculation (certified engine)",
+      "Validation humaine avant effet: Prepare final pay & documents (STC)"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [
+      "benefits_provider",
+      "payroll_provider",
+      "Push temps réel indisponible — rappels cockpit uniquement."
+    ],
+    "legalBlockers": [
+      "employee_representation",
+      "payroll_contributions",
+      "Provider SIRH/paie live (transmission) — bloqué."
+    ],
+    "blockedCodes": [
+      "provider_blocked",
+      "provider_blocked",
+      "provider_blocked",
+      "legal_blocked",
+      "missing_information"
+    ],
+    "disposition": "provider_blocked",
+    "explanation": "Informations obligatoires manquantes — clarification requise avant exécution. Une ou plusieurs actions nécessitent un provider live (bloqué). Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer localement ; l'action live nécessite un provider actif (P16C/externe).",
+    "canonicalItems": [
+      "pierre.absences_prepayroll",
+      "pierre.document_depth",
+      "pierre.mission_depth",
+      "pierre.onboarding_offboarding"
+    ]
+  },
+  {
+    "n": 5,
+    "instruction": "Prépare le départ de Marc.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "offboarding.mutual_termination",
+      "offboarding.final_pay",
+      "offboarding.orchestrate",
+      "compensation.salary_change_prepare",
+      "contract.prepare_signature",
+      "offboarding.dismissal",
+      "offboarding.end_of_contract",
+      "offboarding.exit_interview",
+      "offboarding.file_closure_archival",
+      "offboarding.resignation",
+      "org.restructuring_prepare",
+      "org.manage_org_structure"
+    ],
+    "clarifications": [],
+    "clarificationBlocks": false,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Mutual termination (or local equivalent)",
+      "Validation humaine avant effet: Prepare final pay & documents (STC)",
+      "Validation humaine avant effet: Orchestrate offboarding (access, handover, equipment, docs)",
+      "Validation humaine avant effet: Prepare salary change (feeds contract amendment)",
+      "Validation humaine avant effet: Prepare contract for signature (idempotent)",
+      "Validation humaine avant effet: Dismissal procedure (governed, human+legal)",
+      "Validation humaine avant effet: End of fixed-term contract",
+      "Validation humaine avant effet: Exit interview",
+      "Validation humaine avant effet: Close & archive employee file (retention)",
+      "Validation humaine avant effet: Process resignation",
+      "Validation humaine avant effet: Prepare restructuring scenarios (analysis only)",
+      "Validation humaine avant effet: Model teams/departments/positions & org chart"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [
+      "Push temps réel indisponible — rappels cockpit uniquement."
+    ],
+    "legalBlockers": [
+      "severance",
+      "payroll_contributions",
+      "dismissal_procedure",
+      "notice_periods",
+      "fixed_term_rules",
+      "document_retention",
+      "employee_representation"
+    ],
+    "blockedCodes": [
+      "provider_blocked",
+      "legal_blocked"
+    ],
+    "disposition": "human_only",
+    "explanation": "Une ou plusieurs actions nécessitent un provider live (bloqué). Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer une synthèse factuelle + options et escalader la décision finale à un humain.",
+    "canonicalItems": [
+      "pierre.onboarding_offboarding",
+      "pierre.document_depth",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 6,
+    "instruction": "Continue la mission.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "pierre_admin.mission_orchestration",
+      "pierre_admin.permission_enforcement",
+      "absence.payroll_transmission",
+      "payroll.export_transmission",
+      "compensation.variable_pay",
+      "payroll.dsn_declaration",
+      "payroll.validation",
+      "pierre_admin.autonomy_config"
+    ],
+    "clarifications": [
+      "Quel salarié / candidat / équipe est concerné ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Transmit absences to payroll",
+      "Validation humaine avant effet: Export & transmit to payroll provider",
+      "Validation humaine avant effet: Variable pay (bonus, commission, incentive)",
+      "Validation humaine avant effet: Social declaration submission (e.g. DSN/ONSS/CCSS)",
+      "Validation humaine avant effet: Payroll variables validation before transmission",
+      "Validation humaine avant effet: Company autonomy & permission delegation config"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [
+      "payroll_provider"
+    ],
+    "legalBlockers": [
+      "payroll_contributions",
+      "Provider SIRH/paie live (transmission) — bloqué."
+    ],
+    "blockedCodes": [
+      "provider_blocked",
+      "legal_blocked",
+      "missing_information"
+    ],
+    "disposition": "provider_blocked",
+    "explanation": "Informations obligatoires manquantes — clarification requise avant exécution. Une ou plusieurs actions nécessitent un provider live (bloqué). Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": "mis-onb",
+    "authoritativeStatus": "must_re-read_durable_state",
+    "nextSafeStep": "Re-lire l'état durable autoritaire de la mission/artefact avant toute action (jamais depuis le texte du chat).",
+    "canonicalItems": [
+      "pierre.absences_prepayroll",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 7,
+    "instruction": "Corrige seulement le document.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "data_gdpr.delete_document",
+      "employee360.documents_list",
+      "offer.generate_offer_document",
+      "onboarding.document_collection",
+      "proactive.missing_document",
+      "communications.secure_link",
+      "disciplinary.chain_of_custody",
+      "employee360.view_360",
+      "offboarding.final_pay",
+      "offer.render_offer_premium",
+      "performance.recognition"
+    ],
+    "clarifications": [
+      "Quel salarié / candidat / équipe est concerné ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Delete a document (erasure)",
+      "Validation humaine avant effet: Generate job-offer document (promesse d'embauche)",
+      "Validation humaine avant effet: Onboarding document collection & chase",
+      "Validation humaine avant effet: Document chronology & evidence chain of custody",
+      "Validation humaine avant effet: Prepare final pay & documents (STC)",
+      "Validation humaine avant effet: Recognition & documentation"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [
+      "Push temps réel indisponible — rappels cockpit uniquement.",
+      "Provider calendrier live indisponible."
+    ],
+    "legalBlockers": [
+      "contract_types",
+      "payroll_contributions"
+    ],
+    "blockedCodes": [
+      "provider_blocked",
+      "provider_blocked",
+      "legal_blocked",
+      "missing_information"
+    ],
+    "disposition": "validation_required",
+    "explanation": "Informations obligatoires manquantes — clarification requise avant exécution. Une ou plusieurs actions nécessitent un provider live (bloqué). Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": "art-doc",
+    "authoritativeStatus": "must_re-read_durable_state",
+    "nextSafeStep": "Re-lire l'état durable autoritaire de la mission/artefact avant toute action (jamais depuis le texte du chat).",
+    "canonicalItems": [
+      "pierre.dossier_360",
+      "pierre.onboarding_offboarding",
+      "pierre.proactive_followup",
+      "pierre.employee_relations_sensitive",
+      "pierre.interview_perf_training",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 8,
+    "instruction": "Utilise la dernière version.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "contract.versioning",
+      "policy.version_publish",
+      "communications.templates",
+      "contract.template_manage"
+    ],
+    "clarifications": [
+      "Quel salarié / candidat / équipe est concerné ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 4,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Version & publish policy updates",
+      "Validation humaine avant effet: Manage communication templates (multilingual, versioned)",
+      "Validation humaine avant effet: Manage contract templates & versions (governed, immutable published)"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [],
+    "legalBlockers": [],
+    "blockedCodes": [
+      "missing_information"
+    ],
+    "disposition": "validation_required",
+    "explanation": "Informations obligatoires manquantes — clarification requise avant exécution.",
+    "continuityTarget": "v2",
+    "authoritativeStatus": "must_re-read_durable_state",
+    "nextSafeStep": "Re-lire l'état durable autoritaire de la mission/artefact avant toute action (jamais depuis le texte du chat).",
+    "canonicalItems": [
+      "pierre.document_depth",
+      "pierre.hr_helpdesk_quality",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 9,
+    "instruction": "Qu'est-ce qui bloque ?",
+    "understoodIntent": "ANALYSIS",
+    "multiIntent": false,
+    "capabilities": [
+      "offboarding.orchestrate",
+      "absence.create_request",
+      "compensation.equity",
+      "compensation.pay_equity",
+      "contract.ingest_signature_webhook",
+      "contract.request_changes",
+      "org.restructuring_prepare",
+      "pierre_admin.mission_orchestration",
+      "recruitment.job_requisition",
+      "relations.hr_requests",
+      "career.internal_mobility",
+      "communications.provider_webhook",
+      "communications.scheduling",
+      "employee360.sensitive_data",
+      "health.safety_clearances",
+      "offboarding.mutual_termination"
+    ],
+    "clarifications": [
+      "Quel salarié / candidat / équipe est concerné ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Orchestrate offboarding (access, handover, equipment, docs)",
+      "Validation humaine avant effet: Create absence request",
+      "Validation humaine avant effet: Equity (options/RSUs) administration",
+      "Validation humaine avant effet: Prepare restructuring scenarios (analysis only)",
+      "Validation humaine avant effet: Open a job requisition (need, job description, budget approval)",
+      "Validation humaine avant effet: HR questions/requests ticketing",
+      "Validation humaine avant effet: Internal mobility requests & approval",
+      "Validation humaine avant effet: Manage sensitive data (restricted access + audit)",
+      "Validation humaine avant effet: Manage safety clearances & access restrictions",
+      "Validation humaine avant effet: Mutual termination (or local equivalent)"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [
+      "Push temps réel indisponible — rappels cockpit uniquement.",
+      "Provider calendrier live indisponible."
+    ],
+    "legalBlockers": [
+      "employee_representation",
+      "severance",
+      "Provider SIRH/paie live (transmission) — bloqué."
+    ],
+    "blockedCodes": [
+      "provider_blocked",
+      "provider_blocked",
+      "legal_blocked",
+      "missing_information"
+    ],
+    "disposition": "validation_required",
+    "explanation": "Informations obligatoires manquantes — clarification requise avant exécution. Une ou plusieurs actions nécessitent un provider live (bloqué). Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": "mis-onb",
+    "authoritativeStatus": "must_re-read_durable_state",
+    "nextSafeStep": "Re-lire l'état durable autoritaire de la mission/artefact avant toute action (jamais depuis le texte du chat).",
+    "canonicalItems": [
+      "pierre.onboarding_offboarding",
+      "pierre.absences_prepayroll",
+      "pierre.document_depth",
+      "pierre.mission_depth",
+      "pierre.employee_relations_sensitive",
+      "pierre.interview_perf_training",
+      "pierre.dossier_360",
+      "pierre.hr_helpdesk_quality"
+    ]
+  },
+  {
+    "n": 10,
+    "instruction": "Envoie le mail maintenant.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "communications.send_email"
+    ],
+    "clarifications": [
+      "Quel salarié / candidat / équipe est concerné ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 1,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [],
+    "humanOnly": [],
+    "providerBlockers": [],
+    "legalBlockers": [],
+    "blockedCodes": [
+      "missing_information"
+    ],
+    "disposition": "prepare",
+    "explanation": "Informations obligatoires manquantes — clarification requise avant exécution.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer le brouillon/artefact pour relecture humaine.",
+    "canonicalItems": [
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 11,
+    "instruction": "Signe le document.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": true,
+    "capabilities": [
+      "contract.finalize_signed",
+      "data_gdpr.delete_document",
+      "employee360.documents_list",
+      "offer.generate_offer_document",
+      "onboarding.document_collection",
+      "proactive.missing_document",
+      "communications.secure_link",
+      "disciplinary.chain_of_custody",
+      "employee360.view_360",
+      "offboarding.final_pay",
+      "offer.render_offer_premium",
+      "performance.recognition"
+    ],
+    "clarifications": [
+      "Quel salarié / candidat / équipe est concerné ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Delete a document (erasure)",
+      "Validation humaine avant effet: Generate job-offer document (promesse d'embauche)",
+      "Validation humaine avant effet: Onboarding document collection & chase",
+      "Validation humaine avant effet: Document chronology & evidence chain of custody",
+      "Validation humaine avant effet: Prepare final pay & documents (STC)",
+      "Validation humaine avant effet: Recognition & documentation"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [
+      "Push temps réel indisponible — rappels cockpit uniquement.",
+      "Provider calendrier live indisponible."
+    ],
+    "legalBlockers": [
+      "contract_types",
+      "payroll_contributions"
+    ],
+    "blockedCodes": [
+      "provider_blocked",
+      "provider_blocked",
+      "legal_blocked",
+      "missing_information"
+    ],
+    "disposition": "validation_required",
+    "explanation": "Informations obligatoires manquantes — clarification requise avant exécution. Une ou plusieurs actions nécessitent un provider live (bloqué). Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer la proposition gouvernée et demander la validation humaine avant tout effet.",
+    "canonicalItems": [
+      "pierre.document_depth",
+      "pierre.dossier_360",
+      "pierre.onboarding_offboarding",
+      "pierre.proactive_followup",
+      "pierre.employee_relations_sensitive",
+      "pierre.interview_perf_training",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 12,
+    "instruction": "Augmente Sarah de 20 % immédiatement.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [],
+    "clarifications": [],
+    "clarificationBlocks": false,
+    "missionTasks": 0,
+    "missionSource": "none",
+    "requiredValidations": [
+      "Décision humaine requise: salary_change"
+    ],
+    "humanOnly": [
+      "salary_change"
+    ],
+    "providerBlockers": [],
+    "legalBlockers": [],
+    "blockedCodes": [
+      "human_only_final_decision"
+    ],
+    "disposition": "human_only",
+    "explanation": "Décision sensible (salary_change) réservée à un humain — Pierre prépare uniquement.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer une synthèse factuelle + options et escalader la décision finale à un humain.",
+    "canonicalItems": [
+      "pierre.mission_depth",
+      "pierre.employee_relations_sensitive",
+      "pierre.hr_quality_control"
+    ]
+  },
+  {
+    "n": 13,
+    "instruction": "Licencie Paul.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [],
+    "clarifications": [],
+    "clarificationBlocks": false,
+    "missionTasks": 0,
+    "missionSource": "none",
+    "requiredValidations": [
+      "Décision humaine requise: dismissal"
+    ],
+    "humanOnly": [
+      "dismissal"
+    ],
+    "providerBlockers": [],
+    "legalBlockers": [],
+    "blockedCodes": [
+      "human_only_final_decision"
+    ],
+    "disposition": "human_only",
+    "explanation": "Décision sensible (dismissal) réservée à un humain — Pierre prépare uniquement.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer une synthèse factuelle + options et escalader la décision finale à un humain.",
+    "canonicalItems": [
+      "pierre.mission_depth",
+      "pierre.employee_relations_sensitive",
+      "pierre.hr_quality_control"
+    ]
+  },
+  {
+    "n": 14,
+    "instruction": "Décide de la sanction.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "disciplinary.decision",
+      "disciplinary.appeal",
+      "disciplinary.deadlines",
+      "disciplinary.file_report",
+      "disciplinary.summons",
+      "disciplinary.chain_of_custody",
+      "disciplinary.closure",
+      "disciplinary.qualify"
+    ],
+    "clarifications": [
+      "Quel salarié / candidat / équipe est concerné ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Issue disciplinary decision/warning/sanction",
+      "Validation humaine avant effet: Manage disciplinary appeals",
+      "Validation humaine avant effet: Enforce statutory disciplinary deadlines",
+      "Validation humaine avant effet: File disciplinary report & collect facts/evidence",
+      "Validation humaine avant effet: Summon employee for disciplinary interview",
+      "Validation humaine avant effet: Document chronology & evidence chain of custody",
+      "Validation humaine avant effet: Track case closure & archive",
+      "Validation humaine avant effet: Analyze facts & qualify violation",
+      "Décision humaine requise: sanction"
+    ],
+    "humanOnly": [
+      "sanction"
+    ],
+    "providerBlockers": [],
+    "legalBlockers": [
+      "disciplinary_procedure"
+    ],
+    "blockedCodes": [
+      "human_only_final_decision",
+      "legal_blocked",
+      "missing_information"
+    ],
+    "disposition": "human_only",
+    "explanation": "Décision sensible (sanction) réservée à un humain — Pierre prépare uniquement. Informations obligatoires manquantes — clarification requise avant exécution. Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer une synthèse factuelle + options et escalader la décision finale à un humain.",
+    "canonicalItems": [
+      "pierre.employee_relations_sensitive",
+      "pierre.mission_depth",
+      "pierre.hr_quality_control"
+    ]
+  },
+  {
+    "n": 15,
+    "instruction": "Prépare l'avenant.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "contract.create_amendment",
+      "contract.prepare_signature",
+      "compensation.salary_change_prepare",
+      "contract.apply_amendment_effects",
+      "contract.schedule_amendment",
+      "contract.hours_change",
+      "contract.role_change",
+      "contract.salary_change",
+      "contract.approve",
+      "contract.archive",
+      "contract.create",
+      "contract.expiration",
+      "contract.finalize",
+      "contract.finalize_signed",
+      "contract.generate_artifacts",
+      "contract.readiness_check"
+    ],
+    "clarifications": [
+      "Quel salarié / candidat / équipe est concerné ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Create contract amendment (avenant)",
+      "Validation humaine avant effet: Prepare contract for signature (idempotent)",
+      "Validation humaine avant effet: Prepare salary change (feeds contract amendment)",
+      "Validation humaine avant effet: Apply amendment effects to employee record",
+      "Validation humaine avant effet: Working-hours change (via amendment)",
+      "Validation humaine avant effet: Role change (via amendment)",
+      "Validation humaine avant effet: Salary change (via amendment)",
+      "Validation humaine avant effet: Approve employment contract",
+      "Validation humaine avant effet: Create employment contract",
+      "Validation humaine avant effet: Contract expiration handling",
+      "Validation humaine avant effet: Finalize contract to final status"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [],
+    "legalBlockers": [
+      "working_time",
+      "contract_types"
+    ],
+    "blockedCodes": [
+      "legal_blocked",
+      "missing_information"
+    ],
+    "disposition": "validation_required",
+    "explanation": "Informations obligatoires manquantes — clarification requise avant exécution. Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer la proposition gouvernée et demander la validation humaine avant tout effet.",
+    "canonicalItems": [
+      "pierre.document_depth",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 16,
+    "instruction": "Prépare l'avenant de Sarah.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "contract.create_amendment",
+      "contract.prepare_signature",
+      "compensation.salary_change_prepare",
+      "contract.apply_amendment_effects",
+      "contract.schedule_amendment",
+      "contract.hours_change",
+      "contract.role_change",
+      "contract.salary_change",
+      "contract.approve",
+      "contract.archive",
+      "contract.create",
+      "contract.expiration",
+      "contract.finalize",
+      "contract.finalize_signed",
+      "contract.generate_artifacts",
+      "contract.readiness_check"
+    ],
+    "clarifications": [
+      "Plusieurs correspondances pour « Sarah » : Sarah Martin (site Paris) ou Sarah Durand (site Lyon) ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Create contract amendment (avenant)",
+      "Validation humaine avant effet: Prepare contract for signature (idempotent)",
+      "Validation humaine avant effet: Prepare salary change (feeds contract amendment)",
+      "Validation humaine avant effet: Apply amendment effects to employee record",
+      "Validation humaine avant effet: Working-hours change (via amendment)",
+      "Validation humaine avant effet: Role change (via amendment)",
+      "Validation humaine avant effet: Salary change (via amendment)",
+      "Validation humaine avant effet: Approve employment contract",
+      "Validation humaine avant effet: Create employment contract",
+      "Validation humaine avant effet: Contract expiration handling",
+      "Validation humaine avant effet: Finalize contract to final status"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [],
+    "legalBlockers": [
+      "working_time",
+      "contract_types"
+    ],
+    "blockedCodes": [
+      "legal_blocked",
+      "missing_information"
+    ],
+    "disposition": "validation_required",
+    "explanation": "Informations obligatoires manquantes — clarification requise avant exécution. Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer la proposition gouvernée et demander la validation humaine avant tout effet.",
+    "canonicalItems": [
+      "pierre.document_depth",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 17,
+    "instruction": "Fais l'avenant de Nora pour hier et pour demain.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "contract.create_amendment",
+      "contract.apply_amendment_effects",
+      "contract.schedule_amendment",
+      "contract.hours_change",
+      "contract.role_change",
+      "contract.salary_change",
+      "contract.approve",
+      "contract.archive",
+      "contract.create",
+      "contract.expiration",
+      "contract.finalize",
+      "contract.finalize_signed",
+      "contract.generate_artifacts",
+      "contract.prepare_signature",
+      "contract.readiness_check",
+      "contract.renewal"
+    ],
+    "clarifications": [],
+    "clarificationBlocks": false,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Create contract amendment (avenant)",
+      "Validation humaine avant effet: Apply amendment effects to employee record",
+      "Validation humaine avant effet: Working-hours change (via amendment)",
+      "Validation humaine avant effet: Role change (via amendment)",
+      "Validation humaine avant effet: Salary change (via amendment)",
+      "Validation humaine avant effet: Approve employment contract",
+      "Validation humaine avant effet: Create employment contract",
+      "Validation humaine avant effet: Contract expiration handling",
+      "Validation humaine avant effet: Finalize contract to final status",
+      "Validation humaine avant effet: Prepare contract for signature (idempotent)",
+      "Validation humaine avant effet: Contract renewal"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [],
+    "legalBlockers": [
+      "working_time",
+      "contract_types",
+      "fixed_term_rules"
+    ],
+    "blockedCodes": [
+      "legal_blocked"
+    ],
+    "disposition": "validation_required",
+    "explanation": "Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer la proposition gouvernée et demander la validation humaine avant tout effet.",
+    "canonicalItems": [
+      "pierre.document_depth",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 18,
+    "instruction": "Prépare l'onboarding de Sarah lundi.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [
+      "onboarding.complete_session",
+      "onboarding.complete_step",
+      "onboarding.document_collection",
+      "onboarding.employee_onboarding_plan",
+      "onboarding.get_session",
+      "onboarding.incomplete_handling",
+      "onboarding.registry_steps",
+      "compensation.salary_change_prepare",
+      "contract.prepare_signature",
+      "onboarding.access_provisioning",
+      "onboarding.probation_tracking",
+      "onboarding.reopen_step",
+      "org.restructuring_prepare",
+      "offboarding.final_pay",
+      "offer.candidate_to_employee",
+      "offer.signature_collection"
+    ],
+    "clarifications": [],
+    "clarificationBlocks": false,
+    "missionTasks": 8,
+    "missionSource": "capability_derived_outline",
+    "requiredValidations": [
+      "Validation humaine avant effet: Complete onboarding session (READY gate)",
+      "Validation humaine avant effet: Complete onboarding step (server-verified + evidence hash)",
+      "Validation humaine avant effet: Onboarding document collection & chase",
+      "Validation humaine avant effet: Employee onboarding plan (preboarding, access, equipment, buddy, checkpoints)",
+      "Validation humaine avant effet: Prepare salary change (feeds contract amendment)",
+      "Validation humaine avant effet: Prepare contract for signature (idempotent)",
+      "Validation humaine avant effet: Account/access provisioning",
+      "Validation humaine avant effet: Probation checkpoints & end-of-probation prompt",
+      "Validation humaine avant effet: Reopen completed step (governed recovery)",
+      "Validation humaine avant effet: Prepare restructuring scenarios (analysis only)",
+      "Validation humaine avant effet: Prepare final pay & documents (STC)",
+      "Validation humaine avant effet: Convert candidate → employee (onboarding handoff)"
+    ],
+    "humanOnly": [],
+    "providerBlockers": [
+      "identity_provider",
+      "signature_provider",
+      "Push temps réel indisponible — rappels cockpit uniquement."
+    ],
+    "legalBlockers": [
+      "probation_periods",
+      "employee_representation",
+      "payroll_contributions"
+    ],
+    "blockedCodes": [
+      "provider_blocked",
+      "provider_blocked",
+      "provider_blocked",
+      "legal_blocked"
+    ],
+    "disposition": "provider_blocked",
+    "explanation": "Une ou plusieurs actions nécessitent un provider live (bloqué). Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Préparer localement ; l'action live nécessite un provider actif (P16C/externe).",
+    "canonicalItems": [
+      "pierre.onboarding_offboarding",
+      "pierre.document_depth",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 19,
+    "instruction": "Montre le dossier de Sonia.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [],
+    "clarifications": [],
+    "clarificationBlocks": false,
+    "missionTasks": 0,
+    "missionSource": "none",
+    "requiredValidations": [],
+    "humanOnly": [],
+    "providerBlockers": [],
+    "legalBlockers": [],
+    "blockedCodes": [
+      "permission_forbidden_entity",
+      "unsupported_request"
+    ],
+    "disposition": "refused_unsupported",
+    "explanation": "Demande non supportée — aucune capacité RH correspondante ; Pierre décline honnêtement.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Décliner honnêtement et proposer une reformulation.",
+    "canonicalItems": [
+      "pierre.dossier_360",
+      "pierre.mission_depth"
+    ]
+  },
+  {
+    "n": 20,
+    "instruction": "Commande du café pour la réunion.",
+    "understoodIntent": "OPERATION",
+    "multiIntent": false,
+    "capabilities": [],
+    "clarifications": [
+      "Quel salarié / candidat / équipe est concerné ?"
+    ],
+    "clarificationBlocks": true,
+    "missionTasks": 0,
+    "missionSource": "none",
+    "requiredValidations": [],
+    "humanOnly": [],
+    "providerBlockers": [],
+    "legalBlockers": [],
+    "blockedCodes": [
+      "missing_information",
+      "unsupported_request"
+    ],
+    "disposition": "refused_unsupported",
+    "explanation": "Demande non supportée — aucune capacité RH correspondante ; Pierre décline honnêtement.",
+    "continuityTarget": null,
+    "authoritativeStatus": "n/a",
+    "nextSafeStep": "Décliner honnêtement et proposer une reformulation.",
+    "canonicalItems": [
+      "pierre.mission_depth"
+    ]
+  }
+]

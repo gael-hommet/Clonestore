@@ -1,0 +1,9 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "exactCode": "src/app/assistant/layout.tsx rendait <AccessLockScreen title=\"CloneChat arrive bientot.\" .../> quand !isCloneChatEnabled()",
+  "previousFlagDefault": "isCloneChatEnabled() lisait CLONECHAT_ENABLED et retournait false par defaut (variable non definie => produit CACHE)",
+  "routeRegistry": "/assistant status=gated, futurePhase=P9.2, note=Verrouille serveur par feature flag",
+  "tourCopy": "etape clonechat: 'Il arrive bientot — en attendant, Pierre est deja la.'",
+  "sharedComponent": "AccessLockScreen partage (cockpit/messagerie/checkout) — non supprime"
+}

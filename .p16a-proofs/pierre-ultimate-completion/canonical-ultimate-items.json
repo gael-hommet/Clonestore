@@ -1,0 +1,185 @@
+{
+  "count": 12,
+  "recovery": {
+    "ok": true,
+    "masterSplitCount": 12,
+    "recoveredCount": 12,
+    "missing": [],
+    "invented": [],
+    "issues": []
+  },
+  "items": [
+    {
+      "id": "pierre.mission_depth",
+      "title": "Profondeur du moteur de missions RH",
+      "featureStatus": "verified",
+      "pierreOwnedBehavior": "Transformer une demande RH autorisée en mission gouvernée multi-étapes (objectif, tâches, dépendances, validations, critères de complétion) via le compilateur de plan existant — jamais d'exécution sensible autonome.",
+      "t1Needs": [
+        "workflow"
+      ],
+      "t2Needs": [
+        "clonecontinuum"
+      ],
+      "externalDependency": null,
+      "forbiddenClaim": "Exécution autonome d'actes RH sensibles."
+    },
+    {
+      "id": "pierre.document_depth",
+      "title": "Profondeur documentaire RH",
+      "featureStatus": "partial",
+      "pierreOwnedBehavior": "Préparer un document/avenant/attestation RH gouverné (brouillon → validation humaine), exposer les variables/placeholders et l'absence de garantie légale ; déclarer DocumentTech/ExportTech pour le rendu/export.",
+      "t1Needs": [
+        "document",
+        "export"
+      ],
+      "t2Needs": [
+        "cloneadn",
+        "clonebrief",
+        "clonereview"
+      ],
+      "externalDependency": null,
+      "forbiddenClaim": "Contrat/avenant légalement garanti."
+    },
+    {
+      "id": "pierre.dossier_360",
+      "title": "Dossier salarié 360",
+      "featureStatus": "partial",
+      "pierreOwnedBehavior": "Exposer les exigences d'un dossier salarié 360 (données requises, timeline, preuves) en lecture gouvernée ; déclarer MemoryTech/EvidenceTech ; jamais le « registre officiel de vérité ».",
+      "t1Needs": [
+        "memory",
+        "evidence"
+      ],
+      "t2Needs": [
+        "cloneadn",
+        "clonetrace"
+      ],
+      "externalDependency": null,
+      "forbiddenClaim": "Registre RH officiel de vérité."
+    },
+    {
+      "id": "pierre.onboarding_offboarding",
+      "title": "Onboarding / offboarding en profondeur",
+      "featureStatus": "partial",
+      "pierreOwnedBehavior": "Dériver la chaîne opérationnelle onboarding/offboarding gouvernée (identification, documents, communications, checklist, relances) depuis les capacités + le contexte société — jamais une séquence universelle hardcodée ; jamais remplacer la décision du manager.",
+      "t1Needs": [
+        "workflow",
+        "notification",
+        "document"
+      ],
+      "t2Needs": [
+        "clonebrief"
+      ],
+      "externalDependency": null,
+      "forbiddenClaim": "Remplacement des décisions du manager."
+    },
+    {
+      "id": "pierre.absences_prepayroll",
+      "title": "Absences + préparation pré-paie",
+      "featureStatus": "partial",
+      "pierreOwnedBehavior": "Préparer les éléments variables de pré-paie (préparation uniquement, validés avant toute transmission) — jamais un moteur de paie/DSN ; déclarer DocumentTech/ExportTech.",
+      "t1Needs": [
+        "document",
+        "export"
+      ],
+      "t2Needs": [],
+      "externalDependency": "Provider SIRH/paie live (transmission) — bloqué.",
+      "forbiddenClaim": "Moteur de paie / DSN."
+    },
+    {
+      "id": "pierre.interview_perf_training",
+      "title": "Entretiens / performance / formation",
+      "featureStatus": "partial",
+      "pierreOwnedBehavior": "Préparer convocations, trames et comptes-rendus d'entretiens/performance/formation (préparation gouvernée, l'humain conduit) ; déclarer CalendarTech/DocumentTech — jamais décider notes/promotions.",
+      "t1Needs": [
+        "calendar",
+        "document"
+      ],
+      "t2Needs": [
+        "clonelearn",
+        "clonereview"
+      ],
+      "externalDependency": "Provider calendrier live — bloqué.",
+      "forbiddenClaim": "Décider des notations/promotions."
+    },
+    {
+      "id": "pierre.employee_relations_sensitive",
+      "title": "Cas RH sensibles (préparation)",
+      "featureStatus": "partial",
+      "pierreOwnedBehavior": "Structurer un cas RH sensible (intake, chronologie, preuves, options) en préparation seulement ; décisions finales HUMAN_ONLY, jamais automatisées ; déclarer EvidenceTech.",
+      "t1Needs": [
+        "evidence"
+      ],
+      "t2Needs": [
+        "cloneguard",
+        "clonetrace",
+        "clonepolicy"
+      ],
+      "externalDependency": null,
+      "forbiddenClaim": "Décision disciplinaire finale."
+    },
+    {
+      "id": "pierre.proactive_followup",
+      "title": "Suivi RH proactif",
+      "featureStatus": "partial",
+      "pierreOwnedBehavior": "Transformer un signal RH en relance gouvernée proposée (rappel cockpit) — jamais agir sans validation ; déclarer NotificationTech.",
+      "t1Needs": [
+        "notification"
+      ],
+      "t2Needs": [
+        "clonesignals"
+      ],
+      "externalDependency": "Push temps réel live — bloqué (rappels cockpit uniquement).",
+      "forbiddenClaim": "Agir sans validation."
+    },
+    {
+      "id": "pierre.monthly_value_report",
+      "title": "Rapport de valeur/ROI mensuel",
+      "featureStatus": "architecture_ready",
+      "pierreOwnedBehavior": "Exposer les métriques de valeur/ROI RH comme ESTIMATIONS gouvernées (calcul réel via analytics.compute, RLS) ; déclarer AnalyticsTech pour le rapport livré — jamais d'économies garanties.",
+      "t1Needs": [
+        "analytics"
+      ],
+      "t2Needs": [],
+      "externalDependency": null,
+      "forbiddenClaim": "Économies garanties."
+    },
+    {
+      "id": "pierre.sector_adaptation",
+      "title": "Adaptation sectorielle RH",
+      "featureStatus": "architecture_ready",
+      "pierreOwnedBehavior": "Comportement honnête uniquement : refuser d'inventer le droit sectoriel/pays et exposer la dépendance externe (ConnectorTech + revue légale). La fonctionnalité sourcée reste external-blocked.",
+      "t1Needs": [
+        "connector"
+      ],
+      "t2Needs": [],
+      "externalDependency": "Sourcing légal/sectoriel externe (jamais inventer le droit) — bloqué.",
+      "forbiddenClaim": "Conforme au droit [secteur/pays]."
+    },
+    {
+      "id": "pierre.hr_helpdesk_quality",
+      "title": "Qualité du helpdesk RH",
+      "featureStatus": "verified",
+      "pierreOwnedBehavior": "Répondre aux questions RH avec couverture/qualité gouvernée, ancrée sur la canon (capacités) ; distinguer réponse informationnelle vs préparation d'action.",
+      "t1Needs": [
+        "memory"
+      ],
+      "t2Needs": [],
+      "externalDependency": null,
+      "forbiddenClaim": "Conseil juridique garanti."
+    },
+    {
+      "id": "pierre.hr_quality_control",
+      "title": "Contrôle qualité RH (CloneGuard)",
+      "featureStatus": "partial",
+      "pierreOwnedBehavior": "Contrôle qualité/risque RH (CloneGuard) exposé comme gate de qualité réutilisable via EvidenceTech ; approfondit — ne remplace jamais — les floors existants.",
+      "t1Needs": [
+        "evidence"
+      ],
+      "t2Needs": [
+        "cloneguard"
+      ],
+      "externalDependency": null,
+      "forbiddenClaim": "Garantie de conformité."
+    }
+  ]
+}

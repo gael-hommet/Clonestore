@@ -1,0 +1,280 @@
+[
+  {
+    "id": "pierre.mission_depth",
+    "label": "Profondeur du moteur de missions RH",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "verified",
+    "pierreOwnedBehavior": "Transformer une demande RH autorisée en mission gouvernée multi-étapes (objectif, tâches, dépendances, validations, critères de complétion) via le compilateur de plan existant — jamais d'exécution sensible autonome.",
+    "reusedModules": [
+      "cognitive-runtime/plan-generator.ts",
+      "runtime-plan-compiler.ts",
+      "cognitive-runtime/request-interpreter.ts"
+    ],
+    "existingEvidence": "compileMissionPlan ok=true, steps=3, fingerprint=set",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE via technologies (T1:workflow, T2:clonecontinuum) réservée à P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:workflow",
+      "T2:clonecontinuum"
+    ],
+    "externalDependency": null,
+    "forbiddenClaim": "Exécution autonome d'actes RH sensibles."
+  },
+  {
+    "id": "pierre.document_depth",
+    "label": "Profondeur documentaire RH",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "partial",
+    "pierreOwnedBehavior": "Préparer un document/avenant/attestation RH gouverné (brouillon → validation humaine), exposer les variables/placeholders et l'absence de garantie légale ; déclarer DocumentTech/ExportTech pour le rendu/export.",
+    "reusedModules": [
+      "hr-canon/capability-registry.ts",
+      "cloneguard.ts",
+      "autonomy.ts"
+    ],
+    "existingEvidence": "caps=16, docCap=contract.create_amendment, disposition=prepare (never execute_local)",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE via technologies (T1:document, T1:export, T2:cloneadn, T2:clonebrief, T2:clonereview) réservée à P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:document",
+      "T1:export",
+      "T2:cloneadn",
+      "T2:clonebrief",
+      "T2:clonereview"
+    ],
+    "externalDependency": null,
+    "forbiddenClaim": "Contrat/avenant légalement garanti."
+  },
+  {
+    "id": "pierre.dossier_360",
+    "label": "Dossier salarié 360",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "partial",
+    "pierreOwnedBehavior": "Exposer les exigences d'un dossier salarié 360 (données requises, timeline, preuves) en lecture gouvernée ; déclarer MemoryTech/EvidenceTech ; jamais le « registre officiel de vérité ».",
+    "reusedModules": [
+      "hr/employee-file.ts",
+      "cognitive-runtime/operational-memory.ts",
+      "cognitive-runtime/evidence.ts"
+    ],
+    "existingEvidence": "employee360 capabilities=14; MemoryTech/EvidenceTech declared",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE via technologies (T1:memory, T1:evidence, T2:cloneadn, T2:clonetrace) réservée à P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:memory",
+      "T1:evidence",
+      "T2:cloneadn",
+      "T2:clonetrace"
+    ],
+    "externalDependency": null,
+    "forbiddenClaim": "Registre RH officiel de vérité."
+  },
+  {
+    "id": "pierre.onboarding_offboarding",
+    "label": "Onboarding / offboarding en profondeur",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "partial",
+    "pierreOwnedBehavior": "Dériver la chaîne opérationnelle onboarding/offboarding gouvernée (identification, documents, communications, checklist, relances) depuis les capacités + le contexte société — jamais une séquence universelle hardcodée ; jamais remplacer la décision du manager.",
+    "reusedModules": [
+      "hr-mission-packs/compiler.ts",
+      "cognitive-runtime/plan-generator.ts",
+      "hr-canon/capability-registry.ts"
+    ],
+    "existingEvidence": "caps=12, onboarding/offboarding domain present=true",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE via technologies (T1:workflow, T1:notification, T1:document, T2:clonebrief) réservée à P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:workflow",
+      "T1:notification",
+      "T1:document",
+      "T2:clonebrief"
+    ],
+    "externalDependency": null,
+    "forbiddenClaim": "Remplacement des décisions du manager."
+  },
+  {
+    "id": "pierre.absences_prepayroll",
+    "label": "Absences + préparation pré-paie",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "partial",
+    "pierreOwnedBehavior": "Préparer les éléments variables de pré-paie (préparation uniquement, validés avant toute transmission) — jamais un moteur de paie/DSN ; déclarer DocumentTech/ExportTech.",
+    "reusedModules": [
+      "hr-canon/capability-registry.ts",
+      "autonomy.ts",
+      "cloneguard.ts"
+    ],
+    "existingEvidence": "caps=16, external/legal payroll never autonomous=true",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE dépend d'un provider externe (Provider SIRH/paie live (transmission) — bloqué.) + wiring P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:document",
+      "T1:export"
+    ],
+    "externalDependency": "Provider SIRH/paie live (transmission) — bloqué.",
+    "forbiddenClaim": "Moteur de paie / DSN."
+  },
+  {
+    "id": "pierre.interview_perf_training",
+    "label": "Entretiens / performance / formation",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "partial",
+    "pierreOwnedBehavior": "Préparer convocations, trames et comptes-rendus d'entretiens/performance/formation (préparation gouvernée, l'humain conduit) ; déclarer CalendarTech/DocumentTech — jamais décider notes/promotions.",
+    "reusedModules": [
+      "hr-canon/capability-registry.ts",
+      "cognitive-runtime/temporal-resolution.ts"
+    ],
+    "existingEvidence": "perf/training/career capabilities=18, date('la semaine prochaine')=resolved",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE dépend d'un provider externe (Provider calendrier live — bloqué.) + wiring P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:calendar",
+      "T1:document",
+      "T2:clonelearn",
+      "T2:clonereview"
+    ],
+    "externalDependency": "Provider calendrier live — bloqué.",
+    "forbiddenClaim": "Décider des notations/promotions."
+  },
+  {
+    "id": "pierre.employee_relations_sensitive",
+    "label": "Cas RH sensibles (préparation)",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "partial",
+    "pierreOwnedBehavior": "Structurer un cas RH sensible (intake, chronologie, preuves, options) en préparation seulement ; décisions finales HUMAN_ONLY, jamais automatisées ; déclarer EvidenceTech.",
+    "reusedModules": [
+      "cloneguard.ts",
+      "cognitive-runtime/autonomy-policy.ts",
+      "cognitive-runtime/evidence.ts"
+    ],
+    "existingEvidence": "humanOnly=true, categories=[sanction]",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE via technologies (T1:evidence, T2:cloneguard, T2:clonetrace, T2:clonepolicy) réservée à P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:evidence",
+      "T2:cloneguard",
+      "T2:clonetrace",
+      "T2:clonepolicy"
+    ],
+    "externalDependency": null,
+    "forbiddenClaim": "Décision disciplinaire finale."
+  },
+  {
+    "id": "pierre.proactive_followup",
+    "label": "Suivi RH proactif",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "partial",
+    "pierreOwnedBehavior": "Transformer un signal RH en relance gouvernée proposée (rappel cockpit) — jamais agir sans validation ; déclarer NotificationTech.",
+    "reusedModules": [
+      "cognitive-runtime/proactive-detection.ts",
+      "cognitive-runtime/proactive-controller.ts"
+    ],
+    "existingEvidence": "proactive capabilities=10, statusIntent=status, requiresAuthoritativeRead=true",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE dépend d'un provider externe (Push temps réel live — bloqué (rappels cockpit uniquement).) + wiring P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:notification",
+      "T2:clonesignals"
+    ],
+    "externalDependency": "Push temps réel live — bloqué (rappels cockpit uniquement).",
+    "forbiddenClaim": "Agir sans validation."
+  },
+  {
+    "id": "pierre.monthly_value_report",
+    "label": "Rapport de valeur/ROI mensuel",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "architecture_ready",
+    "pierreOwnedBehavior": "Exposer les métriques de valeur/ROI RH comme ESTIMATIONS gouvernées (calcul réel via analytics.compute, RLS) ; déclarer AnalyticsTech pour le rapport livré — jamais d'économies garanties.",
+    "reusedModules": [
+      "cognitive-runtime/analytics-engine.ts",
+      "runtime-action-handlers.ts"
+    ],
+    "existingEvidence": "reporting capabilities=6; AnalyticsTech declared; ROI as estimates (never guaranteed)",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE via technologies (T1:analytics) réservée à P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:analytics"
+    ],
+    "externalDependency": null,
+    "forbiddenClaim": "Économies garanties."
+  },
+  {
+    "id": "pierre.sector_adaptation",
+    "label": "Adaptation sectorielle RH",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "architecture_ready",
+    "pierreOwnedBehavior": "Comportement honnête uniquement : refuser d'inventer le droit sectoriel/pays et exposer la dépendance externe (ConnectorTech + revue légale). La fonctionnalité sourcée reste external-blocked.",
+    "reusedModules": [
+      "hr-canon/country-packs",
+      "cloneguard.ts"
+    ],
+    "existingEvidence": "legal caps sampled=5, never autonomous=true, legal-conclusion floor=true",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE dépend d'un provider externe (Sourcing légal/sectoriel externe (jamais inventer le droit) — bloqué.) + wiring P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:connector"
+    ],
+    "externalDependency": "Sourcing légal/sectoriel externe (jamais inventer le droit) — bloqué.",
+    "forbiddenClaim": "Conforme au droit [secteur/pays]."
+  },
+  {
+    "id": "pierre.hr_helpdesk_quality",
+    "label": "Qualité du helpdesk RH",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "verified",
+    "pierreOwnedBehavior": "Répondre aux questions RH avec couverture/qualité gouvernée, ancrée sur la canon (capacités) ; distinguer réponse informationnelle vs préparation d'action.",
+    "reusedModules": [
+      "cognitive-runtime/capability-retrieval.ts",
+      "cognitive-runtime/request-interpreter.ts"
+    ],
+    "existingEvidence": "grounded capabilities retrieved=16",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE via technologies (T1:memory) réservée à P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:memory"
+    ],
+    "externalDependency": null,
+    "forbiddenClaim": "Conseil juridique garanti."
+  },
+  {
+    "id": "pierre.hr_quality_control",
+    "label": "Contrôle qualité RH (CloneGuard)",
+    "source": "P16_MASTER_SPLIT.pierre_ultimate (P16.0) + P16A plan",
+    "featureStatus": "partial",
+    "pierreOwnedBehavior": "Contrôle qualité/risque RH (CloneGuard) exposé comme gate de qualité réutilisable via EvidenceTech ; approfondit — ne remplace jamais — les floors existants.",
+    "reusedModules": [
+      "cloneguard.ts",
+      "cognitive-runtime/autonomy-policy.ts"
+    ],
+    "existingEvidence": "CloneGuard gate: sensitive→black(allow=false), safe→green(allow=true)",
+    "evidencePresent": true,
+    "pierreOwnedStatus": "complete",
+    "gap": "Livraison LIVE via technologies (T1:evidence, T2:cloneguard) réservée à P16C.",
+    "p16aAction": "Orchestration gouvernée via le runtime réel + contrat P16C (aucun 2e cerveau, aucune techno câblée).",
+    "p16cDependency": [
+      "T1:evidence",
+      "T2:cloneguard"
+    ],
+    "externalDependency": null,
+    "forbiddenClaim": "Garantie de conformité."
+  }
+]

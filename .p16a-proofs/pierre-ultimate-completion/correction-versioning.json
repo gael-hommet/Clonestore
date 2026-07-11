@@ -1,0 +1,17 @@
+{
+  "correction": {
+    "isContinuation": true,
+    "kind": "correct",
+    "isCorrection": true,
+    "targetKind": "artifact",
+    "targetId": "art-1",
+    "ambiguousCandidates": [],
+    "requiresAuthoritativeRead": true,
+    "nextStep": "RESUME_EXISTING_WORK",
+    "reason": "resolved_unique"
+  },
+  "latest": {
+    "note": "utilise la dernière version resolves most-recent",
+    "target": "v2"
+  }
+}

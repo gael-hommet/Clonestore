@@ -1,0 +1,6 @@
+{
+  "runId": "clonechat-parrain",
+  "crossTenantBlind": true,
+  "clientSeesOwn": true,
+  "publicBlind": true
+}

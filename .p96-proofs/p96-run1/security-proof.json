@@ -1,0 +1,22 @@
+{
+  "runId": "p96-run1",
+  "security": {
+    "companyResolvedTrue": true,
+    "noUserTenantFallback": true,
+    "executeByReferenceOnly": true,
+    "forgedFieldsIgnored": true,
+    "noDoubleExecution": true,
+    "humanValidationExercised": true,
+    "framingClean": true,
+    "consoleErrors": [],
+    "rawConsoleAll": [
+      "pageerror: Invalid or unexpected token",
+      "pageerror: Invalid or unexpected token"
+    ],
+    "pageErrorStacks": [
+      "",
+      ""
+    ],
+    "devModeNote": "run en next dev (NODE_ENV≠production requis pour le runtime PGlite E2E) — bruit HMR/Fast-Refresh attendu"
+  }
+}

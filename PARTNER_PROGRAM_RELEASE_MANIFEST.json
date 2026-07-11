@@ -1,0 +1,1114 @@
+{
+  "release": "cabinets-fondateurs-partner-program",
+  "generatedAtNote": "horodatage à ajouter par l'opérateur (Date indisponible dans ce contexte)",
+  "baseHead": "7ba32826487f73b7dd938e464b0ee31d46172e2b",
+  "summary": {
+    "filesIncluded": 100,
+    "created": 87,
+    "modified": 13,
+    "deleted": 1,
+    "byCategory": {
+      "A-partner-program": 52,
+      "B-stripe": 35,
+      "C-database": 5,
+      "D-production": 8
+    }
+  },
+  "deleted": [
+    {
+      "f": "src/app/api/orders/activate/route.ts",
+      "cat": "B-stripe",
+      "status": "deleted",
+      "reason": "route d'activation non authentifiée (faille d'octroi) supprimée"
+    }
+  ],
+  "substrateDependencies": {
+    "note": "Fichiers HORS release dont le code dépend. Certains sont eux-mêmes non committés (missions antérieures) → une build isolée depuis HEAD 7ba3282 seul n'est PAS possible ; la release s'intègre sur le working tree courant.",
+    "count": 38,
+    "files": [
+      "src/components/demo/primitives/motion.tsx",
+      "src/lib/auth/redirects.ts",
+      "src/lib/auth/session-client.ts",
+      "src/lib/auth/useAuthGate.ts",
+      "src/lib/base-url.ts",
+      "src/lib/billing/stripe-activation.ts",
+      "src/lib/catalog/public-catalog.ts",
+      "src/lib/checkout/checkout-helpers.ts",
+      "src/lib/clonestore/cloneos/cloneos-app-shell-contract.ts",
+      "src/lib/clonestore/conversion/checkout-bridge.ts",
+      "src/lib/clonestore/conversion/session.ts",
+      "src/lib/clonestore/conversion/storage.ts",
+      "src/lib/clonestore/pricing/checkout-pricing-server.ts",
+      "src/lib/clonestore/pricing/country-pricing.ts",
+      "src/lib/clonestore/pricing/pricing-flags.ts",
+      "src/lib/clonestore/production/p10-production-gate.ts",
+      "src/lib/clonestore/production/p15-1-payment-mode.ts",
+      "src/lib/clonestore/production/p15-checkout-reconciliation-gate.ts",
+      "src/lib/clonestory/founding-partners/server/emails.ts",
+      "src/lib/clonestory/founding-partners/server/stripe-commercial-bridge.ts",
+      "src/lib/features/product-availability.ts",
+      "src/lib/founder-access/admin-guard.ts",
+      "src/lib/founder-access/checkout-eligibility.ts",
+      "src/lib/founder-access/commercial.ts",
+      "src/lib/founder-access/request-utils.ts",
+      "src/lib/founder-access/signed-cookie.ts",
+      "src/lib/founder-access/store.ts",
+      "src/lib/founder-access/stripe-webhook-bridge.ts",
+      "src/lib/founder-access/validation.ts",
+      "src/lib/founder-access/webhook-db.ts",
+      "src/lib/go-live/proofs/types.ts",
+      "src/lib/pierre/access.ts",
+      "src/lib/pierre/v1/db.ts",
+      "src/lib/pierre/v1/pierre-stripe-commercial-bridge.ts",
+      "src/lib/pierre/v1/sql.ts",
+      "src/lib/production-readiness/stripe/stripe-readiness-types.ts",
+      "src/lib/stripe.ts",
+      "src/lib/supabase-server.ts"
+    ]
+  },
+  "excluded": {
+    "note": "Explicitement exclus de la release (autres missions / artefacts).",
+    "patterns": [
+      ".c1-*",
+      ".p*-proofs",
+      "_audit_*",
+      "*.jpeg (captures)",
+      "*.log",
+      ".next*",
+      ".partner-proofs",
+      "_backups_ts",
+      "*-index.json",
+      "rapports d'autres phases (P*_*.md, T*_*.md, C1_*.md, etc.)"
+    ]
+  },
+  "files": [
+    {
+      "path": "src/lib/partner-program/attribution-rules.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 2954,
+      "sha256": "38a23d1f4bdd9fb70fcd03b4719464ca482178d584358ab4a005eb28c4a168e4",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/calculator.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 1344,
+      "sha256": "18e674ea6c9032b9e3e3affa3224d17881776eaa604545069e87f8cdf9aa42fe",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/flags.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 1493,
+      "sha256": "63521c9015ac41cdf31c82a90263d8ff88da33392d9a65bb3d0cd07d1fb3d332",
+      "externalImports": [
+        "src/lib/features/product-availability.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/money.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 5581,
+      "sha256": "127a4f14ecf5547f8ba5ae7b11368301ab103504d997d8f7c42e048a65410a55",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/payout-rules.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 2700,
+      "sha256": "bc015d797e1efce5877cf912bb7218c33284da90393564c28f39382d657790e3",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/applications.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 9096,
+      "sha256": "066a9b1bcc0d55a39b706f4845457d3ecf2df11aef20401699c8b3867f6fdea3",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts",
+        "src/lib/base-url.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/attribution.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 13016,
+      "sha256": "684d4b62b0df2ec6173492b3eedb144c52e44dc18adac5a776aa481c7cb03b1a",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/audit.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 1018,
+      "sha256": "14b85b9983a7c53d913cdedaeb9c84faf1475a8cdabbedd3fdfb1f051d0db718",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/commission.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 16996,
+      "sha256": "94c00d0e27c0a0b12161cae13e7b3c4f698caa45f768d79ad01e33ff7710c7db",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/connect.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 4341,
+      "sha256": "6af75873ce978362f2149d452d5044c8a61472b9500bf09c9e141bb04220e3c8",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/emails.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 10679,
+      "sha256": "b79674bb9122a243b713feffbfc0cf6528757ee81e322ddd13aa36e5d5c41df4",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts",
+        "src/lib/clonestory/founding-partners/server/emails.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/identity.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 3060,
+      "sha256": "787e4cca1f30a735b9fcf7e109e0ee191527c82b346e2794329e0ba6a9ed1a33",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/introductions.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 6070,
+      "sha256": "11f5b36d3b28d4916714e0ed2f95c07d7f093cb4350cced847e9cf404a6db06b",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/partner-auth.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 1993,
+      "sha256": "58fbd214a581b38a7a36b1a776ed2e8c5e199903af9a8827b7f6be6f0027159a",
+      "externalImports": [
+        "src/lib/supabase-server.ts",
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/partners.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 7580,
+      "sha256": "baee4be11646804707e5287de8848d0b51cf576c90b1a853ac47f524e0052117",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/payouts.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 13394,
+      "sha256": "3211210a448480edf8b19e62be864f3007817ce6fee6fc51fd6ef42414ad6de6",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/referral-cookie.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 1467,
+      "sha256": "0d609184d8d5ade6ffbddf0ae71e064892e8f6e4fd243635cb8788d49ccc0743",
+      "externalImports": [
+        "src/lib/founder-access/signed-cookie.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/runtime.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 2504,
+      "sha256": "d9c6297c62d116475971dd3f29b80d480f0cccad1b97a44d1a4b186cac4b6cde",
+      "externalImports": [
+        "src/lib/pierre/v1/db.ts",
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/settings.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 3477,
+      "sha256": "65cbcd5ff33436550cfe24231e53fe52a54e6030f1a9b9d0ae2d9dbaad1cfc41",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/stripe-bridge.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 4894,
+      "sha256": "9cc6ea1a4deb231c83e60c058562cf3991b6363815523a4442ead1f6c0d79fa4",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/server/summary.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 5137,
+      "sha256": "f3ea71a747e83b10aa109baf3e2a91555e088cd6f67e8ba226e0453a8573ac1d",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/acceptance-e2e.itest.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 29872,
+      "sha256": "5bce0afc9be8c1ba897a2ade92027c3f10f8e67109b1afecb6150e8d6647411d",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/commission-flow.itest.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 11436,
+      "sha256": "028f258249d70649a02ae840454d7949e14735870d6576b12b806f282a7b207c",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/emails-rls-connect.itest.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 6385,
+      "sha256": "7a07ff5a1de641a48f1df44b97dfe47ebd0f6e87a99eefe43e98105b67cfd033",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/idor-space.itest.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 4596,
+      "sha256": "4fd1e3f7250115ef56a3e0193665938f37609609cd4e635655279f2dbfbf4cc8",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/migrations-rls.itest.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 4284,
+      "sha256": "dd41e1e69f637a4d718a6d72aae454d894500af78f6b9c268f1104da335fe820",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/partner-harness.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 1846,
+      "sha256": "4b2727018189bddc1d7963858982b8d9f7cc725e9365c991d4b91ccf38df0c1c",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/routes.itest.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 5281,
+      "sha256": "b87a151df9769e28ddd63cb900e5b85675ff4df950a178667a2c533db10bd7b4",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/__tests__/attribution-rules.test.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 2658,
+      "sha256": "2c3c60c9539b8db3f5669087c14b35cd949075bff417a708fc757e5a9456a931",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/__tests__/money.test.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 4798,
+      "sha256": "be0166c06780fc2d37582c6eb45bbc91aa423aec5b18d637359c8ed32201a6a6",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/partner-program/__tests__/payout-rules.test.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 2275,
+      "sha256": "dfa601ada00b9e5cc2193c1a1a05529510bcfa60c507170b3f7097b65cc9a625",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/partenaires/admin/admin-console.module.css",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 6894,
+      "sha256": "5aa532db4425b69e2fac1d460bced3e5584a4efd1d0ca0018765c375df651ff7",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/partenaires/admin/AdminConsole.tsx",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 39123,
+      "sha256": "dec832d9a3a65d5d929af3099fcc696b344ed97174a9ff75ba2276397bcb69e7",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/partenaires/admin/page.tsx",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 886,
+      "sha256": "5ba5d7976806e4e1ae6002998789905ce852f4536f6bd70c53c2700524afcc0e",
+      "externalImports": [
+        "src/lib/founder-access/admin-guard.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/partenaires/espace/layout.tsx",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 1134,
+      "sha256": "e1073ad657f46ac64962b94eb53d75f8978c939e4bef189706864cec926799c5",
+      "externalImports": [
+        "src/lib/supabase-server.ts",
+        "src/lib/auth/redirects.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/partenaires/espace/page.tsx",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 674,
+      "sha256": "418abff90297918f770a89c21e490b59bd5cd7193d561cd15fc8159b531c2c02",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/partenaires/espace/PartnerSpace.tsx",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 38339,
+      "sha256": "43b9f8efec1aaeed64ed85a3527ed6eca77b38fca1a73c49cb3d1db64794240a",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/partenaires/layout.tsx",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 1182,
+      "sha256": "8410edadb62ac44681cdfcffa675ab26aedabce27c801823f8b29aaaf985162a",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/partenaires/page.tsx",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 1083,
+      "sha256": "69c5a9c3f92e5499b51259bd4d2757b2f4b6122757092cdc4a71568c00411b81",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/partenaires/partenaires.css",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 33538,
+      "sha256": "d8ec1a985eef4600eaa67f935d02629edcc7e0ca6dd1b4e30f7954ec52af9453",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/components/partenaires/PartenairesBodyFlag.tsx",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 955,
+      "sha256": "cc32088da6a0c93a70b521b48dcef9ccb0326b2c2253cf3d0ddf6470121c1527",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/components/partenaires/PartenairesLanding.tsx",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 41866,
+      "sha256": "0b3994e77d2abcffb9f832885501046640cfdefeda37b8cd72d8fe852f0fb9e0",
+      "externalImports": [
+        "src/components/demo/primitives/motion.tsx",
+        "src/lib/catalog/public-catalog.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/partners/admin/action/route.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 6221,
+      "sha256": "a328bda19c2617a5722ac3f1f4616c4b683db0bbcca6374300efaef2ebd2ecc9",
+      "externalImports": [
+        "src/lib/founder-access/admin-guard.ts",
+        "src/lib/founder-access/request-utils.ts",
+        "src/lib/stripe.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/partners/admin/overview/route.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 2743,
+      "sha256": "30aad275039eae1aa2d665605f36ecda70add0abfec07a9510fe4148007bee5a",
+      "externalImports": [
+        "src/lib/founder-access/admin-guard.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/partners/admin/__tests__/admin-gate.test.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 3331,
+      "sha256": "127d16acb6e399312fd8cdf3c4447cbe8a020db8ec164c544b9c04473566e349",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/partners/apply/route.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 3206,
+      "sha256": "33adca1d6c70930f7a7b8df74c494c9475706ee1f4aecc1afcbd8528bd0d6fac",
+      "externalImports": [
+        "src/lib/founder-access/request-utils.ts",
+        "src/lib/founder-access/validation.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/partners/click/route.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 2111,
+      "sha256": "64e0bd9edd8f5895bdba4b2996e8818e276001da38d9e9cb783e63a69501760a",
+      "externalImports": [
+        "src/lib/base-url.ts",
+        "src/lib/founder-access/request-utils.ts",
+        "src/lib/founder-access/validation.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/partners/connect/onboard/route.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 2078,
+      "sha256": "319a358bfe352fe012c3cb1dd4e6b903a76f34fba9f43248fcf230220b3018e4",
+      "externalImports": [
+        "src/lib/base-url.ts",
+        "src/lib/stripe.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/partners/introductions/route.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 2357,
+      "sha256": "81f1be3380c41f1682d637530b47b1dd73a3a7285c5630e963b281e7f4e0ea28",
+      "externalImports": [
+        "src/lib/founder-access/request-utils.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/partners/me/route.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 2635,
+      "sha256": "4ed637247ca535c14509798832e4ba7b5f9fecc899d9567d0c3797dac8d1a34a",
+      "externalImports": [
+        "src/lib/base-url.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/cron/partner-emails/route.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 1483,
+      "sha256": "550a9698f6ad7ca1b2e8bc2139f59fe10857d8c009af2d8e069db3b410f3fcc0",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/cron/partner-payouts/route.ts",
+      "category": "A-partner-program",
+      "status": "created",
+      "bytes": 1961,
+      "sha256": "9702a0f219d9981c8b70204fb5191927a688bbef4472cd68a3d1a93ac420cab4",
+      "externalImports": [
+        "src/lib/stripe.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/entitlement-reconciliation.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 3969,
+      "sha256": "b3c05fefca62a7c2b1803e8dbf99d3c60a5b9029f8535b9d3e9f4c5518966e2b",
+      "externalImports": [
+        "src/lib/billing/stripe-activation.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/stripe-event-fields.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 3544,
+      "sha256": "00ef1e87f57e232e7ce474b8079cd16293bbad409dc9f294893f0cf2691c5148",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/customer-mapping.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 4891,
+      "sha256": "8e814a185f28dd5c88450580706adccd0975de0adf1a48630f32dfb0349d616c",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/subscription-actions.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 4935,
+      "sha256": "edf8953c28f3e6e4d06da63ddece546bad702318d2f9715ce2eb83f10e96861b",
+      "externalImports": [
+        "src/lib/billing/stripe-activation.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/subscription-service.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 2916,
+      "sha256": "9450c0f3eb74157c3f66d29d4195b9030a36c47fbd5049889d43f6cd1d9a747d",
+      "externalImports": [
+        "src/lib/stripe.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/route-auth.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 1788,
+      "sha256": "7afb4a1aff4ef80358d48150685fe3e224d09e4e4041270d73b99f185d97a3d7",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/orders-event-ordering.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 3302,
+      "sha256": "f0f52a0f65dc1e8676547a5542c2d26ee92696c50de807cceec1f21bb5ef3bb7",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/orders-event-ledger.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 10942,
+      "sha256": "16fe7436af534d7b430b4983abefd0a31e8e9ca730485c0d74fcceec166aa14f",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/__tests__/entitlement-reconciliation.test.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 4152,
+      "sha256": "8bc91b3afc33b5c0fffeee8367ed6a2ce7ac562e50b916c2503964b074258ffa",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/__tests__/stripe-event-fields.test.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 4151,
+      "sha256": "ab6259b2bfb9d4f5c7d06fa7275e864a2ff0bbde020e57dd820627ed6104001c",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/__tests__/customer-mapping.test.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 4902,
+      "sha256": "d50d7cec4c2488602a63020b208d41246e888e60fabef46974829ddb4bc562ea",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/__tests__/subscription-actions.test.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 4685,
+      "sha256": "d2e08e3e12bb30163dcb41e8d0ad6f5cb264599749e5df352965e573902f74af",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/__tests__/orders-event-ordering.test.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 2215,
+      "sha256": "d9eaab14fe38833c52aa8219e55ceef786fa8e71f7a316c4e939c854e8ade285",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/lib/billing/__tests__/orders-event-ledger.test.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 6629,
+      "sha256": "64c7744c49cf730e858ff2ec70cb7e8a1b67f3566faaae965efe296d9df1ca38",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/billing/portal/route.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 3146,
+      "sha256": "84409bf82d276a0943a4f1126bb46b577e8c6036c152d284434059d888433890",
+      "externalImports": [
+        "src/lib/stripe.ts",
+        "src/lib/base-url.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/billing/subscription/route.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 2952,
+      "sha256": "22e83af9b951386d3852c7c94046da38a09b1d1c56823d30e90dba69b4d23a94",
+      "externalImports": [
+        "src/lib/stripe.ts",
+        "src/lib/checkout/checkout-helpers.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/orders/resume/route.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 1859,
+      "sha256": "fd4dd98b2312953b1963d7ce3797afaae1cb5b0245e95cfa5de4769e6b29fa9f",
+      "externalImports": [
+        "src/lib/checkout/checkout-helpers.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/billing/__tests__/lifecycle-routes.test.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 8399,
+      "sha256": "6863e4c422eaddcf4ca320c9bbeec519e26dce663e4cf7f5968b9b58ac486ca6",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/billing/activate/__tests__/activate-security.test.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 5659,
+      "sha256": "79e080da0f770b07e1a60ee9d8360f0ab9607bbf73bd32d2ca971cb4d89060a2",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/checkout/__tests__/customer-mapping-route.test.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 7024,
+      "sha256": "ed1f97b3199f9e10fc37c9ef7e0e8c9b14d907a008309fd6530d44e0c8f2772c",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/webhooks/stripe/__tests__/invoice-payment-failed-api-drift.test.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 4072,
+      "sha256": "7c85163ab0978a95b69c01b322f5959c2ee1b5d5214a5b6d7888042fed6d0ebe",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/webhooks/stripe/__tests__/orders-ledger-replay.test.ts",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 5431,
+      "sha256": "90592fe34a5d623a3f90ad7df1157651affc7316cb0d87f8797a6aa6aeb22db7",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/mon-clonestore/facturation/page.tsx",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 616,
+      "sha256": "19f98a9db81ba61f9b345ae3432899ef69daa6d727cad66a43bbdc8d8dfa868c",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "src/components/mon-clonestore/BillingManager.tsx",
+      "category": "B-stripe",
+      "status": "created",
+      "bytes": 18209,
+      "sha256": "c7bdf0040777b698d83155c8cd2ae65a273a69ae37c129876a25e9169a6790d2",
+      "externalImports": [
+        "src/lib/auth/session-client.ts",
+        "src/lib/auth/useAuthGate.ts"
+      ],
+      "risk": "low"
+    },
+    {
+      "path": "src/app/api/checkout/route.ts",
+      "category": "B-stripe",
+      "status": "modified",
+      "bytes": 22107,
+      "sha256": "fcb07615d114d77fa54012229e416b83fc790125e9e0ff62b1e9fcf101a6fd02",
+      "externalImports": [
+        "src/lib/base-url.ts",
+        "src/lib/pierre/access.ts",
+        "src/lib/checkout/checkout-helpers.ts",
+        "src/lib/billing/stripe-activation.ts",
+        "src/lib/clonestore/pricing/pricing-flags.ts",
+        "src/lib/clonestore/pricing/checkout-pricing-server.ts",
+        "src/lib/clonestore/production/p10-production-gate.ts",
+        "src/lib/clonestore/pricing/country-pricing.ts",
+        "src/lib/clonestore/production/p15-1-payment-mode.ts",
+        "src/lib/clonestore/conversion/session.ts",
+        "src/lib/clonestore/conversion/checkout-bridge.ts",
+        "src/lib/clonestore/conversion/storage.ts",
+        "src/lib/pierre/v1/db.ts",
+        "src/lib/founder-access/store.ts",
+        "src/lib/founder-access/commercial.ts",
+        "src/lib/founder-access/validation.ts",
+        "src/lib/founder-access/checkout-eligibility.ts"
+      ],
+      "risk": "shared-file (peut porter aussi des changements de missions antérieures — intégrer via working tree)"
+    },
+    {
+      "path": "src/app/api/webhooks/stripe/route.ts",
+      "category": "B-stripe",
+      "status": "modified",
+      "bytes": 27430,
+      "sha256": "8f22cecd5a1347d51fcdbc94584c211c28c4254c84eafeb1106f67228a93d601",
+      "externalImports": [
+        "src/lib/billing/stripe-activation.ts",
+        "src/lib/clonestore/conversion/checkout-bridge.ts",
+        "src/lib/clonestore/conversion/storage.ts",
+        "src/lib/founder-access/webhook-db.ts",
+        "src/lib/founder-access/stripe-webhook-bridge.ts",
+        "src/lib/clonestory/founding-partners/server/stripe-commercial-bridge.ts",
+        "src/lib/pierre/v1/pierre-stripe-commercial-bridge.ts",
+        "src/lib/clonestore/production/p15-checkout-reconciliation-gate.ts",
+        "src/lib/stripe.ts"
+      ],
+      "risk": "shared-file (peut porter aussi des changements de missions antérieures — intégrer via working tree)"
+    },
+    {
+      "path": "src/app/api/orders/cancel/route.ts",
+      "category": "B-stripe",
+      "status": "modified",
+      "bytes": 2293,
+      "sha256": "2825d03dc2f59633a41242570bb868b82fcf2057d6335db8c30e0e6460e55ef4",
+      "externalImports": [
+        "src/lib/checkout/checkout-helpers.ts"
+      ],
+      "risk": "shared-file (peut porter aussi des changements de missions antérieures — intégrer via working tree)"
+    },
+    {
+      "path": "src/app/api/billing/activate/route.ts",
+      "category": "B-stripe",
+      "status": "modified",
+      "bytes": 5362,
+      "sha256": "b0ed0f0a80db126f5b5c3db0bc130bae300a2ad7e9e0ee3fbfcb2955406e236a",
+      "externalImports": [
+        "src/lib/stripe.ts",
+        "src/lib/checkout/checkout-helpers.ts"
+      ],
+      "risk": "shared-file (peut porter aussi des changements de missions antérieures — intégrer via working tree)"
+    },
+    {
+      "path": "src/app/agents/orders/me/route.ts",
+      "category": "B-stripe",
+      "status": "modified",
+      "bytes": 1564,
+      "sha256": "f690f4707d820c0322a75b422de9c70cb8c64f41c5658456157fde87a1b6f7d2",
+      "externalImports": [],
+      "risk": "shared-file (peut porter aussi des changements de missions antérieures — intégrer via working tree)"
+    },
+    {
+      "path": "src/lib/billing/order-activation.ts",
+      "category": "B-stripe",
+      "status": "modified",
+      "bytes": 4640,
+      "sha256": "ef37d17b370ec25e092c2d4f02d2f85d05dcf6112159c0e0d56ac6d4b3174b97",
+      "externalImports": [
+        "src/lib/billing/stripe-activation.ts"
+      ],
+      "risk": "shared-file (peut porter aussi des changements de missions antérieures — intégrer via working tree)"
+    },
+    {
+      "path": "src/lib/founder-access/stripe-webhook-deps.ts",
+      "category": "B-stripe",
+      "status": "modified",
+      "bytes": 2705,
+      "sha256": "f8729565ce290509354e31a51db0e4db926c345a3cbd58224e865869938ace3c",
+      "externalImports": [
+        "src/lib/pierre/v1/sql.ts",
+        "src/lib/founder-access/webhook-db.ts",
+        "src/lib/founder-access/stripe-webhook-bridge.ts"
+      ],
+      "risk": "shared-file (peut porter aussi des changements de missions antérieures — intégrer via working tree)"
+    },
+    {
+      "path": "src/lib/production-readiness/stripe/stripe-checklist.ts",
+      "category": "B-stripe",
+      "status": "modified",
+      "bytes": 6577,
+      "sha256": "e94ecef36950c5c584f4cbb47aa90d94a5127169851e1350fdb164fbf674b072",
+      "externalImports": [],
+      "risk": "shared-file (peut porter aussi des changements de missions antérieures — intégrer via working tree)"
+    },
+    {
+      "path": "src/lib/production-readiness/stripe/stripe-readiness-checks.ts",
+      "category": "B-stripe",
+      "status": "modified",
+      "bytes": 5611,
+      "sha256": "947c9be1b525f51bf47aa3971a762d62f05852ff32f604e61a9551d119e7b4f8",
+      "externalImports": [
+        "src/lib/production-readiness/stripe/stripe-readiness-types.ts"
+      ],
+      "risk": "shared-file (peut porter aussi des changements de missions antérieures — intégrer via working tree)"
+    },
+    {
+      "path": "src/lib/go-live/proofs/proof-registry.ts",
+      "category": "B-stripe",
+      "status": "modified",
+      "bytes": 29167,
+      "sha256": "1ed105bd73bceed98b58604f060283ddad06a2400a85733b3b3dda991931fd77",
+      "externalImports": [
+        "src/lib/go-live/proofs/types.ts"
+      ],
+      "risk": "shared-file (peut porter aussi des changements de missions antérieures — intégrer via working tree)"
+    },
+    {
+      "path": "src/components/mon-clonestore/MonCloneStoreShell.tsx",
+      "category": "B-stripe",
+      "status": "modified",
+      "bytes": 5270,
+      "sha256": "a754c52add67649b21d9a5c77dae690d6edff7a2844265558f077c36c70ed314",
+      "externalImports": [
+        "src/lib/clonestore/cloneos/cloneos-app-shell-contract.ts"
+      ],
+      "risk": "shared-file (peut porter aussi des changements de missions antérieures — intégrer via working tree)"
+    },
+    {
+      "path": "supabase/migrations/2026-07-10_01__clonestore_pp_core.sql",
+      "category": "C-database",
+      "status": "created",
+      "bytes": 25375,
+      "sha256": "c48f9b6ad8d19681da6da89e21b9f6fe4e41bda9311be5c8cd584c8d867fdf54",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "supabase/migrations/2026-07-10_02__clonestore_pp_finance.sql",
+      "category": "C-database",
+      "status": "created",
+      "bytes": 20388,
+      "sha256": "ade8d137d635dd586d0722004f2f1c0e631c3249a971d3ff6eee2793ebdc5453",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "supabase/migrations/2026-07-10_03__clonestore_pp_emails.sql",
+      "category": "C-database",
+      "status": "created",
+      "bytes": 2516,
+      "sha256": "6937be85e0a017c9df1a284ec638c49dd5d98699cd6eae8c50f5da10d819cfe4",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "supabase/migrations/2026-07-10_10__clonestore_orders_stripe_events.sql",
+      "category": "C-database",
+      "status": "created",
+      "bytes": 2626,
+      "sha256": "0f3dcf1ee3f1011da6cdcbf3159042658bb1e91a4ec1061bf018e23a59f65a02",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "supabase/sql/partner_program_supabase_cron.sql",
+      "category": "C-database",
+      "status": "created",
+      "bytes": 1520,
+      "sha256": "418bcef2db828ca3aad7c659d240535ee219c60194dd2462719031d0b57b4f10",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "scripts/apply-partner-program-production.mjs",
+      "category": "D-production",
+      "status": "created",
+      "bytes": 3835,
+      "sha256": "c720cf846abae27f5aebd74c229536eb2d78d35104a16f717c4f51243ed55a58",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "scripts/partner-program-preflight.mjs",
+      "category": "D-production",
+      "status": "created",
+      "bytes": 4374,
+      "sha256": "3bf237fd621156745d13a0267a1eb42f686d6b546c50023c9dfa889bd31fc08a",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "scripts/partner-program-postcheck.mjs",
+      "category": "D-production",
+      "status": "created",
+      "bytes": 8577,
+      "sha256": "2f5da46ee8495bec96491d476d0e3fb519b427e43ca2de1ec65344baa6ab8fd6",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "scripts/validate-partner-migration-scripts.mjs",
+      "category": "D-production",
+      "status": "created",
+      "bytes": 2785,
+      "sha256": "15aee410d127d920af088200163323503cc017ca1d290b9858fb9ac2c108fdb4",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "PARTNER_PROGRAM_PRODUCTION_RUNBOOK.md",
+      "category": "D-production",
+      "status": "created",
+      "bytes": 8875,
+      "sha256": "d3c367253f4a62f684b333453ebdba18911592153973f7ba508c681b3f218d75",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": "PARTNER_PROGRAM_STRIPE_TEST_MODE_CHECKLIST.md",
+      "category": "D-production",
+      "status": "created",
+      "bytes": 4723,
+      "sha256": "68bcc22e711d5053c4774fb7ba4ba62b74e5ff0ad6de1868e17dd9570575c5cb",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": ".env.example",
+      "category": "D-production",
+      "status": "modified",
+      "bytes": 26645,
+      "sha256": "33a0c72c1d508261b9cea8b58d724d2f5b1dda7fe81a44f6d441b3c283cbf8d6",
+      "externalImports": [],
+      "risk": "low"
+    },
+    {
+      "path": ".gitignore",
+      "category": "D-production",
+      "status": "modified",
+      "bytes": 2375,
+      "sha256": "5941ae5b7ebba3044c5f510d270ccda34830827cce6f9aaa06d12e497f585f1a",
+      "externalImports": [],
+      "risk": "low"
+    }
+  ]
+}

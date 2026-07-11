@@ -1,0 +1,744 @@
+{
+  "runId": "t2-product-technologies",
+  "contracts": [
+    {
+      "id": "cloneos",
+      "name": "CloneOS",
+      "definition": "Le cœur opératoire invisible de CloneStore : transforme une demande brute en travail structuré, exécutable, coordonné et suivi.",
+      "role": "Comprendre l'intention, la transformer en mission, découper en tâches, lier les dépendances, proposer le routage employés, router le contexte, planifier la fusion des résultats et les transitions d'état — puis reprendre les missions.",
+      "answersQuestion": "Comment transformer une demande en vrai travail organisé ?",
+      "contains": [
+        "compréhension d'intention",
+        "construction de mission",
+        "décomposition en tâches",
+        "dépendances",
+        "ordre d'exécution",
+        "choix des employés IA (proposition)",
+        "routage de contexte",
+        "coordination",
+        "centralisation des résultats intermédiaires",
+        "plan de fusion",
+        "transitions d'état",
+        "reprise de mission"
+      ],
+      "doesNotContain": [
+        "mémoire d'entreprise (CloneADN)",
+        "décision risque/conformité (CloneGuard)",
+        "historique exhaustif (CloneTrace)",
+        "voix (CloneVoice)",
+        "qualité stylistique finale (CloneReview)",
+        "logique RH spécifique à Pierre (reste dans le moteur V1)"
+      ],
+      "dependencies": [
+        "cloneadn",
+        "cloneguard",
+        "clonepolicy",
+        "clonetrust",
+        "clonetrace"
+      ],
+      "status": "integration_ready",
+      "mode": "local_safe",
+      "requiresValidation": true,
+      "safeFallback": "Plan de mission proposé localement — la gouvernance (Guard/Policy/Trust) et l'humain décident ; aucune exécution.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "Transforme une demande en plan de mission structuré (tâches, dépendances, routage proposé), en local, sous gouvernance et validation humaine.",
+      "commercialClaimForbidden": [
+        "exécution autonome sans validation",
+        "décisions RH automatiques",
+        "remplacement du cerveau RH Pierre"
+      ],
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "cloneos",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "cloneadn",
+      "name": "CloneADN",
+      "definition": "La couche opératoire vivante de l'entreprise : identité, ton, formalité, habitudes de validation/relance, formulations et gabarits récurrents, circuits humains.",
+      "role": "Faire travailler le système comme CETTE entreprise exacte — jamais comme une IA générique.",
+      "answersQuestion": "Comment faire travailler le système comme cette entreprise exacte ?",
+      "contains": [
+        "identité d'entreprise",
+        "ton",
+        "formalité (tutoiement/vouvoiement)",
+        "habitudes de validation",
+        "habitudes de relance",
+        "formulations fréquentes",
+        "gabarits récurrents",
+        "circuits humains",
+        "comportements attendus",
+        "éléments réutilisables",
+        "contexte utile"
+      ],
+      "doesNotContain": [
+        "exécution brute",
+        "décision de risque (CloneGuard)",
+        "logique de blocage",
+        "orchestration (CloneOS)",
+        "historique exhaustif (CloneTrace)",
+        "voix (CloneVoice)"
+      ],
+      "dependencies": [],
+      "status": "integration_ready",
+      "mode": "local_safe",
+      "requiresValidation": true,
+      "safeFallback": "Profil d'entreprise proposé — enrichissements soumis à validation ; jamais de mutation silencieuse.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "Adapte le style de travail (ton, formalité, circuits, formulations) à chaque entreprise, sur la base d'un profil validé par l'humain.",
+      "commercialClaimForbidden": [
+        "apprentissage silencieux du comportement",
+        "mémoire d'entreprise sans contrôle humain"
+      ],
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "cloneadn",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "cloneguard",
+      "name": "CloneGuard",
+      "definition": "La couche de gouvernance, risque, validation et refus intelligent de CloneStore.",
+      "role": "Décider ce qui peut être exécuté, préparé sans envoi, validé, bloqué ou refusé — et expliquer pourquoi.",
+      "answersQuestion": "Le système peut-il aller plus loin, et sous quelles conditions ?",
+      "contains": [
+        "classification de risque normal/sensitive/critical",
+        "décision allow_prepare/require_validation/block/refuse",
+        "raison d'escalade humaine",
+        "explication"
+      ],
+      "doesNotContain": [
+        "exécution",
+        "décision légale finale",
+        "remplacement de la revue juridique externe"
+      ],
+      "dependencies": [
+        "clonepolicy",
+        "clonetrust"
+      ],
+      "status": "local_safe_ready",
+      "mode": "local_safe",
+      "requiresValidation": false,
+      "safeFallback": "En cas de doute : require_validation ou refus — jamais un passage silencieux.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "Chaque action passe une porte de gouvernance qui classe le risque, impose la validation humaine et sait refuser — avec explication.",
+      "commercialClaimForbidden": [
+        "conformité légale garantie",
+        "décision juridique automatique"
+      ],
+      "samplePrepare": {
+        "kind": "ok",
+        "live": false,
+        "requiresHumanValidation": false
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "cloneguard",
+        "resultKind": "ok",
+        "structurallyValid": true,
+        "humanValidationRequired": false,
+        "machineCanAutoApprove": false,
+        "notes": []
+      }
+    },
+    {
+      "id": "clonetrace",
+      "name": "CloneTrace",
+      "definition": "La couche de traçabilité, timeline, historique, reprise et audit de CloneStore.",
+      "role": "Retenir ce qui s'est passé, dans quel ordre, pourquoi — et permettre une reprise propre.",
+      "answersQuestion": "Que s'est-il passé, dans quel ordre, pourquoi, et comment reprendre proprement ?",
+      "contains": [
+        "missions",
+        "tâches",
+        "validations",
+        "blocages",
+        "relances",
+        "documents",
+        "emails",
+        "événements",
+        "changements d'état",
+        "versions",
+        "raisons des décisions",
+        "pointeur de reprise"
+      ],
+      "doesNotContain": [
+        "orchestration (CloneOS)",
+        "décision de risque (CloneGuard)",
+        "génération de contenu"
+      ],
+      "dependencies": [],
+      "status": "local_safe_ready",
+      "mode": "local_safe",
+      "requiresValidation": false,
+      "safeFallback": "Trace locale toujours disponible (événement + pointeur de reprise) — aucun provider requis.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "Chaque action est tracée (timeline, raisons, reprise) — auditable à tout moment.",
+      "commercialClaimForbidden": [
+        "archivage légal certifié",
+        "preuve juridique opposable garantie"
+      ],
+      "samplePrepare": {
+        "kind": "ok",
+        "live": false,
+        "requiresHumanValidation": false
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "clonetrace",
+        "resultKind": "ok",
+        "structurallyValid": true,
+        "humanValidationRequired": false,
+        "machineCanAutoApprove": false,
+        "notes": []
+      }
+    },
+    {
+      "id": "clonevoice",
+      "name": "CloneVoice",
+      "definition": "La couche d'entrée vocale naturelle de CloneStore — architecture prête, voix live NON opérationnelle (aucun provider vérifié).",
+      "role": "Permettre au client de parler naturellement au système : nettoyage du parlé, intention principale, segmentation multi-actions, contexte oral minimal — sur transcript texte.",
+      "answersQuestion": "Comment le client peut-il parler naturellement au système ?",
+      "contains": [
+        "architecture de capture audio (contrat)",
+        "contrat de transcription",
+        "nettoyage du langage parlé",
+        "détection d'intention principale",
+        "segmentation multi-actions",
+        "contexte oral minimal"
+      ],
+      "doesNotContain": [
+        "orchestration (CloneOS)",
+        "décision de risque (CloneGuard)",
+        "mémoire d'entreprise (CloneADN)",
+        "qualité métier (CloneReview)",
+        "timeline complète (CloneTrace)"
+      ],
+      "dependencies": [],
+      "status": "architecture_ready",
+      "mode": "live_disabled",
+      "requiresValidation": true,
+      "safeFallback": "L'entrée texte reste la source de vérité (aucun provider vocal) — transcription fournie par l'humain.",
+      "liveBlockedReason": "Aucun provider vocal vérifié — voix live bloquée ; le chemin texte reste autoritaire (le chemin voix s'ouvrira seulement après vérification externe d'un provider).",
+      "commercialClaimAllowed": "Architecture vocale prête : le client dicte/fournit un transcript texte, le système le structure en intentions et actions — sous validation humaine.",
+      "commercialClaimForbidden": [
+        "voix live opérationnelle",
+        "téléphonie live",
+        "reconnaissance vocale en production",
+        "enregistrement audio réel"
+      ],
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "clonevoice",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "clonepolicy",
+      "name": "ClonePolicy",
+      "definition": "Transforme les règles d'entreprise en comportement machine exécutable (tâches, artefacts, canaux, temps, autonomie, escalade, rôles).",
+      "role": "Faire des règles de l'entreprise un comportement machine réel.",
+      "answersQuestion": "Comment les règles de l'entreprise deviennent-elles un vrai comportement machine ?",
+      "contains": [
+        "règles par type de tâche",
+        "règles par type d'artefact",
+        "règles d'autonomie",
+        "règles de validation",
+        "règles de canal",
+        "règles de temps",
+        "règles d'escalade",
+        "règles rôle/destination/contexte"
+      ],
+      "doesNotContain": [
+        "mémoire brute d'entreprise (CloneADN)",
+        "exécution d'actions",
+        "remplacement de CloneGuard"
+      ],
+      "dependencies": [],
+      "status": "local_safe_ready",
+      "mode": "local_safe",
+      "requiresValidation": false,
+      "safeFallback": "Règles sûres par défaut : validation requise pour tout envoi/signature ; autonomie plafonnée.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "Les règles de l'entreprise (validation, canaux, horaires, autonomie, escalade) deviennent un comportement machine appliqué à chaque action.",
+      "commercialClaimForbidden": [
+        "conformité réglementaire garantie",
+        "application sans supervision humaine"
+      ],
+      "samplePrepare": {
+        "kind": "ok",
+        "live": false,
+        "requiresHumanValidation": false
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "clonepolicy",
+        "resultKind": "ok",
+        "structurallyValid": true,
+        "humanValidationRequired": false,
+        "machineCanAutoApprove": false,
+        "notes": []
+      }
+    },
+    {
+      "id": "clonecontinuum",
+      "name": "CloneContinuum",
+      "definition": "Le moteur de continuité des missions au-delà de la première réponse : attentes, reprises, relances, réveils, clôtures et réouvertures propres.",
+      "role": "Faire survivre une mission dans le temps, proprement.",
+      "answersQuestion": "Comment une mission survit-elle au-delà de la première réponse ?",
+      "contains": [
+        "attente d'information",
+        "attente de validation",
+        "reprises",
+        "relances",
+        "réveils de mission",
+        "missions planifiées",
+        "tâches multi-jours",
+        "clôture propre",
+        "réouverture",
+        "statuts propres"
+      ],
+      "doesNotContain": [
+        "cron live",
+        "envoi push/email",
+        "exécution de rappels live"
+      ],
+      "dependencies": [
+        "clonesignals",
+        "clonetrace"
+      ],
+      "status": "local_safe_ready",
+      "mode": "local_safe",
+      "requiresValidation": false,
+      "safeFallback": "État de continuité local + recommandation de réveil — aucun cron live, l'humain relance.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "Les missions vivent dans le temps : attentes suivies, reprises propres, recommandations de relance — sous contrôle humain.",
+      "commercialClaimForbidden": [
+        "relances envoyées automatiquement en production",
+        "scheduler autonome live"
+      ],
+      "samplePrepare": {
+        "kind": "ok",
+        "live": false,
+        "requiresHumanValidation": false
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "clonecontinuum",
+        "resultKind": "ok",
+        "structurallyValid": true,
+        "humanValidationRequired": false,
+        "machineCanAutoApprove": false,
+        "notes": []
+      }
+    },
+    {
+      "id": "clonetrust",
+      "name": "CloneTrust",
+      "definition": "L'autonomie graduelle contrôlée : jusqu'où l'employé IA peut agir seul dans CE contexte précis.",
+      "role": "Calculer l'autonomie effective à partir du type de tâche, du risque, de la politique, de l'historique, de la confiance et du rôle du demandeur.",
+      "answersQuestion": "Jusqu'où l'employé IA peut-il agir seul dans ce contexte précis ?",
+      "contains": [
+        "score d'autonomie",
+        "niveau d'autonomie (prepare_only→autonomous_safe)",
+        "raison",
+        "permissions effectives"
+      ],
+      "doesNotContain": [
+        "contournement de CloneGuard",
+        "approbation seule de décisions critiques"
+      ],
+      "dependencies": [
+        "clonepolicy",
+        "cloneguard"
+      ],
+      "status": "local_safe_ready",
+      "mode": "local_safe",
+      "requiresValidation": false,
+      "safeFallback": "Autonomie minimale par défaut (prepare_only) ; sensible/critique → human_only.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "L'autonomie se gagne progressivement, par contexte et par historique — les décisions sensibles restent toujours humaines.",
+      "commercialClaimForbidden": [
+        "employé IA totalement autonome",
+        "DRH autonome",
+        "décisions critiques sans humain"
+      ],
+      "samplePrepare": {
+        "kind": "ok",
+        "live": false,
+        "requiresHumanValidation": false
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "clonetrust",
+        "resultKind": "ok",
+        "structurallyValid": true,
+        "humanValidationRequired": false,
+        "machineCanAutoApprove": false,
+        "notes": []
+      }
+    },
+    {
+      "id": "clonereview",
+      "name": "CloneReview",
+      "definition": "La relecture interne professionnelle : contrôle du ton, de la cohérence, de la clarté, des omissions et contradictions avant sortie.",
+      "role": "Vérifier que le travail est assez bon pour sortir comme un vrai travail professionnel — et alerter l'humain sinon.",
+      "answersQuestion": "Le travail est-il assez bon pour sortir comme un vrai travail professionnel ?",
+      "contains": [
+        "contrôle du ton",
+        "cohérence",
+        "clarté",
+        "omissions critiques",
+        "contradictions",
+        "maladresses",
+        "adéquation au contexte",
+        "version relue",
+        "anomalies",
+        "suggestions",
+        "drapeau revue humaine"
+      ],
+      "doesNotContain": [
+        "revue légale",
+        "garantie d'exactitude"
+      ],
+      "dependencies": [
+        "cloneadn"
+      ],
+      "status": "local_safe_ready",
+      "mode": "local_safe",
+      "requiresValidation": true,
+      "safeFallback": "Relecture locale best-effort — la revue humaine reste requise pour tout livrable.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "Chaque livrable passe une relecture qualité interne (ton, cohérence, clarté) avant validation humaine.",
+      "commercialClaimForbidden": [
+        "qualité garantie sans relecture humaine",
+        "validation juridique"
+      ],
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "clonereview",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "clonesignals",
+      "name": "CloneSignals",
+      "definition": "Le moteur d'événements et de déclencheurs : quand le système doit réagir même sans nouvelle commande humaine.",
+      "role": "Détecter les situations (retards, silences, échéances, manques, conditions) et proposer des déclenchements — jamais les exécuter live.",
+      "answersQuestion": "Quand le système doit-il réagir même sans nouvelle commande humaine ?",
+      "contains": [
+        "validation en retard",
+        "réponse absente",
+        "échéance proche",
+        "document manquant",
+        "mission endormie",
+        "délai dépassé",
+        "condition métier remplie"
+      ],
+      "doesNotContain": [
+        "scheduler live",
+        "envoi de notifications live",
+        "création de cron"
+      ],
+      "dependencies": [
+        "clonecontinuum",
+        "clonetrace"
+      ],
+      "status": "local_safe_ready",
+      "mode": "local_safe",
+      "requiresValidation": true,
+      "safeFallback": "Candidats de déclencheurs proposés — aucun scheduler live, l'humain arme les rappels.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "Le système repère les retards, silences et échéances et propose les bonnes relances — l'humain garde l'armement.",
+      "commercialClaimForbidden": [
+        "relances envoyées automatiquement en production",
+        "surveillance temps réel garantie"
+      ],
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "clonesignals",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "clonelearn",
+      "name": "CloneLearn",
+      "definition": "L'apprentissage progressif de l'entreprise : le système devient plus juste avec le temps — par PROPOSITIONS validées, jamais par mutation silencieuse.",
+      "role": "Transformer validations, corrections, reformulations, refus et répétitions en préférences proposées, avec confiance et distinction habitude/exception.",
+      "answersQuestion": "Comment le système devient-il plus juste avec le temps ?",
+      "contains": [
+        "candidats d'apprentissage",
+        "type d'événement source",
+        "suggestion de préférence",
+        "score de confiance",
+        "habitude vs exception",
+        "proposition d'enrichissement CloneADN",
+        "validation requise"
+      ],
+      "doesNotContain": [
+        "mutation automatique de CloneADN",
+        "entraînement de modèle",
+        "stockage de comportement non approuvé"
+      ],
+      "dependencies": [
+        "cloneadn",
+        "clonetrace"
+      ],
+      "status": "local_safe_ready",
+      "mode": "local_safe",
+      "requiresValidation": true,
+      "safeFallback": "Apprentissages PROPOSÉS uniquement — aucune mutation de CloneADN sans validation.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "Le système apprend les habitudes de l'entreprise et propose des améliorations — chaque apprentissage est validé par l'humain avant application.",
+      "commercialClaimForbidden": [
+        "apprentissage autonome silencieux",
+        "le système se reprogramme seul",
+        "entraînement de modèle sur vos données"
+      ],
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "clonelearn",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "clonebrief",
+      "name": "CloneBrief",
+      "definition": "La synthèse exécutive : ce que le client doit savoir maintenant — missions, blocages, validations, actions autonomes, décisions.",
+      "role": "Produire les briefings matin/soir et les résumés de mission à partir des faits de CloneTrace/CloneContinuum/CloneSignals — sans jamais inventer.",
+      "answersQuestion": "Que doit savoir le client maintenant ?",
+      "contains": [
+        "briefing du matin",
+        "briefing du soir",
+        "résumé de mission",
+        "résumé des blocages",
+        "validations en attente",
+        "actions autonomes",
+        "décisions à prendre"
+      ],
+      "doesNotContain": [
+        "invention de faits",
+        "« fait » quand c'est seulement préparé",
+        "blocages masqués"
+      ],
+      "dependencies": [
+        "clonetrace",
+        "clonecontinuum",
+        "clonesignals"
+      ],
+      "status": "local_safe_ready",
+      "mode": "local_safe",
+      "requiresValidation": true,
+      "safeFallback": "Brief construit uniquement sur les faits fournis — préparé ≠ fait, blocages jamais masqués.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "Un brief exécutif clair matin et soir : missions, blocages, validations en attente, décisions à prendre — construit sur les faits tracés.",
+      "commercialClaimForbidden": [
+        "rapport garanti exhaustif",
+        "aucune supervision nécessaire"
+      ],
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "clonebrief",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "clonecall",
+      "name": "CloneCall",
+      "definition": "L'expérience d'appel de son employé IA : transformer un appel en travail structuré — en SAFE LOCAL (aucune téléphonie live, aucun audio réel, aucun appel sortant).",
+      "role": "Créer une session d'appel locale (objectif, préparation, script, transcript texte), en extraire intentions/actions, et enchaîner mission CloneOS + porte CloneGuard + trace + continuité + relances + brief.",
+      "answersQuestion": "Comment un appel à son employé IA devient-il du vrai travail structuré ?",
+      "contains": [
+        "session d'appel avec un employé IA",
+        "objectif d'appel",
+        "préparation d'appel",
+        "script d'appel",
+        "transcript texte (fallback live-call)",
+        "résumé structuré",
+        "extraction d'actions",
+        "candidat de mission CloneOS",
+        "événement CloneTrace",
+        "décision CloneGuard",
+        "continuité CloneContinuum",
+        "réveils CloneSignals",
+        "brief CloneBrief"
+      ],
+      "doesNotContain": [
+        "appels téléphoniques réels",
+        "enregistrement audio réel",
+        "provider de téléphonie live",
+        "appels sortants live",
+        "contournement de CloneVoice/CloneGuard/CloneTrace"
+      ],
+      "dependencies": [
+        "clonevoice",
+        "cloneos",
+        "cloneguard",
+        "clonetrace",
+        "clonecontinuum",
+        "clonesignals",
+        "clonebrief",
+        "cloneadn"
+      ],
+      "status": "local_safe_ready",
+      "mode": "local_safe",
+      "requiresValidation": true,
+      "safeFallback": "Session d'appel locale sur transcript texte — aucune téléphonie live, aucun appel sortant réel.",
+      "liveBlockedReason": "Téléphonie live et appels sortants BLOQUÉS — aucun provider télécom/audio vérifié, cadre légal non validé ; le chemin sortant live ne s'ouvrira qu'après vérification externe.",
+      "commercialClaimAllowed": "Appelez votre employé IA en session locale : l'appel (transcript texte) devient préparation, mission proposée, suivi et brief — sous validation humaine.",
+      "commercialClaimForbidden": [
+        "téléphonie live",
+        "appels sortants réels",
+        "voix live opérationnelle",
+        "l'employé IA vous appelle au téléphone"
+      ],
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "clonecall",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    },
+    {
+      "id": "cloneroom",
+      "name": "CloneRoom",
+      "definition": "La salle de collaboration opérationnelle où humains, CloneOS, employés IA et technologies se coordonnent — toujours via CloneOS, jamais en pair-à-pair anarchique.",
+      "role": "Collecter les messages, garder les participants, convertir les fils en candidats de mission, router le contexte via CloneOS, garder CloneTrace visible.",
+      "answersQuestion": "Comment humains et employés IA collaborent-ils dans une salle, proprement coordonnés ?",
+      "contains": [
+        "session de salle",
+        "participants (humain/CloneOS/employé IA/technologie)",
+        "fil de messages",
+        "extraction de candidats de mission",
+        "plan de routage de contexte via CloneOS",
+        "lien CloneTrace",
+        "handoff CloneOS"
+      ],
+      "doesNotContain": [
+        "communication pair-à-pair anarchique entre employés IA",
+        "appels providers live",
+        "contournement de CloneGuard"
+      ],
+      "dependencies": [
+        "cloneos",
+        "cloneguard",
+        "clonetrace",
+        "clonebrief"
+      ],
+      "status": "integration_ready",
+      "mode": "local_safe",
+      "requiresValidation": true,
+      "safeFallback": "Coordination par CloneOS uniquement — pas de pair-à-pair anarchique ; l'humain garde la main.",
+      "liveBlockedReason": null,
+      "commercialClaimAllowed": "Une salle opérationnelle où l'équipe et les employés IA se coordonnent : les échanges deviennent des missions proposées, tracées et gouvernées.",
+      "commercialClaimForbidden": [
+        "les employés IA collaborent sans supervision",
+        "communication IA-IA non gouvernée"
+      ],
+      "samplePrepare": {
+        "kind": "needs_validation",
+        "live": false,
+        "requiresHumanValidation": true
+      },
+      "liveAttemptBlocked": true,
+      "validationReport": {
+        "productTechnologyId": "cloneroom",
+        "resultKind": "needs_validation",
+        "structurallyValid": true,
+        "humanValidationRequired": true,
+        "machineCanAutoApprove": false,
+        "notes": [
+          "Validation humaine requise avant tout usage/effet — non contournable par la machine."
+        ]
+      }
+    }
+  ]
+}

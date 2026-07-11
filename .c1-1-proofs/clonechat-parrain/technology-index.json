@@ -1,0 +1,437 @@
+{
+  "runId": "clonechat-parrain",
+  "index": [
+    {
+      "id": "document",
+      "layer": "t1",
+      "name": "DocumentTech",
+      "liveStatus": "partial",
+      "liveBlockedReason": null,
+      "clientExplanation": "La brique qui prépare vos documents : elle rédige une version prête à relire, jamais envoyée sans vous.",
+      "internalExplanation": "Contrat T1 prepare/validate/audit, artifactKind prepared_document, fallback sûr ; consommé par Pierre via adaptateur P16C.",
+      "canClaim": [
+        "Prépare des documents RH structurés, tracés, sous validation humaine."
+      ],
+      "cannotClaim": [
+        "Documents juridiquement garantis",
+        "envoi automatique"
+      ]
+    },
+    {
+      "id": "mail",
+      "layer": "t1",
+      "name": "MailTech",
+      "liveStatus": "partial",
+      "liveBlockedReason": "aucun envoi automatique (provider e-mail externe non vérifié)",
+      "clientExplanation": "Vos e-mails RH arrivent prêts à envoyer : vous relisez, vous cliquez.",
+      "internalExplanation": "liveDependency=provider, envoi bloqué (ext.email_provider) ; fallback « l'humain envoie ».",
+      "canClaim": [
+        "Prépare vos e-mails RH ; vous gardez la main sur l'envoi."
+      ],
+      "cannotClaim": [
+        "E-mails envoyés automatiquement"
+      ]
+    },
+    {
+      "id": "calendar",
+      "layer": "t1",
+      "name": "CalendarTech",
+      "liveStatus": "partial",
+      "liveBlockedReason": "aucun provider calendrier live",
+      "clientExplanation": "Les rendez-vous RH sont préparés pour vous ; vous les validez dans votre agenda.",
+      "internalExplanation": "artifactKind prepared_calendar_event, liveDependency=provider bloqué.",
+      "canClaim": [
+        "Prépare vos événements RH (entretiens, onboarding) prêts à copier."
+      ],
+      "cannotClaim": [
+        "Création automatique dans votre agenda"
+      ]
+    },
+    {
+      "id": "signature",
+      "layer": "t1",
+      "name": "SignatureTech",
+      "liveStatus": "partial",
+      "liveBlockedReason": "aucune signature électronique automatique (Yousign non vérifié)",
+      "clientExplanation": "Le dossier de signature arrive complet ; la signature elle-même suit votre circuit habituel.",
+      "internalExplanation": "Fallback signature préparée ; provider Yousign bloqué P8.7.4 — aucune revendication d'automatisation.",
+      "canClaim": [
+        "Prépare vos dossiers de signature pour un circuit manuel ou externe."
+      ],
+      "cannotClaim": [
+        "Signature électronique automatique"
+      ]
+    },
+    {
+      "id": "voice",
+      "layer": "t1",
+      "name": "VoiceTech",
+      "liveStatus": "architecture_ready",
+      "liveBlockedReason": "aucun provider vocal ; aucune voix opérationnelle",
+      "clientExplanation": "Demain, vous pourrez parler à vos employés IA ; aujourd'hui, le texte reste la référence fiable.",
+      "internalExplanation": "T1 voice = fallback texte ; consommé par CloneVoice (T2) qui reste architecture_ready.",
+      "canClaim": [
+        "Architecture d'entrée vocale prête ; le texte reste la référence."
+      ],
+      "cannotClaim": [
+        "Voix opérationnelle",
+        "dictée temps réel"
+      ]
+    },
+    {
+      "id": "notification",
+      "layer": "t1",
+      "name": "NotificationTech",
+      "liveStatus": "partial",
+      "liveBlockedReason": "aucun provider push",
+      "clientExplanation": "Rien ne se perd : les rappels s'affichent dans votre cockpit.",
+      "internalExplanation": "Aucun provider push ; artefacts cockpit uniquement.",
+      "canClaim": [
+        "Rappels et relances visibles dans votre cockpit."
+      ],
+      "cannotClaim": [
+        "Notifications push sur votre téléphone"
+      ]
+    },
+    {
+      "id": "connector",
+      "layer": "t1",
+      "name": "ConnectorTech",
+      "liveStatus": "architecture_ready",
+      "liveBlockedReason": "aucun connecteur live (SIRH, paie, Slack non vérifiés)",
+      "clientExplanation": "En attendant les connecteurs certifiés, les échanges se font par exports propres et maîtrisés.",
+      "internalExplanation": "liveDependency=external, tout appel bloqué ; phase later.",
+      "canClaim": [
+        "Cadre d'intégration prêt côté architecture ; échange par export/import maîtrisé."
+      ],
+      "cannotClaim": [
+        "Intégration SIRH/paie/Slack en direct"
+      ]
+    },
+    {
+      "id": "memory",
+      "layer": "t1",
+      "name": "MemoryTech",
+      "liveStatus": "verified",
+      "liveBlockedReason": null,
+      "clientExplanation": "Votre contexte n'est jamais reperdu : l'entreprise garde sa mémoire, chez elle.",
+      "internalExplanation": "Statut verified T1 ; s'appuie sur les stores durables réels, jamais un 2e cerveau.",
+      "canClaim": [
+        "Le contexte de votre entreprise est conservé, isolé et gouverné."
+      ],
+      "cannotClaim": [
+        "Mémoire partagée entre entreprises"
+      ]
+    },
+    {
+      "id": "evidence",
+      "layer": "t1",
+      "name": "EvidenceTech",
+      "liveStatus": "partial",
+      "liveBlockedReason": null,
+      "clientExplanation": "Tout ce qui est fait est tracé : vous pouvez toujours répondre à « qui a fait quoi, quand ».",
+      "internalExplanation": "Consommé réellement par CloneTrace (probe artifact.t1Evidence).",
+      "canClaim": [
+        "Chaque action laisse une trace auditable."
+      ],
+      "cannotClaim": []
+    },
+    {
+      "id": "workflow",
+      "layer": "t1",
+      "name": "WorkflowTech",
+      "liveStatus": "partial",
+      "liveBlockedReason": null,
+      "clientExplanation": "La mécanique des étapes est standardisée ; les décisions RH restent chez Pierre et chez vous.",
+      "internalExplanation": "Générique par doctrine : le raisonnement RH reste dans le moteur V1.",
+      "canClaim": [
+        "Structure les étapes d'une mission de façon générique et traçable."
+      ],
+      "cannotClaim": [
+        "Décisions RH prises par la technologie"
+      ]
+    },
+    {
+      "id": "analytics",
+      "layer": "t1",
+      "name": "AnalyticsTech",
+      "liveStatus": "partial",
+      "liveBlockedReason": null,
+      "clientExplanation": "Vous voyez ce que Pierre produit chaque mois, chiffres à l'appui — sans promesse magique.",
+      "internalExplanation": "Le calcul réel vit dans analytics.compute (RLS) ; T1 ne fait que l'artefact.",
+      "canClaim": [
+        "Rapports d'activité et de valeur mesurés sur vos données réelles."
+      ],
+      "cannotClaim": [
+        "ROI garanti"
+      ]
+    },
+    {
+      "id": "file",
+      "layer": "t1",
+      "name": "FileTech",
+      "liveStatus": "partial",
+      "liveBlockedReason": null,
+      "clientExplanation": "Vous déposez vos fichiers ; ce qui n'est pas sûr part en revue humaine plutôt qu'en devinette.",
+      "internalExplanation": "Fail-closed sur mime inconnu.",
+      "canClaim": [
+        "Vos fichiers RH sont pris en charge de façon sûre et tracée."
+      ],
+      "cannotClaim": [
+        "Lecture parfaite de tout format"
+      ]
+    },
+    {
+      "id": "export",
+      "layer": "t1",
+      "name": "ExportTech",
+      "liveStatus": "partial",
+      "liveBlockedReason": null,
+      "clientExplanation": "Vos données sortent proprement, quand VOUS le décidez.",
+      "internalExplanation": "transferNow:true → blocked ; manuel uniquement.",
+      "canClaim": [
+        "Exports propres et complets, téléchargés par vous."
+      ],
+      "cannotClaim": [
+        "Transferts automatiques vers des systèmes externes"
+      ]
+    },
+    {
+      "id": "permission",
+      "layer": "t1",
+      "name": "PermissionTech",
+      "liveStatus": "verified",
+      "liveBlockedReason": null,
+      "clientExplanation": "La sécurité par défaut : ce qui n'est pas clairement autorisé est refusé.",
+      "internalExplanation": "Statut verified T1 ; sondes fail-closed dans le command center T1.",
+      "canClaim": [
+        "Chaque usage est contrôlé : en cas de doute, c'est NON."
+      ],
+      "cannotClaim": []
+    },
+    {
+      "id": "integration_bus",
+      "layer": "t1",
+      "name": "TechnologyBus (IntegrationBus)",
+      "liveStatus": "partial",
+      "liveBlockedReason": null,
+      "clientExplanation": "Le « standard interne » : chaque employé IA utilise les technologies avec les mêmes règles de sécurité.",
+      "internalExplanation": "Artefact identique pour employeeId pierre ou clone-finance-01 (prouvé T1).",
+      "canClaim": [
+        "Une seule discipline technologique pour tous les employés IA, actuels et futurs."
+      ],
+      "cannotClaim": []
+    },
+    {
+      "id": "cloneos",
+      "layer": "t2",
+      "name": "CloneOS",
+      "liveStatus": "integration_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "Le moteur invisible qui transforme « occupe-toi de l'onboarding de Léa » en mission organisée.",
+      "internalExplanation": "Orchestration T2 ; le raisonnement RH reste dans le moteur V1 de Pierre — pas de 2e cerveau.",
+      "canClaim": [
+        "Transforme une demande en mission structurée, tracée et gouvernée."
+      ],
+      "cannotClaim": [
+        "CloneOS décide des issues RH",
+        "CloneOS = Pierre"
+      ]
+    },
+    {
+      "id": "cloneadn",
+      "layer": "t2",
+      "name": "CloneADN",
+      "liveStatus": "integration_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "L'« empreinte » de votre entreprise : votre ton, vos usages, vos circuits de validation.",
+      "internalExplanation": "Comportement/contexte, pas données brutes ; toute évolution = proposition à valider.",
+      "canClaim": [
+        "Vos employés IA adoptent le ton et les circuits de VOTRE entreprise."
+      ],
+      "cannotClaim": [
+        "Apprentissage automatique silencieux du profil"
+      ]
+    },
+    {
+      "id": "cloneguard",
+      "layer": "t2",
+      "name": "CloneGuard",
+      "liveStatus": "local_safe_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "Le gardien : ce qui est sensible passe par vous, ce qui est interdit est refusé et expliqué.",
+      "internalExplanation": "Critique → jamais autonome ; effets live refusés par construction.",
+      "canClaim": [
+        "Le risque n'est pas l'IA, c'est l'IA sans garde-fous — CloneGuard est le garde-fou."
+      ],
+      "cannotClaim": [
+        "Garantie juridique"
+      ]
+    },
+    {
+      "id": "clonetrace",
+      "layer": "t2",
+      "name": "CloneTrace",
+      "liveStatus": "local_safe_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "La boîte noire de confiance : tout est rejouable et vérifiable.",
+      "internalExplanation": "Consomme réellement T1 EvidenceTech (probe t1Evidence).",
+      "canClaim": [
+        "Vous pouvez toujours reconstituer qui a fait quoi, quand, pourquoi."
+      ],
+      "cannotClaim": []
+    },
+    {
+      "id": "clonevoice",
+      "layer": "t2",
+      "name": "CloneVoice",
+      "liveStatus": "architecture_ready",
+      "liveBlockedReason": "Aucun provider vocal vérifié — voix live bloquée ; le chemin texte reste autoritaire (le chemin voix s'ouvrira seulement après vérification externe d'un provider).",
+      "clientExplanation": "La voix arrivera ; aujourd'hui, tout passe par le texte, de façon fiable et tracée.",
+      "internalExplanation": "clonevoiceOperational=false STRUCTURELLEMENT (const non levée par le code) tant qu'aucun provider vocal n'est vérifié.",
+      "canClaim": [
+        "Architecture voix prête ; le texte reste la référence aujourd'hui."
+      ],
+      "cannotClaim": [
+        "Voix opérationnelle",
+        "assistant vocal temps réel"
+      ]
+    },
+    {
+      "id": "clonepolicy",
+      "layer": "t2",
+      "name": "ClonePolicy",
+      "liveStatus": "local_safe_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "Vous fixez les règles du jeu ; les employés IA s'y plient, sans exception.",
+      "internalExplanation": "Exécutée dans chaque run orchestré (Policy+Trust systématiques — fix adversarial T2).",
+      "canClaim": [
+        "VOS règles gouvernent le comportement des employés IA."
+      ],
+      "cannotClaim": []
+    },
+    {
+      "id": "clonecontinuum",
+      "layer": "t2",
+      "name": "CloneContinuum",
+      "liveStatus": "local_safe_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "Ce qui doit être suivi EST suivi — même dans trois semaines.",
+      "internalExplanation": "États waiting/resume/closed ; réveils proposés, jamais exécutés seuls.",
+      "canClaim": [
+        "Les missions ne meurent pas après la première réponse : elles continuent, tracées."
+      ],
+      "cannotClaim": [
+        "Relances envoyées automatiquement vers l'extérieur"
+      ]
+    },
+    {
+      "id": "clonetrust",
+      "layer": "t2",
+      "name": "CloneTrust",
+      "liveStatus": "local_safe_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "Plus la confiance est prouvée, plus l'IA avance seule — sauf sur le critique, qui reste à vous.",
+      "internalExplanation": "Mappé sur les 4 AutonomyModes réels P8 via P9.5 (planchers durs contrat/licenciement).",
+      "canClaim": [
+        "L'autonomie se gagne et se contrôle — jamais sur les sujets critiques."
+      ],
+      "cannotClaim": [
+        "Autonomie totale"
+      ]
+    },
+    {
+      "id": "clonereview",
+      "layer": "t2",
+      "name": "CloneReview",
+      "liveStatus": "local_safe_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "Un deuxième regard systématique sur ce que produit l'IA, avant votre validation.",
+      "internalExplanation": "Détecte placeholders/contradictions ; ne lève jamais l'exigence de validation humaine.",
+      "canClaim": [
+        "Chaque production passe une relecture interne avant de vous arriver."
+      ],
+      "cannotClaim": [
+        "Zéro erreur garanti"
+      ]
+    },
+    {
+      "id": "clonesignals",
+      "layer": "t2",
+      "name": "CloneSignals",
+      "liveStatus": "local_safe_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "L'IA voit qu'un dossier n'avance plus et vous le signale — vous décidez.",
+      "internalExplanation": "Propositions uniquement, jamais exécutées live.",
+      "canClaim": [
+        "Les signaux faibles remontent avant de devenir des problèmes."
+      ],
+      "cannotClaim": [
+        "Actions déclenchées automatiquement"
+      ]
+    },
+    {
+      "id": "clonelearn",
+      "layer": "t2",
+      "name": "CloneLearn",
+      "liveStatus": "local_safe_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "L'IA propose « j'ai remarqué que vous faites toujours X, dois-je le retenir ? » — vous validez.",
+      "internalExplanation": "Même doctrine que la boucle d'apprentissage C1 : proposal-only.",
+      "canClaim": [
+        "Le système apprend vos usages — uniquement avec votre accord."
+      ],
+      "cannotClaim": [
+        "Auto-apprentissage silencieux"
+      ]
+    },
+    {
+      "id": "clonebrief",
+      "layer": "t2",
+      "name": "CloneBrief",
+      "liveStatus": "local_safe_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "Deux minutes le matin : vous savez exactement où en est le travail RH.",
+      "internalExplanation": "Ligne « PRÉPARÉ » probée par le command center T2.",
+      "canClaim": [
+        "Votre brief du matin dit ce qui est FAIT, ce qui est PRÉPARÉ, et ce qui bloque."
+      ],
+      "cannotClaim": [
+        "Résumés embellis"
+      ]
+    },
+    {
+      "id": "clonecall",
+      "layer": "t2",
+      "name": "CloneCall",
+      "liveStatus": "local_safe_ready",
+      "liveBlockedReason": "Téléphonie live et appels sortants BLOQUÉS — aucun provider télécom/audio vérifié, cadre légal non validé ; le chemin sortant live ne s'ouvrira qu'après vérification externe.",
+      "clientExplanation": "Vous « briefez » votre employé IA comme au téléphone — par texte aujourd'hui ; aucun appel téléphonique réel.",
+      "internalExplanation": "Dual-blocked : invariants d'artefact + input outbound → blocked ; provider télécom/cadre légal non vérifiés.",
+      "canClaim": [
+        "Une session de travail « comme un appel », traitée en mission gouvernée."
+      ],
+      "cannotClaim": [
+        "Appels téléphoniques réels",
+        "CloneCall vous appelle"
+      ]
+    },
+    {
+      "id": "cloneroom",
+      "layer": "t2",
+      "name": "CloneRoom",
+      "liveStatus": "integration_ready",
+      "liveBlockedReason": null,
+      "clientExplanation": "La salle de réunion permanente de votre équipe augmentée — ordonnée, tracée, gouvernée.",
+      "internalExplanation": "allowPeerToPeer → blocked ; participant non déclaré traité fail-closed.",
+      "canClaim": [
+        "Une salle où humains et employés IA coordonnent le travail, sous gouvernance."
+      ],
+      "cannotClaim": [
+        "Discussions IA↔IA non gouvernées"
+      ]
+    }
+  ],
+  "cloneVoiceLiveClaim": "architecture_ready",
+  "cloneCallBlocked": true
+}

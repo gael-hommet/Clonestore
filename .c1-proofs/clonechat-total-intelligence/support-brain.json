@@ -1,0 +1,50 @@
+{
+  "runId": "clonechat-total-intelligence",
+  "knownBugRun": {
+    "message": "Oui, c'est connu : Démo lourde sur ancien mobile. Contournement immédiat : Utiliser le mode simplifié (repli sans JavaScript) ou un navigateur récent ; la démo /demo/pierre est plus légère. C'est un contournement — le problème reste suivi, il n'est pas considéré comme corrigé. Si cela ne suffit pas, je transmets à l'équipe.",
+    "artifact": {
+      "id": "bugreport_e7d2630d",
+      "category": "demo",
+      "severity": "low",
+      "status": "workaround_available",
+      "route": null,
+      "companyId": null,
+      "redactedDescription": "la démo rame sur mobile",
+      "missingInfoQuestions": [
+        "Sur quelle page étiez-vous (l'adresse commence par clonestore, ex. /demo) ?",
+        "Que faisiez-vous juste avant le problème (dernière action cliquée) ?"
+      ],
+      "linkedKnownIssueId": "kb_demo_old_mobile",
+      "workaround": "Utiliser le mode simplifié (repli sans JavaScript) ou un navigateur récent ; la démo /demo/pierre est plus légère.",
+      "escalated": false,
+      "createdAt": "2026-07-10T00:00:00.000Z"
+    },
+    "escalated": false,
+    "askedQuestions": []
+  },
+  "unknownRun": {
+    "message": "Pour vous aider précisément, deux questions maximum : Sur quelle page étiez-vous (l'adresse commence par clonestore, ex. /demo) ? Que faisiez-vous juste avant le problème (dernière action cliquée) ? En attendant : Décrivez la page et la dernière action effectuée : l'équipe pourra reproduire et corriger.",
+    "artifact": {
+      "id": "bugreport_ac844fb9",
+      "category": "unknown",
+      "severity": "low",
+      "status": "needs_info",
+      "route": null,
+      "companyId": null,
+      "redactedDescription": "quelque chose d'étrange se produit",
+      "missingInfoQuestions": [
+        "Sur quelle page étiez-vous (l'adresse commence par clonestore, ex. /demo) ?",
+        "Que faisiez-vous juste avant le problème (dernière action cliquée) ?"
+      ],
+      "linkedKnownIssueId": null,
+      "workaround": null,
+      "escalated": false,
+      "createdAt": "2026-07-10T00:00:00.000Z"
+    },
+    "escalated": false,
+    "askedQuestions": [
+      "Sur quelle page étiez-vous (l'adresse commence par clonestore, ex. /demo) ?",
+      "Que faisiez-vous juste avant le problème (dernière action cliquée) ?"
+    ]
+  }
+}

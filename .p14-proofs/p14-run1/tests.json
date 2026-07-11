@@ -1,0 +1,38 @@
+{
+  "runId": "p14-run1",
+  "tsc": "0 source errors.",
+  "p14_suites": {
+    "pierre_ultimate_vision": { "file": "src/lib/clonestore/founder-acceptance/__tests__/pierre-ultimate-vision.test.ts", "passed": 28, "proves": [
+      "(review REFUTED fix) 9 reworded/synonym forbidden claims (assure la conformité / tranche seul les licenciements / gère la paie / remplace vos ressources humaines / …) are NEVER allowed_* (forbidden or unknown_review); a benign operational claim stays allowed_caution",
+      "(review B1a fix) a legal-gated code-only item never reaches VERIFIED even with a legalProof override (→ ARCHITECTURE_READY); default LEGAL_BLOCKED",
+      "catalog >= 50 requirements, 50 groups, unique ids, complete; every req has claim_level + launch_importance",
+      "evaluator returns a valid status for EVERY requirement",
+      "launch pillars VERIFIED (identity, mission, autonomy, memory, trace, source-of-truth)",
+      "contract legal validity stays LEGAL_BLOCKED (even with legal override, never VERIFIED)",
+      "signature PROVIDER_BLOCKED (Yousign not live)",
+      "country compliance guarantee = MUST_NOT_CLAIM; full payroll = MUST_NOT_CLAIM",
+      "final disciplinary + final compensation decisions = MUST_NOT_CLAIM",
+      "full human HR replacement + autonomous DRH = MUST_NOT_CLAIM",
+      "voice/integrations/ROI-report/7-day-pack NOT launch-verified",
+      "allowed strong/caution claims pass; every forbidden claim blocked; reworded forbidden (assistant/legal/payroll/DRH/dismissal/full-replacement/production/perfect) blocked",
+      "generated website copy is safe + carries a human-validation disclaimer",
+      "FR/BE/LU=449 EUR, CH=499 CHF (consistent with P10 pricingForCountry)",
+      "savings estimate always marked estimate + disclaimer, no amount without hourly cost, never guaranteed",
+      "break-even = price/hourlyCost; ROI copy cautious (charge RH, 10-15h, non-guaranteed)",
+      "PRODUCTION_AUTHORIZED stays false; launch matrix never marks a roadmap item as launch-verified"
+    ] },
+    "p14_proof_generator": { "file": "src/lib/clonestore/founder-acceptance/__tests__/p14-proof-generator.test.ts", "passed": 2, "proves": [
+      "coverage matrix is honest (VERIFIED>0, blockers present, MUST_NOT>=4, roadmap present; no VERIFIED on legal/provider-required items)",
+      "writes the proof JSONs COMPUTED from the real evaluator when P14_WRITE_PROOFS=1"
+    ] }
+  },
+  "founder_acceptance_suite_total": "61/61 in src/lib/clonestore/founder-acceptance (P13 + P14 + supporting); + pricing/production green — no regression",
+  "guardrail_suites": "pricing + production green",
+  "adversarial_review": "adversarial-review.json — 17 claims, 10 HOLDS / 6 PARTIAL / 1 REFUTED, 0 security. All addressed: linter hardened (synonyms + sensitive-signal fail-safe), VERIFIED requires >code, multi-site→PARTIAL, proofs regenerated consistent (19/21).",
+  "non_regression": "6777/6777 (src/lib/nav + src/lib/clonestore + src/lib/clonechat + src/app/api/assistant + src/components) — no regression from P14 additions.",
+  "coverage_headline": {
+    "total": 58, "VERIFIED": 19, "PARTIAL": 21, "ARCHITECTURE_READY": 2, "FUTURE_ROADMAP": 3,
+    "EXTERNAL_BLOCKED": 2, "LEGAL_BLOCKED": 4, "PROVIDER_BLOCKED": 1, "MUST_NOT_CLAIM": 6,
+    "launch_critical": { "total": 17, "verified": 14, "partial": 0, "blocked": 2, "mustNot": 1, "roadmap": 0 }
+  }
+}

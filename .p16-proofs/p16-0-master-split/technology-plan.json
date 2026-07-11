@@ -1,0 +1,176 @@
+{
+  "runId": "p16-0-master-split",
+  "plan": "T1_CLONESTORE_TECHNOLOGIES_LAYER_PLAN.md",
+  "technologies": [
+    {
+      "id": "tech.document",
+      "title": "DocumentTech",
+      "category": "technology",
+      "current_status": "partial",
+      "owner": "technology",
+      "launch_importance": "critical",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "T1",
+      "reason": "Rendu/templates existent (Pierre) ; extraire un contrat réutilisable (préparer/rendre/exporter des documents)."
+    },
+    {
+      "id": "tech.mail",
+      "title": "MailTech",
+      "category": "technology",
+      "current_status": "partial",
+      "owner": "technology",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "T1",
+      "reason": "communications.ts + providers orchestrés ; l'envoi LIVE dépend d'un domaine/provider externe.",
+      "safeFallback": "Pierre rédige, l'humain envoie manuellement."
+    },
+    {
+      "id": "tech.calendar",
+      "title": "CalendarTech",
+      "category": "technology",
+      "current_status": "not_built",
+      "owner": "technology",
+      "launch_importance": "nice_to_have",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "T1",
+      "reason": "Aucune techno calendrier ; préparation d'événements/entretiens.",
+      "safeFallback": "Pierre prépare l'événement, l'humain copie/valide."
+    },
+    {
+      "id": "tech.signature",
+      "title": "SignatureTech",
+      "category": "technology",
+      "current_status": "architecture_ready",
+      "owner": "technology",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "T1",
+      "reason": "Abstraction provider (fallback/live) déjà cadrée (P15 provider-closure) ; Yousign live bloqué (P8.7.4).",
+      "safeFallback": "Document préparé, signature manuelle/externe (aucune revendication live)."
+    },
+    {
+      "id": "tech.voice",
+      "title": "VoiceTech / CloneVoice",
+      "category": "technology",
+      "current_status": "architecture_ready",
+      "owner": "technology",
+      "launch_importance": "future",
+      "implementation_risk": "high",
+      "recommended_next_phase": "later",
+      "reason": "Un contrat CloneVoice existe (employee-context-registry) ; implémentation vocale = roadmap.",
+      "safeFallback": "L'entrée texte reste la source de vérité."
+    },
+    {
+      "id": "tech.notification",
+      "title": "NotificationTech",
+      "category": "technology",
+      "current_status": "partial",
+      "owner": "technology",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "T1",
+      "reason": "Rappels cockpit existent ; push temps réel = roadmap/externe.",
+      "safeFallback": "Rappels dans le cockpit uniquement."
+    },
+    {
+      "id": "tech.connector",
+      "title": "ConnectorTech",
+      "category": "technology",
+      "current_status": "architecture_ready",
+      "owner": "technology",
+      "launch_importance": "future",
+      "implementation_risk": "high",
+      "recommended_next_phase": "later",
+      "reason": "channels.ts = architecture ; connecteurs SIRH/paie/Slack = externes."
+    },
+    {
+      "id": "tech.memory",
+      "title": "MemoryTech",
+      "category": "technology",
+      "current_status": "verified",
+      "owner": "technology",
+      "launch_importance": "critical",
+      "implementation_risk": "low",
+      "recommended_next_phase": "T1",
+      "reason": "Mémoire durable pg (P8.14) + CloneADN ; à exposer comme techno réutilisable multi-employés."
+    },
+    {
+      "id": "tech.evidence",
+      "title": "EvidenceTech / TraceTech",
+      "category": "technology",
+      "current_status": "partial",
+      "owner": "technology",
+      "launch_importance": "critical",
+      "implementation_risk": "low",
+      "recommended_next_phase": "T1",
+      "reason": "Timeline + audit pierre_rt_ existent ; extraire un contrat trace/preuve réutilisable."
+    },
+    {
+      "id": "tech.workflow",
+      "title": "WorkflowTech",
+      "category": "technology",
+      "current_status": "partial",
+      "owner": "technology",
+      "launch_importance": "important",
+      "implementation_risk": "high",
+      "recommended_next_phase": "T1",
+      "reason": "Moteur missions + case FSM (Pierre) ; abstraire en moteur de workflow réutilisable (NE PAS créer un 2e cerveau RH)."
+    },
+    {
+      "id": "tech.analytics",
+      "title": "AnalyticsTech / ROI",
+      "category": "technology",
+      "current_status": "partial",
+      "owner": "technology",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "T1",
+      "reason": "analytics.compute existe ; techno analytics/ROI réutilisable (rapport de valeur)."
+    },
+    {
+      "id": "tech.file",
+      "title": "FileTech (ingestion)",
+      "category": "technology",
+      "current_status": "partial",
+      "owner": "technology",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "T1",
+      "reason": "Ingestion image/capture (P9.4, EXIF) ; élargir + contractualiser l'ingestion de fichiers."
+    },
+    {
+      "id": "tech.export",
+      "title": "ExportTech",
+      "category": "technology",
+      "current_status": "partial",
+      "owner": "technology",
+      "launch_importance": "nice_to_have",
+      "implementation_risk": "low",
+      "recommended_next_phase": "T1",
+      "reason": "Exports documentaires ; contrat d'export réutilisable."
+    },
+    {
+      "id": "tech.permission",
+      "title": "PermissionTech / scope engine",
+      "category": "technology",
+      "current_status": "verified",
+      "owner": "technology",
+      "launch_importance": "critical",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "T1",
+      "reason": "RLS + requireCompanyUser + write-permission (Pierre) ; exposer comme moteur de permissions/scope réutilisable."
+    },
+    {
+      "id": "tech.bus",
+      "title": "IntegrationBus / TechnologyBus",
+      "category": "technology",
+      "current_status": "architecture_ready",
+      "owner": "technology",
+      "launch_importance": "critical",
+      "implementation_risk": "high",
+      "recommended_next_phase": "T1",
+      "reason": "employee-context-registry amorce la couche multi-employés ; formaliser un bus techno consommable par tout employé IA."
+    }
+  ]
+}

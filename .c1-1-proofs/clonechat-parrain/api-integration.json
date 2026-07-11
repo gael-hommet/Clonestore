@@ -1,0 +1,6 @@
+{
+  "runId": "clonechat-parrain",
+  "routeUsesC11": true,
+  "legacyCompatible": true,
+  "attachmentsOptional": true
+}

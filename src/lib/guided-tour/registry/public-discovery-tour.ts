@@ -6,9 +6,9 @@
 // — un clin d'œil discret autorisé, pas de jargon.
 //
 // Routes réellement traversées : / → /agents → /agents/pierre → /assistant
-// (écran public de verrouillage propre) → /demo/pierre → /login (entrée publique
-// vers My CloneStore) → retour / (finale centrée). Toutes publiques : jamais
-// d'espace authentifié inaccessible au visiteur.
+// (workspace CloneChat réel, mode orientation publique) → /demo/pierre → /login
+// (entrée publique vers My CloneStore) → retour / (finale centrée). Toutes
+// publiques : jamais d'espace authentifié inaccessible au visiteur.
 
 import type { Tour } from "../types";
 
@@ -64,7 +64,7 @@ export const PUBLIC_DISCOVERY_TOUR: Tour = {
       targetId: "clonechat-entry",
       route: "/assistant",
       title: "CloneChat",
-      body: "Le point de contact naturel avec les employés IA. Il arrive bientôt — en attendant, Pierre est déjà là.",
+      body: "Le point de contact naturel avec les employés IA : posez une question, orientez-vous, et une fois connecté, agissez avec Pierre sous votre validation.",
       placement: "bottom",
       spotlightPadding: 14,
     },

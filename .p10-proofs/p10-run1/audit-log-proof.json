@@ -1,0 +1,23 @@
+{
+  "runId": "p10-run1",
+  "note": "IP hashée/tronquée, jamais stockée en clair",
+  "sampleRecord": {
+    "auditId": "pa_demo",
+    "at": "2026-07-08T12:00:00.000Z",
+    "requestId": "req-demo",
+    "userId": "user-demo",
+    "anonSessionId": null,
+    "selectedCountry": "FR",
+    "resolvedCountry": "CH",
+    "geoCountry": "CH",
+    "companyCountry": "CH",
+    "billingCountry": null,
+    "taxCountry": null,
+    "requestedPriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+    "resolvedPriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY",
+    "currency": "CHF",
+    "decision": "review_required",
+    "reasonCode": "COMPANY_COUNTRY_CONFLICT",
+    "ipHash": "ip_8d87d4457ed0e4f19bf4"
+  }
+}

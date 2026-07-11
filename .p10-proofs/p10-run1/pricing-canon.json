@@ -1,0 +1,132 @@
+{
+  "runId": "p10-run1",
+  "supported": [
+    "FR",
+    "BE",
+    "LU",
+    "CH"
+  ],
+  "eurLaunch": [
+    "FR",
+    "BE",
+    "LU"
+  ],
+  "chfLaunch": [
+    "CH"
+  ],
+  "catalog": [
+    {
+      "group": "EUR_LAUNCH",
+      "countries": [
+        "FR",
+        "BE",
+        "LU"
+      ],
+      "display": "449 € / mois",
+      "amount": 449,
+      "currency": "EUR"
+    },
+    {
+      "group": "CHF_LAUNCH",
+      "countries": [
+        "CH"
+      ],
+      "display": "499 CHF / mois",
+      "amount": 499,
+      "currency": "CHF"
+    }
+  ],
+  "compatibility": [
+    {
+      "country": "FR",
+      "pricing": {
+        "country": "FR",
+        "group": "EUR_LAUNCH",
+        "currency": "EUR",
+        "amount": 449,
+        "amountMinor": 44900,
+        "interval": "month",
+        "display": "449 € / mois",
+        "stripePriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY"
+      },
+      "canBuyEUR": true,
+      "canBuyCHF": false
+    },
+    {
+      "country": "BE",
+      "pricing": {
+        "country": "BE",
+        "group": "EUR_LAUNCH",
+        "currency": "EUR",
+        "amount": 449,
+        "amountMinor": 44900,
+        "interval": "month",
+        "display": "449 € / mois",
+        "stripePriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY"
+      },
+      "canBuyEUR": true,
+      "canBuyCHF": false
+    },
+    {
+      "country": "LU",
+      "pricing": {
+        "country": "LU",
+        "group": "EUR_LAUNCH",
+        "currency": "EUR",
+        "amount": 449,
+        "amountMinor": 44900,
+        "interval": "month",
+        "display": "449 € / mois",
+        "stripePriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY"
+      },
+      "canBuyEUR": true,
+      "canBuyCHF": false
+    },
+    {
+      "country": "CH",
+      "pricing": {
+        "country": "CH",
+        "group": "CHF_LAUNCH",
+        "currency": "CHF",
+        "amount": 499,
+        "amountMinor": 49900,
+        "interval": "month",
+        "display": "499 CHF / mois",
+        "stripePriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY"
+      },
+      "canBuyEUR": false,
+      "canBuyCHF": true
+    }
+  ],
+  "unknown": {
+    "status": "country_required"
+  },
+  "unsupported_US": {
+    "status": "unsupported",
+    "country": "US"
+  },
+  "normalizeSamples": {
+    "France": "FR",
+    "SUISSE": "CH",
+    " be ": "BE",
+    "garbage!!": null
+  },
+  "chBuyingEur": {
+    "allowed": false,
+    "code": "CH_REQUIRES_CHF_PRICE",
+    "country": "CH",
+    "expectedCurrency": "CHF",
+    "expectedPriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY",
+    "requestedPriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+    "message": "Votre pays de facturation indique la Suisse. L'offre applicable est 499 CHF / mois."
+  },
+  "frBuyingChf": {
+    "allowed": false,
+    "code": "EUR_COUNTRY_REQUIRES_EUR_PRICE",
+    "country": "FR",
+    "expectedCurrency": "EUR",
+    "expectedPriceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+    "requestedPriceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY",
+    "message": "Pour la France, la Belgique et le Luxembourg, l'offre applicable est 449 € / mois."
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "runId": "p942-final",
+  "section": "§7 authenticated browser closure (resumed round)",
+  "original_blocker": "Ephemeral Supabase login from headless browser failed with 'Failed to fetch' → authenticated states not driven.",
+  "blocker_status": "REFUTED — browser authentication works",
+  "how": "Mint a REAL Supabase session in node (real signInWithPassword via @supabase/ssr, which reaches Supabase), capture the exact sb-<ref>-auth-token cookie, inject into an isolated Playwright chromium. The Next server validates the real JWT server-side (getUser) — same auth path as production. Ephemeral user via the authorized script, deleted after (zero residue).",
+
+  "corrected_finding": {
+    "issue": "Last round's UI matrix tested the 'CloneChat arrive bientôt' PLACEHOLDER, not the real workspace: /assistant was statically prerendered (○), so the runtime CLONECHAT_ENABLED flag was baked at build time (off → placeholder) and never gated the page at runtime.",
+    "fix": "Added `export const dynamic = 'force-dynamic'` to src/app/assistant/layout.tsx so the runtime flag actually gates the page (matches the documented 'single env var to enable' intent — previously a latent no-op requiring a rebuild).",
+    "verified": "With the flag ON the REAL workspace renders (composer present); with the flag OFF the placeholder/AccessLockScreen still blocks (gate intact). Build OFF→placeholder, runtime ON→workspace."
+  },
+
+  "browser_auth_failclosed": {
+    "verdict": "BROWSER_AUTH_FAILCLOSED_OK",
+    "cookie": "sb-zdoigpfkyhilpzcsrdmc-auth-token (real session injected)",
+    "viewports": ["auth-1280", "auth-mobile-390", "auth-narrow-360"],
+    "per_viewport": {
+      "authenticated": "true (real workspace, operational mode)",
+      "serverAuthValidated": "true — /api/assistant/chat and /api/assistant/conversations returned 200 (not 401) → real JWT validated server-side",
+      "companyRequired": "200 company_required on both endpoints — fail-closed, NO fake company",
+      "companyRequiredBannerRendered": "client now renders a clear 'rattachez-vous à une entreprise' banner (useCloneChat company_required handling added)",
+      "effectfulActionButtons": 0,
+      "clientExecuteCalls": 0,
+      "noHorizontalOverflow": true,
+      "keyboardFocusInteractive": true,
+      "unnamedControls": 0,
+      "consoleErrors": 0
+    },
+    "cleanup": "DELETED — ZERO RESIDUE",
+    "screenshots": ["p942-auth-1280.png", "p942-auth-mobile-390.png", "p942-auth-narrow-360.png"]
+  },
+
+  "real_workspace_ui_matrix": {
+    "verdict": "BROWSER_QA_OK (real workspace, NOT placeholder)",
+    "viewports": ["desktop-1440", "laptop-1280", "mobile-390", "narrow-360"],
+    "composerVisibleNotClipped": "widths 1296/1136/266/236 — real composer",
+    "accessibility": "0 unnamed controls, keyboard focus interactive",
+    "reducedMotion": true, "longContentNoOverflow": true, "noHorizontalOverflow": true, "consoleErrors": 0
+  },
+
+  "action_flow_drive": {
+    "status": "BLOCKED by concurrent P8-session shared-tree .next contention (environment, §12) — NOT a code/auth defect",
+    "evidence_it_works": "With a clonechat-ready durable Postgres (PG keeper) + operational fallback flag, the dev log shows a successful operational `POST /api/assistant/chat 200` — the operational flow functions.",
+    "evidence_of_contention": "Same log shows 87× `POST /api/assistant/(chat|execute) 404/500`: the parallel P8 session repeatedly rebuilds/removes `.next`, so `next start` loses its build ('Could not find production build' / 'ENOENT prerender-manifest.json' / 'Cannot find module route.js') and `next dev` never reaches network-idle (constant recompiles). No stable multi-step browser window.",
+    "operational_tenant_note": "Operational mode used the EXPLICIT local/test flag CLONECHAT_ALLOW_USER_TENANT_FALLBACK=1 (u:<userId> tenant) — allowed by the constraint; clearly not a real company.",
+    "backing_proofs": "Action-flow proposal→confirm({proposalId})→claim→governed effect→re-read→commit, duplicate, in-flight, terminal, foreign, SHA-256, and no-client-injection are proven at execute-route.test.ts (8/8) + durable itest (24/24). Client executeAction sends only {proposalId} (typechecked + code-reviewed)."
+  },
+
+  "code_changes_validated": { "tsc": 0, "clonechat_assistant_unit": "147/147" }
+}

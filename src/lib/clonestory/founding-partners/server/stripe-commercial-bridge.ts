@@ -11,6 +11,10 @@
 import type Stripe from "stripe";
 import { applyCommercialStripeEvent, type CommercialStripeEvent, type CommercialDeps } from "./commercial";
 import { clonestoryFeatureEnabled } from "./config";
+// Depuis l'API « Basil », Invoice.subscription et Invoice.payment_intent n'existent plus.
+// Lus en brut ils renvoyaient null : une facture payée ne pouvait plus être rattachée à
+// son abonnement, donc à sa contribution. Extracteurs tolérants aux deux formes.
+import { extractInvoiceSubscriptionId, extractInvoicePaymentIntentId } from "@/lib/billing/stripe-event-fields";
 
 function rec(v: unknown): Record<string, unknown> | null {
   return typeof v === "object" && v !== null ? (v as Record<string, unknown>) : null;
@@ -75,9 +79,9 @@ export function extractCommercialEvent(event: Stripe.Event): CommercialStripeEve
     case "invoice.payment_succeeded":
       return {
         ...base,
-        subscriptionId: str(o, "subscription"),
+        subscriptionId: o ? extractInvoiceSubscriptionId(o) : null,
         invoiceId: str(o, "id"),
-        paymentIntentId: str(o, "payment_intent"),
+        paymentIntentId: o ? extractInvoicePaymentIntentId(o) : null,
         amountPaid: num(o, "amount_paid"),
         currency: str(o, "currency"),
       };

@@ -1,78 +1,45 @@
+// src/app/api/orders/cancel/route.ts
+// Annulation d'abonnement en LIBRE-SERVICE = cancel_at_period_end (décision produit).
+//
+// Le client garde Pierre jusqu'au terme déjà payé et peut se rétracter via /api/orders/resume.
+// L'annulation IMMÉDIATE n'existe QUE côté admin interne (permission + audit).
+//
+// Durcissement (remplace la version B31) :
+//   • auth EXCLUSIVEMENT serveur (Bearer) — plus de token dans le body ;
+//   • aucun subscription_id fourni par le frontend — retrouvé depuis la commande ;
+//   • écriture Stripe sous clé d'idempotence ;
+//   • aucune mutation locale inventée : le webhook reste la source de vérité ;
+//   • plus de message interne exposé, plus de `as any`.
+
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { applySubscriptionIntent } from "@/lib/billing/subscription-service";
+import { authenticateBilling, NO_STORE } from "@/lib/billing/route-auth";
+import { normalizeAgentSlug } from "@/lib/checkout/checkout-helpers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function json(status: number, data: unknown) {
-  return NextResponse.json(data, { status });
-}
-
-function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
-  return new Stripe(key, { apiVersion: "2025-11-17.clover" as any });
-}
-
-function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
-  if (!service) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
-  return createClient(url, service, { auth: { persistSession: false } });
-}
-
 export async function POST(req: Request) {
+  const auth = await authenticateBilling(req);
+  if (!auth.ok) return auth.response;
+
+  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+  const agentSlug = normalizeAgentSlug(typeof body.agent_slug === "string" ? body.agent_slug : null);
+  if (!agentSlug) {
+    return NextResponse.json({ ok: false, code: "AGENT_SLUG_REQUIRED", error: "Employé IA introuvable." }, { status: 400, headers: NO_STORE });
+  }
+
   try {
-    const body = (await req.json().catch(() => ({}))) as { agent_slug?: string; access_token?: string };
-    const agent_slug = body.agent_slug;
-    const access_token = body.access_token;
-
-    if (!agent_slug) return json(400, { error: "Missing agent_slug" });
-    if (!access_token) return json(401, { error: "Missing access_token" });
-
-    const sb = getSupabaseAdmin();
-
-    // 1) qui est l'utilisateur ?
-    const { data: userRes, error: userErr } = await sb.auth.getUser(access_token);
-    if (userErr || !userRes?.user) return json(401, { error: "Auth session missing!" });
-
-    const user_id = userRes.user.id;
-
-    // 2) on récupère LA subId depuis orders
-    const { data: order, error: selErr } = await sb
-      .from("orders")
-      .select("stripe_subscription_id,status")
-      .eq("user_id", user_id)
-      .eq("agent_slug", agent_slug)
-      .maybeSingle();
-
-    if (selErr) return json(500, { error: selErr.message });
-    const subId = order?.stripe_subscription_id ?? null;
-
-    if (!subId) {
-      return json(400, {
-        error: "Missing subscription id (orders.stripe_subscription_id est vide). Corrige le webhook, puis ré-essaie.",
-      });
+    const result = await applySubscriptionIntent({ admin: auth.admin, userId: auth.userId, agentSlug, intent: "cancel_at_period_end" });
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, code: result.code, error: result.message }, { status: result.httpStatus, headers: NO_STORE });
     }
-
-    // 3) annulation côté Stripe (immédiate)
-    const stripe = getStripe();
-    await stripe.subscriptions.cancel(subId);
-
-    // 4) et on marque cancelled en DB (sécurité, même si webhook va le faire)
-    const now = new Date().toISOString();
-    await sb
-      .from("orders")
-      .update({ status: "cancelled", ended_at: now })
-      .eq("user_id", user_id)
-      .eq("agent_slug", agent_slug);
-
-    return json(200, { ok: true });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Cancel failed";
-    return json(500, { error: msg });
+    return NextResponse.json(
+      { ok: true, cancel_at_period_end: result.cancelAtPeriodEnd, status: result.status },
+      { headers: NO_STORE },
+    );
+  } catch (e) {
+    console.error("[orders/cancel] error:", e instanceof Error ? e.message : "unknown");
+    return NextResponse.json({ ok: false, code: "SERVER_ERROR", error: "Impossible de programmer l'annulation pour le moment." }, { status: 500, headers: NO_STORE });
   }
 }
-

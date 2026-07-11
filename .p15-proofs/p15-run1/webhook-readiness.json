@@ -1,0 +1,20 @@
+{
+  "runId": "p15-run1",
+  "ready": false,
+  "secretPresent": false,
+  "secretLiveShaped": false,
+  "routeExists": true,
+  "signatureEnforced": true,
+  "idempotent": true,
+  "handledEvents": [
+    "checkout.session.completed",
+    "customer.subscription.created",
+    "customer.subscription.updated",
+    "customer.subscription.deleted",
+    "invoice.payment_failed"
+  ],
+  "blockers": [
+    "STRIPE_WEBHOOK_SECRET absent — impossible de vérifier les événements."
+  ],
+  "note": "Route /api/webhooks/stripe : signature vérifiée via stripe.webhooks.constructEvent AVANT tout effet ; jamais de succès sans vérification ; activation idempotente (orders upsert onConflict user_id,agent_slug). invoice.paid/refunds gérés par les ponts commerciaux ; facturation récurrente déférée honnêtement."
+}

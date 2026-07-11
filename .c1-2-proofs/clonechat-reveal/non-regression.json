@@ -1,0 +1,8 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "command": "npx vitest run src/lib/nav src/lib/clonestore src/lib/clonechat src/lib/pierre/v1 src/app/api/assistant src/app/assistant src/components --testTimeout=120000",
+  "result": "174 files / 7414 tests passed",
+  "tsc": "0 errors",
+  "note": "C1.1 baseline 7392 => 7414 (+22 : suite C1.2)"
+}

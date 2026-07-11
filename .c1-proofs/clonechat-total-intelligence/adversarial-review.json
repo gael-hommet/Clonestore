@@ -1,0 +1,81 @@
+{
+  "runId": "clonechat-total-intelligence",
+  "date": "2026-07-10",
+  "method": "revue adversariale manuelle (10 lentilles), trace lens-par-lens sur le code + batteries de probes exécutées",
+  "lenses": [
+    {
+      "lens": 1,
+      "name": "Hallucination / claims non supportés",
+      "verdict": "HOLDS",
+      "detail": "Toute connaissance est ancrée : pricing DÉRIVÉ de pricingForCountry (P10), statuts technologiques cross-checkés contre les registres réels T1/T2 (tests 6–7), routes issues de l'inventaire réel src/app, faits P8.12/P8.13/P14 repris des rapports. Rien n'est marqué verified_live (test 3)."
+    },
+    {
+      "lens": 2,
+      "name": "Claims live interdits",
+      "verdict": "REFUTED_THEN_FIXED",
+      "refutationsFound": [
+        "R-a: la réponse fondateur (blocages) émettait le bigramme affirmatif « ouverture des appels réels » → détecté par le garde-fou (test 38 échouait en repli sûr) → reformulé en « ouverture de la téléphonie » (roadmap-knowledge).",
+        "R-b: answerHowMuch disait « sans essai gratuit » — affirmatif non négé pour le linter → reformulé « (pas d'essai gratuit) ».",
+        "R-c: motif legal_guarantee manquait « conformité légale EST garantie » → motif élargi.",
+        "R-d: motifs e-mail/signature manquaient « sont envoyés / est envoyée automatiquement » → motifs élargis."
+      ],
+      "proof": "13 probes interdits tous bloqués (test 40) ; batterie moteur 16 questions (dont 2 adversariales) toutes sûres (command center publicApiSafe) ; R1/R4/R5."
+    },
+    {
+      "lens": 3,
+      "name": "Manipulation commerciale / sur-promesse",
+      "verdict": "HOLDS",
+      "detail": "Fausse urgence/rareté = motif interdit (fake_urgency) + doctrine FORBIDDEN_SALES_BEHAVIOURS + test 37. Chaque objection porte une limite honnête ; claims commerciaux jugés par le linter P14 réel (jamais 'forbidden', test 33/37). « remplace la RH » → Non structurel (test 17, R2)."
+    },
+    {
+      "lens": 4,
+      "name": "Fuite de mémoire bugs entre comptes",
+      "verdict": "HOLDS",
+      "detail": "visibleFor fail-closed : scope account exige companyId identique ; requête anonyme ne voit AUCUN bug de compte ; rédaction PII systématique via redactSymptom (P9.4.x). Test 23 + probe command center (company-a/company-b)."
+    },
+    {
+      "lens": 5,
+      "name": "Connaissance candidate réutilisée sans validation",
+      "verdict": "HOLDS",
+      "detail": "Bugs : find() ne retourne JAMAIS un candidat (test 22, seed kb_candidate_reserve_button prouvé invisible puis visible après validation explicite). Apprentissage : requiresValidation=true littéral, approve refuse un validateur vide, propose idempotent ne rétrograde jamais un statut (test 24/25)."
+    },
+    {
+      "lens": 6,
+      "name": "Liens périmés / faux",
+      "verdict": "HOLDS",
+      "detail": "Tous les CTA vente/objections pointent vers des pages existantes du site map (test 18) ; routes absentes (/clonecall, /pricing, /contact, /mentions-legales…) gérées honnêtement avec page la plus proche (test 2) ; warning explicite de re-synchronisation dans le command center."
+    },
+    {
+      "lens": 7,
+      "name": "Prix / pays incohérents",
+      "verdict": "HOLDS",
+      "detail": "Connaissance pricing CONSTRUITE depuis le module P10 réel (jamais de constantes dupliquées) ; égalité display/montant/devise testée (11–12) ; pays inconnu → country_required, jamais l'offre la moins chère ; clés live forgées → jamais 'live' (test 13/42)."
+    },
+    {
+      "lens": 8,
+      "name": "Confusion Pierre / CloneOS / CloneVoice / CloneCall",
+      "verdict": "REFUTED_THEN_FIXED",
+      "refutationsFound": [
+        "R-e: la réponse CloneOS ne corrigeait pas explicitement la confusion « Pierre = CloneOS » → ligne directe ajoutée (« CloneOS orchestre ; Pierre reste l'employé RH ») + test R3."
+      ],
+      "proof": "Réponses directes codées pour clonevoice/voice (pas de voix opérationnelle), clonecall (pas d'appel téléphonique), cloneroom (pas de pair-à-pair), cloneos (pas Pierre) — tests 8/9/10/34/35/R3."
+    },
+    {
+      "lens": 9,
+      "name": "Sûreté API publique / appels providers live",
+      "verdict": "HOLDS",
+      "detail": "C1 est PUR : zéro I/O (scan source test 43 : pas de fetch/axios/ws/URL/require/import dynamique/node:fs), zéro secret, process.env uniquement comme défaut d'évaluateur dans 3 fichiers identifiés (test 47). Aucune route/UI modifiée (forensics mtime : src/app + src/components inchangés). Câblage UI = contrat d'intégration C1_UI_INTEGRATION_CONTRACT, étape suivante derrière CLONECHAT_ENABLED (défaut OFF)."
+    },
+    {
+      "lens": 10,
+      "name": "Rupture de périmètre Pierre V1 / T1 / T2",
+      "verdict": "HOLDS",
+      "detail": "Allowlist d'imports fermée (test 47) : aucun import de lib/pierre, server/, openai/, durable/. Forensics mtime : 657 fichiers (t1, t2, ultimate, pierre/v1, pricing, production, founder-acceptance) inchangés + 55 fichiers clonechat pré-existants inchangés. Suites T1/T2/ultimate/production revertes : 210/210."
+    }
+  ],
+  "summary": {
+    "realRefutations": 5,
+    "allFixed": true,
+    "fixesTested": "R-a→test 38+R5 ; R-b→probe moteur ; R-c/R-d→probes test 40 ; R-e→test R3"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "runId": "p15-run1",
+  "tsc": "0 source errors.",
+  "p15_suite": {
+    "file": "src/lib/clonestore/production/__tests__/p15-external-golive.test.ts",
+    "passed": 35,
+    "reconciliation_fix_coverage": "B2 group (added after adversarial review): billing-only CH/EUR blocked, FR/EUR ALLOWED (no over-block), currency-consistency without billing, no-billing → review-not-active, 4-path source-scan (webhook checkout.session.completed + 2× reconcileSubscriptionStatus + confirm review_required + checkout metadata propagation).",
+    "groups": {
+      "A_stripe_live": "test key rejected; no live key → EXTERNAL_BLOCKED; EUR must be 44900/eur/month, CHF 49900/chf/month; dry-run verifies both; single price id for both → cross-currency forbidden; missing webhook secret blocked; secrets masked (never printed)",
+      "B_reconciliation": "CH billed EUR → no activation (refund); FR/BE/LU billed CHF → no activation; correct FR/BE/LU+EUR & CH+CHF activate; missing billing → no activation (review); FORGED selected country cannot force activation (billing wins); company/billing conflict blocked; flag OFF preserves existing behavior but still audits; deterministic/idempotent; signals extracted from session",
+      "C_legal_registry": "empty → all missing → not ready; internal draft alone → never ready; owner attestation = disclosed owner-attested (not external); owner can accept disclosed risk; expired blocks; external reviewed+approved+hash+not-expired → ready",
+      "D_provider": "sandbox → SANDBOX_ONLY no live claim; missing → MISSING; fallback → prepared-doc launch allowed but NO live-signature claim; live requires owner attestation (never bare boolean)",
+      "E_monitoring": "no attestation → not ready (structural checks present incl. emergency-disable + reconciliation-conflict logging); attestation → ready",
+      "F_owner_G_command_center": "no owner artifact → blocked; demo-only ≠ paid launch; private-pilot ≠ public launch; public approval still fails if any gate missing; FULL approval → status READY_FOR_PRODUCTION_AUTHORIZATION but productionAuthorizationAllowed=FALSE (P10 hard floor) & publicPaidLaunchAllowed=false; default local → never READY; env flags alone can NEVER authorize production; LAUNCHED never reachable locally"
+    }
+  },
+  "p15_proof_generator": { "file": "src/lib/clonestore/production/__tests__/p15-proof-generator.test.ts", "passed": 2, "proves": "local state honest (never READY, production not authorized, P10 floor respected); writes all proof JSONs computed from the real evaluators when P15_WRITE_PROOFS=1" },
+  "regression_fix": "Updated src/lib/clonestore/conversion/__tests__/bloc3-checkout-route-wiring.test.ts source-scan from isAccessGranted(validation.status) → isAccessGranted(activationStatus) — the reconciliation-aware access status; the guard's intent (Pierre activated only when access granted) is preserved.",
+  "production_webhook_checkout_conversion": "213/213 (src/lib/clonestore/production + api/webhooks + api/checkout + conversion) — reconciliation wired into all 4 activation paths, no regression.",
+  "non_regression": "7448/7448 (src/lib/nav + src/lib/clonestore + src/lib/clonechat + ALL src/app/api) after the reconciliation wiring + bloc3 source-scan update.",
+  "stripe_readonly_run": "node scripts/p15-verify-stripe-live-readonly.mjs → TEST_MODE_BLOCKED (local key is sk_test_) — read-only, no session/payment/customer created, secrets masked. Honest: no live keys locally.",
+  "command_center": "TECHNICAL_READY_EXTERNAL_BLOCKED; all 7 gates fail-closed; publicPaidLaunchAllowed=false; productionAuthorizationAllowed=false; p10HardFloorRespected=true."
+}

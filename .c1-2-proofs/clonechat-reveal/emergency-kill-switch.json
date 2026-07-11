@@ -1,0 +1,11 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "killSwitch": "CLONECHAT_ENABLED=false (ou 0/off/disabled/no)",
+  "isCloneChatEmergencyDisabled": "existe, = !isCloneChatEnabled()",
+  "uiUnderOff": "AccessLockScreen 'CloneChat est temporairement indisponible.' (JAMAIS 'arrive bientot')",
+  "apiUnderOff": "route: if(!isCloneChatEnabled()) => 503 CLONECHAT_DISABLED (etape 1, avant auth) — fail-closed, aucun appel modele",
+  "proof": "test 17 (fonction reelle flip false pour toutes valeurs) + wiring route (branche 503) ; etat ACTIF prouve navigateur (401, pas 503) => sous OFF meme route retourne 503 avant l'auth",
+  "runtimeOffServerSpunUp": false,
+  "runtimeOffNote": "Serveur OFF dedie non demarre (2e compile ~68s evitee) — preuve test+wiring+logique ; le prompt autorise tests/runtime evaluation"
+}

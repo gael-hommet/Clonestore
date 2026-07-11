@@ -1,0 +1,15 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "anonymousPost": {
+    "status": 401,
+    "code": "AUTH_REQUIRED"
+  },
+  "activeByDefaultNot503": true,
+  "budgetBeforeModel": "stores.budget.reserve avant createRealOpenAIResponder(key) ; release en finally",
+  "citationsServerValidated": "validateParrainCitations(structured.citations, contextChunks)",
+  "claimsGuard": "finalizeAnswerText applique a chaque reponse",
+  "proposalConfirmation": "execution via proposalId uniquement (/api/assistant/execute)",
+  "c11Grounding": "buildParrainGroundedPrompt",
+  "allPreserved": true
+}

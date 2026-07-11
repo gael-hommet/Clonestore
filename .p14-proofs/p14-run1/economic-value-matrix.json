@@ -1,0 +1,56 @@
+{
+  "runId": "p14-run1",
+  "prices": {
+    "fr_be_lu_eur": 449,
+    "ch_chf": 499
+  },
+  "sample_savings_no_hourly": {
+    "pierrePrice": 449,
+    "totalHoursAbsorbed": 12,
+    "grossValueOfHours": null,
+    "netMonthlyEstimate": null,
+    "vsHumanMonthlyCost": null,
+    "breakEvenReached": null,
+    "isEstimate": true,
+    "assumptions": [
+      "Toutes les valeurs (coût humain, coût horaire, heures) sont des HYPOTHÈSES fournies par l'utilisateur, non des données vérifiées.",
+      "Le gain réel dépend du volume RH réel de l'entreprise et de son coût horaire interne.",
+      "Aucun coût horaire fourni → seul le volume d'heures absorbées est estimé (pas de montant).",
+      "Aucun coût humain mensuel fourni → pas de comparaison directe d'embauche."
+    ],
+    "disclaimer": "Estimation indicative et non garantie. Pierre ne remplace pas toute la RH ni un logiciel de paie ; il absorbe de l'exécution RH opérationnelle sous validation humaine. Aucune donnée salariale n'est présentée comme vérité légale/financière."
+  },
+  "sample_savings_with_hourly": {
+    "pierrePrice": 449,
+    "totalHoursAbsorbed": 16,
+    "grossValueOfHours": 640,
+    "netMonthlyEstimate": 191,
+    "vsHumanMonthlyCost": null,
+    "breakEvenReached": true,
+    "isEstimate": true,
+    "assumptions": [
+      "Toutes les valeurs (coût humain, coût horaire, heures) sont des HYPOTHÈSES fournies par l'utilisateur, non des données vérifiées.",
+      "Le gain réel dépend du volume RH réel de l'entreprise et de son coût horaire interne.",
+      "Aucun coût humain mensuel fourni → pas de comparaison directe d'embauche."
+    ],
+    "disclaimer": "Estimation indicative et non garantie. Pierre ne remplace pas toute la RH ni un logiciel de paie ; il absorbe de l'exécution RH opérationnelle sous validation humaine. Aucune donnée salariale n'est présentée comme vérité légale/financière."
+  },
+  "sample_breakeven": {
+    "pierrePrice": 449,
+    "hourlyCost": 40,
+    "breakEvenHours": 11.23,
+    "isEstimate": true,
+    "note": "À 40/h, Pierre est rentabilisé s'il absorbe ~11.23 h de charge RH par mois (estimation, non garantie)."
+  },
+  "safe_roi_copy": {
+    "positioning": "Pierre ne se compare pas à un outil IA généraliste. Il se compare à la charge RH opérationnelle qu'il absorbe : documents, relances, dossiers, validations, onboarding, absences, pré-paie et suivi.",
+    "threshold": "Si Pierre retire seulement 10 à 15 heures de charge RH mensuelle, il peut déjà devenir rentable selon le coût horaire interne.",
+    "disclaimer": "Estimations indicatives, non garanties. Aucune donnée salariale n'est présentée comme vérifiée. Pierre ne remplace pas toute la RH ni un moteur de paie, et garde les décisions sensibles sous validation humaine.",
+    "forbidden": [
+      "Ne pas promettre de gains exacts garantis.",
+      "Ne pas présenter de données salariales comme vérifiées légalement.",
+      "Ne pas prétendre à un remplacement universel de la RH."
+    ]
+  },
+  "note": "Toutes les valeurs sont des hypothèses configurables ; aucune donnée salariale n'est présentée comme vérité ; aucun gain garanti."
+}

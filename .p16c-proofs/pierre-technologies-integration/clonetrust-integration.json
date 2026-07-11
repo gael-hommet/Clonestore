@@ -1,0 +1,12 @@
+{
+  "artifactKind": "clonetrust_decision",
+  "autonomyScore": 0,
+  "autonomyLevel": "human_only",
+  "reason": "Risque CRITIQUE → human_only, toujours (jamais d'approbation machine seule).",
+  "effectivePermissions": [
+    "observer"
+  ],
+  "criticalAlwaysHumanOnly": true,
+  "overridesCloneGuard": false,
+  "executed": false
+}

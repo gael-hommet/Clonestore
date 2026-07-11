@@ -1,0 +1,14 @@
+{
+  "runId": "clonechat-parrain",
+  "order": [
+    {
+      "id": "k1",
+      "authority": "canonical_runtime"
+    },
+    {
+      "id": "k2",
+      "authority": "candidate_learning"
+    }
+  ],
+  "canonicalWins": true
+}

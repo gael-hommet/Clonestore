@@ -21,17 +21,26 @@ export function MissionComposer({
   mutating,
   onClose,
   onCreate,
+  initialValue = "",
 }: {
   open: boolean;
   mutating: boolean;
   onClose: () => void;
   onCreate: (input: string) => Promise<CreateMissionResult>;
+  /** Amorce optionnelle (ex. message CloneRoom « en faire une mission »). Vide = comportement inchangé. */
+  initialValue?: string;
 }) {
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "uncertain">("idle");
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
+
+  // Amorce : quand le composer s'ouvre AVEC une amorce (message CloneRoom), on préremplit.
+  // Sans amorce (initialValue vide), aucun effet → comportement P9.3 strictement inchangé.
+  useEffect(() => {
+    if (open && initialValue) setInput(initialValue);
+  }, [open, initialValue]);
 
   useEffect(() => {
     if (!open) return;

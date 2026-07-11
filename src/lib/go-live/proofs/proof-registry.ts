@@ -287,8 +287,8 @@ export const GO_LIVE_PROOF_REGISTRY: GoLiveProof[] = [
     expected_evidence: "Screenshot Dashboard Stripe → Webhooks avec endpoint actif et statut ✓",
     verification_steps: [
       "Dashboard Stripe → Developers → Webhooks → Add endpoint",
-      "URL: https://[domaine]/api/stripe/webhook",
-      "Events: checkout.session.completed, subscription.*, invoice.*",
+      "URL: https://[domaine]/api/webhooks/stripe",
+      "Events: checkout.session.completed, customer.subscription.created/updated/deleted, invoice.paid, invoice.payment_failed, charge.refunded, charge.dispute.created/closed",
       "Copier webhook secret (whsec_...)",
       "Setter STRIPE_WEBHOOK_SECRET=whsec_... en production",
     ],

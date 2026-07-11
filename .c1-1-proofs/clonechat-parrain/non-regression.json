@@ -1,0 +1,8 @@
+{
+  "runId": "clonechat-parrain",
+  "date": "2026-07-10",
+  "command": "npx vitest run src/lib/nav src/lib/clonestore src/lib/clonechat src/lib/pierre/v1 src/app/api/assistant src/components --testTimeout=120000",
+  "result": "172 files / 7392 tests passed",
+  "tsc": "npx tsc --noEmit → 0 errors",
+  "note": "Sweep complet post-C1.1 (câblage route + UI inclus). Aucune régression. Base C1 = 6987 ; +105 C1.1 + croissance suites intermédiaires = 7392."
+}

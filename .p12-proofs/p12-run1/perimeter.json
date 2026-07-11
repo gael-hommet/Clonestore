@@ -1,0 +1,39 @@
+{
+  "runId": "p12-run1",
+  "scope": "P12 — CloneOS App Shell & Cockpits Redesign (logged-in experience)",
+  "new_files": [
+    "src/lib/clonestore/cloneos/cloneos-app-shell-contract.ts (+ client-readiness.ts, require-ready-client.ts)",
+    "src/lib/clonestore/cloneos/__tests__/{cloneos-app-shell-contract,cloneos-shell-invariants}.test.ts",
+    "src/components/cloneos/{CloneOsAppShell,CloneOsCommandSurface}.tsx + cloneos-nav.ts",
+    "src/components/cockpit/{GlobalCockpitConsole,PierreCockpitConsole}.tsx",
+    "src/components/cloneroom/CloneRoomConsole.tsx",
+    "src/components/mon-clonestore/MonCloneStoreShell.tsx",
+    "src/app/cockpit/** (layout + page + room + pierre/{,,missions,validations,documents,evidence,settings})",
+    "src/app/mon-clonestore/** (layout + page + setup)",
+    "src/app/api/cloneos/landing/route.ts",
+    "src/components/site/site-footer.tsx (extracted from layout.tsx; hides ONLY on cos-root cockpit routes via isCockpitSurfaceRoute; identical cs-footer markup everywhere else)",
+    "scripts/p12-cloneos-shell-e2e.mjs",
+    ".p12-proofs/p12-run1/*"
+  ],
+  "modified_files": [
+    "src/middleware.ts (ADDITIVE: connected-gate redirect for /cockpit + /mon-clonestore to /login when no session; does not weaken auth)",
+    "src/lib/nav/connected-routes.ts (ADDITIVE: /cockpit + /mon-clonestore prefixes so the public SiteHeader hides)",
+    "src/app/globals.css (ADDITIVE: cos-* console layout block at the end; no existing token/class changed)",
+    "src/app/layout.tsx (footer JSX extracted to <SiteFooter/>; footer is conserved everywhere it rendered before EXCEPT the new cos-root cockpit routes; unused Link import removed)",
+    "src/components/pierre/cockpit/MissionComposer.tsx (P9.3) (ADDITIVE optional prop initialValue='' + prefill effect that fires ONLY when initialValue is non-empty → empty seed = strictly unchanged P9.3 behavior; the createMission/idempotency path is untouched)",
+    "src/components/cockpit/PierreCockpitConsole.tsx (P12) (reads ?compose → opens the real composer prefilled)",
+    "src/components/cloneroom/CloneRoomConsole.tsx (P12) (action extraction now content-carrying: composeMissionRoute builds /cockpit/pierre/missions?compose=<encoded message text>)",
+    "src/lib/guided-tour/__tests__/homepage-nonregression.test.ts (updated for the footer refactor: asserts footer conserved via <SiteFooter/> + cs-footer markup in site-footer.tsx; intent unchanged, not weakened)"
+  ],
+  "adversarial_review": "3 independent Opus attackers (wf_32c9f776-d8b): 13 claims → 11 HOLDS / 2 PARTIAL / 0 REFUTED, 0 security defects. F1 (setup redirect placeholder) = spec-authorized ('safe placeholder resolver'), wording corrected. F2 (CloneRoom action extraction was a static route) = REALLY FIXED to be content-carrying into Pierre's real composer + proven in-browser. Self-surfaced footer chrome-leak fixed. See adversarial-review.json.",
+  "p9_p10_p11_rendered_surfaces_unchanged": "The footer refactor hides the public footer ONLY on cos-root cockpit routes (isCockpitSurfaceRoute → /cockpit, /cockpit/pierre*, /cockpit/room). areaForRoute returns null for /profile, /agents/pierre/use (P9.3 cockpit), /assistant (P9.4), /mon-clonestore → footer STAYS identical there. The MissionComposer prop is additive with an empty default → P9.3 mission-creation behavior and idempotency path are byte-for-byte unchanged when no seed is passed.",
+  "pierre_v1_untouched": true,
+  "p8_p9_p10_p11_untouched": "No file under src/lib/pierre/v1/**, src/app/api/pierre/v1/**, src/lib/clonestore/pricing/**, src/lib/clonestore/production/** modified. Pierre V1 runtime + HR logic UNTOUCHED. P12 REUSES them read-only (useOperationalCockpit hook + P9.3 views + PierreAutonomyPanel + resolveCloneChatCompany/hasPierreAccess signals). HONEST NOTE: one P9.3 UI component (MissionComposer.tsx) received an ADDITIVE optional prop (initialValue, default '') so CloneRoom can hand a message into Pierre's real composer; with an empty seed the P9.3 render + createMission/idempotency behavior is strictly unchanged (verified by the P9.3 cockpit suite staying green). No 2nd HR brain; no HR decision logic added anywhere in P12.",
+  "no_second_hr_brain": "PierreCockpitConsole/GlobalCockpitConsole consume the real P9.3 V1 data hook + views; CloneOS command surface + CloneRoom ROUTE/coordinate only (navigate); the pre-existing TECH-08 CloneOS command-center is plan-only.",
+  "auth": "Not weakened, not faked. Middleware redirects only UNAUTHENTICATED requests away from /cockpit + /mon-clonestore (reliable 307). resolveClientReadiness uses real Supabase getUser + hasPierreAccess; never fabricates client status.",
+  "production": "No production enabled, no migration applied, PRODUCTION_AUTHORIZED (P10/P11) untouched (false).",
+  "known_boundary": "Next 15 dev: server redirect() in RSC layout/page renders the page (200) instead of 307 (streaming quirk) — worked around with a middleware connected-gate + a client readiness guard (/api/cloneos/landing). requireReadyClient() is kept for prod-build correctness. Verified in-browser: visitor→/login, non-client→/agents/pierre.",
+  "auto_touched_during_e2e": { "tsconfig.json": "Next dev auto-adds .next-p12/types; RESTORED after (net unchanged).", "next-env.d.ts": "Next-generated." },
+  "no_secrets_printed": true,
+  "git": "nothing staged/committed/pushed/deployed (git sandbox-restricted; no git write commands run)"
+}

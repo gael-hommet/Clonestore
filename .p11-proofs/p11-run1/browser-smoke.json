@@ -1,0 +1,211 @@
+{
+  "runId": "p11-run1",
+  "base": "http://127.0.0.1:3271",
+  "public": {
+    "desktop-1280": {
+      "size": "1280x900",
+      "cardPresent": true,
+      "initialSelectPrompt": true,
+      "frPrice": "449 € / mois",
+      "chPrice": "499 CHF / mois",
+      "noHorizontalOverflow": true,
+      "api": {
+        "none": {
+          "ok": true,
+          "enabled": true,
+          "resolvedCountry": null,
+          "confidence": "unknown",
+          "supported": false,
+          "requiresCountrySelection": true,
+          "requiresCheckoutRevalidation": true,
+          "price": null,
+          "countries": [
+            {
+              "code": "FR",
+              "label": "France"
+            },
+            {
+              "code": "BE",
+              "label": "Belgique"
+            },
+            {
+              "code": "LU",
+              "label": "Luxembourg"
+            },
+            {
+              "code": "CH",
+              "label": "Suisse"
+            }
+          ],
+          "catalog": [
+            {
+              "group": "EUR_LAUNCH",
+              "countries": [
+                "FR",
+                "BE",
+                "LU"
+              ],
+              "display": "449 € / mois",
+              "amount": 449,
+              "currency": "EUR"
+            },
+            {
+              "group": "CHF_LAUNCH",
+              "countries": [
+                "CH"
+              ],
+              "display": "499 CHF / mois",
+              "amount": 499,
+              "currency": "CHF"
+            }
+          ],
+          "message": "Choisissez votre pays de facturation pour afficher le prix exact."
+        },
+        "fr": {
+          "ok": true,
+          "enabled": true,
+          "resolvedCountry": "FR",
+          "confidence": "selected",
+          "supported": true,
+          "requiresCountrySelection": false,
+          "requiresCheckoutRevalidation": true,
+          "price": {
+            "amount": 449,
+            "currency": "EUR",
+            "display": "449 € / mois"
+          },
+          "countries": [
+            {
+              "code": "FR",
+              "label": "France"
+            },
+            {
+              "code": "BE",
+              "label": "Belgique"
+            },
+            {
+              "code": "LU",
+              "label": "Luxembourg"
+            },
+            {
+              "code": "CH",
+              "label": "Suisse"
+            }
+          ],
+          "catalog": [
+            {
+              "group": "EUR_LAUNCH",
+              "countries": [
+                "FR",
+                "BE",
+                "LU"
+              ],
+              "display": "449 € / mois",
+              "amount": 449,
+              "currency": "EUR"
+            },
+            {
+              "group": "CHF_LAUNCH",
+              "countries": [
+                "CH"
+              ],
+              "display": "499 CHF / mois",
+              "amount": 499,
+              "currency": "CHF"
+            }
+          ],
+          "message": "449 € / mois."
+        },
+        "ch": {
+          "ok": true,
+          "enabled": true,
+          "resolvedCountry": "CH",
+          "confidence": "selected",
+          "supported": true,
+          "requiresCountrySelection": false,
+          "requiresCheckoutRevalidation": true,
+          "price": {
+            "amount": 499,
+            "currency": "CHF",
+            "display": "499 CHF / mois"
+          },
+          "countries": [
+            {
+              "code": "FR",
+              "label": "France"
+            },
+            {
+              "code": "BE",
+              "label": "Belgique"
+            },
+            {
+              "code": "LU",
+              "label": "Luxembourg"
+            },
+            {
+              "code": "CH",
+              "label": "Suisse"
+            }
+          ],
+          "catalog": [
+            {
+              "group": "EUR_LAUNCH",
+              "countries": [
+                "FR",
+                "BE",
+                "LU"
+              ],
+              "display": "449 € / mois",
+              "amount": 449,
+              "currency": "EUR"
+            },
+            {
+              "group": "CHF_LAUNCH",
+              "countries": [
+                "CH"
+              ],
+              "display": "499 CHF / mois",
+              "amount": 499,
+              "currency": "CHF"
+            }
+          ],
+          "message": "499 CHF / mois."
+        }
+      }
+    },
+    "mobile-390": {
+      "size": "390x844",
+      "cardPresent": true,
+      "initialSelectPrompt": true,
+      "frPrice": "449 € / mois",
+      "chPrice": "499 CHF / mois",
+      "noHorizontalOverflow": true
+    },
+    "consoleErrors": []
+  },
+  "auth": {
+    "no_country": {
+      "status": 200,
+      "ok": false,
+      "code": "COUNTRY_REQUIRED",
+      "hasUrl": false
+    },
+    "ch_failclosed": {
+      "status": 503,
+      "ok": false,
+      "code": "STRIPE_PRICE_NOT_CONFIGURED",
+      "hasUrl": false
+    },
+    "ch_forged_eur": {
+      "status": 503,
+      "ok": false,
+      "code": "STRIPE_PRICE_NOT_CONFIGURED",
+      "hasUrl": false
+    }
+  },
+  "verdict": "P11_SMOKE_OK",
+  "publicOk": true,
+  "authOk": true,
+  "noStripeSessionCreated": true,
+  "cleanup": "DELETED — ZERO RESIDUE"
+}

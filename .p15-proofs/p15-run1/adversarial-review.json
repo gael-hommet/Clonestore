@@ -1,0 +1,62 @@
+{
+  "runId": "p15-run1",
+  "review": "P15 — External Go-Live Closure — independent adversarial review + reconciliation re-check",
+  "method": "3 independent Opus attackers (launch-gating; reconciliation/webhook security; legal/provider/perimeter/tests), then a focused re-check of the reconciliation fix.",
+  "workflowRunIds": ["wf_8daa7e3d-4e1", "wf_a2f4d79f-a71"],
+  "totals_initial": { "claims": 16, "holds": 12, "partial": 2, "refuted": 2, "securityDefects": 0 },
+  "verdict_on_review": "The launch-gating doctrine HOLDS unconditionally: productionAuthorizationAllowed/publicPaidLaunchAllowed can never be flipped by env alone (P10 const hard floor); owner approval alone cannot override external blockers; no production/Stripe/Yousign-live overclaim; P8-P14 + Pierre V1 untouched (bar the sanctioned adapter); tests real; monitoring represented; read-only script genuinely read-only. The 2 REFUTED + 2 PARTIAL all concerned the reconciliation WIRING — all fixed.",
+  "refutedFindingsFixed": [
+    {
+      "id": "REFUTED-1",
+      "finding": "The reconciliation gate was wired into ONLY checkout.session.completed; customer.subscription.created/updated and POST /api/checkout/confirm bypassed it (and /paiement/success auto-POSTs confirm). A CH/EUR mismatch could still activate via a bypass path, and subscription.updated could overwrite a review block back to active.",
+      "resolution": "FIXED. The gate is now wired into ALL FOUR activation paths: (a) checkout.session.completed, (b) customer.subscription.created (via reconcileSubscriptionStatus + best-effort fetchCustomerBillingCountry), (c) customer.subscription.updated (same — an update can no longer overwrite a block to active), (d) POST /api/checkout/confirm (returns review_required on conflict, no activation). Wiring proven by a source-scan test (>=2 reconcileSubscriptionStatus calls + confirm gate + webhook gate).",
+      "status": "resolved"
+    },
+    {
+      "id": "REFUTED-2",
+      "finding": "The checkout never wrote company_country/selected_country into Stripe metadata, so the gate got expected=null → reconcileStripeCountry returned manual_review BEFORE the billing/currency checks → it would OVER-BLOCK every legitimate activation if enabled, and never selectively catch CH/EUR abuse.",
+      "resolution": "FIXED two ways: (1) the checkout route now propagates the SERVER-RESOLVED country (P10) + expected currency into the Stripe session + subscription_data metadata; (2) the gate now uses the Stripe billing address as a fallback `expectedCountry` AND adds an independent currency-consistency check (charged currency vs the canonical currency of the best country signal). Result: CH billed EUR → blocked (refund); FR billed FR/EUR → ALLOWED (no over-block); without a billing address the gate never auto-activates (review) — proven by new tests (billing-only CH/EUR blocked, FR/EUR allowed; currency-mismatch without billing blocked; consistent-without-billing → review not active).",
+      "status": "resolved"
+    }
+  ],
+  "partialsResolved": [
+    {
+      "id": "PARTIAL-forged-country-moot",
+      "finding": "The anti-forgery gate logic (company > billing > selected) was correct but MOOT because the gate didn't govern the real activation decision (bypass paths + no metadata).",
+      "resolution": "RESOLVED by the same wiring fix — the gate now governs activation on all paths, with the Stripe billing address (server truth) as the authoritative reference, so a forged client selected_country cannot force activation."
+    },
+    {
+      "id": "PARTIAL-provider-mode",
+      "finding": "P15 provider LIVE_VERIFIED derived from p11.signature.live which guards mode!=='sandbox' (not ==='live'), so LIVE_VERIFIED (and liveSignatureClaimAllowed) was reachable with owner attestation + any key + any webhook + NO verified live Yousign URL (mode 'unknown').",
+      "resolution": "FIXED at the P15 layer: evaluateProviderClosure now requires mode==='live' (a verified live provider URL) in addition to p11.signature.live for LIVE_VERIFIED. A key+webhook+attestation without a live URL no longer qualifies. (Never surfaced anyway — the P10 hard floor keeps production off.)"
+    }
+  ],
+  "holds": [
+    "productionAuthorizationAllowed/publicPaidLaunchAllowed can NEVER become true from env alone (P10 const hard floor); a FULL owner+gates input yields READY_FOR_PRODUCTION_AUTHORIZATION, never PRODUCTION_AUTHORIZED/LAUNCHED",
+    "owner approval alone cannot override missing external gates (external gates checked before owner in the status machine + ANDed in the authorization)",
+    "no production/Stripe/Yousign-live overclaim (all disclaimers or LIVE_VERIFIED-conditional)",
+    "P10/P11/P14 guardrails intact; pricing canon + reconciliation semantics reused unchanged; detectStripeMode still requires sk_live_ prefix",
+    "final verdict honest (TECHNICAL READY / EXTERNAL BLOCKED); LAUNCHED unreachable without deploy proof AND a source edit to the P10 const",
+    "webhook verifies signature (constructEvent) before any effect; idempotent via orders upsert onConflict; 503 on DB-not-ready (never 200 without verify)",
+    "reconciliation honestly disclosed as flag-gated (default OFF preserves behavior, conflicts audited)",
+    "additive change did not break existing flows (non-regression 7448/7448)",
+    "legal/tax readiness never a bare boolean (requires external artifacts w/ hash/date/source; owner attestation disclosed as owner-attested)",
+    "P8-P14 + Pierre V1 untouched (only the sanctioned additive flag-gated adapter in checkout/webhook)",
+    "tests/proofs real (computed from real evaluators; honest local state); read-only Stripe script creates no session/payment/customer (local TEST key → TEST_MODE_BLOCKED)",
+    "rollback/monitoring genuinely represented (disable switches, logging, incident templates, health deploy-pending)"
+  ],
+  "recheck": {
+    "workflowRunId": "wf_a2f4d79f-a71",
+    "verdict": "All 7 checks RESOLVED — DEFECT#1 (bypass paths) wired into all 4 activation paths; DEFECT#2 (metadata/over-block) fixed via billing-fallback + currency-consistency + metadata propagation; CH/EUR fails to activate on ALL paths; legit FR/EUR activates (no over-block); subscription.updated cannot overwrite a block; flag OFF unchanged; no new regression risk.",
+    "residuals_from_recheck_then_hardened": [
+      "checkout did not set billing_address_collection → FIXED: added billing_address_collection:'required' so the billing country is guaranteed (not card-country fallback).",
+      "subscription reconcile called Stripe/logged even when flag OFF → FIXED: reconcileSubscriptionStatus now short-circuits (returns grantedStatus, no fetch/log) when the flag is OFF — zero side effect by default.",
+      "company_country is not written to Stripe metadata (registration-country strong signal unused); the gate uses the Stripe billing address (server truth) + selected_country — disclosed, acceptable.",
+      "Under flag ON, a transient customers.retrieve failure on subscription.* degrades to review_required (fail-closed, safe direction) — disclosed; the owner enables the flag deliberately with monitoring."
+    ]
+  },
+  "residual_disclosures": [
+    "Reconciliation ENFORCEMENT is flag-gated (STRIPE_COUNTRY_RECONCILIATION_ENABLED, default OFF) and must be enabled + live-verified (CLONESTORE_COUNTRY_RECON_LIVE_VERIFIED) before public launch — gate C remains a blocker until then (honest, part of TECHNICAL_READY/EXTERNAL_BLOCKED).",
+    "The gate/proofs are unit + source-scan tested; a full live-Stripe integration test of the wired paths requires live keys (owner step)."
+  ]
+}

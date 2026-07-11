@@ -1,0 +1,21 @@
+{
+  "runId": "t1-technologies-layer",
+  "fallbacks": {
+    "document": "Document préparé localement — relecture et validation humaines obligatoires (aucune garantie légale).",
+    "mail": "Brouillon préparé — l'humain envoie manuellement (aucun envoi live).",
+    "calendar": "Événement préparé — l'humain copie/valide (aucune création d'événement live).",
+    "signature": "Document préparé — signature manuelle/externe (aucune revendication de signature live).",
+    "voice": "L'entrée texte reste la source de vérité (aucun provider vocal).",
+    "notification": "Rappels dans le cockpit uniquement (aucun push live).",
+    "connector": "Connecteur indisponible — export/import manuel.",
+    "memory": "Opération mémoire préparée dans le périmètre société — les stores durables existants restent la source.",
+    "evidence": "Trace d'audit locale toujours disponible (aucun provider externe requis).",
+    "workflow": "Le moteur de missions V1 existant reste la source (aucun 2e cerveau RH).",
+    "analytics": "Métriques brutes uniquement (aucune promesse de ROI garanti).",
+    "file": "Revue manuelle du fichier requise (aucune hypothèse de parsing).",
+    "export": "Téléchargement/export manuel (aucun transfert live).",
+    "permission": "Refus fail-closed — RLS + requireCompanyUser restent la frontière serveur.",
+    "integration_bus": "Coordination par contrats uniquement — toute techno indisponible dégrade en fallback."
+  },
+  "unknownTechnology": "Technologie inconnue — refus fail-closed."
+}

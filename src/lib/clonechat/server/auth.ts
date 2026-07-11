@@ -41,11 +41,11 @@ export function tenantRefusalResponse(t: ResolvedTenantRefusal): NextResponse {
 }
 
 /**
- * Résout l'utilisateur ET son entreprise réelle. Renvoie l'identité, ou une réponse prête
- * (auth error, ou refus tenant fail-closed).
+ * Résout l'utilisateur (Supabase) + son entreprise réelle (fail-closed), SANS le drapeau CloneChat.
+ * Pour les surfaces PIERRE (ex. réglage d'autonomie dans le cockpit) qui existent indépendamment du
+ * chat CloneChat. Renvoie l'identité ou une réponse prête (auth error / refus tenant fail-closed).
  */
-export async function requireCloneChatUser(req: Request): Promise<{ identity: CloneChatIdentity } | { error: NextResponse }> {
-  if (!isCloneChatEnabled()) return { error: ccNoStore({ ok: false, code: "CLONECHAT_DISABLED" }, 503) };
+export async function requireCompanyUser(req: Request): Promise<{ identity: CloneChatIdentity } | { error: NextResponse }> {
   let userId: string;
   try {
     const supabase = await supabaseServer();
@@ -60,4 +60,12 @@ export async function requireCloneChatUser(req: Request): Promise<{ identity: Cl
   const tenant = await resolveCloneChatCompany(userId);
   if (!tenant.ok) return { error: tenantRefusalResponse(tenant) };
   return { identity: { userId, companyId: tenant.companyId, role: tenant.role, siteIds: tenant.siteIds, realCompany: tenant.real } };
+}
+
+/**
+ * Comme `requireCompanyUser` MAIS derrière le drapeau produit CloneChat (routes du chat).
+ */
+export async function requireCloneChatUser(req: Request): Promise<{ identity: CloneChatIdentity } | { error: NextResponse }> {
+  if (!isCloneChatEnabled()) return { error: ccNoStore({ ok: false, code: "CLONECHAT_DISABLED" }, 503) };
+  return requireCompanyUser(req);
 }

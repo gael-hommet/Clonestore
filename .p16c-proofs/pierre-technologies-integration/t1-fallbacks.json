@@ -1,0 +1,22 @@
+[
+  {
+    "techId": "workflow",
+    "safeFallback": "Le moteur de missions V1 existant reste la source (aucun 2e cerveau RH).",
+    "liveBlocked": false
+  },
+  {
+    "techId": "notification",
+    "safeFallback": "Rappels dans le cockpit uniquement (aucun push live).",
+    "liveBlocked": true
+  },
+  {
+    "techId": "document",
+    "safeFallback": "Document préparé localement — relecture et validation humaines obligatoires (aucune garantie légale).",
+    "liveBlocked": false
+  },
+  {
+    "techId": "export",
+    "safeFallback": "Téléchargement/export manuel (aucun transfert live).",
+    "liveBlocked": false
+  }
+]

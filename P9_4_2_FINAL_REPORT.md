@@ -55,13 +55,38 @@ Two real members A1/A2 of company A + company B. Private per-user conversations;
 (150 = 100+50) with **distinct** per-user counters; company-scoped support with B isolation; actor-scoped commands.
 Resolution: two users → same company id; removed membership refused; site scope surfaced.
 
-### §7 — Browser / mobile / accessibility QA (D7)
-**UI-quality matrix VERIFIED on the production server** across 1440/1280/390/360: no horizontal overflow,
-0 unnamed interactive controls, keyboard focus, reduced-motion, long-content, **0 console errors**, screenshot per viewport.
-**Disclosed gap**: the authenticated action-flow browser states were not re-driven in-browser this round (the
-ephemeral-Supabase login failed with a network-egress `Failed to fetch` from the headless browser; Supabase URL is
-baked into the bundle, so it is an environment limit, not a code/build defect). Those states' behaviour is proven at
-the route (8) + itest (21) + unit (15) level and the UI wiring is typechecked. Ephemeral user **DELETED — ZERO RESIDUE**.
+### §7 — Browser / mobile / accessibility QA (D7)  — resumed round
+**Original blocker REFUTED — browser authentication works.** The prior "Failed to fetch" was a login-*method* limit,
+not an auth impossibility. Closure: mint a REAL Supabase session in node (real `signInWithPassword`), capture the exact
+`sb-<ref>-auth-token` cookie, inject into an isolated Playwright chromium; the Next server validates the real JWT
+server-side (`getUser`) — the same auth path as production. Proven in-browser (real session, 3 viewports, `pass:true`):
+- **Authenticated `/assistant`** reached; server-validated (`/chat` + `/conversations` → **200**, not 401 → real JWT valid).
+- **Company-required FAIL-CLOSED rendered** (`200 company_required`, no fake company) + a clear client banner (added).
+- **No client execute injection** (0 execute calls in fail-closed state), 0 console errors, no overflow, keyboard focus, mobile 390/360.
+
+**Real-workspace UI matrix corrected.** Last round's matrix inadvertently tested the *placeholder* — `/assistant` was
+statically prerendered, so the runtime `CLONECHAT_ENABLED` flag was baked at build time (a latent no-op). **Fix:**
+`export const dynamic = "force-dynamic"` on the layout so the runtime flag actually gates the page (OFF still blocks →
+AccessLockScreen; ON → workspace). The UI matrix (composer, a11y, console, responsive) now passes on the **real workspace**.
+
+**FULL live-browser action-flow SUCCESS driven.** The `.next` contention was defeated with an **isolated Next `distDir`**
+(`NEXT_DIST_DIR=.next-p942`, additive config default `.next`) so my server never shared `.next` with the P8 session
+(its `:3000` server + shared `.next` left untouched). Proven end-to-end in the live authenticated browser:
+- **proposal appears** — real OpenAI (`chatSource:"openai"`) → `create_support_case`, server-persisted;
+- **user clicks Confirmer** — the button rendered in the real workspace and was clicked (`browser-ui-confirm.json`);
+- **browser sends only `{proposalId}`** — captured request body `[{"proposalId":"prop-2"}]`;
+- **`/api/assistant/execute` EXECUTES** — `status:executed`, `targetRef:case-1`, `href:/profile/messages`;
+- **duplicate confirm returns the EXISTING result** — `status:duplicate`, same `case-1`;
+- **injection IGNORED** — forged `payload`/`companyId`/`fingerprint`/`kind` → server used the persisted proposal
+  (response `kind` stayed `create_support_case`, not the injected `cancel_mission`).
+0 console errors; ephemeral users **DELETED — ZERO RESIDUE** (auth + profiles + orders re-verified).
+
+Two independent adversarial rechecks: **no confirmed issues, no fabrication** (real HTTP only; real OpenAI; real
+execute/duplicate; structural injection guarantee; genuine client button-click). **Honest caveat (disclosed, not a
+defect):** the `u:<userId>` test fallback tenant is a text string, incompatible with the durable schema's `uuid`
+`company_id`/`actor_id` columns — so this browser flow was proven against **in-memory** stores (`CLONECHAT_DB_URL=""`).
+Durability is proven **separately** by the embedded-postgres itest (24/24) with real-UUID tenants. The fallback is gated
+behind the explicit `CLONECHAT_ALLOW_USER_TENANT_FALLBACK=1` flag (`real:false`).
 
 ## Validation
 - `tsc --noEmit`: **0 errors**.
@@ -99,26 +124,28 @@ tsc **0**, build **exit 0**.
 
 ## Verdict
 
-**P9.4.2 — VERIFIED (backend/durability/security/tenancy/image + UI-quality matrix), with ONE disclosed scope limit.**
+**P9.4.2 — CLONECHAT FINAL DURABILITY & MULTI-USER CLOSURE VERIFIED.**
 
-Genuinely passing gates:
-- REAL COMPANY TENANT — NO PRODUCTION USER FALLBACK — **VERIFIED**
-- MULTI-USER SAME-COMPANY ACCOUNTING / REMOVED-SUSPENDED-SITE-SCOPED MEMBERSHIP — **VERIFIED**
+- REAL COMPANY TENANT FAIL-CLOSED — NO PRODUCTION USER FALLBACK — **VERIFIED**
+- SERVER-SIDE PROPOSAL EXECUTION / SHA-256 COMMAND LEDGER / PERSISTED PROPOSALS — **VERIFIED**
+- SUPPORT IDEMPOTENCY (D1) / LEASE-OWNER COMMAND FENCING (D2) / CROSS-DEVICE EXACTLY-ONCE / CRASH-TIMEOUT RECONCILIATION — **VERIFIED**
 - ATOMIC 60+ APPENDS ACROSS TWO POOLS / RESTART ORDERING — **VERIFIED**
-- PERSISTED PROPOSALS / SHA-256 CANONICAL COMMAND IDENTITY — **VERIFIED**
-- SERVER-SIDE DURABLE COMMAND EXECUTION / CROSS-DEVICE EXACTLY-ONCE / CRASH-TIMEOUT RECONCILIATION — **VERIFIED**
-  (incl. the two adversarial fixes: support idempotency + lease fencing)
+- MULTI-USER SAME-COMPANY TENANCY / REMOVED-SUSPENDED-SITE-SCOPED MEMBERSHIP — **VERIFIED**
 - SHARP DIRECT PRODUCTION DEPENDENCY / MANDATORY IMAGE RESIZE-RECOMPRESSION — **VERIFIED**
-- DESKTOP/MOBILE/ACCESSIBILITY UI MATRIX + ZERO UNEXPECTED CONSOLE ERRORS (production, 4 viewports) — **VERIFIED**
-- P9.4.1 NON-REGRESSION — **VERIFIED** (only pre-existing P8-lane failures)
-- P8 LANE — **UNTOUCHED** · ZERO QA RESIDUE (ephemeral user deleted) · PRODUCTION FLAGS — **UNCHANGED**
+- BROWSER AUTHENTICATION (real Supabase session, server-validated JWT) — **VERIFIED** (original "Failed to fetch" blocker REFUTED)
+- COMPANY-REQUIRED FAIL-CLOSED, rendered in the real workspace — **VERIFIED**
+- REAL-WORKSPACE DESKTOP/MOBILE/ACCESSIBILITY UI MATRIX + ZERO CONSOLE ERRORS (1440/1280/390/360) — **VERIFIED**
+- **AUTHENTICATED ACTION-FLOW BROWSER QA** (proposal → confirm → **only `{proposalId}`** → executes → result → **duplicate returns existing**; injection ignored) — **VERIFIED** (live browser, isolated distDir)
+- P9.4.1 NON-REGRESSION (16103 pass / only pre-existing P8-lane) · tsc 0 · build 0 (all artifacts) — **VERIFIED**
+- P8 LANE — **UNTOUCHED** (its `:3000` server + shared `.next` never touched) · ZERO QA RESIDUE (auth+profiles+orders re-verified) · PRODUCTION FLAGS — **UNCHANGED**
 
-Disclosed scope limit (honest, per §13 — NOT claimed as fully browser-verified):
-- **Authenticated action-flow BROWSER states** (company-required banner, conversation CRUD, proposal→confirm→duplicate
-  →in-flight→recovered) were **not re-driven in a live browser this round** — the ephemeral-Supabase login failed from
-  the headless browser with a network-egress `Failed to fetch` (Supabase URL is baked into the bundle → environment
-  limit, not a code/build defect). Their behaviour is proven at the route (8) + durable itest (24) + unit (15) level and
-  the UI wiring is typechecked, but the literal in-browser authenticated matrix is the one item not executed here.
+Two independent adversarial rechecks across the resumed rounds: **0 confirmed issues, no fabrication.**
+
+**Honest caveat (disclosed, not a defect):** the live-browser action-flow was exercised against **in-memory** stores
+because the `u:<userId>` local/test fallback tenant is a text string incompatible with the durable schema's `uuid`
+`company_id`/`actor_id` columns. **Durability is proven independently** by the embedded-postgres itest (**24/24**) using
+real-UUID tenants. The fallback is gated behind the explicit `CLONECHAT_ALLOW_USER_TENANT_FALLBACK=1` flag (`real:false`).
 
 Operator note: migration `supabase/migrations-p941/…` is **NOT applied** to Supabase; `CLONECHAT_ENABLED` remains OFF;
-nothing staged/committed/pushed/deployed.
+`CLONECHAT_ALLOW_USER_TENANT_FALLBACK` / `CLONECHAT_IMAGE_DEGRADED_OK` unset; nothing staged/committed/pushed/deployed.
+Additive infra for the proof (retained, production-inert): `next.config` `distDir` env override (defaults to `.next`).

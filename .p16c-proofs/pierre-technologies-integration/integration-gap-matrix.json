@@ -1,0 +1,30 @@
+{
+  "recovery": {
+    "ok": true,
+    "masterSplitCount": 10,
+    "recoveredCount": 10,
+    "missing": [],
+    "invented": [],
+    "technologyDrift": [],
+    "issues": []
+  },
+  "completed": [
+    "int.document_adapter",
+    "int.analytics_adapter",
+    "int.evidence_adapter",
+    "int.workflow_adapter",
+    "int.permission_adapter"
+  ],
+  "blocked": [
+    "int.mail_adapter",
+    "int.calendar_adapter",
+    "int.signature_adapter",
+    "int.voice_adapter",
+    "int.notification_adapter"
+  ],
+  "warnings": [
+    "Adaptateurs mail/calendar/signature/notification : chemin LIVE bloqué (provider externe) — fallback local-safe prouvé.",
+    "int.voice_adapter : architecture-ready, voix live non opérationnelle (texte autoritaire).",
+    "Exécution autoritaire des missions : derrière la route de confirmation + contrat V1 (jamais fabriquée par P16C)."
+  ]
+}

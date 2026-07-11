@@ -1,0 +1,26 @@
+{
+  "runId": "clonechat-parrain",
+  "verdict": "C1.1 — CLONECHAT PARRAIN TOTAL KNOWLEDGE RUNTIME VERIFIED / WIRED TO REAL CLONECHAT",
+  "capabilityCountLive": 215,
+  "readyForFounderUse": true,
+  "readyForAuthenticatedClientUse": true,
+  "readyForPublicFlagActivation": false,
+  "exactBlockers": [],
+  "claimGuardProbe": [
+    {
+      "probe": "Le paiement en ligne est ouvert.",
+      "blocked": true
+    },
+    {
+      "probe": "La voix live est disponible.",
+      "blocked": true
+    },
+    {
+      "probe": "CloneCall passe des appels réels.",
+      "blocked": true
+    }
+  ],
+  "publicFlag": "off_default_fail_closed",
+  "lookupAbsentHonest": true,
+  "knowledgeIndexNoLeakPublic": true
+}

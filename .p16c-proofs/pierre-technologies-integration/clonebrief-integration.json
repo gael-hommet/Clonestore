@@ -1,0 +1,41 @@
+{
+  "artifactKind": "clonebrief_artifact",
+  "when": "morning",
+  "sections": [
+    {
+      "heading": "Missions",
+      "lines": [
+        "x — PRÉPARÉ (non exécuté)"
+      ]
+    },
+    {
+      "heading": "Blocages",
+      "lines": [
+        "Aucun blocage signalé dans les faits fournis."
+      ]
+    },
+    {
+      "heading": "Validations en attente",
+      "lines": []
+    },
+    {
+      "heading": "Actions autonomes (préparations sûres)",
+      "lines": []
+    },
+    {
+      "heading": "Décisions à prendre",
+      "lines": []
+    }
+  ],
+  "counts": {
+    "missions": 1,
+    "blockers": 0,
+    "waitingValidations": 0,
+    "autonomousActions": 0,
+    "decisionsNeeded": 0
+  },
+  "onlyProvidedFacts": true,
+  "preparedNeverClaimedAsDone": true,
+  "blockersHidden": false,
+  "inventedFacts": false
+}

@@ -1,0 +1,34 @@
+{
+  "runId": "clonechat-parrain",
+  "date": "2026-07-10",
+  "method": "forensics mtime (git.exe bloqué OS — gotcha connu) : cutoff = 2026-07-10T17:00 (début de session C1.1)",
+  "protectedPerimeters": {
+    "checked": ["src/lib/clonestore/technologies/t1", "src/lib/clonestore/product-technologies/t2", "src/lib/clonestore/ultimate", "src/lib/pierre/v1", "src/lib/clonechat/intelligence/c1", "src/lib/clonestore/production", "src/lib/clonestore/pricing"],
+    "violations": 0,
+    "conclusion": "T1, T2, P16.0, Pierre V1, C1, plancher production P10 et pricing : AUCUN fichier modifié par C1.1."
+  },
+  "counts": { "t1": 15, "t2": 14, "productionAuthorized": false, "paymentMode": "disabled", "liveProviders": false },
+  "c1_1_changeSurface": {
+    "added": [
+      "src/lib/clonechat/intelligence/c1-1/** (37 modules + 2 tests)",
+      "scripts/clonechat-build-site-index.mjs",
+      "scripts/clonechat-build-code-index.mjs",
+      "scripts/clonechat-verify-knowledge-freshness.mjs"
+    ],
+    "modifiedAdditively": [
+      "src/app/api/assistant/chat/route.ts (grounding C1.1 + ingestion pièces jointes + citations C1.1 + garde claims ; budget/flag/auth/idempotence/multimodal EXISTANTS préservés)",
+      "src/app/assistant/useCloneChat.ts (transport de documents + affichage statut/limites ; confirmation proposalId inchangée)",
+      "src/components/clonechat/CloneChatWorkspace.tsx (sélecteur de documents additif ; picker image existant préservé)"
+    ]
+  },
+  "note": "Le scan mtime brut src+scripts capture aussi des fichiers d'un WORKSTREAM CONCURRENT (billing/, partner-program/, production-readiness/stripe/, clonestory/, app/api/{billing,checkout,webhooks/stripe}) — HORS périmètre C1.1 et JAMAIS ouverts par cette session. Ils ne font pas partie de C1.1 et ne sont pas revendiqués ici.",
+  "safetyInvariants": {
+    "PRODUCTION_AUTHORIZED": false,
+    "paymentMode": "disabled",
+    "liveProviders": "aucun (isLiveExecutionAllowed=false)",
+    "liveProviderCallsAddedByC1_1": 0,
+    "featureFlag": "off_default_fail_closed",
+    "deploy": "none",
+    "secretsPrinted": 0
+  }
+}

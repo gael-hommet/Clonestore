@@ -1,0 +1,18 @@
+{
+  "runId": "clonechat-parrain",
+  "status": "fully_parsed",
+  "table": [
+    [
+      "a",
+      "b"
+    ],
+    [
+      "1",
+      "2"
+    ],
+    [
+      "3",
+      "4"
+    ]
+  ]
+}

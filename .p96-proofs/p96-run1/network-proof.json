@@ -1,0 +1,38 @@
+{
+  "runId": "p96-run1",
+  "execute": {
+    "confirmClicked": true,
+    "usedFetchFallback": false,
+    "status": 200,
+    "execStatus": "executed",
+    "kind": "create_mission",
+    "targetRef": "present",
+    "href": "/agents/pierre/use?view=missions&mission=60b8ebbb-0218-49e2-84a2-1233d6f53628",
+    "uiExecuteBodyKeys": [
+      "proposalId"
+    ],
+    "onlyProposalIdSent": true,
+    "forgedReplayStatus": "duplicate"
+  },
+  "chat": {
+    "status": 200,
+    "source": "openai",
+    "tool": "prepare_mission",
+    "hasProposal": true,
+    "proposalId": "present",
+    "proposalKind": "create_mission",
+    "autonomyReflected": {
+      "productModeId": "controlled",
+      "label": "Exécution contrôlée",
+      "tagline": "Pierre exécute le travail autorisé, demande pour le risqué.",
+      "engineMode": "high_autonomy"
+    },
+    "companyRequired": false
+  },
+  "autonomy": {
+    "postOk": true,
+    "postMode": "controlled",
+    "persistedMode": "controlled",
+    "persisted": true
+  }
+}

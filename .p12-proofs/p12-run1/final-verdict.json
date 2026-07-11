@@ -1,0 +1,39 @@
+{
+  "phase": "P12 — CloneOS App Shell & Cockpits Redesign",
+  "runId": "p12-run1",
+  "verdict": "P12 — CLONEOS APP SHELL & COCKPITS REDESIGN VERIFIED",
+  "date": "2026-07-09",
+  "delivered": {
+    "cloneos_app_shell": "src/components/cloneos/CloneOsAppShell.tsx — reusable premium console, no-page-scroll (cos-root 100dvh + overflow hidden + body:has(.cos-root)), 3-pane desktop / icon-rail+drawer tablet / bottom-nav mobile.",
+    "global_cockpit_at_/cockpit": "src/components/cockpit/GlobalCockpitConsole.tsx — company-wide AI-workforce command center + CloneOS command/chat FIRST screen (CloneOsCommandSurface).",
+    "cloneroom_at_/cockpit/room": "src/components/cloneroom/CloneRoomConsole.tsx — operational salon: 6-participant rail, one composer, sender identity, CONTENT-CARRYING action extraction (message text → Pierre's real MissionComposer via ?compose).",
+    "pierre_cockpit_at_/cockpit/pierre": "src/components/cockpit/PierreCockpitConsole.tsx — reuses the REAL V1/P9.3 data hook (useOperationalCockpit) + P9.3 views + P9.5 autonomy; framed 'Employé IA RH', never assistant/chatbot/copilote.",
+    "mon_clonestore_at_/mon-clonestore": "src/components/mon-clonestore/MonCloneStoreShell.tsx (+ /setup) — distinct calm admin/account surface (cs-page, may scroll), NOT the cockpit console; explicit 'Ouvrir le Cockpit' link.",
+    "routing_guard": "middleware (connected-gate, reliable 307) + client readiness guard + /api/cloneos/landing; resolveClientReadiness uses real Supabase getUser + hasPierreAccess (never fakes client status).",
+    "contract": "src/lib/clonestore/cloneos/cloneos-app-shell-contract.ts — 5 areas, routes, surfaces, no-page-scroll invariant, responsive modes, forbidden confusions, copy rules, CloneRoom participants, resolveLandingRoute."
+  },
+  "gates": {
+    "p12_unit_tests": "15/15 (cloneos-app-shell-contract 7 + cloneos-shell-invariants 8, incl. content-carrying action-extraction test)",
+    "non_regression": "6718/6718 in the nav/clonestore/clonechat/assistant/components scope; 14318 passed across full src/lib+src/components with ONLY 5 pre-existing failures in P12-untouched files (4 premium-document-system identical to the P9.4.2 baseline; 1 fair-claim resource-contention timeout that passes in 5.2s isolated).",
+    "tsc": "0 source errors (stale .next route-validator types excluded; tsconfig restored — no .next-p12 refs).",
+    "browser_proof": "P12_SHELL_OK / pass:true — desktop 1280 (3-pane) / tablet 768 (icon-rail + drawer) / mobile 390 (bottom-nav); redirects (non-client→/agents/pierre, visitor→/login); no page scroll (real scroll-attempt); no horizontal overflow; Pierre 'Employé IA RH' + no assistant framing; CloneRoom 6 participants; public footer NOT leaking into console; Mon CloneStore distinct (10 sections, not cos-root); ACTION EXTRACTION proven (directSeed.ok + cloneRoomFlow.ok — exact message text reaches Pierre's real composer); 0 console errors; ZERO RESIDUE.",
+    "adversarial_review": "13 claims → 11 HOLDS / 2 PARTIAL / 0 REFUTED, 0 security defects. Both PARTIALs resolved (F1 setup-redirect placeholder = spec-authorized + wording corrected; F2 CloneRoom action extraction REALLY made content-carrying) + a self-surfaced footer chrome-leak fixed."
+  },
+  "product_rules_honored": {
+    "cloneos_command_chat_first": true,
+    "cloneroom_operational_content_carrying_extraction": true,
+    "pierre_framed_employe_ia_rh_not_assistant_chatbot_copilot": true,
+    "no_second_hr_brain": "CloneOS/CloneRoom only route/coordinate (navigate); all HR data + actions delegate to the real V1 hook. The single P9.3 touch is an additive optional prop (MissionComposer initialValue='') — createMission/idempotency path untouched.",
+    "no_page_scroll_cockpit_shell": true,
+    "responsive_390_768_1280_1600": true,
+    "onboarding_incomplete_redirect": "currently a SAFE PLACEHOLDER (onboardingComplete = isClient) per §12 ('do not fake client status'); the setup branch is present + unit-tested but not wired to a live signal — disclosed, fail-safe."
+  },
+  "guardrails": {
+    "pierre_v1_runtime_untouched": true,
+    "p8_p9_p10_p11_protected_dirs_untouched": "No writes under src/lib/pierre/v1, src/app/api/pierre/v1, src/lib/clonestore/pricing, src/lib/clonestore/production. Footer refactor hides the public footer ONLY on cos-root cockpit routes (isCockpitSurfaceRoute); /profile, /agents/pierre/use (P9.3), /assistant (P9.4), /mon-clonestore, public site render the footer identically.",
+    "production_disabled": "PRODUCTION_AUTHORIZED = false (untouched).",
+    "no_migration_applied": true,
+    "nothing_staged_committed_pushed_deployed": true,
+    "zero_residue": "p12-e2e orphan users: 0; no dev server on 3272; no production data touched."
+  }
+}

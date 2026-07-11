@@ -32,9 +32,11 @@ export async function GET() {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const active = rows?.filter(r => r.status === "active").map(r => r.agent_slug) ?? [];
-  const past_due = rows?.filter(r => r.status === "past_due").map(r => r.agent_slug) ?? [];
-  const cancelled = rows?.filter(r => r.status === "cancelled").map(r => r.agent_slug) ?? [];
+  const active = rows?.filter(r => r.status === "active" || r.status === "trialing").map(r => r.agent_slug) ?? [];
+  const past_due = rows?.filter(r => r.status === "past_due" || r.status === "unpaid").map(r => r.agent_slug) ?? [];
+  // Forme canonique Stripe = "canceled". On TOLÈRE "cancelled" (2 L) en LECTURE pour
+  // compatibilité avec d'anciennes lignes ; plus aucune écriture ne produit "cancelled".
+  const cancelled = rows?.filter(r => r.status === "canceled" || r.status === "cancelled").map(r => r.agent_slug) ?? [];
 
   return NextResponse.json({ active, past_due, cancelled }, { status: 200 });
 }

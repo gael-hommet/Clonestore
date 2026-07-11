@@ -1,0 +1,881 @@
+{
+  "runId": "clonechat-total-intelligence",
+  "entries": [
+    {
+      "id": "clonestore.marketplace",
+      "section": "clonestore",
+      "title": "Marketplace d'employés IA",
+      "status": "verified_local_safe",
+      "whatExists": "Boutique publique (/agents), catalogue commercial unique (public-catalog), premier employé disponible : Pierre ; futurs départements affichés en roadmap.",
+      "whatDoesNotExist": "Autres employés IA achetables aujourd'hui.",
+      "safeExplanation": "CloneStore est la boutique d'employés IA d'entreprise ; Pierre (RH) est le premier disponible.",
+      "commercialClaimAllowed": [
+        "CloneStore : des employés IA opérationnels, Pierre est le premier."
+      ],
+      "commercialClaimForbidden": [
+        "Des dizaines d'employés IA disponibles aujourd'hui"
+      ],
+      "sourceReport": "Site polish / P12",
+      "lastVerifiedPhase": "P12"
+    },
+    {
+      "id": "clonestore.first_employee_pierre",
+      "section": "clonestore",
+      "title": "Premier employé : Pierre",
+      "status": "verified_local_safe",
+      "whatExists": "Pierre, employé IA RH opérationnel, version lancement prête (P13/P14 launch vision verified).",
+      "whatDoesNotExist": "Pierre Ultimate complet (P16A à venir).",
+      "safeExplanation": "Pierre est le premier employé IA de CloneStore : version de lancement prête, approfondissements en roadmap.",
+      "commercialClaimAllowed": [
+        "Pierre est un employé IA RH."
+      ],
+      "commercialClaimForbidden": [
+        "Pierre est terminé dans sa version ultime"
+      ],
+      "sourceReport": "P14_PIERRE_ULTIMATE_VISION_COVERAGE_AND_COMMERCIAL_TRUTH_REPORT.md",
+      "lastVerifiedPhase": "P14"
+    },
+    {
+      "id": "clonestore.launch_ready",
+      "section": "clonestore",
+      "title": "Version de lancement prête",
+      "status": "verified_local_safe",
+      "whatExists": "Produit de lancement complet en local : site, démo, réservation fondateur, cockpits, gouvernance, 6800+ tests.",
+      "whatDoesNotExist": "Déploiement en production (rien n'est déployé).",
+      "safeExplanation": "Le produit de lancement est prêt techniquement ; l'ouverture publique payante attend les preuves externes.",
+      "commercialClaimAllowed": [
+        "Le produit de lancement est prêt et démontrable."
+      ],
+      "commercialClaimForbidden": [
+        "CloneStore est en production"
+      ],
+      "sourceReport": "P15_1_PRE_STRIPE_GO_LIVE_PREP_REPORT.md",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "clonestore.paid_launch_blocked",
+      "section": "clonestore",
+      "title": "Lancement public payant",
+      "status": "external_blocked",
+      "whatExists": "Chaîne checkout/webhook/réconciliation construite et testée en mode test ; garde P15.1 (paiement explicitement fermé).",
+      "whatDoesNotExist": "Paiement en ligne ouvert : preuves externes absentes (compte de paiement, revue légale/fiscale, monitoring, sign-off).",
+      "safeExplanation": "Le paiement en ligne n'est pas encore ouvert ; la démo et la réservation fondateur sont disponibles.",
+      "commercialClaimAllowed": [
+        "Vous pouvez réserver Pierre dès maintenant, sans paiement."
+      ],
+      "commercialClaimForbidden": [
+        "Le paiement en ligne est ouvert",
+        "Vous pouvez payer maintenant"
+      ],
+      "sourceReport": "P15_1_PRE_STRIPE_GO_LIVE_PREP_REPORT.md",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "clonestore.demo_founder_mode",
+      "section": "clonestore",
+      "title": "Mode démo / accès fondateur",
+      "status": "demo_only",
+      "whatExists": "/demo immersive, /demo/pierre, réservation /reserver/pierre (aucune action n'active un accès payant).",
+      "whatDoesNotExist": "Essai gratuit, bêta — n'existent pas et ne sont pas promis.",
+      "safeExplanation": "Démo interactive premium + réservation fondateur : c'est la voie d'entrée actuelle.",
+      "commercialClaimAllowed": [
+        "Démo immersive disponible ; réservation fondateur ouverte."
+      ],
+      "commercialClaimForbidden": [
+        "Essai gratuit",
+        "accès bêta"
+      ],
+      "sourceReport": "P15_1_PRE_STRIPE_GO_LIVE_PREP_REPORT.md",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "clonestore.production_off",
+      "section": "clonestore",
+      "title": "Production : OFF",
+      "status": "external_blocked",
+      "whatExists": "PRODUCTION_AUTHORIZED = false (constante P10, plancher dur) ; aucun chemin d'env ne peut l'activer.",
+      "whatDoesNotExist": "Autorisation de production — seule une modification de code délibérée du propriétaire pourrait la lever.",
+      "safeExplanation": "La production n'est pas autorisée ; c'est un verrou volontaire, pas un accident.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "CloneStore est en production"
+      ],
+      "sourceReport": "P15_EXTERNAL_GO_LIVE_CLOSURE_REPORT.md",
+      "lastVerifiedPhase": "P15"
+    },
+    {
+      "id": "pierre.identity",
+      "section": "pierre",
+      "title": "Employé IA RH opérationnel",
+      "status": "verified_local_safe",
+      "whatExists": "Moteur de missions réel (V1/P8), 215 capacités certifiées fonctionnellement (P8.13 DIM A), cockpit tracé, autonomie contrôlée.",
+      "whatDoesNotExist": "Un « assistant » générique — Pierre suit des missions, il ne fait pas que répondre.",
+      "safeExplanation": "Pierre est un employé IA RH : il transforme les demandes en missions, prépare, suit et trace — sous validation humaine.",
+      "commercialClaimAllowed": [
+        "Pierre est un employé IA RH.",
+        "Pierre n'est pas un assistant ni un chatbot."
+      ],
+      "commercialClaimForbidden": [
+        "Pierre est un DRH autonome"
+      ],
+      "sourceReport": "P14 / P8.13",
+      "lastVerifiedPhase": "P14"
+    },
+    {
+      "id": "pierre.launch_ready",
+      "section": "pierre",
+      "title": "Version de lancement prête",
+      "status": "verified_local_safe",
+      "whatExists": "Parcours complet prouvé E2E sur une vraie entreprise locale (P9.6) : onboarding → missions → validations → cockpit.",
+      "whatDoesNotExist": "Version ultime complète (12 items Pierre Ultimate classés P16A).",
+      "safeExplanation": "La version de lancement de Pierre est prête et prouvée de bout en bout en local.",
+      "commercialClaimAllowed": [
+        "Pierre transforme les demandes RH en missions structurées."
+      ],
+      "commercialClaimForbidden": [
+        "Pierre Ultimate est terminé"
+      ],
+      "sourceReport": "P9.6 / P16.0",
+      "lastVerifiedPhase": "P16.0"
+    },
+    {
+      "id": "pierre.ultimate_roadmap",
+      "section": "pierre",
+      "title": "Pierre Ultimate (approfondissements)",
+      "status": "roadmap",
+      "whatExists": "Plan P16A : 12 items (profondeur missions/documents, dossier 360, rapport de valeur mensuel, helpdesk…).",
+      "whatDoesNotExist": "Leur implémentation complète — c'est le prochain chantier.",
+      "safeExplanation": "Les approfondissements « Ultimate » de Pierre sont planifiés (P16A), pas encore construits.",
+      "commercialClaimAllowed": [
+        "Une roadmap d'approfondissement claire existe."
+      ],
+      "commercialClaimForbidden": [
+        "Les capacités Ultimate sont déjà disponibles"
+      ],
+      "sourceReport": "P16_0_PIERRE_ULTIMATE_AND_TECHNOLOGIES_MASTER_SPLIT_REPORT.md",
+      "lastVerifiedPhase": "P16.0"
+    },
+    {
+      "id": "pierre.hr_operational_preparation",
+      "section": "pierre",
+      "title": "Préparation RH opérationnelle",
+      "status": "verified_local_safe",
+      "whatExists": "Documents, e-mails, onboarding/offboarding, absences/pré-paie (variables), suivis — PRÉPARÉS et tracés, validations humaines sur le sensible.",
+      "whatDoesNotExist": "Exécution live vers l'extérieur (envoi, signature, connecteurs) tant que les providers ne sont pas vérifiés.",
+      "safeExplanation": "Pierre prépare et suit le travail RH opérationnel ; les décisions et envois sensibles restent chez vous.",
+      "commercialClaimAllowed": [
+        "Pierre prépare des documents, e-mails, validations et suivis RH."
+      ],
+      "commercialClaimForbidden": [
+        "Pierre envoie et signe tout seul"
+      ],
+      "sourceReport": "P8.13 / P14",
+      "lastVerifiedPhase": "P14"
+    },
+    {
+      "id": "pierre.no_final_legal_decision",
+      "section": "pierre",
+      "title": "Décisions légales/humaines finales",
+      "status": "forbidden_claim",
+      "whatExists": "Doctrine + planchers durs : décisions disciplinaires/salariales finales = HUMAN_ONLY (jamais automatisées).",
+      "whatDoesNotExist": "Toute prise de décision finale par Pierre seul.",
+      "safeExplanation": "Pierre ne remplace ni un juriste ni la responsabilité humaine : il prépare, vous décidez.",
+      "commercialClaimAllowed": [
+        "Pierre garde les décisions sensibles sous validation humaine."
+      ],
+      "commercialClaimForbidden": [
+        "Pierre prend les décisions disciplinaires finales",
+        "Pierre décide seul"
+      ],
+      "sourceReport": "P14 (MUST_NOT_CLAIM)",
+      "lastVerifiedPhase": "P14"
+    },
+    {
+      "id": "pierre.no_full_payroll",
+      "section": "pierre",
+      "title": "Paie complète / DSN",
+      "status": "forbidden_claim",
+      "whatExists": "Préparation des VARIABLES de pré-paie uniquement.",
+      "whatDoesNotExist": "Moteur de paie, génération de bulletins, DSN — jamais revendiqués.",
+      "safeExplanation": "Pierre prépare la pré-paie ; il ne remplace pas un logiciel de paie.",
+      "commercialClaimAllowed": [
+        "Pierre prépare les variables de pré-paie pour votre outil de paie."
+      ],
+      "commercialClaimForbidden": [
+        "Pierre remplace un moteur de paie / logiciel DSN."
+      ],
+      "sourceReport": "P14 (MUST_NOT_CLAIM)",
+      "lastVerifiedPhase": "P14"
+    },
+    {
+      "id": "pierre.no_legal_guarantee",
+      "section": "pierre",
+      "title": "Garantie de conformité pays",
+      "status": "forbidden_claim",
+      "whatExists": "Moteur pays FR/BE/LU/CH fail-closed (P8.12) avec 276 règles jamais inventées — SANS verdict légal positif.",
+      "whatDoesNotExist": "Revue légale externe — donc aucune garantie de conformité, dans aucun pays.",
+      "safeExplanation": "Pierre est conçu pour le cadre FR/BE/LU/CH sans jamais prétendre à une conformité garantie sans revue externe.",
+      "commercialClaimAllowed": [
+        "Une gouvernance stricte encadre les sujets sensibles pays."
+      ],
+      "commercialClaimForbidden": [
+        "Pierre garantit la conformité légale."
+      ],
+      "sourceReport": "P8.12 / P14",
+      "lastVerifiedPhase": "P14"
+    },
+    {
+      "id": "t1.document",
+      "section": "t1",
+      "title": "DocumentTech",
+      "status": "integration_ready",
+      "whatExists": "Préparation locale de documents à partir de gabarits abstraits. gabarits abstraits ; artefact prepared_document ; validation obligatoire ; audit",
+      "whatDoesNotExist": "aucune garantie juridique ; aucun envoi automatique",
+      "safeExplanation": "La brique qui prépare vos documents : elle rédige une version prête à relire, jamais envoyée sans vous.",
+      "commercialClaimAllowed": [
+        "Prépare des documents RH structurés, tracés, sous validation humaine."
+      ],
+      "commercialClaimForbidden": [
+        "Documents juridiquement garantis",
+        "envoi automatique"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.mail",
+      "section": "t1",
+      "title": "MailTech",
+      "status": "integration_ready",
+      "whatExists": "Rédaction de brouillons d'e-mails — l'humain envoie. brouillons drafted_email ; ton adapté ; audit",
+      "whatDoesNotExist": "aucun envoi automatique (provider e-mail externe non vérifié)",
+      "safeExplanation": "Vos e-mails RH arrivent prêts à envoyer : vous relisez, vous cliquez.",
+      "commercialClaimAllowed": [
+        "Prépare vos e-mails RH ; vous gardez la main sur l'envoi."
+      ],
+      "commercialClaimForbidden": [
+        "E-mails envoyés automatiquement"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.calendar",
+      "section": "t1",
+      "title": "CalendarTech",
+      "status": "integration_ready",
+      "whatExists": "Préparation d'objets d'événements calendrier. événements préparés ; validation humaine",
+      "whatDoesNotExist": "aucun provider calendrier live",
+      "safeExplanation": "Les rendez-vous RH sont préparés pour vous ; vous les validez dans votre agenda.",
+      "commercialClaimAllowed": [
+        "Prépare vos événements RH (entretiens, onboarding) prêts à copier."
+      ],
+      "commercialClaimForbidden": [
+        "Création automatique dans votre agenda"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.signature",
+      "section": "t1",
+      "title": "SignatureTech",
+      "status": "integration_ready",
+      "whatExists": "Paquet de signature préparé pour circuit manuel/externe. paquet prepared_signature_package ; circuit manuel",
+      "whatDoesNotExist": "aucune signature électronique automatique (Yousign non vérifié)",
+      "safeExplanation": "Le dossier de signature arrive complet ; la signature elle-même suit votre circuit habituel.",
+      "commercialClaimAllowed": [
+        "Prépare vos dossiers de signature pour un circuit manuel ou externe."
+      ],
+      "commercialClaimForbidden": [
+        "Signature électronique automatique"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.voice",
+      "section": "t1",
+      "title": "VoiceTech",
+      "status": "architecture_ready",
+      "whatExists": "Couche d'ENTRÉE vocale — le texte reste la source autoritaire. repli texte autoritaire ; artefact voice_fallback",
+      "whatDoesNotExist": "aucun provider vocal ; aucune voix opérationnelle",
+      "safeExplanation": "Demain, vous pourrez parler à vos employés IA ; aujourd'hui, le texte reste la référence fiable.",
+      "commercialClaimAllowed": [
+        "Architecture d'entrée vocale prête ; le texte reste la référence."
+      ],
+      "commercialClaimForbidden": [
+        "Voix opérationnelle",
+        "dictée temps réel"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.notification",
+      "section": "t1",
+      "title": "NotificationTech",
+      "status": "integration_ready",
+      "whatExists": "Rappels cockpit uniquement — aucun push. rappels cockpit_reminder",
+      "whatDoesNotExist": "aucun provider push",
+      "safeExplanation": "Rien ne se perd : les rappels s'affichent dans votre cockpit.",
+      "commercialClaimAllowed": [
+        "Rappels et relances visibles dans votre cockpit."
+      ],
+      "commercialClaimForbidden": [
+        "Notifications push sur votre téléphone"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.connector",
+      "section": "t1",
+      "title": "ConnectorTech",
+      "status": "architecture_ready",
+      "whatExists": "Connecteurs externes (SIRH/paie/Slack) — tout appel live bloqué. fallback export/import manuel",
+      "whatDoesNotExist": "aucun connecteur live (SIRH, paie, Slack non vérifiés)",
+      "safeExplanation": "En attendant les connecteurs certifiés, les échanges se font par exports propres et maîtrisés.",
+      "commercialClaimAllowed": [
+        "Cadre d'intégration prêt côté architecture ; échange par export/import maîtrisé."
+      ],
+      "commercialClaimForbidden": [
+        "Intégration SIRH/paie/Slack en direct"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.memory",
+      "section": "t1",
+      "title": "MemoryTech",
+      "status": "verified_local_safe",
+      "whatExists": "Contrat lecture/écriture en périmètre entreprise sur les stores durables existants. opérations mémoire scoping entreprise ; écritures sous validation",
+      "whatDoesNotExist": "aucune fuite inter-entreprises ; aucune écriture silencieuse",
+      "safeExplanation": "Votre contexte n'est jamais reperdu : l'entreprise garde sa mémoire, chez elle.",
+      "commercialClaimAllowed": [
+        "Le contexte de votre entreprise est conservé, isolé et gouverné."
+      ],
+      "commercialClaimForbidden": [
+        "Mémoire partagée entre entreprises"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.evidence",
+      "section": "t1",
+      "title": "EvidenceTech",
+      "status": "integration_ready",
+      "whatExists": "Entrées d'audit locales — chaque usage de technologie est traçable. entrées evidence_entry ; audit systématique",
+      "whatDoesNotExist": "aucune télémétrie externe",
+      "safeExplanation": "Tout ce qui est fait est tracé : vous pouvez toujours répondre à « qui a fait quoi, quand ».",
+      "commercialClaimAllowed": [
+        "Chaque action laisse une trace auditable."
+      ],
+      "commercialClaimForbidden": [],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.workflow",
+      "section": "t1",
+      "title": "WorkflowTech",
+      "status": "integration_ready",
+      "whatExists": "Plans de workflow génériques (étapes) — ne décide JAMAIS d'issues RH. plans workflow_plan génériques",
+      "whatDoesNotExist": "decidesHrOutcomes=false — pas de 2e cerveau RH",
+      "safeExplanation": "La mécanique des étapes est standardisée ; les décisions RH restent chez Pierre et chez vous.",
+      "commercialClaimAllowed": [
+        "Structure les étapes d'une mission de façon générique et traçable."
+      ],
+      "commercialClaimForbidden": [
+        "Décisions RH prises par la technologie"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.analytics",
+      "section": "t1",
+      "title": "AnalyticsTech",
+      "status": "integration_ready",
+      "whatExists": "Artefacts de rapports de métriques — le vrai calcul reste analytics.compute (RLS). rapports metrics_report",
+      "whatDoesNotExist": "roiGuaranteed=false — aucun ROI garanti",
+      "safeExplanation": "Vous voyez ce que Pierre produit chaque mois, chiffres à l'appui — sans promesse magique.",
+      "commercialClaimAllowed": [
+        "Rapports d'activité et de valeur mesurés sur vos données réelles."
+      ],
+      "commercialClaimForbidden": [
+        "ROI garanti"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.file",
+      "section": "t1",
+      "title": "FileTech",
+      "status": "integration_ready",
+      "whatExists": "Ingestion de fichiers sans parsing présumé. artefacts file_ingestion ; manualReviewRequired=true",
+      "whatDoesNotExist": "aucun parsing garanti",
+      "safeExplanation": "Vous déposez vos fichiers ; ce qui n'est pas sûr part en revue humaine plutôt qu'en devinette.",
+      "commercialClaimAllowed": [
+        "Vos fichiers RH sont pris en charge de façon sûre et tracée."
+      ],
+      "commercialClaimForbidden": [
+        "Lecture parfaite de tout format"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.export",
+      "section": "t1",
+      "title": "ExportTech",
+      "status": "integration_ready",
+      "whatExists": "Paquets d'export préparés — aucun transfert live. paquets export_package",
+      "whatDoesNotExist": "transferNow bloqué — aucun transfert automatique",
+      "safeExplanation": "Vos données sortent proprement, quand VOUS le décidez.",
+      "commercialClaimAllowed": [
+        "Exports propres et complets, téléchargés par vous."
+      ],
+      "commercialClaimForbidden": [
+        "Transferts automatiques vers des systèmes externes"
+      ],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.permission",
+      "section": "t1",
+      "title": "PermissionTech",
+      "status": "verified_local_safe",
+      "whatExists": "Décisions de permission fail-closed. décisions permission_decision fail-closed",
+      "whatDoesNotExist": "aucun contournement des gardes serveur existantes",
+      "safeExplanation": "La sécurité par défaut : ce qui n'est pas clairement autorisé est refusé.",
+      "commercialClaimAllowed": [
+        "Chaque usage est contrôlé : en cas de doute, c'est NON."
+      ],
+      "commercialClaimForbidden": [],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t1.integration_bus",
+      "section": "t1",
+      "title": "TechnologyBus (IntegrationBus)",
+      "status": "integration_ready",
+      "whatExists": "Bus de contrats : découverte + permission + prepare + audit. découverte ; ordre permission→prepare→audit garanti",
+      "whatDoesNotExist": "aucune logique spécifique Pierre (pierreOnly=0)",
+      "safeExplanation": "Le « standard interne » : chaque employé IA utilise les technologies avec les mêmes règles de sécurité.",
+      "commercialClaimAllowed": [
+        "Une seule discipline technologique pour tous les employés IA, actuels et futurs."
+      ],
+      "commercialClaimForbidden": [],
+      "sourceReport": "T1_CLONESTORE_TECHNOLOGIES_LAYER_REPORT.md",
+      "lastVerifiedPhase": "T1"
+    },
+    {
+      "id": "t2.cloneos",
+      "section": "t2",
+      "title": "CloneOS",
+      "status": "integration_ready",
+      "whatExists": "Cœur d'ORCHESTRATION invisible : demande brute → mission structurée. plans de mission ; routage employés ; transitions needs_validation",
+      "whatDoesNotExist": "PAS le cerveau RH (decidesHrOutcomes=false) ; aucune exécution automatique",
+      "safeExplanation": "Le moteur invisible qui transforme « occupe-toi de l'onboarding de Léa » en mission organisée.",
+      "commercialClaimAllowed": [
+        "Transforme une demande en mission structurée, tracée et gouvernée."
+      ],
+      "commercialClaimForbidden": [
+        "CloneOS décide des issues RH",
+        "CloneOS = Pierre"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.cloneadn",
+      "section": "t2",
+      "title": "CloneADN",
+      "status": "integration_ready",
+      "whatExists": "Couche vivante du COMPORTEMENT de l'entreprise (ton, formalité, habitudes, circuits). profil ton/formalité/circuits ; mutationPolicy=proposals_only",
+      "whatDoesNotExist": "PAS l'historique brut ; aucune mutation silencieuse (adnMutated=false)",
+      "safeExplanation": "L'« empreinte » de votre entreprise : votre ton, vos usages, vos circuits de validation.",
+      "commercialClaimAllowed": [
+        "Vos employés IA adoptent le ton et les circuits de VOTRE entreprise."
+      ],
+      "commercialClaimForbidden": [
+        "Apprentissage automatique silencieux du profil"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.cloneguard",
+      "section": "t2",
+      "title": "CloneGuard",
+      "status": "verified_local_safe",
+      "whatExists": "Gouvernance / risque / validation / refus intelligent. classification de risque ; refus expliqués ; refus systématique des effets live",
+      "whatDoesNotExist": "aucun passe-droit ; aucune décision RH finale",
+      "safeExplanation": "Le gardien : ce qui est sensible passe par vous, ce qui est interdit est refusé et expliqué.",
+      "commercialClaimAllowed": [
+        "Le risque n'est pas l'IA, c'est l'IA sans garde-fous — CloneGuard est le garde-fou."
+      ],
+      "commercialClaimForbidden": [
+        "Garantie juridique"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.clonetrace",
+      "section": "t2",
+      "title": "CloneTrace",
+      "status": "verified_local_safe",
+      "whatExists": "Traçabilité : timeline, audit, historique, reprise. timeline auditable ; pointeurs de reprise",
+      "whatDoesNotExist": "aucune réécriture d'historique",
+      "safeExplanation": "La boîte noire de confiance : tout est rejouable et vérifiable.",
+      "commercialClaimAllowed": [
+        "Vous pouvez toujours reconstituer qui a fait quoi, quand, pourquoi."
+      ],
+      "commercialClaimForbidden": [],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.clonevoice",
+      "section": "t2",
+      "title": "CloneVoice",
+      "status": "architecture_ready",
+      "whatExists": "Entrée vocale naturelle — ARCHITECTURE prête, aucune voix opérationnelle. nettoyage transcript ; segmentation ; texte autoritaire (textAuthoritative=true)",
+      "whatDoesNotExist": "aucun provider vocal vérifié ; liveVoice=false",
+      "safeExplanation": "La voix arrivera ; aujourd'hui, tout passe par le texte, de façon fiable et tracée.",
+      "commercialClaimAllowed": [
+        "Architecture voix prête ; le texte reste la référence aujourd'hui."
+      ],
+      "commercialClaimForbidden": [
+        "Voix opérationnelle",
+        "assistant vocal temps réel"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.clonepolicy",
+      "section": "t2",
+      "title": "ClonePolicy",
+      "status": "verified_local_safe",
+      "whatExists": "Règles d'entreprise → comportement machine exécutable. règles exécutables ; canal externe → validation obligatoire ; capAutonomy",
+      "whatDoesNotExist": "aucune règle implicite permissive",
+      "safeExplanation": "Vous fixez les règles du jeu ; les employés IA s'y plient, sans exception.",
+      "commercialClaimAllowed": [
+        "VOS règles gouvernent le comportement des employés IA."
+      ],
+      "commercialClaimForbidden": [],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.clonecontinuum",
+      "section": "t2",
+      "title": "CloneContinuum",
+      "status": "verified_local_safe",
+      "whatExists": "Continuité des missions au-delà de la première réponse. machine d'états de continuité ; recommandations de réveil",
+      "whatDoesNotExist": "aucun scheduler live",
+      "safeExplanation": "Ce qui doit être suivi EST suivi — même dans trois semaines.",
+      "commercialClaimAllowed": [
+        "Les missions ne meurent pas après la première réponse : elles continuent, tracées."
+      ],
+      "commercialClaimForbidden": [
+        "Relances envoyées automatiquement vers l'extérieur"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.clonetrust",
+      "section": "t2",
+      "title": "CloneTrust",
+      "status": "verified_local_safe",
+      "whatExists": "Autonomie graduelle contrôlée. niveaux d'autonomie ; plafonds par politique",
+      "whatDoesNotExist": "aucune autonomie sur le critique",
+      "safeExplanation": "Plus la confiance est prouvée, plus l'IA avance seule — sauf sur le critique, qui reste à vous.",
+      "commercialClaimAllowed": [
+        "L'autonomie se gagne et se contrôle — jamais sur les sujets critiques."
+      ],
+      "commercialClaimForbidden": [
+        "Autonomie totale"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.clonereview",
+      "section": "t2",
+      "title": "CloneReview",
+      "status": "verified_local_safe",
+      "whatExists": "Relecture interne professionnelle. rapport de relecture ; drapeau revue humaine",
+      "whatDoesNotExist": "aucune garantie de perfection",
+      "safeExplanation": "Un deuxième regard systématique sur ce que produit l'IA, avant votre validation.",
+      "commercialClaimAllowed": [
+        "Chaque production passe une relecture interne avant de vous arriver."
+      ],
+      "commercialClaimForbidden": [
+        "Zéro erreur garanti"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.clonesignals",
+      "section": "t2",
+      "title": "CloneSignals",
+      "status": "verified_local_safe",
+      "whatExists": "Moteur d'événements/déclencheurs. candidats de déclenchement",
+      "whatDoesNotExist": "aucun envoi/scheduler — l'humain arme",
+      "safeExplanation": "L'IA voit qu'un dossier n'avance plus et vous le signale — vous décidez.",
+      "commercialClaimAllowed": [
+        "Les signaux faibles remontent avant de devenir des problèmes."
+      ],
+      "commercialClaimForbidden": [
+        "Actions déclenchées automatiquement"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.clonelearn",
+      "section": "t2",
+      "title": "CloneLearn",
+      "status": "verified_local_safe",
+      "whatExists": "Apprentissage progressif par PROPOSITIONS validées. candidats avec confiance ; approvalRequired sur chaque candidat",
+      "whatDoesNotExist": "JAMAIS de mutation silencieuse de CloneADN (adnMutated=false)",
+      "safeExplanation": "L'IA propose « j'ai remarqué que vous faites toujours X, dois-je le retenir ? » — vous validez.",
+      "commercialClaimAllowed": [
+        "Le système apprend vos usages — uniquement avec votre accord."
+      ],
+      "commercialClaimForbidden": [
+        "Auto-apprentissage silencieux"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.clonebrief",
+      "section": "t2",
+      "title": "CloneBrief",
+      "status": "verified_local_safe",
+      "whatExists": "Synthèses exécutives matin/soir sur FAITS FOURNIS. synthèses factuelles ; distinction PRÉPARÉ/fait ; blocages jamais masqués",
+      "whatDoesNotExist": "aucun fait inventé",
+      "safeExplanation": "Deux minutes le matin : vous savez exactement où en est le travail RH.",
+      "commercialClaimAllowed": [
+        "Votre brief du matin dit ce qui est FAIT, ce qui est PRÉPARÉ, et ce qui bloque."
+      ],
+      "commercialClaimForbidden": [
+        "Résumés embellis"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.clonecall",
+      "section": "t2",
+      "title": "CloneCall",
+      "status": "verified_local_safe",
+      "whatExists": "« Appeler » son employé IA — en SAFE LOCAL uniquement. sessions locales complètes ; chaîne Guard+Policy+Trust+Trace+Continuum+Signals+Brief",
+      "whatDoesNotExist": "AUCUNE téléphonie (dual-blocked) ; liveCallMade=false, audioRecorded=false ; appels sortants bloqués",
+      "safeExplanation": "Vous « briefez » votre employé IA comme au téléphone — par texte aujourd'hui ; aucun appel téléphonique réel.",
+      "commercialClaimAllowed": [
+        "Une session de travail « comme un appel », traitée en mission gouvernée."
+      ],
+      "commercialClaimForbidden": [
+        "Appels téléphoniques réels",
+        "CloneCall vous appelle"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "t2.cloneroom",
+      "section": "t2",
+      "title": "CloneRoom",
+      "status": "integration_ready",
+      "whatExists": "Salle de collaboration humains / CloneOS / employés IA. participants typés ; plan de routage allViaCloneOS=true",
+      "whatDoesNotExist": "AUCUN pair-à-pair anarchique (peerToPeerBlocked=true)",
+      "safeExplanation": "La salle de réunion permanente de votre équipe augmentée — ordonnée, tracée, gouvernée.",
+      "commercialClaimAllowed": [
+        "Une salle où humains et employés IA coordonnent le travail, sous gouvernance."
+      ],
+      "commercialClaimForbidden": [
+        "Discussions IA↔IA non gouvernées"
+      ],
+      "sourceReport": "T2_CLONESTORE_PRODUCT_TECHNOLOGIES_COMPLETION_REPORT.md",
+      "lastVerifiedPhase": "T2"
+    },
+    {
+      "id": "ext.stripe_live",
+      "section": "external_blockers",
+      "title": "Activation du paiement (Stripe)",
+      "status": "external_blocked",
+      "whatExists": "Chaîne checkout/webhook/réconciliation construite, testée en mode test ; checklist propriétaire prête.",
+      "whatDoesNotExist": "Compte de paiement configuré et vérifié — le paiement en ligne reste fermé.",
+      "safeExplanation": "Le paiement en ligne n'est pas encore ouvert ; la réservation fondateur ne demande aucun paiement.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "« Activation du paiement (Stripe) » présenté comme prêt/actif"
+      ],
+      "sourceReport": "P15 / P15.1 / P11",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "ext.yousign_live",
+      "section": "external_blockers",
+      "title": "Signature électronique (Yousign)",
+      "status": "external_blocked",
+      "whatExists": "Paquets de signature préparés + fallback circuit manuel documenté.",
+      "whatDoesNotExist": "Provider de signature vérifié (bloqué depuis P8.7.4).",
+      "safeExplanation": "Les dossiers de signature sont préparés ; la signature suit votre circuit habituel.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "« Signature électronique (Yousign) » présenté comme prêt/actif"
+      ],
+      "sourceReport": "P15 / P15.1 / P11",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "ext.email_provider",
+      "section": "external_blockers",
+      "title": "Provider e-mail",
+      "status": "external_blocked",
+      "whatExists": "Brouillons d'e-mails prêts à envoyer.",
+      "whatDoesNotExist": "Domaine/provider e-mail vérifié — aucun envoi automatique.",
+      "safeExplanation": "Les e-mails sont préparés ; l'envoi reste chez vous.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "« Provider e-mail » présenté comme prêt/actif"
+      ],
+      "sourceReport": "P15 / P15.1 / P11",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "ext.voice_provider",
+      "section": "external_blockers",
+      "title": "Provider vocal",
+      "status": "external_blocked",
+      "whatExists": "Architecture d'entrée vocale (T1 voice + CloneVoice).",
+      "whatDoesNotExist": "Provider vocal vérifié — aucune voix opérationnelle.",
+      "safeExplanation": "La voix viendra après vérification externe ; le texte reste la référence.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "« Provider vocal » présenté comme prêt/actif"
+      ],
+      "sourceReport": "P15 / P15.1 / P11",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "ext.telephony_provider",
+      "section": "external_blockers",
+      "title": "Téléphonie",
+      "status": "external_blocked",
+      "whatExists": "CloneCall en safe local (sessions texte gouvernées).",
+      "whatDoesNotExist": "Provider télécom/audio vérifié + cadre légal validé — appels réels bloqués (double verrou).",
+      "safeExplanation": "Aucun appel téléphonique réel ; les sessions CloneCall sont locales et gouvernées.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "« Téléphonie » présenté comme prêt/actif"
+      ],
+      "sourceReport": "P15 / P15.1 / P11",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "ext.push_provider",
+      "section": "external_blockers",
+      "title": "Notifications push",
+      "status": "external_blocked",
+      "whatExists": "Rappels cockpit.",
+      "whatDoesNotExist": "Provider push — aucune notification téléphone.",
+      "safeExplanation": "Les rappels vivent dans le cockpit.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "« Notifications push » présenté comme prêt/actif"
+      ],
+      "sourceReport": "P15 / P15.1 / P11",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "ext.connectors",
+      "section": "external_blockers",
+      "title": "Connecteurs SIRH / paie / Slack",
+      "status": "external_blocked",
+      "whatExists": "Cadre ConnectorTech + fallback export/import manuel.",
+      "whatDoesNotExist": "Connecteurs live vérifiés.",
+      "safeExplanation": "Les échanges se font par exports maîtrisés en attendant les connecteurs certifiés.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "« Connecteurs SIRH / paie / Slack » présenté comme prêt/actif"
+      ],
+      "sourceReport": "P15 / P15.1 / P11",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "ext.legal_tax",
+      "section": "external_blockers",
+      "title": "Revue légale / fiscale externe",
+      "status": "external_blocked",
+      "whatExists": "Paquet de revue préparé (P15.1) ; registre d'artefacts légaux (P15).",
+      "whatDoesNotExist": "Revue externe réalisée (LEGAL_TAX_READY=false).",
+      "safeExplanation": "La revue légale/fiscale externe est un prérequis assumé avant l'ouverture payante.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "« Revue légale / fiscale externe » présenté comme prêt/actif"
+      ],
+      "sourceReport": "P15 / P15.1 / P11",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "ext.monitoring",
+      "section": "external_blockers",
+      "title": "Monitoring de production",
+      "status": "external_blocked",
+      "whatExists": "Contrat monitoring/rollback défini (P15).",
+      "whatDoesNotExist": "Provider de monitoring attesté.",
+      "safeExplanation": "Pas d'ouverture sans surveillance de production digne de ce nom.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "« Monitoring de production » présenté comme prêt/actif"
+      ],
+      "sourceReport": "P15 / P15.1 / P11",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "ext.owner_approval",
+      "section": "external_blockers",
+      "title": "Sign-off propriétaire",
+      "status": "external_blocked",
+      "whatExists": "Gates d'attestation propriétaire fail-closed (P11).",
+      "whatDoesNotExist": "Attestation finale — et elle ne suffit JAMAIS seule (plancher P10).",
+      "safeExplanation": "Même le propriétaire ne peut pas ouvrir la production par simple variable d'environnement.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "« Sign-off propriétaire » présenté comme prêt/actif"
+      ],
+      "sourceReport": "P15 / P15.1 / P11",
+      "lastVerifiedPhase": "P15.1"
+    },
+    {
+      "id": "ext.production_authorized",
+      "section": "external_blockers",
+      "title": "PRODUCTION_AUTHORIZED",
+      "status": "external_blocked",
+      "whatExists": "Constante false (P10), plancher dur re-vérifié par P11/P15/P15.1/T1/T2.",
+      "whatDoesNotExist": "Toute voie d'activation par configuration.",
+      "safeExplanation": "La production restera OFF jusqu'à une décision de code délibérée, jamais par accident.",
+      "commercialClaimAllowed": [],
+      "commercialClaimForbidden": [
+        "« PRODUCTION_AUTHORIZED » présenté comme prêt/actif"
+      ],
+      "sourceReport": "P15 / P15.1 / P11",
+      "lastVerifiedPhase": "P15.1"
+    }
+  ]
+}

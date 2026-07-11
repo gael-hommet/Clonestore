@@ -1,0 +1,51 @@
+{
+  "runId": "t2-product-technologies",
+  "status": "architecture_ready",
+  "mode": "live_disabled",
+  "liveBlockedReason": "Aucun provider vocal vérifié — voix live bloquée ; le chemin texte reste autoritaire (le chemin voix s'ouvrira seulement après vérification externe d'un provider).",
+  "commercialClaimForbidden": [
+    "voix live opérationnelle",
+    "téléphonie live",
+    "reconnaissance vocale en production",
+    "enregistrement audio réel"
+  ],
+  "textPath": {
+    "kind": "needs_validation",
+    "artifact": {
+      "artifactKind": "clonevoice_intent",
+      "source": "text_fallback",
+      "textAuthoritative": true,
+      "liveVoice": false,
+      "audioProcessed": false,
+      "rawTranscript": "euh prépare un document puis relance",
+      "cleanedTranscript": "prépare un document puis relance",
+      "segments": [
+        "prépare un document",
+        "relance"
+      ],
+      "intents": [
+        {
+          "text": "prépare un document",
+          "intentKind": "prepare_document"
+        },
+        {
+          "text": "relance",
+          "intentKind": "follow_up"
+        }
+      ],
+      "mainIntentKind": "prepare_document",
+      "oralContext": "Transcript 36 caractères, 2 action(s) détectée(s) — l'humain confirme l'interprétation.",
+      "t1VoiceFallback": {
+        "artifactKind": "voice_fallback",
+        "textAuthoritative": true,
+        "transcript": null,
+        "instructions": "Saisir la demande en texte — l'entrée texte reste la source de vérité."
+      }
+    }
+  },
+  "audioOnlyPath": {
+    "kind": "fallback",
+    "note": "aucun provider — fallback texte"
+  },
+  "operationalLiveVoice": false
+}

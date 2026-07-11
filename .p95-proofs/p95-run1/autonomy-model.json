@@ -1,0 +1,35 @@
+{
+  "runId": "p95-run1",
+  "section": "Product autonomy model — reuses P8, no second brain",
+  "source_of_truth": {
+    "engine": "src/lib/pierre/v1/autonomy.ts decideValidation (P8, read-only import) — the authoritative policy engine",
+    "cognitive_modes": "src/lib/pierre/v1/cognitive-runtime/autonomy-policy.ts classifyStepAutonomy → AUTONOMOUS|CONFIRMATION_REQUIRED|HUMAN_DECISION_REQUIRED",
+    "company_setting": "pierre_rt_companies.default_autonomy_mode (P8 column) — single source of truth, read/written via V1 GET/PATCH /company",
+    "capability_gates": "hr-canon HrAutonomyLevel + HrImplementationStatus (HUMAN_ONLY / LEGAL_CONTENT_REQUIRED / EXTERNAL_DEPENDENCY) + evaluateCapabilityGate"
+  },
+  "product_model_file": "src/lib/clonestore/pierre-autonomy/model.ts",
+  "framing": "Pierre — votre employé IA RH / votre équipe RH opérationnelle (jamais assistant/copilote)",
+  "product_modes": [
+    { "id": "draft",       "label": "Brouillon",             "engineMode": "draft",                  "supervisor": "human_team", "tagline": "Pierre prépare, vous décidez." },
+    { "id": "validation",  "label": "Validation",            "engineMode": "normal",                 "supervisor": "human_team", "tagline": "Pierre propose l'important, vous validez." },
+    { "id": "controlled",  "label": "Exécution contrôlée",   "engineMode": "high_autonomy",          "supervisor": "human_team", "tagline": "Pierre exécute le travail autorisé, demande pour le risqué." },
+    { "id": "governed",    "label": "Autonomie gouvernée",   "engineMode": "enterprise_autonomous",  "supervisor": "human_team", "tagline": "Pierre opère la RH en continu, dans vos règles." },
+    { "id": "dirigeant",   "label": "Dirigeant + Pierre",    "engineMode": "enterprise_autonomous",  "supervisor": "dirigeant",  "tagline": "Le dirigeant supervise Pierre directement." }
+  ],
+  "engine_mode_coverage": "the 5 product modes cover all 4 real P8 AutonomyMode values (governed + dirigeant share enterprise_autonomous; the difference is the supervision framing, not the engine behavior)",
+  "matrix_is_derived_not_cosmetic": {
+    "how": "deriveAutonomyMatrix(mode) calls the REAL decideValidation for each representative P8 ActionKind (14 actions across the risk/sensitivity spectrum) and buckets by the returned ValidationDecision. No HR logic is reimplemented.",
+    "buckets": ["alone (AUTO_EXECUTE)", "notify (EXECUTE_AND_NOTIFY)", "prepare (PREPARE_AND_OPTIONALLY_REVIEW)", "validation (HUMAN_APPROVAL_REQUIRED, sensitive)", "human_only (HUMAN_APPROVAL_REQUIRED, restricted)", "blocked (BLOCK_AND_ESCALATE)"]
+  },
+  "hard_floors_proven": {
+    "claim": "restricted / approval-required (contract, amendment, compensation, sanction, termination, dismissal, sensitive_medical, harassment_flagged, final_recruitment_decision) are NEVER auto-executed (never 'alone'/'notify') in ANY of the 5 modes — including governed/dirigeant",
+    "termination_all_modes": "human_only",
+    "contract_all_modes": "validation",
+    "sensitive_medical_all_modes": "human_only"
+  },
+  "modes_change_behavior_proven": {
+    "status_update": { "draft": "prepare", "validation": "alone", "controlled": "alone", "governed": "notify" },
+    "effective_autonomy_monotonic": "count(alone+notify) strictly increases draft < validation ≤ controlled ≤ governed"
+  },
+  "tests": { "model": "src/lib/clonestore/pierre-autonomy/__tests__/model.test.ts — 8/8" }
+}

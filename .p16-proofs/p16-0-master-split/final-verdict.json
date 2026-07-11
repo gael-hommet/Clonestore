@@ -1,0 +1,47 @@
+{
+  "phase": "P16.0 — Pierre Ultimate + CloneStore Technologies Master Split",
+  "runId": "p16-0-master-split",
+  "verdict": "P16.0 — MASTER SPLIT VERIFIED / TWO WORKSTREAMS + INTEGRATION GATE RECOMMENDED",
+  "date": "2026-07-09",
+  "nature": "A planning + classification phase (no build, no product change, production off).",
+  "master_split": {
+    "total_items": 49,
+    "by_category": { "pierre_ultimate": 12, "technology": 15, "integration": 10, "external_blocked": 6, "must_not_claim": 6 },
+    "by_status": { "verified": 4, "partial": 16, "architecture_ready": 9, "not_built": 8, "external_blocked": 6, "must_not_claim": 6 },
+    "by_next_phase": { "P16A": 11, "T1": 13, "P16C": 9, "later": 16 }
+  },
+  "the_10_answers": {
+    "1_pierre_ultimate": "HR mission/document/dossier depth, onboarding/offboarding, absences/pre-payroll prep, interviews/perf/training, sensitive relations, proactive follow-up, ROI report, sector adaptation, helpdesk quality, quality control (12 items, owner=pierre).",
+    "2_technologies": "15 reusable capabilities: Document, Mail, Calendar, Signature, Voice, Notification, Connector, Memory, Evidence, Workflow, Analytics, File, Export, Permission, TechnologyBus.",
+    "3_integration": "10 adapters (Pierre→Tech, contract + validation + audit + safe fallback).",
+    "4_build_first": "T1 foundational technologies (Memory, Evidence, Permission = verified/low-risk; then Document, Workflow, Analytics) + Pierre Ultimate low-risk depth (mission/helpdesk/quality). Then P16C integration.",
+    "5_stay_roadmap": "VoiceTech, ConnectorTech, sector adaptation (external legal), and everything marked 'later' (16 items).",
+    "6_safe_before_stripe": "33 items (all pierre_ultimate + technology + integration except 'later' — none require Stripe live).",
+    "7_requires_external": "6 external-blocked: Stripe live, Yousign live, email domain/provider, external legal/tax, live SIRH/payroll, monitoring provider.",
+    "8_must_not_claim": "6: legal compliance guarantee, autonomous DRH, payroll engine/DSN, live signature if fallback, live Stripe if unverified, final sensitive decisions without human validation.",
+    "9_avoid_breaking_launch": "Everything behind safe flags (default OFF), non-production; reuse V1 (no second HR brain); technologies via contracts (no hardcode); independent non-regression per workstream.",
+    "10_sessions": "TWO sessions (A: P16A Pierre Ultimate; B: T1 Technologies) + a THIRD integration gate (P16C). Safer, less context pollution, better test boundaries, reusable technologies, less hardcoding risk, easier to stop one track."
+  },
+  "session_strategy": {
+    "recommendation": "two_sessions_plus_integration_gate",
+    "exact_next_prompts": [
+      "START P16A — PIERRE ULTIMATE COMPLETION",
+      "START T1 — CLONESTORE TECHNOLOGIES LAYER",
+      "START P16C — PIERRE x TECHNOLOGIES INTEGRATION (after A + B)"
+    ]
+  },
+  "gates": {
+    "p16_tests": "14/14 (12 master-split incl. P14 cross-check + 2 computed-proof)",
+    "tsc": "0 source errors",
+    "non_regression": "6846/6846 (nav/clonestore/clonechat/assistant/components)",
+    "grounded_on_real_p14": true
+  },
+  "guardrails": {
+    "no_build": "P16.0 is a plan; p16-master-split.ts is pure classification.",
+    "production_off": "PRODUCTION_AUTHORIZED=false; payment mode never live.",
+    "no_payment_no_stripe_change_no_deploy": true,
+    "no_second_hr_brain": true,
+    "no_hardcoded_tech_in_pierre": true,
+    "p8_to_p15_1_and_pierre_v1_untouched": true
+  }
+}

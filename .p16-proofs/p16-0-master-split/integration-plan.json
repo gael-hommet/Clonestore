@@ -1,0 +1,126 @@
+{
+  "runId": "p16-0-master-split",
+  "plan": "P16C_PIERRE_TECHNOLOGIES_INTEGRATION_PLAN.md",
+  "adapters": [
+    {
+      "id": "int.document_adapter",
+      "title": "PierreDocumentTechAdapter",
+      "category": "integration",
+      "current_status": "not_built",
+      "owner": "integration",
+      "launch_importance": "critical",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16C",
+      "reason": "Pierre prépare les documents via DocumentTech (contrat), sous validation.",
+      "safeFallback": "Document préparé, validation humaine."
+    },
+    {
+      "id": "int.mail_adapter",
+      "title": "PierreMailTechAdapter",
+      "category": "integration",
+      "current_status": "not_built",
+      "owner": "integration",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16C",
+      "reason": "Pierre rédige les emails via MailTech ; envoi sous validation.",
+      "safeFallback": "Pierre rédige, l'humain envoie manuellement."
+    },
+    {
+      "id": "int.calendar_adapter",
+      "title": "PierreCalendarTechAdapter",
+      "category": "integration",
+      "current_status": "not_built",
+      "owner": "integration",
+      "launch_importance": "nice_to_have",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16C",
+      "reason": "Pierre prépare entretiens/événements via CalendarTech.",
+      "safeFallback": "Pierre prépare, l'humain copie/valide."
+    },
+    {
+      "id": "int.signature_adapter",
+      "title": "PierreSignatureTechAdapter",
+      "category": "integration",
+      "current_status": "architecture_ready",
+      "owner": "integration",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16C",
+      "reason": "Abstraction fallback/live (jamais de revendication live si fallback).",
+      "safeFallback": "Document préparé, signature manuelle."
+    },
+    {
+      "id": "int.voice_adapter",
+      "title": "PierreVoiceTechAdapter",
+      "category": "integration",
+      "current_status": "not_built",
+      "owner": "integration",
+      "launch_importance": "future",
+      "implementation_risk": "high",
+      "recommended_next_phase": "later",
+      "reason": "Entrée vocale → mission ; roadmap.",
+      "safeFallback": "Entrée texte autoritaire."
+    },
+    {
+      "id": "int.notification_adapter",
+      "title": "PierreNotificationTechAdapter",
+      "category": "integration",
+      "current_status": "not_built",
+      "owner": "integration",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16C",
+      "reason": "Relances/rappels via NotificationTech.",
+      "safeFallback": "Rappels cockpit uniquement."
+    },
+    {
+      "id": "int.analytics_adapter",
+      "title": "PierreAnalyticsTechAdapter",
+      "category": "integration",
+      "current_status": "not_built",
+      "owner": "integration",
+      "launch_importance": "important",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16C",
+      "reason": "Rapport de valeur/ROI via AnalyticsTech.",
+      "safeFallback": "Métriques cockpit brutes."
+    },
+    {
+      "id": "int.evidence_adapter",
+      "title": "PierreEvidenceTechAdapter",
+      "category": "integration",
+      "current_status": "architecture_ready",
+      "owner": "integration",
+      "launch_importance": "critical",
+      "implementation_risk": "low",
+      "recommended_next_phase": "P16C",
+      "reason": "Trace/preuve d'audit via EvidenceTech.",
+      "safeFallback": "Timeline V1 existante."
+    },
+    {
+      "id": "int.workflow_adapter",
+      "title": "PierreWorkflowTechAdapter",
+      "category": "integration",
+      "current_status": "not_built",
+      "owner": "integration",
+      "launch_importance": "important",
+      "implementation_risk": "high",
+      "recommended_next_phase": "P16C",
+      "reason": "Pierre orchestre ses workflows via WorkflowTech (NE PAS dupliquer le cerveau RH).",
+      "safeFallback": "Moteur de missions V1 existant."
+    },
+    {
+      "id": "int.permission_adapter",
+      "title": "PierrePermissionTechAdapter",
+      "category": "integration",
+      "current_status": "architecture_ready",
+      "owner": "integration",
+      "launch_importance": "critical",
+      "implementation_risk": "medium",
+      "recommended_next_phase": "P16C",
+      "reason": "Scopes/permissions via PermissionTech.",
+      "safeFallback": "RLS + requireCompanyUser existants."
+    }
+  ]
+}

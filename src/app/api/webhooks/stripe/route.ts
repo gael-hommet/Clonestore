@@ -30,6 +30,28 @@ import { bridgeClonestoryCommercial } from "@/lib/clonestory/founding-partners/s
 // P8.7.4 — additive Pierre commercial bridge. INERT unless the event carries explicit pierre_synthetic=true
 // controlled-journey metadata; fully error-swallowed; never affects the orders/founder/CloneStory flows.
 import { bridgePierreCommercial } from "@/lib/pierre/v1/pierre-stripe-commercial-bridge";
+// Programme « Cabinets Fondateurs » — pont commissions (additif, best-effort, flag-gated
+// PARTNER_PROGRAM_ENABLED default OFF). N'agit que si un cabinet a apporté le client.
+import { bridgePartnerCommercial } from "@/lib/partner-program/server/stripe-bridge";
+// P15 §4 — billing-country reconciliation gate (ADDITIVE, flag-gated STRIPE_COUNTRY_RECONCILIATION_ENABLED).
+// Flag OFF (default) → zero behavior change (activation identical, audit logged). Flag ON → a hard country
+// conflict does NOT activate paid access (order written with a review status instead of active).
+import { extractCountrySignalsFromSession, evaluateCheckoutReconciliationGate } from "@/lib/clonestore/production/p15-checkout-reconciliation-gate";
+// Extracteurs tolérants à la version d'API Stripe. Depuis « Basil », Invoice.subscription et
+// Subscription.current_period_end n'existent plus : lus en brut, ils renvoyaient toujours null.
+import { extractInvoiceSubscriptionId, extractSubscriptionCurrentPeriodEnd } from "@/lib/billing/stripe-event-fields";
+// Client Stripe PARTAGÉ (apiVersion épinglée). Auparavant ce fichier ré-instanciait
+// `new Stripe(key)` sans apiVersion → les lectures API divergeaient du reste de l'app.
+import { getStripe } from "@/lib/stripe";
+// Bloc 4 — ledger d'idempotence + anti-replay du flux orders (dédup, ordre monotone).
+import {
+  claimOrdersEvent,
+  finishOrdersEvent,
+  fingerprintEventObject,
+  createSupabaseOrdersEventLedger,
+  OrdersLedgerUnavailableError,
+} from "@/lib/billing/orders-event-ledger";
+import type { StripeWebhookDeps as WebhookDeps } from "@/lib/founder-access/stripe-webhook-deps";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,6 +75,36 @@ async function fetchSubscriptionProof(stripe: Stripe, subId: string): Promise<{ 
   } catch {
     return null;
   }
+}
+
+// P15 — Récupère le pays de FACTURATION du customer (best-effort) pour réconcilier les events
+// subscription.* (qui ne portent pas l'adresse). Read-only ; null en cas d'échec.
+async function fetchCustomerBillingCountry(stripe: Stripe, customerId: string | null): Promise<string | null> {
+  if (!customerId) return null;
+  try {
+    const c = await stripe.customers.retrieve(customerId);
+    if (c && !("deleted" in c && c.deleted)) { const addr = (c as Stripe.Customer).address; return addr?.country ?? null; }
+    return null;
+  } catch { return null; }
+}
+
+// P15 — Réconcilie l'activation d'un event subscription.* : renvoie le statut à écrire (grantedStatus si
+// autorisé, sinon un statut de revue). Flag OFF → grantedStatus (comportement inchangé) + audit loggé.
+async function reconcileSubscriptionStatus(stripe: Stripe, obj: Record<string, unknown>, customerId: string | null, grantedStatus: string): Promise<string> {
+  // Flag OFF (défaut) → court-circuit : aucun appel Stripe supplémentaire, aucun log, statut inchangé.
+  const f = (process.env.STRIPE_COUNTRY_RECONCILIATION_ENABLED ?? "").trim().toLowerCase();
+  if (!["true", "1", "on", "enabled"].includes(f)) return grantedStatus;
+  const meta = getMetadata(obj) ?? {};
+  const billing = await fetchCustomerBillingCountry(stripe, customerId);
+  const currency = getString(obj, "currency") ?? (typeof meta["expected_currency"] === "string" ? meta["expected_currency"] : null);
+  const gate = evaluateCheckoutReconciliationGate({
+    companyCountry: typeof meta["company_country"] === "string" ? meta["company_country"] : null,
+    selectedCountry: typeof meta["selected_country"] === "string" ? meta["selected_country"] : null,
+    stripeBillingCountry: billing,
+    chargedCurrency: currency,
+  }, { env: process.env });
+  console.log("[webhook][p15-reconciliation][subscription]", JSON.stringify(gate.audit));
+  return gate.shouldActivate ? grantedStatus : gate.activationStatus;
 }
 
 // ── Pont VÉRITÉ Stripe → réservation fondateur (E.4 + E-R2) ─────────────────
@@ -96,17 +148,68 @@ function resolveDeps(): StripeWebhookDeps {
       upsert: (a) => upsertOrderStatus(a),
       updateBySubId: (subId, update) => updateOrderBySubId(subId, update),
     },
+    // Ledger orders sur la même base Supabase que la table `orders`. Client résolu
+    // PARESSEUSEMENT : un event non concerné (ou un env sans Supabase) n'instancie rien.
+    ordersLedger: createSupabaseOrdersEventLedger(() => getSupabaseAdmin()),
   });
+}
+
+/**
+ * Garde d'idempotence + anti-replay autour d'une mutation du flux orders. Le ledger
+ * dédup (event déjà traité), rejette les payloads incohérents (même id/contenu différent)
+ * et applique l'ordre monotone (un event périmé n'a aucun effet, un ancien checkout ne
+ * ressuscite pas une commande annulée). `objectId` = id de l'ABONNEMENT (ligne d'eau
+ * par abonnement, tous types d'events confondus).
+ *
+ * Dégrade en comportement legacy si le ledger est absent (table non migrée) → zéro
+ * régression. Retourne `applied` (mutation effectuée) ou une raison de saut.
+ */
+async function guardOrdersEvent(
+  deps: WebhookDeps,
+  event: Stripe.Event,
+  objectId: string | null,
+  obj: Record<string, unknown>,
+  mutate: () => Promise<void>,
+): Promise<{ applied: boolean; skipped?: string }> {
+  const ledger = deps.ordersLedger;
+  if (!ledger) {
+    await mutate();
+    return { applied: true };
+  }
+  const now = new Date();
+  const payloadFingerprint = fingerprintEventObject(event.type, obj);
+  let outcome;
+  try {
+    outcome = await claimOrdersEvent(
+      ledger,
+      { eventId: event.id, type: event.type, objectId, eventCreated: event.created, livemode: event.livemode, payloadFingerprint },
+      { now },
+    );
+  } catch (e) {
+    if (e instanceof OrdersLedgerUnavailableError) {
+      // Table non appliquée dans cet environnement → repli legacy (aucune régression).
+      console.warn("[webhook] orders ledger unavailable — legacy path");
+      await mutate();
+      return { applied: true, skipped: "ledger_unavailable" };
+    }
+    throw e;
+  }
+  if (outcome.decision !== "process") {
+    console.log(`[webhook] orders event ${event.id} skipped: ${outcome.decision}`);
+    return { applied: false, skipped: outcome.decision };
+  }
+  try {
+    await mutate();
+    await finishOrdersEvent(ledger, event.id, "applied", { now });
+    return { applied: true };
+  } catch (e) {
+    await finishOrdersEvent(ledger, event.id, "failed", { now, error: e instanceof Error ? e.message : "error" }).catch(() => {});
+    throw e; // le catch principal renverra 500/503 → Stripe rejoue
+  }
 }
 
 function json(status: number, data: unknown) {
   return NextResponse.json(data, { status });
-}
-
-function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
-  return new Stripe(key);
 }
 
 function getSupabaseAdmin() {
@@ -231,6 +334,21 @@ export async function POST(req: Request) {
     // It swallows its own errors and never changes the status returned to Stripe.
     await bridgePierreCommercial(event);
 
+    // ── Programme partenaires : commissions 20 % (additif, flag OFF par défaut) ──
+    // Idempotent (ledger clonestore_pp_stripe_events) ; commission créée UNIQUEMENT sur
+    // invoice.paid réellement encaissé ; remboursements/litiges gérés ; erreurs avalées.
+    await bridgePartnerCommercial(event, {
+      resolveSubscriptionUser: async (subId: string) => {
+        try {
+          const sub = await stripe.subscriptions.retrieve(subId);
+          const m = (sub.metadata ?? {}) as Record<string, string>;
+          return typeof m["user_id"] === "string" ? m["user_id"] : null;
+        } catch {
+          return null;
+        }
+      },
+    });
+
     // ── checkout.session.completed ─────────────────────────────
     // Handles both immediate payment (paid) and trial (no_payment_required).
     if (event.type === "checkout.session.completed") {
@@ -244,22 +362,45 @@ export async function POST(req: Request) {
         return json(200, { received: true, skipped: true, reason: validation.reason });
       }
 
-      await deps.orders.upsert({
-        user_id: validation.user_id,
-        agent_slug: validation.agent_slug,
-        status: validation.status,
-        subId: validation.subscription_id,
-        customerId: getString(obj, "customer"),
+      // ── P15 §4 : réconciliation pays au paiement (ADDITIVE, flag-gated) ────────
+      // Flag OFF → shouldActivate=true → activation inchangée. Flag ON → un conflit fort (CH facturé
+      // en EUR, FR/BE/LU en CHF, pays entreprise ≠ facturation…) N'ACTIVE PAS l'accès payant : l'ordre
+      // est écrit avec un statut de revue (pas d'accès), et l'audit est loggé. selectedCountry client
+      // forgé ne peut jamais forcer l'activation (le billing Stripe vérité-serveur doit concorder).
+      const reconSignals = extractCountrySignalsFromSession(obj);
+      const reconGate = evaluateCheckoutReconciliationGate({
+        companyCountry: reconSignals.companyCountry,
+        selectedCountry: reconSignals.selectedCountry,
+        stripeBillingCountry: reconSignals.stripeBillingCountry,
+        stripeTaxCountry: reconSignals.stripeTaxCountry,
+        chargedCurrency: reconSignals.chargedCurrency,
+      }, { env: process.env });
+      // Audit persisté (logs de production) — conflit de réconciliation traçable.
+      console.log("[webhook][p15-reconciliation]", JSON.stringify(reconGate.audit));
+
+      const activationStatus = reconGate.shouldActivate ? validation.status : reconGate.activationStatus;
+
+      // Anti-replay : un ancien checkout rejoué ne doit pas ressusciter une commande annulée.
+      // La ligne d'eau est par ABONNEMENT (subId), tous types d'events confondus.
+      const coGuard = await guardOrdersEvent(deps, event, validation.subscription_id, obj, async () => {
+        await deps.orders.upsert({
+          user_id: validation.user_id!,
+          agent_slug: validation.agent_slug!,
+          status: activationStatus, // review status (no paid access) si le gate bloque ; sinon statut normal
+          subId: validation.subscription_id!,
+          customerId: getString(obj, "customer"),
+        });
       });
 
       // Vérité fondateur (Phase E.4 + E-R2) : activer la réservation si l'event
       // la concerne (preuve requise). Doit être exécuté AVANT le pont BLOC 3
       // pour garantir que la réservation fondateur est persistée d'abord.
+      // isGrantCandidate suit la décision de réconciliation (pas d'octroi si le gate bloque).
       const stripeMetaRaw = getMetadata(obj);
       await bridgeFounderEvent(deps, {
         meta: stripeMetaRaw, event,
-        rawStatus: validation.status, subId: validation.subscription_id,
-        customerId: getString(obj, "customer"), isGrantCandidate: true,
+        rawStatus: activationStatus, subId: validation.subscription_id,
+        customerId: getString(obj, "customer"), isGrantCandidate: reconGate.shouldActivate,
       });
 
       // ── BLOC 3 : pont conversion (additif, best-effort) ─────────
@@ -267,7 +408,7 @@ export async function POST(req: Request) {
       // ET le backend conversion est disponible. Idempotent, ne bloque pas.
       if (stripeMetaRaw?.["conversion_session_id"] && isConversionBackendAvailable()) {
         bridgeCheckoutCompleted({ metadata: stripeMetaRaw, orderId: validation.subscription_id });
-        if (isAccessGranted(validation.status)) {
+        if (isAccessGranted(activationStatus)) {
           bridgePierreActivated({ sessionId: stripeMetaRaw["conversion_session_id"] });
         }
       }
@@ -275,8 +416,10 @@ export async function POST(req: Request) {
       return json(200, {
         received: true,
         type: event.type,
-        status: validation.status,
+        status: activationStatus,
         sub: validation.subscription_id,
+        ledger: coGuard.applied ? "applied" : coGuard.skipped,
+        reconciliation: reconGate.enabled ? { result: reconGate.decision.result, code: reconGate.decision.code, activated: reconGate.shouldActivate } : undefined,
       });
     }
 
@@ -305,17 +448,23 @@ export async function POST(req: Request) {
         return json(200, { received: true, skipped: true, reason: "No metadata on subscription" });
       }
 
-      await deps.orders.upsert({
-        user_id,
-        agent_slug,
-        status,
-        subId,
-        customerId,
-        trial_end: getNumber(obj, "trial_end"),
-        current_period_end: getNumber(obj, "current_period_end"),
+      // P15 : réconciliation pays (best-effort billing fetch + currency). Flag OFF → status inchangé.
+      const reconciledCreatedStatus = await reconcileSubscriptionStatus(stripe, obj, customerId, status);
+
+      const createdGuard = await guardOrdersEvent(deps, event, subId, obj, async () => {
+        await deps.orders.upsert({
+          user_id,
+          agent_slug,
+          status: reconciledCreatedStatus,
+          subId,
+          customerId,
+          trial_end: getNumber(obj, "trial_end"),
+          // `subscription.current_period_end` a migré vers items.data[].current_period_end.
+          current_period_end: extractSubscriptionCurrentPeriodEnd(obj),
+        });
       });
 
-      return json(200, { received: true, type: event.type, status, subId });
+      return json(200, { received: true, type: event.type, status: reconciledCreatedStatus, subId, ledger: createdGuard.applied ? "applied" : createdGuard.skipped });
     }
 
     // ── customer.subscription.updated ─────────────────────────
@@ -330,20 +479,26 @@ export async function POST(req: Request) {
 
       if (!subId) return json(200, { received: true, skipped: true, reason: "Missing sub ID" });
 
-      if (isAccessGranted(status)) {
-        // Keep order active/trialing
-        await deps.orders.updateBySubId(subId, { status, ended_at: null });
-      } else if (isAccessRevoked(status)) {
-        const now = new Date().toISOString();
-        await deps.orders.updateBySubId(subId, { status, ended_at: now });
-      } else if (status === "past_due") {
-        await deps.orders.updateBySubId(subId, { status: "past_due" });
-      }
+      // Anti-replay : un event subscription.updated plus ancien ne doit pas faire reculer
+      // l'état (ex. un « active » périmé après un « canceled » plus récent).
+      await guardOrdersEvent(deps, event, subId, obj, async () => {
+        if (isAccessGranted(status)) {
+          // P15 : réconciliation pays avant de (ré)activer — une mise à jour ne doit pas écraser un blocage
+          // de réconciliation. Flag OFF → status inchangé.
+          const reconciledUpdStatus = await reconcileSubscriptionStatus(stripe, obj, getString(obj, "customer"), status);
+          await deps.orders.updateBySubId(subId, { status: reconciledUpdStatus, ended_at: null });
+        } else if (isAccessRevoked(status)) {
+          const now = new Date().toISOString();
+          await deps.orders.updateBySubId(subId, { status, ended_at: now });
+        } else if (status === "past_due") {
+          await deps.orders.updateBySubId(subId, { status: "past_due" });
+        }
+      });
 
       await bridgeFounderEvent(deps, {
         meta: getMetadata(obj), event,
         rawStatus: stripeStatus ?? "", subId, customerId: getString(obj, "customer"),
-        isGrantCandidate: isAccessGranted(status), currentPeriodEnd: getNumber(obj, "current_period_end"),
+        isGrantCandidate: isAccessGranted(status), currentPeriodEnd: extractSubscriptionCurrentPeriodEnd(obj),
       });
 
       return json(200, { received: true, type: event.type, subId, status });
@@ -356,8 +511,10 @@ export async function POST(req: Request) {
 
       const subId = getString(obj, "id");
       if (subId) {
-        const now = new Date().toISOString();
-        await deps.orders.updateBySubId(subId, { status: "canceled", ended_at: now });
+        await guardOrdersEvent(deps, event, subId, obj, async () => {
+          const now = new Date().toISOString();
+          await deps.orders.updateBySubId(subId, { status: "canceled", ended_at: now });
+        });
       }
 
       await bridgeFounderEvent(deps, {
@@ -373,9 +530,13 @@ export async function POST(req: Request) {
       const obj: unknown = event.data.object;
       if (!isRecord(obj)) return json(200, { received: true });
 
-      const subId = getString(obj, "subscription");
+      // `invoice.subscription` n'existe plus (API ≥ Basil) : la lecture brute renvoyait
+      // toujours null et `past_due` n'était JAMAIS écrit — l'échec de paiement était ignoré.
+      const subId = extractInvoiceSubscriptionId(obj);
       if (subId) {
-        await deps.orders.updateBySubId(subId, { status: "past_due" });
+        await guardOrdersEvent(deps, event, subId, obj, async () => {
+          await deps.orders.updateBySubId(subId, { status: "past_due" });
+        });
       }
 
       // BLOC 3 : pont conversion failed (best-effort, ne bloque pas).

@@ -1,0 +1,103 @@
+{
+  "runId": "clonechat-parrain",
+  "method": "revue manuelle 16 lentilles, computée contre les modules réels",
+  "realRefutations": 0,
+  "lenses": [
+    {
+      "lens": 1,
+      "name": "Pierre statique/superficiel",
+      "refuted": false,
+      "evidence": "capacités dérivées de HR_CAPABILITIES (215) ; index profond (inputs/outputs/autonomy/risk/forbiddenClaims)."
+    },
+    {
+      "lens": 2,
+      "name": "Compte de capacités hardcodé",
+      "refuted": false,
+      "evidence": "command center scanne TOUS les fichiers c1-1 : capabilityCountDerivedNotHardcoded=true."
+    },
+    {
+      "lens": 3,
+      "name": "CloneChat devient 2e cerveau RH",
+      "refuted": false,
+      "evidence": "délégation executed:false littéral ; aucun compileMissionPlan ; clonechatDoesNotBecomeHrBrain=true."
+    },
+    {
+      "lens": 4,
+      "name": "Fuite inter-tenant",
+      "refuted": false,
+      "evidence": "tenantIsolationReady=true ; clientB aveugle à companyA ; keepOwn filtre les ID étrangers."
+    },
+    {
+      "lens": 5,
+      "name": "Code interne vers client/public",
+      "refuted": false,
+      "evidence": "code FOUNDER_INTERNAL invisible client/public ; route /assistant en mode client uniquement ; adaptateur interne owner-gated."
+    },
+    {
+      "lens": 6,
+      "name": "Injection révélant sources restreintes",
+      "refuted": false,
+      "evidence": "visibilité indépendante de la question ; indexLeaksForbiddenSources=false même avec secret injecté ; detectPromptInjection en amont."
+    },
+    {
+      "lens": 7,
+      "name": "Claims non supportés survivant aux citations",
+      "refuted": false,
+      "evidence": "finalizeAnswerText (garde C1) après validation citations ; paiement/voix/téléphonie live bloqués."
+    },
+    {
+      "lens": 8,
+      "name": "Connaissance site/pricing/capacité périmée",
+      "refuted": false,
+      "evidence": "registres live_derived toujours frais ; index générés STALE au changement de hash ; staleSources=[\"src.readiness_reports\",\"src.code_index\",\"src.secrets\"]."
+    },
+    {
+      "lens": 9,
+      "name": "Risque exécutable/macro/fetch pièce jointe",
+      "refuted": false,
+      "evidence": "extensions dangereuses refusées ; liens neutralisés ; cellFormula:false ; attachmentSafetyReady=true."
+    },
+    {
+      "lens": 10,
+      "name": "Support PDF/DOCX/XLSX surdéclaré",
+      "refuted": false,
+      "evidence": "statuts dérivés des parseurs installés ; XLSX=structured_partial ; PDF image_only si pas de texte ; PPTX unsupported."
+    },
+    {
+      "lens": 11,
+      "name": "Lineage documentaire fabriqué",
+      "refuted": false,
+      "evidence": "missingEvidence toujours calculé ; explainSentence('none') sans preuve ; ID étranger → null."
+    },
+    {
+      "lens": 12,
+      "name": "Bug candidat réutilisé globalement",
+      "refuted": false,
+      "evidence": "visibleFor exige status==='validated' ; candidat non servi (probe=0)."
+    },
+    {
+      "lens": 13,
+      "name": "Sur-promesse de vente",
+      "refuted": false,
+      "evidence": "availabilitySplit maintient disponible/préparé/bloqué ; pas de fausse urgence ; garde claims sur la sortie."
+    },
+    {
+      "lens": 14,
+      "name": "Délégation contournant confirmation/idempotence",
+      "refuted": false,
+      "evidence": "proposalId uniquement, executed:false ; exécution sur /api/assistant/execute (SHA-256)."
+    },
+    {
+      "lens": 15,
+      "name": "Contournement du budget OpenAI",
+      "refuted": false,
+      "evidence": "reserve avant modèle (true) ; release en finally."
+    },
+    {
+      "lens": 16,
+      "name": "Flag/production/paiement activés par accident",
+      "refuted": false,
+      "evidence": "flag=off_default_fail_closed ; production=OFF ; paiement=disabled."
+    }
+  ]
+}

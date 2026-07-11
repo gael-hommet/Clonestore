@@ -1,0 +1,693 @@
+{
+  "generatedAt": "2026-07-10T15:24:00.065Z",
+  "pageCount": 64,
+  "sourceTreeHash": "pfnv_eb87d285",
+  "pages": [
+    {
+      "route": "/activate/pierre",
+      "dynamicParams": [],
+      "title": "Activer Pierre",
+      "description": "Activez Pierre, votre employé IA RH, au tarif fondateur.",
+      "headings": [
+        "L'activation de Pierre ouvre le {DEMO_LAUNCH_LABEL}.",
+        "L'accès fondateur est clôturé."
+      ],
+      "sourcePath": "src/app/activate/pierre/page.tsx",
+      "sourceHash": "pfnv_cc329f24"
+    },
+    {
+      "route": "/agents",
+      "dynamicParams": [],
+      "title": "Boutique — Employés IA CloneStore",
+      "description": "Des employés IA opérationnels qui absorbent une partie réelle du travail. Aujourd",
+      "headings": [
+        "{PIERRE_PUBLIC.name}",
+        "Composez votre équipe",
+        "Demain, d'autres métiers"
+      ],
+      "sourcePath": "src/app/agents/page.tsx",
+      "sourceHash": "pfnv_aa0a6802"
+    },
+    {
+      "route": "/agents/[slug]",
+      "dynamicParams": [
+        "slug"
+      ],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/agents/[slug]/page.tsx",
+      "sourceHash": "pfnv_bf146865"
+    },
+    {
+      "route": "/agents/[slug]/use",
+      "dynamicParams": [
+        "slug"
+      ],
+      "title": null,
+      "description": null,
+      "headings": [
+        "{agentName} — Espace agent",
+        "Accès indisponible",
+        "{agentName} — Espace agent"
+      ],
+      "sourcePath": "src/app/agents/[slug]/use/page.tsx",
+      "sourceHash": "pfnv_111827ec"
+    },
+    {
+      "route": "/agents/alex",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/agents/alex/page.tsx",
+      "sourceHash": "pfnv_416a99d6"
+    },
+    {
+      "route": "/agents/clara",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/agents/clara/page.tsx",
+      "sourceHash": "pfnv_cd4fe074"
+    },
+    {
+      "route": "/agents/emma",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/agents/emma/page.tsx",
+      "sourceHash": "pfnv_2140a730"
+    },
+    {
+      "route": "/agents/noah",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/agents/noah/page.tsx",
+      "sourceHash": "pfnv_9a66e7c2"
+    },
+    {
+      "route": "/agents/pierre",
+      "dynamicParams": [],
+      "title": "Pierre — Employé IA RH opérationnel | CloneStore",
+      "description": "Pierre est un employé IA RH opérationnel : il transforme une demande RH en mission, prépare le travail, relance, suit et garde la trace. Tarif fondateur 449 € HT/mois.",
+      "headings": [
+        "Pierre absorbe une part massive",
+        "Commencez par le poste RH."
+      ],
+      "sourcePath": "src/app/agents/pierre/page.tsx",
+      "sourceHash": "pfnv_5f8de928"
+    },
+    {
+      "route": "/agents/pierre/employees",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Salariés"
+      ],
+      "sourcePath": "src/app/agents/pierre/employees/page.tsx",
+      "sourceHash": "pfnv_0272e6f6"
+    },
+    {
+      "route": "/agents/pierre/setup",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Configurez Pierre"
+      ],
+      "sourcePath": "src/app/agents/pierre/setup/page.tsx",
+      "sourceHash": "pfnv_a3b0547d"
+    },
+    {
+      "route": "/agents/pierre/use",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Accès non activé",
+        "Technologies utilisées par Pierre"
+      ],
+      "sourcePath": "src/app/agents/pierre/use/page.tsx",
+      "sourceHash": "pfnv_fa16e797"
+    },
+    {
+      "route": "/assistant",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/assistant/page.tsx",
+      "sourceHash": "pfnv_b02c6e2c"
+    },
+    {
+      "route": "/checkout",
+      "dynamicParams": [],
+      "title": null,
+      "description": "Pierre automatise une large part du travail RH opérationnel : missions, documents, emails, relances, validations et traçabilité.",
+      "headings": [
+        "Activer{\" \"}",
+        "{agent.name}"
+      ],
+      "sourcePath": "src/app/checkout/page.tsx",
+      "sourceHash": "pfnv_217273c5"
+    },
+    {
+      "route": "/clonestore/[slug]",
+      "dynamicParams": [
+        "slug"
+      ],
+      "title": null,
+      "description": null,
+      "headings": [
+        "{section.title}",
+        "{block.title}",
+        "Comprendre la technologie,"
+      ],
+      "sourcePath": "src/app/clonestore/[slug]/page.tsx",
+      "sourceHash": "pfnv_31fb6e5a"
+    },
+    {
+      "route": "/cockpit",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/cockpit/page.tsx",
+      "sourceHash": "pfnv_df011993"
+    },
+    {
+      "route": "/cockpit/pierre",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/cockpit/pierre/page.tsx",
+      "sourceHash": "pfnv_3f06ddaa"
+    },
+    {
+      "route": "/cockpit/pierre/documents",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/cockpit/pierre/documents/page.tsx",
+      "sourceHash": "pfnv_a155b1b7"
+    },
+    {
+      "route": "/cockpit/pierre/evidence",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/cockpit/pierre/evidence/page.tsx",
+      "sourceHash": "pfnv_e3deb980"
+    },
+    {
+      "route": "/cockpit/pierre/missions",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/cockpit/pierre/missions/page.tsx",
+      "sourceHash": "pfnv_3396993e"
+    },
+    {
+      "route": "/cockpit/pierre/settings",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/cockpit/pierre/settings/page.tsx",
+      "sourceHash": "pfnv_c3ebbf44"
+    },
+    {
+      "route": "/cockpit/pierre/validations",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/cockpit/pierre/validations/page.tsx",
+      "sourceHash": "pfnv_fdab24bd"
+    },
+    {
+      "route": "/cockpit/room",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/cockpit/room/page.tsx",
+      "sourceHash": "pfnv_51c317f8"
+    },
+    {
+      "route": "/comprendre-clonestore",
+      "dynamicParams": [],
+      "title": "Comprendre CloneStore — Le système d",
+      "description": "La page de référence CloneStore : ce qu",
+      "headings": [
+        "Comprendre CloneStore",
+        "C’est quoi CloneStore ?",
+        "Voyez Pierre prendre en charge une semaine RH."
+      ],
+      "sourcePath": "src/app/comprendre-clonestore/page.tsx",
+      "sourceHash": "pfnv_cf4da4de"
+    },
+    {
+      "route": "/demo",
+      "dynamicParams": [],
+      "title": "CloneStore — Employés IA pour entreprises",
+      "description": "Découvrez CloneStore : vous formulez l",
+      "headings": [],
+      "sourcePath": "src/app/demo/page.tsx",
+      "sourceHash": "pfnv_66c29ddf"
+    },
+    {
+      "route": "/demo/pierre",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Ce que Pierre fait vraiment"
+      ],
+      "sourcePath": "src/app/demo/pierre/page.tsx",
+      "sourceHash": "pfnv_3fddb8d6"
+    },
+    {
+      "route": "/diagnostic-rh",
+      "dynamicParams": [],
+      "title": "Diagnostic RH — CloneStore",
+      "description": "Diagnostic RH gratuit : volume opérationnel, compatibilité avec Pierre, missions prioritaires. Aucune donnée sensible demandée.",
+      "headings": [
+        "En quelques questions, voyez si Pierre s&apos;adapte à votre RH."
+      ],
+      "sourcePath": "src/app/diagnostic-rh/page.tsx",
+      "sourceHash": "pfnv_603efa19"
+    },
+    {
+      "route": "/founder",
+      "dynamicParams": [],
+      "title": "Founder Command Center",
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/founder/page.tsx",
+      "sourceHash": "pfnv_0004a069"
+    },
+    {
+      "route": "/founding-partners",
+      "dynamicParams": [],
+      "title": "Un registre historique officiel",
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/founding-partners/page.tsx",
+      "sourceHash": "pfnv_6b4329ae"
+    },
+    {
+      "route": "/founding-partners/admin",
+      "dynamicParams": [],
+      "title": "Administration — CloneStory",
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/founding-partners/admin/page.tsx",
+      "sourceHash": "pfnv_b58dc725"
+    },
+    {
+      "route": "/founding-partners/conditions",
+      "dynamicParams": [],
+      "title": "Conditions du Cercle — CloneStory",
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/founding-partners/conditions/page.tsx",
+      "sourceHash": "pfnv_1603571e"
+    },
+    {
+      "route": "/founding-partners/confirm",
+      "dynamicParams": [],
+      "title": "Confirmer une introduction — Le Cercle des Partenaires Fondateurs",
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/founding-partners/confirm/page.tsx",
+      "sourceHash": "pfnv_578d697f"
+    },
+    {
+      "route": "/founding-partners/join",
+      "dynamicParams": [],
+      "title": "Rejoindre le Cercle — CloneStory",
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/founding-partners/join/page.tsx",
+      "sourceHash": "pfnv_ed659ad9"
+    },
+    {
+      "route": "/founding-partners/merci",
+      "dynamicParams": [],
+      "title": "Merci — CloneStory",
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/founding-partners/merci/page.tsx",
+      "sourceHash": "pfnv_5cce48d5"
+    },
+    {
+      "route": "/founding-partners/my-registry",
+      "dynamicParams": [],
+      "title": "Mon Registre — CloneStory",
+      "description": null,
+      "headings": [
+        ""
+      ],
+      "sourcePath": "src/app/founding-partners/my-registry/page.tsx",
+      "sourceHash": "pfnv_8b685696"
+    },
+    {
+      "route": "/founding-partners/r/[token]",
+      "dynamicParams": [
+        "token"
+      ],
+      "title": "Le Cercle des Partenaires Fondateurs — CloneStory",
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/founding-partners/r/[token]/page.tsx",
+      "sourceHash": "pfnv_ba46630c"
+    },
+    {
+      "route": "/founding-partners/refuse",
+      "dynamicParams": [],
+      "title": "Ne pas confirmer une introduction — Le Cercle des Partenaires Fondateurs",
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/founding-partners/refuse/page.tsx",
+      "sourceHash": "pfnv_56650d6d"
+    },
+    {
+      "route": "/founding-partners/verify",
+      "dynamicParams": [],
+      "title": "Confirmer mon adresse — Le Cercle des Partenaires Fondateurs",
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/founding-partners/verify/page.tsx",
+      "sourceHash": "pfnv_e84c7b95"
+    },
+    {
+      "route": "/healt",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Health OK"
+      ],
+      "sourcePath": "src/app/healt/page.tsx",
+      "sourceHash": "pfnv_a9e202ec"
+    },
+    {
+      "route": "/internal/[slug]/command-center",
+      "dynamicParams": [
+        "slug"
+      ],
+      "title": "Command Center",
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/internal/[slug]/command-center/page.tsx",
+      "sourceHash": "pfnv_611b79e7"
+    },
+    {
+      "route": "/internal/[slug]/command-center/readiness",
+      "dynamicParams": [
+        "slug"
+      ],
+      "title": "Readiness",
+      "description": null,
+      "headings": [
+        "Readiness production"
+      ],
+      "sourcePath": "src/app/internal/[slug]/command-center/readiness/page.tsx",
+      "sourceHash": "pfnv_d9af0f07"
+    },
+    {
+      "route": "/legal/cgu",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/legal/cgu/page.tsx",
+      "sourceHash": "pfnv_0a47d079"
+    },
+    {
+      "route": "/legal/cgv",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/legal/cgv/page.tsx",
+      "sourceHash": "pfnv_eace195b"
+    },
+    {
+      "route": "/legal/confidentialite",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Une confidentialité claire,",
+        "Demande une réponse claire"
+      ],
+      "sourcePath": "src/app/legal/confidentialite/page.tsx",
+      "sourceHash": "pfnv_b3f790ca"
+    },
+    {
+      "route": "/legal/dpa",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/legal/dpa/page.tsx",
+      "sourceHash": "pfnv_4a1e8ab7"
+    },
+    {
+      "route": "/legal/mentions",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/legal/mentions/page.tsx",
+      "sourceHash": "pfnv_43c4df38"
+    },
+    {
+      "route": "/login",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Entrez dans",
+        "Connexion"
+      ],
+      "sourcePath": "src/app/login/page.tsx",
+      "sourceHash": "pfnv_d4cfd6c0"
+    },
+    {
+      "route": "/mon-clonestore",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/mon-clonestore/page.tsx",
+      "sourceHash": "pfnv_c02602b9"
+    },
+    {
+      "route": "/mon-clonestore/setup",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [],
+      "sourcePath": "src/app/mon-clonestore/setup/page.tsx",
+      "sourceHash": "pfnv_b31ee409"
+    },
+    {
+      "route": "/page.tsx",
+      "dynamicParams": [],
+      "title": "Gouvernance",
+      "description": "Conception, documentation, coordination technique et continuité des projets.",
+      "headings": [
+        "{title}",
+        "",
+        "Découvrez les employés IA disponibles et en construction."
+      ],
+      "sourcePath": "src/app/page.tsx",
+      "sourceHash": "pfnv_9ae0a6fc"
+    },
+    {
+      "route": "/paiement",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Pierre",
+        "Activez votre premier"
+      ],
+      "sourcePath": "src/app/paiement/page.tsx",
+      "sourceHash": "pfnv_d7ee8c00"
+    },
+    {
+      "route": "/paiement/cancel",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Paiement annulé."
+      ],
+      "sourcePath": "src/app/paiement/cancel/page.tsx",
+      "sourceHash": "pfnv_eb36fb84"
+    },
+    {
+      "route": "/paiement/success",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "{isActive ? ("
+      ],
+      "sourcePath": "src/app/paiement/success/page.tsx",
+      "sourceHash": "pfnv_a77c80b6"
+    },
+    {
+      "route": "/profile",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Bonjour, {displayName}."
+      ],
+      "sourcePath": "src/app/profile/page.tsx",
+      "sourceHash": "pfnv_d049dc7d"
+    },
+    {
+      "route": "/profile/agents",
+      "dynamicParams": [],
+      "title": "Pack onboarding salarié",
+      "description": "Employée IA dédiée à la relation client, aux tickets SAV, aux réponses et au suivi des demandes.",
+      "headings": [
+        "Connectez-vous pour piloter votre organisation IA.",
+        "Pilotez votre système",
+        "Parlez au système entier, pas à un seul agent."
+      ],
+      "sourcePath": "src/app/profile/agents/page.tsx",
+      "sourceHash": "pfnv_e9ac0fae"
+    },
+    {
+      "route": "/profile/go-live",
+      "dynamicParams": [],
+      "title": "Production Blockers Dashboard — CloneStore",
+      "description": "Tableau de bord des blockers production avant lancement public de Pierre",
+      "headings": [
+        "Production Blockers Dashboard",
+        "",
+        ""
+      ],
+      "sourcePath": "src/app/profile/go-live/page.tsx",
+      "sourceHash": "pfnv_ce37a018"
+    },
+    {
+      "route": "/profile/launch-readiness",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Launch Readiness",
+        "",
+        "Surfaces ({reports.length})"
+      ],
+      "sourcePath": "src/app/profile/launch-readiness/page.tsx",
+      "sourceHash": "pfnv_5b915020"
+    },
+    {
+      "route": "/profile/messages",
+      "dynamicParams": [],
+      "title": "Demande RH analysée par CloneOS",
+      "description": "Missions en cours, demandes CloneOS analysées, tâches planifiées, relances, dossiers ouverts.",
+      "headings": [
+        "Messages CloneStore",
+        "Prévisualisation Runtime CloneOS",
+        "{selectedMessage.title}"
+      ],
+      "sourcePath": "src/app/profile/messages/page.tsx",
+      "sourceHash": "pfnv_183f330e"
+    },
+    {
+      "route": "/profile/onboarding",
+      "dynamicParams": [],
+      "title": null,
+      "description": "Nom, secteur, taille, pays, langue — prépare CloneADN Global.",
+      "headings": [
+        "Configurer votre entreprise",
+        "{currentStepMeta.label}",
+        "Mémoire entreprise en cours de préparation."
+      ],
+      "sourcePath": "src/app/profile/onboarding/page.tsx",
+      "sourceHash": "pfnv_36b84562"
+    },
+    {
+      "route": "/profile/technologies",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "{section.title} — {section.count}",
+        "{section.title} — {section.count}",
+        "Technologies CloneStore"
+      ],
+      "sourcePath": "src/app/profile/technologies/page.tsx",
+      "sourceHash": "pfnv_78ca0749"
+    },
+    {
+      "route": "/questions",
+      "dynamicParams": [],
+      "title": "Choisir un employé IA",
+      "description": null,
+      "headings": [
+        "Une question ?",
+        "Tout comprendre avant de décider.",
+        "Commencez par CloneChat."
+      ],
+      "sourcePath": "src/app/questions/page.tsx",
+      "sourceHash": "pfnv_96217aff"
+    },
+    {
+      "route": "/reserver/pierre",
+      "dynamicParams": [],
+      "title": "Réserver Pierre — CloneStore",
+      "description": "Réservez l",
+      "headings": [
+        "Réservez Pierre, votre employé IA RH"
+      ],
+      "sourcePath": "src/app/reserver/pierre/page.tsx",
+      "sourceHash": "pfnv_31877a75"
+    },
+    {
+      "route": "/signup",
+      "dynamicParams": [],
+      "title": "Cockpit",
+      "description": null,
+      "headings": [
+        "Créez votre",
+        "Inscription"
+      ],
+      "sourcePath": "src/app/signup/page.tsx",
+      "sourceHash": "pfnv_bc4c1864"
+    },
+    {
+      "route": "/test-pierre",
+      "dynamicParams": [],
+      "title": null,
+      "description": null,
+      "headings": [
+        "Test Pierre — Generate (emails + insolites)",
+        "RAW réponse (debug)",
+        "JSON reçu"
+      ],
+      "sourcePath": "src/app/test-pierre/page.tsx",
+      "sourceHash": "pfnv_21165b6e"
+    }
+  ]
+}

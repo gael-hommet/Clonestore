@@ -1,0 +1,37 @@
+{
+  "resolved": {
+    "kind": "employee",
+    "status": "resolved",
+    "id": "e1",
+    "label": "Sarah",
+    "candidates": [],
+    "reason": "unique_match"
+  },
+  "ambiguous": {
+    "kind": "employee",
+    "status": "ambiguous",
+    "id": null,
+    "label": "Sarah",
+    "candidates": [
+      {
+        "id": "e1",
+        "label": "Sarah Martin",
+        "distinguisher": "id e1"
+      },
+      {
+        "id": "e2",
+        "label": "Sarah Durand",
+        "distinguisher": "id e2"
+      }
+    ],
+    "reason": "homonym"
+  },
+  "forbidden": {
+    "kind": "employee",
+    "status": "forbidden",
+    "id": null,
+    "label": "x",
+    "candidates": [],
+    "reason": "all_forbidden"
+  }
+}

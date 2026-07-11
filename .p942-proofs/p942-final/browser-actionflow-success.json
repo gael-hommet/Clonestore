@@ -1,0 +1,49 @@
+{
+  "runId": "p942ok2b4190be",
+  "userId": "6dabce1f-eff3-4d65-9e33-abdfece79e9c",
+  "email": "p942-ok-p942ok2b4190be@example.invalid",
+  "steps": {
+    "proposal": {
+      "chatStatus": 200,
+      "chatSource": "openai",
+      "serverPersistedProposalId": "prop-1",
+      "proposalKind": "create_support_case",
+      "confirmButtonRendered": false
+    },
+    "execute": {
+      "exec1Status": "executed",
+      "exec1Kind": "create_support_case",
+      "exec1TargetRef": "case-1",
+      "exec1Href": "/profile/messages",
+      "duplicateStatus": "duplicate",
+      "duplicateTargetRef": "case-1",
+      "duplicateReturnsSameResult": true,
+      "injectionIgnoredKind": "create_support_case",
+      "injectionIgnored": true
+    },
+    "ui": {
+      "confirmClicked": false,
+      "executeRequestBodies": [
+        {
+          "proposalId": "prop-1"
+        },
+        {
+          "proposalId": "prop-1"
+        },
+        {
+          "proposalId": "prop-1",
+          "payload": {
+            "summary": "INJECTED-HACK"
+          },
+          "companyId": "22222222-2222-4222-8222-222222222222",
+          "fingerprint": "forged-fp",
+          "kind": "cancel_mission"
+        }
+      ],
+      "uiSendsOnlyProposalId": true
+    },
+    "consoleErrors": []
+  },
+  "verdict": "BROWSER_ACTIONFLOW_SUCCESS_OK",
+  "cleanup": "DELETED — ZERO RESIDUE"
+}

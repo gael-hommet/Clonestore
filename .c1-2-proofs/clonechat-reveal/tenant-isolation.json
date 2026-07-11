@@ -1,0 +1,7 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "revealStatusTenantIsolationReady": true,
+  "visibilityFailClosed": "chunk COMPANY_SCOPED visible companyA, invisible companyB, invisible public",
+  "changedByReveal": false
+}

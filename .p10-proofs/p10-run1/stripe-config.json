@@ -1,0 +1,40 @@
+{
+  "runId": "p10-run1",
+  "full_test": {
+    "ok": true,
+    "mode": "test",
+    "blockers": [],
+    "warnings": [],
+    "eurConfigured": true,
+    "chfConfigured": true
+  },
+  "production_needs_live": {
+    "ok": false,
+    "mode": "test",
+    "blockers": [
+      "Mode Stripe = « test » : la PRODUCTION exige le mode LIVE (sk_live_). Aucun prix TEST utilisé en production."
+    ],
+    "warnings": [
+      "STRIPE_WEBHOOK_SECRET absent — les événements de facturation ne seront pas vérifiés.",
+      "Vérifier EXTERNELLEMENT que les price_id EUR/CHF appartiennent bien au mode Stripe déclaré (test↔live)."
+    ],
+    "eurConfigured": true,
+    "chfConfigured": true
+  },
+  "ch_missing_chf_failclosed": {
+    "ok": false,
+    "code": "STRIPE_PRICE_NOT_CONFIGURED",
+    "priceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY"
+  },
+  "fr_legacy_alias": {
+    "ok": true,
+    "priceId": "price_legacy_eur",
+    "priceKey": "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+    "currency": "EUR"
+  },
+  "ch_never_uses_legacy": {
+    "ok": false,
+    "code": "STRIPE_PRICE_NOT_CONFIGURED",
+    "priceKey": "STRIPE_PRICE_PIERRE_CHF_MONTHLY"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "runId": "p11-run1",
+  "commandCenter": {
+    "globalStatus": "NOT_READY",
+    "publicLaunchAllowed": false,
+    "privatePilotAllowed": false,
+    "paidCustomerAllowed": false,
+    "blockersCount": 17,
+    "warningsCount": 5,
+    "nextActions": [
+      "Créer + vérifier les prix Stripe LIVE EUR (44900) et CHF (49900), mensuels, actifs.",
+      "Configurer STRIPE_PRICE_PIERRE_EUR_MONTHLY + STRIPE_PRICE_PIERRE_CHF_MONTHLY + webhook LIVE + STRIPE_COUNTRY_PRICING_ENABLED.",
+      "Dry-run read-only Stripe LIVE (prices.retrieve) autorisé par l'owner — aucun paiement.",
+      "Revue juridique externe (CGU/CGV/DPA/mentions/…) pour FR/BE/LU/CH.",
+      "Revue fiscale/TVA externe (EUR/CHF, TVA CH vs UE, B2B/reverse charge, entité).",
+      "Passer Yousign/signature en LIVE (lever P8.7.4) + webhook signature vérifié.",
+      "Vérifier la réconciliation pays sur données de paiement live (billing/tax/PM country).",
+      "Vérifier le plan monitoring + rollback + kill-switch.",
+      "Sign-off owner explicite (paquet d'approbation) + autorisation de déploiement."
+    ],
+    "missingProofs": [
+      "Vérification Stripe LIVE (prices EUR/CHF actifs, mensuels, montants exacts) — dry-run owner.",
+      "Revue juridique + fiscale/TVA externe FR/BE/LU/CH.",
+      "Signature/Yousign LIVE (P8.7.4 à lever) + webhook signature vérifié.",
+      "Réconciliation pays vérifiée sur données de paiement LIVE.",
+      "Plan monitoring + rollback vérifié.",
+      "Autorisation + preuve de déploiement.",
+      "Artefact d'approbation owner (sign-off go-live)."
+    ],
+    "ownerApprovalRequired": true,
+    "productionAuthorized": false,
+    "safeMessage": "Go-live NON prêt : des éléments externes (Stripe live, légal/fiscal, provider signature, monitoring) et le sign-off owner manquent. La readiness TECHNIQUE P11 est en place ; la production reste désactivée.",
+    "dimensions": {
+      "stripeLive": false,
+      "countryReconciliation": false,
+      "legalTax": false,
+      "provider": false,
+      "deployment": false,
+      "monitoring": false,
+      "ownerApproval": false
+    },
+    "p10GateOk": false,
+    "finalVerdict": "TECHNICAL_READINESS_VERIFIED_EXTERNAL_GOLIVE_BLOCKED"
+  }
+}

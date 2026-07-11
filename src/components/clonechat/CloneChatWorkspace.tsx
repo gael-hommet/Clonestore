@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Bot, FileText, Loader2, MessageSquarePlus, Paperclip, RotateCcw, Send, ShieldAlert, Sparkles, Square, Trash2, UserRound, Workflow, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusChip } from "@/components/pierre/cockpit/primitives";
-import { useCloneChat, type CloneChatUiMode } from "@/app/assistant/useCloneChat";
+import { useCloneChat, type CloneChatDocAttachment, type CloneChatUiMode } from "@/app/assistant/useCloneChat";
 import type { CloneChatContentBlock, CloneChatMessage, CloneChatProposedAction } from "@/lib/clonechat";
 
 const EXAMPLES_PUBLIC = ["Qu'est-ce que Pierre ?", "Comment fonctionne CloneStore ?", "Montrez-moi la démo"];
@@ -20,10 +20,26 @@ const EXAMPLES_AUTH = ["Où en est Pierre ?", "Qu'est-ce qui attend ma validatio
 const MAX_ATTACH = 2;
 const MAX_ATTACH_BYTES = 4 * 1024 * 1024;
 
+// C1.1 — Documents réellement pris en charge (parseurs installés et testés). PPTX exclu :
+// aucun parseur approuvé. La validation client n'est qu'un confort : le SERVEUR décide.
+const DOC_MIME = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/csv",
+  "text/plain",
+  "text/markdown",
+];
+const DOC_EXT = /\.(pdf|docx|xlsx|csv|txt|md)$/i;
+const MAX_DOCS = 3;
+const MAX_DOC_BYTES = 6 * 1024 * 1024;
+const ACCEPT_ATTR = "image/png,image/jpeg,image/webp,.pdf,.docx,.xlsx,.csv,.txt,.md";
+
 export function CloneChatWorkspace() {
   const chat = useCloneChat();
   const [draft, setDraft] = useState("");
   const [images, setImages] = useState<string[]>([]);
+  const [docs, setDocs] = useState<CloneChatDocAttachment[]>([]);
   const [attachError, setAttachError] = useState<string | null>(null);
   const router = useRouter();
   const threadRef = useRef<HTMLDivElement | null>(null);
@@ -31,28 +47,52 @@ export function CloneChatWorkspace() {
 
   useEffect(() => { threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" }); }, [chat.messages, chat.busy]);
 
+  const attachCount = images.length + docs.length;
+
   const submit = () => {
     const t = draft.trim();
-    if ((!t && images.length === 0) || chat.busy) return;
-    setDraft(""); const imgs = images; setImages([]); setAttachError(null);
-    void chat.send(t, imgs);
+    if ((!t && attachCount === 0) || chat.busy) return;
+    setDraft(""); const imgs = images; const ds = docs; setImages([]); setDocs([]); setAttachError(null);
+    void chat.send(t, imgs, ds);
   };
   const examples = chat.mode === "authenticated" ? EXAMPLES_AUTH : EXAMPLES_PUBLIC;
 
   const onFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setAttachError(null);
-    const next: string[] = [...images];
+    const nextImages: string[] = [...images];
+    const nextDocs: CloneChatDocAttachment[] = [...docs];
     for (const f of Array.from(files)) {
-      if (next.length >= MAX_ATTACH) { setAttachError(`Maximum ${MAX_ATTACH} captures.`); break; }
-      if (!["image/png", "image/jpeg", "image/webp"].includes(f.type)) { setAttachError("Formats acceptés : PNG, JPEG, WebP."); continue; }
-      if (f.size > MAX_ATTACH_BYTES) { setAttachError("Image trop lourde (max 4 Mo)."); continue; }
-      const dataUrl = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = () => rej(new Error("read")); r.readAsDataURL(f); }).catch(() => null);
-      if (dataUrl) next.push(dataUrl);
+      const isImage = ["image/png", "image/jpeg", "image/webp"].includes(f.type);
+      const isDoc = DOC_MIME.includes(f.type) || DOC_EXT.test(f.name);
+
+      if (isImage) {
+        if (nextImages.length >= MAX_ATTACH) { setAttachError(`Maximum ${MAX_ATTACH} captures.`); continue; }
+        if (f.size > MAX_ATTACH_BYTES) { setAttachError("Image trop lourde (max 4 Mo)."); continue; }
+        const dataUrl = await readAs(f, "dataUrl");
+        if (dataUrl) nextImages.push(dataUrl);
+        continue;
+      }
+
+      if (isDoc) {
+        // Mode public : aucun document (pas de contexte entreprise) — refus côté client aussi.
+        if (chat.mode !== "authenticated") { setAttachError("Connectez-vous pour joindre un document."); continue; }
+        if (nextDocs.length >= MAX_DOCS) { setAttachError(`Maximum ${MAX_DOCS} documents.`); continue; }
+        if (f.size > MAX_DOC_BYTES) { setAttachError("Document trop lourd (max 6 Mo)."); continue; }
+        const b64 = await readAs(f, "base64");
+        if (b64) nextDocs.push({ filename: f.name, mimeType: f.type || "application/octet-stream", sizeBytes: f.size, data: b64 });
+        continue;
+      }
+
+      // Confort uniquement : le serveur reste l'autorité (MIME re-détecté par signature).
+      setAttachError("Formats acceptés : PNG, JPEG, WebP, PDF, DOCX, XLSX, CSV, TXT, MD.");
     }
-    setImages(next.slice(0, MAX_ATTACH));
+    setImages(nextImages.slice(0, MAX_ATTACH));
+    setDocs(nextDocs.slice(0, MAX_DOCS));
     if (fileRef.current) fileRef.current.value = "";
   };
+
+  const removeDoc = (i: number) => setDocs((prev) => prev.filter((_, k) => k !== i));
 
   const onAction = async (a: CloneChatProposedAction) => {
     const r = await chat.executeAction(a);
@@ -60,7 +100,9 @@ export function CloneChatWorkspace() {
   };
 
   return (
-    <main className="cs-page">
+    // C1.2 — la surface réelle porte la cible du tour public `clonechat-entry`
+    // (auparavant sur l'écran de lancement obsolète, désormais retiré).
+    <main className="cs-page" data-tour-id="clonechat-entry">
       <div className="cs-page-shell flex min-h-[70vh] flex-col gap-4">
         {/* Header */}
         <section data-tour-id="clonechat-header" className="cs-panel flex items-center justify-between gap-3 p-4">
@@ -136,13 +178,28 @@ export function CloneChatWorkspace() {
               ))}
             </div>
           ) : null}
+          {/* C1.1 — Documents joints (nom + type + retrait avant envoi) */}
+          {docs.length > 0 ? (
+            <ul className="mb-2 flex flex-wrap gap-2" data-tour-id="clonechat-documents">
+              {docs.map((d, i) => (
+                <li key={`${d.filename}-${i}`} className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--cs-line-soft)] bg-white/60 px-2 py-1 text-[0.75rem] text-[var(--cs-ink-3)]">
+                  <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="max-w-[14rem] truncate" title={d.filename}>{d.filename}</span>
+                  <span className="text-[var(--cs-ink-4)]">{formatBytes(d.sizeBytes)}</span>
+                  <button type="button" aria-label={`Retirer le document ${d.filename}`} onClick={() => removeDoc(i)} className="inline-flex h-4 w-4 items-center justify-center rounded hover:bg-black/10">
+                    <X className="h-3 w-3" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
           {attachError ? <p className="mb-1.5 px-1 text-[0.72rem] text-[var(--cs-danger)]" role="alert">{attachError}</p> : null}
 
           <div className="flex items-end gap-2">
             {chat.mode === "authenticated" ? (
               <>
-                <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" multiple className="hidden" aria-hidden="true" tabIndex={-1} onChange={(e) => void onFiles(e.target.files)} />
-                <button type="button" onClick={() => fileRef.current?.click()} disabled={chat.busy || images.length >= MAX_ATTACH} aria-label="Joindre une capture d'écran" className={cn("cs-liquid-button h-[46px]", (chat.busy || images.length >= MAX_ATTACH) && "pointer-events-none opacity-60")}>
+                <input ref={fileRef} type="file" accept={ACCEPT_ATTR} multiple className="hidden" aria-hidden="true" tabIndex={-1} onChange={(e) => void onFiles(e.target.files)} />
+                <button type="button" onClick={() => fileRef.current?.click()} disabled={chat.busy || (images.length >= MAX_ATTACH && docs.length >= MAX_DOCS)} aria-label="Joindre une capture d'écran ou un document (PDF, DOCX, XLSX, CSV, TXT, MD)" className={cn("cs-liquid-button h-[46px]", (chat.busy || (images.length >= MAX_ATTACH && docs.length >= MAX_DOCS)) && "pointer-events-none opacity-60")}>
                   <Paperclip className="h-4 w-4" />
                 </button>
               </>
@@ -165,9 +222,9 @@ export function CloneChatWorkspace() {
               <button
                 type="button"
                 onClick={submit}
-                disabled={draft.trim().length === 0 && images.length === 0}
+                disabled={draft.trim().length === 0 && attachCount === 0}
                 aria-label="Envoyer"
-                className={cn("cs-liquid-button cs-liquid-button--primary h-[46px]", (draft.trim().length === 0 && images.length === 0) && "pointer-events-none opacity-60")}
+                className={cn("cs-liquid-button cs-liquid-button--primary h-[46px]", (draft.trim().length === 0 && attachCount === 0) && "pointer-events-none opacity-60")}
               >
                 <Send className="h-4 w-4" />
               </button>
@@ -187,6 +244,26 @@ export function CloneChatWorkspace() {
       </div>
     </main>
   );
+}
+
+/** Lecture d'un fichier : data URL (images, pipeline existant) ou base64 nu (documents). */
+async function readAs(file: File, kind: "dataUrl" | "base64"): Promise<string | null> {
+  const dataUrl = await new Promise<string>((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result));
+    r.onerror = () => rej(new Error("read"));
+    r.readAsDataURL(file);
+  }).catch(() => null);
+  if (!dataUrl) return null;
+  if (kind === "dataUrl") return dataUrl;
+  const comma = dataUrl.indexOf(",");
+  return comma >= 0 ? dataUrl.slice(comma + 1) : null;
+}
+
+function formatBytes(n: number): string {
+  if (n < 1024) return `${n} o`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} Ko`;
+  return `${(n / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
 function Welcome({ mode }: { mode: CloneChatUiMode }) {

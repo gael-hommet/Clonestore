@@ -1,0 +1,23 @@
+{
+  "runId": "p95-run1",
+  "reviewer": "independent adversarial agent",
+  "claims_held": {
+    "1_modes_real_not_cosmetic": "HOLDS — deriveAutonomyMatrix/willExecuteAlone/requiresHumanFor call the real P8 decideValidation; 5 product modes cover all 4 AutonomyMode values; no hardcoded matrix",
+    "2_no_second_hr_brain": "HOLDS — zero reimplemented policy in the P9.5 layer; classification delegated to P8; only autonomyMode is passed to V1",
+    "3_no_client_forged_escalation": "HOLDS — autonomy route reads only productModeId + own read version; execute reads autonomyMode from persisted proposal; forged body values ignored (tested)",
+    "4_hard_floors_preserved": "HOLDS — P8 gates approval-required/restricted before mode logic; isExecutable false for all gated keys in all 5 modes",
+    "5_permission_enforced_by_p8": "HOLDS (delegated) — write is PATCH /company (P8-governed); 403 → FORBIDDEN; engineModeFor + AUTONOMY_MODES guard-rails",
+    "6_copy": "HOLDS — Pierre framed as AI HR employee / operational HR team; no assistant/copilote in P9.5 UI/model",
+    "7_p8_untouched": "HOLDS (static evidence) — no P8 file write; read-only import of autonomy.ts + loopback to existing V1 API; git permission-blocked so no diff"
+  },
+  "confirmed_issues_fixed": [
+    { "id": "a", "issue": "'Dirigeant + Pierre' collapsed to 'Autonomie gouvernée' on apply (shared enterprise_autonomous)", "fix": "route echoes the requested product mode after saving when its engine mode matches; reload re-presents enterprise_autonomous as governed (P8 column stores only engine mode) — DISCLOSED. Test added.", "status": "FIXED + DISCLOSED" },
+    { "id": "b", "issue": "browser proof companyResolved:false not disclosed (selector disabled → write/select not browser-exercised)", "fix": "report + build-proof now disclose the render+read browser scope; write path server-unit-proven (autonomy-route.test.ts 7/7)", "status": "DISCLOSED" }
+  ],
+  "non_defect_notes": [
+    "P8 enterprise_autonomous would EXECUTE_AND_NOTIFY a sensitive+low-risk action NOT in APPROVAL_REQUIRED_ACTIONS; the 14 representative actions include no such case, so the matrix under-samples that one P8 path (faithful to P8, not an escalation)",
+    "requireCompanyUser does no role check by design — the write-permission gate is entirely P8's PATCH /company (out-of-scope P8 route)",
+    "pre-existing non-P9.5 string 'Assistant RH automatisé' in PierreMemoryPanel.tsx is a user-typed sample memory note, not Pierre's product framing"
+  ],
+  "outcome": "claims 1-7 hold; 2 confirmed issues fixed/disclosed; no unresolved defect"
+}

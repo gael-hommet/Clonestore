@@ -1,0 +1,131 @@
+{
+  "runId": "clonechat-parrain",
+  "count": 215,
+  "matchesRegistry": true,
+  "sample": [
+    {
+      "capabilityId": "org.read_company",
+      "title": "Read company information",
+      "domain": "org",
+      "description": "Read company information",
+      "supportedInputs": [],
+      "expectedOutputs": [],
+      "autonomyClass": "execute_autonomous",
+      "riskClass": "low",
+      "validationRequired": false,
+      "humanOnly": false,
+      "countryLegalDependency": false,
+      "externalProviderDependency": false,
+      "currentFunctionalStatus": "VERIFIED_EXISTING",
+      "currentLiveStatus": "local_governed",
+      "missionPackIds": [],
+      "runtimeActionKeys": [
+        "collect",
+        "validate",
+        "prepare",
+        "execute",
+        "communicate",
+        "close"
+      ],
+      "evidenceRefs": [
+        "p82c-route-security.itest.ts"
+      ],
+      "commercialExplanation": "Read company information : Read company information Mode de fonctionnement : exécution autonome dans des limites gouvernées.",
+      "technicalExplanation": "Statut canon : VERIFIED_EXISTING · risque low · autonomie execute_autonomous · 6 étapes de workflow · 1 preuves référencées.",
+      "forbiddenClaims": [
+        "Exécuté en production live"
+      ],
+      "relatedCapabilities": [
+        "org.update_company",
+        "org.create_site",
+        "org.update_site",
+        "org.archive_site",
+        "org.assign_site_manager"
+      ]
+    },
+    {
+      "capabilityId": "org.update_company",
+      "title": "Update company properties",
+      "domain": "org",
+      "description": "Update company properties",
+      "supportedInputs": [],
+      "expectedOutputs": [],
+      "autonomyClass": "execute_with_validation",
+      "riskClass": "medium",
+      "validationRequired": true,
+      "humanOnly": false,
+      "countryLegalDependency": false,
+      "externalProviderDependency": false,
+      "currentFunctionalStatus": "VERIFIED_EXISTING",
+      "currentLiveStatus": "local_governed",
+      "missionPackIds": [],
+      "runtimeActionKeys": [
+        "collect",
+        "validate",
+        "prepare",
+        "approve",
+        "execute",
+        "communicate",
+        "close"
+      ],
+      "evidenceRefs": [
+        "p82c-operational.itest.ts"
+      ],
+      "commercialExplanation": "Update company properties : Update company properties Mode de fonctionnement : exécution après validation humaine obligatoire.",
+      "technicalExplanation": "Statut canon : VERIFIED_EXISTING · risque medium · autonomie execute_with_validation · 7 étapes de workflow · 1 preuves référencées.",
+      "forbiddenClaims": [
+        "Exécuté en production live",
+        "Réalisé sans aucune validation humaine"
+      ],
+      "relatedCapabilities": [
+        "org.read_company",
+        "org.create_site",
+        "org.update_site",
+        "org.archive_site",
+        "org.assign_site_manager"
+      ]
+    },
+    {
+      "capabilityId": "org.create_site",
+      "title": "Create establishment/site",
+      "domain": "org",
+      "description": "Create establishment/site",
+      "supportedInputs": [],
+      "expectedOutputs": [],
+      "autonomyClass": "execute_with_validation",
+      "riskClass": "medium",
+      "validationRequired": true,
+      "humanOnly": false,
+      "countryLegalDependency": false,
+      "externalProviderDependency": false,
+      "currentFunctionalStatus": "VERIFIED_EXISTING",
+      "currentLiveStatus": "local_governed",
+      "missionPackIds": [],
+      "runtimeActionKeys": [
+        "collect",
+        "validate",
+        "prepare",
+        "approve",
+        "execute",
+        "communicate",
+        "close"
+      ],
+      "evidenceRefs": [
+        "p82c-operational.itest.ts"
+      ],
+      "commercialExplanation": "Create establishment/site : Create establishment/site Mode de fonctionnement : exécution après validation humaine obligatoire.",
+      "technicalExplanation": "Statut canon : VERIFIED_EXISTING · risque medium · autonomie execute_with_validation · 7 étapes de workflow · 1 preuves référencées.",
+      "forbiddenClaims": [
+        "Exécuté en production live",
+        "Réalisé sans aucune validation humaine"
+      ],
+      "relatedCapabilities": [
+        "org.read_company",
+        "org.update_company",
+        "org.update_site",
+        "org.archive_site",
+        "org.assign_site_manager"
+      ]
+    }
+  ]
+}

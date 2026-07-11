@@ -64,8 +64,11 @@ describe("BLOC 3 — preuve d'intégration /api/webhooks/stripe/route.ts", () =>
     expect(WEBHOOK_ROUTE).toMatch(/conversion_session_id["']\s*\]\s*&&\s*isConversionBackendAvailable\s*\(\s*\)/);
     expect(WEBHOOK_ROUTE).toMatch(/bridgeCheckoutCompleted\s*\(/);
   });
-  it("appelle bridgePierreActivated SEULEMENT quand isAccessGranted(status)", () => {
-    expect(WEBHOOK_ROUTE).toMatch(/isAccessGranted\s*\(\s*validation\.status\s*\)/);
+  it("appelle bridgePierreActivated SEULEMENT quand isAccessGranted (statut d'accès réel)", () => {
+    // P15 : le statut d'accès est désormais réconciliation-aware (activationStatus reflète le résultat
+    // de la réconciliation pays). L'invariant tient : bridgePierreActivated reste GARDÉ par isAccessGranted,
+    // donc Pierre n'est marqué activé que si l'accès est réellement accordé (après réconciliation).
+    expect(WEBHOOK_ROUTE).toMatch(/isAccessGranted\s*\(\s*activationStatus\s*\)/);
     expect(WEBHOOK_ROUTE).toMatch(/bridgePierreActivated\s*\(/);
   });
   it("appelle bridgeCheckoutFailed sur invoice.payment_failed", () => {

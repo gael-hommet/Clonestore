@@ -1,0 +1,162 @@
+{
+  "runId": "p14-run1",
+  "allowed_strong": [
+    "Pierre est un employé IA RH.",
+    "Pierre n'est pas un assistant ni un chatbot.",
+    "Pierre transforme les demandes RH en missions structurées.",
+    "Pierre prépare des documents, e-mails, validations et suivis RH.",
+    "Pierre centralise le travail RH dans un cockpit.",
+    "Pierre conserve trace et historique.",
+    "Pierre supporte une autonomie contrôlée.",
+    "Pierre aide à réduire la charge RH quotidienne.",
+    "Pierre peut absorber une grande partie de l'exécution RH opérationnelle.",
+    "Pierre garde les décisions sensibles sous validation humaine.",
+    "Pierre est conçu pour être plus rapide, plus régulier et plus traçable qu'une équipe humaine sur le travail RH répétitif et opérationnel.",
+    "Pierre coûte 449 € / mois en France, Belgique et Luxembourg, et 499 CHF / mois en Suisse."
+  ],
+  "allowed_caution": [
+    "Pierre peut remplacer une grande partie de l'exécution RH quotidienne.",
+    "Pierre peut agir comme une équipe RH opérationnelle sur le travail numérique, répétitif, documentaire, de suivi et de coordination.",
+    "Pierre peut faire gagner de nombreuses heures par mois.",
+    "Pierre peut revenir moins cher que d'embaucher ou de maintenir une capacité d'exécution RH."
+  ],
+  "forbidden": [
+    "Pierre remplace toute la RH.",
+    "Pierre remplace la responsabilité légale.",
+    "Pierre garantit la conformité légale.",
+    "Pierre prend les décisions disciplinaires finales.",
+    "Pierre décide seul des licenciements, sanctions, décisions salariales sensibles ou promotions.",
+    "Pierre remplace un moteur de paie / logiciel DSN.",
+    "Pierre est pleinement adapté juridiquement à la Suisse / Belgique / Luxembourg sans revue externe.",
+    "Pierre est en production live.",
+    "Pierre dispose de Stripe / Yousign live vérifiés.",
+    "Pierre est parfait / sans erreur.",
+    "Pierre ne nécessite aucune validation humaine.",
+    "Pierre est un DRH autonome."
+  ],
+  "computed": {
+    "claimNow": [
+      "Pierre = employé IA RH, pas un assistant",
+      "Moteur de missions réel",
+      "Analyse de demande",
+      "Système de tâches",
+      "Autonomie contrôlée",
+      "CloneTrace / audit",
+      "Anti-hallucination / source de vérité",
+      "Mémoire durable",
+      "Scénarios de démo",
+      "Mobile utilisable",
+      "Gestion d'erreur",
+      "Rôles / permissions",
+      "Positionnement commercial",
+      "Doctrine de responsabilité",
+      "Launch V1 vs ambition ultime"
+    ],
+    "claimWithCaution": [
+      "Dossier salarié 360",
+      "Opérations de recrutement",
+      "Préparation contrats/avenants",
+      "Pré-boarding / onboarding",
+      "Administration du personnel",
+      "Absences / congés / retards",
+      "Pré-paie / éléments variables",
+      "Communications RH internes",
+      "Helpdesk RH",
+      "Cas sensibles — préparation",
+      "Entretiens — préparation",
+      "Opérations de performance",
+      "Opérations de formation",
+      "Rémunération/avantages — préparation",
+      "Reporting opérationnel",
+      "Offboarding",
+      "Entrées / fichiers",
+      "Sorties / documents / exports",
+      "CloneADN / empreinte entreprise",
+      "CloneGuard / risque",
+      "Continuité multi-jours",
+      "Contrôle qualité",
+      "Proactivité",
+      "CloneOS orchestration"
+    ],
+    "cannotClaimYet": [
+      "Validité juridique des contrats [LEGAL_BLOCKED]",
+      "Signature électronique [PROVIDER_BLOCKED]",
+      "Impact planning [ARCHITECTURE_READY]",
+      "Workflow de conformité RH [LEGAL_BLOCKED]",
+      "Multi-site / franchise [PARTIAL]",
+      "Adaptation sectorielle [LEGAL_BLOCKED]",
+      "CloneVoice / entrée vocale [FUTURE_ROADMAP]",
+      "Identité email [EXTERNAL_BLOCKED]",
+      "Pack de valeur 7 jours [FUTURE_ROADMAP]",
+      "Notifications push [FUTURE_ROADMAP]",
+      "Intégrations externes (SIRH/Slack/…) [EXTERNAL_BLOCKED]",
+      "Rapport de valeur / ROI mensuel [ARCHITECTURE_READY]",
+      "Gouvernance sensible / AI Act [LEGAL_BLOCKED]"
+    ],
+    "mustNotClaim": [
+      "Moteur de paie / DSN complet",
+      "Décisions disciplinaires finales",
+      "Décisions salariales/promotions finales",
+      "Remplacement total de la RH humaine",
+      "DRH autonome",
+      "Garantie de conformité pays"
+    ]
+  },
+  "generated_language": {
+    "launch": "Pierre est votre employé IA RH : il transforme vos demandes RH en missions structurées, prépare vos documents, e-mails, validations et relances, et centralise tout dans un cockpit avec historique et preuves. Il absorbe une grande partie de l'exécution RH opérationnelle quotidienne — tout en gardant les décisions sensibles sous votre validation. 449 € / mois (France, Belgique, Luxembourg) · 499 CHF / mois (Suisse).",
+    "founder": "Ne comparez pas Pierre à un outil IA généraliste : comparez-le à la charge RH opérationnelle qu'il absorbe. Pierre n'est pas un assistant : c'est un employé IA RH qui prend en charge le travail répétitif, documentaire, de suivi et de coordination, plus vite, de façon plus régulière et plus traçable qu'une exécution humaine sur ces tâches. Il ne remplace PAS la responsabilité finale humaine, légale, disciplinaire ou managériale — et ne prétend pas à une conformité légale garantie. C'est un employé opérationnel puissant, sous contrôle humain.",
+    "website": {
+      "headline": "Pierre — votre employé IA RH opérationnel",
+      "sub": "Il transforme vos demandes en missions, prépare vos documents et suivis RH, centralise tout dans un cockpit tracé — et garde les décisions sensibles sous votre validation.",
+      "disclaimer": "Pierre assiste l'exécution RH opérationnelle ; il ne remplace pas la responsabilité finale humaine/légale, ne garantit pas la conformité juridique et ne se substitue pas à un logiciel de paie. Validation humaine requise sur les actes sensibles."
+    },
+    "generated_copy_is_safe": true
+  },
+  "safety_spot_checks": {
+    "assistant": {
+      "safety": "forbidden",
+      "matched": "assistant|chatbot|copilote",
+      "reason": "Correspond à un motif de claim INTERDIT (jamais revendiquer sans preuve externe / par doctrine)."
+    },
+    "legal_guarantee": {
+      "safety": "forbidden",
+      "matched": "(garanti[et]?|garantir|assure|assurer|assur[ée]s?)[^.]{0,25}(conformité|conforme|mise en conformité)",
+      "reason": "Correspond à un motif de claim INTERDIT (jamais revendiquer sans preuve externe / par doctrine)."
+    },
+    "payroll": {
+      "safety": "forbidden",
+      "matched": "remplace[^.]{0,25}\\b(moteur de paie|logiciel (de |officiel de )?paie|logiciel dsn|dsn|paie officiel)",
+      "reason": "Correspond à un motif de claim INTERDIT (jamais revendiquer sans preuve externe / par doctrine)."
+    },
+    "strong_ok": {
+      "safety": "allowed_strong",
+      "matched": "Pierre est un employé IA RH.",
+      "reason": "Claim fort autorisé (soutenu par preuves)."
+    },
+    "reworded_assure_conformite": {
+      "safety": "forbidden",
+      "matched": "(garanti[et]?|garantir|assure|assurer|assur[ée]s?)[^.]{0,25}(conformité|conforme|mise en conformité)",
+      "reason": "Correspond à un motif de claim INTERDIT (jamais revendiquer sans preuve externe / par doctrine)."
+    },
+    "reworded_tranche_seul": {
+      "safety": "forbidden",
+      "matched": "(décide|tranche|statue|arbitre|prononce)[^.]{0,15}\\bseul",
+      "reason": "Correspond à un motif de claim INTERDIT (jamais revendiquer sans preuve externe / par doctrine)."
+    },
+    "reworded_calcule_paie": {
+      "safety": "forbidden",
+      "matched": "(gère|calcule|traite|édite|génère|produit|établit)[^.]{0,20}(la paie|toute la paie|les? bulletins|des bulletins|bulletins? de (paie|salaire)|la dsn|les fiches de paie)",
+      "reason": "Correspond à un motif de claim INTERDIT (jamais revendiquer sans preuve externe / par doctrine)."
+    },
+    "reworded_remplace_rh": {
+      "safety": "forbidden",
+      "matched": "remplace[^.]{0,30}(toute la rh|l'ensemble de la rh|100\\s*% (de )?la rh|tout(e)? la rh|ressources humaines|(votre|une|l'|la|toute la) (équipe|fonction|service|direction) rh|votre drh|le drh|un drh|la fonction rh|toute la fonction rh)",
+      "reason": "Correspond à un motif de claim INTERDIT (jamais revendiquer sans preuve externe / par doctrine)."
+    },
+    "benign_operational_ok": {
+      "safety": "allowed_caution",
+      "matched": null,
+      "reason": "Formulation opérationnelle prudente — probablement acceptable, à revoir."
+    }
+  }
+}

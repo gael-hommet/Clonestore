@@ -1,0 +1,155 @@
+{
+  "runId": "clonechat-total-intelligence",
+  "seed": [
+    {
+      "id": "kb_cockpit_cold_start",
+      "title": "Premier chargement du cockpit lent (compilation à froid en dev)",
+      "symptoms": [
+        "le cockpit met longtemps à charger la première fois",
+        "cockpit lent premier accès",
+        "page cockpit blanche puis charge"
+      ],
+      "affectedRoutes": [
+        "/cockpit",
+        "/cockpit/pierre"
+      ],
+      "affectedFeatures": [
+        "cockpit"
+      ],
+      "severity": "low",
+      "rootCauseHypothesis": "Compilation à froid des routes authentifiées (connu P13 : warm-up recommandé).",
+      "confirmedFix": null,
+      "workaround": "Recharger la page après quelques secondes ; le second accès est rapide.",
+      "validationStatus": "validated",
+      "scope": "route",
+      "accountId": null,
+      "createdAt": "2026-07-10T00:00:00.000Z",
+      "updatedAt": "2026-07-10T00:00:00.000Z"
+    },
+    {
+      "id": "kb_swiss_sees_eur",
+      "title": "Utilisateur suisse voyant l'offre en euros",
+      "symptoms": [
+        "je suis en suisse mais je vois le prix en euros",
+        "prix euro affiché en suisse",
+        "pas le bon prix pour la suisse"
+      ],
+      "affectedRoutes": [
+        "/reserver/pierre",
+        "/paiement",
+        "/comprendre-clonestore"
+      ],
+      "affectedFeatures": [
+        "pricing"
+      ],
+      "severity": "medium",
+      "rootCauseHypothesis": "Le pays n'est pas encore déterminé : l'offre suisse s'applique dès que le pays Suisse est renseigné (le paiement vérifie ensuite pays/devise, une incohérence CH/EUR est bloquée).",
+      "confirmedFix": null,
+      "workaround": "Renseigner « Suisse » comme pays dans le formulaire de réservation : l'offre 499 CHF / mois s'applique.",
+      "validationStatus": "validated",
+      "scope": "feature",
+      "accountId": null,
+      "createdAt": "2026-07-10T00:00:00.000Z",
+      "updatedAt": "2026-07-10T00:00:00.000Z"
+    },
+    {
+      "id": "kb_clonechat_locked",
+      "title": "CloneChat (/assistant) verrouillé ou indisponible",
+      "symptoms": [
+        "clonechat ne s'ouvre pas",
+        "assistant indisponible",
+        "l'assistant affiche un écran verrouillé",
+        "erreur 503 assistant"
+      ],
+      "affectedRoutes": [
+        "/assistant"
+      ],
+      "affectedFeatures": [
+        "clonechat"
+      ],
+      "severity": "low",
+      "rootCauseHypothesis": "Comportement attendu : CloneChat est désactivé par défaut (flag serveur) tant que l'activation n'est pas décidée.",
+      "confirmedFix": null,
+      "workaround": "Ce n'est pas une panne : la fonctionnalité sera activée à l'ouverture. Le support répond via /questions.",
+      "validationStatus": "validated",
+      "scope": "route",
+      "accountId": null,
+      "createdAt": "2026-07-10T00:00:00.000Z",
+      "updatedAt": "2026-07-10T00:00:00.000Z"
+    },
+    {
+      "id": "kb_demo_old_mobile",
+      "title": "Démo lourde sur ancien mobile",
+      "symptoms": [
+        "la démo rame sur mobile",
+        "animations saccadées démo",
+        "la démo ne s'ouvre pas sur mon téléphone"
+      ],
+      "affectedRoutes": [
+        "/demo"
+      ],
+      "affectedFeatures": [
+        "demo",
+        "mobile"
+      ],
+      "severity": "medium",
+      "rootCauseHypothesis": "Animations immersives coûteuses sur appareils anciens ; un repli sans JavaScript existe.",
+      "confirmedFix": null,
+      "workaround": "Utiliser le mode simplifié (repli sans JavaScript) ou un navigateur récent ; la démo /demo/pierre est plus légère.",
+      "validationStatus": "validated",
+      "scope": "route",
+      "accountId": null,
+      "createdAt": "2026-07-10T00:00:00.000Z",
+      "updatedAt": "2026-07-10T00:00:00.000Z"
+    },
+    {
+      "id": "kb_gated_redirect_login",
+      "title": "Redirection vers /login sur les pages cockpit",
+      "symptoms": [
+        "le cockpit me renvoie vers la connexion",
+        "je ne peux pas accéder à mon clonestore",
+        "redirection login cockpit"
+      ],
+      "affectedRoutes": [
+        "/cockpit",
+        "/mon-clonestore"
+      ],
+      "affectedFeatures": [
+        "login"
+      ],
+      "severity": "low",
+      "rootCauseHypothesis": "Comportement attendu : ces pages exigent une session (garde middleware).",
+      "confirmedFix": null,
+      "workaround": "Se connecter via /login ; l'accès aux cockpits suit immédiatement.",
+      "validationStatus": "validated",
+      "scope": "route",
+      "accountId": null,
+      "createdAt": "2026-07-10T00:00:00.000Z",
+      "updatedAt": "2026-07-10T00:00:00.000Z"
+    },
+    {
+      "id": "kb_candidate_reserve_button",
+      "title": "Bouton réserver sans effet (signalement isolé, non confirmé)",
+      "symptoms": [
+        "le bouton réserver ne fait rien",
+        "clic reserver sans effet"
+      ],
+      "affectedRoutes": [
+        "/reserver/pierre"
+      ],
+      "affectedFeatures": [
+        "demo"
+      ],
+      "severity": "high",
+      "rootCauseHypothesis": "Non reproduit — possible état de fenêtre fondateur fermée ou JavaScript bloqué.",
+      "confirmedFix": null,
+      "workaround": null,
+      "validationStatus": "candidate",
+      "scope": "global",
+      "accountId": null,
+      "createdAt": "2026-07-10T00:00:00.000Z",
+      "updatedAt": "2026-07-10T00:00:00.000Z"
+    }
+  ],
+  "candidateNeverReusedProbe": []
+}

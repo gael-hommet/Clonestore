@@ -42,7 +42,21 @@ export async function middleware(request: NextRequest) {
   // Refresh session cookie if needed. getSession() reads from cookie (~0ms when fresh,
   // ~200ms only when JWT is expired and refresh token is used). getUser() would make
   // a network call on every request — not needed here since API routes validate tokens.
-  await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
+
+  // P12 — Gate CONNECTÉ fiable au bord (redirect() serveur n'est pas fiable en RSC streamé) :
+  // l'espace CloneOS (/cockpit, /mon-clonestore) exige une session. Le routage fin
+  // client/onboarding (achat/setup) est fait ensuite (page server + garde client). N'affaiblit
+  // pas l'auth : redirige seulement les requêtes SANS session vers /login (avec ?next=).
+  const path = request.nextUrl.pathname;
+  const isCloneOsSpace = path === "/cockpit" || path.startsWith("/cockpit/") || path === "/mon-clonestore" || path.startsWith("/mon-clonestore/");
+  if (isCloneOsSpace && !session) {
+    const login = request.nextUrl.clone();
+    login.pathname = "/login";
+    login.search = "";
+    login.searchParams.set("next", path);
+    return NextResponse.redirect(login);
+  }
 
   return response;
 }

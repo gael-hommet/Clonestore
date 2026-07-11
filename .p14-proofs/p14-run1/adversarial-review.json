@@ -1,0 +1,58 @@
+{
+  "runId": "p14-run1",
+  "review": "P14 — Pierre Ultimate Vision Coverage & Commercial Truth — independent adversarial review",
+  "method": "3 independent Opus attackers (read-only), each told to REFUTE with file:line evidence. Groups: A inflation/verified-honesty/tests, B legal/payroll/sensitive/ROI, C perimeter/production/claim-safety.",
+  "workflowRunId": "wf_ae0f2809-eac",
+  "totals": { "claims": 17, "holds": 10, "partial": 6, "refuted": 1, "securityDefects": 0 },
+  "verdict_on_review": "The load-bearing doctrine HOLDS: no roadmap item counted VERIFIED (final tree), all external/legal/provider blockers surfaced & un-VERIFIABLE, sensitive-decision automation hard-floored to MUST_NOT_CLAIM (immovable, checked before any override), payroll/full-HR-replacement/country-guarantee forbidden, ROI cautious, pricing consistent with P10, catalog 50 groups/58 reqs/0 dup/every req a status, P8-P13 + Pierre V1 untouched, production OFF. 1 REFUTED + 6 PARTIAL were real quality issues — all FIXED.",
+  "refutedClaims": [
+    {
+      "id": "REFUTED-claim-linter",
+      "claim": "evaluateClaimSafety blocks reworded forbidden claims.",
+      "verdict": "REFUTED",
+      "gap": "The linter AFFIRMATIVELY APPROVED (allowed_caution) several reworded forbidden claims: 'assure la conformité juridique…', 'tranche seul les licenciements', 'calcule la paie…', 'garantit votre conformité RGPD…', 'remplace vos ressources humaines…', 'gère la paie / bulletins de salaire', 'remplace votre DRH/équipe RH'. Root cause: (1) FORBIDDEN_PATTERNS were synonym-fragile (assure vs garantit; tranche vs décide; RGPD/fiscale not covered; ressources humaines/équipe RH/DRH not covered; gère la paie not covered); (2) the operational-keyword heuristic ran after the forbidden loop and upgraded any risky-but-unmatched claim to allowed_caution.",
+      "resolution": "FIXED. (1) Broadened FORBIDDEN_PATTERNS to cover synonyms (assure/assurer/garantir + conformité of ANY kind; décide/tranche/statue/arbitre/prononce seul; licenci/sanction/renvoi/rétrograd seul-or-auto; remplace + ressources humaines/équipe|fonction|service|direction RH/DRH; gère/calcule/traite/génère la paie|bulletins|DSN). (2) Added a SENSITIVE_SIGNALS guard that runs BEFORE the operational heuristic: any claim containing a sensitive signal (remplace/seul/paie/conformité/DRH/licenci/…) that escaped the forbidden patterns returns unknown_review (human review mandatory), NEVER allowed_*. New tests assert the 9 reworded forms are never allowed_* (forbidden/unknown_review); a benign operational claim still returns allowed_caution (no over-blocking). Proof safety_spot_checks updated.",
+      "status": "resolved"
+    }
+  ],
+  "partialsResolved": [
+    {
+      "id": "A-Q1",
+      "gap": "multisite.franchise (future_enterprise, cannot_claim_yet) was counted VERIFIED under the broad label 'Multi-site / franchise' while only the multi-tenant ISOLATION substrate is proven (P8.9), not multi-site management.",
+      "resolution": "FIXED (during review): evidence_required += browser (absent) → PARTIAL; provenBy clarified ('management feature = roadmap'). VERIFIED 20→19. Current 19 VERIFIED are all can_claim_now/can_claim_with_caution + launch_critical/important (0 future/cannot_claim_yet)."
+    },
+    {
+      "id": "A-Q5 / integrity",
+      "gap": "Proof drift observed mid-review (coverage-matrix VERIFIED:20 vs may-vision:20 vs report 19 during concurrent edits); adversarial-review.json + final-verdict.json absent at review time; VERIFIED rests on hand-authored per-requirement evidence flags.",
+      "resolution": "FIXED. Regenerated ALL proofs from the real evaluator in one pass → coverage-matrix and may-vision now agree (19 VERIFIED / 21 PARTIAL, verified live); wrote adversarial-review.json + final-verdict.json; report headline + tests.json = 19/21. Disclosed honestly: the per-requirement evidence flags ARE the author's grounded assessment of P8-P13 (the evaluator computes the rule, not the truth of the flags) — that is inherent to any coverage audit and is why the flags cite explicit provenBy (P8.13/P8.14/P9.x/P10-P13)."
+    },
+    {
+      "id": "B-Item1a",
+      "gap": "sector.adaptation (evidence_required [code,legal], evidence {code}) FLIPPED to VERIFIED with a global {legalProof:true} override, because a code-only item satisfied internalRequiredMet — inconsistent with contracts.legal_validity which stays PARTIAL.",
+      "resolution": "FIXED. VERIFIED now requires code + all declared internal proofs + AT LEAST ONE real proof (test/report/browser). Code alone → ARCHITECTURE_READY. sector.adaptation with a legal override now resolves to ARCHITECTURE_READY, never VERIFIED (locked by a new test). Default remains LEGAL_BLOCKED."
+    },
+    {
+      "id": "B-Item4 / C-3 (linter)",
+      "gap": "Same as REFUTED-claim-linter (sensitive-decision + legal-guarantee + payroll reworded claims green-lit as allowed_caution).",
+      "resolution": "FIXED by the linter hardening above. Note: the runtime automation hard-floor was NEVER affected — relations.decisions/compensation.decisions/compliance.country_guarantee are MUST_NOT_CLAIM checked before any evidence/override; the fix concerns the advisory copy linter."
+    }
+  ],
+  "holds": [
+    "A-Q2 roadmap items (voice/integrations/ROI-report/7-day-pack/push/multi-site) never VERIFIED or launch-verified",
+    "A-Q3 external/legal/provider blockers surfaced honestly (fail-closed before positive status)",
+    "A-Q4 'better than a human team' bounded to operational/digital/repetitive dimensions only",
+    "B-Item2 full payroll/DSN never claimed (MUST_NOT_CLAIM + forbidden + disclaimers)",
+    "B-Item3 full HR replacement blocked; caution claim bounded to daily operational execution",
+    "B-Item5 ROI cautious (configurable, no guaranteed savings, no salary-as-truth, disclaimers)",
+    "C-1 P8-P13 + Pierre V1 untouched (0 real P14 markers; capability-registry 'P14D' is an ISO-8601 duration, mtime 2026-07-02)",
+    "C-2 production OFF (PRODUCTION_AUTHORIZED=false; no production-live VERIFIED)",
+    "C-4 pricing FR/BE/LU=449 EUR, CH=499 CHF consistent with P10 (test-cross-checked)",
+    "C-5 catalog 50 groups / 58 reqs / 0 duplicate ids / every req gets a status"
+  ],
+  "residual_disclosures": [
+    "The advisory claim linter is heuristic (denylist + sensitive-signal guard), not a semantic NLP model; it now fails SAFE (unknown_review) on unrecognized sensitive claims rather than green-lighting them, but a human must still review before publishing anything not in the allowed list.",
+    "contracts.preparation is VERIFIED via the P9.6 browser mission ('Prépare le contrat CDI…'), which is a genuine contract-PREP demo; its legal validity is a separate LEGAL_BLOCKED requirement.",
+    "The 449/499 constants duplicate the P10 canon (test-guarded so a P10 change fails the suite), rather than being derived at runtime from pricingForCountry.",
+    "Coverage VERIFIED flags are the author's grounded assessment of P8-P13 evidence (each cites provenBy); the evaluator computes the deterministic rule over those flags."
+  ]
+}

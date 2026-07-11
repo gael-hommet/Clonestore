@@ -1,0 +1,15 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "layoutNoArriveBientot": true,
+  "pageNoArriveBientot": true,
+  "grepScope": "src/app/assistant/**, entree nav CloneChat, etape tour CloneChat, product-availability",
+  "browserDesktop_hasArriveBientot": false,
+  "browserMobile_hasArriveBientot": false,
+  "sharedAccessLockScreenPreserved": true,
+  "legitimateOtherProductCopyKept": [
+    "checkout/page.tsx (paiement)",
+    "profile/agents (employes roadmap)",
+    "AccessLockScreen doc generique"
+  ]
+}

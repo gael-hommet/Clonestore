@@ -1,0 +1,107 @@
+{
+  "method": "mtime forensic (git.exe OS-blocked in clonestore — see memory git_blocked_gotcha; harness gitStatus unreliable)",
+  "note": "All P16A files are NEW (created this session). Neighbor perimeter files (Pierre V1 substrate, T1, T2, C1/C1.1/C1.2, features, production gates) are UNCHANGED — their mtimes predate every P16A file.",
+  "p16aFilesCreated": [
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/canonical-items.ts",
+      "mtime": "2026-07-10T21:59:24.749Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/capability-adapter.ts",
+      "mtime": "2026-07-10T22:01:06.399Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/command-center.ts",
+      "mtime": "2026-07-10T22:18:39.577Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/continuity-intent.ts",
+      "mtime": "2026-07-10T22:02:02.847Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/gap-matrix.ts",
+      "mtime": "2026-07-10T22:40:04.578Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/index.ts",
+      "mtime": "2026-07-10T22:18:48.838Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/integration-contract.ts",
+      "mtime": "2026-07-10T22:32:58.622Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/scenario-matrix.ts",
+      "mtime": "2026-07-10T22:33:33.414Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/sensitive-floor.ts",
+      "mtime": "2026-07-10T22:00:22.802Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/types.ts",
+      "mtime": "2026-07-10T21:58:22.501Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/__tests__/p16a-pierre-ultimate.test.ts",
+      "mtime": "2026-07-10T22:28:38.775Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/__tests__/p16a-proof-generator.test.ts",
+      "mtime": "2026-07-10T22:34:24.366Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/ultimate/p16a/__tests__/p16a-scenario-matrix.test.ts",
+      "mtime": "2026-07-10T22:33:40.342Z"
+    }
+  ],
+  "neighborPerimeterFiles": [
+    {
+      "file": "src/lib/pierre/v1/cognitive-runtime/request-interpreter.ts",
+      "mtime": "2026-07-03T12:34:50.916Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/hr-canon/capability-registry.ts",
+      "mtime": "2026-07-02T12:51:03.190Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/autonomy.ts",
+      "mtime": "2026-06-26T23:03:05.119Z"
+    },
+    {
+      "file": "src/lib/pierre/v1/cloneguard.ts",
+      "mtime": "2026-06-26T23:03:05.125Z"
+    },
+    {
+      "file": "src/lib/clonestore/technologies/t1/technology-registry.ts",
+      "mtime": "2026-07-09T21:52:20.676Z"
+    },
+    {
+      "file": "src/lib/clonestore/product-technologies/t2/product-technology-registry.ts",
+      "mtime": "2026-07-10T00:01:36.874Z"
+    },
+    {
+      "file": "src/lib/clonechat/intelligence/c1/index.ts",
+      "mtime": "2026-07-10T10:19:55.091Z"
+    },
+    {
+      "file": "src/lib/clonechat/intelligence/c1-1/parrain-knowledge-index.ts",
+      "mtime": "2026-07-10T15:04:46.978Z"
+    },
+    {
+      "file": "src/lib/features/product-availability.ts",
+      "mtime": "2026-07-10T19:18:25.039Z"
+    },
+    {
+      "file": "src/lib/clonestore/production/p10-production-gate.ts",
+      "mtime": "2026-07-08T19:05:00.752Z"
+    },
+    {
+      "file": "src/lib/clonestore/production/p15-1-payment-mode.ts",
+      "mtime": "2026-07-09T17:42:55.939Z"
+    }
+  ],
+  "newestNeighborMtime": "2026-07-10T19:18:25.039Z",
+  "oldestP16AMtime": "2026-07-10T21:58:22.501Z",
+  "additivityHolds": true
+}

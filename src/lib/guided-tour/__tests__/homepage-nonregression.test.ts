@@ -58,7 +58,12 @@ describe("Layout racine — provider monté globalement, structure intacte", () 
   it("conserve header, main et footer publics", () => {
     expect(layout).toContain("<SiteHeader />");
     expect(layout).toContain('className="cs-main"');
-    expect(layout).toContain('className="cs-footer"');
+    // P12 : le footer public est monté globalement via <SiteFooter /> (même markup cs-footer,
+    // rendu identique sur la homepage) ; il se masque uniquement sur les consoles cockpit.
+    expect(layout).toContain("<SiteFooter />");
+    const footer = read("src/components/site/site-footer.tsx");
+    expect(footer).toContain('className="cs-footer"');
+    expect(footer).toContain("isCockpitSurfaceRoute"); // masqué seulement sur les surfaces cos-root
   });
 });
 

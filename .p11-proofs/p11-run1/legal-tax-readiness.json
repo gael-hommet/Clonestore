@@ -1,0 +1,167 @@
+{
+  "runId": "p11-run1",
+  "readiness": {
+    "ready": false,
+    "legalTaxReady": false,
+    "blockers": [
+      "Revue juridique externe (CGU/CGV/DPA/mentions/…) NON finalisée pour FR/BE/LU/CH.",
+      "Revue fiscale/TVA externe NON finalisée (EUR vs CHF, TVA CH vs UE, B2B/reverse charge, entité)."
+    ],
+    "warnings": [
+      "P11 ne formule AUCUN conseil juridique/fiscal final ; ces éléments requièrent une validation externe avant go-live."
+    ],
+    "requiredExternalReviews": [
+      "Revue avocat des documents légaux pour les 4 pays de lancement.",
+      "Revue comptable/fiscale TVA par pays + traitement CHF/EUR + entité juridique."
+    ],
+    "documentChecklist": [
+      {
+        "key": "cgu",
+        "label": "CGU (conditions générales d'utilisation)",
+        "status": "external_pending",
+        "note": "Contenu à finaliser + validation juridique externe requise."
+      },
+      {
+        "key": "cgv",
+        "label": "CGV (conditions générales de vente)",
+        "status": "external_pending",
+        "note": "Contenu à finaliser + validation juridique externe requise."
+      },
+      {
+        "key": "dpa_gdpr",
+        "label": "DPA / RGPD (accord de traitement des données)",
+        "status": "external_pending",
+        "note": "Contenu à finaliser + validation juridique externe requise."
+      },
+      {
+        "key": "privacy",
+        "label": "Politique de confidentialité",
+        "status": "external_pending",
+        "note": "Contenu à finaliser + validation juridique externe requise."
+      },
+      {
+        "key": "mentions_legales",
+        "label": "Mentions légales",
+        "status": "external_pending",
+        "note": "Contenu à finaliser + validation juridique externe requise."
+      },
+      {
+        "key": "refund_cancellation",
+        "label": "Politique de remboursement / résiliation",
+        "status": "external_pending",
+        "note": "Contenu à finaliser + validation juridique externe requise."
+      },
+      {
+        "key": "payment_terms",
+        "label": "Conditions de paiement Stripe",
+        "status": "external_pending",
+        "note": "Contenu à finaliser + validation juridique externe requise."
+      },
+      {
+        "key": "ai_employee_disclaimer",
+        "label": "Avertissement « employé IA / automatisation »",
+        "status": "external_pending",
+        "note": "Contenu à finaliser + validation juridique externe requise."
+      },
+      {
+        "key": "hr_legal_boundary",
+        "label": "Avertissement limite juridique RH",
+        "status": "external_pending",
+        "note": "Contenu à finaliser + validation juridique externe requise."
+      },
+      {
+        "key": "subprocessors",
+        "label": "Liste des sous-traitants / traitement des données",
+        "status": "external_pending",
+        "note": "Contenu à finaliser + validation juridique externe requise."
+      },
+      {
+        "key": "country_billing_tax_notes",
+        "label": "Notes de facturation/fiscalité par pays",
+        "status": "external_pending",
+        "note": "Contenu à finaliser + validation juridique externe requise."
+      }
+    ],
+    "countryChecklist": [
+      {
+        "country": "FR",
+        "label": "France",
+        "status": "external_pending",
+        "taxQuestions": [
+          {
+            "q": "Traitement TVA France",
+            "status": "external_pending"
+          }
+        ]
+      },
+      {
+        "country": "BE",
+        "label": "Belgique",
+        "status": "external_pending",
+        "taxQuestions": [
+          {
+            "q": "Traitement TVA Belgique",
+            "status": "external_pending"
+          }
+        ]
+      },
+      {
+        "country": "LU",
+        "label": "Luxembourg",
+        "status": "external_pending",
+        "taxQuestions": [
+          {
+            "q": "Traitement TVA Luxembourg",
+            "status": "external_pending"
+          }
+        ]
+      },
+      {
+        "country": "CH",
+        "label": "Suisse",
+        "status": "external_pending",
+        "taxQuestions": [
+          {
+            "q": "Traitement TVA suisse",
+            "status": "external_pending"
+          }
+        ]
+      }
+    ],
+    "crossBorderTaxQuestions": [
+      {
+        "q": "Facturation B2B",
+        "status": "external_pending"
+      },
+      {
+        "q": "Autoliquidation (reverse charge) le cas échéant",
+        "status": "external_pending"
+      },
+      {
+        "q": "Facturation en CHF",
+        "status": "external_pending"
+      },
+      {
+        "q": "Facturation en EUR",
+        "status": "external_pending"
+      },
+      {
+        "q": "Pays de l'entité juridique au lancement",
+        "status": "external_pending"
+      },
+      {
+        "q": "Pays de l'entité Stripe",
+        "status": "external_pending"
+      },
+      {
+        "q": "Lancement suisse alors que la société est encore française",
+        "status": "external_pending"
+      },
+      {
+        "q": "Migration ultérieure vers une entité suisse",
+        "status": "external_pending"
+      }
+    ],
+    "note": "P11 PRÉPARE le paquet légal/fiscal ; il ne le VALIDE pas et NE PEUT PAS le vérifier lui-même. LEGAL_TAX_READY ne devient true que si l'OWNER pose des ATTESTATIONS (CLONESTORE_LEGAL_REVIEW_PROOF + CLONESTORE_TAX_REVIEW_PROOF) APRÈS une revue externe réelle. Ce sont des attestations owner (flags), pas des preuves vérifiées par P11 — modèle d'approbation owner assumé et fail-closed par défaut."
+  }
+}

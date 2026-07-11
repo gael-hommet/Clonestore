@@ -1,0 +1,14 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "required": true,
+  "browserAnonymousPost": {
+    "url": "/api/assistant/chat",
+    "status": 401,
+    "code": "AUTH_REQUIRED",
+    "is503Disabled": false
+  },
+  "serverSideUserResolution": "supabase.auth.getUser (bearer/cookie) — jamais du body",
+  "anonymousModelAccessBlocked": true,
+  "fakeAnonymousTenant": false
+}

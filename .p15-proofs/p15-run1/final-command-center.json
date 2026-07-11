@@ -1,0 +1,321 @@
+{
+  "runId": "p15-run1",
+  "globalStatus": "TECHNICAL_READY_EXTERNAL_BLOCKED",
+  "publicPaidLaunchAllowed": false,
+  "privatePilotAllowed": false,
+  "demoOnlyAllowed": true,
+  "productionAuthorizationAllowed": false,
+  "p10HardFloorRespected": true,
+  "exactBlockers": [
+    {
+      "code": "GATE_STRIPE_LIVE",
+      "gate": "Stripe live",
+      "blockers": [
+        "STRIPE_SECRET_KEY absent.",
+        "Mode Stripe « unknown » : la production LIVE exige sk_live_ (aucune clé/prix TEST en production).",
+        "STRIPE_PRICE_PIERRE_EUR_MONTHLY (ou legacy STRIPE_PRICE_PIERRE) absent — checkout EUR bloqué (aucun repli CHF).",
+        "STRIPE_PRICE_PIERRE_CHF_MONTHLY absent — checkout CH bloqué (aucun repli EUR).",
+        "STRIPE_WEBHOOK_SECRET absent — événements de facturation non vérifiés.",
+        "STRIPE_COUNTRY_PRICING_ENABLED désactivé — tarification par pays inactive.",
+        "Vérification API Stripe LIVE NON attestée — requiert un dry-run read-only owner (prices.retrieve EUR+CHF ; aucun checkout/paiement) puis CLONESTORE_STRIPE_LIVE_VERIFIED."
+      ]
+    },
+    {
+      "code": "GATE_WEBHOOK",
+      "gate": "Webhook",
+      "blockers": [
+        "STRIPE_WEBHOOK_SECRET absent — impossible de vérifier les événements."
+      ]
+    },
+    {
+      "code": "GATE_RECONCILIATION",
+      "gate": "Réconciliation pays",
+      "blockers": [
+        "STRIPE_COUNTRY_RECONCILIATION_ENABLED désactivé — le gate n'applique pas encore le blocage en prod.",
+        "Réconciliation NON vérifiée sur données de paiement LIVE (CLONESTORE_COUNTRY_RECON_LIVE_VERIFIED absent)."
+      ]
+    },
+    {
+      "code": "GATE_LEGAL_TAX",
+      "gate": "Légal/fiscal",
+      "blockers": [
+        "Bloqué : 15 manquant(s), 0 expiré(s), 0 rejeté(s) ; owner non-accepté ou hard-missing présent."
+      ]
+    },
+    {
+      "code": "GATE_PROVIDER",
+      "gate": "Provider signature",
+      "blockers": [
+        "PROVIDER_SIGNATURE_NOT_LIVE — la signature (Yousign) n'est pas en mode LIVE / non attestée / bloquée.",
+        "Signature bloquée : P8.7.4 — Yousign sandbox org-membership blocker (FINAL PRODUCTION UNBLOCK: NOT AUTHORIZED)",
+        "CLONESTORE_SIGNATURE_API_KEY absent.",
+        "CLONESTORE_SIGNATURE_WEBHOOK_SECRET absent — webhook signature non vérifié.",
+        "Attestation owner de signature LIVE absente (CLONESTORE_SIGNATURE_LIVE_VERIFIED) — P8.7.4 à lever + vérif live.",
+        "Signature ni LIVE ni FALLBACK approuvé — lancement public payant bloqué côté signature."
+      ]
+    },
+    {
+      "code": "GATE_MONITORING",
+      "gate": "Monitoring/rollback",
+      "blockers": [
+        "Plan monitoring/rollback NON attesté vérifié en ops (CLONESTORE_MONITORING_ROLLBACK_VERIFIED absent) — health route déployée, alerting owner, rollback répété."
+      ]
+    },
+    {
+      "code": "GATE_OWNER_APPROVAL",
+      "gate": "Approbation owner",
+      "blockers": [
+        "Artefact d'approbation owner (approve_production) absent."
+      ]
+    },
+    {
+      "code": "P10_PRODUCTION_HARD_FLOOR_FALSE",
+      "gate": "Plancher dur P10",
+      "blockers": [
+        "PRODUCTION_AUTHORIZED = false as const — changement de code owner requis (jamais par env)."
+      ]
+    }
+  ],
+  "exactWarnings": [
+    "Plancher dur P10 actif : PRODUCTION_AUTHORIZED=false (production jamais autorisée par env)."
+  ],
+  "requiredOwnerActions": [
+    "Configurer les prix Stripe LIVE (EUR 44900 / CHF 49900, mensuels, actifs) + webhook, puis dry-run read-only owner (node scripts/p15-verify-stripe-live-readonly.mjs) + attester CLONESTORE_STRIPE_LIVE_VERIFIED.",
+    "Activer STRIPE_COUNTRY_RECONCILIATION_ENABLED puis vérifier la réconciliation sur des paiements LIVE réels + attester CLONESTORE_COUNTRY_RECON_LIVE_VERIFIED.",
+    "Faire réviser les artefacts légaux/fiscaux FR/BE/LU/CH par avocat/comptable (hash+date+source) ou accepter explicitement le risque owner disclosed.",
+    "Passer Yousign LIVE (lever P8.7.4) OU approuver le repli officiel signature-préparée (CLONESTORE_SIGNATURE_FALLBACK_APPROVED) avec copie « préparé, non signé ».",
+    "Déployer la health route + alerting + répéter le rollback, puis attester CLONESTORE_MONITORING_ROLLBACK_VERIFIED.",
+    "Compléter et signer P15_OWNER_GO_LIVE_APPROVAL_PACKET.md (décision approve_production + acknowledgements).",
+    "Lever le plancher dur P10 (PRODUCTION_AUTHORIZED) par un changement de code owner DÉLIBÉRÉ — jamais par env."
+  ],
+  "nextStep": "Fournir les preuves externes manquantes (Stripe live, légal/fiscal, provider/fallback, monitoring) puis compléter l'approbation owner. La couche technique (réconciliation câblée + webhook + modules) est prête.",
+  "gates": [
+    {
+      "key": "stripe_live",
+      "title": "Stripe live",
+      "pass": false,
+      "blockers": [
+        "STRIPE_SECRET_KEY absent.",
+        "Mode Stripe « unknown » : la production LIVE exige sk_live_ (aucune clé/prix TEST en production).",
+        "STRIPE_PRICE_PIERRE_EUR_MONTHLY (ou legacy STRIPE_PRICE_PIERRE) absent — checkout EUR bloqué (aucun repli CHF).",
+        "STRIPE_PRICE_PIERRE_CHF_MONTHLY absent — checkout CH bloqué (aucun repli EUR).",
+        "STRIPE_WEBHOOK_SECRET absent — événements de facturation non vérifiés.",
+        "STRIPE_COUNTRY_PRICING_ENABLED désactivé — tarification par pays inactive.",
+        "Vérification API Stripe LIVE NON attestée — requiert un dry-run read-only owner (prices.retrieve EUR+CHF ; aucun checkout/paiement) puis CLONESTORE_STRIPE_LIVE_VERIFIED."
+      ],
+      "detail": {
+        "mode": "unknown",
+        "liveApiVerified": false,
+        "eur": false,
+        "chf": false
+      }
+    },
+    {
+      "key": "webhook",
+      "title": "Webhook",
+      "pass": false,
+      "blockers": [
+        "STRIPE_WEBHOOK_SECRET absent — impossible de vérifier les événements."
+      ],
+      "detail": {
+        "secretPresent": false,
+        "signatureEnforced": true,
+        "idempotent": true
+      }
+    },
+    {
+      "key": "reconciliation",
+      "title": "Réconciliation pays",
+      "pass": false,
+      "blockers": [
+        "STRIPE_COUNTRY_RECONCILIATION_ENABLED désactivé — le gate n'applique pas encore le blocage en prod.",
+        "Réconciliation NON vérifiée sur données de paiement LIVE (CLONESTORE_COUNTRY_RECON_LIVE_VERIFIED absent)."
+      ],
+      "detail": {
+        "wired": true,
+        "enabled": false,
+        "liveVerified": false
+      }
+    },
+    {
+      "key": "legal_tax",
+      "title": "Légal/fiscal",
+      "pass": false,
+      "blockers": [
+        "Bloqué : 15 manquant(s), 0 expiré(s), 0 rejeté(s) ; owner non-accepté ou hard-missing présent."
+      ],
+      "detail": {
+        "mode": "blocked",
+        "externallyReviewed": 0,
+        "missing": 15,
+        "ownerAttestedOnly": 0
+      }
+    },
+    {
+      "key": "provider",
+      "title": "Provider signature",
+      "pass": false,
+      "blockers": [
+        "PROVIDER_SIGNATURE_NOT_LIVE — la signature (Yousign) n'est pas en mode LIVE / non attestée / bloquée.",
+        "Signature bloquée : P8.7.4 — Yousign sandbox org-membership blocker (FINAL PRODUCTION UNBLOCK: NOT AUTHORIZED)",
+        "CLONESTORE_SIGNATURE_API_KEY absent.",
+        "CLONESTORE_SIGNATURE_WEBHOOK_SECRET absent — webhook signature non vérifié.",
+        "Attestation owner de signature LIVE absente (CLONESTORE_SIGNATURE_LIVE_VERIFIED) — P8.7.4 à lever + vérif live.",
+        "Signature ni LIVE ni FALLBACK approuvé — lancement public payant bloqué côté signature."
+      ],
+      "detail": {
+        "status": "MISSING",
+        "liveSignatureClaimAllowed": false
+      }
+    },
+    {
+      "key": "monitoring",
+      "title": "Monitoring/rollback",
+      "pass": false,
+      "blockers": [
+        "Plan monitoring/rollback NON attesté vérifié en ops (CLONESTORE_MONITORING_ROLLBACK_VERIFIED absent) — health route déployée, alerting owner, rollback répété."
+      ],
+      "detail": {
+        "structural": true,
+        "ownerVerified": false
+      }
+    },
+    {
+      "key": "owner_approval",
+      "title": "Approbation owner",
+      "pass": false,
+      "blockers": [
+        "Artefact d'approbation owner (approve_production) absent."
+      ],
+      "detail": {
+        "present": false,
+        "decision": null
+      }
+    }
+  ],
+  "commercialTruthConstraints": [
+    "Pierre = employé IA RH (jamais assistant/chatbot/copilote).",
+    "Pierre absorbe la charge RH opérationnelle ; il ne remplace pas la responsabilité finale humaine/légale.",
+    "Aucune revendication de moteur de paie / DSN.",
+    "Aucune garantie de conformité légale/pays.",
+    "Aucune revendication « production live / Stripe live / Yousign live » non vérifiée."
+  ],
+  "p11CrossCheck": {
+    "globalStatus": "NOT_READY",
+    "productionAuthorized": false
+  },
+  "safeMessage": "Clôture TECHNIQUE prête (réconciliation câblée + webhook + modules) ; les preuves EXTERNES (Stripe live, légal/fiscal, provider, monitoring) et le sign-off owner manquent. Production désactivée, aucun paiement live, aucun déploiement.",
+  "contractGates": [
+    {
+      "key": "stripe_live",
+      "title": "Stripe live",
+      "pass": false,
+      "blockers": [
+        "STRIPE_SECRET_KEY absent.",
+        "Mode Stripe « unknown » : la production LIVE exige sk_live_ (aucune clé/prix TEST en production).",
+        "STRIPE_PRICE_PIERRE_EUR_MONTHLY (ou legacy STRIPE_PRICE_PIERRE) absent — checkout EUR bloqué (aucun repli CHF).",
+        "STRIPE_PRICE_PIERRE_CHF_MONTHLY absent — checkout CH bloqué (aucun repli EUR).",
+        "STRIPE_WEBHOOK_SECRET absent — événements de facturation non vérifiés.",
+        "STRIPE_COUNTRY_PRICING_ENABLED désactivé — tarification par pays inactive.",
+        "Vérification API Stripe LIVE NON attestée — requiert un dry-run read-only owner (prices.retrieve EUR+CHF ; aucun checkout/paiement) puis CLONESTORE_STRIPE_LIVE_VERIFIED."
+      ],
+      "detail": {
+        "mode": "unknown",
+        "liveApiVerified": false,
+        "eur": false,
+        "chf": false
+      }
+    },
+    {
+      "key": "webhook",
+      "title": "Webhook",
+      "pass": false,
+      "blockers": [
+        "STRIPE_WEBHOOK_SECRET absent — impossible de vérifier les événements."
+      ],
+      "detail": {
+        "secretPresent": false,
+        "signatureEnforced": true,
+        "idempotent": true
+      }
+    },
+    {
+      "key": "reconciliation",
+      "title": "Réconciliation pays",
+      "pass": false,
+      "blockers": [
+        "STRIPE_COUNTRY_RECONCILIATION_ENABLED désactivé — le gate n'applique pas encore le blocage en prod.",
+        "Réconciliation NON vérifiée sur données de paiement LIVE (CLONESTORE_COUNTRY_RECON_LIVE_VERIFIED absent)."
+      ],
+      "detail": {
+        "wired": true,
+        "enabled": false,
+        "liveVerified": false
+      }
+    },
+    {
+      "key": "legal_tax",
+      "title": "Légal/fiscal",
+      "pass": false,
+      "blockers": [
+        "Bloqué : 15 manquant(s), 0 expiré(s), 0 rejeté(s) ; owner non-accepté ou hard-missing présent."
+      ],
+      "detail": {
+        "mode": "blocked",
+        "externallyReviewed": 0,
+        "missing": 15,
+        "ownerAttestedOnly": 0
+      }
+    },
+    {
+      "key": "provider",
+      "title": "Provider signature",
+      "pass": false,
+      "blockers": [
+        "PROVIDER_SIGNATURE_NOT_LIVE — la signature (Yousign) n'est pas en mode LIVE / non attestée / bloquée.",
+        "Signature bloquée : P8.7.4 — Yousign sandbox org-membership blocker (FINAL PRODUCTION UNBLOCK: NOT AUTHORIZED)",
+        "CLONESTORE_SIGNATURE_API_KEY absent.",
+        "CLONESTORE_SIGNATURE_WEBHOOK_SECRET absent — webhook signature non vérifié.",
+        "Attestation owner de signature LIVE absente (CLONESTORE_SIGNATURE_LIVE_VERIFIED) — P8.7.4 à lever + vérif live.",
+        "Signature ni LIVE ni FALLBACK approuvé — lancement public payant bloqué côté signature."
+      ],
+      "detail": {
+        "status": "MISSING",
+        "liveSignatureClaimAllowed": false
+      }
+    },
+    {
+      "key": "monitoring",
+      "title": "Monitoring/rollback",
+      "pass": false,
+      "blockers": [
+        "Plan monitoring/rollback NON attesté vérifié en ops (CLONESTORE_MONITORING_ROLLBACK_VERIFIED absent) — health route déployée, alerting owner, rollback répété."
+      ],
+      "detail": {
+        "structural": true,
+        "ownerVerified": false
+      }
+    },
+    {
+      "key": "owner_approval",
+      "title": "Approbation owner",
+      "pass": false,
+      "blockers": [
+        "Artefact d'approbation owner (approve_production) absent."
+      ],
+      "detail": {
+        "present": false,
+        "decision": null
+      }
+    }
+  ],
+  "blockerCodes": [
+    "STRIPE_LIVE_NOT_VERIFIED",
+    "WEBHOOK_NOT_VERIFIED",
+    "RECONCILIATION_NOT_LIVE_VERIFIED",
+    "LEGAL_TAX_ARTIFACTS_MISSING",
+    "PROVIDER_OR_FALLBACK_MISSING",
+    "MONITORING_ROLLBACK_NOT_READY",
+    "OWNER_APPROVAL_MISSING"
+  ]
+}

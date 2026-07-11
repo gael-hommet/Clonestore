@@ -1,0 +1,50 @@
+{
+  "runId": "p13-run1",
+  "scope": "P13 §5 — scan of product copy for country/legal/provider/production OVERCLAIMS (FR/BE/LU/CH).",
+  "method": "FIXED-LEXICON ripgrep (case-insensitive, 14 phrases) across src/app + src/components + src/lib, PLUS manual classification of every hit AND an independent adversarial re-grep (review group A) over softer conformity phrasings. NOT a semantic review — a denylist scan + human classification. Honest limitation: a novel softly-worded overclaim outside the lexicon could exist; the adversarial pass found none unguarded.",
+  "method_limitation_disclosed": "The scan is a denylist (14 phrases), not exhaustive semantic NLP. Two softer conformity strings live OUTSIDE the lexicon in shipped copy and are SAFE only because contextually disclaimed at point of use (see representative_matches CloneGuard entries) — not because the lexicon caught them.",
+  "scanned_files": { "src_app": 503, "src_components": 126, "src_lib": 1811, "total_ts_tsx": 2440 },
+  "forbidden_lexicon": [
+    "conforme au droit suisse/belge/luxembourgeois/français", "juridiquement garanti", "validé par un avocat",
+    "applicable sans vérification", "100% conforme", "aucun risque légal", "conformité garantie", "contrat conforme",
+    "signature légale garantie", "yousign live", "stripe live", "tva validée", "tax validated", "production authorized"
+  ],
+  "product_facing_overclaims_found": 0,
+  "classification": {
+    "safe": "ALL hits. No unguarded product-facing legal/country/provider/production claim exists.",
+    "needs_disclaimer": 0,
+    "blocked": 0
+  },
+  "representative_matches": [
+    { "file": "src/app/legal/cgu/page.tsx", "line": 92, "text": "Pierre ne garantit pas la conformité légale, l'absence d'erreur ou la parfaite applicabilité de ses outputs.", "class": "disclaimer", "verdict": "safe" },
+    { "file": "src/app/legal/cgu/page.tsx", "line": 109, "text": "le service ne peut garantir la conformité à des réglementations spécifiques sans validation juridique préalable.", "class": "disclaimer", "verdict": "safe" },
+    { "file": "src/app/legal/cgv/page.tsx", "line": 161, "text": "Garantie de conformité légale des documents générés.", "class": "exclusion (section '8. Ce que le service ne comprend PAS')", "verdict": "safe" },
+    { "file": "src/app/legal/cgv/page.tsx", "line": 182, "text": "Placeholder à valider juridiquement.", "class": "disclaimer (legal section explicitly pending)", "verdict": "safe" },
+    { "file": "src/app/legal/_shared/legal-components.tsx", "line": 48, "text": "Ce document constitue une base de travail destinée à être révisée et validée par un avocat", "class": "disclaimer (requires lawyer validation — opposite of overclaim)", "verdict": "safe" },
+    { "file": "src/app/demo/pierre/page.tsx", "line": 76, "text": "...ne prend aucune décision disciplinaire autonome et ne garantit pas la conformité juridique.", "class": "disclaimer", "verdict": "safe" },
+    { "file": "src/app/profile/go-live/page.tsx", "line": 436, "text": "Repo prêt ≠ Commercialement lançable… Stripe live configuré, revue juridique humaine effectuée [required blockers].", "class": "internal-ops pending framing", "verdict": "safe" },
+    { "file": "src/app/profile/go-live/page.tsx", "line": 458, "text": "La conformité juridique finale nécessite une revue humaine par un professionnel qualifié.", "class": "internal-ops disclaimer", "verdict": "safe" },
+    { "file": "src/lib/clonestore/cloneos/cloneos-command-validation.ts", "line": 234, "text": "CV24: no Stripe live / Aucun secret Stripe live dans le résultat.", "class": "security guard", "verdict": "safe" },
+    { "file": "src/lib/clonestore/enterprise-footprint/enterprise-footprint-server-validation.ts", "line": 28, "text": "sk_live_ … Clé Stripe live détectée [rejected]", "class": "security guard", "verdict": "safe" },
+    { "file": "src/lib/clonestore/runtime-integration/external-go-live-proofs-gate-ui-copy.ts", "line": 96, "text": "Stripe live : non vérifié", "class": "internal-ops pending framing", "verdict": "safe" },
+    { "file": "src/lib/clonestore/production/p11-legal-tax-readiness.ts", "line": 5, "text": "LEGAL_TAX_READY reste false … Ne présente RIEN comme un conseil juridique/fiscal final.", "class": "definition/guard (P11)", "verdict": "safe" },
+    { "file": "src/lib/clonestore/founder-acceptance/launch-country-fit.ts", "line": 44, "text": "COUNTRY_LEGAL_COPY_FORBIDDEN = [ 'conforme au droit suisse', … ]", "class": "denylist definition (P13 itself)", "verdict": "safe" },
+    { "file": "src/app/profile/messages/page.tsx", "line": 809, "text": "Pierre a préparé le contenu, CloneGuard a évalué la conformité. … La validation humaine est requise avant toute diffusion externe. Lecture seule — aucune action exécutée.", "class": "outside-lexicon (surfaced by adversarial review A2); contextually disclaimed at point of use — CloneGuard EVALUATES conformity, does not GUARANTEE it; human validation required", "verdict": "safe" },
+    { "file": "src/app/profile/messages/page.tsx", "line": 819, "text": "deliverables: ['Brouillon document RH', 'Note de conformité Guard']", "class": "outside-lexicon (surfaced by review A2); a deliverable NAME ('Guard note'), draft, not a legal guarantee — same message is framed 'Brouillon … prêt à validation, non signé, non envoyé'", "verdict": "safe" }
+  ],
+  "country_specific_check": {
+    "conforme_au_droit_suisse_belge_lux": "Appears ONLY as a denylist definition in src/lib/clonestore/founder-acceptance/launch-country-fit.ts — never in product copy.",
+    "CH_shown_as_EUR": "none (P10 pricing forces CH→CHF; checkout guard fail-closed even if EUR is forged).",
+    "EUR_countries_shown_as_CHF": "none (FR/BE/LU→EUR canon).",
+    "france_only_copy_in_BE_LU_CH_flows": "Pricing/checkout are country-parametric (P10); Pierre HR copy is country-neutral ('prépare/propose/à valider'), not France-specific."
+  },
+  "fixes_applied": "none required — no product-facing overclaim exists.",
+  "remaining_disclosures": [
+    "Legal/tax status for FR/BE/LU/CH is PENDING external review (evaluateLegalTaxReadiness → legalTaxReady=false); disclosed in legal pages (cgu/cgv/dpa 'placeholder à valider', 'ne garantit pas la conformité') and P11 modules.",
+    "Signature provider (Yousign) is NOT live (evaluateProviderReadiness → ready=false, P8.7.4); disclosed in external-go-live-proofs-gate ('Stripe live/Yousign: non vérifié').",
+    "Production NOT authorized (PRODUCTION_AUTHORIZED=false); go-live page states 'Repo prêt ≠ Commercialement lançable'.",
+    "These are honest PENDING states, not overclaims — Pierre/CloneStore never present them as final."
+  ],
+  "adversarial_review_A2": "PARTIAL: substance HOLDS (independent re-grep found 0 unguarded overclaim), but 'COMPLETE/exhaustive' was overstated for a fixed-lexicon scan. Resolved: reframed as denylist + manual classification, added the 2 outside-lexicon strings (both contextually safe), corrected count to 2440. The practical conclusion — 0 real product-facing overclaims — survives.",
+  "verdict": "COUNTRY_COPY_QA_OK — 0 unguarded product-facing overclaims (fixed-lexicon scan + manual + adversarial classification); all limits disclosed as pending. Method-limited to a denylist, not exhaustive NLP (disclosed)."
+}

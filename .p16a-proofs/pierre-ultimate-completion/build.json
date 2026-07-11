@@ -1,0 +1,7 @@
+{
+  "command": "npm run build",
+  "result": "Compiled successfully in 104s",
+  "exitCode": 0,
+  "cloneChat": "active by default — /api/assistant/chat rendered ƒ (Dynamic, server-rendered on demand)",
+  "note": "CloneChat kept active during build verification (per §17)"
+}

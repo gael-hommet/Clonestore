@@ -1,0 +1,12 @@
+{
+  "artifactKind": "cloneguard_decision",
+  "riskLevel": "critical",
+  "decision": "require_validation",
+  "reasons": [
+    "Termes critiques détectés (décision RH/financière/juridique potentielle)."
+  ],
+  "humanEscalation": "Escalade au responsable humain : risque critical.",
+  "explanation": "Préparation permise, mais AUCUN usage sans validation humaine explicite.",
+  "executed": false,
+  "finalLegalDecision": false
+}

@@ -1,0 +1,37 @@
+{
+  "runId": "t1-technologies-layer",
+  "report": {
+    "totalTechnologies": 15,
+    "verified": 2,
+    "partial": 11,
+    "architectureReady": 2,
+    "missing": 0,
+    "externalBlocked": 0,
+    "disabled": 0,
+    "reusableCount": 15,
+    "pierreOnlyCount": 0,
+    "liveProviderBlockedCount": 6,
+    "safeFallbackAvailableCount": 15,
+    "readyForPierreIntegration": true,
+    "exactBlockers": [],
+    "exactWarnings": [
+      "« mail » : Envoi live bloqué — domaine/provider email externe non vérifié (ext.email_provider).",
+      "« calendar » : Aucun provider calendrier live — création d'événements live impossible.",
+      "« signature » : Yousign live bloqué (P8.7.4) — fallback signature préparée, aucune revendication live.",
+      "« voice » : Aucun provider vocal — roadmap ; l'entrée texte reste autoritaire.",
+      "« notification » : Aucun provider push — rappels cockpit uniquement.",
+      "« connector » : Connecteurs SIRH/paie/Slack externes non vérifiés — tout appel live bloqué.",
+      "« voice » : intégration recommandée « later » (pas dans la porte P16C initiale).",
+      "« connector » : intégration recommandée « later » (pas dans la porte P16C initiale).",
+      "Aucun provider live vérifié — l'exécution live reste impossible (attendu en T1).",
+      "« readyForPierreIntegration » = prêt pour P16C ; cela ne signifie PAS providers live prêts."
+    ],
+    "recommendedNextStep": "Ouvrir la porte P16C — adaptateurs Pierre→Technologies (après P16A) ; aucun provider live requis.",
+    "productionAuthorized": false,
+    "paymentMode": "disabled",
+    "liveExecutionAllowed": false,
+    "masterSplitCrossCheckOk": true,
+    "entriesInjected": false,
+    "note": "Rapport COMPUTÉ depuis le registre réel + plancher P10 + mode paiement P15.1. La preuve « tests pass » reste la porte vitest externe."
+  }
+}

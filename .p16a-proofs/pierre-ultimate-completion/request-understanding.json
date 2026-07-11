@@ -1,0 +1,74 @@
+{
+  "multiIntent": {
+    "normalizedObjective": "Demande opérationnelle: general",
+    "requestKind": "OPERATION",
+    "desiredOutcomes": [
+      "Tâche RH préparée"
+    ],
+    "relevantDomains": [
+      "onboarding",
+      "compensation",
+      "contract",
+      "org",
+      "absence",
+      "offboarding"
+    ],
+    "confidence": 0.5,
+    "resolvedDates": [
+      {
+        "status": "resolved",
+        "original": "lundi",
+        "iso": "2026-07-20",
+        "kind": "weekday",
+        "reason": "weekday_lundi"
+      }
+    ],
+    "resolvedEntities": [
+      {
+        "kind": "employee",
+        "status": "resolved",
+        "id": "emp-sarah",
+        "label": "Sarah",
+        "candidates": [],
+        "reason": "unique_match"
+      }
+    ],
+    "multiIntent": true
+  },
+  "single": {
+    "normalizedObjective": "Demande opérationnelle: general",
+    "requestKind": "OPERATION",
+    "desiredOutcomes": [
+      "Tâche RH préparée"
+    ],
+    "relevantDomains": [
+      "onboarding",
+      "compensation",
+      "contract",
+      "org",
+      "offboarding",
+      "offer"
+    ],
+    "confidence": 0.5,
+    "resolvedDates": [
+      {
+        "status": "resolved",
+        "original": "lundi",
+        "iso": "2026-07-20",
+        "kind": "weekday",
+        "reason": "weekday_lundi"
+      }
+    ],
+    "resolvedEntities": [
+      {
+        "kind": "employee",
+        "status": "resolved",
+        "id": "emp-sarah",
+        "label": "Sarah",
+        "candidates": [],
+        "reason": "unique_match"
+      }
+    ],
+    "multiIntent": false
+  }
+}

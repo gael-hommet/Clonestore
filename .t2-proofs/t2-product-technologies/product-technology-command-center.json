@@ -1,0 +1,36 @@
+{
+  "runId": "t2-product-technologies",
+  "report": {
+    "totalProductTechnologies": 14,
+    "verified": 0,
+    "partial": 0,
+    "architectureReady": 1,
+    "localSafeReady": 10,
+    "integrationReady": 3,
+    "externalBlocked": 0,
+    "liveBlocked": 0,
+    "missing": 0,
+    "readyForP16A": true,
+    "readyForP16C": true,
+    "cloneosReady": true,
+    "clonevoiceOperational": false,
+    "clonecallSafeLocalReady": true,
+    "cloneroomReady": true,
+    "cloneadnReady": true,
+    "liveProvidersReady": false,
+    "productionAuthorized": false,
+    "paymentMode": "disabled",
+    "exactBlockers": [],
+    "exactWarnings": [
+      "« clonevoice » : Aucun provider vocal vérifié — voix live bloquée ; le chemin texte reste autoritaire (le chemin voix s'ouvrira seulement après vérification externe d'un provider).",
+      "« clonecall » : Téléphonie live et appels sortants BLOQUÉS — aucun provider télécom/audio vérifié, cadre légal non validé ; le chemin sortant live ne s'ouvrira qu'après vérification externe.",
+      "clonevoiceOperational=false — la voix live exige un provider vérifié externalement (roadmap).",
+      "CloneCall = safe local uniquement ; téléphonie/appels sortants live bloqués (provider + cadre légal externes).",
+      "readyForP16A/readyForP16C = prêt pour les portes d'intégration ; PAS « providers live prêts ».",
+      "La preuve « tests pass » reste la porte vitest externe (45 preuves + non-régression)."
+    ],
+    "nextRecommendedPhase": "P16A (Pierre Ultimate) puis P16C (intégration Pierre × T1/T2) — CloneRoom peut consommer T2 dès P16C.",
+    "entriesInjected": false,
+    "note": "Rapport COMPUTÉ : sondes réelles sur les contrats + plancher P10 + paiement P15.1 + invariant live T1. Jamais déclaré à la main."
+  }
+}

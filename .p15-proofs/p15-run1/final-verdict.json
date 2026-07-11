@@ -1,0 +1,51 @@
+{
+  "phase": "P15 — External Go-Live Closure / Live Stripe Webhook Reconciliation / Owner Authorization",
+  "runId": "p15-run1",
+  "verdict": "P15 — TECHNICAL GO-LIVE CLOSURE READY / EXTERNAL PROOFS STILL BLOCKED",
+  "date": "2026-07-09",
+  "nature": "The real-world go-live closure phase. No live payment created, no production enabled, no deployment.",
+  "why_this_verdict": "The technical closure layer is built, wired and tested: P11 billing-country reconciliation is now wired into ALL FOUR activation paths (checkout.session.completed + subscription.created + subscription.updated + /api/checkout/confirm), functional (catches CH/EUR + FR/BE/LU-CHF without over-blocking legit customers), fail-closed. All external proofs are absent locally (test Stripe key, no external legal review, Yousign not live, no owner sign-off), so the command center reports TECHNICAL_READY_EXTERNAL_BLOCKED with all 7 gates blocked and production authorization false (P10 hard floor).",
+  "command_center": {
+    "globalStatus": "TECHNICAL_READY_EXTERNAL_BLOCKED",
+    "publicPaidLaunchAllowed": false,
+    "privatePilotAllowed": false,
+    "demoOnlyAllowed": true,
+    "productionAuthorizationAllowed": false,
+    "p10HardFloorRespected": true,
+    "blockers": ["STRIPE_LIVE_NOT_VERIFIED", "WEBHOOK_NOT_VERIFIED", "RECONCILIATION_NOT_LIVE_VERIFIED", "LEGAL_TAX_ARTIFACTS_MISSING", "PROVIDER_OR_FALLBACK_MISSING", "MONITORING_ROLLBACK_NOT_READY", "OWNER_APPROVAL_MISSING", "P10_PRODUCTION_HARD_FLOOR_FALSE"]
+  },
+  "the_16_answers": {
+    "1_live_stripe_prices_verified": "No — local key is sk_test_ (TEST_MODE_BLOCKED). Verification logic unit-tested; owner dry-run script ready.",
+    "2_live_webhook_verified": "No — no live secret locally; signature verified via constructEvent, idempotent.",
+    "3_reconciliation_wired_into_activation": "Yes — wired into ALL 4 activation paths (billing address + currency consistency + metadata propagation + best-effort customer-billing fetch); flag-gated (default OFF), requires enable + live-verify before launch.",
+    "4_ch_eur_mismatch_activate": "No (when enforced) on any path; legit FR/EUR not over-blocked.",
+    "5_fr_be_lu_chf_mismatch_activate": "No (when enforced); forged selected country cannot force activation (billing is the reference).",
+    "6_legal_tax_externally_reviewed": "No — registry empty; readiness requires external artifacts (hash/date/source), never a bare boolean.",
+    "7_provider_live_or_fallback": "Neither locally — Yousign P8.7.4; LIVE_VERIFIED requires mode==='live' + attestation; official fallback available (no live-signature claim).",
+    "8_monitoring_rollback_ready": "Not attested — structural invariants present; needs owner rehearsal + attestation.",
+    "9_owner_approval_present": "No — packet un-signed.",
+    "10_public_paid_launch_allowed": "No.",
+    "11_private_pilot_allowed": "Only if owner explicitly chooses it + no live payment (not enabled).",
+    "12_demo_only_allowed": "Yes.",
+    "13_production_authorized": "No — even full owner+gates → READY_FOR_PRODUCTION_AUTHORIZATION; P10 hard floor (const false) requires a deliberate code change; env alone can never authorize.",
+    "14_blockers_remaining": "7 external/owner + the P10 hard floor.",
+    "15_touched_p8_p14_or_pierre_runtime": "No — only the sanctioned additive flag-gated reconciliation adapter in checkout/webhook (route.ts + confirm route + additive checkout metadata). Pierre V1 + pricing canon + P12-P14 untouched; P10/P11 reused read-only.",
+    "16_next_action": "Provide the external proofs (Stripe live + dry-run attest; enable + live-verify reconciliation; external legal/tax or owner-accept disclosed; Yousign live or approve fallback; rehearse + attest monitoring) then complete the owner packet."
+  },
+  "gates": {
+    "p15_unit_tests": "35/35 (incl. reconciliation-fix coverage: billing-only CH/EUR blocked, FR/EUR allowed, currency-consistency, 4-path source-scan) + 2 computed-proof",
+    "production_webhook_checkout_conversion": "213/213 (no regression from the reconciliation wiring)",
+    "tsc": "0 source errors",
+    "non_regression": "7448/7448 (nav/clonestore/clonechat + all src/app/api)",
+    "stripe_readonly": "TEST_MODE_BLOCKED (no session/payment/customer; secrets masked)",
+    "adversarial_review": "16 claims → 12 HOLDS / 2 PARTIAL / 2 REFUTED (0 security). Both REFUTED (reconciliation wiring incomplete/non-functional) + both PARTIAL FIXED; focused re-check: all 7 checks RESOLVED; 2 further residuals hardened (billing_address_collection required; flag-off short-circuit)."
+  },
+  "guardrails": {
+    "production_off": "PRODUCTION_AUTHORIZED = false as const (HARD FLOOR); env alone can never authorize.",
+    "no_live_payment": "No live Stripe checkout/session/payment/customer/subscription created.",
+    "no_overclaim": "No production live / Stripe live / Yousign live / legal-tax compliance claim.",
+    "p8_to_p14_and_pierre_v1_untouched": "Only the additive flag-gated reconciliation adapter in the checkout/webhook activation paths (justified go-live gap).",
+    "no_second_hr_brain": true,
+    "no_migration_no_deploy": true
+  }
+}

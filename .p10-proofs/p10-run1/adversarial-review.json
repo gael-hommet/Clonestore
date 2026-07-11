@@ -1,0 +1,35 @@
+{
+  "runId": "p10-run1",
+  "reviewer": "4 independent adversarial agents (opus, high effort), read-only",
+  "result": { "totalClaims": 15, "holds_initial": 12, "partial_initial": 3, "refuted": 0 },
+  "claims_summary": {
+    "1_CH_cannot_buy_EUR": "HOLDS (hardened). Verified Swiss company → forced CHF. Swiss IP + FR self-selection (cheap direction) → now REVIEW (not silent EUR) after hardening. Fully-anonymous spoof (FR IP + FR selection by a Swiss person) is the disclosed IP-is-never-proof boundary → backstopped at payment (Stripe card/billing country).",
+    "2_EUR_country_cannot_buy_CHF": "HOLDS (hardened). Verified EUR company → forced EUR. Self-selecting CH charges the MORE expensive CHF (not an abuse); absolute phrasing softened + disclosed.",
+    "3_client_cannot_forge_price": "HOLDS. Client price_id/price_key/currency are logged and IGNORED; price is always canon-derived from the resolved country. Proven live (ch_forged_eur → still CHF fail-closed; fr_forged_chf → still EUR).",
+    "4_no_IP_only_trust": "HOLDS. geo is never in the authoritative chain; geo-only → COUNTRY_REQUIRED; cheap-direction geo → review; other geo conflicts → logged.",
+    "5_unknown_no_lie": "HOLDS. unknown → country_required, price null, requires selection (no cheapest default). Proven in-browser (initialSelectPrompt true, initialNoPrice true).",
+    "6_unsupported_blocked": "HOLDS. Unsupported → never priced (resolver + guard + gate live regression check).",
+    "7_no_CHF_to_EUR_fallback": "HOLDS. CHF strict, no alias; missing CHF → STRIPE_PRICE_NOT_CONFIGURED (never EUR). Proven live.",
+    "8_no_EUR_to_CHF_fallback": "HOLDS. EUR reads _EUR_MONTHLY ?? legacy STRIPE_PRICE_PIERRE (same-currency only); CHF key never read for EUR.",
+    "9_stripe_mode_not_confused": "HOLDS. detectStripeMode fail-closed; production requires LIVE; country checkout production-blocked regardless. Test↔live price-id belonging disclosed as external-verify warning.",
+    "10_no_tax_legal_overpromise": "HOLDS. No 'worldwide'; only 'Prix HT, hors taxes applicables'; VAT/legal treated as unfinalized blockers; no final legal/tax advice.",
+    "11_production_not_enabled": "HOLDS (hardened). PRODUCTION_AUTHORIZED=false const + 3 permanent blockers; checkout country path requireProduction now = isProd OR live-Stripe-keys (decoupled from NODE_ENV) → PRODUCTION_DISABLED when unauthorized.",
+    "12_p8_p9_untouched": "HOLDS. 0 P10 markers under src/lib/pierre/v1 or src/app/api/pierre/v1; P9 proof dirs untouched.",
+    "13_audit_privacy_safe": "HOLDS. Salted truncated IP hash, raw IP never stored; all required fields; best-effort. Residual: default sink = server log (durable table is an unapplied DRAFT) — disclosed.",
+    "14_browser_states_honest": "HOLDS (fixed). ui-proof now truthfully captures the unknown→selector visible state (initialSelectPrompt true, initialNoPrice true) and asserts it in the verdict; FR 449 / CH 499 / mobile no-overflow / 0 console real.",
+    "15_tests_proofs_real": "HOLDS. 69 P10 unit tests + emit-proofs derived from real modules + live E2E with forged-field attacks. Non-regression totals (747/183) taken on trust by the reviewer; re-verified here."
+  },
+  "hardenings_applied_after_review": [
+    "Guard: cheap-direction geo conflict (IP=CH + resolved EUR country, no verified company) → reviewRequired=true (GEO_WEAK_CONFLICT), instead of a silent EUR checkout. Same-currency and reverse (more-expensive) geo conflicts stay allowed+logged (rule 6). Tests added.",
+    "Checkout route: PRODUCTION_DISABLED decoupled from NODE_ENV — requireProduction = isProd OR live-Stripe-keys, so a misconfigured non-production host with live keys still fails closed.",
+    "E2E proof: fixed the loading-race capture of the unknown-state selector; now asserted in the verdict (initialSelectPrompt + initialNoPrice)."
+  ],
+  "disclosed_residual_limitations": [
+    "IP is never proof (stated by the spec): a fully-anonymous Swiss buyer who both spoofs an FR IP AND self-selects FR is not caught pre-payment; enforcement then relies on Stripe-collected card/billing/tax country at/after payment (webhook already captures currency). A hard pre-payment guarantee for unverified buyers would require Stripe billing-country restriction / post-payment reconciliation — recommended before high-risk launch, listed as a production-gate consideration.",
+    "Dev-mode price/amount mismatch check is non-blocking (console.warn) by design; anti-abuse unaffected (price is canon-derived). Hard-blocks in production.",
+    "Audit default sink is the structured server log; durable persistence is an unapplied DRAFT (owner approval required)."
+  ],
+  "defects_fixed": ["cheap-direction geo silent EUR (hardened to review)", "NODE_ENV coupling of PRODUCTION_DISABLED (decoupled)", "ui-proof unknown-state capture race (fixed + asserted)"],
+  "defects_disclosed_not_code_bugs": ["IP-not-proof anonymous-spoof boundary (spec-acknowledged; payment-time backstop)", "perimeter.json now declares tsconfig.json (auto-touched then restored to original) + next-env.d.ts (Next-generated)"],
+  "outcome": "SOUND — 0 refuted; 3 PARTIALs addressed (2 hardened in code, 1 proof-capture fixed); residual IP-not-proof boundary disclosed with payment-time backstop. Re-run after hardening: 69/69 P10 tests, tsc 0, E2E P10_PRICING_OK, non-regression green."
+}

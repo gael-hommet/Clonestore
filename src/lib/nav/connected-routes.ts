@@ -7,6 +7,9 @@ export const CONNECTED_ROUTE_PREFIXES = [
   "/agents/pierre/use",
   "/agents/pierre/setup",
   "/agents/pierre/employees",
+  // P12 — CloneOS app shell (console cockpit + salon + centre de contrôle).
+  "/cockpit",
+  "/mon-clonestore",
 ] as const;
 
 export function isConnectedRoute(pathname: string | null | undefined): boolean {

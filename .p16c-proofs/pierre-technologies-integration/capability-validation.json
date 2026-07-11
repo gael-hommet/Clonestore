@@ -1,0 +1,23 @@
+{
+  "count": 215,
+  "derived": true,
+  "selected": [
+    "onboarding.complete_session",
+    "onboarding.complete_step",
+    "onboarding.document_collection",
+    "onboarding.employee_onboarding_plan",
+    "onboarding.get_session",
+    "onboarding.incomplete_handling",
+    "onboarding.registry_steps",
+    "compensation.salary_change_prepare",
+    "contract.prepare_signature",
+    "onboarding.access_provisioning",
+    "onboarding.probation_tracking",
+    "onboarding.reopen_step",
+    "org.assign_site_manager",
+    "org.restructuring_prepare",
+    "absence.approval_workflow",
+    "offboarding.final_pay"
+  ],
+  "secondBrain": false
+}

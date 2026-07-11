@@ -1,0 +1,23 @@
+{
+  "runId": "p15-1-prestripe",
+  "review": "P15.1 — Pre-Stripe Prep / Demo-Only Safe Mode — focused adversarial safety review",
+  "method": "1 independent Opus attacker on the core safety property (nothing enables payment or paid access).",
+  "workflowRunId": "wf_743630b8-c54",
+  "totals": { "claims": 8, "holds": 7, "partial": 1, "refuted": 0, "unsafePaymentPath": false },
+  "verdict_on_review": "No unsafe payment path. resolvePaymentMode can NEVER return 'live' while the P10 const floor is false (even with live keys → disabled); the checkout guard blocks session creation (additive; preserves the no-key 503 + test-mode flow; accidental live keys hard-blocked before any Stripe call); the demo/founder flow activates no paid access; CH/EUR + FR/BE/LU/CHF reconciliation mismatches stay blocked; owner approval alone cannot authorize production; PRODUCTION_AUTHORIZED remains false; P15.1 is additive (only the checkout guard + 2 new p15-1 modules).",
+  "partialFixed": {
+    "id": "PARTIAL-copy-hygiene",
+    "finding": "The P15.1 checkout guard error copy contained the bigram 'compte Stripe live', which the project's own verifyNoLiveClaim (/stripe\\s+live/i) would flag — inconsistent with the report's 'no live claim in copy'. NOT payment-enabling (a 'not-yet' statement), a copy-hygiene defect.",
+    "resolution": "FIXED — reworded the guard copy to 'après l'activation du compte de paiement Stripe et la validation des documents externes' (matching the already-scrubbed PRELAUNCH_NOTICE body). Added a test that extracts the PAYMENT_DISABLED error message and asserts verifyNoLiveClaim(it).safe. (Note: the whole route file still contains 'Stripe LIVE' in a PRE-EXISTING P10 code COMMENT — not user-facing copy — so the test scopes to the error string only.)",
+    "status": "resolved"
+  },
+  "holds": [
+    "resolvePaymentMode never returns 'live' while PRODUCTION_AUTHORIZED const=false (even CLONESTORE_PAYMENT_MODE='live' → disabled)",
+    "checkout guard additive: no-key → existing 503; test key → test session; live keys → PAYMENT_DISABLED before any sessions.create",
+    "demo/founder flow (/demo, /reserver) has no Stripe checkout — activates no paid access",
+    "CH/EUR + FR/BE/LU/CHF reconciliation mismatches stay blocked",
+    "owner approval alone cannot authorize production / paid launch (P10 floor)",
+    "PRODUCTION_AUTHORIZED remains false; nothing in P15.1 lifts it",
+    "P15.1 additive — only the checkout guard + new p15-1 modules; Pierre V1 untouched"
+  ]
+}

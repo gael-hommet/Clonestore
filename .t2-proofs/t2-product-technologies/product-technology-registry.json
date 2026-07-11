@@ -1,0 +1,548 @@
+{
+  "runId": "t2-product-technologies",
+  "entries": [
+    {
+      "id": "cloneos",
+      "status": "integration_ready",
+      "definition": "Le cœur opératoire invisible de CloneStore : transforme une demande brute en travail structuré, exécutable, coordonné et suivi.",
+      "role": "Comprendre l'intention, la transformer en mission, découper en tâches, lier les dépendances, proposer le routage employés, router le contexte, planifier la fusion des résultats et les transitions d'état — puis reprendre les missions.",
+      "dependencies": [
+        "cloneadn",
+        "cloneguard",
+        "clonepolicy",
+        "clonetrust",
+        "clonetrace"
+      ],
+      "sourceModules": [
+        "src/lib/clonestore/cloneos/cloneos-command-center.ts",
+        "src/lib/clonestore/cloneos/cloneos-employee-router.ts",
+        "src/components/cloneos/CloneOsAppShell.tsx"
+      ],
+      "t1TechnologiesConsumed": [
+        "workflow",
+        "permission",
+        "evidence"
+      ],
+      "safeLocalImplementation": "Planification locale : intention → mission → tâches/dépendances → routage proposé → handoffs → plan de fusion → transitions d'état (needs_validation).",
+      "safeFallback": "Plan de mission proposé localement — la gouvernance (Guard/Policy/Trust) et l'humain décident ; aucune exécution.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "plan depuis demande brute",
+        "décomposition + dépendances",
+        "routage sans exécution",
+        "pas de décision RH"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Transforme une demande en plan de mission structuré (tâches, dépendances, routage proposé), en local, sous gouvernance et validation humaine.",
+      "mustNotClaim": [
+        "exécution autonome sans validation",
+        "décisions RH automatiques",
+        "remplacement du cerveau RH Pierre",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "cloneadn",
+      "status": "integration_ready",
+      "definition": "La couche opératoire vivante de l'entreprise : identité, ton, formalité, habitudes de validation/relance, formulations et gabarits récurrents, circuits humains.",
+      "role": "Faire travailler le système comme CETTE entreprise exacte — jamais comme une IA générique.",
+      "dependencies": [],
+      "sourceModules": [
+        "src/lib/clonestore/adn/global-enterprise-memory.ts",
+        "src/lib/clonestore/adn/pierre-adn-bridge.ts",
+        "src/lib/clonestore/empreinte/enterprise-schema.ts"
+      ],
+      "t1TechnologiesConsumed": [
+        "memory"
+      ],
+      "safeLocalImplementation": "Profil d'entreprise local (ton/formalité/circuits/formulations) — propositions uniquement, mutationPolicy=proposals_only.",
+      "safeFallback": "Profil d'entreprise proposé — enrichissements soumis à validation ; jamais de mutation silencieuse.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "artefact de style/contexte",
+        "aucune mutation silencieuse"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Adapte le style de travail (ton, formalité, circuits, formulations) à chaque entreprise, sur la base d'un profil validé par l'humain.",
+      "mustNotClaim": [
+        "apprentissage silencieux du comportement",
+        "mémoire d'entreprise sans contrôle humain",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "cloneguard",
+      "status": "local_safe_ready",
+      "definition": "La couche de gouvernance, risque, validation et refus intelligent de CloneStore.",
+      "role": "Décider ce qui peut être exécuté, préparé sans envoi, validé, bloqué ou refusé — et expliquer pourquoi.",
+      "dependencies": [
+        "clonepolicy",
+        "clonetrust"
+      ],
+      "sourceModules": [
+        "src/lib/pierre/v1/mission-service.ts (decideValidationAction — référence)",
+        "src/lib/clonestore/cloneos/cloneos-command-guard.ts"
+      ],
+      "t1TechnologiesConsumed": [
+        "permission",
+        "evidence"
+      ],
+      "safeLocalImplementation": "Classification normal/sensitive/critical + décision allow_prepare/require_validation/block/refuse + explication ; refus systématique des effets live.",
+      "safeFallback": "En cas de doute : require_validation ou refus — jamais un passage silencieux.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "classification 3 niveaux",
+        "refus critique non sûr",
+        "aucune décision légale finale"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Chaque action passe une porte de gouvernance qui classe le risque, impose la validation humaine et sait refuser — avec explication.",
+      "mustNotClaim": [
+        "conformité légale garantie",
+        "décision juridique automatique",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "clonetrace",
+      "status": "local_safe_ready",
+      "definition": "La couche de traçabilité, timeline, historique, reprise et audit de CloneStore.",
+      "role": "Retenir ce qui s'est passé, dans quel ordre, pourquoi — et permettre une reprise propre.",
+      "dependencies": [],
+      "sourceModules": [
+        "src/lib/pierre/hr/audit-trail.ts (référence)",
+        "src/lib/clonestore/cloneos-history/cloneos-history-runtime.ts"
+      ],
+      "t1TechnologiesConsumed": [
+        "evidence"
+      ],
+      "safeLocalImplementation": "Événement + liens (mission/tâche/artefacts/validations) + raison + pointeur de reprise ; consomme RÉELLEMENT T1 EvidenceTech.",
+      "safeFallback": "Trace locale toujours disponible (événement + pointeur de reprise) — aucun provider requis.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "événement/timeline",
+        "pointeur de reprise",
+        "consommation T1 evidence"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Chaque action est tracée (timeline, raisons, reprise) — auditable à tout moment.",
+      "mustNotClaim": [
+        "archivage légal certifié",
+        "preuve juridique opposable garantie",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "clonevoice",
+      "status": "architecture_ready",
+      "definition": "La couche d'entrée vocale naturelle de CloneStore — architecture prête, voix live NON opérationnelle (aucun provider vérifié).",
+      "role": "Permettre au client de parler naturellement au système : nettoyage du parlé, intention principale, segmentation multi-actions, contexte oral minimal — sur transcript texte.",
+      "dependencies": [],
+      "sourceModules": [
+        "src/lib/clonestore/employee-context-registry/employee-context-registry-clonevoice-contract.ts",
+        "src/lib/clonestore/technologies/t1/technology-contracts.ts (voiceTech)"
+      ],
+      "t1TechnologiesConsumed": [
+        "voice"
+      ],
+      "safeLocalImplementation": "Nettoyage du parlé + segmentation multi-actions + intentions — sur transcript TEXTE ; consomme RÉELLEMENT T1 VoiceTech (fallback canonique).",
+      "safeFallback": "L'entrée texte reste la source de vérité (aucun provider vocal) — transcription fournie par l'humain.",
+      "liveBlockedReason": "Aucun provider vocal vérifié — voix live bloquée ; le chemin texte reste autoritaire (le chemin voix s'ouvrira seulement après vérification externe d'un provider).",
+      "testsRequired": [
+        "fallback texte autoritaire",
+        "aucune revendication voix live",
+        "segmentation/intentions"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Architecture vocale prête : le client dicte/fournit un transcript texte, le système le structure en intentions et actions — sous validation humaine.",
+      "mustNotClaim": [
+        "voix live opérationnelle",
+        "téléphonie live",
+        "reconnaissance vocale en production",
+        "enregistrement audio réel",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "clonepolicy",
+      "status": "local_safe_ready",
+      "definition": "Transforme les règles d'entreprise en comportement machine exécutable (tâches, artefacts, canaux, temps, autonomie, escalade, rôles).",
+      "role": "Faire des règles de l'entreprise un comportement machine réel.",
+      "dependencies": [],
+      "sourceModules": [
+        "src/lib/pierre/v1/tenant-context.ts (requirePermission — référence)",
+        "src/lib/clonestore/adn/rules.ts"
+      ],
+      "t1TechnologiesConsumed": [
+        "permission"
+      ],
+      "safeLocalImplementation": "Règles tâche/artefact/canal/temps/rôle + plafond d'autonomie + escalade → décision ; défauts sûrs fail-closed (canal externe = validation obligatoire).",
+      "safeFallback": "Règles sûres par défaut : validation requise pour tout envoi/signature ; autonomie plafonnée.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "règles validation/autonomie/canal",
+        "défauts sûrs",
+        "ne remplace pas CloneGuard"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Les règles de l'entreprise (validation, canaux, horaires, autonomie, escalade) deviennent un comportement machine appliqué à chaque action.",
+      "mustNotClaim": [
+        "conformité réglementaire garantie",
+        "application sans supervision humaine",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "clonecontinuum",
+      "status": "local_safe_ready",
+      "definition": "Le moteur de continuité des missions au-delà de la première réponse : attentes, reprises, relances, réveils, clôtures et réouvertures propres.",
+      "role": "Faire survivre une mission dans le temps, proprement.",
+      "dependencies": [
+        "clonesignals",
+        "clonetrace"
+      ],
+      "sourceModules": [
+        "src/lib/pierre/v1/runtime-scheduler.ts (référence)"
+      ],
+      "t1TechnologiesConsumed": [
+        "notification"
+      ],
+      "safeLocalImplementation": "Machine d'états de continuité (attentes/reprise/clôture/réouverture) + recommandation de réveil — aucun cron live.",
+      "safeFallback": "État de continuité local + recommandation de réveil — aucun cron live, l'humain relance.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "états de continuité",
+        "aucun scheduler live"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Les missions vivent dans le temps : attentes suivies, reprises propres, recommandations de relance — sous contrôle humain.",
+      "mustNotClaim": [
+        "relances envoyées automatiquement en production",
+        "scheduler autonome live",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "clonetrust",
+      "status": "local_safe_ready",
+      "definition": "L'autonomie graduelle contrôlée : jusqu'où l'employé IA peut agir seul dans CE contexte précis.",
+      "role": "Calculer l'autonomie effective à partir du type de tâche, du risque, de la politique, de l'historique, de la confiance et du rôle du demandeur.",
+      "dependencies": [
+        "clonepolicy",
+        "cloneguard"
+      ],
+      "sourceModules": [
+        "src/lib/pierre/v1/mission-service.ts (decideValidation/P9.5 autonomy — référence)"
+      ],
+      "t1TechnologiesConsumed": [
+        "permission"
+      ],
+      "safeLocalImplementation": "Score + niveau d'autonomie (human_only→autonomous_safe) plafonné par la politique ; critique → human_only toujours.",
+      "safeFallback": "Autonomie minimale par défaut (prepare_only) ; sensible/critique → human_only.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "prepare_only/human_only pour le sensible",
+        "plafond politique",
+        "jamais critique seul"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "L'autonomie se gagne progressivement, par contexte et par historique — les décisions sensibles restent toujours humaines.",
+      "mustNotClaim": [
+        "employé IA totalement autonome",
+        "DRH autonome",
+        "décisions critiques sans humain",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "clonereview",
+      "status": "local_safe_ready",
+      "definition": "La relecture interne professionnelle : contrôle du ton, de la cohérence, de la clarté, des omissions et contradictions avant sortie.",
+      "role": "Vérifier que le travail est assez bon pour sortir comme un vrai travail professionnel — et alerter l'humain sinon.",
+      "dependencies": [
+        "cloneadn"
+      ],
+      "sourceModules": [
+        "src/lib/clonestore/document-style-kit/quality-gates.ts"
+      ],
+      "t1TechnologiesConsumed": [
+        "document"
+      ],
+      "safeLocalImplementation": "Relecture locale : ton, placeholders, clarté, contradictions → rapport + version relue + drapeau revue humaine.",
+      "safeFallback": "Relecture locale best-effort — la revue humaine reste requise pour tout livrable.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "rapport qualité",
+        "drapeau revue humaine",
+        "aucune garantie"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Chaque livrable passe une relecture qualité interne (ton, cohérence, clarté) avant validation humaine.",
+      "mustNotClaim": [
+        "qualité garantie sans relecture humaine",
+        "validation juridique",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "clonesignals",
+      "status": "local_safe_ready",
+      "definition": "Le moteur d'événements et de déclencheurs : quand le système doit réagir même sans nouvelle commande humaine.",
+      "role": "Détecter les situations (retards, silences, échéances, manques, conditions) et proposer des déclenchements — jamais les exécuter live.",
+      "dependencies": [
+        "clonecontinuum",
+        "clonetrace"
+      ],
+      "sourceModules": [
+        "src/lib/pierre/v1/runtime-scheduler.ts (relances — référence)"
+      ],
+      "t1TechnologiesConsumed": [
+        "notification"
+      ],
+      "safeLocalImplementation": "Candidats de déclencheurs (retards/silences/échéances/manques/conditions) — aucun scheduler live, aucun envoi.",
+      "safeFallback": "Candidats de déclencheurs proposés — aucun scheduler live, l'humain arme les rappels.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "candidats de triggers",
+        "aucun cron/notification live"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Le système repère les retards, silences et échéances et propose les bonnes relances — l'humain garde l'armement.",
+      "mustNotClaim": [
+        "relances envoyées automatiquement en production",
+        "surveillance temps réel garantie",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "clonelearn",
+      "status": "local_safe_ready",
+      "definition": "L'apprentissage progressif de l'entreprise : le système devient plus juste avec le temps — par PROPOSITIONS validées, jamais par mutation silencieuse.",
+      "role": "Transformer validations, corrections, reformulations, refus et répétitions en préférences proposées, avec confiance et distinction habitude/exception.",
+      "dependencies": [
+        "cloneadn",
+        "clonetrace"
+      ],
+      "sourceModules": [
+        "src/lib/clonestore/adn/global-enterprise-memory-validation.ts (référence)"
+      ],
+      "t1TechnologiesConsumed": [
+        "memory",
+        "evidence"
+      ],
+      "safeLocalImplementation": "Agrégation d'événements → candidats d'apprentissage (confiance, habitude/exception) — approvalRequired sur chaque candidat, adnMutated=false.",
+      "safeFallback": "Apprentissages PROPOSÉS uniquement — aucune mutation de CloneADN sans validation.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "candidats proposés",
+        "aucune mutation CloneADN"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Le système apprend les habitudes de l'entreprise et propose des améliorations — chaque apprentissage est validé par l'humain avant application.",
+      "mustNotClaim": [
+        "apprentissage autonome silencieux",
+        "le système se reprogramme seul",
+        "entraînement de modèle sur vos données",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "clonebrief",
+      "status": "local_safe_ready",
+      "definition": "La synthèse exécutive : ce que le client doit savoir maintenant — missions, blocages, validations, actions autonomes, décisions.",
+      "role": "Produire les briefings matin/soir et les résumés de mission à partir des faits de CloneTrace/CloneContinuum/CloneSignals — sans jamais inventer.",
+      "dependencies": [
+        "clonetrace",
+        "clonecontinuum",
+        "clonesignals"
+      ],
+      "sourceModules": [
+        "src/lib/clonestore/brief/clonebrief-generator.ts",
+        "src/lib/clonestore/brief/clonebrief-sections.ts"
+      ],
+      "t1TechnologiesConsumed": [
+        "analytics",
+        "export"
+      ],
+      "safeLocalImplementation": "Brief matin/soir sur FAITS FOURNIS uniquement — préparé ≠ fait, blocages jamais masqués.",
+      "safeFallback": "Brief construit uniquement sur les faits fournis — préparé ≠ fait, blocages jamais masqués.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "brief sans invention",
+        "préparé jamais présenté comme fait"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Un brief exécutif clair matin et soir : missions, blocages, validations en attente, décisions à prendre — construit sur les faits tracés.",
+      "mustNotClaim": [
+        "rapport garanti exhaustif",
+        "aucune supervision nécessaire",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "clonecall",
+      "status": "local_safe_ready",
+      "definition": "L'expérience d'appel de son employé IA : transformer un appel en travail structuré — en SAFE LOCAL (aucune téléphonie live, aucun audio réel, aucun appel sortant).",
+      "role": "Créer une session d'appel locale (objectif, préparation, script, transcript texte), en extraire intentions/actions, et enchaîner mission CloneOS + porte CloneGuard + trace + continuité + relances + brief.",
+      "dependencies": [
+        "clonevoice",
+        "cloneos",
+        "cloneguard",
+        "clonetrace",
+        "clonecontinuum",
+        "clonesignals",
+        "clonebrief",
+        "cloneadn"
+      ],
+      "sourceModules": [
+        "(nouveau en T2 — aucune source antérieure)",
+        "src/lib/clonestore/technologies/t1/technology-contracts.ts (voiceTech, notificationTech — références)"
+      ],
+      "t1TechnologiesConsumed": [
+        "voice",
+        "notification",
+        "calendar"
+      ],
+      "safeLocalImplementation": "Session d'appel SAFE LOCAL : objectif/préparation/script/transcript texte → intentions/actions → mission CloneOS + Guard + Trace + Continuum + Signals + Brief ; sortant/live BLOQUÉ.",
+      "safeFallback": "Session d'appel locale sur transcript texte — aucune téléphonie live, aucun appel sortant réel.",
+      "liveBlockedReason": "Téléphonie live et appels sortants BLOQUÉS — aucun provider télécom/audio vérifié, cadre légal non validé ; le chemin sortant live ne s'ouvrira qu'après vérification externe.",
+      "testsRequired": [
+        "session locale",
+        "transcript→intentions/actions",
+        "candidat mission",
+        "trace/continuum/signals/brief",
+        "sortant bloqué"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Appelez votre employé IA en session locale : l'appel (transcript texte) devient préparation, mission proposée, suivi et brief — sous validation humaine.",
+      "mustNotClaim": [
+        "téléphonie live",
+        "appels sortants réels",
+        "voix live opérationnelle",
+        "l'employé IA vous appelle au téléphone",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    },
+    {
+      "id": "cloneroom",
+      "status": "integration_ready",
+      "definition": "La salle de collaboration opérationnelle où humains, CloneOS, employés IA et technologies se coordonnent — toujours via CloneOS, jamais en pair-à-pair anarchique.",
+      "role": "Collecter les messages, garder les participants, convertir les fils en candidats de mission, router le contexte via CloneOS, garder CloneTrace visible.",
+      "dependencies": [
+        "cloneos",
+        "cloneguard",
+        "clonetrace",
+        "clonebrief"
+      ],
+      "sourceModules": [
+        "src/components/cloneroom/CloneRoomConsole.tsx",
+        "src/app/cockpit/room/page.tsx"
+      ],
+      "t1TechnologiesConsumed": [
+        "permission",
+        "evidence"
+      ],
+      "safeLocalImplementation": "Coordination de salle : participants + fil → candidats de mission via CloneOS, routage TOUT-via-CloneOS, garde + trace ; pair-à-pair anarchique bloqué.",
+      "safeFallback": "Coordination par CloneOS uniquement — pas de pair-à-pair anarchique ; l'humain garde la main.",
+      "liveBlockedReason": null,
+      "testsRequired": [
+        "artefact de coordination",
+        "fil→mission",
+        "routage via CloneOS (pas de p2p)"
+      ],
+      "readyForP16A": true,
+      "readyForP16C": true,
+      "claimableNow": "Une salle opérationnelle où l'équipe et les employés IA se coordonnent : les échanges deviennent des missions proposées, tracées et gouvernées.",
+      "mustNotClaim": [
+        "les employés IA collaborent sans supervision",
+        "communication IA-IA non gouvernée",
+        "production live",
+        "paiement live",
+        "Stripe live",
+        "signature live",
+        "email live envoyé automatiquement"
+      ]
+    }
+  ],
+  "fallbacks": {
+    "cloneos": "Plan de mission proposé localement — la gouvernance (Guard/Policy/Trust) et l'humain décident ; aucune exécution.",
+    "cloneadn": "Profil d'entreprise proposé — enrichissements soumis à validation ; jamais de mutation silencieuse.",
+    "cloneguard": "En cas de doute : require_validation ou refus — jamais un passage silencieux.",
+    "clonetrace": "Trace locale toujours disponible (événement + pointeur de reprise) — aucun provider requis.",
+    "clonevoice": "L'entrée texte reste la source de vérité (aucun provider vocal) — transcription fournie par l'humain.",
+    "clonepolicy": "Règles sûres par défaut : validation requise pour tout envoi/signature ; autonomie plafonnée.",
+    "clonecontinuum": "État de continuité local + recommandation de réveil — aucun cron live, l'humain relance.",
+    "clonetrust": "Autonomie minimale par défaut (prepare_only) ; sensible/critique → human_only.",
+    "clonereview": "Relecture locale best-effort — la revue humaine reste requise pour tout livrable.",
+    "clonesignals": "Candidats de déclencheurs proposés — aucun scheduler live, l'humain arme les rappels.",
+    "clonelearn": "Apprentissages PROPOSÉS uniquement — aucune mutation de CloneADN sans validation.",
+    "clonebrief": "Brief construit uniquement sur les faits fournis — préparé ≠ fait, blocages jamais masqués.",
+    "clonecall": "Session d'appel locale sur transcript texte — aucune téléphonie live, aucun appel sortant réel.",
+    "cloneroom": "Coordination par CloneOS uniquement — pas de pair-à-pair anarchique ; l'humain garde la main."
+  }
+}

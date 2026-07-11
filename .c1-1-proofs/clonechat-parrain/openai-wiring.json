@@ -1,0 +1,9 @@
+{
+  "runId": "clonechat-parrain",
+  "routeImportsC11": true,
+  "usesGroundedPrompt": true,
+  "usesRealResponder": true,
+  "validatesCitations": true,
+  "appliesClaimsGuard": true,
+  "c1WiredToOpenAI": true
+}

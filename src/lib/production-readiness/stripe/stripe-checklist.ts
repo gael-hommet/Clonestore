@@ -33,7 +33,7 @@ export const STRIPE_LIVE_CHECKLIST: StripeChecklistItem[] = [
     id: "create_live_webhook_endpoint",
     category: "webhook",
     title: "Créer le webhook live dans le Dashboard Stripe",
-    description: "Créer un endpoint pointant vers https://[domaine]/api/stripe/webhook avec les événements : checkout.session.completed, customer.subscription.updated, customer.subscription.deleted, invoice.payment_failed.",
+    description: "Créer un endpoint pointant vers https://[domaine]/api/webhooks/stripe (route canonique — PAS /api/stripe/webhook) avec les événements : checkout.session.completed, customer.subscription.created, customer.subscription.updated, customer.subscription.deleted, invoice.paid, invoice.payment_failed, charge.refunded, charge.dispute.created, charge.dispute.closed.",
     critical: true,
     stripe_dashboard_path: "Dashboard → Developers → Webhooks → Add endpoint",
   },

@@ -1,0 +1,4 @@
+{
+  "runId": "clonechat-parrain",
+  "note": "buildDocumentLineage calcule toujours missingEvidence ; un ID d'artefact étranger renvoie null (tenant)."
+}

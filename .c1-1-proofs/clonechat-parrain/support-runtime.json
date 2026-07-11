@@ -1,0 +1,23 @@
+{
+  "runId": "clonechat-parrain",
+  "known": {
+    "message": "Problème connu (« démo lente ») — contournement vérifié : mode simplifié Le problème reste suivi ; ce n'est pas encore un correctif. Contexte de page : /demo — Voir CloneStore en action sans compte. Si cela ne suffit pas, je transmets à l'équipe avec votre dossier complet.",
+    "artifact": {
+      "id": "psup_pfnv_5dba1742",
+      "companyId": "company-a",
+      "category": "demo",
+      "severity": "low",
+      "route": "/demo",
+      "redactedDescription": "la démo rame sur mobile",
+      "visualFindings": [],
+      "fileFindings": [],
+      "linkedKnownBugId": "b1",
+      "status": "resolved_workaround",
+      "createdAt": "2026-07-10T00:00:00.000Z"
+    },
+    "askedQuestions": [],
+    "workaround": "mode simplifié",
+    "escalated": false,
+    "learningEligible": false
+  }
+}

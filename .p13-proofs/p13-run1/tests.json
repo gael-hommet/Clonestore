@@ -1,0 +1,31 @@
+{
+  "runId": "p13-run1",
+  "tsc": "0 source errors (stale .next route-validator types filtered; tsconfig restored — no .next-p13 refs).",
+  "p13_suite": {
+    "file": "src/lib/clonestore/founder-acceptance/__tests__/founder-acceptance.test.ts",
+    "passed": 32,
+    "proves": [
+      "founder-vision contract complete (12 pillars, unique ids) + expected pillar ids present",
+      "critical pillars (pierre_is_employee, no_overclaim) exist; criteria/checklists sized",
+      "rejection criteria BLOCK: assistant framing / second HR brain / legal overclaim / production enabled / country mispriced",
+      "scenarios A-G complete + all pass when mustShow satisfied",
+      "launch matrix = exactly FR/BE/LU/CH",
+      "prices: FR/BE/LU 449 EUR, CH 499 CHF",
+      "Swiss cannot be an EUR offer; FR/BE/LU cannot be CHF",
+      "pricing_ready true + currency correct for all 4 (P10)",
+      "legal_ready / tax_ready FALSE without external proof (derived from P11)",
+      "launch_allowed FALSE while P11 external blockers remain",
+      "default verdict = COUNTRY_FIT_PENDING_EXTERNAL (credible, not blocked, not launch-ready); unsupported country = BLOCKED",
+      "safe country copy allowed; unsafe country copy (conforme au droit...) BLOCKS the fit",
+      "evaluateCountryFitAcceptance: overclaim blocks; external-pending-disclosed accepts",
+      "scorecard complete (12 dims, max 36); accepts >=30 with no weak pillar/blocker; a dim<=1 => founder review; any hard blocker => BLOCKED; total<30 => founder review",
+      "REAL P13 evidence (browser P13_FOUNDER_FEEL_OK) => scorecard 33/36 ACCEPTED, no weak pillar (recomputed via evaluateFounderScorecard, not hand-authored)",
+      "A3 (review): the ACTUAL browser founderSignals (read from browser-founder-feel.json) pass A–G through the REAL evaluateAllScenarios — closes the synthetic-inputs tautology"
+    ]
+  },
+  "guardrail_suites": "361/361 (src/lib/clonestore/cloneos + pricing + production) — no regression from P13 additions.",
+  "country_copy_qa": "country-copy-qa.json — 2440 TS/TSX files scanned (fixed-lexicon denylist + manual + adversarial classification, NOT exhaustive NLP — disclosed); 0 unguarded product-facing overclaims; all limits disclosed as pending.",
+  "browser_proof": "browser-founder-feel.json — P13_FOUNDER_FEEL_OK / pass:true. Ephemeral ready-client Supabase session; Playwright large-1600/desktop-1280/tablet-768/mobile-390 (true large screen added per review C3). ALL founder signals true: CloneOS-first, Global Cockpit dirigeant context (workforce/missions/validations/blockers/health/recent), Pierre 'Employé IA RH' + real work desk + no assistant framing (checked all viewports), CloneRoom 6 participants + content-carrying extraction (directSeed + cloneRoomFlow both ok), Mon CloneStore distinct, responsive (large/desktop 3-pane, tablet icon-rail+drawer, mobile bottom-nav), mission composer affordance on desktop label AND mobile button element, no page scroll, no h-overflow, no public footer leak. REAL consoleErrors=0 under a TIGHTENED filter (no longer swallows hydration/parse). 14 devTransients RECORDED transparently (2 investigated dev/HMR signatures — caret-color hydration [caret-color absent from source] + dev chunk 'Invalid or unexpected token'; proven non-product via 4 evidence points incl. p13-cockpit-error-probe clean load). ZERO RESIDUE.",
+  "scorecard_proof": "founder-acceptance-scorecard.json — 33/36 ACCEPTED (honest: cloneroom_salon_clarity=2, country_launch_credibility=2, mobile_usability=2 [review A1: icon-only mobile composer label]; the other 9 = 3). 0 hard blockers.",
+  "adversarial_review": "adversarial-review.json — 9 claims, 5 HOLDS / 4 PARTIAL / 0 REFUTED, 0 security defects. All 4 PARTIALs addressed (A1 score 34→33 + proof strengthened; A2 reframed + 2 strings added + count fixed; A3 tautology closed via real-signal test; C3 tightened filter + true 1600 viewport + transparent devTransients)."
+}

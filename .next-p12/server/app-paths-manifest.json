@@ -1,0 +1,14 @@
+{
+  "/api/founder-access/presence/route": "app/api/founder-access/presence/route.js",
+  "/api/cloneos/landing/route": "app/api/cloneos/landing/route.js",
+  "/api/pierre/v1/missions/route": "app/api/pierre/v1/missions/route.js",
+  "/api/pricing/public/route": "app/api/pricing/public/route.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js",
+  "/agents/pierre/page": "app/agents/pierre/page.js",
+  "/cockpit/page": "app/cockpit/page.js",
+  "/cockpit/room/page": "app/cockpit/room/page.js",
+  "/cockpit/pierre/page": "app/cockpit/pierre/page.js",
+  "/mon-clonestore/page": "app/mon-clonestore/page.js",
+  "/cockpit/pierre/missions/page": "app/cockpit/pierre/missions/page.js"
+}

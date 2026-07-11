@@ -1,0 +1,11 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "routeUsesC11": true,
+  "grounding": "buildParrainGroundedPrompt",
+  "realResponder": "createRealOpenAIResponder(key)",
+  "citationValidation": "validateParrainCitations",
+  "claimsGuard": "finalizeAnswerText",
+  "changedByReveal": false,
+  "note": "cablage C1.1 inchange ; seule la porte de disponibilite a ete inversee (actif par defaut)"
+}

@@ -6,6 +6,8 @@
 // le membership). L'idempotency_key = fingerprint SHA-256 de la commande → V1 dédoublonne
 // la création de mission (exactly-once en reprise). Server-only.
 
+import { AUTONOMY_MODES } from "@/lib/pierre/v1/autonomy";
+
 const ACTIVE_STATUSES = new Set(["queued", "running", "waiting", "paused", "blocked", "planned", "analyzing", "awaiting_validation", "awaiting_approval"]);
 
 export interface V1Ctx {
@@ -33,7 +35,7 @@ function isTerminalStatus(status: number): boolean {
 }
 
 interface FetchOut { ok: boolean; status: number; body: Record<string, unknown> | null; }
-async function v1Fetch(v1: V1Ctx, path: string, method: "GET" | "POST", body?: unknown): Promise<FetchOut> {
+async function v1Fetch(v1: V1Ctx, path: string, method: "GET" | "POST" | "PATCH", body?: unknown): Promise<FetchOut> {
   const res = await fetch(`${v1.base}${path}`, { method, headers: v1.headers, credentials: "same-origin", ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });
   const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
   return { ok: res.ok, status: res.status, body: json };
@@ -46,9 +48,14 @@ function missionIdOf(body: Record<string, unknown> | null): string | null {
   return (body.mission_id as string) ?? (body.id as string) ?? null;
 }
 
-/** Crée une mission (idempotent V1 sur idempotency_key = fingerprint) puis RE-LIT la cible. */
-export async function createMissionV1(v1: V1Ctx, instruction: string, idempotencyKey: string): Promise<V1EffectResult> {
-  const r = await v1Fetch(v1, "/api/pierre/v1/missions", "POST", { instruction, source: `clonechat:${idempotencyKey.slice(0, 12)}`, idempotency_key: idempotencyKey });
+/** Crée une mission (idempotent V1 sur idempotency_key = fingerprint) puis RE-LIT la cible.
+ *  `autonomyMode` = mode moteur P8 RÉSOLU CÔTÉ SERVEUR (défaut d'entreprise) : passé à V1 qui
+ *  gouverne la mission via decideValidation. Jamais fourni par le client. */
+export async function createMissionV1(v1: V1Ctx, instruction: string, idempotencyKey: string, autonomyMode?: string): Promise<V1EffectResult> {
+  const body: Record<string, unknown> = { instruction, source: `clonechat:${idempotencyKey.slice(0, 12)}`, idempotency_key: idempotencyKey };
+  // N'inclure autonomy_mode QUE si c'est un mode moteur P8 valide (garde-fou anti-mode-inconnu).
+  if (autonomyMode && (AUTONOMY_MODES as readonly string[]).includes(autonomyMode)) body.autonomy_mode = autonomyMode;
+  const r = await v1Fetch(v1, "/api/pierre/v1/missions", "POST", body);
   if (!r.ok) return { ok: false, terminal: isTerminalStatus(r.status), error: `mission_create_${r.status}` };
   const missionId = missionIdOf(r.body);
   if (!missionId) return { ok: false, terminal: false, error: "mission_create_no_id" };
@@ -120,4 +127,26 @@ export async function resolvePendingValidationV1(v1: V1Ctx, hintId: string): Pro
     if (pending) return { id: String(pending.id), missionId: String(m.id), version: Number(pending.version ?? 1) };
   }
   return null;
+}
+
+// ── P9.5 — Réglage d'AUTONOMIE d'entreprise (colonne P8 pierre_rt_companies.default_autonomy_mode) ──
+// Source de vérité UNIQUE = la colonne P8, lue/écrite via l'API V1 company (consommation, jamais
+// de modification de fichier P8). Le mode moteur ainsi résolu gouverne createMission (decideValidation).
+
+/** Lit le mode d'autonomie moteur (défaut) de l'entreprise + sa version (concurrence optimiste). */
+export async function readCompanyAutonomyV1(v1: V1Ctx): Promise<{ engineMode: string; version: number } | null> {
+  const r = await v1Fetch(v1, "/api/pierre/v1/company", "GET");
+  if (!r.ok || !r.body) return null;
+  const raw = String(r.body.default_autonomy_mode ?? "");
+  const engineMode = (AUTONOMY_MODES as readonly string[]).includes(raw) ? raw : "normal"; // garde-fou
+  return { engineMode, version: Number(r.body.version ?? 1) };
+}
+
+/** Écrit le mode d'autonomie moteur (PATCH gouverné + version-checké côté P8). `engineMode` DOIT
+ *  être un mode moteur P8 valide (validé par l'appelant produit avant appel). */
+export async function patchCompanyAutonomyV1(v1: V1Ctx, engineMode: string, version: number): Promise<{ ok: boolean; status: number; version?: number; engineMode?: string; terminal?: boolean }> {
+  if (!(AUTONOMY_MODES as readonly string[]).includes(engineMode)) return { ok: false, status: 400, terminal: true };
+  const r = await v1Fetch(v1, "/api/pierre/v1/company", "PATCH", { default_autonomy_mode: engineMode, version });
+  if (!r.ok) return { ok: false, status: r.status, terminal: isTerminalStatus(r.status) };
+  return { ok: true, status: r.status, version: Number(r.body?.version ?? version + 1), engineMode: String(r.body?.default_autonomy_mode ?? engineMode) };
 }

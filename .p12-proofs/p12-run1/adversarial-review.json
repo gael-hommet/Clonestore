@@ -1,0 +1,50 @@
+{
+  "runId": "p12-run1",
+  "review": "P12 — CloneOS App Shell & Cockpits Redesign — independent adversarial review",
+  "method": "3 independent Opus attackers (read-only), each told to REFUTE with file:line evidence + a concrete gap; then synthesized. Groups: (A) separation/confusion/no-2nd-brain, (B) routing/redirect-security/no-page-scroll/responsive, (C) perimeter/CloneRoom/proofs.",
+  "workflowRunId": "wf_32c9f776-d8b",
+  "totals": { "claims": 13, "holds": 11, "partial": 2, "refuted": 0 },
+  "refutedClaims": [],
+  "verdict_on_review": "0 refuted, 0 security defects. 11 HOLDS confirm the core P12 deliverable: 5 distinct areas/routes, no product confusion, CloneOS coordinates≠executes (no 2nd HR brain), Pierre reuses real V1 data + framed 'employé IA RH', Mon CloneStore distinct, server-side auth gate not weakened/faked, no-page-scroll invariant (real scroll-attempt proof), responsive 1280/768/390, P8/P9/P10/P11 + Pierre V1 untouched, tests/proofs real with ZERO RESIDUE. 2 PARTIAL findings were honest over-claims (not security). Both addressed below.",
+  "findings": [
+    {
+      "id": "F1",
+      "claim": "§2 routing: client with incomplete onboarding → /mon-clonestore/setup.",
+      "verdict": "PARTIAL",
+      "severity": "non-blocking / disclosed",
+      "gap": "resolveClientReadiness hardcodes onboardingComplete = isClient (client-readiness.ts:50), so the setup branch of the pure resolveLandingRoute is dead code at runtime — no user is ever redirected to /mon-clonestore/setup. Fail-safe (a paying client is never trapped out of the cockpit); connected/isClient are real; unit-tested at the pure-function level.",
+      "resolution": "ACCEPTED AS-DESIGNED + wording corrected. P12 §12 EXPLICITLY specified a 'safe placeholder resolver — do not fake client status'. The placeholder is therefore spec-compliant, not an accident. No code change: wiring a fine onboarding signal was out of scope and would risk touching P9/onboarding logic. The report/tests wording was corrected to state precisely that the setup branch is present + pure-unit-tested but gated behind a documented safe onboarding placeholder (spec-authorized), so it is not exercised at runtime. The claim was softened accordingly — no longer asserts a live setup redirect.",
+      "status": "resolved-by-honest-disclosure"
+    },
+    {
+      "id": "F2",
+      "claim": "7. CloneRoom is a real operational group chat with action extraction (messages → missions).",
+      "verdict": "PARTIAL",
+      "severity": "functional over-claim (not security)",
+      "gap": "Original CloneRoomConsole buttons ('En faire une mission' / 'Créer une mission RH') always router.push'd the STATIC route /cockpit/pierre/missions regardless of message content — zero content carried. 'action extraction (messages→missions)' was cosmetic. (UI-shell parts — one composer, sender identity, 6-participant rail, no-page-scroll — genuinely HELD.)",
+      "resolution": "REALLY FIXED (owner anti-inflation precedent — implement, don't walk back). Action extraction is now CONTENT-CARRYING: every message carries its own text (RoomMessage.sourceText); 'En faire une mission' → composeMissionRoute(m.sourceText ?? m.text) and 'Créer une mission RH' → composeMissionRoute(lastHuman) build /cockpit/pierre/missions?compose=<encoded message text>. PierreCockpitConsole reads ?compose and opens Pierre's REAL MissionComposer prefilled with that exact text (via a purely additive optional prop initialValue on the P9.3 composer — empty seed = strictly unchanged P9.3 behavior; the real createMission/idempotency path is untouched → still no 2nd HR brain, no persistence claimed). Proven in-browser (browser-shell.json extraction): directSeed ok=true (composer prefilled with the exact probe) AND cloneRoomFlow ok=true (typed message → button → ?compose carries it → composer prefilled with the same text). New unit test asserts the content-carrying wiring. The claim is now accurate and narrowly scoped: a message is handed to Pierre's real composer as a seed (CloneOS does NOT parse/understand or autonomously create missions).",
+      "status": "resolved-by-real-fix"
+    },
+    {
+      "id": "F3-extra",
+      "claim": "(surfaced by the deeper interaction proof, not by the attackers) The public site footer (cs-footer) leaked onto the no-page-scroll cockpit console and intercepted the CloneRoom composer.",
+      "verdict": "REAL (chrome leak)",
+      "severity": "polish/correctness on P12 surfaces",
+      "gap": "The <footer class='cs-footer'> was rendered in the root layout for every route; on cos-root console routes it overlapped the work area and (in Playwright) intercepted pointer events over the composer.",
+      "resolution": "FIXED, mirroring SiteHeader. Extracted the footer into a client SiteFooter that returns null when isCockpitSurfaceRoute(pathname) — i.e. hidden ONLY on /cockpit, /cockpit/pierre*, /cockpit/room. It stays strictly unchanged everywhere else (public site, /mon-clonestore, /profile, /agents/pierre/use [P9.3], /assistant [P9.4], /) — so P8/P9/P10/P11 rendered surfaces are NOT altered. Proven: browser-shell.json room.noPublicFooter true on desktop+mobile. Homepage non-regression test updated to assert the footer is conserved (now via <SiteFooter/>, identical cs-footer markup).",
+      "status": "resolved-by-real-fix"
+    }
+  ],
+  "otherAttackerNotes": [
+    "Bottom-nav 'Employés' points to /cockpit/pierre (single-employee cockpit) — acceptable while Pierre is the only employee; becomes a roster when a 2nd employee ships. Disclosed.",
+    "Middleware uses getSession() (cookie decode) for the unauthenticated gate; authoritative enforcement remains requireReadyClient/getUser on every cockpit page + V1 API token validation → worst case a forged cookie briefly sees shell chrome, no data exposure. Not weakened.",
+    "'0 console errors' is post a BENIGN filter (401/403/404/503, hydration, webpack, Invalid/Unexpected JSON). Disclosed in the report; the extraction assertions are exact-string equality (not filtered).",
+    "Method limitation: no per-phase git commits (whole project uncommitted), so 'untouched' rests on the P12-marker grep + reuse-import inspection, both supporting the claim."
+  ],
+  "post_fix_gates": {
+    "tsc": "0 source errors",
+    "p12_unit": "cloneos contract 7 + shell invariants 8 (added content-carrying extraction test) = 15; cloneos dir + pierre cockpit + guided-tour suites all green",
+    "non_regression": "14318 passed across src/lib + src/components; 5 pre-existing failures only (4 premium-document-system — identical in the P9.4.2 baseline log; 1 fair-claim = resource-contention timeout, passes in 5.2s isolated). None in P12-touched files.",
+    "browser_proof": "P12_SHELL_OK / pass:true — 3 viewports, redirects, no-page-scroll, no-overflow, framing, CloneRoom 6 participants, Mon CloneStore distinct, footer NOT leaking, action extraction directSeed+cloneRoomFlow both ok, 0 console errors, ZERO RESIDUE."
+  }
+}

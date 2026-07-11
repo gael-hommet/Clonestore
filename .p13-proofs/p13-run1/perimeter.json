@@ -1,0 +1,30 @@
+{
+  "runId": "p13-run1",
+  "scope": "P13 — Founder Vision Acceptance & Launch Country Product Fit QA (a QA gate, not a build/go-live/legal validation).",
+  "new_files": [
+    "src/lib/clonestore/founder-acceptance/founder-vision-contract.ts (12 pillars, acceptance/rejection criteria, checklists, evaluators)",
+    "src/lib/clonestore/founder-acceptance/founder-acceptance-scenarios.ts (A-G walkthroughs)",
+    "src/lib/clonestore/founder-acceptance/launch-country-fit.ts (FR/BE/LU/CH matrix — DERIVES from verified P10/P11 modules)",
+    "src/lib/clonestore/founder-acceptance/founder-acceptance-scorecard.ts (12 dims × 0-3, >=30 accept, hard blockers)",
+    "src/lib/clonestore/founder-acceptance/__tests__/founder-acceptance.test.ts (31 tests)",
+    "scripts/p13-founder-feel-e2e.mjs (browser proof)",
+    "scripts/p13-cleanup-sweep.mjs (zero-residue sweep)",
+    "scripts/p13-devartifact-probe.mjs (public-page control — proves dev artifacts are not global)",
+    "scripts/p13-cockpit-error-probe.mjs (authed detail probe — proves clean load = 0 hydration/parse errors)",
+    ".p13-proofs/p13-run1/* (country-copy-qa, browser-founder-feel, founder-acceptance-scorecard, perimeter, tests, adversarial-review, final-verdict)",
+    "docs/qa-screenshots/p13-founder/* (12 screenshots)"
+  ],
+  "modified_files": [
+    "NONE that touch product surfaces or protected phases. (tsconfig.json auto-received .next-p13/types during the isolated dev run and was RESTORED — net unchanged.)"
+  ],
+  "p13_is_pure_qa": "The 4 founder-acceptance modules are PURE evaluators (no I/O except the P11 evaluators reading env). P13 does NOT rebuild any product surface; it MEASURES the existing P12 surfaces + P10/P11 readiness.",
+  "no_second_hr_brain": "founder-acceptance modules contain NO HR logic; all HR data still flows through the real V1 hook (useOperationalCockpit) in the P12 consoles. launch-country-fit imports and reuses the verified P10/P11 evaluators.",
+  "pierre_v1_untouched": true,
+  "p8_to_p12_untouched": "No file under src/lib/pierre/v1/**, src/app/api/pierre/v1/**, src/lib/clonestore/pricing/**, src/lib/clonestore/production/**, or the P12 cockpit components (src/components/cloneos|cockpit|cloneroom|mon-clonestore) was modified for P13. Grep for P13/founder-acceptance markers in those dirs = 0.",
+  "pierre_framing": "Pierre framed 'Employé IA RH' everywhere; browser proof asserts no assistant/chatbot/copilote framing. P13 rejection criteria + scorecard hard-block assistant framing.",
+  "country_copy": "0 product-facing legal/country/provider/production overclaims (country-copy-qa.json, 2439 files scanned). All limits disclosed as PENDING; no final legal/tax advice presented.",
+  "production": "PRODUCTION_AUTHORIZED (P10) untouched (false). No provider enabled, no live Stripe, no migration applied.",
+  "isolated_dev": "Browser proof ran on an isolated dev server (port 3273, NEXT_DIST_DIR=.next-p13) so P8/.next and other lanes are untouched. tsconfig .next-p13/types auto-add RESTORED after.",
+  "no_secrets_printed": true,
+  "git": "nothing staged/committed/pushed/deployed."
+}

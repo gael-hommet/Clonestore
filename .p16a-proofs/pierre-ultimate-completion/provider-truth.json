@@ -1,0 +1,15 @@
+{
+  "onboardingProviders": [
+    "identity_provider",
+    "Push temps réel indisponible — rappels cockpit uniquement."
+  ],
+  "t1LiveBlocked": [
+    {
+      "techId": "notification",
+      "reason": "Relances/rappels gouvernés.",
+      "liveBlocked": true,
+      "blockedReason": "Push temps réel indisponible — rappels cockpit uniquement."
+    }
+  ],
+  "noFabricatedSend": true
+}

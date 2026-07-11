@@ -1,0 +1,559 @@
+{
+  "accepted": {
+    "accepted": true,
+    "rejectedReason": null,
+    "reinterpretedHr": false,
+    "issues": [],
+    "contract": {
+      "version": 1,
+      "requestId": "cc",
+      "companyId": "co-1",
+      "actorId": "user-1",
+      "instruction": "Prépare l'onboarding de Sarah lundi",
+      "nowIso": "2026-07-13",
+      "understanding": {
+        "normalizedObjective": "Demande opérationnelle: general",
+        "requestKind": "OPERATION",
+        "desiredOutcomes": [
+          "Tâche RH préparée"
+        ],
+        "relevantDomains": [
+          "onboarding",
+          "compensation",
+          "contract",
+          "org",
+          "offboarding",
+          "offer"
+        ],
+        "confidence": 0.5,
+        "resolvedDates": [
+          {
+            "status": "resolved",
+            "original": "lundi",
+            "iso": "2026-07-20",
+            "kind": "weekday",
+            "reason": "weekday_lundi"
+          }
+        ],
+        "resolvedEntities": [
+          {
+            "kind": "employee",
+            "status": "resolved",
+            "id": "emp-sarah",
+            "label": "Sarah",
+            "candidates": [],
+            "reason": "unique_match"
+          }
+        ],
+        "multiIntent": false
+      },
+      "clarification": {
+        "questions": [],
+        "blocksExecution": false
+      },
+      "selectedCapabilityIds": [
+        "onboarding.complete_session",
+        "onboarding.complete_step",
+        "onboarding.document_collection",
+        "onboarding.employee_onboarding_plan",
+        "onboarding.get_session",
+        "onboarding.incomplete_handling",
+        "onboarding.registry_steps",
+        "compensation.salary_change_prepare",
+        "contract.prepare_signature",
+        "onboarding.access_provisioning",
+        "onboarding.probation_tracking",
+        "onboarding.reopen_step",
+        "org.restructuring_prepare",
+        "offboarding.final_pay",
+        "offer.candidate_to_employee",
+        "offer.signature_collection"
+      ],
+      "selectedCapabilities": [
+        {
+          "id": "onboarding.complete_session",
+          "domain": "onboarding",
+          "label": "Complete onboarding session (READY gate)",
+          "score": 9,
+          "autonomy": "execute_with_validation",
+          "closureStatus": "VERIFIED_EXISTING",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "validation_required"
+        },
+        {
+          "id": "onboarding.complete_step",
+          "domain": "onboarding",
+          "label": "Complete onboarding step (server-verified + evidence hash)",
+          "score": 9,
+          "autonomy": "execute_with_validation",
+          "closureStatus": "VERIFIED_EXISTING",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "validation_required"
+        },
+        {
+          "id": "onboarding.document_collection",
+          "domain": "onboarding",
+          "label": "Onboarding document collection & chase",
+          "score": 9,
+          "autonomy": "execute_with_validation",
+          "closureStatus": "IMPLEMENTED_GOVERNED",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "validation_required"
+        },
+        {
+          "id": "onboarding.employee_onboarding_plan",
+          "domain": "onboarding",
+          "label": "Employee onboarding plan (preboarding, access, equipment, buddy, checkpoints)",
+          "score": 9,
+          "autonomy": "prepare_draft",
+          "closureStatus": "IMPLEMENTED_GOVERNED",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "prepare"
+        },
+        {
+          "id": "onboarding.get_session",
+          "domain": "onboarding",
+          "label": "Get onboarding session state + steps",
+          "score": 9,
+          "autonomy": "execute_autonomous",
+          "closureStatus": "VERIFIED_EXISTING",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "execute_local"
+        },
+        {
+          "id": "onboarding.incomplete_handling",
+          "domain": "onboarding",
+          "label": "Detect & escalate incomplete onboarding",
+          "score": 9,
+          "autonomy": "execute_autonomous",
+          "closureStatus": "IMPLEMENTED_GOVERNED",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "execute_local"
+        },
+        {
+          "id": "onboarding.registry_steps",
+          "domain": "onboarding",
+          "label": "Canonical onboarding step registry",
+          "score": 9,
+          "autonomy": "execute_autonomous",
+          "closureStatus": "VERIFIED_EXISTING",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "execute_local"
+        },
+        {
+          "id": "compensation.salary_change_prepare",
+          "domain": "compensation",
+          "label": "Prepare salary change (feeds contract amendment)",
+          "score": 7,
+          "autonomy": "prepare_draft",
+          "closureStatus": "IMPLEMENTED_GOVERNED",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "prepare"
+        },
+        {
+          "id": "contract.prepare_signature",
+          "domain": "contract",
+          "label": "Prepare contract for signature (idempotent)",
+          "score": 7,
+          "autonomy": "execute_with_validation",
+          "closureStatus": "VERIFIED_EXISTING",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "validation_required"
+        },
+        {
+          "id": "onboarding.access_provisioning",
+          "domain": "onboarding",
+          "label": "Account/access provisioning",
+          "score": 7,
+          "autonomy": "prepare_draft",
+          "closureStatus": "IMPLEMENTED_EXTERNAL_GOVERNED",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": true,
+          "providers": [
+            "identity_provider"
+          ],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "provider_blocked"
+        },
+        {
+          "id": "onboarding.probation_tracking",
+          "domain": "onboarding",
+          "label": "Probation checkpoints & end-of-probation prompt",
+          "score": 7,
+          "autonomy": "execute_autonomous",
+          "closureStatus": "IMPLEMENTED_LEGAL_BLOCKED",
+          "humanOnly": false,
+          "legalDependency": true,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [
+            "probation_periods"
+          ],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "prepare"
+        },
+        {
+          "id": "onboarding.reopen_step",
+          "domain": "onboarding",
+          "label": "Reopen completed step (governed recovery)",
+          "score": 7,
+          "autonomy": "execute_with_validation",
+          "closureStatus": "VERIFIED_EXISTING",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "validation_required"
+        },
+        {
+          "id": "org.restructuring_prepare",
+          "domain": "org",
+          "label": "Prepare restructuring scenarios (analysis only)",
+          "score": 7,
+          "autonomy": "observe_only",
+          "closureStatus": "IMPLEMENTED_LEGAL_BLOCKED",
+          "humanOnly": false,
+          "legalDependency": true,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [
+            "employee_representation"
+          ],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "prepare"
+        },
+        {
+          "id": "offboarding.final_pay",
+          "domain": "offboarding",
+          "label": "Prepare final pay & documents (STC)",
+          "score": 4,
+          "autonomy": "prepare_draft",
+          "closureStatus": "IMPLEMENTED_LEGAL_BLOCKED",
+          "humanOnly": false,
+          "legalDependency": true,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [
+            "payroll_contributions"
+          ],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "prepare"
+        },
+        {
+          "id": "offer.candidate_to_employee",
+          "domain": "offer",
+          "label": "Convert candidate → employee (onboarding handoff)",
+          "score": 4,
+          "autonomy": "execute_with_validation",
+          "closureStatus": "IMPLEMENTED_GOVERNED",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": false,
+          "providers": [],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "validation_required"
+        },
+        {
+          "id": "offer.signature_collection",
+          "domain": "offer",
+          "label": "Collect offer/pre-hire signatures",
+          "score": 4,
+          "autonomy": "execute_with_validation",
+          "closureStatus": "IMPLEMENTED_EXTERNAL_GOVERNED",
+          "humanOnly": false,
+          "legalDependency": false,
+          "providerDependency": true,
+          "providers": [
+            "signature_provider"
+          ],
+          "countryRuleFamilies": [],
+          "requiredInputs": [],
+          "expectedArtifacts": [],
+          "disposition": "provider_blocked"
+        }
+      ],
+      "capabilityCount": 215,
+      "capabilityCountDerivedFromRegistry": true,
+      "missionProposal": {
+        "objective": "Demande opérationnelle: general",
+        "tasks": [
+          {
+            "key": "outline.1.onboarding.complete_session",
+            "label": "Préparer: Complete onboarding session (READY gate)",
+            "dependsOn": [],
+            "mode": "CONFIRMATION_REQUIRED",
+            "requiresApproval": true
+          },
+          {
+            "key": "outline.2.onboarding.complete_step",
+            "label": "Préparer: Complete onboarding step (server-verified + evidence hash)",
+            "dependsOn": [
+              "outline.1.onboarding.complete_session"
+            ],
+            "mode": "CONFIRMATION_REQUIRED",
+            "requiresApproval": true
+          },
+          {
+            "key": "outline.3.onboarding.document_collection",
+            "label": "Préparer: Onboarding document collection & chase",
+            "dependsOn": [
+              "outline.1.onboarding.complete_session"
+            ],
+            "mode": "CONFIRMATION_REQUIRED",
+            "requiresApproval": true
+          },
+          {
+            "key": "outline.4.onboarding.employee_onboarding_plan",
+            "label": "Préparer: Employee onboarding plan (preboarding, access, equipment, buddy, checkpoints)",
+            "dependsOn": [
+              "outline.1.onboarding.complete_session"
+            ],
+            "mode": "CONFIRMATION_REQUIRED",
+            "requiresApproval": true
+          },
+          {
+            "key": "outline.5.onboarding.get_session",
+            "label": "Préparer: Get onboarding session state + steps",
+            "dependsOn": [
+              "outline.1.onboarding.complete_session"
+            ],
+            "mode": "AUTONOMOUS",
+            "requiresApproval": false
+          },
+          {
+            "key": "outline.6.onboarding.incomplete_handling",
+            "label": "Préparer: Detect & escalate incomplete onboarding",
+            "dependsOn": [
+              "outline.1.onboarding.complete_session"
+            ],
+            "mode": "AUTONOMOUS",
+            "requiresApproval": false
+          },
+          {
+            "key": "outline.7.onboarding.registry_steps",
+            "label": "Préparer: Canonical onboarding step registry",
+            "dependsOn": [
+              "outline.1.onboarding.complete_session"
+            ],
+            "mode": "AUTONOMOUS",
+            "requiresApproval": false
+          },
+          {
+            "key": "outline.8.compensation.salary_change_prepare",
+            "label": "Préparer: Prepare salary change (feeds contract amendment)",
+            "dependsOn": [
+              "outline.1.onboarding.complete_session"
+            ],
+            "mode": "CONFIRMATION_REQUIRED",
+            "requiresApproval": true
+          }
+        ],
+        "deliverables": [],
+        "completionCriteria": [
+          "Tous les livrables préparés et relus.",
+          "Action live débloquée par un provider actif (P16C/externe)."
+        ],
+        "executableNow": false,
+        "blockers": [],
+        "source": "capability_derived_outline"
+      },
+      "autonomy": {
+        "overallDisposition": "provider_blocked",
+        "requiredValidations": [
+          "Validation humaine avant effet: Complete onboarding session (READY gate)",
+          "Validation humaine avant effet: Complete onboarding step (server-verified + evidence hash)",
+          "Validation humaine avant effet: Onboarding document collection & chase",
+          "Validation humaine avant effet: Employee onboarding plan (preboarding, access, equipment, buddy, checkpoints)",
+          "Validation humaine avant effet: Prepare salary change (feeds contract amendment)",
+          "Validation humaine avant effet: Prepare contract for signature (idempotent)",
+          "Validation humaine avant effet: Account/access provisioning",
+          "Validation humaine avant effet: Probation checkpoints & end-of-probation prompt",
+          "Validation humaine avant effet: Reopen completed step (governed recovery)",
+          "Validation humaine avant effet: Prepare restructuring scenarios (analysis only)",
+          "Validation humaine avant effet: Prepare final pay & documents (STC)",
+          "Validation humaine avant effet: Convert candidate → employee (onboarding handoff)"
+        ],
+        "humanOnlyDecisions": [],
+        "guardLevel": "green"
+      },
+      "continuity": {
+        "isContinuation": false,
+        "kind": "none",
+        "isCorrection": false,
+        "targetKind": "none",
+        "targetId": null,
+        "ambiguousCandidates": [],
+        "requiresAuthoritativeRead": false,
+        "nextStep": "PREPARE_PLAN",
+        "reason": "no_continuity_cue"
+      },
+      "contextRequirements": [
+        "Contexte société autorisé (dossier, politique, ton) requis — jamais fabriqué."
+      ],
+      "documentEvidenceRequirements": [],
+      "providerDependencies": [
+        "identity_provider",
+        "signature_provider",
+        "Push temps réel indisponible — rappels cockpit uniquement."
+      ],
+      "legalDependencies": [
+        "probation_periods",
+        "employee_representation",
+        "payroll_contributions"
+      ],
+      "blockedReasons": [
+        {
+          "code": "provider_blocked",
+          "detail": "identity_provider"
+        },
+        {
+          "code": "provider_blocked",
+          "detail": "signature_provider"
+        },
+        {
+          "code": "provider_blocked",
+          "detail": "Push temps réel indisponible — rappels cockpit uniquement."
+        },
+        {
+          "code": "legal_blocked",
+          "detail": "probation_periods; employee_representation; payroll_contributions"
+        }
+      ],
+      "t1Needs": [
+        {
+          "techId": "workflow",
+          "reason": "Orchestration de workflow gouverné (le moteur de missions V1 reste la source).",
+          "liveBlocked": false,
+          "blockedReason": null
+        },
+        {
+          "techId": "notification",
+          "reason": "Relances/rappels gouvernés.",
+          "liveBlocked": true,
+          "blockedReason": "Push temps réel indisponible — rappels cockpit uniquement."
+        },
+        {
+          "techId": "document",
+          "reason": "Rendu/gabarits documentaires (préparation, jamais garantie légale).",
+          "liveBlocked": false,
+          "blockedReason": null
+        },
+        {
+          "techId": "export",
+          "reason": "Export documentaire (téléchargement manuel, aucun transfert live).",
+          "liveBlocked": false,
+          "blockedReason": null
+        }
+      ],
+      "t2Needs": [
+        {
+          "techId": "clonebrief",
+          "reason": "Brief de mission/communication structuré."
+        },
+        {
+          "techId": "cloneadn",
+          "reason": "ADN société (ton/contexte autorisé) pour ancrer les documents."
+        },
+        {
+          "techId": "clonereview",
+          "reason": "Relecture/qualité du livrable."
+        },
+        {
+          "techId": "clonecontinuum",
+          "reason": "Continuité de mission durable."
+        }
+      ],
+      "cloneChatExplanation": {
+        "summary": "Une ou plusieurs actions nécessitent un provider live (bloqué). Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+        "disclosure": "Pierre prépare le travail RH et transforme vos demandes en missions gouvernées ; toute action sensible passe par une validation humaine et rien n'est envoyé ni signé sans provider actif. L'exécution légale automatique par pays n'est PAS disponible aujourd'hui (0 règle pays vérifiée par un juriste).",
+        "safeToShowUser": true
+      },
+      "authoritativeReferences": [
+        "hr-canon/capability-registry (HR_CAPABILITIES)",
+        "hr-canon/capability-closure (CLOSED_HR_CAPABILITIES)",
+        "cloneguard.evaluateGuard",
+        "autonomy.decideValidation"
+      ],
+      "canonicalItemsInvolved": [
+        "pierre.onboarding_offboarding",
+        "pierre.document_depth",
+        "pierre.mission_depth"
+      ],
+      "statusExplanation": "Une ou plusieurs actions nécessitent un provider live (bloqué). Dépendance légale/pays — jamais de garantie de conformité ; revue humaine requise.",
+      "nextSafeStep": "Préparer localement ; l'action live nécessite un provider actif (P16C/externe)."
+    },
+    "humanOnly": false,
+    "forbiddenEntities": [],
+    "unknownCapabilities": [],
+    "unknownTechnologies": []
+  },
+  "rejects": {
+    "version": "Version de contrat non supportée : 2.",
+    "tenant": "Tenant du contrat ≠ tenant serveur — refus cross-tenant."
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "runId": "clonechat-parrain",
+  "checks": [
+    {
+      "sourceId": "src.route_registry",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": "pfnv_b5308775",
+        "recordedHash": "pfnv_b5308775",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.site_index",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": "pfnv_a1611347",
+        "recordedHash": "pfnv_a1611347",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.capability_registry",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": "pfnv_4b12fb67",
+        "recordedHash": "pfnv_4b12fb67",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.t1_registry",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": "pfnv_c64fa909",
+        "recordedHash": "pfnv_c64fa909",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.t2_registry",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": "pfnv_a2720051",
+        "recordedHash": "pfnv_a2720051",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.pricing_resolver",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": "pfnv_f3196b90",
+        "recordedHash": "pfnv_f3196b90",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.c1_product_truth",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": "pfnv_a1611347",
+        "recordedHash": "pfnv_a1611347",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.readiness_reports",
+      "check": {
+        "status": "UNKNOWN",
+        "liveHash": null,
+        "recordedHash": "static",
+        "reason": "Empreinte live indisponible pour cette source."
+      }
+    },
+    {
+      "sourceId": "src.support_memory",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": null,
+        "recordedHash": "session",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.bug_memory",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": null,
+        "recordedHash": "live",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.company_context",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": null,
+        "recordedHash": "session",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.uploaded_documents",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": null,
+        "recordedHash": "session",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.generated_documents",
+      "check": {
+        "status": "CURRENT",
+        "liveHash": null,
+        "recordedHash": "session",
+        "reason": "Dérivé à la demande de la source canonique."
+      }
+    },
+    {
+      "sourceId": "src.code_index",
+      "check": {
+        "status": "UNKNOWN",
+        "liveHash": null,
+        "recordedHash": "generated",
+        "reason": "Empreinte live indisponible pour cette source."
+      }
+    },
+    {
+      "sourceId": "src.secrets",
+      "check": {
+        "status": "UNKNOWN",
+        "liveHash": null,
+        "recordedHash": "never",
+        "reason": "Empreinte live indisponible pour cette source."
+      }
+    }
+  ]
+}

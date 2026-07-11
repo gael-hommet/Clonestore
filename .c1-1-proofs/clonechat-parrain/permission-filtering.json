@@ -1,0 +1,6 @@
+{
+  "runId": "clonechat-parrain",
+  "secretBlindEverywhere": true,
+  "codeClientBlind": true,
+  "codeFounderVisible": true
+}

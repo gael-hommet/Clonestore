@@ -1,0 +1,21 @@
+{
+  "requirements": [
+    "Déclencheurs = CANDIDATS locaux (aucun scheduler/notification live) ; armement humain.",
+    "Candidats de relance dédupliqués: validation_late."
+  ],
+  "candidates": {
+    "artifactKind": "clonesignals_candidates",
+    "missionId": "trace-15",
+    "candidates": [
+      {
+        "signalKind": "validation_late",
+        "detail": "Validation en attente depuis 48h.",
+        "proposedAction": "remind",
+        "recommendedInHours": 4
+      }
+    ],
+    "liveSchedulerUsed": false,
+    "cronCreated": false,
+    "notificationSentLive": false
+  }
+}

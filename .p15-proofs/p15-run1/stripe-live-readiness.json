@@ -1,0 +1,22 @@
+{
+  "runId": "p15-run1",
+  "readonly": true,
+  "createdSession": false,
+  "createdPayment": false,
+  "createdCustomer": false,
+  "masked": {
+    "STRIPE_SECRET_KEY": "sk_test_…TG3R (len=107)",
+    "STRIPE_WEBHOOK_SECRET": "whsec_23…7593 (len=70)",
+    "EUR_PRICE_ID": "(configured)",
+    "CHF_PRICE_ID": "(absent)"
+  },
+  "mode": "test",
+  "noCrossCurrencyFallback": true,
+  "eurPriceVerification": null,
+  "chfPriceVerification": null,
+  "verdict": "TEST_MODE_BLOCKED",
+  "blockers": [
+    "Clé Stripe TEST — jamais acceptée pour la readiness LIVE."
+  ],
+  "note": "READ-ONLY : aucun checkout/paiement/customer/subscription créé ; aucun secret imprimé. Critères EUR 44900/eur/month, CHF 49900/chf/month (verifyStripePrice unit-testé). Sans clés live → EXTERNAL_BLOCKED honnête."
+}

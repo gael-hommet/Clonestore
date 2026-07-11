@@ -1,0 +1,170 @@
+[
+  {
+    "id": "int.document_adapter",
+    "title": "PierreDocumentTechAdapter",
+    "masterSource": "P16_MASTER_SPLIT.INTEGRATION",
+    "masterStatus": "not_built",
+    "sourceLayer": "pierre",
+    "destinationLayer": "t1_t2",
+    "t1": [
+      "document",
+      "export"
+    ],
+    "t2": [
+      "cloneadn",
+      "clonereview",
+      "clonebrief"
+    ],
+    "governanceRequirement": "Document préparé localement ; validation humaine obligatoire ; aucune garantie légale.",
+    "externalDependency": null,
+    "expectedStatus": "integrated_local_safe"
+  },
+  {
+    "id": "int.mail_adapter",
+    "title": "PierreMailTechAdapter",
+    "masterSource": "P16_MASTER_SPLIT.INTEGRATION",
+    "masterStatus": "not_built",
+    "sourceLayer": "pierre",
+    "destinationLayer": "t1",
+    "t1": [
+      "mail"
+    ],
+    "t2": [],
+    "governanceRequirement": "Brouillon préparé ; « préparé » ne devient JAMAIS « envoyé » ; envoi live bloqué.",
+    "externalDependency": "Domaine/provider email live non vérifié — envoi bloqué.",
+    "expectedStatus": "integrated_local_safe"
+  },
+  {
+    "id": "int.calendar_adapter",
+    "title": "PierreCalendarTechAdapter",
+    "masterSource": "P16_MASTER_SPLIT.INTEGRATION",
+    "masterStatus": "not_built",
+    "sourceLayer": "pierre",
+    "destinationLayer": "t1",
+    "t1": [
+      "calendar"
+    ],
+    "t2": [],
+    "governanceRequirement": "Événement préparé ; action provider live bloquée ; l'humain copie/valide.",
+    "externalDependency": "Provider calendrier live indisponible.",
+    "expectedStatus": "integrated_local_safe"
+  },
+  {
+    "id": "int.signature_adapter",
+    "title": "PierreSignatureTechAdapter",
+    "masterSource": "P16_MASTER_SPLIT.INTEGRATION",
+    "masterStatus": "architecture_ready",
+    "sourceLayer": "pierre",
+    "destinationLayer": "t1",
+    "t1": [
+      "signature"
+    ],
+    "t2": [],
+    "governanceRequirement": "Paquet de signature préparé (circuit manuel) ; « préparé » ≠ « signé » ; Yousign live bloqué.",
+    "externalDependency": "Signature live (Yousign P8.7.4) bloquée — fallback préparé.",
+    "expectedStatus": "integrated_local_safe"
+  },
+  {
+    "id": "int.voice_adapter",
+    "title": "PierreVoiceTechAdapter",
+    "masterSource": "P16_MASTER_SPLIT.INTEGRATION",
+    "masterStatus": "not_built",
+    "sourceLayer": "pierre",
+    "destinationLayer": "t1_t2",
+    "t1": [
+      "voice"
+    ],
+    "t2": [
+      "clonevoice"
+    ],
+    "governanceRequirement": "Entrée texte AUTORITAIRE ; aucun audio traité ; aucune revendication voix live.",
+    "externalDependency": "Aucun provider vocal vérifié — voix live bloquée (roadmap).",
+    "expectedStatus": "architecture_ready"
+  },
+  {
+    "id": "int.notification_adapter",
+    "title": "PierreNotificationTechAdapter",
+    "masterSource": "P16_MASTER_SPLIT.INTEGRATION",
+    "masterStatus": "not_built",
+    "sourceLayer": "pierre",
+    "destinationLayer": "t1_t2",
+    "t1": [
+      "notification"
+    ],
+    "t2": [
+      "clonesignals"
+    ],
+    "governanceRequirement": "Rappel cockpit préparé ; « rappel créé » ≠ « push délivré » ; push live bloqué.",
+    "externalDependency": "Aucun provider push — rappels cockpit uniquement.",
+    "expectedStatus": "integrated_local_safe"
+  },
+  {
+    "id": "int.analytics_adapter",
+    "title": "PierreAnalyticsTechAdapter",
+    "masterSource": "P16_MASTER_SPLIT.INTEGRATION",
+    "masterStatus": "not_built",
+    "sourceLayer": "pierre",
+    "destinationLayer": "t1",
+    "t1": [
+      "analytics"
+    ],
+    "t2": [],
+    "governanceRequirement": "Métriques locales préparées ; ROI = ESTIMATION (jamais garanti) ; calcul réel via analytics.compute (RLS).",
+    "externalDependency": null,
+    "expectedStatus": "integrated_local_safe"
+  },
+  {
+    "id": "int.evidence_adapter",
+    "title": "PierreEvidenceTechAdapter",
+    "masterSource": "P16_MASTER_SPLIT.INTEGRATION",
+    "masterStatus": "architecture_ready",
+    "sourceLayer": "pierre",
+    "destinationLayer": "t1_t2",
+    "t1": [
+      "evidence"
+    ],
+    "t2": [
+      "clonetrace"
+    ],
+    "governanceRequirement": "Trace/preuve d'audit disponible pour toute action (même fallback) ; provenance préservée ; aucun secret.",
+    "externalDependency": null,
+    "expectedStatus": "integrated_local_safe"
+  },
+  {
+    "id": "int.workflow_adapter",
+    "title": "PierreWorkflowTechAdapter",
+    "masterSource": "P16_MASTER_SPLIT.INTEGRATION",
+    "masterStatus": "not_built",
+    "sourceLayer": "pierre",
+    "destinationLayer": "t1_t2",
+    "t1": [
+      "workflow"
+    ],
+    "t2": [
+      "cloneos",
+      "clonecontinuum"
+    ],
+    "governanceRequirement": "Orchestration générique (CloneOS) ; NE décide JAMAIS d'issue RH ; le raisonnement RH reste V1.",
+    "externalDependency": null,
+    "expectedStatus": "integrated_local_safe"
+  },
+  {
+    "id": "int.permission_adapter",
+    "title": "PierrePermissionTechAdapter",
+    "masterSource": "P16_MASTER_SPLIT.INTEGRATION",
+    "masterStatus": "architecture_ready",
+    "sourceLayer": "pierre",
+    "destinationLayer": "t1_t2",
+    "t1": [
+      "permission"
+    ],
+    "t2": [
+      "clonepolicy",
+      "cloneguard",
+      "clonetrust"
+    ],
+    "governanceRequirement": "Décision de permission fail-closed ; complète (jamais ne remplace) RLS + requireCompanyUser.",
+    "externalDependency": null,
+    "expectedStatus": "integrated_local_safe"
+  }
+]

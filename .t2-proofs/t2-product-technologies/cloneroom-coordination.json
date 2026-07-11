@@ -1,0 +1,170 @@
+{
+  "runId": "t2-product-technologies",
+  "coordination": {
+    "artifactKind": "cloneroom_coordination",
+    "roomId": "room-4",
+    "participants": [
+      {
+        "id": "humain-1",
+        "kind": "human"
+      },
+      {
+        "id": "employe-a",
+        "kind": "ai_employee"
+      },
+      {
+        "id": "employe-b",
+        "kind": "ai_employee"
+      }
+    ],
+    "thread": [
+      {
+        "from": "humain-1",
+        "to": null,
+        "content": "Préparez l'onboarding du nouvel arrivant"
+      },
+      {
+        "from": "employe-a",
+        "to": "employe-b",
+        "content": "contexte"
+      }
+    ],
+    "missionCandidates": [
+      {
+        "artifactKind": "cloneos_mission_plan",
+        "intention": {
+          "raw": "Préparez l'onboarding du nouvel arrivant",
+          "normalized": "Préparez l'onboarding du nouvel arrivant",
+          "intentKind": "hr_case_preparation"
+        },
+        "missionCandidate": {
+          "title": "Préparez l'onboarding du nouvel arrivant",
+          "objective": "Réaliser, sous gouvernance : Préparez l'onboarding du nouvel arrivant"
+        },
+        "tasks": [
+          {
+            "taskId": "task-1",
+            "title": "Préparez l'onboarding du nouvel arrivant",
+            "domain": "hr",
+            "dependsOn": []
+          }
+        ],
+        "routing": [
+          {
+            "taskId": "task-1",
+            "domain": "hr",
+            "proposedEmployeeId": "employe-rh",
+            "note": "Proposition : employé déclaré sur le domaine « hr » (décision finale : gouvernance + humain)."
+          }
+        ],
+        "contextHandoffPlan": [],
+        "resultMergePlan": {
+          "strategy": "sequential_merge",
+          "order": [
+            "task-1"
+          ],
+          "finalOutput": "Livrable final unique et cohérent, fusionné par CloneOS puis relu (CloneReview) et validé par l'humain."
+        },
+        "stateTransitionProposal": {
+          "current": "draft",
+          "proposed": "awaiting_governance",
+          "allowed": [
+            "awaiting_governance",
+            "cancelled"
+          ]
+        },
+        "sensitiveHrLanguageDetected": false,
+        "executed": false,
+        "decidesHrOutcomes": false,
+        "governanceRequired": true
+      }
+    ],
+    "contextRoutingPlan": {
+      "allViaCloneOS": true,
+      "routes": [
+        {
+          "fromParticipantId": "employe-a",
+          "toParticipantId": "employe-b",
+          "via": "cloneos",
+          "note": "Échange employé IA → employé IA : ROUTÉ via CloneOS (le direct est interdit)."
+        }
+      ]
+    },
+    "guardDecision": {
+      "artifactKind": "cloneguard_decision",
+      "riskLevel": "normal",
+      "decision": "allow_prepare",
+      "reasons": [
+        "Aucun signal critique/sensible — préparation locale autorisée."
+      ],
+      "humanEscalation": null,
+      "explanation": "Préparation locale permise ; tout envoi/effet restera soumis à validation.",
+      "executed": false,
+      "finalLegalDecision": false
+    },
+    "policyDecision": {
+      "artifactKind": "clonepolicy_decision",
+      "applicableRuleIds": [],
+      "requiresValidation": false,
+      "autonomyCap": "execute_with_validation",
+      "allowedChannels": [
+        "internal",
+        "cockpit"
+      ],
+      "timeWindowOk": true,
+      "escalateTo": null,
+      "decision": "allow_prepare",
+      "policySource": "company_rules_local",
+      "reasons": [
+        "Défauts sûrs appliqués — préparation locale permise."
+      ],
+      "executed": false,
+      "replacesCloneGuard": false
+    },
+    "trustDecision": {
+      "artifactKind": "clonetrust_decision",
+      "autonomyScore": 20,
+      "autonomyLevel": "prepare_only",
+      "reason": "Confiance insuffisante ou historique vide → préparation seulement (défaut sûr).",
+      "effectivePermissions": [
+        "préparer des artefacts (aucun envoi)"
+      ],
+      "criticalAlwaysHumanOnly": true,
+      "overridesCloneGuard": false,
+      "executed": false
+    },
+    "traceEvent": {
+      "artifactKind": "clonetrace_event",
+      "eventId": "trace-11",
+      "at": "2026-07-10T00:17:37.342Z",
+      "subject": "room-4",
+      "action": "Coordination de salle (3 participants, 2 messages)",
+      "reason": null,
+      "links": {
+        "missionId": "room-4",
+        "taskId": null,
+        "artifactIds": [],
+        "validationIds": []
+      },
+      "resumePointer": {
+        "missionId": "room-4",
+        "lastEventId": "trace-11"
+      },
+      "t1Evidence": {
+        "artifactKind": "evidence_entry",
+        "subject": "room-4",
+        "action": "Coordination de salle (3 participants, 2 messages)",
+        "employeeId": "employe-preuve",
+        "companyId": "company-proof"
+      },
+      "orchestrates": false,
+      "decidesRisk": false
+    },
+    "peerToPeerBlocked": true,
+    "executed": false
+  },
+  "peerToPeerAttempt": {
+    "kind": "blocked",
+    "blockedReason": "Pair-à-pair anarchique demandé — INTERDIT : toute coordination entre employés IA passe par CloneOS (gouvernée, tracée)."
+  }
+}

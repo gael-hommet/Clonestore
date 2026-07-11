@@ -1,0 +1,14 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "routeEntry": {
+    "path": "/assistant",
+    "status": "active",
+    "futurePhase": null,
+    "tourTargetDeclared": "clonechat-entry"
+  },
+  "appShellNav": "{ path: /assistant } dans groupe Operations (inchange)",
+  "noSoonOrDisabledBadge": true,
+  "tourStepBody": "decrit l'assistant reel (plus de 'arrive bientot')",
+  "tourTargetOnRealWorkspace": "data-tour-id=clonechat-entry present sur <main> du workspace (prouve navigateur)"
+}

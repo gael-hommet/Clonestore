@@ -6,6 +6,7 @@
 import type { SqlExecutor } from "@/lib/pierre/v1/sql";
 import { getStripeWebhookDb } from "./webhook-db";
 import type { SubscriptionProof } from "./stripe-webhook-bridge";
+import type { OrdersEventLedgerPort } from "@/lib/billing/orders-event-ledger";
 
 export interface OrderWriter {
   upsert(args: { user_id: string; agent_slug: string; status: string; subId: string; customerId: string | null; trial_end?: number | null; current_period_end?: number | null }): Promise<void>;
@@ -19,6 +20,12 @@ export interface StripeWebhookDeps {
   fetchProof: (subscriptionId: string) => Promise<SubscriptionProof | null>;
   /** Persistance des commandes marketplace (Supabase en prod). */
   orders: OrderWriter;
+  /**
+   * Ledger d'idempotence + anti-replay du flux orders. Optionnel : null → comportement
+   * legacy (upsert idempotent seul). Non-null → chaque event du flux orders est claimé,
+   * dédupliqué et ordonné de façon monotone avant toute mutation.
+   */
+  ordersLedger?: OrdersEventLedgerPort | null;
   expectedPriceId: string | null;
   expectedProductId: string | null;
 }
@@ -38,11 +45,13 @@ export function getInjectedStripeWebhookDeps(): StripeWebhookDeps | null {
 export function defaultStripeWebhookDeps(args: {
   fetchProof: (subscriptionId: string) => Promise<SubscriptionProof | null>;
   orders: OrderWriter;
+  ordersLedger?: OrdersEventLedgerPort | null;
 }): StripeWebhookDeps {
   return {
     getFounderDb: getStripeWebhookDb,
     fetchProof: args.fetchProof,
     orders: args.orders,
+    ordersLedger: args.ordersLedger ?? null,
     expectedPriceId: process.env.STRIPE_PRICE_PIERRE ?? null,
     expectedProductId: process.env.STRIPE_PRODUCT_PIERRE ?? null,
   };

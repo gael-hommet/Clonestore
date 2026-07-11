@@ -1,0 +1,15 @@
+{
+  "lenses": 22,
+  "refutationsFixed": [
+    {
+      "lens": "governance under-block (guard/policy artifact null)",
+      "fix": "cloneOsBlockedByGovernance floors ≥ VALIDATION_REQUIRED",
+      "regressionTest": "42c"
+    },
+    {
+      "lens": "hardcoded readiness (exactBlockedItems)",
+      "fix": "derived from canonical externalDependency metadata"
+    }
+  ],
+  "noOpenRefutations": true
+}

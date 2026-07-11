@@ -1,45 +1,46 @@
-﻿{
-    "compilerOptions":  {
-                            "target":  "ES2017",
-                            "lib":  [
-                                        "dom",
-                                        "dom.iterable",
-                                        "esnext"
-                                    ],
-                            "allowJs":  false,
-                            "skipLibCheck":  true,
-                            "strict":  true,
-                            "noEmit":  true,
-                            "esModuleInterop":  true,
-                            "module":  "esnext",
-                            "moduleResolution":  "bundler",
-                            "resolveJsonModule":  true,
-                            "isolatedModules":  true,
-                            "jsx":  "preserve",
-                            "incremental":  true,
-                            "paths":  {
-                                          "@/*":  [
-                                                      "./src/*"
-                                                  ]
-                                      },
-                            "plugins":  [
-                                            {
-                                                "name":  "next"
-                                            }
-                                        ]
-                        },
-    "include":  [
-                    "next-env.d.ts",
-                    "global.d.ts",
-                    "**/*.ts",
-                    "**/*.tsx",
-                    ".next/types/**/*.ts"
-                ],
-    "exclude":  [
-                    "node_modules",
-                    "src/lib/pierre/__tests__",
-                    "**/*.test.ts",
-                    "**/*.test.tsx",
-                    "e2e"
-                ]
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "global.d.ts",
+    "next-env.d.ts",
+    ".next-ppbuild/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/lib/pierre/__tests__",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "e2e"
+  ]
 }

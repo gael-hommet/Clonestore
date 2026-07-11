@@ -1,0 +1,1321 @@
+{
+  "runId": "p14-run1",
+  "total_requirements": 58,
+  "groups": [
+    "identity_positioning",
+    "mission_engine",
+    "request_analysis",
+    "task_system",
+    "employee_dossier_360",
+    "recruitment_operations",
+    "hiring_contracts_amendments",
+    "signature_documents",
+    "preboarding_onboarding",
+    "personnel_administration",
+    "absences_leave",
+    "pre_payroll_variables",
+    "planning_impact",
+    "internal_hr_communications",
+    "hr_helpdesk",
+    "employee_relations_sensitive",
+    "interviews",
+    "performance_operations",
+    "training_operations",
+    "compensation_benefits",
+    "hr_compliance_workflow",
+    "reporting",
+    "offboarding",
+    "multi_site_franchise",
+    "sector_adaptation",
+    "clonevoice_voice",
+    "inputs_files",
+    "outputs_documents_exports",
+    "cloneadn_footprint",
+    "email_identity",
+    "controlled_autonomy",
+    "cloneguard_risk",
+    "clonetrace_audit",
+    "anti_hallucination_source_of_truth",
+    "memory",
+    "continuity_multi_day",
+    "demo_scenarios",
+    "seven_day_value_pack",
+    "mobile_notifications",
+    "quality_control",
+    "error_handling",
+    "integrations",
+    "roles_permissions",
+    "proactivity",
+    "roi_value_report",
+    "other_ai_employees_cloneos",
+    "commercial_positioning",
+    "legal_responsibility_doctrine",
+    "ai_act_sensitive_governance",
+    "launch_v1_vs_ultimate"
+  ],
+  "requirements": [
+    {
+      "id": "identity.employee_not_assistant",
+      "group": "identity_positioning",
+      "title": "Pierre = employé IA RH, pas un assistant",
+      "requirement": "Pierre est cadré comme un employé IA RH / département RH opérationnel, jamais assistant/chatbot/copilote.",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "browser",
+        "report"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "browser": true,
+        "report": true
+      },
+      "provenBy": [
+        "P12 CloneOS shell + cockpits (browser P12_SHELL_OK)",
+        "P13 founder acceptance (browser P13_FOUNDER_FEEL_OK 33/36)",
+        "framing 'Employé IA RH' proven all viewports"
+      ]
+    },
+    {
+      "id": "mission.engine",
+      "group": "mission_engine",
+      "title": "Moteur de missions réel",
+      "requirement": "Pierre transforme une demande en mission gouvernée via le vrai compileMissionPlan/createMissionV1.",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "browser": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "P9.6 end-to-end journey browser (real UI Confirmer→real V1 mission)",
+        "real V1 mission created via browser Confirmer"
+      ]
+    },
+    {
+      "id": "request.analysis",
+      "group": "request_analysis",
+      "title": "Analyse de demande",
+      "requirement": "Pierre interprète une demande en langage naturel et propose un plan (cognitive-runtime + CloneChat propose→govern→confirm).",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "browser": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute)",
+        "P9.4 CloneChat governed pipeline (real OpenAI)"
+      ]
+    },
+    {
+      "id": "task.system",
+      "group": "task_system",
+      "title": "Système de tâches",
+      "requirement": "Une mission se décompose en tâches/plan cognitif exécutables et suivis.",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "browser": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute)",
+        "P9.6 end-to-end journey browser (real UI Confirmer→real V1 mission)",
+        "'Plan cognitif: N tâche(s)' in cockpit"
+      ]
+    },
+    {
+      "id": "dossier.360",
+      "group": "employee_dossier_360",
+      "title": "Dossier salarié 360",
+      "requirement": "Pierre structure et maintient un dossier salarié (capabilités canon), avec traçabilité.",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true,
+        "browser": false
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon capability-registry (employee dossier caps governed)"
+      ]
+    },
+    {
+      "id": "recruitment.operations",
+      "group": "recruitment_operations",
+      "title": "Opérations de recrutement",
+      "requirement": "Pierre prépare offres, tri, relances, structuration candidats (préparation, pas décision d'embauche).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true,
+        "browser": false
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon recruitment caps (governed, prep-level)"
+      ]
+    },
+    {
+      "id": "contracts.preparation",
+      "group": "hiring_contracts_amendments",
+      "title": "Préparation contrats/avenants",
+      "requirement": "Pierre PRÉPARE des projets de contrats/avenants à faire valider — jamais un contrat juridiquement garanti.",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true,
+        "browser": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "P9.6 end-to-end journey browser (real UI Confirmer→real V1 mission)",
+        "document preparation governed; legal validity NOT claimed"
+      ]
+    },
+    {
+      "id": "contracts.legal_validity",
+      "group": "hiring_contracts_amendments",
+      "title": "Validité juridique des contrats",
+      "requirement": "La conformité juridique finale des contrats par pays.",
+      "launch_importance": "launch_critical",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "legal",
+        "external"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "code": true,
+        "legal": false
+      },
+      "provenBy": [
+        "P11 legal/tax readiness = false without external attestation",
+        "P8.12 country execution fail-closed, 0 VERIFIED rules"
+      ]
+    },
+    {
+      "id": "signature.esign",
+      "group": "signature_documents",
+      "title": "Signature électronique",
+      "requirement": "Signature électronique live (Yousign) des documents RH.",
+      "launch_importance": "important",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "provider",
+        "external"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "provider": false
+      },
+      "provenBy": [
+        "P11 provider readiness = false (Yousign P8.7.4, signature not live)"
+      ]
+    },
+    {
+      "id": "onboarding.preboarding",
+      "group": "preboarding_onboarding",
+      "title": "Pré-boarding / onboarding",
+      "requirement": "Pierre orchestre checklists et étapes d'onboarding (préparation + suivi gouvernés).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true,
+        "browser": false
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-mission-packs onboarding pack"
+      ]
+    },
+    {
+      "id": "admin.personnel",
+      "group": "personnel_administration",
+      "title": "Administration du personnel",
+      "requirement": "Pierre structure l'admin RH courante (attestations, courriers, mises à jour dossier).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon admin caps"
+      ]
+    },
+    {
+      "id": "absences.leave",
+      "group": "absences_leave",
+      "title": "Absences / congés / retards",
+      "requirement": "Pierre suit demandes de congés, absences, retards, justificatifs (préparation/suivi, pas décision finale).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon absence caps"
+      ]
+    },
+    {
+      "id": "prepayroll.variables",
+      "group": "pre_payroll_variables",
+      "title": "Pré-paie / éléments variables",
+      "requirement": "Pierre prépare et structure les éléments variables de PRÉ-paie à transmettre à la paie (jamais le calcul de paie).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true,
+        "browser": false
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon pre-payroll caps (prep, not payroll engine)"
+      ]
+    },
+    {
+      "id": "prepayroll.full_engine",
+      "group": "pre_payroll_variables",
+      "title": "Moteur de paie / DSN complet",
+      "requirement": "Remplacer un logiciel de paie officiel / génération de bulletins / DSN.",
+      "launch_importance": "future_enterprise",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "external"
+      ],
+      "sensitive": true,
+      "evidence": {},
+      "provenBy": [
+        "explicitly excluded (legal cgv §8), MUST NOT claim"
+      ]
+    },
+    {
+      "id": "planning.impact",
+      "group": "planning_impact",
+      "title": "Impact planning",
+      "requirement": "Pierre reflète l'impact des absences/événements sur un planning.",
+      "launch_importance": "roadmap",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "test"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true
+      },
+      "provenBy": [
+        "architecture only (canon caps), no dedicated planning engine"
+      ]
+    },
+    {
+      "id": "comms.internal",
+      "group": "internal_hr_communications",
+      "title": "Communications RH internes",
+      "requirement": "Pierre rédige et structure les communications RH internes (l'ENVOI live dépend d'un provider externe — hors périmètre de cette exigence).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true,
+        "browser": false
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "communications.ts + providers orchestrated; live send external-pending (see email.identity)"
+      ]
+    },
+    {
+      "id": "helpdesk.hr",
+      "group": "hr_helpdesk",
+      "title": "Helpdesk RH",
+      "requirement": "Pierre répond aux questions RH courantes des salariés (front CloneChat).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "browser": true,
+        "report": true
+      },
+      "provenBy": [
+        "P9.4 CloneChat public orientation + authenticated operational"
+      ]
+    },
+    {
+      "id": "relations.prepare",
+      "group": "employee_relations_sensitive",
+      "title": "Cas sensibles — préparation",
+      "requirement": "Pierre prépare la structuration de cas sensibles (dossier, historique) — la décision reste humaine.",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "report",
+        "browser"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "fail-closed + HUMAN_ONLY for sensitive decisions"
+      ]
+    },
+    {
+      "id": "relations.decisions",
+      "group": "employee_relations_sensitive",
+      "title": "Décisions disciplinaires finales",
+      "requirement": "Décider seul d'une sanction/licenciement/mesure disciplinaire.",
+      "launch_importance": "future_enterprise",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "legal"
+      ],
+      "sensitive": true,
+      "evidence": {},
+      "provenBy": [
+        "9 HUMAN_ONLY caps; MUST NOT automate final disciplinary decisions"
+      ]
+    },
+    {
+      "id": "interviews.prepare",
+      "group": "interviews",
+      "title": "Entretiens — préparation",
+      "requirement": "Pierre prépare trames, convocations, comptes-rendus d'entretiens.",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon interview caps"
+      ]
+    },
+    {
+      "id": "performance.operations",
+      "group": "performance_operations",
+      "title": "Opérations de performance",
+      "requirement": "Pierre structure campagnes d'évaluation, suivis d'objectifs (préparation, pas notation décisionnelle).",
+      "launch_importance": "roadmap",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon performance caps (governed)"
+      ]
+    },
+    {
+      "id": "training.operations",
+      "group": "training_operations",
+      "title": "Opérations de formation",
+      "requirement": "Pierre structure plans de formation, convocations, suivis.",
+      "launch_importance": "roadmap",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon training caps"
+      ]
+    },
+    {
+      "id": "compensation.prepare",
+      "group": "compensation_benefits",
+      "title": "Rémunération/avantages — préparation",
+      "requirement": "Pierre structure les données de rémunération/avantages ; les décisions salariales restent humaines.",
+      "launch_importance": "roadmap",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "report",
+        "browser"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "sensitive → human-governed"
+      ]
+    },
+    {
+      "id": "compensation.decisions",
+      "group": "compensation_benefits",
+      "title": "Décisions salariales/promotions finales",
+      "requirement": "Décider seul d'augmentations, primes sensibles, promotions.",
+      "launch_importance": "future_enterprise",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "legal"
+      ],
+      "sensitive": true,
+      "evidence": {},
+      "provenBy": [
+        "MUST NOT automate final compensation decisions"
+      ]
+    },
+    {
+      "id": "compliance.workflow",
+      "group": "hr_compliance_workflow",
+      "title": "Workflow de conformité RH",
+      "requirement": "Pierre prépare des paquets de revue conformité — la validation légale par pays reste externe.",
+      "launch_importance": "launch_critical",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "legal",
+        "external"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "code": true,
+        "legal": false
+      },
+      "provenBy": [
+        "P8.12 review packets fail-closed; 0 positive legal verdict"
+      ]
+    },
+    {
+      "id": "reporting.operational",
+      "group": "reporting",
+      "title": "Reporting opérationnel",
+      "requirement": "Pierre calcule des indicateurs RH opérationnels sur ses propres données (analytics.compute → artefacts persistés).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true,
+        "browser": false
+      },
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute) analytics.compute (RLS SQL over pierre_rt_ → persisted artifacts)"
+      ]
+    },
+    {
+      "id": "offboarding.operations",
+      "group": "offboarding",
+      "title": "Offboarding",
+      "requirement": "Pierre prépare checklists de départ, courriers, suivi (préparation gouvernée).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "hr-canon offboarding caps + proposers"
+      ]
+    },
+    {
+      "id": "multisite.franchise",
+      "group": "multi_site_franchise",
+      "title": "Multi-site / franchise",
+      "requirement": "Pierre gère plusieurs sites/entités isolés (multi-tenant company-scoped).",
+      "launch_importance": "future_enterprise",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "browser": false
+      },
+      "provenBy": [
+        "P8.9 multi-tenant ISOLATION substrate proven+tested (100k tenants); multi-site management product feature = roadmap (no dedicated UX/E2E)"
+      ]
+    },
+    {
+      "id": "sector.adaptation",
+      "group": "sector_adaptation",
+      "title": "Adaptation sectorielle",
+      "requirement": "Pierre adapte au secteur (conventions, spécificités métier).",
+      "launch_importance": "future_enterprise",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "legal"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "code": true
+      },
+      "provenBy": [
+        "canon country-pack architecture; sector rules require sourcing (never invent)"
+      ]
+    },
+    {
+      "id": "voice.clonevoice",
+      "group": "clonevoice_voice",
+      "title": "CloneVoice / entrée vocale",
+      "requirement": "Saisie vocale / dictée pour créer des missions.",
+      "launch_importance": "future_enterprise",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {},
+      "provenBy": [
+        "no dedicated CloneVoice implementation found → roadmap"
+      ]
+    },
+    {
+      "id": "inputs.files",
+      "group": "inputs_files",
+      "title": "Entrées / fichiers",
+      "requirement": "Pierre accepte des entrées (texte, capture d'écran) et les intègre à une demande.",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "browser": true,
+        "report": true
+      },
+      "provenBy": [
+        "P9.4 multimodal screenshot (openai_vision, EXIF-stripped)"
+      ]
+    },
+    {
+      "id": "outputs.documents",
+      "group": "outputs_documents_exports",
+      "title": "Sorties / documents / exports",
+      "requirement": "Pierre produit des documents/livrables exportables (préparés, à valider).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "document renderer + document-types"
+      ]
+    },
+    {
+      "id": "adn.footprint",
+      "group": "cloneadn_footprint",
+      "title": "CloneADN / empreinte entreprise",
+      "requirement": "Pierre s'appuie sur l'empreinte/mémoire d'entreprise (CloneADN) pour contextualiser.",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "src/lib/clonestore/adn/** (global-enterprise-memory, pierre-adn-bridge)"
+      ]
+    },
+    {
+      "id": "email.identity",
+      "group": "email_identity",
+      "title": "Identité email",
+      "requirement": "Pierre dispose d'une identité d'envoi email ; l'envoi live dépend d'un domaine/provider externe.",
+      "launch_importance": "roadmap",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "external"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "external": false
+      },
+      "provenBy": [
+        "communication-provider email; live domain/email external-pending"
+      ]
+    },
+    {
+      "id": "autonomy.controlled",
+      "group": "controlled_autonomy",
+      "title": "Autonomie contrôlée",
+      "requirement": "Pierre expose 5 modes produit → 4 AutonomyModes P8 réels ; les actes sensibles ne s'exécutent jamais seuls.",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser",
+        "report"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "browser": true,
+        "report": true
+      },
+      "provenBy": [
+        "P9.5 autonomy (real decideValidation, hard floors) + P13 founder acceptance (browser P13_FOUNDER_FEEL_OK 33/36)"
+      ]
+    },
+    {
+      "id": "guard.risk",
+      "group": "cloneguard_risk",
+      "title": "CloneGuard / risque",
+      "requirement": "Pierre évalue le risque/qualité d'une sortie avant diffusion (CloneGuard).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true
+      },
+      "provenBy": [
+        "src/lib/pierre/v1/cloneguard.ts + cloneos/ai/live-validation"
+      ]
+    },
+    {
+      "id": "trace.audit",
+      "group": "clonetrace_audit",
+      "title": "CloneTrace / audit",
+      "requirement": "Pierre conserve trace, historique et preuves de ses actions (timeline, pierre_rt_ audit).",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "report"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true,
+        "browser": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "timeline + durable audit; cockpit shows history"
+      ]
+    },
+    {
+      "id": "truth.source_of_truth",
+      "group": "anti_hallucination_source_of_truth",
+      "title": "Anti-hallucination / source de vérité",
+      "requirement": "Pierre ne fabrique pas le droit ni les faits ; citations/knowledge validées serveur ; SOURCE_REQUIRED.",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "report"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8.10 SOURCE_REQUIRED never-invent-law; P9.4.1 server-validated citations"
+      ]
+    },
+    {
+      "id": "memory.durable",
+      "group": "memory",
+      "title": "Mémoire durable",
+      "requirement": "Pierre mémorise durablement (migration pg, mémoire d'entreprise scoping company).",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test",
+        "report"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute) durable pg memory (pierre_v27 RLS) + company-scoped learning"
+      ]
+    },
+    {
+      "id": "continuity.multi_day",
+      "group": "continuity_multi_day",
+      "title": "Continuité multi-jours",
+      "requirement": "Pierre poursuit des workflows sur plusieurs jours (continuation réelle, case FSM).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute) real continuation; hr-operations case FSM"
+      ]
+    },
+    {
+      "id": "demo.scenarios",
+      "group": "demo_scenarios",
+      "title": "Scénarios de démo",
+      "requirement": "Des scénarios de démonstration présentent Pierre de bout en bout.",
+      "launch_importance": "important",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "browser": true,
+        "report": true
+      },
+      "provenBy": [
+        "/demo route + P9.6 journey"
+      ]
+    },
+    {
+      "id": "value.seven_day_pack",
+      "group": "seven_day_value_pack",
+      "title": "Pack de valeur 7 jours",
+      "requirement": "Un parcours structuré « valeur en 7 jours » packagé.",
+      "launch_importance": "roadmap",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "report"
+      ],
+      "sensitive": false,
+      "evidence": {},
+      "provenBy": [
+        "no dedicated 7-day value pack module → roadmap"
+      ]
+    },
+    {
+      "id": "mobile.usable",
+      "group": "mobile_notifications",
+      "title": "Mobile utilisable",
+      "requirement": "Le cockpit est utilisable sur mobile (bottom-nav, composer atteignable).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "browser": true,
+        "report": true
+      },
+      "provenBy": [
+        "P12 CloneOS shell + cockpits (browser P12_SHELL_OK)",
+        "P13 founder acceptance (browser P13_FOUNDER_FEEL_OK 33/36)",
+        "mobile 390 proven"
+      ]
+    },
+    {
+      "id": "mobile.push_notifications",
+      "group": "mobile_notifications",
+      "title": "Notifications push",
+      "requirement": "Notifications push/mobiles temps réel.",
+      "launch_importance": "roadmap",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code"
+      ],
+      "sensitive": false,
+      "evidence": {},
+      "provenBy": [
+        "no push-notification delivery implementation → roadmap"
+      ]
+    },
+    {
+      "id": "quality.control",
+      "group": "quality_control",
+      "title": "Contrôle qualité",
+      "requirement": "Pierre applique gouvernance/validation avant effet (qualité contrôlée).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8 runtime (hr-canon closed 0-open: 77 verified_existing + 89 implemented_governed)",
+        "governance + validation gates"
+      ]
+    },
+    {
+      "id": "error.handling",
+      "group": "error_handling",
+      "title": "Gestion d'erreur",
+      "requirement": "Pierre gère les états incertains/erreurs sans double effet (idempotence, fail-closed).",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true,
+        "browser": true
+      },
+      "provenBy": [
+        "P9.4 idempotency + uncertain-state; fail-closed everywhere"
+      ]
+    },
+    {
+      "id": "integrations.external",
+      "group": "integrations",
+      "title": "Intégrations externes (SIRH/Slack/…)",
+      "requirement": "Connecteurs vers SIRH/paie/Slack/Teams/Google Workspace.",
+      "launch_importance": "future_enterprise",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "external"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "external": false
+      },
+      "provenBy": [
+        "channels architecture only; no live external integration"
+      ]
+    },
+    {
+      "id": "roles.permissions",
+      "group": "roles_permissions",
+      "title": "Rôles / permissions",
+      "requirement": "Pierre respecte rôles/permissions (RLS, requireCompanyUser, write-permission 403).",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "test"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true,
+        "browser": true
+      },
+      "provenBy": [
+        "RLS + requireCompanyUser; P9.5 forged writes 403"
+      ]
+    },
+    {
+      "id": "proactivity.signals",
+      "group": "proactivity",
+      "title": "Proactivité",
+      "requirement": "Pierre ouvre des missions proactives à partir de signaux (governed).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "test",
+        "report",
+        "browser"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P8.14 cognitive-runtime (interpret→plan→real compileMissionPlan→execute→continue→remember→proact→analytics.compute) proactive opens real missions; hr-proactive signals"
+      ]
+    },
+    {
+      "id": "roi.value_report",
+      "group": "roi_value_report",
+      "title": "Rapport de valeur / ROI mensuel",
+      "requirement": "Un rapport mensuel de valeur/ROI livré (heures absorbées, missions, gains).",
+      "launch_importance": "roadmap",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "code",
+        "test",
+        "report"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true
+      },
+      "provenBy": [
+        "analytics.compute exists (raw metrics) but no delivered ROI-report artifact → partial/roadmap"
+      ]
+    },
+    {
+      "id": "cloneos.orchestration",
+      "group": "other_ai_employees_cloneos",
+      "title": "CloneOS orchestration",
+      "requirement": "CloneOS coordonne/oriente ; Pierre exécute le RH (aujourd'hui Pierre est le seul employé IA).",
+      "launch_importance": "important",
+      "claim_level": "can_claim_with_caution",
+      "evidence_required": [
+        "code",
+        "browser",
+        "report"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "browser": true,
+        "report": true
+      },
+      "provenBy": [
+        "P12 CloneOS shell + cockpits (browser P12_SHELL_OK)",
+        "CloneOS routes/coordinates; 2nd employee = roadmap"
+      ]
+    },
+    {
+      "id": "commercial.positioning",
+      "group": "commercial_positioning",
+      "title": "Positionnement commercial",
+      "requirement": "Cadrage commercial honnête : remplace la charge RH opérationnelle quotidienne, pas toute la RH.",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "report"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "P13 founder acceptance (browser P13_FOUNDER_FEEL_OK 33/36)",
+        "P14 commercial-truth-matrix (this phase)"
+      ]
+    },
+    {
+      "id": "doctrine.responsibility",
+      "group": "legal_responsibility_doctrine",
+      "title": "Doctrine de responsabilité",
+      "requirement": "Pierre ne remplace jamais la responsabilité finale humaine/légale/disciplinaire/managériale.",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "code",
+        "report"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "disclaimers (cgu/cgv), human-validation floors, P11/P13"
+      ]
+    },
+    {
+      "id": "aiact.sensitive_governance",
+      "group": "ai_act_sensitive_governance",
+      "title": "Gouvernance sensible / AI Act",
+      "requirement": "Conformité AI Act / gouvernance RH sensible complète.",
+      "launch_importance": "important",
+      "claim_level": "cannot_claim_yet",
+      "evidence_required": [
+        "legal",
+        "external"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "code": true,
+        "legal": false
+      },
+      "provenBy": [
+        "fail-closed + HUMAN_ONLY design present; formal AI-Act compliance = external legal"
+      ]
+    },
+    {
+      "id": "meta.launch_vs_ultimate",
+      "group": "launch_v1_vs_ultimate",
+      "title": "Launch V1 vs ambition ultime",
+      "requirement": "P14 distingue honnêtement ce qui est livrable au lancement de l'ambition ultime (roadmap disclosed).",
+      "launch_importance": "launch_critical",
+      "claim_level": "can_claim_now",
+      "evidence_required": [
+        "report"
+      ],
+      "sensitive": false,
+      "evidence": {
+        "code": true,
+        "test": true,
+        "report": true
+      },
+      "provenBy": [
+        "this P14 truth matrix"
+      ]
+    },
+    {
+      "id": "doctrine.no_full_hr_replacement",
+      "group": "legal_responsibility_doctrine",
+      "title": "Remplacement total de la RH humaine",
+      "requirement": "Prétendre que Pierre remplace TOUTE la RH humaine.",
+      "launch_importance": "future_enterprise",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "legal"
+      ],
+      "sensitive": true,
+      "evidence": {},
+      "provenBy": [
+        "MUST NOT claim full human HR replacement"
+      ]
+    },
+    {
+      "id": "doctrine.no_autonomous_drh",
+      "group": "legal_responsibility_doctrine",
+      "title": "DRH autonome",
+      "requirement": "Prétendre que Pierre est un DRH autonome juridiquement conforme.",
+      "launch_importance": "future_enterprise",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "legal"
+      ],
+      "sensitive": true,
+      "evidence": {},
+      "provenBy": [
+        "MUST NOT claim autonomous compliant DRH"
+      ]
+    },
+    {
+      "id": "compliance.country_guarantee",
+      "group": "hr_compliance_workflow",
+      "title": "Garantie de conformité pays",
+      "requirement": "Garantir la conformité au droit FR/BE/LU/CH.",
+      "launch_importance": "launch_critical",
+      "claim_level": "must_not_claim",
+      "evidence_required": [
+        "legal",
+        "external"
+      ],
+      "sensitive": true,
+      "evidence": {
+        "legal": false
+      },
+      "provenBy": [
+        "MUST NOT guarantee country legal compliance without external review"
+      ]
+    }
+  ]
+}

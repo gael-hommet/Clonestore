@@ -1,0 +1,24 @@
+{
+  "runId": "clonechat-reveal",
+  "date": "2026-07-10",
+  "canonicalRule": "isCloneChatEnabled(): actif par defaut (unset/vide=>true) ; coupe UNIQUEMENT si CLONECHAT_ENABLED in {false,0,off,disabled,no}",
+  "sharedByUIandAPI": true,
+  "activeFor": [
+    "(unset)",
+    "",
+    "true",
+    "1",
+    "on",
+    "enabled"
+  ],
+  "offFor": [
+    "false",
+    "0",
+    "off",
+    "disabled",
+    "no",
+    "FALSE"
+  ],
+  "requiredDeploymentEnv": null,
+  "note": "Aucune variable requise pour activer. Actif != acces public anonyme (auth toujours exigee)."
+}

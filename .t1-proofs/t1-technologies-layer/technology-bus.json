@@ -1,0 +1,293 @@
+{
+  "runId": "t1-technologies-layer",
+  "listing": [
+    {
+      "id": "document",
+      "name": "DocumentTech",
+      "purpose": "Préparer des artefacts documentaires via une abstraction locale de gabarits (aucune garantie légale).",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Document préparé localement — relecture et validation humaines obligatoires (aucune garantie légale).",
+      "mode": "local_safe",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "mail",
+      "name": "MailTech",
+      "purpose": "Rédiger des brouillons d'email — l'envoi live est bloqué (provider/domaine externe non vérifié).",
+      "status": "partial",
+      "liveDependency": "provider",
+      "requiresValidation": true,
+      "safeFallback": "Brouillon préparé — l'humain envoie manuellement (aucun envoi live).",
+      "mode": "live_disabled",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "calendar",
+      "name": "CalendarTech",
+      "purpose": "Préparer des objets événement/entretien — aucune création d'événement live.",
+      "status": "partial",
+      "liveDependency": "provider",
+      "requiresValidation": true,
+      "safeFallback": "Événement préparé — l'humain copie/valide (aucune création d'événement live).",
+      "mode": "live_disabled",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "signature",
+      "name": "SignatureTech",
+      "purpose": "Préparer un paquet de signature — signature manuelle/externe ; AUCUNE revendication de signature live (Yousign bloqué P8.7.4).",
+      "status": "partial",
+      "liveDependency": "provider",
+      "requiresValidation": true,
+      "safeFallback": "Document préparé — signature manuelle/externe (aucune revendication de signature live).",
+      "mode": "live_disabled",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "voice",
+      "name": "VoiceTech / CloneVoice",
+      "purpose": "Architecture vocale (roadmap) — aucun provider vocal ; l'entrée texte reste la source de vérité.",
+      "status": "architecture_ready",
+      "liveDependency": "provider",
+      "requiresValidation": true,
+      "safeFallback": "L'entrée texte reste la source de vérité (aucun provider vocal).",
+      "mode": "live_disabled",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "notification",
+      "name": "NotificationTech",
+      "purpose": "Créer des artefacts de rappel cockpit — aucun provider push.",
+      "status": "partial",
+      "liveDependency": "provider",
+      "requiresValidation": true,
+      "safeFallback": "Rappels dans le cockpit uniquement (aucun push live).",
+      "mode": "live_disabled",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "connector",
+      "name": "ConnectorTech",
+      "purpose": "Architecture de connecteurs (SIRH/paie/Slack) — tout appel live est bloqué ; export/import manuel.",
+      "status": "architecture_ready",
+      "liveDependency": "external",
+      "requiresValidation": true,
+      "safeFallback": "Connecteur indisponible — export/import manuel.",
+      "mode": "live_disabled",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "memory",
+      "name": "MemoryTech",
+      "purpose": "Contrat de lecture/écriture mémoire dans le périmètre société — les stores durables existants (pierre_v27, CloneADN) restent la source.",
+      "status": "verified",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Opération mémoire préparée dans le périmètre société — les stores durables existants restent la source.",
+      "mode": "local_safe",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "evidence",
+      "name": "EvidenceTech / TraceTech",
+      "purpose": "Créer des entrées d'audit/preuve — aucun provider externe ; chaque usage de technologie est auditable.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": false,
+      "safeFallback": "Trace d'audit locale toujours disponible (aucun provider externe requis).",
+      "mode": "local_safe",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "workflow",
+      "name": "WorkflowTech",
+      "purpose": "Contrat de workflow GÉNÉRIQUE (étapes/orchestration) — ne décide JAMAIS d'issues RH ; pas un 2e cerveau RH.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Le moteur de missions V1 existant reste la source (aucun 2e cerveau RH).",
+      "mode": "local_safe",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "analytics",
+      "name": "AnalyticsTech / ROI",
+      "purpose": "Préparer des artefacts de rapport métriques/valeur — aucune promesse de ROI garanti.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Métriques brutes uniquement (aucune promesse de ROI garanti).",
+      "mode": "local_safe",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "file",
+      "name": "FileTech",
+      "purpose": "Préparer l'ingestion de fichiers — aucune hypothèse de parsing ; revue manuelle requise.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Revue manuelle du fichier requise (aucune hypothèse de parsing).",
+      "mode": "local_safe",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "export",
+      "name": "ExportTech",
+      "purpose": "Préparer des artefacts d'export — aucun transfert live ; téléchargement/export manuel.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": true,
+      "safeFallback": "Téléchargement/export manuel (aucun transfert live).",
+      "mode": "local_safe",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "permission",
+      "name": "PermissionTech",
+      "purpose": "Vérifier le périmètre acteur/société/employé — FAIL-CLOSED ; ne contourne jamais RLS/requireCompanyUser.",
+      "status": "verified",
+      "liveDependency": "none",
+      "requiresValidation": false,
+      "safeFallback": "Refus fail-closed — RLS + requireCompanyUser restent la frontière serveur.",
+      "mode": "local_safe",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    },
+    {
+      "id": "integration_bus",
+      "name": "IntegrationBus / TechnologyBus",
+      "purpose": "Coordonner la découverte/consommation des technologies par contrat — aucune logique spécifique à un employé.",
+      "status": "partial",
+      "liveDependency": "none",
+      "requiresValidation": false,
+      "safeFallback": "Coordination par contrats uniquement — toute techno indisponible dégrade en fallback.",
+      "mode": "local_safe",
+      "allowedInDemo": true,
+      "allowedInProduction": false
+    }
+  ],
+  "summary": {
+    "totalTechnologies": 15,
+    "byStatus": {
+      "partial": 11,
+      "architecture_ready": 2,
+      "verified": 2
+    },
+    "liveBlockedTechnologies": [
+      "mail",
+      "calendar",
+      "signature",
+      "voice",
+      "notification",
+      "connector"
+    ],
+    "reusableCount": 15,
+    "pierreOnlyCount": 0,
+    "employeeAgnostic": true,
+    "liveExecutionAllowed": false,
+    "auditEntriesRecorded": 4
+  },
+  "proofs": {
+    "pierre": {
+      "kind": "needs_validation",
+      "technologyId": "mail",
+      "employeeId": "pierre",
+      "companyId": "company-proof",
+      "artifact": {
+        "artifactKind": "drafted_email",
+        "to": "rh@example.test",
+        "subject": "Entretien",
+        "body": "Brouillon préparé — intention : convocation. À relire et envoyer manuellement.",
+        "sent": false,
+        "liveSendBlocked": true
+      },
+      "requiresHumanValidation": true,
+      "live": false
+    },
+    "futureEmployee": {
+      "kind": "needs_validation",
+      "technologyId": "mail",
+      "employeeId": "clone-futur-01",
+      "companyId": "company-proof",
+      "artifact": {
+        "artifactKind": "drafted_email",
+        "to": "rh@example.test",
+        "subject": "Entretien",
+        "body": "Brouillon préparé — intention : convocation. À relire et envoyer manuellement.",
+        "sent": false,
+        "liveSendBlocked": true
+      },
+      "requiresHumanValidation": true,
+      "live": false
+    },
+    "identicalArtifacts": true,
+    "unknownTechnologyRejected": true,
+    "emptyScopeDenied": true,
+    "auditEntries": [
+      {
+        "id": "t1-audit-1",
+        "at": "2026-07-09T22:18:51.514Z",
+        "technologyId": "mail",
+        "employeeId": "pierre",
+        "companyId": "company-proof",
+        "resultKind": "needs_validation",
+        "requiresHumanValidation": true,
+        "live": false,
+        "fallbackUsed": false,
+        "note": "usage mail (needs_validation)"
+      },
+      {
+        "id": "t1-audit-2",
+        "at": "2026-07-09T22:18:51.516Z",
+        "technologyId": "mail",
+        "employeeId": "clone-futur-01",
+        "companyId": "company-proof",
+        "resultKind": "needs_validation",
+        "requiresHumanValidation": true,
+        "live": false,
+        "fallbackUsed": false,
+        "note": "usage mail (needs_validation)"
+      },
+      {
+        "id": "t1-audit-3",
+        "at": "2026-07-09T22:18:51.516Z",
+        "technologyId": "integration_bus",
+        "employeeId": "pierre",
+        "companyId": "company-proof",
+        "resultKind": "blocked",
+        "requiresHumanValidation": true,
+        "live": false,
+        "fallbackUsed": true,
+        "note": "demande de techno inconnue: teleport | fallback: Technologie inconnue — refus fail-closed. | bloqué: Technologie inconnue « teleport » — refus fail-closed."
+      },
+      {
+        "id": "t1-audit-4",
+        "at": "2026-07-09T22:18:51.516Z",
+        "technologyId": "mail",
+        "employeeId": "",
+        "companyId": "",
+        "resultKind": "blocked",
+        "requiresHumanValidation": true,
+        "live": false,
+        "fallbackUsed": true,
+        "note": "permission refusée avant prepare | fallback: Brouillon préparé — l'humain envoie manuellement (aucun envoi live). | bloqué: Permission refusée : employeeId manquant — refus fail-closed."
+      }
+    ]
+  }
+}

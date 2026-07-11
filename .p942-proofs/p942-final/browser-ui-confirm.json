@@ -1,0 +1,22 @@
+{
+  "runId": "p942ui0ba8e177",
+  "email": "p942-ui-p942ui0ba8e177@example.invalid",
+  "steps": {
+    "sendButtonEnabledAfterTyping": true,
+    "chatProduced": 2,
+    "serverProposalId": "prop-2",
+    "proposalKind": "create_support_case",
+    "confirmButtonRendered": true,
+    "confirmClicked": true,
+    "executeRequestBodies": [
+      {
+        "proposalId": "prop-2"
+      }
+    ],
+    "uiConfirmSendsOnlyProposalId": true,
+    "resultRendered": false,
+    "consoleErrors": []
+  },
+  "verdict": "BROWSER_UI_CONFIRM_OK",
+  "cleanup": "DELETED — ZERO RESIDUE"
+}

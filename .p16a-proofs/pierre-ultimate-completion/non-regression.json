@@ -1,0 +1,7 @@
+{
+  "command": "npx vitest run src/lib/nav src/lib/clonestore src/lib/clonechat src/lib/pierre/v1 src/app/api/assistant src/app/assistant src/components --testTimeout=120000",
+  "files": 177, "passed": 7471, "skipped": 1,
+  "baseline_before_p16a": 7414,
+  "delta": "+57 P16A tests (48 behavior + 9 scenario) ; +1 skipped gated proof generator",
+  "result": "GREEN — no regression"
+}

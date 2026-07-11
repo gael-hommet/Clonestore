@@ -1,0 +1,40 @@
+{
+  "runId": "p15-1-prestripe",
+  "liveKeyUsed": false,
+  "liveSessionCreated": false,
+  "paymentCreated": false,
+  "customerCharged": false,
+  "reconciliationScenarios": [
+    {
+      "label": "CH billed EUR",
+      "result": "refund_required",
+      "shouldActivate": false
+    },
+    {
+      "label": "FR billed CHF",
+      "result": "refund_required",
+      "shouldActivate": false
+    },
+    {
+      "label": "BE billed CHF",
+      "result": "refund_required",
+      "shouldActivate": false
+    },
+    {
+      "label": "LU billed CHF",
+      "result": "refund_required",
+      "shouldActivate": false
+    },
+    {
+      "label": "FR billed EUR (ok)",
+      "result": "allowed",
+      "shouldActivate": true
+    },
+    {
+      "label": "CH billed CHF (ok)",
+      "result": "allowed",
+      "shouldActivate": true
+    }
+  ],
+  "note": "Répétition en LOGIQUE uniquement : aucune clé live, aucune session, aucun paiement. Confirme que CH/EUR et FR/BE/LU/CHF restent bloqués et qu'aucun accès payant n'existe sans activation vérifiée par webhook."
+}

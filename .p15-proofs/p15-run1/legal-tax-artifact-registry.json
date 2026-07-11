@@ -1,0 +1,137 @@
+{
+  "runId": "p15-run1",
+  "localState": "aucun artefact externe présent",
+  "legalTaxReady": false,
+  "externallyReviewedCount": 0,
+  "ownerAttestedCount": 0,
+  "missing": [
+    "legal_review_fr",
+    "legal_review_be",
+    "legal_review_lu",
+    "legal_review_ch",
+    "tax_vat_review_fr",
+    "tax_vat_review_be",
+    "tax_vat_review_lu",
+    "tax_vat_review_ch",
+    "cgu_review",
+    "cgv_review",
+    "dpa_review",
+    "privacy_review",
+    "mentions_legales_review",
+    "hr_claims_review",
+    "ai_sensitive_use_review"
+  ],
+  "draftOnly": [],
+  "expired": [],
+  "rejected": [],
+  "ownerAttestedOnly": [],
+  "byArtifact": [
+    {
+      "artifact_id": "legal_review_fr",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "legal_review_be",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "legal_review_lu",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "legal_review_ch",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "tax_vat_review_fr",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "tax_vat_review_be",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "tax_vat_review_lu",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "tax_vat_review_ch",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "cgu_review",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "cgv_review",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "dpa_review",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "privacy_review",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "mentions_legales_review",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "hr_claims_review",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    },
+    {
+      "artifact_id": "ai_sensitive_use_review",
+      "present": false,
+      "ready": false,
+      "ownerAttestedOnly": false,
+      "reason": "Artefact absent — bloque le lancement public."
+    }
+  ],
+  "allExternallyReviewed": false,
+  "note": "legalTaxReady n'est true QUE si TOUS les artefacts sont externally-reviewed (avocat/comptable) avec hash + non expirés. Les attestations owner sont autorisées mais DISCLOSED comme owner-attested (pas une preuve juridique externe) ; un brouillon interne seul ne suffit jamais ; artefact absent/expiré/rejeté bloque le lancement public. Aucun conseil juridique fourni."
+}
