@@ -6,7 +6,7 @@
   "baseBranch": "main",
   "rule": "AUCUN `git add .` — seuls les fichiers listés ici entrent dans le commit.",
   "counts": {
-    "filesInRelease": 75,
+    "filesInRelease": 76,
     "changedOrAdded": 44,
     "unchangedButInPerimeter": 31,
     "filesFromDeployedBranch": 7068,
@@ -42,7 +42,7 @@
       "rationale": "Cron mensuel : secret timing-safe, dry-run par défaut.",
       "state": "modified",
       "included": true,
-      "sha256": "1aef51799614d9151bca8f03229a3474dde3bf04326d5290e0e47123862ddd3e"
+      "sha256": "313f92b37074f3a8c57e074df8aa9fddc666b7d152280f09ccd8e5f075d59499"
     },
     {
       "path": "src/app/api/partners/admin/__tests__/admin-gate.test.ts",
@@ -635,6 +635,14 @@
       "state": "added",
       "included": true,
       "sha256": "d2e16a3832cfc232e1eac22ee9ac49d3a7c399dc83ca3670cdb8f25f4990a7f1"
+    },
+    {
+      "path": "vercel.json",
+      "category": "B — payout automation",
+      "rationale": "Cron mensuel déclaré (0 3 1 * *) sur /api/cron/partner-payouts.",
+      "state": "modified",
+      "included": true,
+      "sha256": "5db0b7aac209d8c8e1dfdad06613d0de59d8daedaecbe4c2e49cf4f5e61f8a3b"
     }
   ]
 }

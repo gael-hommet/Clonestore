@@ -18,24 +18,39 @@ import { isPartnerPayoutsEnabled, isPartnerPayoutDryRun } from "@/lib/partner-pr
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function cronSecret(): string | null {
-  return process.env.PARTNER_PAYOUT_CRON_SECRET ?? process.env.CRON_SECRET ?? null;
+/**
+ * Secrets acceptés. DEUX déclencheurs légitimes existent :
+ *   • le cron natif Vercel, qui envoie `Authorization: Bearer $CRON_SECRET` ;
+ *   • l'opérateur, qui déclenche une prévisualisation avec le secret dédié.
+ * On accepte donc l'un OU l'autre — sinon poser un secret dédié casserait le cron planifié.
+ */
+function cronSecrets(): string[] {
+  return [process.env.PARTNER_PAYOUT_CRON_SECRET, process.env.CRON_SECRET]
+    .map((s) => (s ?? "").trim())
+    .filter((s) => s.length > 0);
+}
+
+/** Comparaison en temps CONSTANT, sans fuite de longueur exploitable. */
+function matches(provided: string, secret: string): boolean {
+  const a = Buffer.from(provided);
+  const b = Buffer.from(secret);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }
 
 function authorized(req: Request): boolean {
-  const secret = cronSecret();
-  if (!secret) return false; // fail-closed
+  const secrets = cronSecrets();
+  if (!secrets.length) return false; // fail-closed : aucun secret configuré → aucun déclenchement
   const provided =
     req.headers.get("x-cron-secret") ??
     (req.headers.get("authorization")?.startsWith("Bearer ") ? req.headers.get("authorization")!.slice(7) : null);
   if (!provided) return false;
-  const a = Buffer.from(provided);
-  const b = Buffer.from(secret);
-  return a.length === b.length && timingSafeEqual(a, b);
+  // Toutes les comparaisons sont évaluées : pas de court-circuit qui fuiterait par le timing.
+  return secrets.reduce((ok, s) => matches(provided, s) || ok, false);
 }
 
 async function run(req: Request) {
-  if (!cronSecret()) return NextResponse.json({ ok: false, error: "cron_not_configured" }, { status: 503 });
+  if (!cronSecrets().length) return NextResponse.json({ ok: false, error: "cron_not_configured" }, { status: 503 });
   if (!authorized(req)) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   if (!isPartnerPayoutsEnabled()) return NextResponse.json({ ok: true, skipped: "payouts_disabled" });
 
