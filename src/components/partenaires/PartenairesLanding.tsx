@@ -7,10 +7,18 @@
 // Effets « liquid metal » réalisés en CSS pur (halos radiaux + reflets chrome via
 // dégradés) — aucun three.js / R3F / shadergradient. Fort dégradé mobile via CSS.
 //
-// COPY : formulations publiques sûres uniquement. Pierre = employé IA RH qui
-// prépare / structure / suit / relance / documente / trace ; ses productions sont
-// des brouillons soumis à validation humaine. Copy publique prudente : pas de
-// promesse de garantie, de conformité légale, ni de substitution à une expertise.
+// POSITIONNEMENT (source canonique : /comprendre-clonestore).
+// Pierre n'est ni un assistant, ni un outil RH de plus : c'est un employé IA
+// RH complet qui prend en charge un périmètre opérationnel dans la durée — il
+// organise, exécute les actions autorisées, suit, relance, reprend, fait valider
+// le sensible et conserve la trace. Selon l'organisation, il peut constituer
+// l'équipe RH IA principale, le cœur d'une équipe hybride, ou démultiplier un
+// service RH humain existant.
+//
+// La gouvernance est présentée comme une architecture de contrôle (une force),
+// jamais comme un affaiblissement : l'humain conserve les décisions légales, les
+// sanctions, les arbitrages sensibles, les signatures officielles et la
+// responsabilité finale. Aucun chiffre inventé, aucun témoignage, aucun logo.
 
 import * as React from "react";
 import Link from "next/link";
@@ -46,12 +54,14 @@ export default function PartenairesLanding() {
 
       <main className="pf-root">
         <Hero />
+        <NotAnotherTool />
+        <ThreeModels />
+        <StructuralPower />
+        <PartnerRole />
         <Economics />
         <Calculator />
-        <FiveCompanies />
-        <HowItWorks />
-        <WhoDoesWhat />
-        <PierreIntro />
+        <WhyClientsListen />
+        <Governance />
         <Transparency />
         <FounderAdvantages />
         <Faq />
@@ -62,8 +72,8 @@ export default function PartenairesLanding() {
       <footer className="pf-footer">
         <p>Cabinets Fondateurs CloneStore — programme partenaires.</p>
         <p>
-          <Link href="/">CloneStore</Link> · Démonstrations illustratives ·
-          Brouillons soumis à validation humaine.
+          <Link href="/">CloneStore</Link> · Démonstrations illustratives · Les
+          décisions sensibles restent humaines.
         </p>
       </footer>
     </MotionConfig>
@@ -76,33 +86,51 @@ function Hero() {
     <section className="pf-section pf-section--hero">
       <div className="pf-shell">
         <Reveal>
-          <p className="pf-eyebrow">Programme partenaires — cabinets</p>
+          <p className="pf-eyebrow">Cabinets Fondateurs CloneStore</p>
         </Reveal>
         <Reveal delay={0.08}>
           <h1 className="pf-display" style={{ marginTop: "26px" }}>
-            Ajoutez un <em>employé IA RH</em> à l&apos;offre de votre cabinet.
+            Proposez à vos clients <em>une équipe RH IA complète</em>.
           </h1>
         </Reveal>
         <Reveal delay={0.16}>
           <p className="pf-lede pf-mt-md">
-            Vous nous présentez les entreprises qui en ont besoin. CloneStore
-            assure la démonstration, la vente, le déploiement et le support. Vous
-            recevez <strong style={{ color: "var(--pf-mist)" }}>20 % de commission
-            récurrente</strong>.
+            Pierre prend en charge l’opérationnel RH de bout en bout : demandes,
+            documents, dossiers salariés, onboarding, recrutement opérationnel,
+            absences, communications, relances, échéances, validations et
+            traçabilité.
+          </p>
+        </Reveal>
+        <Reveal delay={0.2}>
+          <p className="pf-copy pf-mt-md">
+            Selon l’organisation de votre client, il peut devenir son{" "}
+            <strong style={{ color: "var(--pf-mist)" }}>équipe RH IA
+            principale</strong>, le cœur d’une organisation hybride, ou la force
+            opérationnelle qui démultiplie son service RH existant.
           </p>
         </Reveal>
         <Reveal delay={0.24}>
+          <p className="pf-copy pf-mt-md">
+            Vous sélectionnez les entreprises auxquelles Pierre peut apporter le
+            plus de valeur. CloneStore assure la démonstration, la vente, le
+            déploiement et l’accompagnement. Vous percevez{" "}
+            <strong style={{ color: "var(--pf-mist)" }}>20 % de commission
+            récurrente</strong>{" "}
+            sur chaque client actif apporté.
+          </p>
+        </Reveal>
+        <Reveal delay={0.3}>
           <div className="pf-cta-row pf-mt-lg">
             <a href="#candidature" className="pf-btn pf-btn--primary">
               Devenir Cabinet Fondateur
             </a>
-            <a href="#fonctionnement" className="pf-btn pf-btn--ghost">
-              Découvrir le fonctionnement
+            <a href="#capacite" className="pf-btn pf-btn--ghost">
+              Voir ce que Pierre remplace
             </a>
           </div>
         </Reveal>
 
-        <Reveal delay={0.34}>
+        <Reveal delay={0.36}>
           <div
             className="pf-mt-lg"
             style={{ display: "inline-flex", flexWrap: "wrap", gap: "16px" }}
@@ -122,12 +150,302 @@ function Hero() {
             </span>
           </div>
         </Reveal>
+
+        <Reveal delay={0.42}>
+          <p className="pf-note">
+            20 % de commission récurrente · 89,80 € par mois sur un abonnement à
+            449 € HT · CloneStore prend en charge tout le déploiement.
+          </p>
+        </Reveal>
       </div>
     </section>
   );
 }
 
-/* ── 2. Preuve économique ─────────────────────────────────────────────────── */
+/* ── 2. Ce n'est pas un outil RH de plus ──────────────────────────────────── */
+const SOFTWARE_DOES = [
+  "Donne des outils.",
+  "Attend que l’équipe les utilise.",
+  "Nécessite saisie, coordination et suivi humains.",
+  "Ne porte pas la responsabilité du workflow.",
+];
+
+const PIERRE_DOES = [
+  "Reçoit l’objectif.",
+  "Organise le travail.",
+  "Exécute les actions autorisées.",
+  "Gère plusieurs missions en parallèle.",
+  "Suit et relance.",
+  "Conserve le contexte.",
+  "Remonte uniquement ce qui exige réellement une décision humaine.",
+  "Garde une trace complète.",
+];
+
+function NotAnotherTool() {
+  return (
+    <section className="pf-section" id="capacite">
+      <div className="pf-shell">
+        <div className="pf-pierre">
+          <Reveal>
+            <div className="pf-pierre__orb" aria-hidden="true">
+              <span className="pf-pierre__ring" />
+              <span className="pf-pierre__ring pf-pierre__ring--2" />
+              <span className="pf-pierre__mono">P</span>
+            </div>
+          </Reveal>
+          <div>
+            <Reveal>
+              <p className="pf-eyebrow">Ce que vous proposez réellement</p>
+            </Reveal>
+            <Reveal delay={0.08}>
+              <h2 className="pf-heading pf-mt-md">
+                Ce n’est pas un outil RH de plus. C’est une fonction RH qui
+                travaille.
+              </h2>
+            </Reveal>
+            <Reveal delay={0.16}>
+              <p className="pf-copy pf-mt-md">
+                Les logiciels RH organisent des informations et fournissent des
+                écrans. Pierre prend le travail en charge. Il reçoit une demande,
+                relit les règles de l’entreprise, structure la mission, exécute ce
+                qui est autorisé, produit les documents, rassemble les
+                informations, suit les dossiers, relance, attend les validations
+                nécessaires, reprend et conserve la trace jusqu’à la clôture.
+              </p>
+            </Reveal>
+            <Reveal delay={0.22}>
+              <p className="pf-copy pf-mt-md">
+                Il ne s’arrête pas après avoir produit une réponse.{" "}
+                <strong style={{ color: "var(--pf-mist)" }}>Il tient le
+                périmètre dans la durée.</strong>
+              </p>
+            </Reveal>
+          </div>
+        </div>
+
+        <div className="pf-split pf-mt-lg">
+          <Reveal>
+            <div className="pf-col">
+              <div className="pf-col__head">
+                <span className="pf-col__tag">Logiciel RH</span>
+              </div>
+              <ul className="pf-list">
+                {SOFTWARE_DOES.map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="pf-col pf-col--accent">
+              <div className="pf-col__head">
+                <span className="pf-col__tag">Pierre</span>
+              </div>
+              <ul className="pf-list">
+                {PIERRE_DOES.map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── 3. Une équipe RH, trois modèles ──────────────────────────────────────── */
+const ORG_MODELS = [
+  {
+    t: "Équipe RH IA principale",
+    c: "Un dirigeant ou une direction conserve les décisions sensibles. Pierre prend en charge l’opérationnel RH quotidien : missions, documents, suivis, relances, dossiers, communications autorisées et continuité.",
+  },
+  {
+    t: "Cœur d’une équipe hybride",
+    c: "Pierre absorbe l’exécution et la coordination opérationnelle. Les humains se concentrent sur la relation, le management, les arbitrages et les cas complexes.",
+  },
+  {
+    t: "Équipe RH humaine démultipliée",
+    c: "Le service existant traite davantage de missions, beaucoup plus vite, sans perdre le contexte, sans laisser les demandes s’accumuler et sans multiplier les recrutements.",
+  },
+];
+
+function ThreeModels() {
+  return (
+    <section className="pf-section">
+      <div className="pf-shell">
+        <Reveal>
+          <p className="pf-eyebrow">Trois modèles d’organisation</p>
+        </Reveal>
+        <Reveal delay={0.08}>
+          <h2 className="pf-heading pf-mt-md pf-max">
+            Pierre s’adapte à l’organisation, pas à une petite définition de
+            l’assistance.
+          </h2>
+        </Reveal>
+
+        <Stagger className="pf-cards pf-cards--3 pf-mt-lg" step={0.08}>
+          {ORG_MODELS.map((m) => (
+            <StaggerItem key={m.t} className="pf-card">
+              <h3 className="pf-card__t">{m.t}</h3>
+              <p className="pf-card__c">{m.c}</p>
+            </StaggerItem>
+          ))}
+        </Stagger>
+
+        <Reveal delay={0.16}>
+          <p className="pf-copy pf-mt-lg">
+            Pierre ne remplace pas nécessairement les mêmes personnes dans toutes
+            les entreprises. Mais il remplace partout{" "}
+            <strong style={{ color: "var(--pf-mist)" }}>une masse considérable
+            d’exécution lente, dispersée, répétitive et coûteuse.</strong>
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ── 4. Pourquoi Pierre est structurellement plus puissant ────────────────── */
+const STRUCTURAL = [
+  {
+    t: "Travail en parallèle",
+    c: "Pierre fait avancer plusieurs missions pendant qu’une équipe humaine doit répartir son attention.",
+  },
+  {
+    t: "Continuité absolue",
+    c: "Une mission ne disparaît pas après une réponse. Pierre attend, reprend, relance et suit jusqu’au résultat.",
+  },
+  {
+    t: "Mémoire entreprise",
+    c: "Règles, documents, modèles, validateurs, ton, permissions, habitudes, décisions et exceptions restent disponibles dans l’Empreinte Entreprise.",
+  },
+  {
+    t: "Aucun oubli silencieux",
+    c: "Échéances, informations manquantes, validations et actions en attente restent visibles et actives.",
+  },
+  {
+    t: "Disponibilité opérationnelle",
+    c: "Pierre ne dépend pas des horaires, des absences ou de la disponibilité immédiate d’un collaborateur.",
+  },
+  {
+    t: "Traçabilité complète",
+    c: "Chaque action, source, document, décision et validation reste visible grâce à CloneTrace.",
+  },
+];
+
+function StructuralPower() {
+  return (
+    <section className="pf-section">
+      <div className="pf-shell">
+        <Reveal>
+          <p className="pf-eyebrow">Avantages structurels</p>
+        </Reveal>
+        <Reveal delay={0.08}>
+          <h2 className="pf-heading pf-mt-md pf-max">
+            Pourquoi Pierre est structurellement plus puissant.
+          </h2>
+        </Reveal>
+
+        <Stagger className="pf-cards pf-cards--3 pf-mt-lg" step={0.07}>
+          {STRUCTURAL.map((c) => (
+            <StaggerItem key={c.t} className="pf-card">
+              <h3 className="pf-card__t">{c.t}</h3>
+              <p className="pf-card__c">{c.c}</p>
+            </StaggerItem>
+          ))}
+        </Stagger>
+
+        <Reveal delay={0.14}>
+          <div className="pf-glass pf-mt-lg" style={{ padding: "clamp(26px, 4vw, 44px)" }}>
+            <h3 className="pf-card__t">Coût radicalement inférieur</h3>
+            <p className="pf-copy pf-mt-md">
+              449 € HT par mois pour une capacité RH opérationnelle qui, dans de
+              nombreuses entreprises, mobiliserait autrement plusieurs
+              collaborateurs.
+            </p>
+            <p className="pf-copy pf-mt-md">
+              <strong style={{ color: "var(--pf-mist)" }}>Pierre change la
+              capacité opérationnelle et l’économie entière de la fonction
+              RH.</strong>
+            </p>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ── 5. Le rôle du partenaire ─────────────────────────────────────────────── */
+const STEPS = [
+  {
+    t: "Vous identifiez cinq entreprises",
+    c: "Choisissez les cinq clients pour lesquels les lenteurs, les coûts, la dispersion ou l’absence de fonction RH structurée créent le plus de friction.",
+  },
+  {
+    t: "Vous réalisez la mise en relation",
+    c: "Vous introduisez Pierre auprès du dirigeant ou du décideur. Rien de plus.",
+  },
+  {
+    t: "CloneStore démontre la valeur",
+    c: "Nous présentons Pierre à partir de cas RH réels et expliquons le modèle adapté : IA seule, hybride ou RH humain augmenté.",
+  },
+  {
+    t: "CloneStore vend et déploie",
+    c: "Compte, paiement, Empreinte Entreprise, onboarding, configuration et accompagnement sont pris en charge par CloneStore.",
+  },
+  {
+    t: "Vous êtes rémunéré chaque mois",
+    c: "20 % des montants HT réellement encaissés, tant que le client reste actif.",
+  },
+];
+
+function PartnerRole() {
+  return (
+    <section className="pf-section" id="fonctionnement">
+      <div className="pf-shell">
+        <Reveal>
+          <div className="pf-glass" style={{ padding: "clamp(30px, 5vw, 60px)" }}>
+            <p className="pf-eyebrow">Un premier pas concret</p>
+            <h2 className="pf-heading pf-mt-md pf-max">
+              Présentez-nous cinq entreprises. On s’occupe du reste.
+            </h2>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.08}>
+          <p className="pf-eyebrow pf-mt-lg">Répartition des rôles</p>
+        </Reveal>
+        <Reveal delay={0.12}>
+          <h2 className="pf-heading pf-mt-md pf-max">
+            Vous ouvrez la porte. CloneStore prend en charge tout le reste.
+          </h2>
+        </Reveal>
+
+        <Stagger className="pf-steps pf-mt-lg" step={0.07}>
+          {STEPS.map((s, i) => (
+            <StaggerItem key={s.t} className="pf-step">
+              <span className="pf-step__n">{i + 1}</span>
+              <h3 className="pf-step__t">{s.t}</h3>
+              <p className="pf-step__c">{s.c}</p>
+            </StaggerItem>
+          ))}
+        </Stagger>
+
+        <Reveal delay={0.16}>
+          <p className="pf-copy pf-mt-lg">
+            Vous n’avez pas à devenir commercial CloneStore. Vous devez simplement{" "}
+            <strong style={{ color: "var(--pf-mist)" }}>reconnaître les
+            entreprises pour lesquelles Pierre peut transformer la fonction
+            RH.</strong>
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ── 6. Preuve économique ─────────────────────────────────────────────────── */
 function Economics() {
   return (
     <section className="pf-section">
@@ -139,7 +457,7 @@ function Economics() {
             </Reveal>
             <Reveal delay={0.08}>
               <h2 className="pf-heading pf-mt-md">
-                Une commission simple, récurrente et lisible.
+                Chaque client actif génère 20 % du montant HT réellement encaissé.
               </h2>
             </Reveal>
             <Reveal delay={0.16}>
@@ -174,7 +492,7 @@ function Economics() {
   );
 }
 
-/* ── 3. Calculateur dynamique ─────────────────────────────────────────────── */
+/* ── 7. Calculateur dynamique ─────────────────────────────────────────────── */
 const CALC_MIN = 1;
 const CALC_MAX = 100;
 
@@ -195,7 +513,7 @@ function Calculator() {
         </Reveal>
         <Reveal delay={0.08}>
           <h2 className="pf-heading pf-mt-md pf-max">
-            Estimez votre commission récurrente.
+            Une recommandation. Un revenu récurrent qui s’additionne.
           </h2>
         </Reveal>
 
@@ -245,9 +563,13 @@ function Calculator() {
             </div>
 
             <p className="pf-note">
+              Sur l’abonnement fondateur Pierre à 449 € HT par mois : 1 client =
+              89,80 €/mois · 5 = 449 € · 10 = 898 € · 20 = 1 796 € · 50 = 4 490 €.
+            </p>
+            <p className="pf-note">
               Chiffres estimatifs, ils dépendent des montants HT réellement
-              encaissés. Repères : 5 clients ≈ 449 €/mois · 10 ≈ 898 € · 20 ≈
-              1 796 € · 50 ≈ 4 490 €.
+              encaissés. La commission continue tant que le client reste actif et
+              que les conditions du programme sont respectées.
             </p>
           </div>
         </Reveal>
@@ -256,27 +578,41 @@ function Calculator() {
   );
 }
 
-/* ── 4. Présentez-nous cinq entreprises ───────────────────────────────────── */
-function FiveCompanies() {
+/* ── 8. Pourquoi les clients écouteront le cabinet ────────────────────────── */
+function WhyClientsListen() {
   return (
     <section className="pf-section">
       <div className="pf-shell">
         <div className="pf-glass" style={{ padding: "clamp(30px, 5vw, 60px)" }}>
           <Reveal>
-            <p className="pf-eyebrow">Un premier pas concret</p>
+            <p className="pf-eyebrow">Votre position</p>
           </Reveal>
           <Reveal delay={0.08}>
             <h2 className="pf-heading pf-mt-md pf-max">
-              Présentez-nous cinq entreprises. Nous faisons le reste.
+              Vous connaissez déjà leur entreprise. Vous savez où Pierre peut
+              changer la donne.
             </h2>
           </Reveal>
           <Reveal delay={0.16}>
             <p className="pf-copy pf-mt-md">
-              Vous connaissez des dirigeants qui passent trop de temps sur leur
-              administration RH. Vous nous les présentez&nbsp;: nous préparons la
-              démonstration illustrative, nous menons la vente, nous déployons Pierre
-              et nous assurons le support. Votre nom reste associé à chaque client
-              que vous avez apporté.
+              Vous connaissez leurs effectifs, leur croissance, leurs retards,
+              leurs dossiers, leurs habitudes de gestion, leur niveau de
+              structuration et les tâches qui reviennent chaque mois.
+            </p>
+          </Reveal>
+          <Reveal delay={0.2}>
+            <p className="pf-copy pf-mt-md">
+              Vous êtes donc mieux placé qu’une publicité ou qu’un commercial
+              inconnu pour identifier les entreprises où Pierre peut immédiatement
+              absorber une part massive du travail RH opérationnel.
+            </p>
+          </Reveal>
+          <Reveal delay={0.24}>
+            <p className="pf-copy pf-mt-md">
+              Vous ne recommandez pas une promesse abstraite. Vous mettez en
+              relation une entreprise que vous connaissez avec{" "}
+              <strong style={{ color: "var(--pf-mist)" }}>une capacité RH dont
+              elle a réellement besoin.</strong>
             </p>
           </Reveal>
         </div>
@@ -285,68 +621,32 @@ function FiveCompanies() {
   );
 }
 
-/* ── 5. Fonctionnement en 5 étapes ────────────────────────────────────────── */
-const STEPS = [
-  {
-    t: "Vous présentez",
-    c: "Vous nous mettez en relation avec une entreprise qui a besoin de structurer sa RH.",
-  },
-  {
-    t: "Nous démontrons",
-    c: "CloneStore réalise une démonstration illustrative de Pierre, adaptée au contexte.",
-  },
-  {
-    t: "Nous vendons",
-    c: "Nous portons la proposition commerciale et l'abonnement à 449 €/mois.",
-  },
-  {
-    t: "Nous déployons",
-    c: "Pierre est mis en place ; il prépare, suit et relance, brouillons soumis à validation humaine.",
-  },
-  {
-    t: "Vous êtes rémunéré",
-    c: "20 % de commission récurrente, calculée sur le HT réellement encaissé, chaque mois.",
-  },
+/* ── 9. Gouvernance ───────────────────────────────────────────────────────── */
+const RULES_DECIDE = [
+  "Ce que Pierre exécute seul.",
+  "Ce qu’il prépare.",
+  "Ce qu’il soumet à validation.",
+  "Ce qu’il refuse.",
 ];
 
-function HowItWorks() {
-  return (
-    <section className="pf-section" id="fonctionnement">
-      <div className="pf-shell">
-        <Reveal>
-          <p className="pf-eyebrow">Fonctionnement</p>
-        </Reveal>
-        <Reveal delay={0.08}>
-          <h2 className="pf-heading pf-mt-md pf-max">
-            Cinq étapes, un rôle clair pour chacun.
-          </h2>
-        </Reveal>
+const HUMAN_KEEPS = [
+  "Les décisions légales.",
+  "Les sanctions et les licenciements.",
+  "Les arbitrages humains sensibles.",
+  "Les signatures officielles.",
+  "La responsabilité finale.",
+];
 
-        <Stagger className="pf-steps pf-mt-lg" step={0.07}>
-          {STEPS.map((s, i) => (
-            <StaggerItem key={s.t} className="pf-step">
-              <span className="pf-step__n">{i + 1}</span>
-              <h3 className="pf-step__t">{s.t}</h3>
-              <p className="pf-step__c">{s.c}</p>
-            </StaggerItem>
-          ))}
-        </Stagger>
-      </div>
-    </section>
-  );
-}
-
-/* ── 6. Ce que fait le cabinet / ce que fait CloneStore ───────────────────── */
-function WhoDoesWhat() {
+function Governance() {
   return (
     <section className="pf-section">
       <div className="pf-shell">
         <Reveal>
-          <p className="pf-eyebrow">Répartition des rôles</p>
+          <p className="pf-eyebrow">Gouvernance</p>
         </Reveal>
         <Reveal delay={0.08}>
           <h2 className="pf-heading pf-mt-md pf-max">
-            Vous ouvrez la porte. Nous portons l&apos;exécution.
+            Plus puissant ne veut pas dire incontrôlé.
           </h2>
         </Reveal>
 
@@ -354,82 +654,46 @@ function WhoDoesWhat() {
           <Reveal>
             <div className="pf-col">
               <div className="pf-col__head">
-                <span className="pf-col__tag">Le cabinet</span>
+                <span className="pf-col__tag">Les règles de l’entreprise</span>
               </div>
               <ul className="pf-list">
-                <li>Présente les entreprises de son réseau qui en ont besoin.</li>
-                <li>Apporte sa connaissance du terrain et sa relation de confiance.</li>
-                <li>Reste l&apos;interlocuteur privilégié de ses clients.</li>
-                <li>Perçoit une commission récurrente, sans gérer la facturation.</li>
+                {RULES_DECIDE.map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
               </ul>
             </div>
           </Reveal>
           <Reveal delay={0.1}>
             <div className="pf-col pf-col--accent">
               <div className="pf-col__head">
-                <span className="pf-col__tag">CloneStore</span>
+                <span className="pf-col__tag">L’humain conserve</span>
               </div>
               <ul className="pf-list">
-                <li>Réalise la démonstration illustrative de Pierre.</li>
-                <li>Mène la vente et met en place l&apos;abonnement.</li>
-                <li>Déploie Pierre et forme l&apos;entreprise à son usage.</li>
-                <li>Assure le support et la continuité dans le temps.</li>
+                {HUMAN_KEEPS.map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
               </ul>
             </div>
           </Reveal>
         </div>
-      </div>
-    </section>
-  );
-}
 
-/* ── 7. Présentation courte de Pierre ─────────────────────────────────────── */
-function PierreIntro() {
-  return (
-    <section className="pf-section">
-      <div className="pf-shell">
-        <div className="pf-pierre">
-          <Reveal>
-            <div className="pf-pierre__orb" aria-hidden="true">
-              <span className="pf-pierre__ring" />
-              <span className="pf-pierre__ring pf-pierre__ring--2" />
-              <span className="pf-pierre__mono">P</span>
-            </div>
-          </Reveal>
-          <div>
-            <Reveal>
-              <p className="pf-eyebrow">L&apos;employé que vous présentez</p>
-            </Reveal>
-            <Reveal delay={0.08}>
-              <h2 className="pf-heading pf-mt-md">Pierre, employé IA RH.</h2>
-            </Reveal>
-            <Reveal delay={0.16}>
-              <p className="pf-copy pf-mt-md">
-                Pierre reçoit une demande RH, la transforme en mission, prépare le
-                travail, suit, relance et garde la trace. Il structure des documents
-                prêts à relire et à valider. Ses productions sont des{" "}
-                <strong>brouillons soumis à validation humaine</strong> : les
-                décisions sensibles restent entre les mains de l&apos;entreprise.
-              </p>
-            </Reveal>
-            <Reveal delay={0.24}>
-              <div className="pf-disclaimer pf-mt-md">
-                <span className="pf-disclaimer__dot" aria-hidden="true" />
-                <p>
-                  Validation humaine systématique sur le sensible. Pierre prépare et
-                  documente&nbsp;; il vient en appui de votre expertise et de celle de
-                  vos clients, et n&apos;engage aucune action à leur place sans revue.
-                </p>
-              </div>
-            </Reveal>
+        <Reveal delay={0.16}>
+          <div className="pf-disclaimer pf-mt-lg">
+            <span className="pf-disclaimer__dot" aria-hidden="true" />
+            <p>
+              Pierre exécute directement les actions opérationnelles autorisées et
+              sollicite l’humain uniquement lorsque le contexte, la sensibilité ou
+              les règles l’exigent. La gouvernance est une architecture de
+              contrôle, pas une réduction de ses capacités.
+            </p>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
 }
 
-/* ── 8. Sécurité & transparence des commissions ───────────────────────────── */
+/* ── 10. Sécurité & transparence des commissions ──────────────────────────── */
 const TRANSPARENCY = [
   {
     t: "Calculée sur le réel",
@@ -440,8 +704,8 @@ const TRANSPARENCY = [
     c: "Le versement est mensuel, opéré via Stripe, sur la base des paiements confirmés.",
   },
   {
-    t: "Jamais annoncée d'avance",
-    c: "Une commission n'est jamais présentée comme acquise avant l'encaissement effectif du client.",
+    t: "Jamais annoncée d’avance",
+    c: "Une commission n’est jamais présentée comme acquise avant l’encaissement effectif du client.",
   },
 ];
 
@@ -471,19 +735,19 @@ function Transparency() {
   );
 }
 
-/* ── 9. Avantages du statut Cabinet Fondateur ─────────────────────────────── */
+/* ── 11. Avantages du statut Cabinet Fondateur ────────────────────────────── */
 const ADVANTAGES = [
   {
     t: "Taux fondateur préservé",
-    c: "Les cabinets présents à l'ouverture conservent leur taux de commission récurrente dans la durée.",
+    c: "Les cabinets présents à l’ouverture conservent leur taux de commission récurrente dans la durée.",
   },
   {
-    t: "Accompagnement dédié",
-    c: "Un interlocuteur CloneStore vous accompagne sur les présentations et les démonstrations.",
+    t: "Un interlocuteur dédié",
+    c: "Un interlocuteur CloneStore porte avec vous les présentations et les démonstrations.",
   },
   {
     t: "Suivi transparent",
-    c: "Vous suivez vos clients apportés et vos commissions estimées depuis un espace dédié.",
+    c: "Vous suivez vos clients apportés et vos commissions depuis un espace dédié.",
   },
   {
     t: "Aucune charge opérationnelle",
@@ -500,7 +764,7 @@ function FounderAdvantages() {
         </Reveal>
         <Reveal delay={0.08}>
           <h2 className="pf-heading pf-mt-md pf-max">
-            Les premiers cabinets partenaires gardent une longueur d&apos;avance.
+            Les premiers cabinets partenaires gardent une longueur d’avance.
           </h2>
         </Reveal>
 
@@ -517,31 +781,39 @@ function FounderAdvantages() {
   );
 }
 
-/* ── 10. FAQ ──────────────────────────────────────────────────────────────── */
+/* ── 12. FAQ ──────────────────────────────────────────────────────────────── */
 const FAQ_ITEMS = [
   {
-    q: "Que dois-je faire concrètement ?",
-    a: "Vous nous présentez des entreprises de votre réseau qui gagneraient du temps sur leur RH. CloneStore prend en charge la démonstration, la vente, le déploiement et le support.",
+    q: "Pierre est-il un assistant RH ?",
+    a: "Non. Un assistant produit une réponse et attend la prochaine demande. Pierre reçoit un objectif, structure une mission, exécute le travail RH opérationnel autorisé, suit, relance, attend, reprend, fait valider le sensible et garde la trace jusqu’au résultat.",
   },
   {
-    q: "Combien suis-je rémunéré ?",
-    a: "20 % de commission récurrente sur chaque client actif que vous avez apporté, calculée sur le montant HT réellement encaissé, versée chaque mois via Stripe.",
+    q: "Pierre peut-il remplacer une équipe RH ?",
+    a: "Sur le périmètre opérationnel, oui, selon l’organisation. Pierre peut devenir l’équipe RH IA principale d’une entreprise, le cœur opérationnel d’une équipe hybride ou la force qui démultiplie un service RH humain. Les humains conservent les décisions sensibles, la relation, les arbitrages et la responsabilité finale.",
   },
   {
-    q: "Dois-je gérer la facturation ou le support ?",
-    a: "Non. Vous n'avez ni stock, ni facturation, ni support technique à porter. CloneStore assure l'ensemble de l'exécution et de la relation d'abonnement.",
+    q: "Dois-je vendre Pierre moi-même ?",
+    a: "Non. Vous identifiez les entreprises pertinentes et réalisez la mise en relation. CloneStore prend en charge la démonstration, la vente, le déploiement, l’onboarding et le support.",
   },
   {
-    q: "Qu'est-ce que Pierre fait exactement ?",
-    a: "Pierre est un employé IA RH : il prépare, structure, suit, relance et documente le travail RH. Ses productions sont des brouillons soumis à validation humaine ; les décisions sensibles restent prises par l'entreprise.",
+    q: "Dois-je assurer le support ?",
+    a: "Non. CloneStore gère directement l’accompagnement produit, technique et opérationnel.",
   },
   {
-    q: "Quand la commission est-elle acquise ?",
-    a: "Une commission n'est jamais présentée comme acquise avant l'encaissement effectif. Elle est calculée sur les paiements confirmés, puis versée mensuellement.",
+    q: "Pourquoi cinq entreprises ?",
+    a: "Nous ne vous demandons pas de promouvoir Pierre à tout votre portefeuille. Nous vous demandons de sélectionner les cinq entreprises où sa valeur sera la plus évidente.",
   },
   {
-    q: "Dans quels pays le programme est-il ouvert ?",
-    a: "Le programme s'adresse aux cabinets en France, Belgique, Luxembourg et Suisse. Indiquez votre pays dans le formulaire de candidature.",
+    q: "Comment suis-je rémunéré ?",
+    a: "Vous percevez 20 % des montants HT réellement encaissés pour chaque client actif qui vous est attribué. Sur un abonnement à 449 € HT par mois, cela représente 89,80 € de commission mensuelle.",
+  },
+  {
+    q: "Pierre est-il seulement destiné aux petites entreprises ?",
+    a: "Non. La compétence reste la même. Le volume, les règles, les permissions, les circuits de validation et le niveau d’autonomie s’adaptent à la taille et à la complexité de l’organisation.",
+  },
+  {
+    q: "Pierre est-il meilleur qu’une équipe humaine ?",
+    a: "Sur les dimensions opérationnelles de vitesse, parallélisme, mémoire, disponibilité, continuité, suivi et traçabilité, Pierre possède des avantages structurels qu’une organisation humaine ne peut pas reproduire au même coût. Les humains restent supérieurs et responsables lorsqu’une situation exige jugement, relation, négociation, management ou décision sensible.",
   },
 ];
 
@@ -583,7 +855,7 @@ function Faq() {
   );
 }
 
-/* ── 11. Formulaire de candidature RÉEL ───────────────────────────────────── */
+/* ── 13. Formulaire de candidature RÉEL ───────────────────────────────────── */
 type FieldKey =
   | "cabinetName"
   | "firstName"
@@ -763,8 +1035,9 @@ function ApplicationForm() {
         </Reveal>
         <Reveal delay={0.14}>
           <p className="pf-copy pf-mt-md">
-            Remplissez ce formulaire pour rejoindre le programme. Nous revenons vers
-            vous pour organiser une première présentation.
+            Sélectionnez cinq entreprises. Nous prenons en charge la démonstration,
+            la vente, le déploiement et le support. Vous percevez 20 % de commission
+            récurrente.
           </p>
         </Reveal>
 
@@ -1061,9 +1334,9 @@ function ApplicationForm() {
             </button>
 
             <p className="pf-note" style={{ marginTop: 0 }}>
-              Démonstrations illustratives. Pierre prépare des brouillons soumis à
-              validation humaine. Les commissions sont calculées sur le HT réellement
-              encaissé.
+              Démonstrations illustratives. Pierre exécute les actions
+              opérationnelles autorisées ; les décisions sensibles restent humaines.
+              Les commissions sont calculées sur le HT réellement encaissé.
             </p>
           </form>
         </Reveal>
@@ -1072,7 +1345,7 @@ function ApplicationForm() {
   );
 }
 
-/* ── 12. CTA final ────────────────────────────────────────────────────────── */
+/* ── 14. CTA final ────────────────────────────────────────────────────────── */
 function FinalCta() {
   return (
     <section className="pf-section">
@@ -1083,12 +1356,12 @@ function FinalCta() {
               Rejoindre le programme
             </p>
             <h2 className="pf-heading pf-mt-md" style={{ marginInline: "auto" }}>
-              Ajoutez un employé IA RH à l&apos;offre de votre cabinet.
+              Donnez à cinq de vos clients la capacité RH qu’ils n’auraient jamais
+              pu recruter à ce prix.
             </h2>
             <p className="pf-copy pf-mt-md" style={{ marginInline: "auto" }}>
-              Présentez-nous cinq entreprises pour commencer. Nous assurons la
-              démonstration, la vente, le déploiement et le support. Vous recevez 20 %
-              de commission récurrente.
+              Vous réalisez la mise en relation. CloneStore démontre, vend, déploie
+              et accompagne Pierre. Vous percevez 20 % de commission récurrente.
             </p>
             <div className="pf-cta-row">
               <a href="#candidature" className="pf-btn pf-btn--primary">
@@ -1098,6 +1371,11 @@ function FinalCta() {
                 Découvrir Pierre
               </Link>
             </div>
+            <p className="pf-note" style={{ marginInline: "auto" }}>
+              Candidature étudiée par CloneStore. Aucun engagement pour rejoindre le
+              programme. Versements soumis aux règles d’attribution et aux montants
+              réellement encaissés.
+            </p>
           </div>
         </Reveal>
       </div>

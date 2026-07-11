@@ -6,15 +6,15 @@ import type { Metadata } from "next";
 import PartenairesLanding from "@/components/partenaires/PartenairesLanding";
 
 export const metadata: Metadata = {
-  title: "Cabinets Fondateurs CloneStore — Ajoutez un employé IA RH à votre offre",
+  title: "Cabinets Fondateurs CloneStore — Proposez à vos clients une équipe RH IA complète",
   description:
-    "Présentez à CloneStore les entreprises qui ont besoin d'un employé IA RH. Nous assurons la démonstration, la vente, le déploiement et le support. Vous recevez 20 % de commission récurrente, calculée sur le HT réellement encaissé.",
+    "Pierre prend en charge l'opérationnel RH de bout en bout : il peut devenir l'équipe RH IA principale d'une entreprise, le cœur d'une organisation hybride ou la force qui démultiplie un service RH existant. Vous réalisez la mise en relation ; CloneStore démontre, vend, déploie et accompagne. Vous percevez 20 % de commission récurrente sur le HT réellement encaissé.",
   alternates: { canonical: "/partenaires" },
   robots: { index: true, follow: true },
   openGraph: {
     title: "Cabinets Fondateurs CloneStore",
     description:
-      "Ajoutez un employé IA RH à l'offre de votre cabinet. 20 % de commission récurrente.",
+      "Proposez à vos clients une équipe RH IA complète. 20 % de commission récurrente.",
     type: "website",
   },
 };
