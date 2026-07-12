@@ -37,6 +37,15 @@ import type { CloneChatMessage, CloneChatProposedAction, CloneChatContentBlock }
 export type CloneChatUiMode = "loading" | "public" | "authenticated";
 
 /**
+ * C1.5 — État RÉEL du rattachement entreprise, résolu par le SERVEUR (jamais fabriqué).
+ *   · "unknown"  : pas encore résolu ;
+ *   · "none"     : authentifié SANS entreprise active → MODE DÉCOUVERTE (chat utilisable) ;
+ *   · "active"   : entreprise réelle résolue serveur.
+ * Aucune fausse entreprise n'est jamais inventée à partir de l'e-mail ou d'un identifiant.
+ */
+export type CloneChatCompanyState = "unknown" | "none" | "active";
+
+/**
  * C1.1 — Pièce jointe DOCUMENTAIRE (PDF/DOCX/XLSX/CSV/TXT/MD). Le client ne fait que
  * transporter : le serveur re-détecte le MIME par signature, recalcule taille et hash,
  * applique la politique fail-closed et décide seul du statut de parsing. Aucun champ
@@ -74,11 +83,16 @@ function nowIso(): string { try { return new Date().toISOString(); } catch { ret
 
 const THREAD_KEY = "clonestore.clonechat.thread.v1";
 
+/** C1.3 — indice subtil (non bloquant) du mode découverte : authentifié SANS entreprise active. */
+const DISCOVERY_MODE_HINT =
+  "Mode découverte — connectez une entreprise pour que Pierre puisse agir sur vos données et vos missions.";
+
 export function useCloneChat() {
   const [mode, setMode] = useState<CloneChatUiMode>("loading");
   const [messages, setMessages] = useState<CloneChatMessage[]>([]);
   const [busy, setBusy] = useState(false);
   const [companyLabel, setCompanyLabel] = useState<string | null>(null);
+  const [companyState, setCompanyState] = useState<CloneChatCompanyState>("unknown");
   const [conversations, setConversations] = useState<Array<{ id: string; title: string; lastActivityAt: string }>>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const ctxRef = useRef<CloneChatContext>({ mode: "public", companyLabel: null, permissions: DEFAULT_PERMISSIONS, overview: buildOverview({ missions: [], tasks: [], validations: [], artifacts: [] }), missions: [], validations: [], employees: [], artifacts: [] });
@@ -89,6 +103,27 @@ export function useCloneChat() {
   const authHeaders = useCallback((): Record<string, string> => ({ "Content-Type": "application/json", ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}) }), []);
   const abortRef = useRef<AbortController | null>(null);
   const lastUserRef = useRef<{ text: string; images: string[]; docs: CloneChatDocAttachment[] } | null>(null);
+  // C1.3 — « mode découverte » (authentifié SANS entreprise active) : indice subtil affiché
+  // UNE SEULE FOIS, jamais un blocage. Le composer reste actif et les questions publiques
+  // reçoivent de vraies réponses ; le message « entreprise requise » n'apparaît que pour une
+  // demande qui touche réellement aux données/actions de l'entreprise.
+  const discoveryHintRef = useRef(false);
+
+  // ── C1.5 — BARRIÈRE DE PRÊT (la correction du vrai défaut) ─────────────────
+  // DÉFAUT REPRODUIT : le composer était utilisable AVANT que le mode ne soit résolu, et
+  // `ctxRef` démarre en `mode: "public"`. Un utilisateur authentifié qui tapait tout de suite
+  // (le cas NORMAL) voyait son message traité par le moteur DÉTERMINISTE LOCAL — la requête
+  // n'atteignait JAMAIS `/api/assistant/chat` — et recevait « Réponse d'orientation — je
+  // n'accède pas aux données de votre entreprise ». Ressenti : « CloneChat me bloque ».
+  //
+  // Correction : `send` ATTEND la résolution du mode au lieu de deviner. Le chat n'est jamais
+  // désactivé — il est simplement honnête sur le fait qu'il finit de s'initialiser.
+  const readyRef = useRef<Promise<void> | null>(null);
+  const resolveReadyRef = useRef<(() => void) | null>(null);
+  if (readyRef.current === null) {
+    readyRef.current = new Promise<void>((res) => { resolveReadyRef.current = res; });
+  }
+  const markReady = useCallback(() => { resolveReadyRef.current?.(); resolveReadyRef.current = null; }, []);
 
   // ── Détection de mode + chargement du contexte réel ────────────────────────
   useEffect(() => {
@@ -108,17 +143,30 @@ export function useCloneChat() {
         tokenRef.current = token;
         if (token) {
           const { data: u } = await sb.auth.getUser();
-          if (u.user) { authed = true; setCompanyLabel(u.user.email?.split("@")[0] ?? null); }
+          // C1.5 — On NE FABRIQUE PLUS d'entreprise à partir de l'e-mail. L'ancien
+          // `email.split("@")[0]` produisait un faux libellé d'entreprise (« test-a ») et
+          // faisait afficher « Données de votre entreprise (test-a) » à un utilisateur qui
+          // n'en a AUCUNE. Le libellé d'entreprise ne vient QUE du serveur.
+          if (u.user) authed = true;
         }
       } catch { /* public */ }
 
-      if (!authed) { if (mounted.current) setMode("public"); ctxRef.current = { ...ctxRef.current, mode: "public" }; return; }
+      if (!authed) {
+        if (mounted.current) { setMode("public"); setCompanyState("none"); }
+        ctxRef.current = { ...ctxRef.current, mode: "public", companyLabel: null };
+        markReady();
+        return;
+      }
 
       // Authentifié : on fixe le mode opérationnel IMMÉDIATEMENT. Un échec de chargement
       // du contexte V1 (réseau, tenant non provisionné) ne doit JAMAIS rétrograder en
       // public : l'utilisateur reste opérationnel, simplement avec un contexte vide.
       ctxRef.current = { ...ctxRef.current, mode: "authenticated" };
       if (mounted.current) setMode("authenticated");
+      // Le mode est CONNU : on libère la barrière tout de suite. Le contexte V1 et les
+      // conversations peuvent finir de charger ensuite — ils ne changent pas la ROUTE prise
+      // par un message, seulement sa richesse.
+      markReady();
 
       try {
         // Charge le contexte réel (borné : missions + salariés + validations des missions actives).
@@ -147,7 +195,19 @@ export function useCloneChat() {
       try {
         const listRes = await fetch("/api/assistant/conversations", { headers: authHeaders(), credentials: "same-origin" });
         const ld = await listRes.json().catch(() => null);
-        const convs: Array<{ id: string; title: string; lastActivityAt: string }> = listRes.ok && ld?.ok ? ld.conversations.map((c: { id: string; title: string; lastActivityAt: string }) => ({ id: c.id, title: c.title, lastActivityAt: c.lastActivityAt })) : [];
+        // C1.5 — SIGNAL SERVEUR RÉEL du rattachement entreprise. Cette route est fail-closed :
+        // sans entreprise active elle répond `{ ok: true, source: "company_required" }` — donc
+        // `ld.ok` vaut VRAI dans les DEUX cas. L'ancien code faisait `ld.conversations.map(...)`
+        // sur un corps sans `conversations` → TypeError silencieusement avalé. On distingue.
+        const noCompany = ld?.source === "company_required" || !Array.isArray(ld?.conversations);
+        if (mounted.current) setCompanyState(noCompany ? "none" : "active");
+        if (noCompany) {
+          // Mode découverte : aucune conversation durable (aucun tenant) — et surtout AUCUNE
+          // création de fil, qui échouerait de toute façon. Le chat reste pleinement utilisable.
+          if (mounted.current) setConversations([]);
+          return;
+        }
+        const convs: Array<{ id: string; title: string; lastActivityAt: string }> = ld.conversations.map((c: { id: string; title: string; lastActivityAt: string }) => ({ id: c.id, title: c.title, lastActivityAt: c.lastActivityAt }));
         if (mounted.current) setConversations(convs);
         if (convs.length > 0) {
           setConv(convs[0].id);
@@ -163,10 +223,10 @@ export function useCloneChat() {
           if (cRes.ok && cd?.ok) { setConv(cd.conversation.id); if (mounted.current) setConversations([{ id: cd.conversation.id, title: cd.conversation.title, lastActivityAt: cd.conversation.lastActivityAt }]); }
         }
       } catch { /* pas de persistance serveur : cache local uniquement */ }
-    })().catch(() => { if (mounted.current) setMode("public"); });
+    })().catch(() => { if (mounted.current) setMode("public"); }).finally(markReady);
 
     return () => { mounted.current = false; };
-  }, []);
+  }, [authHeaders, markReady, setConv]);
 
   // Persistance locale du fil.
   useEffect(() => {
@@ -189,6 +249,10 @@ export function useCloneChat() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
+      // C1.5 — On ATTEND que le mode soit résolu. Sans cette barrière, un message envoyé
+      // pendant l'initialisation était traité comme PUBLIC (valeur initiale de `ctxRef`) et
+      // n'atteignait jamais le serveur : c'est LA cause du faux blocage « pas d'entreprise ».
+      await readyRef.current;
       const ctx = { ...ctxRef.current, companyLabel };
       if (ctx.mode === "public") {
         // Public : aucune pièce jointe (ni capture ni document) — pas de contexte entreprise.
@@ -220,12 +284,22 @@ export function useCloneChat() {
       // P9.4.2 r2 §1 — Entreprise requise (fail-closed) : le serveur refuse SANS entreprise réelle
       // (aucune fausse entreprise). On rend un état CLAIR « rattachez-vous à une entreprise » plutôt
       // qu'un repli générique. Aucune action à effet n'est proposée dans cet état.
-      if (res.ok && data?.source === "company_required") {
-        const message = typeof data.message === "string" ? data.message : "Vous n'êtes rattaché à aucune entreprise active.";
-        push(msg("assistant", [
-          { type: "text", text: message },
-          { type: "boundary", provenance: "company", text: "Connectez-vous à votre entreprise pour que Pierre agisse en votre nom." },
-        ], "company"));
+      // C1.5 — REFUS CONTEXTUELS (entreprise requise / Pierre à activer / clarification).
+      // Ce sont des refus CIBLÉS sur une demande opérationnelle : ils n'éteignent JAMAIS le
+      // chat. On confirme explicitement que les questions générales restent disponibles, et
+      // le composer reste actif — l'utilisateur peut continuer immédiatement.
+      const CONTEXTUAL_REFUSALS = new Set(["company_required", "pierre_access_required", "clarification_required", "company_required_document"]);
+      if (res.ok && typeof data?.source === "string" && CONTEXTUAL_REFUSALS.has(data.source)) {
+        if (data.source === "company_required" && mounted.current) setCompanyState("none");
+        const text = typeof data.message === "string" && data.message
+          ? data.message
+          : (data.structured?.answer as string | undefined) ?? "Pour agir sur votre entreprise, connectez d'abord une entreprise active.";
+        const blocks: CloneChatContentBlock[] = [{ type: "text", text }];
+        if (data.source !== "clarification_required") {
+          blocks.push({ type: "boundary", provenance: "system", text: "Vos questions générales sur CloneStore et Pierre restent disponibles ici." });
+        }
+        // Aucune donnée d'entreprise n'a été touchée : provenance PUBLIQUE, jamais « company ».
+        push(msg("assistant", blocks, "public"));
         return;
       }
       if (!res.ok || !data?.structured) {
@@ -233,7 +307,14 @@ export function useCloneChat() {
         push(msg("assistant", [...r.blocks], r.provenance));
         return;
       }
-      const assembled = assembleFromStructured(data.structured, ctx, data.usageTokens ?? 0, t);
+      // C1.5 — Une réponse de DÉCOUVERTE est une réponse PUBLIQUE : elle n'a touché aucune
+      // source tenant. On l'assemble donc dans un contexte public, sinon l'assembleur ajoutait
+      // « Données de votre entreprise (…) — visibles par vous seul » à un utilisateur qui n'a
+      // AUCUNE entreprise (et dont le libellé était fabriqué depuis l'e-mail).
+      const isDiscovery = data.discovery === true;
+      if (isDiscovery && mounted.current) setCompanyState("none");
+      const assembleCtx = isDiscovery ? { ...ctx, mode: "public" as const, companyLabel: null } : ctx;
+      const assembled = assembleFromStructured(data.structured, assembleCtx, data.usageTokens ?? 0, t);
       // P9.4.2 r2 §3 — L'exécution des actions à effet est AUTHORITATIVE CÔTÉ SERVEUR. On retire
       // les aperçus d'action dérivés client, et on n'affiche un bouton « Confirmer » QUE si le
       // serveur a persisté une PROPOSITION (référence proposalId). Le client ne détient jamais
@@ -258,7 +339,9 @@ export function useCloneChat() {
       }
       // Citations discrètes (« D'après … ») — jamais de chemin de fichier / table au client.
       if (Array.isArray(data.citationLabels) && data.citationLabels.length > 0) blocks.push({ type: "boundary", provenance: "system", text: `D'après ${data.citationLabels.slice(0, 3).join(", ")}.` });
-      push(msg("assistant", blocks, "company"));
+      // C1.5 — L'indice « mode découverte » n'est PLUS répété dans le fil : il vit désormais
+      // dans une carte d'état contextuelle, discrète et persistante (§4D). Zéro spam.
+      push(msg("assistant", blocks, isDiscovery ? "public" : "company"));
     } catch (e) {
       if ((e as { name?: string }).name === "AbortError") {
         push(msg("assistant", [{ type: "text", text: "Réponse interrompue." }], "system"));
@@ -355,9 +438,18 @@ export function useCloneChat() {
   }, [authHeaders, setConv, refreshConversations]);
 
   const isEmpty = messages.length === 0;
-  const modeLabel = useMemo(() => (mode === "authenticated" ? "Assistant opérationnel" : mode === "public" ? "Assistant d'orientation" : "…"), [mode]);
+  // C1.5 — Le libellé dit la VÉRITÉ : authentifié SANS entreprise ⇒ « Mode découverte »,
+  // jamais « connecté à votre entreprise ».
+  const modeLabel = useMemo(() => {
+    if (mode === "loading") return "Initialisation…";
+    if (mode === "public") return "Assistant d'orientation";
+    return companyState === "active" ? "Assistant opérationnel" : "Mode découverte";
+  }, [mode, companyState]);
 
-  return { mode, modeLabel, messages, busy, isEmpty, companyLabel, conversations, conversationId, send, executeAction, stop, retry, newConversation, openConversation, deleteConversation };
+  /** Découverte : authentifié, sans entreprise active. Le chat reste PLEINEMENT utilisable. */
+  const discoveryMode = mode === "authenticated" && companyState === "none";
+
+  return { mode, modeLabel, messages, busy, isEmpty, companyLabel, companyState, discoveryMode, discoveryHint: DISCOVERY_MODE_HINT, conversations, conversationId, send, executeAction, stop, retry, newConversation, openConversation, deleteConversation };
 }
 
 /** Convertit une analyse de capture (structurée, honnête) en blocs affichables. */

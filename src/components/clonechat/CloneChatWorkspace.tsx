@@ -8,7 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Bot, FileText, Loader2, MessageSquarePlus, Paperclip, RotateCcw, Send, ShieldAlert, Sparkles, Square, Trash2, UserRound, Workflow, X } from "lucide-react";
+import { ArrowRight, Bot, Compass, FileText, Loader2, MessageSquarePlus, Paperclip, RotateCcw, Send, ShieldAlert, Sparkles, Square, Trash2, UserRound, Workflow, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusChip } from "@/components/pierre/cockpit/primitives";
 import { useCloneChat, type CloneChatDocAttachment, type CloneChatUiMode } from "@/app/assistant/useCloneChat";
@@ -16,6 +16,9 @@ import type { CloneChatContentBlock, CloneChatMessage, CloneChatProposedAction }
 
 const EXAMPLES_PUBLIC = ["Qu'est-ce que Pierre ?", "Comment fonctionne CloneStore ?", "Montrez-moi la démo"];
 const EXAMPLES_AUTH = ["Où en est Pierre ?", "Qu'est-ce qui attend ma validation ?", "Prépare le contrat CDI de Marie"];
+// C1.5 — En mode découverte, ne proposez PAS des exemples qui exigent une entreprise : ce
+// serait inviter l'utilisateur à se heurter à un refus. On propose ce qui marche vraiment.
+const EXAMPLES_DISCOVERY = ["Comment je paye Pierre ?", "Pierre remplace qui exactement ?", "Quels sont les prix ?"];
 
 const MAX_ATTACH = 2;
 const MAX_ATTACH_BYTES = 4 * 1024 * 1024;
@@ -55,7 +58,7 @@ export function CloneChatWorkspace() {
     setDraft(""); const imgs = images; const ds = docs; setImages([]); setDocs([]); setAttachError(null);
     void chat.send(t, imgs, ds);
   };
-  const examples = chat.mode === "authenticated" ? EXAMPLES_AUTH : EXAMPLES_PUBLIC;
+  const examples = chat.discoveryMode ? EXAMPLES_DISCOVERY : chat.mode === "authenticated" ? EXAMPLES_AUTH : EXAMPLES_PUBLIC;
 
   const onFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -75,8 +78,10 @@ export function CloneChatWorkspace() {
       }
 
       if (isDoc) {
-        // Mode public : aucun document (pas de contexte entreprise) — refus côté client aussi.
+        // Sans entreprise active (public OU découverte) : aucun document — le serveur reste
+        // l'autorité, ce refus client n'est qu'un confort honnête.
         if (chat.mode !== "authenticated") { setAttachError("Connectez-vous pour joindre un document."); continue; }
+        if (chat.companyState !== "active") { setAttachError("Connectez une entreprise active pour analyser un document."); continue; }
         if (nextDocs.length >= MAX_DOCS) { setAttachError(`Maximum ${MAX_DOCS} documents.`); continue; }
         if (f.size > MAX_DOC_BYTES) { setAttachError("Document trop lourd (max 6 Mo)."); continue; }
         const b64 = await readAs(f, "base64");
@@ -104,19 +109,24 @@ export function CloneChatWorkspace() {
     // (auparavant sur l'écran de lancement obsolète, désormais retiré).
     <main className="cs-page" data-tour-id="clonechat-entry">
       <div className="cs-page-shell flex min-h-[70vh] flex-col gap-4">
-        {/* Header */}
+        {/* Header — C1.5 : le sous-titre dit la VÉRITÉ (plus de « connecté à votre entreprise »
+            affiché à un utilisateur qui n'a aucune entreprise active). */}
         <section data-tour-id="clonechat-header" className="cs-panel flex items-center justify-between gap-3 p-4">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--cs-line-soft)] bg-white/58 text-[var(--cs-violet)]">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="cc-brand-mark shrink-0">
               <Sparkles className="h-5 w-5" />
             </span>
-            <div>
+            <div className="min-w-0">
               <h1 className="text-[1.1rem] font-semibold tracking-[-0.03em] text-[var(--cs-ink-1)]">CloneChat</h1>
-              <p className="text-[0.8rem] text-[var(--cs-ink-4)]">{chat.modeLabel}{chat.mode === "authenticated" ? " · connecté à votre entreprise" : ""}</p>
+              <p className="truncate text-[0.8rem] text-[var(--cs-ink-4)]">
+                {chat.modeLabel}
+                {chat.mode === "authenticated" && chat.companyState === "active" ? " · connecté à votre entreprise" : ""}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {chat.mode === "authenticated" ? (
+          <div className="flex shrink-0 items-center gap-2">
+            {/* Les conversations durables n'existent qu'avec une entreprise réelle. */}
+            {chat.mode === "authenticated" && chat.companyState === "active" ? (
               <button type="button" onClick={() => void chat.newConversation()} aria-label="Nouvelle conversation" data-tour-id="clonechat-new" className="cs-liquid-button">
                 <MessageSquarePlus className="h-4 w-4" /><span className="hidden sm:inline">Nouvelle</span>
               </button>
@@ -127,11 +137,25 @@ export function CloneChatWorkspace() {
           </div>
         </section>
 
+        {/* C1.5 §4D — MODE DÉCOUVERTE : carte d'état contextuelle, discrète et NON bloquante.
+            Elle remplace l'ancien blocage répété. Elle informe, elle n'interdit pas : le fil
+            reste ouvert et le composer actif. Affichée UNE fois, jamais après chaque message. */}
+        {chat.discoveryMode ? (
+          <div className="cc-state-card" data-tour-id="clonechat-discovery-hint" role="status">
+            <span className="cc-state-card__icon"><Compass className="h-3.5 w-3.5" /></span>
+            <p className="text-[0.82rem] leading-5">
+              <span className="font-medium text-[var(--cs-ink-2)]">Mode découverte actif</span>{" "}
+              — posez toutes vos questions sur CloneStore, Pierre, les prix et le fonctionnement.
+              Pour agir sur vos données RH, connectez d&apos;abord une entreprise active.
+            </p>
+          </div>
+        ) : null}
+
         {/* Historique des conversations durables (multi-device) */}
         {chat.mode === "authenticated" && chat.conversations.length > 1 ? (
           <div data-tour-id="clonechat-history" className="flex flex-wrap gap-2">
             {chat.conversations.slice(0, 8).map((c) => (
-              <span key={c.id} className={cn("group inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[0.76rem]", c.id === chat.conversationId ? "border-[var(--cs-violet)] bg-[var(--cs-violet-soft)] text-[var(--cs-violet)]" : "border-[var(--cs-line-soft)] bg-white/50 text-[var(--cs-ink-3)]")}>
+              <span key={c.id} className={cn("group inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[0.76rem]", c.id === chat.conversationId ? "border-[rgba(84,119,255,0.28)] bg-[var(--cs-blue-soft)] text-[var(--cs-ink-2)]" : "border-[var(--cs-line-soft)] bg-white/50 text-[var(--cs-ink-3)]")}>
                 <button type="button" onClick={() => void chat.openConversation(c.id)} className="max-w-[16ch] truncate">{c.title}</button>
                 <button type="button" aria-label={`Supprimer ${c.title}`} onClick={() => void chat.deleteConversation(c.id)} className="opacity-0 transition group-hover:opacity-100"><Trash2 className="h-3 w-3" /></button>
               </span>
@@ -155,15 +179,15 @@ export function CloneChatWorkspace() {
         {chat.isEmpty ? (
           <div className="flex flex-wrap gap-2">
             {examples.map((ex) => (
-              <button key={ex} type="button" onClick={() => { setDraft(ex); }} className="rounded-full border border-[var(--cs-line-soft)] bg-white/50 px-3 py-1.5 text-[0.8rem] text-[var(--cs-ink-3)] hover:bg-white/80">
+              <button key={ex} type="button" onClick={() => { setDraft(ex); }} className="cc-chip">
                 {ex}
               </button>
             ))}
           </div>
         ) : null}
 
-        {/* Composer */}
-        <section data-tour-id="clonechat-input" className="cs-panel p-3">
+        {/* Composer — C1.5 §4C : intégré, premium, et TOUJOURS actif en mode découverte. */}
+        <section data-tour-id="clonechat-input" className="cc-composer">
           {/* Aperçus des captures jointes */}
           {images.length > 0 ? (
             <div className="mb-2 flex flex-wrap gap-2" data-tour-id="clonechat-attachments">
@@ -196,7 +220,10 @@ export function CloneChatWorkspace() {
           {attachError ? <p className="mb-1.5 px-1 text-[0.72rem] text-[var(--cs-danger)]" role="alert">{attachError}</p> : null}
 
           <div className="flex items-end gap-2">
-            {chat.mode === "authenticated" ? (
+            {/* C1.5 — Un document RH appartient au TENANT : sans entreprise active, le serveur le
+                refusera TOUJOURS. On n'affiche donc pas une pièce jointe qui ne peut qu'échouer
+                (une affordance qui échoue systématiquement est un piège, pas une fonctionnalité). */}
+            {chat.mode === "authenticated" && chat.companyState === "active" ? (
               <>
                 <input ref={fileRef} type="file" accept={ACCEPT_ATTR} multiple className="hidden" aria-hidden="true" tabIndex={-1} onChange={(e) => void onFiles(e.target.files)} />
                 <button type="button" onClick={() => fileRef.current?.click()} disabled={chat.busy || (images.length >= MAX_ATTACH && docs.length >= MAX_DOCS)} aria-label="Joindre une capture d'écran ou un document (PDF, DOCX, XLSX, CSV, TXT, MD)" className={cn("cs-liquid-button h-[46px]", (chat.busy || (images.length >= MAX_ATTACH && docs.length >= MAX_DOCS)) && "pointer-events-none opacity-60")}>
@@ -209,10 +236,18 @@ export function CloneChatWorkspace() {
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
               rows={1}
-              placeholder={chat.mode === "authenticated" ? "Demandez à CloneChat (missions, validations, salariés, documents…)" : "Posez une question sur CloneStore et Pierre…"}
+              // C1.5 §4C — En mode découverte le composer reste ACTIF et le texte d'invite
+              // n'insinue JAMAIS un blocage : il dit ce qui fonctionne.
+              placeholder={
+                chat.discoveryMode
+                  ? "Posez votre question sur CloneStore, Pierre, les prix…"
+                  : chat.mode === "authenticated"
+                    ? "Demandez à CloneChat (missions, validations, salariés, documents…)"
+                    : "Posez une question sur CloneStore et Pierre…"
+              }
               aria-label="Message pour CloneChat"
               disabled={chat.busy}
-              className="max-h-40 min-h-[46px] flex-1 resize-none rounded-[1.1rem] border border-[var(--cs-line-soft)] bg-white/60 px-4 py-3 text-[0.9rem] leading-6 text-[var(--cs-ink-1)] outline-none focus-visible:border-[var(--cs-violet)]"
+              className="max-h-40 min-h-[46px] flex-1 resize-none px-3 py-3 text-[0.9rem] leading-6"
             />
             {chat.busy ? (
               <button type="button" onClick={chat.stop} aria-label="Interrompre" className="cs-liquid-button h-[46px]">
@@ -232,7 +267,11 @@ export function CloneChatWorkspace() {
           </div>
           <div className="mt-1.5 flex items-center justify-between gap-2 px-1">
             <p className="text-[0.72rem] text-[var(--cs-ink-4)]">
-              {chat.mode === "authenticated" ? "Rien de sensible n'est exécuté sans votre confirmation." : "Assistant d'orientation — je n'accède pas aux données d'une entreprise."}
+              {chat.discoveryMode
+                ? "Questions générales disponibles — aucune donnée d'entreprise n'est consultée."
+                : chat.mode === "authenticated"
+                  ? "Rien de sensible n'est exécuté sans votre confirmation."
+                  : "Assistant d'orientation — je n'accède pas aux données d'une entreprise."}
             </p>
             {!chat.isEmpty && !chat.busy ? (
               <button type="button" onClick={chat.retry} aria-label="Réessayer le dernier message" className="inline-flex items-center gap-1 text-[0.72rem] text-[var(--cs-ink-4)] hover:text-[var(--cs-ink-2)]">
@@ -269,7 +308,7 @@ function formatBytes(n: number): string {
 function Welcome({ mode }: { mode: CloneChatUiMode }) {
   return (
     <div className="mx-auto max-w-lg py-8 text-center">
-      <div className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--cs-line-soft)] bg-white/58 text-[var(--cs-violet)]"><Sparkles className="h-6 w-6" /></div>
+      <div className="cc-brand-mark mx-auto mb-3 h-12 w-12"><Sparkles className="h-6 w-6" /></div>
       <p className="text-[1.05rem] font-semibold text-[var(--cs-ink-1)]">Bonjour, je suis CloneChat.</p>
       <p className="mt-2 text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
         {mode === "authenticated"
@@ -284,10 +323,10 @@ function MessageRow({ message, onAction, busy }: { message: CloneChatMessage; on
   const isUser = message.role === "user";
   return (
     <div className={cn("flex gap-3", isUser ? "flex-row-reverse" : "flex-row")}>
-      <span className={cn("mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--cs-line-soft)]", isUser ? "bg-[var(--cs-violet-soft)] text-[var(--cs-violet)]" : "bg-white/58 text-[var(--cs-ink-3)]")}>
+      <span className={cn("mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full", isUser ? "cc-avatar-user" : "cc-avatar-assistant")}>
         {isUser ? <UserRound className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
       </span>
-      <div className={cn("min-w-0 max-w-[85%] space-y-2", isUser && "text-right")}>
+      <div className={cn("cc-msg-col min-w-0 max-w-[85%] space-y-2", isUser && "text-right")}>
         {message.content.map((b, i) => <BlockView key={i} block={b} onAction={onAction} busy={busy} isUser={isUser} />)}
       </div>
     </div>
@@ -296,15 +335,21 @@ function MessageRow({ message, onAction, busy }: { message: CloneChatMessage; on
 
 function BlockView({ block, onAction, busy, isUser }: { block: CloneChatContentBlock; onAction: (a: CloneChatProposedAction) => void; busy: boolean; isUser: boolean }) {
   switch (block.type) {
+    // C1.5 §4A/B — Le violet vif est SUPPRIMÉ. Bulle utilisateur = dégradé sombre CloneStore
+    // (graphite → bleu nuit, halo bleu discret), bulle assistant = surface claire secondaire.
     case "text":
-      return <div className={cn("inline-block rounded-[1.1rem] px-3.5 py-2 text-[0.9rem] leading-6", isUser ? "bg-[var(--cs-violet)] text-white" : "bg-white/70 text-[var(--cs-ink-1)]")}>{block.text}</div>;
+      return (
+        <div className={cn("inline-block px-3.5 py-2 text-left text-[0.9rem] leading-6", isUser ? "cc-bubble-user" : "cc-bubble-assistant")}>
+          {block.text}
+        </div>
+      );
     case "boundary":
       return <p className="text-[0.72rem] italic text-[var(--cs-ink-4)]">{block.text}</p>;
     case "mission":
       return (
         <Link href={`/agents/pierre/use?view=missions&mission=${encodeURIComponent(block.mission.id)}`} className="cs-card cs-card-tight cs-hover-lift block text-left">
           <div className="flex items-center justify-between gap-2">
-            <span className="flex items-center gap-2 min-w-0"><Workflow className="h-4 w-4 shrink-0 text-[var(--cs-violet)]" /><span className="truncate text-[0.86rem] font-medium text-[var(--cs-ink-1)]">{block.mission.title}</span></span>
+            <span className="flex items-center gap-2 min-w-0"><Workflow className="h-4 w-4 shrink-0 text-[var(--cs-ink-3)]" /><span className="truncate text-[0.86rem] font-medium text-[var(--cs-ink-1)]">{block.mission.title}</span></span>
             <StatusChip view={block.mission.statusView} />
           </div>
         </Link>
@@ -322,19 +367,19 @@ function BlockView({ block, onAction, busy, isUser }: { block: CloneChatContentB
     case "employee":
       return (
         <Link href={block.employee.href} className="cs-card cs-card-tight cs-hover-lift block text-left">
-          <span className="flex items-center gap-2"><UserRound className="h-4 w-4 text-[var(--cs-violet)]" /><span className="text-[0.86rem] font-medium text-[var(--cs-ink-1)]">{block.employee.name}</span><span className="text-[0.76rem] text-[var(--cs-ink-4)]">{block.employee.role ?? ""}</span></span>
+          <span className="flex items-center gap-2"><UserRound className="h-4 w-4 text-[var(--cs-ink-3)]" /><span className="text-[0.86rem] font-medium text-[var(--cs-ink-1)]">{block.employee.name}</span><span className="text-[0.76rem] text-[var(--cs-ink-4)]">{block.employee.role ?? ""}</span></span>
         </Link>
       );
     case "document":
       return (
         <div className="cs-card cs-card-tight text-left">
-          <span className="flex items-center gap-2"><FileText className="h-4 w-4 text-[var(--cs-violet)]" /><span className="text-[0.86rem] font-medium text-[var(--cs-ink-1)]">{block.document.title}</span><StatusChip view={block.document.statusView} /></span>
+          <span className="flex items-center gap-2"><FileText className="h-4 w-4 text-[var(--cs-ink-3)]" /><span className="text-[0.86rem] font-medium text-[var(--cs-ink-1)]">{block.document.title}</span><StatusChip view={block.document.statusView} /></span>
         </div>
       );
     case "action_preview": {
       const a = block.action;
       return (
-        <div className="cs-card cs-card-tight border-l-4 border-l-[var(--cs-violet)] text-left">
+        <div className="cs-card cs-card-tight border-l-4 border-l-[var(--cs-blue)] text-left">
           <p className="text-[0.86rem] font-medium text-[var(--cs-ink-1)]">{a.label}</p>
           {a.requiresConfirmation ? <p className="mt-0.5 text-[0.76rem] text-[var(--cs-warn)]">Action {a.risk === "irreversible" ? "irréversible" : "sensible"} — votre confirmation est requise.</p> : null}
           {a.allowed ? (

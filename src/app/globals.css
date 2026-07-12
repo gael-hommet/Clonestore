@@ -6074,3 +6074,132 @@ body:has(.cos-root) { overflow: hidden; }
 @media (max-width: 767px) {
   .cos-drawer { left: 0; right: 0; bottom: 0; max-height: 82dvh; border-radius: 1.25rem 1.25rem 0 0; }
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   C1.5 — CloneChat : langage visuel de marque
+   Le violet vif (--cs-violet) est ABANDONNÉ sur cette surface. La bulle
+   utilisateur reprend la grammaire du bouton « Mon CloneStore »
+   (.cs-liquid-button--primary) : base graphite → bleu nuit profond, halo bleu
+   électrique discret, liseré de lumière interne. Calme, premium, jamais criard.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* — Bulle UTILISATEUR : dégradé sombre CloneStore (jamais de violet) — */
+.cc-bubble-user {
+  border: 1px solid rgba(84, 119, 255, 0.18);
+  border-radius: 1.15rem 1.15rem 0.35rem 1.15rem;
+  background:
+    linear-gradient(135deg, rgba(21, 25, 34, 0.98) 0%, rgba(37, 43, 54, 0.96) 46%, rgba(48, 63, 92, 0.94) 100%),
+    radial-gradient(circle at 12% 0%, rgba(123, 161, 255, 0.30), transparent 58%);
+  color: #f4f7fc;
+  box-shadow:
+    0 14px 40px rgba(21, 25, 34, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+/* — Bulle ASSISTANT : surface claire, verre doux, clairement secondaire — */
+.cc-bubble-assistant {
+  border: 1px solid var(--cs-line-soft);
+  border-radius: 1.15rem 1.15rem 1.15rem 0.35rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.74));
+  color: var(--cs-ink-1);
+  box-shadow: 0 6px 22px rgba(21, 25, 34, 0.05);
+}
+
+/* — Avatars — */
+.cc-avatar-user {
+  border: 1px solid rgba(84, 119, 255, 0.20);
+  background: linear-gradient(140deg, var(--cs-graphite) 0%, #303f5c 100%);
+  color: #dce6ff;
+}
+.cc-avatar-assistant {
+  border: 1px solid var(--cs-line-soft);
+  background: var(--cs-surface-strong);
+  color: var(--cs-ink-2);
+}
+
+/* — Carte d'état « mode découverte » : contextuelle, discrète, JAMAIS un blocage — */
+.cc-state-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  border: 1px solid rgba(84, 119, 255, 0.16);
+  border-radius: 1rem;
+  padding: 0.7rem 0.9rem;
+  background:
+    linear-gradient(135deg, rgba(84, 119, 255, 0.055), rgba(84, 119, 255, 0.015)),
+    var(--cs-surface-soft);
+  color: var(--cs-ink-3);
+}
+.cc-state-card__icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  height: 1.65rem;
+  width: 1.65rem;
+  border-radius: 0.6rem;
+  background: linear-gradient(140deg, var(--cs-graphite) 0%, #303f5c 100%);
+  color: #dce6ff;
+}
+
+/* — Composer : mieux intégré, hiérarchie renforcée — */
+.cc-composer {
+  border: 1px solid var(--cs-line-soft);
+  border-radius: 1.35rem;
+  padding: 0.6rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.80), rgba(255, 255, 255, 0.60));
+  box-shadow: 0 18px 48px rgba(21, 25, 34, 0.06);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.cc-composer:focus-within {
+  border-color: rgba(84, 119, 255, 0.34);
+  box-shadow: 0 20px 56px rgba(84, 119, 255, 0.12);
+}
+.cc-composer textarea {
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--cs-ink-1);
+}
+.cc-composer textarea::placeholder { color: var(--cs-ink-4); }
+
+/* — Puces d'exemples — */
+.cc-chip {
+  border: 1px solid var(--cs-line-soft);
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  background: var(--cs-surface-soft);
+  color: var(--cs-ink-3);
+  font-size: 0.8rem;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+.cc-chip:hover {
+  border-color: rgba(84, 119, 255, 0.28);
+  background: var(--cs-surface-strong);
+  color: var(--cs-ink-1);
+}
+
+/* — Marque d'en-tête — */
+.cc-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.75rem;
+  width: 2.75rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(84, 119, 255, 0.20);
+  background:
+    linear-gradient(135deg, var(--cs-graphite) 0%, #303f5c 100%),
+    radial-gradient(circle at 20% 0%, rgba(123, 161, 255, 0.35), transparent 60%);
+  color: #dce6ff;
+}
+
+/* — Responsive : jamais de bulle qui déborde ni d'empilement disgracieux — */
+.cc-bubble-user, .cc-bubble-assistant {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+@media (max-width: 640px) {
+  .cc-msg-col { max-width: 90% !important; }
+  .cc-state-card { padding: 0.6rem 0.7rem; }
+}
