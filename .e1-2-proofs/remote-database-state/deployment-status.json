@@ -1,0 +1,12 @@
+{
+  "phase": "E1.2",
+  "deploymentPerformed": false,
+  "deploymentAttempted": false,
+  "productionAuthorized": false,
+  "paymentMode": "disabled",
+  "partnerPayoutLiveAuthorized": false,
+  "deploymentStillBlocked": true,
+  "pushed": false,
+  "staged": false,
+  "committed": false
+}

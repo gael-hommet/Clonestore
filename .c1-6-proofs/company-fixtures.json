@@ -1,0 +1,20 @@
+{
+  "probe": "scripts/c1-6-probe-fixtures.mjs (lecture seule, aucune création)",
+  "RLS_TEST_USER_A": {
+    "hasCompany": false,
+    "hasPierre": false
+  },
+  "RLS_TEST_USER_B": {
+    "hasCompany": false,
+    "hasPierre": false
+  },
+  "conclusion": "AUCUN fixture navigateur sûr n'existe pour « entreprise sans Pierre » ni « entreprise avec Pierre ». Aucune entreprise ni aucun droit n'a été fabriqué (§7). Ces deux profils sont prouvés au NIVEAU ROUTE (universal-clonechat-c1-6.test.ts, cas 8/9/10) et le manque est déclaré honnêtement.",
+  "browserProfilesDriven": [
+    "anonyme (incognito, zéro cookie)",
+    "authentifié sans entreprise"
+  ],
+  "browserProfilesMissing": [
+    "entreprise sans Pierre",
+    "entreprise avec Pierre"
+  ]
+}

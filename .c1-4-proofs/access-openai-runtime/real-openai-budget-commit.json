@@ -1,0 +1,59 @@
+{
+  "day": "2026-07-11",
+  "budgetCounters": [
+    {
+      "scope": "g:day:2026-07-11",
+      "kind": "global_day",
+      "committed": 4805,
+      "reserved": 0
+    },
+    {
+      "scope": "g:month:2026-07",
+      "kind": "global_month",
+      "committed": 4685,
+      "reserved": 0
+    },
+    {
+      "scope": "u:c14-user:2026-07-11",
+      "kind": "user_day",
+      "committed": 120,
+      "reserved": 0
+    },
+    {
+      "scope": "u:<userId>:2026-07-11",
+      "kind": "user_day",
+      "committed": 4685,
+      "reserved": 0
+    }
+  ],
+  "anyCommitted": true,
+  "noLeakedReservation": true,
+  "usageEvents": [
+    {
+      "model": "gpt-4o-mini-2024-07-18",
+      "inputTokens": 1447,
+      "outputTokens": 165,
+      "kind": "chat",
+      "companyIdIsNull": true,
+      "userRecorded": true
+    },
+    {
+      "model": "gpt-4o-mini-2024-07-18",
+      "inputTokens": 1481,
+      "outputTokens": 165,
+      "kind": "chat",
+      "companyIdIsNull": true,
+      "userRecorded": true
+    },
+    {
+      "model": "gpt-4o-mini-2024-07-18",
+      "inputTokens": 1377,
+      "outputTokens": 50,
+      "kind": "chat",
+      "companyIdIsNull": true,
+      "userRecorded": true
+    }
+  ],
+  "usageEventsRecorded": true,
+  "noFakeCompanyInUsage": true
+}

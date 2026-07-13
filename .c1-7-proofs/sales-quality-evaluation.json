@@ -1,0 +1,166 @@
+{
+  "engine": "moteur PUBLIC déterministe RÉEL (aucun appel payant)",
+  "grading": {
+    "answeredFirst": "une réponse substantielle est produite",
+    "factualAccuracy": "les faits canoniques (449 €, 499 CHF) sont exacts",
+    "noInventedRoi": true,
+    "noFakeTestimonial": true,
+    "noFakeUrgency": true,
+    "noFakeScarcity": true,
+    "noUnavailableCapabilityClaimedLive": true,
+    "ctaRestraint": "au plus 1 CTA par réponse — jamais de matraquage"
+  },
+  "scenarios": [
+    {
+      "id": "1-dirigeant-decouverte",
+      "question": "Je découvre CloneStore, qu'est-ce que c'est exactement ?",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "answered",
+      "answerSample": "CloneStore est la boutique d'employés IA d'entreprise : des employés IA opérationnels, gouvernés et tracés — le premier est Pierre, employé IA RH. Concrètement : vous confiez une d"
+    },
+    {
+      "id": "2-drh-sceptique",
+      "question": "Je suis DRH et je suis sceptique : en quoi Pierre est différent d'un outil RH classique ?",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "answered",
+      "answerSample": "Pierre est votre employé IA RH opérationnel : il transforme vos demandes en missions, prépare vos documents et suivis RH, centralise tout dans un cockpit tracé — et garde les décis"
+    },
+    {
+      "id": "3-deja-chatgpt",
+      "question": "J'utilise déjà ChatGPT, pourquoi payer Pierre ?",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "answered",
+      "answerSample": "Pierre coûte 449 € / mois en France, Belgique et Luxembourg, et 499 CHF / mois en Suisse. Abonnement mensuel (pas d'essai gratuit) — la démo immersive vous montre le vrai produit a"
+    },
+    {
+      "id": "4-pas-de-besoin-rh",
+      "question": "Je n'ai pas vraiment de problème RH, ça ne me sert à rien.",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "escalated",
+      "answerSample": "Je préfère ne pas improviser : je n'ai pas de réponse canonique fiable à cette question. Pouvez-vous préciser s'il s'agit du produit, de Pierre, du prix, d'une page du site ou d'un"
+    },
+    {
+      "id": "5-pourquoi-449",
+      "question": "Pourquoi Pierre coûte 449 € ?",
+      "answered": true,
+      "mentionsRequiredFact": true,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "answered",
+      "answerSample": "449 € / mois, c'est le prix d'un employé IA RH opérationnel : missions suivies, documents et relances préparés, cockpit tracé, mémoire d'entreprise — chaque mois, sans fatigue ni t"
+    },
+    {
+      "id": "6-remplacer-equipe",
+      "question": "Est-ce que Pierre peut remplacer mon équipe RH ?",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "answered",
+      "answerSample": "Non — et méfiez-vous de quiconque le promet. Pierre absorbe l'exécution opérationnelle ; les décisions et la responsabilité restent humaines. Pierre peut agir comme une équipe RH o"
+    },
+    {
+      "id": "7-donnees-sures",
+      "question": "Est-ce que mes données sont en sécurité ?",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "escalated",
+      "answerSample": "Je préfère ne pas improviser : je n'ai pas de réponse canonique fiable à cette question. Pouvez-vous préciser s'il s'agit du produit, de Pierre, du prix, d'une page du site ou d'un"
+    },
+    {
+      "id": "8-montre-concret",
+      "question": "Montrez-moi quelque chose de concret.",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "escalated",
+      "answerSample": "Je préfère ne pas improviser : je n'ai pas de réponse canonique fiable à cette question. Pouvez-vous préciser s'il s'agit du produit, de Pierre, du prix, d'une page du site ou d'un"
+    },
+    {
+      "id": "9-dix-salaries",
+      "question": "Je n'ai que dix salariés, est-ce que c'est pour moi ?",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "escalated",
+      "answerSample": "Je préfère ne pas improviser : je n'ai pas de réponse canonique fiable à cette question. Pouvez-vous préciser s'il s'agit du produit, de Pierre, du prix, d'une page du site ou d'un"
+    },
+    {
+      "id": "10-suisse",
+      "question": "Je suis en Suisse, quel est le prix ?",
+      "answered": true,
+      "mentionsRequiredFact": true,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "answered",
+      "answerSample": "Pierre coûte 449 € / mois en France, Belgique et Luxembourg, et 499 CHF / mois en Suisse. Abonnement mensuel (pas d'essai gratuit) — la démo immersive vous montre le vrai produit a"
+    },
+    {
+      "id": "11-sans-entreprise",
+      "question": "Je n'ai pas encore d'entreprise créée, je peux quand même utiliser CloneStore ?",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "answered",
+      "answerSample": "Disponible maintenant : Produit de lancement (site, démo, réservation fondateur, cockpits) · Pierre version lancement (missions, documents, validations, trace) · Technologies T1 (1"
+    },
+    {
+      "id": "12-capacite-non-supportee",
+      "question": "Est-ce que Pierre peut passer des appels téléphoniques à mes candidats ?",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "answered",
+      "answerSample": "Pierre est votre employé IA RH opérationnel : il transforme vos demandes en missions, prépare vos documents et suivis RH, centralise tout dans un cockpit tracé — et garde les décis"
+    },
+    {
+      "id": "13-objection-prix",
+      "question": "449 € par mois c'est trop cher pour moi.",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "answered",
+      "answerSample": "Pierre coûte 449 € / mois en France, Belgique et Luxembourg, et 499 CHF / mois en Suisse. Abonnement mensuel (pas d'essai gratuit) — la démo immersive vous montre le vrai produit a"
+    },
+    {
+      "id": "14-peur-perte-controle",
+      "question": "J'ai peur de perdre le contrôle si une IA agit sur mes RH.",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "escalated",
+      "answerSample": "Je préfère ne pas improviser : je n'ai pas de réponse canonique fiable à cette question. Pouvez-vous préciser s'il s'agit du produit, de Pierre, du prix, d'une page du site ou d'un"
+    },
+    {
+      "id": "15-confidentialite",
+      "question": "Mes données RH sont confidentielles, comment vous les traitez ?",
+      "answered": true,
+      "mentionsRequiredFact": null,
+      "forbiddenClaims": [],
+      "ctaOccurrences": 0,
+      "honesty": "escalated",
+      "answerSample": "Je préfère ne pas improviser : je n'ai pas de réponse canonique fiable à cette question. Pouvez-vous préciser s'il s'agit du produit, de Pierre, du prix, d'une page du site ou d'un"
+    }
+  ],
+  "failures": []
+}

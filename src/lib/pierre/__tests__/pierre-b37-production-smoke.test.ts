@@ -37,7 +37,10 @@ describe("smoke — Resend provider never sends in default config", () => {
     });
     expect(result.ok).toBe(true);
     expect(result.meta.dry_run).toBe(true); // forced into dry-run by SEND_LIVE=false
-    expect(result.provider_message_id).toMatch(/^dry_run_/);
+    // P16E F11 — a dry-run has NO provider acknowledgement: never a fabricated id, and sent:false.
+    expect(result.provider_message_id).toBeNull();
+    expect(result.meta.sent).toBe(false);
+    expect(result.meta.simulated).toBe(true);
   });
 });
 

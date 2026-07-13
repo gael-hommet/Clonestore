@@ -1,0 +1,8 @@
+{
+  "runId": "access-openai-runtime",
+  "referencedBy": "src/lib/clonechat/durable/pg.ts (SET LOCAL ROLE clonechat_app)",
+  "canonicalMigration": "supabase/migrations-p941/2026-07-07__p941_clonechat_durable.sql",
+  "migrationCreatesRole": "OUI — idempotent: if not exists (select 1 from pg_roles where rolname='clonechat_app') then create role clonechat_app nologin;",
+  "verdict": "La migration EXISTE ; elle n'avait simplement jamais été appliquée à la base locale (défaut de provisioning, PAS un défaut du dépôt).",
+  "productionDbTouched": false
+}

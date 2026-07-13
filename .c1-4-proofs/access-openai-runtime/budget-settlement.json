@@ -1,0 +1,7 @@
+{
+  "runId": "access-openai-runtime",
+  "successCommits": true,
+  "modelFailureSettledOnce": true,
+  "noLeakedReservation": true,
+  "dbProof": ".c1-4-proofs/access-openai-runtime/real-openai-budget-commit.json (reserved=0 sur tous les compteurs)"
+}

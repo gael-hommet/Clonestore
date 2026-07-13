@@ -1,0 +1,6 @@
+{
+  "runId": "access-openai-runtime",
+  "companyMode": true,
+  "budgetScopedToRealCompany": true,
+  "proposalConfirmation": "proposalId uniquement"
+}

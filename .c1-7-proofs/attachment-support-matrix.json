@@ -1,0 +1,69 @@
+{
+  "module": "src/lib/clonechat/attachments/manifest.ts (pur, 29/29)",
+  "supported": {
+    "image": [
+      "png",
+      "jpg",
+      "jpeg",
+      "webp",
+      "gif"
+    ],
+    "pdf": [
+      "pdf"
+    ],
+    "document": [
+      "docx",
+      "doc",
+      "rtf",
+      "odt",
+      "pptx",
+      "ppt"
+    ],
+    "spreadsheet": [
+      "xlsx",
+      "xls",
+      "csv"
+    ],
+    "text": [
+      "txt",
+      "md",
+      "json",
+      "html",
+      "xml",
+      "ts",
+      "js",
+      "py",
+      "sql",
+      "yml"
+    ]
+  },
+  "rejected": {
+    "executables": [
+      "exe",
+      "bat",
+      "ps1",
+      "msi",
+      "sh",
+      "jar"
+    ],
+    "archives": [
+      "zip",
+      "rar",
+      "7z",
+      "tar",
+      "iso"
+    ]
+  },
+  "limits": {
+    "perFile": "20 Mo",
+    "batch": "60 Mo",
+    "maxFiles": 20,
+    "folderDepth": 6
+  },
+  "truths": [
+    "SÉLECTIONNER ≠ TÉLÉVERSER",
+    "TÉLÉVERSER ≠ ANALYSER",
+    "un refus est TOUJOURS visible et motivé"
+  ],
+  "imageDetail": "économique (low) par défaut ; `high` UNIQUEMENT si la question porte sur du texte fin / graphique / tableau"
+}

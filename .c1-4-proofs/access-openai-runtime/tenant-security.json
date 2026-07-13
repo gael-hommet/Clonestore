@@ -1,0 +1,6 @@
+{
+  "runId": "access-openai-runtime",
+  "suspended": "TENANT_FAIL_CLOSED",
+  "unavailable": "TENANT_FAIL_CLOSED",
+  "note": "Fail-closed pour TOUS, même sur une question publique (doctrine C1.3 préservée)."
+}

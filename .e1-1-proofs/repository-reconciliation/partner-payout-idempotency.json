@@ -1,0 +1,10 @@
+{
+  "deterministicKey": "partner-payout:<partnerId>:<periodKey>:<batchHash>",
+  "batchHash": "sha256 of the SORTED selected entry ids -> order-independent; a different batch yields a different key",
+  "passedToStripe": true,
+  "runLock": true,
+  "entryLock": "uq_pp_item_entry_live — an entry can belong to only ONE live batch",
+  "replaySafe": true,
+  "concurrentWorkersSafe": true,
+  "evidence": "src/lib/partner-program/__integration__/payout-automation.itest.ts (PGlite, 98/98): two workers -> one transfer; replay -> no duplicate."
+}

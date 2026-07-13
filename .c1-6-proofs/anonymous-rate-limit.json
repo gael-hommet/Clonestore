@@ -1,0 +1,8 @@
+{
+  "window": "12 messages / 5 minutes par client anonyme",
+  "keying": "empreinte SHA-256 TRONQUÉE de (ip|user-agent) — jamais stockée, jamais journalisée, jamais une identité",
+  "notAUserId": true,
+  "noDatabaseWrite": true,
+  "behaviourOnLimit": "réponse honnête « reprenons dans N minutes » — ne prétend JAMAIS que CloneChat est indisponible",
+  "provenBy": "universal-clonechat-c1-6.test.ts — « l'abus anonyme est borné »"
+}

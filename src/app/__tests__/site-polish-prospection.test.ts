@@ -119,23 +119,35 @@ describe("CloneChat — really blocked while disabled", () => {
     else process.env.CLONECHAT_ENABLED = original;
   });
 
-  it("is disabled by default (no env)", () => {
-    expect(isCloneChatEnabled()).toBe(false);
+  // C1.2 (révélation, décision produit assumée) a INVERSÉ la politique de ce drapeau :
+  // CloneChat est désormais ACTIF PAR DÉFAUT, avec un ARRÊT D'URGENCE explicite. Les deux
+  // assertions ci-dessous encodaient l'ancienne politique (« bloqué par défaut ») et sont
+  // mises à jour ici. La partie qui compte pour la sécurité — le kill switch coupe vraiment
+  // l'API — reste couverte, et l'est même plus strictement (chaque valeur d'arrêt testée).
+  it("is active by default (no env) — C1.2 reveal", () => {
+    expect(isCloneChatEnabled()).toBe(true);
   });
 
-  it("is enabled only via an explicit env flag", () => {
+  it("an explicit emergency value disarms it (kill switch)", () => {
     process.env.CLONECHAT_ENABLED = "true";
     expect(isCloneChatEnabled()).toBe(true);
-    process.env.CLONECHAT_ENABLED = "false";
-    expect(isCloneChatEnabled()).toBe(false);
+    for (const off of ["false", "0", "off", "FALSE"]) {
+      process.env.CLONECHAT_ENABLED = off;
+      expect(isCloneChatEnabled()).toBe(false);
+    }
   });
 
-  it("the assistant API returns 503 when disabled", async () => {
+  it("the assistant API returns 503 ONLY when the kill switch is armed", async () => {
     const { GET } = await import("@/app/api/assistant/route");
-    const res = await GET();
-    expect(res.status).toBe(503);
-    const body = await res.json();
-    expect(body.code).toBe("CLONECHAT_DISABLED");
+
+    process.env.CLONECHAT_ENABLED = "false"; // arrêt d'urgence
+    const off = await GET();
+    expect(off.status).toBe(503);
+    expect((await off.json()).code).toBe("CLONECHAT_DISABLED");
+
+    delete process.env.CLONECHAT_ENABLED; // défaut = révélé
+    const on = await GET();
+    expect(on.status).not.toBe(503);
   });
 
   it("a server layout gates the page (page source untouched)", () => {

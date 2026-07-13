@@ -11,7 +11,7 @@ import { GlassSurface } from "../primitives/GlassSurface";
 import { DemoCTAButton, DemoCTALink } from "../primitives/DemoCTA";
 import { FounderAccessStatus } from "../primitives/FounderAccessStatus";
 import { useDemoReducedMotion } from "../primitives/motion";
-import { SCENE_OPENING, PIERRE_DEMO_ROUTE } from "@/lib/demo/presentation/content";
+import { SCENE_OPENING, SCENE_CONTRACT, PIERRE_DEMO_ROUTE } from "@/lib/demo/presentation/content";
 
 const COMPREHENSION = [
   { Icon: CheckCircle2, label: SCENE_OPENING.comprehension.understood },
@@ -47,6 +47,20 @@ export function Act1Opening({ onDirectPierre }: { onDirectPierre: () => void }) 
               {SCENE_OPENING.secondaryCta}
             </DemoCTALink>
           </div>
+          {/* Contrat de lecture — la posture est posée dès la première scène :
+              on ne cherche pas à convaincre tout le monde, on donne de quoi juger. */}
+          <div className="demo-contract">
+            <p className="demo-contract__line">{SCENE_CONTRACT.line}</p>
+            <p className="demo-contract__line demo-contract__line--strong">{SCENE_CONTRACT.line2}</p>
+            <ul className="demo-contract__judge">
+              {SCENE_CONTRACT.judge.map((item) => (
+                <li key={item} className="demo-contract__item">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <div className="mt-6">
             <FounderAccessStatus variant="compact" />
           </div>

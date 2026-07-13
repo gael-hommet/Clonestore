@@ -159,6 +159,11 @@ function resolveVariables(
   }
 
   // Template variables fallbacks
+  // P16E §5 (F15) reviewed: a template-author-declared `fallback` on a `required` variable is a
+  // legitimate DEFAULT for informational documents (e.g. the weekly-briefing template), not Pierre
+  // inventing a value. The high-stakes contract/legal path does NOT use this renderer — it uses
+  // contract-readiness (proven in R2) which has no fallback-satisfies-required hole. So this is
+  // intentionally left as an author-declared default, not a contract-integrity defect.
   for (const v of input.template.variables ?? []) {
     if (base[v.key] === undefined && v.fallback !== null) {
       base[v.key] = v.fallback;

@@ -1,0 +1,74 @@
+{
+  "phase": "E1.2",
+  "section": "3 — INSPECT THE EXISTING PREFLIGHT TOOL",
+  "toolAudited": "scripts/e1-1-clonechat-remote-preflight.mjs",
+  "toolLines": 159,
+  "auditedReadOnly": true,
+  "toolExecuted": false,
+  "toolExecutedWithConnect": false,
+  "requiredProtections": {
+    "neverPrintsDatabaseUrl": {
+      "satisfied": true,
+      "evidence": "classify() derives only a category from the hostname; emit() re-serializes and hard-exits(3) if the DSN string appears in the output."
+    },
+    "neverPrintsCredentials": {
+      "satisfied": true,
+      "evidence": "the catch block prints only e.code, never e.message (which can embed host/user)."
+    },
+    "doesNotFetchCustomerRows": {
+      "satisfied": true,
+      "evidence": "queries hit pg_roles, pg_class, pg_proc, information_schema.role_table_grants only."
+    },
+    "doesNotExecuteDdl": {
+      "satisfied": true
+    },
+    "doesNotExecuteDml": {
+      "satisfied": true
+    },
+    "doesNotCallMutatingFunctions": {
+      "satisfied": true,
+      "evidence": "no CALL/DO/SELECT-of-business-function."
+    },
+    "strictQueryWhitelist": {
+      "satisfied": false,
+      "gap": "Queries are hardcoded but there is NO enforced whitelist/validator. Nothing structurally prevents a future edit from adding a mutating or customer-row statement."
+    },
+    "statementTimeout": {
+      "satisfied": false,
+      "gap": "No statement_timeout, no lock_timeout, no idle_in_transaction_session_timeout. A blocking catalog query could hold a session open against a production database."
+    },
+    "classifiesTarget": {
+      "satisfied": true,
+      "evidence": "local | managed_supabase_remote | managed_remote | unknown_remote | absent."
+    },
+    "requiresExplicitConnectFlag": {
+      "satisfied": true,
+      "evidence": "const CONNECT = process.argv.includes('--connect'); default path never opens a pool."
+    },
+    "defaultsToNoConnection": {
+      "satisfied": true
+    },
+    "recordsMutationsExecutedZero": {
+      "satisfied": true,
+      "evidence": "out.mutationsExecuted = 0 (constant)."
+    },
+    "readOnlyTransactionEnforced": {
+      "satisfied": true,
+      "evidence": "'set session characteristics as transaction read only' + 'begin read only' + final rollback."
+    }
+  },
+  "additionalGapsForE12Scope": [
+    "No explicit owner-authorization state: --connect alone is treated as authorization.",
+    "search_path is not pinned (§4 requires no search-path trust).",
+    "Leak guard only tests the exact DSN string; it does not test the username/password substrings independently.",
+    "Covers P9.4.1 ONLY. The partner payout migration (2026-07-11_05) is not inspected at all.",
+    "Does not read the Supabase migration-history table, so it cannot reconcile history vs objects (§7).",
+    "Object inspection is shallow: table names + RLS flags only. No columns, types, defaults, PKs, unique constraints, FKs, indexes, ownership, or policy expressions (§5B/5C).",
+    "Function inspection is name-only: no prosecdef (SECURITY DEFINER) check, no proconfig/search_path check (§5E).",
+    "Does not record PostgreSQL major version, current-role category, SSL mode category, or a target fingerprint (§8).",
+    "migrationState has no INCOMPATIBLE_EXISTING_STATE or UNVERIFIABLE class (§5 requires 5 classes)."
+  ],
+  "strengtheningPerformed": false,
+  "strengtheningDeferredReason": "E1.2 halted at §1. Strengthening the tool means writing code and running tsc/vitest; both would be measured against a repository that a foreign agent is concurrently rewriting, producing a volatile and uncertifiable green. Deferred to the unblocked run.",
+  "conclusion": "The existing tool is SAFE ENOUGH TO NOT MUTATE, but NOT SUFFICIENT for the E1.2 mandate. It must be strengthened (timeouts, enforced whitelist, migration history, deep object/RLS/grant/function inspection, partner payout coverage) BEFORE it is pointed at a production Supabase target."
+}

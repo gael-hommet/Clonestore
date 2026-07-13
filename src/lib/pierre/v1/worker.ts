@@ -13,7 +13,7 @@ import {
   claimJobs, completeJob, failJob, enqueueJob, type JobRow, type ClaimOptions,
 } from "./queue";
 import { TaskRepo, EventRepo, type TaskRow } from "./repositories";
-import { resolveExecutor } from "./executors";
+import { resolveExecutor, evaluateTaskGuard } from "./executors";
 import { transitionTask, aggregateMission } from "./mission-service";
 import type { TaskStatus } from "./state-machine";
 import { withTenantTransaction } from "./tenant-tx";
@@ -70,6 +70,20 @@ async function processJob(db: SqlExecutor, job: JobRow): Promise<string> {
       await completeJob(db, job.id, job.lease_owner ?? "");
       return "skipped_concurrent";
     }
+  }
+
+  // P16E §4.C (R3) — CloneGuard is evaluated BEFORE the executor runs. Some executors enqueue
+  // to the outbox as their first act, so a black hard-block must gate execution, not merely be
+  // reported after it: a black-level action never reaches `executor.run` and produces no side
+  // effect (no outbox row, no draft, no state marked complete). The post-run check below stays
+  // as defense-in-depth in case an executor computes a stricter guard from richer context.
+  const preGuard = evaluateTaskGuard(current);
+  if (!preGuard.allow && preGuard.level === "black") {
+    await transitionTask(db, { company_id: companyId }, current, "escalated", "blocked_by_guard", "guard", { result: { guard: preGuard }, metadata: { guard_level: "black", pre_execution: true } });
+    await recordAttempt(db, current, current.attempts, "blocked", { guard: preGuard.level, pre_execution: true });
+    await completeJob(db, job.id, job.lease_owner ?? "");
+    await aggregateMission(db, companyId, current.mission_id);
+    return "blocked";
   }
 
   const executor = resolveExecutor(current.type);

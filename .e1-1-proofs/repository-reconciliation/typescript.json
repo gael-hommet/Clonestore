@@ -1,0 +1,8 @@
+{
+  "runId": "repository-reconciliation",
+  "command": "npx tsc --noEmit",
+  "errorCount": 0,
+  "exitCode": 0,
+  "measuredAtIso": "2026-07-11T21:20:00Z",
+  "note": "Measured on the FROZEN tree (sole writer verified). Measured green repeatedly, with no oscillation — unlike the previous attempt where another session's half-finished refactor made it flip RED->GREEN."
+}

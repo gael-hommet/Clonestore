@@ -65,7 +65,16 @@ export function buildKnowledgeIndex(input: KnowledgeIndexInput): KnowledgeIndexB
 
   // Chunks de session : jamais en mode public (défense en profondeur — la visibilité
   // les rejetterait de toute façon, mais on ne les collecte même pas).
-  const sessionChunks = input.viewer.mode === "public" ? [] : (input.sessionChunks ?? []);
+  // C1.7 — En mode PUBLIC, le contexte de session était intégralement jeté : c'était la dernière
+  // porte qui empêchait un visiteur d'analyser SON PROPRE fichier. On l'ouvre — mais STRICTEMENT
+  // aux extraits ÉPHÉMÈRES SANS TENANT. Tout ce qui porte une entreprise reste exclu du public
+  // (fail-closed), et la garde de visibilité en aval reste l'autorité finale.
+  const sessionChunks =
+    input.viewer.mode === "public"
+      ? (input.sessionChunks ?? []).filter(
+          (c) => c.parrainVisibility === "SESSION_EPHEMERAL" && c.tenantCompanyId === null,
+        )
+      : (input.sessionChunks ?? []);
 
   // Readiness brute + symboles de code : FONDATEUR uniquement, à la source.
   const founderChunks: ParrainKnowledgeChunk[] = [];
@@ -126,6 +135,9 @@ export function boundedCapabilitiesFor(question: string) {
 export function indexLeaksForbiddenSources(build: KnowledgeIndexBuild, viewer: ParrainViewerContext): boolean {
   return build.visible.some((c) => {
     if (c.parrainVisibility === "RESTRICTED_SECRET") return true;
+    // Une pièce jointe éphémère vit dans le CONTEXTE DE SESSION, jamais dans l'index canonique :
+    // l'y trouver signifierait une contamination de l'index — fail-closed.
+    if (c.parrainVisibility === "SESSION_EPHEMERAL") return true;
     if (viewer.mode === "public" && c.parrainVisibility !== "PUBLIC") return true;
     if (viewer.mode === "client" && c.parrainVisibility === "FOUNDER_INTERNAL") return true;
     if (c.tenantCompanyId !== null && c.tenantCompanyId !== viewer.companyId) return true;

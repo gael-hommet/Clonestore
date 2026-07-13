@@ -1,0 +1,23 @@
+{
+  "source_of_truth": "src/lib/pierre/v1/state-machine.ts (canonical, unchanged by P16D - additions-only doctrine honored; no canonical state renamed)",
+  "mission_states": ["draft","analyzing","awaiting_info","planned","awaiting_validation","ready","queued","in_progress","partially_completed","done","blocked","failed","retry_scheduled","cancelled","escalated","archived"],
+  "task_states": ["draft","planned","awaiting_info","awaiting_validation","ready","queued","leased","in_progress","succeeded","failed","retry_scheduled","blocked","cancelled","escalated","archived"],
+  "illegal_transitions_proven_fail_closed": [
+    {"scope":"mission","from":"draft","to":"done","rule":"prepared != completed","proven":"assertMissionTransition throws"},
+    {"scope":"mission","from":"planned|ready|awaiting_validation|queued","to":"done","rule":"no completion without execution","proven":"throws"},
+    {"scope":"mission","from":"failed","to":"done","rule":"no success without reconciliation/retry","proven":"throws; only retry_scheduled/escalated allowed"},
+    {"scope":"mission","from":"cancelled","to":"in_progress|queued|ready|done","rule":"cancelled never restarts","proven":"throws"},
+    {"scope":"mission","from":"archived","to":"*","rule":"terminal sink","proven":"no outgoing edges"},
+    {"scope":"task","from":"draft","to":"succeeded","rule":"no success without execution","proven":"throws"},
+    {"scope":"task","from":"awaiting_validation","to":"in_progress","rule":"gated task not executed pre-approval; only -> ready","proven":"throws"},
+    {"scope":"task","from":"queued","to":"succeeded","rule":"queued != completed","proven":"throws"},
+    {"scope":"task","from":"failed","to":"succeeded","rule":"no success without retry","proven":"throws"},
+    {"scope":"any","from":"unknown-state","to":"any","rule":"fail closed by default","proven":"canTransition returns false; assert throws"}
+  ],
+  "approval_expiry_transition": {
+    "rule": "EXPIRED approval -> AUTHORIZED must fail closed",
+    "implementation": "proposal TTL (15m) from immutable created_at, checked before claim at src/app/api/assistant/execute/route.ts; expiresAt bound into command fingerprint",
+    "proven": "src/lib/clonechat/__tests__/p16d-approval-expiry.test.ts + execute-route 410 PROPOSAL_EXPIRED, zero side effect"
+  },
+  "regression_test": "src/lib/pierre/__tests__/p16d-state-machine-fail-closed.test.ts (20 tests)"
+}

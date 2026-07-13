@@ -214,13 +214,15 @@ export async function POST(
       };
     }
 
+    // P16E §3 (F20/F29) — a human approval MUST be attributable: record the actor identity in the
+    // audit payload (no tenant/PII leakage — only the acting user id + type + prior state).
     await supabaseAdmin.from("pierre_task_logs").insert({
       mission_id: task.mission_id ?? null,
       task_id: taskId,
       level: "info",
       event: "task_approved",
       message: "La tâche a été approuvée et replacée en file d’attente.",
-      payload: null,
+      payload: { actor_type: "user", user_id: auth.userId, action: "approve", prev_status: "awaiting_approval" },
     });
 
     return NextResponse.json({

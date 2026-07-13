@@ -1,0 +1,14 @@
+{
+  "runId": "access-openai-runtime",
+  "mode": {
+    "mode": "AUTHENTICATED_DISCOVERY",
+    "entitlementKnown": true
+  },
+  "intentOfPricingQuestion": "public",
+  "ready": true,
+  "budgetScope": {
+    "userId": "<real>",
+    "companyId": null
+  },
+  "sources": "PUBLIC_VIEWER uniquement (aucune source entreprise/employé/mission/document/interne)"
+}

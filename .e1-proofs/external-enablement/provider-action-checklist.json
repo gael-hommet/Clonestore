@@ -1,0 +1,14 @@
+[
+  {
+    "id": "email.provider",
+    "provider": "Resend",
+    "action": "Owner creates the Resend account and supplies the API key + verified from-address.",
+    "validation": "Sandbox send to an allow-listed test recipient succeeds; a real message is only sent under EMAIL_SEND_LIVE."
+  },
+  {
+    "id": "provider.signature_yousign",
+    "provider": "Yousign",
+    "action": "Owner sets up Yousign live (lift P8.7.4) OR approves the 'prepared, signed manually outside CloneStore' fallback.",
+    "validation": "Owner attestation CLONESTORE_SIGNATURE_LIVE_VERIFIED (live) or CLONESTORE_SIGNATURE_FALLBACK_APPROVED. No live signature created."
+  }
+]

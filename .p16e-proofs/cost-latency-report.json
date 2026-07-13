@@ -1,0 +1,5 @@
+{
+  "status": "NOT_COMPLETED_THIS_SESSION",
+  "reason": "P16E is a very large multi-section phase; this session prioritized the gated reliability closure (R1/R2/R3 + §7A/§8/F19) and the capability + technology matrices. This section was not executed. It is not fabricated. See P16E_CONTINUATION_PROMPT.md and open-limitations.json.",
+  "partial_coverage": null
+}

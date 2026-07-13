@@ -96,7 +96,10 @@ export async function createHarness(): Promise<Harness> {
   const userA = newUuid();
   const userB = newUuid();
 
-  await pg.query("insert into pierre_rt_companies (id, name) values ($1,$2),($3,$4)", [companyA, "Tenant A", companyB, "Tenant B"]);
+  // P16E §3 (F17) — a real company has a verified LEGAL name distinct from its display name; seed
+  // it so governed contract generation (which requires company.legal_name) has a valid identity.
+  await pg.query("insert into pierre_rt_companies (id, name, legal_name) values ($1,$2,$3),($4,$5,$6)",
+    [companyA, "Tenant A", "TENANT A SAS", companyB, "Tenant B", "TENANT B SAS"]);
   await pg.query("insert into pierre_rt_members (id, company_id, user_id, role) values ($1,$2,$3,'owner'),($4,$5,$6,'owner')",
     [newUuid(), companyA, userA, newUuid(), companyB, userB]);
 

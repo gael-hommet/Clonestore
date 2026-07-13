@@ -1,0 +1,7 @@
+{
+  "productionProjectConfigured": false,
+  "productionMigrationsAuthorized": false,
+  "productionBackupConfigured": false,
+  "productionRlsVerified": false,
+  "note": "OWNER_ACTION_REQUIRED — code can never prove production DB state."
+}

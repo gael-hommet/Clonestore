@@ -1,0 +1,43 @@
+{
+  "phase": "E1.2 (continuation)",
+  "section": "4/5 — PREFLIGHT HARDENING",
+  "canonicalTool": "scripts/e1-2-remote-state-preflight.mjs",
+  "sharedCore": "src/lib/clonestore/external-enablement/e1/e1-2-preflight-core.mjs",
+  "supersedes": "scripts/e1-1-clonechat-remote-preflight.mjs (kept only as E1.1 evidence)",
+  "singleToolNoCompetingTools": true,
+  "coreSha256": "8a882acfa8e551e45ed0f13471ad6cb10cf61451de5996677011bd758a1329c8",
+  "runnerSha256": "eed29a50725a51de20a6da06f8f0ae85fe263ccd418392816d5b1239a48eed67",
+  "gapsClosedVsE11Audit": {
+    "statementTimeout": true,
+    "lockTimeout": true,
+    "idleInTransactionTimeout": true,
+    "enforcedQueryWhitelist": true,
+    "searchPathPinned": true,
+    "explicitOwnerAuthorizationState": true,
+    "partnerPayoutCoverage": true,
+    "migrationHistoryReconciliation": true,
+    "deepObjectInspection": true,
+    "policyExpressionInspection": true,
+    "securityDefinerAndFunctionSearchPathInspection": true,
+    "postgresVersionRoleSslCategory": true,
+    "fullMigrationStateEnum": true,
+    "independentCredentialSubstringLeakCheck": true
+  },
+  "adversarialAuditApplied": {
+    "lenses": 6,
+    "verifiersPerFinding": 3,
+    "candidateFindings": 10,
+    "realFindingsFixed": 9,
+    "fixes": [
+      "atomic claim-before-connect (auth single-use, non-replayable)",
+      "validateSql strips block comments + string-literals-before-line-comments",
+      "extractRelations catches comma-joins AND quoted identifiers",
+      "classifiers fail closed to UNVERIFIABLE on incomplete inspection",
+      "evaluateCompatibility gains an explicit connection guard",
+      "detectLeaks catches short passwords + raw percent-encoded credential forms",
+      "partner index-host tables added to scan scope (no false PARTIALLY_APPLIED)",
+      "uq_pp_transfer_partner_period verified by PREDICATE not just name",
+      "P9.4.1 RLS/table checks scoped to the clonechat_ perimeter"
+    ]
+  }
+}

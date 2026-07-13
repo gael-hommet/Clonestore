@@ -1,0 +1,10 @@
+{
+  "proven": [
+    "exactly-once / crash-recovery fencing / tenant isolation — p16d-exactly-once-recovery-tenant (13)",
+    "stale-lease recovery does not blindly re-execute (communications.ts submission_unknown, no blind resend)",
+    "proposal expiry fail-closed (P16D D2) — expired approval -> 410, zero side effect",
+    "guard before execution (P16E R3) — recovery of a black task creates no side effect",
+    "provider timeout != success (communications.ts records submission_unknown; email/send fail-closed)"
+  ],
+  "not_run": "A full worker-crash-mid-provider-call simulation for every effectful executor was NOT run (email/document/file executors return awaiting_integration and never send, so the crash window has no external effect to duplicate). See open-limitations.json."
+}

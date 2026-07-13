@@ -37,6 +37,13 @@ function guardFor(task: TaskRow): GuardDecision {
   });
 }
 
+// P16E §4.C (R3) — exposed so the WORKER can evaluate the guard BEFORE running the executor.
+// A black hard-block must never reach `executor.run` (some executors enqueue to the outbox as
+// their first act): the guard has to gate execution, not merely be reported after it.
+export function evaluateTaskGuard(task: TaskRow): GuardDecision {
+  return guardFor(task);
+}
+
 // ── Real low-risk executors (genuinely complete actions) ────────────────────
 
 const statusUpdate: Executor = {

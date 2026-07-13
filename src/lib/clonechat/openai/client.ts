@@ -51,7 +51,7 @@ export function createRealOpenAIResponder(apiKey: string): OpenAIResponder {
 
       const userContent: Array<Record<string, unknown>> = [{ type: "input_text", text: req.userText }];
       for (const url of req.imageDataUrls ?? []) {
-        userContent.push({ type: "input_image", image_url: url, detail: "low" });
+        userContent.push({ type: "input_image", image_url: url, detail: (req as { imageDetail?: "low" | "high" }).imageDetail ?? "low" });
       }
       const input: Array<Record<string, unknown>> = [
         { role: "system", content: req.system },

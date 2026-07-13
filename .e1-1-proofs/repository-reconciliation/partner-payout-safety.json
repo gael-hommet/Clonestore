@@ -1,0 +1,80 @@
+{
+  "scope": "Partner payout safety — FINAL state, on the frozen tree, after the E1.1 P10 fix.",
+  "treeFrozen": true,
+  "previousHighSeverityFinding": {
+    "id": "P10_FLOOR_NOT_ENFORCED_IN_PAYOUT_PATH",
+    "previousStatus": "OPEN_BLOCKER",
+    "status": "FIXED_AND_TESTED",
+    "note": "Not quietly removed: retained here with its full history. See partner-p10-floor.json."
+  },
+  "verifiedProperties": [
+    {
+      "property": "p10_floor_enforced",
+      "holds": true,
+      "evidence": "Boolean(PRODUCTION_AUTHORIZED) && isPartnerLivePayoutAuthorized()"
+    },
+    {
+      "property": "environment_cannot_bypass_floor",
+      "holds": true,
+      "evidence": "128-combination exhaustive sweep: no env subset authorizes a payout while the const floor is false."
+    },
+    {
+      "property": "dry_run_is_pure_preview",
+      "holds": true,
+      "evidence": "runMonthlyPayouts delegates to previewPayouts (SELECT-only); no transfer, no batch row, no paid status, no email, no fake stripe id, no run lock."
+    },
+    {
+      "property": "paid_only_after_provider_evidence",
+      "holds": true,
+      "evidence": "settle() runs only after createTransfer() resolves."
+    },
+    {
+      "property": "unknown_outcome_safe",
+      "holds": true,
+      "evidence": "reconciliation_required: releases nothing, pays nothing, reconciles via findTransfer."
+    },
+    {
+      "property": "deterministic_idempotency",
+      "holds": true,
+      "evidence": "partner-payout:<partnerId>:<periodKey>:<batchHash> + run lock + uq_pp_item_entry_live."
+    },
+    {
+      "property": "test_entries_cannot_enter_a_live_batch",
+      "holds": true,
+      "evidence": "stripe_mode filter is IN THE SQL SELECTION; assertHomogeneousBatch rejects mixed mode/currency."
+    },
+    {
+      "property": "stripe_mode_server_derived",
+      "holds": true,
+      "evidence": "derived from the STRIPE_SECRET_KEY prefix; PayoutDeps functions take zero arguments -> no request body can influence them."
+    },
+    {
+      "property": "cron_auth_fail_closed_constant_time",
+      "holds": true,
+      "evidence": "no secret -> 503; timing-safe compare; unauthorized -> 401; payouts-disabled flag -> skip."
+    },
+    {
+      "property": "admin_route_preview_only",
+      "holds": true,
+      "evidence": "admin action forces dryRunOverride: true — it cannot execute a real transfer."
+    },
+    {
+      "property": "cron_route_cannot_bypass_floor",
+      "holds": true,
+      "evidence": "the cron uses defaultPayoutDeps, which now consumes the P10 floor."
+    },
+    {
+      "property": "env_example_claim_is_now_true",
+      "holds": true,
+      "evidence": "documentation and behaviour agree."
+    }
+  ],
+  "liveAuthorizationGate": {
+    "checks": 9,
+    "note": "NODE_ENV + VERCEL_ENV production + payouts enabled + dry-run explicitly false + explicit live authorization + sk_live_ key + cron secret + no test key + no test/live mix. This gate ADDS restrictions on top of the P10 floor; it can never replace it.",
+    "fileHasNoP10Coupling": true,
+    "designNote": "live-authorization.ts stays a PURE environment evaluator (no P10 import) — the floor is composed at the dependency-construction site. This keeps the env gate independently testable while making bypass impossible."
+  },
+  "livePayoutExecutedByThisSession": false,
+  "liveStripeCallMade": false
+}

@@ -1,0 +1,63 @@
+{
+  "method": "200 tours MOCKÉS passés dans le VRAI routeur — aucun appel provider payant.",
+  "routing": {
+    "totalTurns": 180,
+    "economicalModel": "gpt-5.6-luna",
+    "economicalShare": "94.4 %",
+    "complexModel": "gpt-5.6-terra",
+    "complexShare": "5.6 %",
+    "escalationReasons": [
+      "comparaison de 4 documents",
+      "corpus documentaire dense (60000 caractères)",
+      "preuves contradictoires entre les sources"
+    ]
+  },
+  "byKind": [
+    {
+      "kind": "public",
+      "turns": 100,
+      "escalated": 0,
+      "model": "gpt-5.6-luna"
+    },
+    {
+      "kind": "sales",
+      "turns": 30,
+      "escalated": 0,
+      "model": "gpt-5.6-luna"
+    },
+    {
+      "kind": "image",
+      "turns": 20,
+      "escalated": 0,
+      "model": "gpt-5.6-luna"
+    },
+    {
+      "kind": "document",
+      "turns": 20,
+      "escalated": 0,
+      "model": "gpt-5.6-luna"
+    },
+    {
+      "kind": "multifile",
+      "turns": 10,
+      "escalated": 10,
+      "model": "gpt-5.6-terra"
+    }
+  ],
+  "assumptions": {
+    "avgInputTokens": 1400,
+    "avgOutputTokens": 220,
+    "cachedInputRatio": 0.75,
+    "note": "Hypothèses EXPLICITES : ce sont des estimations locales, pas des mesures provider."
+  },
+  "estimatedCostPer100NormalTurnsUsd": 0.0554,
+  "transcription": {
+    "primary": "gpt-4o-mini-transcribe",
+    "fallback": "gpt-4o-transcribe",
+    "fallbackPolicy": "uniquement si transcript vide malgré parole, confiance mesurée < seuil, ou demande explicite",
+    "expectedFallbackRate": "faible par conception (pas de double transcription systématique)"
+  },
+  "objective": "LE COÛT LE PLUS BAS QUI RESTE PREMIUM",
+  "qualityFailures": 0,
+  "providerErrors": 0
+}

@@ -1,0 +1,21 @@
+{
+  "phase": "E1.3",
+  "section": "3",
+  "fullyTransactional": true,
+  "nonTransactionalStatementsFound": [],
+  "checked": [
+    "create index concurrently",
+    "drop index concurrently",
+    "reindex concurrently",
+    "create database",
+    "create tablespace",
+    "alter system",
+    "vacuum",
+    "create extension",
+    "alter type add value",
+    "discard"
+  ],
+  "createRoleInTxn": "transactional on PostgreSQL — rolls back cleanly on ROLLBACK",
+  "executionContract": "BEGIN; set local timeouts + search_path=public; recheck NOT_APPLIED; <exact bytes>; assert; COMMIT only if all pass else ROLLBACK",
+  "transactionPlanRequired": false
+}

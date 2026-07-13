@@ -1,0 +1,684 @@
+{
+  "generated_by": "scripts/p16e-planning-eval.mts (real deterministic analyzeInstruction — NO model calls)",
+  "total": 20,
+  "passed": 20,
+  "invariants": [
+    "the planner NEVER proposes a task with external_side_effect=true (no autonomous send/sign; effects require the governed execute path + human confirmation)",
+    "ambiguous directives ('Fais le nécessaire pour Paul') -> clarification, never an invented action",
+    "sensitive/human-only requests (termination/sanction/salary/medical/harassment/contract) -> approval_required, prepare-only",
+    "a user restriction ('...sans mon accord') is preserved -> approval_required + user_restriction traced"
+  ],
+  "no_fabrication": "the deterministic planner does not resolve a specific employee/date/policy; entity resolution + dates are gated downstream (findPierreEmployeeByName ambiguity -> null; no silent date invention)",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "onboarding one employee",
+      "input": "Prépare l'onboarding de Sarah lundi",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": false,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Exécuter les tâches faibles risques",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 2,
+      "name": "onboarding 50 employees",
+      "input": "Prépare l'onboarding des 50 nouveaux arrivants du site de Lyon",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": false,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Exécuter les tâches faibles risques",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 3,
+      "name": "offboarding",
+      "input": "Prépare l'offboarding de Marc, dernier jour le 30 juin",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": false,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Exécuter les tâches faibles risques",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 4,
+      "name": "contract amendment",
+      "input": "Prépare un avenant au contrat de Claire pour passage à 4/5",
+      "intent": "contract",
+      "risk_level": "high",
+      "sensitivity": "sensitive",
+      "approval_required": true,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "prepare_sensitive_draft",
+          "action": "contract",
+          "risk": "high",
+          "sensitivity": "sensitive",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [
+        "decision_finale_autonome",
+        "sanction_autonome",
+        "envoi_autonome"
+      ],
+      "next_best_action": "Préparer et soumettre à validation humaine",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 5,
+      "name": "salary-review preparation",
+      "input": "Prépare une revue de salaire pour l'équipe technique",
+      "intent": "compensation",
+      "risk_level": "high",
+      "sensitivity": "sensitive",
+      "approval_required": true,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "prepare_sensitive_draft",
+          "action": "compensation",
+          "risk": "high",
+          "sensitivity": "sensitive",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [
+        "decision_finale_autonome",
+        "sanction_autonome",
+        "envoi_autonome"
+      ],
+      "next_best_action": "Préparer et soumettre à validation humaine",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 6,
+      "name": "absence management",
+      "input": "Enregistre l'absence de Paul du 10 au 14 juillet",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": false,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Exécuter les tâches faibles risques",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 7,
+      "name": "return-to-work preparation",
+      "input": "Prépare le retour de Julie après son arrêt maladie",
+      "intent": "medical",
+      "risk_level": "critical",
+      "sensitivity": "restricted",
+      "approval_required": true,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "prepare_sensitive_draft",
+          "action": "sensitive_medical",
+          "risk": "critical",
+          "sensitivity": "restricted",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [
+        "decision_finale_autonome",
+        "sanction_autonome",
+        "envoi_autonome"
+      ],
+      "next_best_action": "Préparer et soumettre à validation humaine",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 8,
+      "name": "recruitment pipeline",
+      "input": "Ouvre un pipeline de recrutement pour un poste de développeur",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": true,
+      "user_restriction": null,
+      "missing_info": [
+        {
+          "id": "who",
+          "priority": "high"
+        }
+      ],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Collecter les informations manquantes",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 9,
+      "name": "training campaign",
+      "input": "Prépare une campagne de formation sécurité pour tous les managers",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": false,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Exécuter les tâches faibles risques",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 10,
+      "name": "policy acknowledgement",
+      "input": "Envoie le règlement intérieur pour acquittement à tous les salariés",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": false,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Exécuter les tâches faibles risques",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 11,
+      "name": "performance-cycle preparation",
+      "input": "Prépare le cycle d'évaluation annuel",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": true,
+      "user_restriction": null,
+      "missing_info": [
+        {
+          "id": "who",
+          "priority": "high"
+        }
+      ],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Collecter les informations manquantes",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 12,
+      "name": "employee-document request",
+      "input": "Prépare une attestation de travail pour Nadia",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": false,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Exécuter les tâches faibles risques",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 13,
+      "name": "multi-site reorganization",
+      "input": "Prépare la réorganisation des équipes entre les sites de Paris et Lyon",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": false,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Exécuter les tâches faibles risques",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 14,
+      "name": "acquisition/import",
+      "input": "Importe les 300 salariés de la société acquise",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": false,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Exécuter les tâches faibles risques",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 15,
+      "name": "urgent HR incident",
+      "input": "Il y a un signalement de harcèlement, prépare le dossier",
+      "intent": "harassment",
+      "risk_level": "critical",
+      "sensitivity": "restricted",
+      "approval_required": true,
+      "user_restriction": null,
+      "missing_info": [
+        {
+          "id": "who",
+          "priority": "high"
+        }
+      ],
+      "proposed_tasks": [
+        {
+          "type": "prepare_sensitive_draft",
+          "action": "harassment_flagged",
+          "risk": "critical",
+          "sensitivity": "restricted",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [
+        "decision_finale_autonome",
+        "sanction_autonome",
+        "envoi_autonome"
+      ],
+      "next_best_action": "Préparer et soumettre à validation humaine",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 16,
+      "name": "contradictory manager instructions",
+      "input": "Envoie le contrat aujourd'hui, mais ne contacte personne sans mon accord",
+      "intent": "contract",
+      "risk_level": "high",
+      "sensitivity": "sensitive",
+      "approval_required": true,
+      "user_restriction": "sans mon accord",
+      "missing_info": [
+        {
+          "id": "who",
+          "priority": "high"
+        }
+      ],
+      "proposed_tasks": [
+        {
+          "type": "prepare_sensitive_draft",
+          "action": "contract",
+          "risk": "high",
+          "sensitivity": "sensitive",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [
+        "decision_finale_autonome",
+        "sanction_autonome",
+        "envoi_autonome"
+      ],
+      "next_best_action": "Préparer et soumettre à validation humaine",
+      "is_vague": false,
+      "detected_restriction": "sans mon accord",
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 17,
+      "name": "missing employee data",
+      "input": "Fais le nécessaire pour Paul.",
+      "intent": "clarification_required",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": true,
+      "user_restriction": null,
+      "missing_info": [
+        {
+          "id": "what",
+          "priority": "high"
+        }
+      ],
+      "proposed_tasks": [
+        {
+          "type": "request_missing_info",
+          "action": "request_missing_info",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Collecter les informations manquantes",
+      "is_vague": true,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 18,
+      "name": "stale policy",
+      "input": "Applique l'ancienne politique de congés de 2019",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": true,
+      "user_restriction": null,
+      "missing_info": [
+        {
+          "id": "who",
+          "priority": "high"
+        }
+      ],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Collecter les informations manquantes",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 19,
+      "name": "provider timeout (planning only)",
+      "input": "Envoie la convocation d'entretien à ce candidat",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": false,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Exécuter les tâches faibles risques",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    },
+    {
+      "id": 20,
+      "name": "worker restart (planning only)",
+      "input": "Reprends la préparation du dossier de Sophie",
+      "intent": "general",
+      "risk_level": "low",
+      "sensitivity": "normal",
+      "approval_required": false,
+      "user_restriction": null,
+      "missing_info": [],
+      "proposed_tasks": [
+        {
+          "type": "create_task",
+          "action": "create_task",
+          "risk": "low",
+          "sensitivity": "normal",
+          "external_side_effect": false
+        }
+      ],
+      "prohibited_actions": [],
+      "next_best_action": "Exécuter les tâches faibles risques",
+      "is_vague": false,
+      "detected_restriction": null,
+      "checks": {
+        "no_side_effect_in_plan": true,
+        "expected_clarification": true,
+        "expected_human_only_gate": true,
+        "expected_restriction_preserved": true
+      },
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "phase": "E1.2",
+  "migration": "supabase/migrations-p941/2026-07-07__p941_clonechat_durable.sql",
+  "state": "NOT_APPLIED",
+  "reasons": [
+    "role clonechat_app absent",
+    "0 of 10 canonical clonechat_* tables present",
+    "0 canonical budget functions present"
+  ],
+  "detail": {
+    "tablesFound": 0,
+    "tablesExpected": 10,
+    "roleExists": false
+  },
+  "tablesExpected": [
+    "clonechat_conversations",
+    "clonechat_messages",
+    "clonechat_bug_occurrences",
+    "clonechat_support_cases",
+    "clonechat_bug_cases",
+    "clonechat_action_executions",
+    "clonechat_proposals",
+    "clonechat_commands",
+    "clonechat_budget_counters",
+    "clonechat_usage_events"
+  ],
+  "functionsExpected": [
+    "clonechat_budget_try_reserve(text[], text[], bigint[], bigint)",
+    "clonechat_budget_commit(text[], bigint, bigint)",
+    "clonechat_budget_release(text[], bigint)"
+  ]
+}

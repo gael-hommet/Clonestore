@@ -1,21 +1,21 @@
 "use client";
 
-// /demo — Orchestrateur de la présentation en 6 actes.
+// /demo — Orchestrateur de la présentation en 7 actes + clôture.
 // Acte 1 Comprendre · 2 La différence · 3 Le système · 4 Le résultat ·
-// 5 La confiance · 6 Passer à Pierre. Couches : parcours principal (lisible sans
-// clic), micro-explications contextuelles, et tiroir d'approfondissement facultatif.
+// 5 La confiance · 6 Le coût de continuer comme avant · 7 Passer à Pierre ·
+// FAQ · Décision (première mission, ce qui suit, trois issues réelles).
+// Couches : parcours principal (lisible sans clic), micro-explications
+// contextuelles, et tiroir d'approfondissement facultatif.
 // framer-motion + reducedMotion="user" ; transition élément-partagé vers /demo/pierre.
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MotionConfig, AnimatePresence, motion } from "framer-motion";
 
 import { DemoProgress } from "./DemoProgress";
 import { DemoFaq } from "./DemoFaq";
+import { DemoConversion } from "./DemoConversion";
 import { MissionCard } from "./primitives/MissionCard";
-import { DemoCTALink } from "./primitives/DemoCTA";
-import { Reveal } from "./primitives/motion";
 import { useDemoHeaderHeightVar } from "./primitives/pinned";
 import { SHARED_MISSION_LAYOUT_ID, DEMO_SCENE_NAV, type DeepDiveTopic } from "./shared";
 
@@ -24,44 +24,13 @@ import { Act2Difference } from "./acts/Act2Difference";
 import { Act3System } from "./acts/Act3System";
 import { Act4Result } from "./acts/Act4Result";
 import { Act5Trust } from "./acts/Act5Trust";
+import { Act6Cost } from "./acts/Act6Cost";
 import { Act6Pierre } from "./acts/Act6Pierre";
 import { DemoDeepDive } from "./DemoDeepDive";
 
 import { emitDemoEvent, DEMO_EVENTS } from "@/lib/demo/presentation/analytics";
 import { getCommercialPhase } from "@/lib/demo/presentation/commercial-state";
 import { PIERRE_DEMO_ROUTE, SCENE_COMPLETION } from "@/lib/demo/presentation/content";
-
-/** Bloc de conversion final (après la FAQ) : routes réelles uniquement. */
-function DemoConversion({ onReserve, onPierre }: { onReserve: () => void; onPierre: () => void }) {
-  return (
-    <section className="demo-section demo-cv" aria-label="Passer à l'action avec CloneStore">
-      <div className="demo-shell">
-        <Reveal className="mx-auto max-w-2xl">
-          <div className="demo-glass demo-glass--material rounded-[1.8rem] p-7 text-center sm:p-9">
-            <p className="demo-kicker">Prochaine étape</p>
-            <h2 className="demo-title demo-title--section mt-3 mx-auto max-w-[20ch]">
-              Prêt à voir Pierre travailler pour votre entreprise ?
-            </h2>
-            <p className="demo-lede mx-auto mt-3 max-w-xl text-center">
-              Découvrez son fonctionnement réel ou réservez votre accès à CloneStore.
-            </p>
-            <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
-              <DemoCTALink href="/reserver/pierre" variant="primary" withArrow onClick={onReserve}>
-                Réserver Pierre
-              </DemoCTALink>
-              <DemoCTALink href={PIERRE_DEMO_ROUTE} variant="secondary" onClick={onPierre}>
-                Voir Pierre en action
-              </DemoCTALink>
-            </div>
-            <Link href="/agents/pierre" className="demo-btn demo-btn-ghost mt-4 inline-flex">
-              Découvrir Pierre
-            </Link>
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
 
 export function DemoExperience() {
   const router = useRouter();
@@ -147,6 +116,15 @@ export function DemoExperience() {
     emitDemoEvent(DEMO_EVENTS.reservationClicked, {}, { once: true });
   }, []);
 
+  // Clôture — on mesure la DÉCISION, jamais son contenu (aucune question, aucun chiffre).
+  const handleCloneChat = React.useCallback(() => {
+    emitDemoEvent(DEMO_EVENTS.cloneChatCtaClicked, { scene: "decision", source: "demo" }, { once: true });
+  }, []);
+
+  const handleFirstMission = React.useCallback(() => {
+    emitDemoEvent(DEMO_EVENTS.firstMissionSelected, { scene: "decision" }, { once: true });
+  }, []);
+
   return (
     <MotionConfig reducedMotion="user">
       <div className="demo-root">
@@ -157,6 +135,7 @@ export function DemoExperience() {
         <Act3System onDeepDive={setDeepDive} />
         <Act4Result />
         <Act5Trust onDeepDive={setDeepDive} />
+        <Act6Cost />
         <Act6Pierre
           onTransition={handleTransition}
           onDirectReservation={handleDirectReservation}
@@ -164,7 +143,12 @@ export function DemoExperience() {
         />
 
         <DemoFaq />
-        <DemoConversion onReserve={handleDirectReservation} onPierre={handleDirectPierre} />
+        <DemoConversion
+          onReserve={handleDirectReservation}
+          onPierre={handleDirectPierre}
+          onCloneChat={handleCloneChat}
+          onFirstMission={handleFirstMission}
+        />
 
         <DemoDeepDive topic={deepDive} onClose={() => setDeepDive(null)} />
 

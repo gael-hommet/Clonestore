@@ -1,0 +1,263 @@
+{
+  "proofPresent": true,
+  "proofPath": ".c1-4-proofs/access-openai-runtime/real-openai-browser.json",
+  "proofMtimeIso": "2026-07-11T14:36:48.338Z",
+  "proofSummary": {
+    "providerCallsMade": 2,
+    "realOpenAICallsProven": 2,
+    "realOpenAIBrowserCallExecuted": true,
+    "realOpenAITokensObserved": true,
+    "realOpenAIBudgetCommitted": true,
+    "reservedBeforeProvider": true,
+    "providerReportedModelObserved": true,
+    "deterministicFallbackAvoidedForProof": true,
+    "operationalRequiresEntitlement": true,
+    "anonymousBlocked": true,
+    "noKeyLeak": true,
+    "noTenantData": true
+  },
+  "c14FilesScanned": 37,
+  "materialFilesScanned": 28,
+  "changedAfterProofMaterial": [],
+  "changedAfterProofNonMaterial": [
+    {
+      "path": "src/lib/clonechat/server/c1-4-command-center.ts",
+      "mtimeIso": "2026-07-11T15:29:44.389Z",
+      "sha256": "4767aa4f9620b452",
+      "material": false
+    },
+    {
+      "path": "src/lib/clonechat/server/__tests__/c1-4-proof-generator.test.ts",
+      "mtimeIso": "2026-07-11T14:37:59.993Z",
+      "sha256": "012e963751ef86ac",
+      "material": false
+    }
+  ],
+  "proofSourceCurrent": true,
+  "newOpenAICallMade": false,
+  "verdict": "PROOF_SOURCE_CURRENT — no C1.4 RUNTIME file changed after the proof. The existing real-provider proof is preserved and NO new (paid) OpenAI call was made. Non-material changes (a read-only command center + a proof-generator test) are disclosed above; neither can alter the access-gate -> budget-reservation -> provider-call runtime path the proof attests.",
+  "entries": [
+    {
+      "path": "src/app/api/assistant/chat/route.ts",
+      "mtimeIso": "2026-07-11T14:16:12.819Z",
+      "sha256": "da7955aa867bec28",
+      "material": true
+    },
+    {
+      "path": "src/lib/pierre/access.ts",
+      "mtimeIso": "2026-07-11T12:33:52.325Z",
+      "sha256": "085465aac4b47f84",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/server/access-mode.ts",
+      "mtimeIso": "2026-07-11T12:34:22.814Z",
+      "sha256": "db02e13282ff8f4e",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/server/auth.ts",
+      "mtimeIso": "2026-07-07T21:13:58.726Z",
+      "sha256": "5fcd64669eb1ef39",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/server/c1-4-command-center.ts",
+      "mtimeIso": "2026-07-11T15:29:44.389Z",
+      "sha256": "4767aa4f9620b452",
+      "material": false
+    },
+    {
+      "path": "src/lib/clonechat/server/command-executor.ts",
+      "mtimeIso": "2026-07-07T10:24:25.008Z",
+      "sha256": "73f7a718ede8fe2c",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/server/company.ts",
+      "mtimeIso": "2026-07-03T16:02:28.249Z",
+      "sha256": "ed2280ea5fe6e1d6",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/server/no-company-gate.ts",
+      "mtimeIso": "2026-07-11T01:44:17.407Z",
+      "sha256": "594ea4855eb67b4d",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/server/proposal-builder.ts",
+      "mtimeIso": "2026-07-07T21:03:34.539Z",
+      "sha256": "cba396fd0ca30b4a",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/server/runtime.ts",
+      "mtimeIso": "2026-07-07T10:41:48.679Z",
+      "sha256": "2733093751194938",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/server/v1-loopback.ts",
+      "mtimeIso": "2026-07-07T21:02:01.950Z",
+      "sha256": "4d317c7654894063",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/server/__tests__/access-mode-c1-4.test.ts",
+      "mtimeIso": "2026-07-11T13:08:53.557Z",
+      "sha256": "18e8998942017471",
+      "material": false
+    },
+    {
+      "path": "src/lib/clonechat/server/__tests__/c1-4-proof-generator.test.ts",
+      "mtimeIso": "2026-07-11T14:37:59.993Z",
+      "sha256": "012e963751ef86ac",
+      "material": false
+    },
+    {
+      "path": "src/lib/clonechat/server/__tests__/company-resolution.test.ts",
+      "mtimeIso": "2026-07-03T22:25:51.239Z",
+      "sha256": "051cfd32eaf822ee",
+      "material": false
+    },
+    {
+      "path": "src/lib/clonechat/server/__tests__/no-company-gate.test.ts",
+      "mtimeIso": "2026-07-11T11:43:45.258Z",
+      "sha256": "1fd746abc5fde1a4",
+      "material": false
+    },
+    {
+      "path": "src/lib/clonechat/openai/budget-gate.ts",
+      "mtimeIso": "2026-07-02T18:28:58.869Z",
+      "sha256": "abcfca8bd4895138",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/openai/client.ts",
+      "mtimeIso": "2026-07-02T19:41:33.350Z",
+      "sha256": "9706cb25a1c3dbe8",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/openai/config.ts",
+      "mtimeIso": "2026-07-02T18:28:39.268Z",
+      "sha256": "a75e02a91eabcf59",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/openai/governed-turn.ts",
+      "mtimeIso": "2026-07-02T23:38:25.580Z",
+      "sha256": "eb50087947076e8a",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/openai/image-sanitizer.ts",
+      "mtimeIso": "2026-07-07T10:42:32.353Z",
+      "sha256": "bfaaa7ed962be429",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/openai/index.ts",
+      "mtimeIso": "2026-07-02T20:04:32.427Z",
+      "sha256": "96eb93f1793f0afa",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/openai/multimodal.ts",
+      "mtimeIso": "2026-07-02T20:20:58.342Z",
+      "sha256": "3498b2fa319af9fc",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/openai/screenshot.ts",
+      "mtimeIso": "2026-07-02T20:04:24.389Z",
+      "sha256": "56285b8866018f23",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/openai/structured-output.ts",
+      "mtimeIso": "2026-07-02T18:29:46.246Z",
+      "sha256": "5a514ccc9175b06c",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/openai/tool-registry.ts",
+      "mtimeIso": "2026-07-03T01:24:26.180Z",
+      "sha256": "09e00b50c25ee9db",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/openai/usage-accounting.ts",
+      "mtimeIso": "2026-07-02T18:30:53.292Z",
+      "sha256": "643b4f09395398bb",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/openai/__tests__/image-sanitizer.test.ts",
+      "mtimeIso": "2026-07-03T22:06:50.576Z",
+      "sha256": "98450283edbcf616",
+      "material": false
+    },
+    {
+      "path": "src/lib/clonechat/openai/__tests__/multimodal.test.ts",
+      "mtimeIso": "2026-07-02T20:13:08.284Z",
+      "sha256": "68d28ff91b6b9c55",
+      "material": false
+    },
+    {
+      "path": "src/lib/clonechat/openai/__tests__/openai-layer.test.ts",
+      "mtimeIso": "2026-07-02T19:12:59.560Z",
+      "sha256": "5c367155dc2c2fa9",
+      "material": false
+    },
+    {
+      "path": "src/lib/clonechat/durable/budget-store.ts",
+      "mtimeIso": "2026-07-02T22:55:02.580Z",
+      "sha256": "9b6759cb9f61c2fe",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/durable/command-ledger.ts",
+      "mtimeIso": "2026-07-07T10:24:01.313Z",
+      "sha256": "9fa49eb7d6ba0999",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/durable/idempotency-store.ts",
+      "mtimeIso": "2026-07-07T10:42:16.100Z",
+      "sha256": "adfc045b5b570576",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/durable/index.ts",
+      "mtimeIso": "2026-07-03T16:35:55.014Z",
+      "sha256": "a31f6355538539f6",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/durable/pg.ts",
+      "mtimeIso": "2026-07-03T21:11:26.272Z",
+      "sha256": "7435c33071b683a3",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/durable/proposal-store.ts",
+      "mtimeIso": "2026-07-03T16:35:21.362Z",
+      "sha256": "51de366b48933650",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/durable/support-store.ts",
+      "mtimeIso": "2026-07-07T10:25:28.647Z",
+      "sha256": "d430899ed4c83adf",
+      "material": true
+    },
+    {
+      "path": "src/lib/clonechat/durable/__tests__/clonechat-durable.itest.ts",
+      "mtimeIso": "2026-07-07T10:27:06.292Z",
+      "sha256": "1bf4e502dff97cb9",
+      "material": false
+    }
+  ]
+}

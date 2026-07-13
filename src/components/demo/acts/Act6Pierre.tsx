@@ -1,7 +1,10 @@
 "use client";
 
-// /demo — ACTE 6 : passer à Pierre.
+// /demo — ACTE 7 : passer à Pierre (dernier acte).
 // Synthèse très simple, puis une transition désirable vers la preuve interactive.
+// Arrive après l'Acte 6 (« Le coût de continuer comme avant ») : le visiteur a vu
+// les capacités, la gouvernance, puis comparé les deux méthodes sur ses propres
+// données. C'est ici, et seulement ici, que la démonstration demande une décision.
 
 import * as React from "react";
 import { ArrowRight, Plus, Network } from "lucide-react";

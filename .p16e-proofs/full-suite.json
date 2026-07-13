@@ -1,0 +1,1 @@
+{ "command": "npx vitest run --testTimeout=120000", "result": "17736 passed / 0 failed / 1 skipped (438 files)", "note": "fully green this run (no collection flake); P16E integration 21/21 under vitest.integration.config.ts", "captured": "2026-07-13 third continuation" }

@@ -1,0 +1,24 @@
+{
+  "decisions": [
+    {
+      "id": "D1",
+      "topic": "Second assistant",
+      "decision": "Le moteur local `runCloneChatTurn` a été RETIRÉ du client en C1.6. C1.7 ne le réintroduit sous aucune forme : en cas d'échec provider → état de reprise HONNÊTE, jamais une fausse réponse."
+    },
+    {
+      "id": "D2",
+      "topic": "Cerveau de connaissance",
+      "decision": "RÉUTILISER C1/C1.1 (Parrain : index, pricing, site map, sales runtime, truth matrix, citations, garde de claims). Aucun cerveau concurrent."
+    },
+    {
+      "id": "D3",
+      "topic": "Routeur",
+      "decision": "UN seul routeur : src/lib/clonechat/openai/model-router.ts. Il doit être CÂBLÉ dans la route canonique, pas dupliqué."
+    },
+    {
+      "id": "D4",
+      "topic": "Session concurrente",
+      "decision": "Une autre session exécute P16E (périmètre Pierre). Périmètres disjoints. Ne pas toucher src/lib/pierre/** ni .p16e-*. Re-mesurer avant tout gate global."
+    }
+  ]
+}

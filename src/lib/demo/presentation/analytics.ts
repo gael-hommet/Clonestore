@@ -19,6 +19,16 @@ export const DEMO_EVENTS = {
   footprintSectionViewed: "clone_demo_footprint_section_viewed",
   scaleSectionViewed: "clone_demo_scale_section_viewed",
   trustSectionViewed: "clone_demo_trust_section_viewed",
+  // Acte 6 — Le coût de continuer comme avant. Aucune donnée saisie par le
+  // visiteur (coûts, effectifs, résultats) n'est jamais attachée à ces
+  // événements : seul le fait qu'une interaction a eu lieu est enregistré.
+  costSectionViewed: "clone_demo_cost_section_viewed",
+  costScenarioSelected: "clone_demo_cost_scenario_selected",
+  costCalculatorAdjusted: "clone_demo_cost_calculator_adjusted",
+  // Clôture — architecture de décision. On mesure la DÉCISION, jamais son contenu :
+  // aucune question libre, aucun coût, aucun effectif, aucune donnée d'entreprise.
+  firstMissionSelected: "clone_demo_first_mission_selected",
+  cloneChatCtaClicked: "clone_demo_clonechat_cta_clicked",
   pierreScopeSectionViewed: "clone_demo_pierre_scope_section_viewed",
   organizationSectionViewed: "clone_demo_organization_section_viewed",
   completionViewed: "clone_demo_completion_viewed",

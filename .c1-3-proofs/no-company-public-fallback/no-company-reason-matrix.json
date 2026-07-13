@@ -1,0 +1,32 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "source": "src/lib/clonechat/server/company.ts (TenantRefusalCode)",
+  "matrix": {
+    "MEMBERSHIP_REQUIRED": {
+      "ordinaryNoCompany": true,
+      "publicModeAllowed": true,
+      "note": "etat principal 'pas d'entreprise'"
+    },
+    "COMPANY_SELECTION_REQUIRED": {
+      "ordinaryNoCompany": true,
+      "publicModeAllowed": true,
+      "note": "plusieurs entreprises, aucune choisie ; liste preservee sur une demande entreprise"
+    },
+    "MEMBERSHIP_SUSPENDED": {
+      "ordinaryNoCompany": false,
+      "publicModeAllowed": false,
+      "note": "FAIL-CLOSED (teste : question publique => refus)"
+    },
+    "COMPANY_UNAVAILABLE": {
+      "ordinaryNoCompany": false,
+      "publicModeAllowed": false,
+      "note": "FAIL-CLOSED 503 (panne DB)"
+    },
+    "unknown": {
+      "ordinaryNoCompany": false,
+      "publicModeAllowed": false,
+      "note": "tout code inconnu => fail-closed par defaut"
+    }
+  }
+}

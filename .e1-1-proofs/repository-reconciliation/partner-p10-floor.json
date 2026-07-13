@@ -1,0 +1,45 @@
+{
+  "finding": "P10 hard floor was NOT consumed by the partner payout path",
+  "previousStatus": "OPEN_BLOCKER (high severity, financial safety)",
+  "status": "FIXED_AND_TESTED",
+  "defect": {
+    "was": "defaultPayoutDeps().productionAuthorized = () => isPartnerLivePayoutAuthorized()  // environment-only",
+    "consequence": "With 9 environment variables set on a Vercel production deployment, real Stripe Connect transfers would execute while PRODUCTION_AUTHORIZED = false as const. Environment alone could move money.",
+    "contradicted": ".env.example:495 — 'Le job de versement REFUSE tout transfert live tant que la production n'est pas autorisée (plancher P10) — aucune activation Live possible par le code seul.'",
+    "whyItSurvived": "defaultPayoutDeps had ZERO test coverage."
+  },
+  "fix": {
+    "file": "src/lib/partner-program/server/payouts.ts",
+    "now": "productionAuthorized: () => Boolean(PRODUCTION_AUTHORIZED) && isPartnerLivePayoutAuthorized()",
+    "properties": [
+      "Additive and purely fail-closed: it can only BLOCK a live transfer, never enable one.",
+      "The environment gate may ADD restrictions; it can never BYPASS the floor (the floor is AND-ed first).",
+      "The refusal log now names WHICH cause fired — a fully-authorized environment blocked by the floor no longer prints 'all guards satisfied'.",
+      "No passing test was changed: live-authorization.test.ts tests the env gate directly; every payout itest injects its own PayoutDeps."
+    ],
+    "sourceProbe": {
+      "floorImported": true,
+      "floorConsumed": true
+    }
+  },
+  "tests": {
+    "file": "src/lib/partner-program/__tests__/payout-p10-floor.test.ts",
+    "passed": 13,
+    "failed": 0,
+    "covers": [
+      "P10=false + ALL 9 live env flags -> productionAuthorized() === false",
+      "sk_live_ key shape alone cannot authorize",
+      "NODE_ENV=production alone cannot authorize",
+      "VERCEL_ENV=production alone cannot authorize",
+      "cron secret + full live env, P10 false -> live transfer blocked",
+      "missing live authorization -> fail-closed",
+      "EXHAUSTIVE: all 2^7 = 128 subsets of the fully-authorized env -> NONE authorizes a payout",
+      "test Stripe mode never yields a live payout",
+      "deps are zero-arg functions -> no request body can forge production/live status",
+      "deterministic idempotency key (order-independent batch hash; distinct per partner/period)",
+      ".env.example P10 claim now matches actual behaviour",
+      "the code really CONSUMES the constant (not just a comment)"
+    ],
+    "doctrine": "No test mutates the canonical PRODUCTION_AUTHORIZED constant. No P10 success is ever mocked."
+  }
+}

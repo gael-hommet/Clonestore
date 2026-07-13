@@ -1,0 +1,21 @@
+{
+  "phase": "E1.3",
+  "acceptedWithoutRebuild": "E1.2 — REMOTE DATABASE STATE VERIFIED / MIGRATION APPLICATION AUTHORIZATION REQUIRED",
+  "p941RemoteStateVerified": "NOT_APPLIED",
+  "partnerPayoutStateVerified": "FULLY_APPLIED",
+  "target": {
+    "category": "managed_supabase_remote",
+    "productionSuspected": true,
+    "postgresMajorVersion": 17,
+    "tlsActive": true,
+    "fingerprint": "c049738d18e8"
+  },
+  "e12Facts": {
+    "customerRowsRead": 0,
+    "mutationsExecuted": 0,
+    "migrationsApplied": 0,
+    "liveProviderCalls": 0,
+    "rolledBack": true,
+    "authConsumed": true
+  }
+}

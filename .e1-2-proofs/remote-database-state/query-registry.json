@@ -1,0 +1,24 @@
+{
+  "phase": "E1.2 (continuation)",
+  "section": "6 — ENFORCED QUERY REGISTRY",
+  "registeredQueryCount": 21,
+  "everyQueryStructurallyValidatedAtModuleLoad": true,
+  "executorTakesIdNotSql": true,
+  "allowedStatementTypes": [
+    "select",
+    "set",
+    "begin",
+    "rollback",
+    "show"
+  ],
+  "allowedRelations": "pg_catalog + information_schema + migration-ledger ONLY",
+  "customerRelationsRejected": true,
+  "arbitrarySqlRejected": true,
+  "validationLayers": [
+    "statement-type allowlist",
+    "forbidden-token scan",
+    "forbidden-pattern scan",
+    "relation allowlist + customer denylist",
+    "no stacking / no interpolation"
+  ]
+}

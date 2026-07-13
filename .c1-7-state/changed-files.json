@@ -1,0 +1,9 @@
+{
+  "c17": [
+    "src/lib/clonechat/openai/model-router.ts (nouveau)",
+    "src/lib/clonechat/voice/transcription-policy.ts (nouveau)",
+    "src/app/api/assistant/transcribe/route.ts (nouveau)",
+    "src/app/assistant/useVoiceDictation.ts (nouveau)",
+    "src/components/clonechat/CloneChatWorkspace.tsx (micro)"
+  ]
+}

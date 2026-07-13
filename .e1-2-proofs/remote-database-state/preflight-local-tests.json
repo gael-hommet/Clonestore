@@ -1,0 +1,32 @@
+{
+  "phase": "E1.2 (continuation)",
+  "section": "12 — LOCAL TESTS",
+  "testFile": "src/lib/clonestore/external-enablement/e1/__tests__/e1-2-preflight.test.ts",
+  "e1SuiteTestsPassed": 115,
+  "e1SuiteFilesPassed": 4,
+  "tscExit": 0,
+  "affectedRegressionGates": {
+    "filesPassed": 23,
+    "testsPassed": 457,
+    "scopes": [
+      "external-enablement",
+      "partner",
+      "clonechat"
+    ]
+  },
+  "broadRegression": {
+    "filesPassed": 222,
+    "testsPassed": 12153,
+    "scopes": [
+      "pierre",
+      "clonestore"
+    ]
+  },
+  "runtimeRefusalPathsProven": {
+    "defaultModeOpensNoSocket": true,
+    "connectWithoutAuthorizationRefused": true,
+    "wrongSentenceMintsNothing": true,
+    "atomicClaimBeforeConnect": true
+  },
+  "remoteConnectionRun": false
+}

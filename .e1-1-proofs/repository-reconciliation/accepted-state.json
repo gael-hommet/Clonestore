@@ -1,0 +1,23 @@
+{
+  "runId": "repository-reconciliation",
+  "c14": {
+    "truthinessBugAbsent": true,
+    "entitlementRequiredForOperational": true,
+    "companyRequiredForOperational": true,
+    "publicDiscoveryWithoutEntitlement": true
+  },
+  "c13": {
+    "noCompanyGatePresent": true,
+    "publicQuestionsOperationalWithoutCompany": true,
+    "noFakeTenant": true
+  },
+  "c12": {
+    "clonechatActiveByDefault": true,
+    "emergencyKillSwitch": true,
+    "comingSoonScreenAbsentFromNormalPath": true
+  },
+  "p16c": {
+    "present": true
+  },
+  "note": "État ACCEPTÉ et re-vérifié dans la source courante — non reconstruit."
+}

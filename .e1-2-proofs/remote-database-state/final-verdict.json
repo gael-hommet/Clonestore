@@ -1,0 +1,23 @@
+{
+  "phase": "E1.2",
+  "verdict": "E1.2 — REMOTE DATABASE STATE VERIFIED / MIGRATION APPLICATION AUTHORIZATION REQUIRED",
+  "p941RemoteState": "NOT_APPLIED",
+  "partnerPayoutRemoteState": "FULLY_APPLIED",
+  "remoteSchemaCompatibility": "REMOTE_SCHEMA_INCOMPLETE",
+  "remoteDriftDetected": true,
+  "nextSafeAction": "APPLY_CANONICAL_MIGRATION",
+  "exactBlockers": [],
+  "exactWarnings": [
+    "The configured target is a managed remote with productionSuspected=true.",
+    "Partner payout drift: objects are complete and NO ledger tracks this migration — application is real but unrecorded",
+    "pg_cron is installed — DB-side scheduling is POSSIBLE; remote payout automation must be ruled out explicitly, not assumed.",
+    "Outbound-capable extension(s) installed: pg_cron, pg_net — a database-side HTTP call becomes technically possible."
+  ],
+  "remoteDatabaseMutated": false,
+  "migrationsApplied": 0,
+  "customerRowsRead": 0,
+  "deploymentPerformed": false,
+  "productionAuthorized": false,
+  "noMigrationSuccessClaimed": true,
+  "noDeploymentReadyClaimed": true
+}

@@ -1,0 +1,9 @@
+{
+  "runId": "access-openai-runtime",
+  "operational": "ACCESS_CHECK_UNAVAILABLE",
+  "publicQuestion": "AUTHENTICATED_DISCOVERY",
+  "failClosed": true,
+  "rawDbErrorExposed": false,
+  "httpStatus": 503,
+  "code": "PIERRE_ACCESS_UNAVAILABLE"
+}

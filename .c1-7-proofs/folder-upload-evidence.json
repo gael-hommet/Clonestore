@@ -1,0 +1,22 @@
+{
+  "control": "menu unique : Ajouter des fichiers · Ajouter des images · Ajouter un dossier",
+  "directorySelection": "input[webkitdirectory] — amélioration progressive, repli naturel sur sélection multiple",
+  "relativePathsPreserved": "RH/2026/contrats/contrat.pdf",
+  "noAbsolutePathLeak": "les racines Windows/Unix sont nettoyées ; `..` supprimé",
+  "hiddenFilesExcluded": [
+    ".DS_Store",
+    ".git/*",
+    "__MACOSX",
+    "Thumbs.db"
+  ],
+  "browserVerified": {
+    "folderInputSupportsDirectory": true,
+    "dangerousFilesRejectedVisibly": true
+  },
+  "alsoSupported": [
+    "glisser-déposer",
+    "collage d'image",
+    "sélection multiple",
+    "retrait avant envoi"
+  ]
+}

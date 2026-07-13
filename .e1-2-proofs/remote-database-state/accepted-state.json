@@ -1,0 +1,31 @@
+{
+  "phase": "E1.2",
+  "acceptedWithoutRebuild": "E1.1 — REPOSITORY LOCALLY RECONCILED / REMOTE MIGRATION AND DEPLOYMENT AUTHORIZATION REQUIRED",
+  "acceptedFacts": [
+    "repository proven frozen (at E1.1 measurement time)",
+    "all foreign writing agents were terminated (at E1.1 measurement time)",
+    "global TypeScript green",
+    "partner unit tests green",
+    "partner payout integration tests green",
+    "Pierre tests green",
+    "CloneChat/C1.4 tests green",
+    "P16C/T1/T2 green",
+    "canonical scoped non-regression green",
+    "full project suite green",
+    "clean serialized build exits 0",
+    "/assistant, partner routes and partner payout cron routes exist",
+    "P10 partner-payout floor enforced via Boolean(PRODUCTION_AUTHORIZED) && isPartnerLivePayoutAuthorized()",
+    "environment variables cannot bypass the P10 floor",
+    "no live payout possible while PRODUCTION_AUTHORIZED=false",
+    "no remote database modified",
+    "P9.4.1 remote state UNKNOWN",
+    "partner payout migration remote state UNKNOWN",
+    "nothing deployed",
+    "production unauthorized"
+  ],
+  "e11Reopened": false,
+  "e11ReopenJustified": false,
+  "supersededAtE12": [
+    "'all foreign writing agents were terminated' is NO LONGER TRUE at E1.2 measurement time: a foreign writing agent (claude PID 2224) is active and mutating the repository. See process-scan.json and repository-stability.json."
+  ]
+}

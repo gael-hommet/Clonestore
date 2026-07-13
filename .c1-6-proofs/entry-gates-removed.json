@@ -1,0 +1,12 @@
+{
+  "chatRoute_AUTH_REQUIRED_count": 0,
+  "anonymousViewerModelled": true,
+  "anonymousNeverReachesCompanyLane": true,
+  "noTenantQueryForAnonymous": true,
+  "noEntitlementQueryForAnonymous": true,
+  "clientSecondAssistantCalls_runCloneChatTurn": 0,
+  "clientAlwaysCallsServer_fetchCount": 1,
+  "boundedReadiness": true,
+  "permanentBannerRefs": 0,
+  "neutralLabel": true
+}

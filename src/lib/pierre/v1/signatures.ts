@@ -529,6 +529,11 @@ export type ReconcileResult = { scanned: number; advanced: number; finalized: nu
 const MAX_RECONCILE_RETRIES = 5;
 
 export async function reconcileSignatureRequests(db: SqlExecutor, ctx: TenantContext, opts: { limit?: number } = {}, deps: SignatureDeps = {}): Promise<ReconcileResult> {
+  // P16E §17 (F19) — reconciliation ADVANCES signature requests and FINALIZES signed contracts
+  // (finalizeSignedContract below). It is a sensitive document operation and must require the
+  // same permission as finalize/approve — the route enforced entitlement but NO RBAC permission,
+  // so an entitled read-only viewer could drive signature finalization. Fail-closed here.
+  requirePermission(ctx, "document.approve");
   const provider = resolveSignatureProvider(deps.provider);
   const limit = Math.min(opts.limit ?? 25, 100);
   const res: ReconcileResult = { scanned: 0, advanced: 0, finalized: 0, dead_lettered: 0 };

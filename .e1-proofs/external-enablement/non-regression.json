@@ -1,0 +1,9 @@
+{
+  "fullScoped": "7594 passed / 1 skipped / 0 failed (181 files)",
+  "scope": "src/lib/nav src/lib/clonestore src/lib/clonechat src/lib/pierre/v1 src/app/api/assistant src/app/assistant src/components",
+  "baselineP16C": "7551 passed / 1 skipped / 0 failed",
+  "delta": "+43 (the E1 focused suite)",
+  "tsc": 0,
+  "build": "exit 0",
+  "note": "No prior test regressed. E1 is additive: only new files under src/lib/clonestore/external-enablement/e1/**. P8–P16C + T1/T2 + C1/C1.1/C1.2 untouched."
+}

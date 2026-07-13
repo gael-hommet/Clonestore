@@ -1,0 +1,79 @@
+{
+  "preconditions": {
+    "openaiKeyPresentByShape": true,
+    "maxProviderCalls": 3
+  },
+  "scenarioA": {
+    "realWorkspace": true,
+    "composerEnabled": true,
+    "viewport": "1440x900"
+  },
+  "providerCalls": [
+    {
+      "question": "Quels sont les prix de Pierre en France et en Suisse ?",
+      "status": 200,
+      "source": "openai_public",
+      "discoveryMode": true,
+      "provider": "openai",
+      "providerReportedModel": "gpt-4o-mini-2024-07-18",
+      "requestedModel": "gpt-4o-mini",
+      "providerCalled": true,
+      "reservationGranted": true,
+      "reservedBeforeProvider": true,
+      "inputTokens": 1377,
+      "outputTokens": 50,
+      "committedTokens": 1427,
+      "entitlementKnown": true,
+      "citationsValidated": true,
+      "citationLabels": [
+        "la tarification"
+      ],
+      "answerLen": 111,
+      "answerSample": "Pierre est proposé à 449 € HT/mois en France. Je n'ai pas d'information sur un tarif spécifique pour la Suisse.",
+      "isRealProvider": true,
+      "nonZeroTokens": true,
+      "notDeterministic": true,
+      "noKeyLeak": true,
+      "noTenantData": true
+    },
+    {
+      "question": "Pourquoi Pierre est différent d'un assistant généraliste ?",
+      "status": 200,
+      "source": "openai_public",
+      "discoveryMode": true,
+      "provider": "openai",
+      "providerReportedModel": "gpt-4o-mini-2024-07-18",
+      "requestedModel": "gpt-4o-mini",
+      "providerCalled": true,
+      "reservationGranted": true,
+      "reservedBeforeProvider": true,
+      "inputTokens": 1481,
+      "outputTokens": 165,
+      "committedTokens": 1646,
+      "entitlementKnown": true,
+      "citationsValidated": true,
+      "citationLabels": [],
+      "answerLen": 826,
+      "answerSample": "Pierre est un employé IA spécifiquement dédié aux ressources humaines, contrairement à un assistant généraliste qui se limite à répondre à des questions ou à ex",
+      "isRealProvider": true,
+      "nonZeroTokens": true,
+      "notDeterministic": true,
+      "noKeyLeak": true,
+      "noTenantData": true
+    }
+  ],
+  "summary": {
+    "providerCallsMade": 2,
+    "realOpenAICallsProven": 2,
+    "realOpenAIBrowserCallExecuted": true,
+    "realOpenAITokensObserved": true,
+    "realOpenAIBudgetCommitted": true,
+    "reservedBeforeProvider": true,
+    "providerReportedModelObserved": true,
+    "deterministicFallbackAvoidedForProof": true,
+    "operationalRequiresEntitlement": true,
+    "anonymousBlocked": true,
+    "noKeyLeak": true,
+    "noTenantData": true
+  }
+}

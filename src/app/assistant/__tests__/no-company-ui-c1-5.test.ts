@@ -26,8 +26,11 @@ const code = (s: string) => s.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?
 describe("C1.5 — la cause racine : le message ne partait jamais au serveur", () => {
   it("`send` ATTEND la résolution du mode avant de choisir sa voie", () => {
     // Sans cette barrière, un message envoyé pendant l'initialisation est traité comme PUBLIC.
-    expect(code(HOOK)).toMatch(/await readyRef\.current/);
-    expect(code(HOOK)).toMatch(/readyRef\s*=\s*useRef<Promise<void> \| null>/);
+    // C1.6 — l'attente est désormais BORNÉE (une barrière ne doit jamais redevenir une porte).
+    expect(code(HOOK)).toMatch(/await awaitReady\(\)/);
+    expect(code(HOOK)).toMatch(/READY_TIMEOUT_MS/);
+    // C1.6 — la barrière vit désormais dans un module PUR, réellement testé (readiness-c1-6).
+    expect(code(HOOK)).toMatch(/createReadinessBarrier\(READY_TIMEOUT_MS\)/);
   });
 
   it("la barrière est libérée sur TOUTES les sorties (sinon le chat resterait bloqué)", () => {
@@ -58,7 +61,7 @@ describe("C1.5 — aucune fausse entreprise n'est fabriquée côté client", () 
 
   it("une réponse de découverte est assemblée dans un contexte PUBLIC (companyLabel null)", () => {
     const c = code(HOOK);
-    expect(c).toMatch(/const isDiscovery = data\.discovery === true/);
+    expect(c).toMatch(/const isDiscovery = data\.public === true \|\| data\.discovery === true/);
     expect(c).toMatch(/assembleCtx = isDiscovery \? \{ \.\.\.ctx, mode: "public" as const, companyLabel: null \}/);
   });
 
@@ -72,37 +75,39 @@ describe("C1.5 — aucune fausse entreprise n'est fabriquée côté client", () 
 });
 
 describe("C1.5 — le chat reste utilisable : un refus est contextuel, jamais un arrêt", () => {
-  it("les refus opérationnels sont traités comme contextuels et rappellent ce qui marche", () => {
+  it("C1.6 — le prérequis est ATTACHÉ à la demande (CTA), il ne remplace jamais la réponse", () => {
     const c = code(HOOK);
-    expect(c).toMatch(/CONTEXTUAL_REFUSALS/);
-    for (const s of ["company_required", "pierre_access_required", "clarification_required", "company_required_document"]) {
+    expect(c).toMatch(/function pushCta/);
+    expect(c).toMatch(/prerequisiteMessage/);
+    // Les états CIBLÉS restent traités sans jamais éteindre la conversation.
+    for (const s of ["attachment_requires_company", "company_access_suspended", "rate_limited"]) {
       expect(c).toContain(`"${s}"`);
     }
-    expect(c).toMatch(/Vos questions générales sur CloneStore et Pierre restent disponibles ici/);
   });
 
   it("un refus n'est jamais estampillé « données d'entreprise » (aucune donnée n'a été touchée)", () => {
     expect(code(HOOK)).toMatch(/push\(msg\("assistant", blocks, "public"\)\);/);
   });
 
-  it("l'indice « mode découverte » n'est plus répété après chaque message", () => {
-    // Il vit désormais dans une carte d'état persistante (§4D) — zéro spam dans le fil.
+  it("C1.6 — AUCUNE bannière permanente : ni « mode découverte », ni avertissement d'indisponibilité", () => {
+    // §6 : une bannière permanente laisserait croire que CloneChat est diminué. Il ne l'est pas.
     expect(code(HOOK)).not.toMatch(/blocks\.push\(\{ type: "boundary"[^}]*DISCOVERY_MODE_HINT/);
-    expect(code(UI)).toMatch(/chat\.discoveryMode \? \(/);
-    expect(code(UI)).toMatch(/cc-state-card/);
+    expect(code(UI)).not.toMatch(/cc-state-card/);
+    expect(code(UI)).not.toMatch(/Mode découverte actif/);
   });
 
-  it("le composer n'est JAMAIS désactivé à cause d'une absence d'entreprise", () => {
+  it("le composer n'est JAMAIS désactivé à cause d'une absence de compte ou d'entreprise", () => {
     const c = code(UI);
+    expect(c).not.toMatch(/disabled=\{[^}]*mode === "public"[^}]*\}/);
     // La seule condition de désactivation légitime du champ est « une réponse est en cours ».
     expect(c).toMatch(/disabled=\{chat\.busy\}/);
     expect(c).not.toMatch(/disabled=\{[^}]*companyState[^}]*\}/);
     expect(c).not.toMatch(/disabled=\{[^}]*discoveryMode[^}]*\}/);
   });
 
-  it("le libellé de mode ne ment pas : sans entreprise, ce n'est pas « connecté à votre entreprise »", () => {
+  it("C1.6 §7 — statut NEUTRE : jamais « connecté à votre entreprise » sans entreprise, jamais un mode « dégradé »", () => {
     const c = code(HOOK);
-    expect(c).toMatch(/companyState === "active" \? "Assistant opérationnel" : "Mode découverte"/);
+    expect(c).toMatch(/companyState === "active" \? "Assistant opérationnel" : "Conversation générale"/);
     expect(code(UI)).toMatch(/chat\.companyState === "active" \? " · connecté à votre entreprise" : ""/);
   });
 });

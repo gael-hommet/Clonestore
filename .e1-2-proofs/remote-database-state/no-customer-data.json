@@ -1,0 +1,8 @@
+{
+  "phase": "E1.2",
+  "customerRowsRead": 0,
+  "customerTablesQueried": [],
+  "proof": "Customer relations are unreachable by construction: the executor takes a query ID, the registry contains only pg_catalog/information_schema/migration-ledger reads, and validateSql refuses any relation matching clonechat_*/clonestore_*/pierre_rt_*/auth.*/storage.* (the ledger is the sole exemption). Table NAMES appear only as bound parameters, never as query targets.",
+  "secretsOrConfigValuesRead": 0,
+  "authTokensOrSessionsRead": 0
+}

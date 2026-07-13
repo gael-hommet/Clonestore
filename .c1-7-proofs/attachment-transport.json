@@ -1,0 +1,21 @@
+{
+  "defectFound": "C1.7 CONFIRMED DEFECT — ATTACHMENT UI NOT CONNECTED TO MESSAGE TRANSPORT",
+  "evidence": "submit() envoyait `images`/`docs` (ancien état) et ne lisait JAMAIS `pickedFiles`/`manifest`. Le menu, le dossier, le glisser-déposer et le collage étaient un CUL-DE-SAC : validés, affichés, puis silencieusement abandonnés.",
+  "threeGatesFound": [
+    "1. `parrain-public-adapter` passait `attachments: []` (les pièces jointes exigeaient l'authentification)",
+    "2. `parrain-knowledge-index` jetait TOUT le contexte de session en mode public",
+    "3. `parrain-retrieval` (anti-blanchiment) remplissait les 10 places avec le canonique → le fichier de l'utilisateur sortait en « limit_reached »"
+  ],
+  "fix": {
+    "clientTransport": "UN SEUL chemin : manifest → sendWithFiles() → send() (images data-URL + documents base64 + chemins relatifs)",
+    "ephemeralVisibility": "nouvelle visibilité SESSION_EPHEMERAL : le fichier de l'utilisateur, tenantCompanyId = null, visible par tous, jamais un tenant",
+    "reservedCapacity": "capacité RÉSERVÉE (4 extraits max, 50 % du budget) pour la pièce à conviction de l'utilisateur — SANS toucher à l'anti-blanchiment : son autorité reste INFÉRIEURE au canonique"
+  },
+  "endToEndProof": {
+    "method": "un SECRET (ZORGLUB-4417) présent UNIQUEMENT dans le fichier",
+    "answerContainsSecret": true,
+    "controlWithoutFile": "source_missing — donc non devinable (la preuve est réfutable)",
+    "folder": "« Le site de Lyon a le plus grand effectif, avec 37 personnes. C'est le Fichier A du dossier RH qui l'indique. » — identités préservées",
+    "browserVerified": true
+  }
+}

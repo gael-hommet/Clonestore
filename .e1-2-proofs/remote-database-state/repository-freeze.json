@@ -1,0 +1,21 @@
+{
+  "phase": "E1.2 (continuation)",
+  "section": "2 — REPOSITORY FREEZE (A = B = C)",
+  "method": "3 full-tree snapshots (path|size|mtime|sha256) across a 185s no-edit window; excludes only node_modules/.next/.next-*/.git/coverage/dist; INCLUDES src/scripts/supabase/config/root recipe scripts/proof dirs/.playwright-mcp",
+  "windowSeconds": 185,
+  "fileCounts": [
+    7779,
+    7779,
+    7779
+  ],
+  "treeHashIdenticalABC": true,
+  "contentHashIdenticalABC": true,
+  "aVsC": {
+    "added": [],
+    "removed": [],
+    "modified": [],
+    "touched": []
+  },
+  "frozen": true,
+  "capturedAt": "2026-07-12T01:33:00Z"
+}

@@ -22,9 +22,35 @@ import { prepareImagesForModel } from "@/lib/clonechat/openai/image-sanitizer";
 import { detectPromptInjection, injectionRefusalMessage } from "@/lib/clonechat";
 import { redactSymptom } from "@/lib/clonechat/bug-memory";
 import { getCloneChatStores } from "@/lib/clonechat/server/runtime";
-import { resolveCloneChatCompany } from "@/lib/clonechat/server/company";
+import { resolveCloneChatCompany, type TenantResolution } from "@/lib/clonechat/server/company";
 import { tenantRefusalResponse } from "@/lib/clonechat/server/auth";
 import { buildAndPersistProposal } from "@/lib/clonechat/server/proposal-builder";
+// ── C1.6 — CONTRAT UNIVERSEL : la conversation est un DROIT, le contexte privé et l'action
+// sont des PRIVILÈGES. Ce module SUPPLANTE la matrice d'entrée de C1.3/C1.4/C1.5.
+import {
+  classifyCloneChatRequest,
+  resolveCloneChatPlan,
+  prerequisiteMessage,
+  prerequisiteCta,
+  type CloneChatViewer,
+} from "@/lib/clonechat/server/universal-access";
+import {
+  checkAnonymousRateLimit,
+  anonymousFingerprint,
+  anonymousRateLimitMessage,
+} from "@/lib/clonechat/server/anonymous-rate-limit";
+import { getRouteEntry } from "@/lib/nav/route-registry";
+// C1.7 §4C — UN SEUL routeur de modèle, pur et déterministe. Aucun appel IA pour choisir une IA,
+// et AUCUN signal d'identité : la qualité dépend de la TÂCHE, jamais du compte.
+import { routeModel, isAllowedModel, loadModelRouterConfig } from "@/lib/clonechat/openai/model-router";
+// C1.7 §5 — Manifeste CANONIQUE, réutilisé CÔTÉ SERVEUR : le client n'est pas une frontière.
+import { buildManifest, imageDetailFor } from "@/lib/clonechat/attachments/manifest";
+import { createSentenceGate, encodeStreamEvent, classifyProviderFailure } from "@/lib/clonechat/openai/streaming";
+import { createStreamingOpenAIResponder, type StreamingResponderResult } from "@/lib/clonechat/openai/streaming-responder";
+import { answerPublicQuestion, PUBLIC_VIEWER } from "@/lib/clonechat/intelligence/c1-1/parrain-public-adapter";
+import { buildKnowledgeIndex, indexLeaksForbiddenSources } from "@/lib/clonechat/intelligence/c1-1/parrain-knowledge-index";
+import type { ParrainResponderPort } from "@/lib/clonechat/intelligence/c1-1/parrain-turn-runtime";
+import type { ParrainHonesty } from "@/lib/clonechat/intelligence/c1-1/parrain-types";
 // ── P16C — délégation RH gouvernée (ADDITIF, lecture seule : n'active aucun effet, n'exécute rien) ──
 // Imports ciblés (jamais le barrel) : la route ne tire pas le command-center ni ses deps lourdes.
 import { isP16CIntegrationEnabled } from "@/lib/clonestore/integration/p16c/p16c-flags";
@@ -60,10 +86,14 @@ interface AttachmentBody {
   size_bytes?: number;
   transport?: string;
   data?: string; // base64 (pas de data: URL)
+  /** C1.7 — chemin RELATIF dans un dossier choisi (jamais un chemin absolu du disque). */
+  relative_path?: string;
 }
 
 interface ChatBody {
   message?: string;
+  /** C1.7 §8 — diffusion progressive de la réponse (SSE). */
+  stream?: boolean;
   history?: Array<{ role: "user" | "assistant"; text: string }>;
   images?: string[];
   attachments?: AttachmentBody[];
@@ -75,6 +105,23 @@ const BUG_HINT = /(bug|erreur|probl[eè]me|marche pas|ne fonctionne|plante|gris�
 // Bornes de transport (aucun substrat d'upload durable dans ce dépôt : transport en ligne borné).
 const MAX_ATTACHMENTS = 4;
 const MAX_TOTAL_BASE64_CHARS = 8 * 1024 * 1024; // ~6 Mo décodés, tous fichiers confondus
+
+/**
+ * C1.4 — CTA d'activation Pierre dérivé du REGISTRE DE ROUTES CANONIQUE (jamais une URL
+ * inventée). Ne revendique aucun paiement en ligne : la réservation reste sans paiement.
+ */
+function pierreActivationCta(): { route: string; label: string } | null {
+  const entry = getRouteEntry("/reserver/pierre") ?? getRouteEntry("/agents/pierre");
+  if (!entry) return null;
+  return { route: entry.path, label: entry.path === "/reserver/pierre" ? "Réserver Pierre" : entry.label };
+}
+
+/** C1.3 — honnêteté Parrain (7 valeurs) → schéma de sortie CloneChat (3 valeurs). */
+function publicHonesty(h: ParrainHonesty): "answered" | "unknown" | "needs_clarification" {
+  if (h === "clarification_required") return "needs_clarification";
+  if (h === "source_missing" || h === "unsupported" || h === "permission_denied") return "unknown";
+  return "answered";
+}
 
 /** Décodage base64 défensif — jamais de throw, jamais d'exécution de contenu. */
 function decodeBase64(data: string): Uint8Array | null {
@@ -91,19 +138,25 @@ export async function POST(req: Request) {
   // 1) Flag produit (fail-closed).
   if (!isCloneChatEnabled()) return noStore({ ok: false, code: "CLONECHAT_DISABLED", error: "CloneChat n'est pas encore disponible." }, 503);
 
-  // 2) Auth serveur (Supabase). Le tenant réel est résolu plus bas via le membership V1.
+  // 2) C1.6 — IDENTITÉ, PAS PORTE D'ENTRÉE.
+  //
+  // L'ancien code renvoyait 401 à tout visiteur anonyme : c'était une porte au niveau du CHAT.
+  // Elle est SUPPRIMÉE. On résout qui parle — et si personne n'est connecté, on ne fabrique
+  // AUCUN identifiant : le lecteur est `anonymous`, et il converse comme tout le monde.
+  // L'authentification ne conditionne plus la parole, seulement le contexte privé et l'action.
   let userId: string | null = null;
+  let supabase: Awaited<ReturnType<typeof supabaseServer>> | null = null;
   try {
-    const supabase = await supabaseServer();
+    supabase = await supabaseServer();
     const token = bearer(req);
     const { data } = token ? await supabase.auth.getUser(token) : await supabase.auth.getUser();
     userId = data.user?.id ?? null;
-    if (!userId) return noStore({ ok: false, code: "AUTH_REQUIRED", error: "Connexion requise." }, 401);
-    const access = await hasPierreAccess(supabase, userId);
-    if (!access) return noStore({ ok: true, source: "no_pierre", structured: { answer: "Pierre n'est pas encore actif sur votre compte. Une fois activé, je peux consulter vos missions, validations, salariés et documents, et préparer des actions avec votre validation.", honesty: "answered", tool_call: null, citations: [] } });
   } catch {
-    return noStore({ ok: false, code: "AUTH_ERROR", error: "Session invalide." }, 401);
+    // Session illisible/expirée : ce n'est PAS une raison de refuser la conversation.
+    // On dégrade en visiteur anonyme — aucune donnée privée ne sera servie de toute façon.
+    userId = null;
   }
+  const viewer: CloneChatViewer = userId ? { kind: "user", userId } : { kind: "anonymous" };
 
   const body = (await req.json().catch(() => null)) as ChatBody | null;
   const message = (body?.message ?? "").trim();
@@ -119,11 +172,380 @@ export async function POST(req: Request) {
   const cfg = loadOpenAIConfig();
   const key = readOpenAIKey();
   const stores = await getCloneChatStores();
-  // Tenant = VRAIE entreprise (membership V1, lecture seule). FAIL-CLOSED.
-  const tenant = await resolveCloneChatCompany(userId);
-  if (!tenant.ok) return tenantRefusalResponse(tenant);
-  const ctx = { companyId: tenant.companyId, userId };
   const at = now();
+
+  // ── C1.6 — PLAN UNIVERSEL ─────────────────────────────────────────────────────
+  //
+  // La conversation est un DROIT ; le contexte privé et l'action sont des PRIVILÈGES.
+  // On ne demande plus « avez-vous le droit de parler ? » mais « que demandez-vous, et que
+  // faut-il pour le satisfaire ? ». Un prérequis manquant s'attache à la DEMANDE — jamais au
+  // droit de converser. Aucune branche ci-dessous ne peut fermer le chat.
+  const requestClass = classifyCloneChatRequest(message);
+
+  // ANONYME : on n'interroge AUCUNE table tenant (pas d'identité → pas de requête privée).
+  const entitlement = viewer.kind === "user" && supabase ? await hasPierreAccess(supabase, viewer.userId) : null;
+  const tenant = viewer.kind === "user" ? await resolveCloneChatCompany(viewer.userId) : null;
+  const plan = resolveCloneChatPlan({ requestClass, viewer, entitlement, tenant });
+
+  // Limitation d'abus de la voie anonyme (jamais une porte : un message honnête + réessai).
+  if (viewer.kind === "anonymous") {
+    const rl = checkAnonymousRateLimit(anonymousFingerprint(req.headers));
+    if (!rl.allowed) {
+      const msg = anonymousRateLimitMessage(rl.retryAfterSeconds);
+      return noStore({
+        ok: true, source: "rate_limited", public: true, retryAfterSeconds: rl.retryAfterSeconds,
+        structured: { answer: msg, honesty: "answered", tool_call: null, citations: [] },
+      });
+    }
+  }
+
+  // Prérequis manquants POUR LA DEMANDE (peut être vide). Ils accompagnent la réponse ; ils
+  // ne la remplacent pas : CloneChat répond d'abord, puis dit ce qui manque pour aller plus loin.
+  const missing = plan.missingPrerequisites;
+  const prereq = missing.length > 0
+    ? { prerequisites: missing, prerequisiteMessage: prerequisiteMessage(missing, requestClass), cta: prerequisiteCta(missing) }
+    : null;
+
+  // Pièces jointes : un document RH appartient au TENANT — il n'est analysable QUE sur la voie
+  // ENTREPRISE. Mais un refus de document n'éteint PAS la conversation : on l'explique et on
+  // continue de parler (§2/§6).
+  const hasAttachments = rawAttachments.length > 0 || (body?.images?.length ?? 0) > 0;
+
+  // ── C1.7 §5 — REVALIDATION SERVEUR (la validation client N'EST PAS une frontière) ──
+  // Le corps de la requête peut être FORGÉ : on reclasse chaque fichier ici, avec le module
+  // canonique. Exécutables, archives, extensions déguisées, MIME incohérent, fichiers vides,
+  // trop gros, trop nombreux : refusés côté SERVEUR, quoi qu'ait affirmé le navigateur.
+  const serverManifest = buildManifest(rawAttachments.map((a) => ({
+    name: typeof a?.filename === "string" ? a.filename : "fichier",
+    mime: typeof a?.mime_type === "string" ? a.mime_type : "application/octet-stream",
+    // La taille FAIT FOI côté serveur : on la recalcule depuis le base64 réellement reçu.
+    size: typeof a?.data === "string" ? Math.floor((a.data.length * 3) / 4) : 0,
+    relativePath: typeof a?.relative_path === "string" ? a.relative_path : undefined,
+  })));
+  const acceptedIdx = new Set(serverManifest.map((e, i) => (e.state === "rejected" ? -1 : i)).filter((i) => i >= 0));
+  const serverRejected = serverManifest
+    .filter((e) => e.state === "rejected")
+    .map((e) => ({ name: e.displayName, path: e.relativePath, reason: e.rejection?.message ?? "refusé" }));
+
+  // Échec tenant SENSIBLE (membership suspendu / entreprise indisponible) : aucune donnée
+  // privée n'est servie. Mais un accès suspendu n'a jamais interdit de demander les prix :
+  // la conversation PUBLIQUE reste ouverte (C1.6 §1). Seul le contexte privé est coupé.
+  if (plan.tenantSecurityFailure && (requestClass === "PRIVATE_CONTEXT_REQUIRED" || requestClass === "GOVERNED_ACTION_REQUIRED")) {
+    const refusal = tenant as Extract<TenantResolution, { ok: false }>;
+    return noStore({
+      ok: true, source: "company_access_suspended", public: true, code: refusal.code,
+      structured: {
+        answer: "Votre accès à cette entreprise est suspendu : je ne peux pas consulter ses données ni agir dessus. Je reste disponible pour toutes vos autres questions.",
+        honesty: "answered", tool_call: null, citations: [],
+      },
+    });
+  }
+
+  // ── VOIE PUBLIQUE — LA MÊME CONVERSATION POUR TOUS ────────────────────────────
+  // Anonyme, sans entreprise, sans Pierre, ou tenant en défaut : MÊME moteur, MÊMES sources
+  // publiques, MÊME personnalité. Aucune source tenant, aucune délégation, aucune mission.
+  if (plan.lane === "PUBLIC") {
+
+    // ── C1.7 §7 — PIÈCES JOINTES ÉPHÉMÈRES (anonyme ou sans entreprise) ──────────
+    // L'utilisateur peut analyser SES propres fichiers. `companyId: null` : aucune entreprise
+    // n'est fabriquée, aucun stockage durable, aucune autre session, aucun accès tenant.
+    const ephemeral: AttachmentIngestionResult[] = [];
+    let ephBudget = MAX_TOTAL_BASE64_CHARS;
+    for (let i = 0; i < rawAttachments.length; i++) {
+      if (!acceptedIdx.has(i)) continue; // refusé par la revalidation SERVEUR
+      const a = rawAttachments[i];
+      const data = typeof a?.data === "string" ? a.data : "";
+      if (data.length === 0 || data.length > ephBudget) continue;
+      ephBudget -= data.length;
+      const bytes = decodeBase64(data);
+      if (!bytes) continue;
+      try {
+        ephemeral.push(await ingestAttachment({
+          filename: typeof a?.filename === "string" ? a.filename : "fichier",
+          declaredMime: typeof a?.mime_type === "string" ? a.mime_type : "application/octet-stream",
+          bytes,
+          companyId: null, // ← ÉPHÉMÈRE : jamais un tenant
+          conversationId: null, uploadedBy: null, at,
+        }));
+      } catch { /* une pièce jointe défaillante n'échoue jamais le tour */ }
+    }
+
+    // Images du visiteur : assainies par le pipeline EXISTANT (EXIF retiré, formats bornés).
+    const pubImgs = sanitizeImages(body?.images ?? []);
+    const pubPrepared = pubImgs.accepted.length > 0 ? await prepareImagesForModel(pubImgs.accepted) : null;
+    const pubImageUrls = pubPrepared?.dataUrls ?? [];
+    // Détail visuel : ÉCONOMIQUE par défaut ; « high » seulement si la question le justifie.
+    const pubImageDetail = imageDetailFor(message);
+
+    // ASSERTION DE VISIBILITÉ SERVEUR, AVANT tout appel modèle : le corpus public ne doit
+    // contenir AUCUNE source tenant / interne / secrète (fail-closed si jamais c'était le cas).
+    const publicIndex = buildKnowledgeIndex({ question: message, viewer: PUBLIC_VIEWER });
+    if (indexLeaksForbiddenSources(publicIndex, PUBLIC_VIEWER)) {
+      return noStore({ ok: true, source: "public_blocked", discovery: true, structured: { answer: "Je ne peux pas répondre en mode découverte pour le moment.", honesty: "unknown", tool_call: null, citations: [] } });
+    }
+
+    // BUDGET : scope UTILISATEUR + global, companyId = null — JAMAIS de fausse entreprise.
+    // Le magasin de budget peut être indisponible (DB non provisionnée) : dans ce cas on
+    // DÉGRADE en repli public DÉTERMINISTE (aucun appel modèle sans réservation) plutôt que
+    // d'échouer — une question publique doit toujours obtenir une vraie réponse.
+    const pubEst = Math.ceil((message.length || 40) / 4) + 400;
+    const NO_RESERVATION = { granted: false as const, reason: null, scopes: [] as string[], reservedTokens: 0, maxOutputTokens: 0 };
+    let pubReservation: Awaited<ReturnType<typeof stores.budget.reserve>> = NO_RESERVATION;
+    try {
+      pubReservation = await stores.budget.reserve(cfg, { userId, companyId: null }, pubEst, at);
+    } catch {
+      pubReservation = NO_RESERVATION; // budget indisponible → jamais de modèle, repli déterministe
+    }
+    // ── C1.7 §8 — STREAMING RÉEL (voie publique) ──────────────────────────────
+    // Extension de la route CANONIQUE (aucune seconde route). Les morceaux viennent VRAIMENT du
+    // provider ; on ne révèle jamais une réponse déjà complète lettre par lettre.
+    //
+    // GARDE : une phrase n'est diffusée QUE lorsqu'elle est complète ET passée par la garde de
+    // claims C1 — sinon on montrerait du texte non gardé avant de le corriger.
+    if (body?.stream === true && pubReservation.granted && !!key && cfg.enabled) {
+      const routerCfg0 = loadModelRouterConfig();
+      const routing0 = routeModel({ message, requestClass, documentCount: rawAttachments.length, imageCount: body?.images?.length ?? 0 }, routerCfg0);
+      const model0 = isAllowedModel(routing0.model, routerCfg0) ? routing0.model : routerCfg0.defaultModel;
+      const ceiling0 = Math.min(pubReservation.maxOutputTokens, routing0.maxOutputTokens);
+
+      const encoder = new TextEncoder();
+      const sink: StreamingResponderResult = { usage: null, providerCalled: false };
+      let settled = false;
+
+      const stream = new ReadableStream<Uint8Array>({
+        async start(controller) {
+          const send = (e: Parameters<typeof encodeStreamEvent>[0]) => {
+            try { controller.enqueue(encoder.encode(encodeStreamEvent(e))); } catch { /* client parti */ }
+          };
+          // La garde de claims s'applique AVANT diffusion, phrase par phrase.
+          const gate = createSentenceGate((t) => finalizeAnswerText(t).safeText);
+
+          try {
+            const responder = createStreamingOpenAIResponder(
+              key!,
+              (delta) => { for (const sentence of gate.push(delta)) send({ type: "delta", text: sentence }); },
+              req.signal,
+              sink,
+            );
+            const pub = await answerPublicQuestion({
+              question: message,
+              history: (body?.history ?? []).slice(-6),
+              responder,
+              model: model0,
+              maxOutputTokens: ceiling0,
+              attachments: ephemeral, // ÉPHÉMÈRES — jamais un tenant
+              imageDataUrls: pubImageUrls,
+        imageDetail: pubImageDetail,
+        at,
+            });
+            for (const rest of gate.flush()) send({ type: "delta", text: rest });
+
+            const tokens = pub.usageTokens ?? 0;
+            settled = true;
+            try { await stores.budget.commit(pubReservation, tokens); } catch { /* comptabilité best-effort */ }
+            if (sink.usage && tokens > 0) {
+              try { await stores.budget.recordUsage(buildUsageRecord({ usage: sink.usage, userId, companyId: null as unknown as string, at: now() })); } catch { /* optionnel */ }
+            }
+
+            // `done` porte la VÉRITÉ FINALE : réponse validée (citations + garde), jamais le brut.
+            send({ type: "done", payload: {
+              ok: true,
+              source: sink.providerCalled ? "openai_public" : "public_fallback",
+              public: true, anonymous: viewer.kind === "anonymous", requestClass,
+              ...(prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {}),
+              structured: { answer: pub.answer, honesty: publicHonesty(pub.honesty), tool_call: null, citations: [...pub.citations] },
+              // C1.7 §4 — ÉTATS VÉRIDIQUES. « analysed » UNIQUEMENT si le fichier a produit des
+              // extraits réellement fournis au modèle. Sinon on le dit — jamais un faux « analysé ».
+              attachments: [
+                ...ephemeral.map((e) => ({
+                  name: e.attachment.filename,
+                  state: e.chunks.length > 0 ? "analysed" : "unsupported_analysis",
+                  supportStatus: e.attachment.supportStatus,
+                  detail: e.honestSummary,
+                })),
+                ...serverRejected.map((r) => ({ name: r.name, state: "rejected", detail: r.reason })),
+              ],
+              imagesSentToProvider: pubImageUrls.length,
+              citationLabels: [...pub.citationLabels],
+              usageTokens: tokens,
+              runtime: {
+                provider: sink.providerCalled ? "openai" : "deterministic",
+                model: sink.usage?.model ?? null,
+                requestedModel: model0,
+                routing: { escalated: routing0.escalated, reasons: routing0.reasons },
+                inputTokens: sink.usage?.inputTokens ?? 0,
+                outputTokens: sink.usage?.outputTokens ?? 0,
+                cachedInputTokens: sink.usage?.cachedInputTokens ?? 0,
+                streamed: true,
+              },
+            } });
+          } catch (e) {
+            // Une annulation reste une ANNULATION : jamais un faux « terminé ».
+            if (req.signal?.aborted) {
+              send({ type: "cancelled", reason: "Réponse interrompue." });
+            } else {
+              const f = classifyProviderFailure(e); // timeout ≠ rate limit ≠ erreur provider
+              send({ type: "error", code: f.code, message: f.message });
+            }
+          } finally {
+            if (!settled) { try { await stores.budget.release(pubReservation); } catch { /* ignore */ } }
+            try { controller.close(); } catch { /* déjà fermé */ }
+          }
+        },
+      });
+
+      return new Response(stream, {
+        headers: { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-store, no-transform", Connection: "keep-alive" },
+      });
+    }
+
+    // INVARIANT : aucun appel modèle sans réservation de budget accordée.
+    const useModel = pubReservation.granted && !!key && cfg.enabled;
+    let pubSettled = false;
+    // Instrumentation du responder EXISTANT (simple décorateur — AUCUN second client) :
+    // capture l'usage RÉEL du provider pour la preuve runtime (jamais la clé).
+    type ProviderUsage = Parameters<typeof buildUsageRecord>[0]["usage"];
+    let providerUsage: ProviderUsage | null = null;
+    let providerResponder: ParrainResponderPort | null = null;
+    // ORDONNANCEMENT MESURÉ (jamais une constante d'auto-certification) : une horloge
+    // logique monotone date la réservation et le franchissement du provider. Si le provider
+    // était appelé sans réservation, `reservedSeq` resterait 0 et l'invariant serait FAUX
+    // dans la preuve — c'est ce qui rend la preuve réfutable.
+    let seq = 0;
+    const reservedSeq = pubReservation.granted ? ++seq : 0;
+    let providerSeq = 0;
+    if (useModel) {
+      const realResponder = createRealOpenAIResponder(key!);
+      providerResponder = {
+        async respond(r) {
+          providerSeq = ++seq; // daté AVANT le franchissement réseau
+          const res = await realResponder.respond(r);
+          providerUsage = (res.usage as ProviderUsage) ?? null;
+          return res;
+        },
+      };
+    }
+    try {
+      // Adaptateur PUBLIC C1.1 réel (PUBLIC_VIEWER : aucun port compte, aucune délégation).
+      // C1.7 — ROUTAGE DÉTERMINISTE. Le routeur ne voit QUE des signaux de tâche (longueur,
+      // documents, images, contradictions). Il ne peut pas savoir qui parle : un anonyme et un
+      // client Pierre obtiennent le MÊME modèle pour la MÊME question.
+      const routerCfg = loadModelRouterConfig();
+      const routing = routeModel({
+        message,
+        requestClass,
+        documentCount: rawAttachments.length,
+        imageCount: body?.images?.length ?? 0,
+      }, routerCfg);
+      // Fail-closed : un modèle inconnu retombe sur le défaut sûr, jamais sur l'inconnu.
+      const chosenModel = isAllowedModel(routing.model, routerCfg) ? routing.model : routerCfg.defaultModel;
+      // La borne de sortie est le MINIMUM entre le budget accordé et le plafond de la classe.
+      const outputCeiling = Math.min(
+        pubReservation.granted ? pubReservation.maxOutputTokens : 500,
+        routing.maxOutputTokens,
+      );
+
+      const pub = await answerPublicQuestion({
+        question: message,
+        history: (body?.history ?? []).slice(-6),
+        responder: providerResponder,
+        model: chosenModel,
+        maxOutputTokens: outputCeiling,
+        attachments: ephemeral, // ÉPHÉMÈRES — jamais un tenant
+        imageDataUrls: pubImageUrls,
+        imageDetail: pubImageDetail,
+        at,
+      });
+      // Le tour public valide DÉJÀ les citations serveur + applique la garde de claims C1.
+      const pubTokens = pub.usageTokens ?? 0;
+      const viaProvider = pub.source === "openai_parrain";
+      if (pubReservation.granted) {
+        pubSettled = true;
+        try { await stores.budget.commit(pubReservation, pubTokens); } catch { /* comptabilité best-effort : n'échoue jamais la réponse */ }
+      }
+      // Comptabilité d'usage (best-effort) — scope utilisateur, aucune entreprise inventée.
+      const usage = providerUsage as ProviderUsage | null;
+      if (viaProvider && pubTokens > 0 && usage) {
+        try {
+          await stores.budget.recordUsage(buildUsageRecord({ usage, userId, companyId: null as unknown as string, at: now() }));
+        } catch { /* l'événement d'usage est optionnel : ne fait jamais échouer la réponse */ }
+      }
+      return noStore({
+        ok: true,
+        source: viaProvider ? "openai_public" : "public_fallback",
+        // C1.6 — `public: true` remplace `discovery` : ce n'est PAS un mode dégradé, c'est LA
+        // conversation CloneChat sur sources publiques. `discovery` reste émis pour la
+        // compatibilité des clients existants.
+        public: true,
+        discovery: true,
+        anonymous: viewer.kind === "anonymous",
+        requestClass,
+        // Prérequis attachés à la DEMANDE (jamais au droit de parler) — vide si rien ne manque.
+        ...(prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {}),
+        structured: {
+          answer: pub.answer,
+          honesty: publicHonesty(pub.honesty),
+          tool_call: null, // aucune action exécutable sans prérequis vérifiés
+          citations: [...pub.citations],
+        },
+        // C1.7 §4 — ÉTATS VÉRIDIQUES. « analysed » UNIQUEMENT si le fichier a produit des
+        // extraits réellement fournis au modèle. Sinon on le dit — jamais un faux « analysé ».
+        attachments: [
+          ...ephemeral.map((e) => ({
+            name: e.attachment.filename,
+            state: e.chunks.length > 0 ? "analysed" : "unsupported_analysis",
+            supportStatus: e.attachment.supportStatus,
+            detail: e.honestSummary,
+          })),
+          ...serverRejected.map((r) => ({ name: r.name, state: "rejected", detail: r.reason })),
+        ],
+        imagesSentToProvider: pubImageUrls.length,
+        citationLabels: [...pub.citationLabels],
+        relevantLinks: pub.relevantLinks,
+        suggestedCTA: pub.suggestedCTA,
+        usageTokens: pubTokens,
+        durable: false, // aucune persistance durable sans entreprise (jamais de faux tenant)
+        // ── Preuve runtime (métadonnées NON secrètes ; jamais la clé) ──
+        runtime: {
+          provider: viaProvider ? "openai" : "deterministic",
+          // Modèle RAPPORTÉ PAR LE PROVIDER (pas le modèle configuré) ; null sans appel.
+          model: viaProvider ? (usage?.model ?? null) : null,
+          requestedModel: chosenModel,
+          routing: { escalated: routing.escalated, reasons: routing.reasons, reasoning: routing.reasoning, maxOutputTokens: outputCeiling },
+          reservationGranted: pubReservation.granted,
+          providerCalled: providerSeq > 0,
+          // MESURÉ : null si aucun appel provider ; sinon vrai ssi la réservation a été
+          // accordée STRICTEMENT AVANT le franchissement du provider.
+          reservedBeforeProvider: providerSeq === 0 ? null : reservedSeq > 0 && reservedSeq < providerSeq,
+          inputTokens: viaProvider ? (usage?.inputTokens ?? 0) : 0,
+          outputTokens: viaProvider ? (usage?.outputTokens ?? 0) : 0,
+          committedTokens: pubReservation.granted ? pubTokens : 0,
+          entitlementKnown: viewer.kind === "user" && !plan.entitlementLookupFailed,
+        },
+      });
+    } catch {
+      // Échec modèle → repli PUBLIC déterministe honnête, réservation libérée (0 token).
+      if (pubReservation.granted && !pubSettled) { pubSettled = true; try { await stores.budget.release(pubReservation); } catch { /* ignore */ } }
+      const fb = await answerPublicQuestion({ question: message, at });
+      return noStore({
+        ok: true, source: "public_fallback", public: true, discovery: true,
+        anonymous: viewer.kind === "anonymous", requestClass,
+        ...(prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {}),
+        structured: { answer: fb.answer, honesty: publicHonesty(fb.honesty), tool_call: null, citations: [] },
+        usageTokens: 0, durable: false,
+      });
+    } finally {
+      if (pubReservation.granted && !pubSettled) { try { await stores.budget.release(pubReservation); } catch { /* ignore */ } }
+    }
+  }
+
+  // ── VOIE ENTREPRISE (plan.lane === "COMPANY") ────────────────────────────────
+  // À ce stade UNIQUEMENT : identité vérifiée + entreprise ACTIVE résolue serveur + droit
+  // Pierre VALIDE. Toutes les autres situations ont déjà répondu par la voie PUBLIQUE.
+  // Gardes défensives (inatteignables) qui bornent aussi les types.
+  if (viewer.kind !== "user" || tenant === null || !tenant.ok) return tenantRefusalResponse((tenant ?? { ok: false, code: "MEMBERSHIP_REQUIRED" }) as Extract<TenantResolution, { ok: false }>);
+
+  const ctx = { companyId: tenant.companyId, userId: viewer.userId };
 
   // ── C1.1 §5 : INGESTION des pièces jointes documentaires (serveur autoritaire) ──
   // Le companyId vient du tenant résolu serveur ; le MIME est re-détecté ; le statut de
@@ -227,7 +649,7 @@ export async function POST(req: Request) {
       const responder = createRealOpenAIResponder(key);
 
       // Viewer résolu SERVEUR (mode client ; le mode fondateur passe par l'adaptateur interne).
-      const viewer = clientViewer(tenant.companyId, userId);
+      const viewer = clientViewer(tenant.companyId, ctx.userId);
 
       // Contexte de session BORNÉ : entreprise (lecture seule V1) + pièces jointes tenant.
       const sessionChunks: ParrainKnowledgeChunk[] = [];
@@ -294,7 +716,7 @@ export async function POST(req: Request) {
         if (isP16CIntegrationEnabled() && proposal?.kind === "create_mission") {
           governance = await buildCloneChatDelegation({
             message,
-            identity: { companyId: tenant.companyId, actorId: userId },
+            identity: { companyId: tenant.companyId, actorId: ctx.userId },
             nowIso: now(),
             toolCall: tc,
             instruction: typeof tc?.arguments?.instruction === "string" ? (tc.arguments.instruction as string) : message,

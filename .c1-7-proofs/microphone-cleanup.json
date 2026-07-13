@@ -1,0 +1,5 @@
+{
+  "singleReleasePoint": "releaseMic() — appelé par stop, cancel, error ET démontage",
+  "releasedBeforeNetwork": "le micro est coupé AVANT l'envoi (jamais d'écoute pendant la transcription)",
+  "browserVerified": true
+}

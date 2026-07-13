@@ -1,0 +1,46 @@
+{
+  "runId": "repository-reconciliation",
+  "rootCause": "Test d'intégration PGlite (~215 travaux insérés) dépassant le délai vitest PAR DÉFAUT (5 000 ms) sous charge parallèle. Message exact reproduit avant correction : « Error: Test timed out in 5000ms. » — jamais un défaut d'équité.",
+  "classification": "flaky/environmental (délai), PAS un défaut produit",
+  "isolatedRuns": [
+    {
+      "run": 1,
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "raw": "2 passed (2)"
+    },
+    {
+      "run": 2,
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "raw": "2 passed (2)"
+    },
+    {
+      "run": 3,
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "raw": "2 passed (2)"
+    }
+  ],
+  "underParallelLoadWithoutTimeoutFlag": {
+    "command": "npx vitest run src/lib/pierre/v1",
+    "exitCode": 0,
+    "passed": 352,
+    "failed": 0,
+    "skipped": 1,
+    "raw": "352 passed | 1 skipped (353)"
+  },
+  "stabilization": {
+    "harnessMovedToBeforeAllHook": true,
+    "explicitTimeoutInFile": true,
+    "cleanupGuaranteed": true,
+    "fairnessAssertionsUntouched": true,
+    "testSkipped": false
+  }
+}

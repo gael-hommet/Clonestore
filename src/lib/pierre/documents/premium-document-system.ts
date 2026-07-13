@@ -804,6 +804,36 @@ export function normalizePremiumDocumentVariables(
     .filter((v): v is PierrePremiumDocumentVariable => v !== null);
 }
 
+/** Marques combinantes Unicode (accents) produites par la decomposition NFD. */
+const COMBINING_MARKS = new RegExp("[\u0300-\u036f]", "g");
+
+/**
+ * Forme canonique pour la reconnaissance de famille : minuscules, diacritiques retirés
+ * (NFD puis suppression des marques combinantes), et toute ponctuation réduite à une
+ * espace simple. "Arrêt maladie" → "arret maladie" ; "entretien d'évaluation" →
+ * "entretien d evaluation" ; "synthèse salarié" → "synthese salarie".
+ */
+function normalizeForFamilyMatch(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(COMBINING_MARKS, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/** Mots de liaison français tolérés ENTRE deux mots-clés ("solde DE tout compte"). */
+const FAMILY_LINK = "(?:\\s+(?:de|du|des|d|la|le|les|l|au|aux|a|en|et|pour|sur)){0,2}\\s+";
+
+/**
+ * Expression de plusieurs mots-clés séparés par des liaisons optionnelles. Chaque mot
+ * tolère une flexion (pluriel/féminin) mais jamais une troncature : "salarie" reconnaît
+ * "salaries", pas "salai". Appliqué au texte DÉJÀ normalisé.
+ */
+function seq(...words: readonly string[]): RegExp {
+  return new RegExp("\\b" + words.map((w) => `${w}[a-z]*`).join(FAMILY_LINK));
+}
+
 export function inferPremiumDocumentFamily(
   input: Record<string, unknown> | string | null | undefined,
 ): PierrePremiumDocumentFamily {
@@ -824,7 +854,6 @@ export function inferPremiumDocumentFamily(
         .join(" ");
 
   if (!text) return "generic_hr";
-  const lower = text.toLowerCase();
 
   // Check direct family name first (from object)
   if (typeof input === "object" && input !== null) {
@@ -834,20 +863,28 @@ export function inferPremiumDocumentFamily(
     }
   }
 
-  if (/\bcontract\b|contrat.de.travail|contrat.cdi|contrat.cdd|\bcdi\b|\bcdd\b/i.test(lower)) return "contract";
-  if (/amendment|avenant.au.contrat|avenant/i.test(lower)) return "amendment";
-  if (/offre.d.emploi|offre.emploi|\boffer\b|job.offer/i.test(lower)) return "offer";
-  if (/\bconvocation\b|convoqué|convoqu/i.test(lower)) return "convocation";
-  if (/refus.candidat|refus.de.candidature|candidature.refus|\brefusal\b/i.test(lower)) return "refusal";
-  if (/\bonboarding\b|accueil.nouvel|parcours.integration|document.accueil|guide.accueil/i.test(lower)) return "onboarding";
-  if (/\babsence\b|\bcongé\b|arret.travail|arret.maladie|justificatif.absence/i.test(lower)) return "absence";
-  if (/pre.paie|pré.paie|elements.paie|elements.variables.paie|bulletin|prepayroll/i.test(lower)) return "pre_payroll";
-  if (/entretien.evaluation|entretien.performance|evaluation.annuelle|\bperformance\b/i.test(lower)) return "performance";
-  if (/\bformation\b|\btraining\b|plan.formation|developpement.competences/i.test(lower)) return "training";
-  if (/offboarding|fin.contrat|depart.salarie|solde.tout.compte|licenciement|demission|rupture.conventionnelle/i.test(lower)) return "offboarding";
-  if (/synthese.salarie|fiche.salarie|dossier.salarie|employee.summary|employee.file/i.test(lower)) return "employee_summary";
-  if (/note.interne|note.rh|internal.note|memo.rh/i.test(lower)) return "internal_note";
-  if (/relance|suivi.rh|\bfollowup\b|follow.up|rappel.rh/i.test(lower)) return "followup";
+  // E1.1 — la RH française s'écrit avec des accents ("arrêt maladie", "synthèse salarié")
+  // et avec des mots de liaison ("solde DE tout compte"). Le texte est donc réduit à une
+  // forme canonique — sans diacritiques, ponctuation ramenée à une espace — AVANT toute
+  // reconnaissance. Sans cela, `\bcongé\b` ne peut jamais correspondre (`é` n'est pas un
+  // caractère de mot ASCII : la limite `\b` finale échoue) et `arret.maladie` rate "arrêt".
+  const norm = normalizeForFamilyMatch(text);
+  if (!norm) return "generic_hr";
+
+  if (/\bcontract[a-z]*\b|\bcdi\b|\bcdd\b/.test(norm) || seq("contrat", "travail").test(norm) || seq("contrat", "cdi").test(norm) || seq("contrat", "cdd").test(norm)) return "contract";
+  if (/\bamendment|\bavenant/.test(norm)) return "amendment";
+  if (/\boffer\b/.test(norm) || seq("offre", "emploi").test(norm) || seq("job", "offer").test(norm)) return "offer";
+  if (/\bconvocation|\bconvoqu/.test(norm)) return "convocation";
+  if (/\brefusal\b/.test(norm) || seq("refus", "candidat").test(norm) || seq("candidature", "refus").test(norm)) return "refusal";
+  if (/\bonboarding\b/.test(norm) || seq("accueil", "nouvel").test(norm) || seq("parcours", "integration").test(norm) || seq("document", "accueil").test(norm) || seq("guide", "accueil").test(norm)) return "onboarding";
+  if (/\babsence[a-z]*\b|\bconge[a-z]*\b/.test(norm) || seq("arret", "travail").test(norm) || seq("arret", "maladie").test(norm) || seq("justificatif", "absence").test(norm)) return "absence";
+  if (/\bprepayroll\b|\bbulletin/.test(norm) || seq("pre", "paie").test(norm) || seq("elements", "paie").test(norm) || seq("elements", "variables", "paie").test(norm)) return "pre_payroll";
+  if (/\bperformance\b/.test(norm) || seq("entretien", "evaluation").test(norm) || seq("entretien", "performance").test(norm) || seq("evaluation", "annuelle").test(norm)) return "performance";
+  if (/\bformation[a-z]*\b|\btraining\b/.test(norm) || seq("plan", "formation").test(norm) || seq("developpement", "competences").test(norm)) return "training";
+  if (/\boffboarding\b|\blicenciement[a-z]*\b|\bdemission[a-z]*\b/.test(norm) || seq("fin", "contrat").test(norm) || seq("depart", "salarie").test(norm) || seq("solde", "tout", "compte").test(norm) || seq("rupture", "conventionnelle").test(norm)) return "offboarding";
+  if (seq("synthese", "salarie").test(norm) || seq("fiche", "salarie").test(norm) || seq("dossier", "salarie").test(norm) || seq("employee", "summary").test(norm) || seq("employee", "file").test(norm)) return "employee_summary";
+  if (seq("note", "interne").test(norm) || seq("note", "rh").test(norm) || seq("internal", "note").test(norm) || seq("memo", "rh").test(norm)) return "internal_note";
+  if (/\brelance[a-z]*\b|\bfollowup\b/.test(norm) || seq("suivi", "rh").test(norm) || seq("follow", "up").test(norm) || seq("rappel", "rh").test(norm)) return "followup";
 
   return "generic_hr";
 }

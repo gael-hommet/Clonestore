@@ -1,0 +1,13 @@
+{
+  "phase": "E1.2 (continuation)",
+  "section": "7 — SESSION SAFETY",
+  "statementTimeoutMs": 5000,
+  "lockTimeoutMs": 2000,
+  "idleInTransactionTimeoutMs": 10000,
+  "searchPath": "pg_catalog, information_schema",
+  "readOnlyTransaction": true,
+  "alwaysRollback": true,
+  "alwaysReleaseClient": true,
+  "safetyAssertedFromServerBeforeInspection": true,
+  "failsClosedIfAssertionFails": true
+}

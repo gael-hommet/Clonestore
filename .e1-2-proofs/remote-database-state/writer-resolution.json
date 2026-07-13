@@ -1,0 +1,32 @@
+{
+  "phase": "E1.2 (continuation)",
+  "section": "2 — SINGLE-WRITER SAFETY",
+  "selfClaudePid": 27832,
+  "selfIdentifiedVia": "parent chain from $PID: powershell -> claude.exe 27832 -> Code.exe",
+  "foreignClaudeProcesses": [
+    {
+      "pid": 2224,
+      "classification": "IDLE editor session (owner confirms the Stripe recette is finished+closed)",
+      "cpuDeltaOver135s_s": 0.44,
+      "cpuDeltaAfterT105s_s": 0,
+      "wroteDuringFreeze": false
+    },
+    {
+      "pid": 24352,
+      "classification": "IDLE editor session (finished E1.1)",
+      "cpuDeltaOver135s_s": 0.3,
+      "wroteDuringFreeze": false
+    }
+  ],
+  "buildOrTestRunnersObserved": {
+    "nextDev": false,
+    "vitest": false,
+    "tsc": false,
+    "next": false
+  },
+  "browserWorkstreamWritingToRepo": false,
+  "stripeScriptsStillRunning": false,
+  "soleWriterConfirmed": true,
+  "foreignAgentTerminated": false,
+  "note": "No foreign agent was terminated. The previous writer went idle on its own (owner-confirmed finished). Sole-writer is proven by a flat CPU curve + byte-identical snapshots, not by killing anything."
+}

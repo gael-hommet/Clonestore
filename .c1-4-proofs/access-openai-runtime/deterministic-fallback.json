@@ -1,0 +1,6 @@
+{
+  "runId": "access-openai-runtime",
+  "truthful": true,
+  "rule": "runtime.provider = 'openai' UNIQUEMENT si le tour public a réellement traversé le provider ; sinon 'deterministic'. Un repli n'est JAMAIS étiqueté OpenAI.",
+  "noProviderNoModel": "sans appel provider : model=null et reservedBeforeProvider=null (aucune verdeur auto-certifiée)"
+}

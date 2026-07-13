@@ -1,0 +1,52 @@
+{
+  "A": {
+    "hasCompany": false,
+    "hasPierre": false,
+    "privateRequest": {
+      "status": 200,
+      "source": "openai_public",
+      "requestClass": "PRIVATE_CONTEXT_REQUIRED",
+      "prerequisites": [
+        "active_company"
+      ],
+      "toolCall": null,
+      "proposal": null
+    },
+    "governedAction": {
+      "status": 200,
+      "source": "openai_public",
+      "requestClass": "GOVERNED_ACTION_REQUIRED",
+      "prerequisites": [
+        "active_company",
+        "pierre_entitlement"
+      ],
+      "toolCall": null,
+      "proposal": null
+    }
+  },
+  "B": {
+    "hasCompany": false,
+    "hasPierre": false,
+    "privateRequest": {
+      "status": 200,
+      "source": "openai_public",
+      "requestClass": "PRIVATE_CONTEXT_REQUIRED",
+      "prerequisites": [
+        "active_company"
+      ],
+      "toolCall": null,
+      "proposal": null
+    },
+    "governedAction": {
+      "status": 200,
+      "source": "openai_public",
+      "requestClass": "GOVERNED_ACTION_REQUIRED",
+      "prerequisites": [
+        "active_company",
+        "pierre_entitlement"
+      ],
+      "toolCall": null,
+      "proposal": null
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "command": "npx tsc --noEmit",
+  "errors": 0,
+  "globallyGreen": true
+}

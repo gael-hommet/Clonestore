@@ -1,0 +1,24 @@
+{
+  "phase": "E1.3",
+  "section": "1 — SINGLE-WRITER",
+  "selfClaudePid": 27832,
+  "foreignClaude": [
+    {
+      "pid": 24352,
+      "classification": "IDLE editor session"
+    },
+    {
+      "pid": 2224,
+      "classification": "IDLE editor session (owner-confirmed Stripe recette finished)"
+    }
+  ],
+  "buildTestDbRunnersObserved": {
+    "nextDev": false,
+    "vitest": false,
+    "tsc": false,
+    "migrationScript": false,
+    "stripeScript": false
+  },
+  "soleWriterConfirmed": true,
+  "foreignAgentTerminated": false
+}

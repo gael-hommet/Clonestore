@@ -1,0 +1,28 @@
+{
+  "phase": "E1.2",
+  "p941": {
+    "objectState": "NOT_APPLIED",
+    "historyState": "NO_LEDGER_FOR_THIS_MIGRATION",
+    "driftDetected": false,
+    "signals": []
+  },
+  "partner": {
+    "objectState": "FULLY_APPLIED",
+    "historyState": "NO_LEDGER_FOR_THIS_MIGRATION",
+    "driftDetected": true,
+    "signals": [
+      {
+        "code": "OBJECTS_WITHOUT_LEDGER_MECHANISM",
+        "detail": "objects are complete and NO ledger tracks this migration — application is real but unrecorded"
+      }
+    ]
+  },
+  "migrationHistoryMechanism": {
+    "supabaseCliLedgerPresent": false,
+    "pierreLedgerPresent": true,
+    "pierreLedgerEntryCount": 28,
+    "tracksP941": false,
+    "tracksPartnerPayout": false,
+    "explanation": "The only remote ledger is public.pierre_rt_schema_migrations, written solely by scripts/p87-activate-remote.mjs which filters on \"pierre_v\". scripts/apply-partner-program-production.mjs records NO history, and NOTHING applies supabase/migrations-p941/. For both migrations, history can neither confirm nor refute — object state is the only admissible evidence."
+  }
+}

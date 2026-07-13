@@ -1,0 +1,40 @@
+{
+  "phase": "E1.2 (continuation)",
+  "section": "8 — CREDENTIAL & OUTPUT PROTECTION",
+  "neverPrinted": [
+    "dsn",
+    "host",
+    "port",
+    "database",
+    "username",
+    "password",
+    "project ref",
+    "supabase url",
+    "access token",
+    "session token",
+    "customer content"
+  ],
+  "independentSubstringChecks": [
+    "dsn",
+    "host",
+    "user",
+    "password",
+    "userRaw",
+    "passwordRaw",
+    "database"
+  ],
+  "shortPasswordCaught": true,
+  "rawPercentEncodedCaught": true,
+  "patternGuards": [
+    "postgres dsn",
+    "stripe sk/rk",
+    "whsec",
+    "jwt",
+    "supabase url",
+    "openai key",
+    "bearer"
+  ],
+  "errorsSanitized": true,
+  "errorMessageNeverIncluded": true,
+  "writeProofRefusesOnLeakBeforeWriting": true
+}

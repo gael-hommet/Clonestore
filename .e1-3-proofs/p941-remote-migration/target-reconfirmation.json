@@ -1,0 +1,11 @@
+{
+  "phase": "E1.3",
+  "section": "4",
+  "method": "fingerprint compared WITHOUT connecting; live NOT_APPLIED reconfirmation happens inside the runner immediately before mutation (read-only preamble, then in-txn belt recheck)",
+  "sourceVariable": "DATABASE_URL",
+  "category": "managed_supabase_remote",
+  "productionSuspected": true,
+  "fingerprintMatchesE12": true,
+  "fingerprint": "c049738d18e8",
+  "note": "The runner aborts before BEGIN if the live fingerprint differs or P9.4.1 is no longer exactly NOT_APPLIED."
+}

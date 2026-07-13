@@ -1,0 +1,5 @@
+{
+  "run": false,
+  "reason": "BLOQUÉ PAR §9 : des marqueurs de conflit non résolus subsistent hors périmètre C1.6 ⇒ TypeScript n'est pas globalement vert ⇒ un build échouerait sur du code étranger. Aucun build n'est lancé, et aucun résultat de build n'est revendiqué.",
+  "exitCode": null
+}

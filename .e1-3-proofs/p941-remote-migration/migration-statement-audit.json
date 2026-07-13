@@ -1,0 +1,29 @@
+{
+  "phase": "E1.3",
+  "section": "2",
+  "inventory": {
+    "createRole": 1,
+    "createTableIfNotExists": 10,
+    "createIndex": 12,
+    "uniqueIndex": 2,
+    "enableRls": 5,
+    "forceRls": 5,
+    "createPolicy": 6,
+    "createOrReplaceFunction": 3,
+    "grant": 9,
+    "dropPolicyIfExists": 6
+  },
+  "forbidden": {
+    "destructiveDrop": 0,
+    "truncate": 0,
+    "deleteFrom": 0,
+    "topLevelUpdate": 0,
+    "insertDml": 0
+  },
+  "crossPerimeterReferences": "1 (a COMMENT on line 18 mentioning 'pierre_rt_app pattern'; not a statement)",
+  "idempotent": true,
+  "additive": true,
+  "limitedToClonechatObjects": true,
+  "limitedToClonechatAppRole": true,
+  "noProductionOrProviderActivation": true
+}

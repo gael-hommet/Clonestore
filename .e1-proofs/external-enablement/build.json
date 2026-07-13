@@ -1,0 +1,8 @@
+{
+  "command": "npm run build",
+  "exit": 0,
+  "result": "Compiled successfully",
+  "cloneChatSurface": "/assistant + /api/assistant/chat + /api/assistant/execute compiled",
+  "middleware": "80.2 kB",
+  "note": "E1 added only pure library modules under src/lib/clonestore/external-enablement/e1/** + tests + proofs + docs. No app route added or modified; no product surface changed; production/payment/live floors untouched."
+}

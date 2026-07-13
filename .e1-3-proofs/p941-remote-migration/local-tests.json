@@ -1,0 +1,29 @@
+{
+  "phase": "E1.3",
+  "section": "6 — LOCAL GATES (re-run after adversarial fixes)",
+  "measuredAtMs": 1783852811617,
+  "e1Suite": {
+    "files": 5,
+    "tests": 150,
+    "failed": 0,
+    "scope": "src/lib/clonestore/external-enablement/e1"
+  },
+  "affectedRegression": {
+    "files": 19,
+    "tests": 342,
+    "failed": 0,
+    "scope": [
+      "src/lib/clonechat",
+      "src/lib/clonestore/partner"
+    ]
+  },
+  "focusedCoverage": [
+    "backup-target binding",
+    "backup freshness / --at calendar validation",
+    "freeze-proof structural+temporal validation",
+    "authorization single-use consumption (proceed-flag, no early returns)",
+    "strict positive COMMIT assertions (detail-present, fail-closed)",
+    "postcheck fail-closed (.rows[0] fix + UNVERIFIABLE-after-commit)"
+  ],
+  "remoteConnectionDuringTests": false
+}

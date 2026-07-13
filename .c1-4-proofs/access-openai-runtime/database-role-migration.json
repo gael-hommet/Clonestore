@@ -1,0 +1,7 @@
+{
+  "runId": "access-openai-runtime",
+  "appliedTo": "base LOCALE JETABLE (embedded-postgres, 127.0.0.1) créée par scripts/c1-4-local-budget-db.mjs",
+  "remoteDbTouched": false,
+  "safetyCheck": "scripts/c1-4-db-safety-check.mjs → DATABASE_URL = managed_supabase_remote ⇒ production non exclue ⇒ AUCUNE application distante",
+  "operatorAction": "voir C1_4_CLONECHAT_DATABASE_ROLE_RUNBOOK.md"
+}

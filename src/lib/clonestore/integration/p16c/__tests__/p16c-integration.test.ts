@@ -356,13 +356,16 @@ describe("G. CloneChat delegation", () => {
       expect(d.externallyExecutable).toBe(false);
     }
   });
-  it("59/60. citations/claims guards + anonymous block remain active (route unchanged)", async () => {
+  it("59/60. citations/claims guards + l'anonyme n'atteint JAMAIS le tenant (C1.6)", async () => {
     const { readFileSync } = await import("node:fs");
     const { resolve } = await import("node:path");
     const src = readFileSync(resolve(process.cwd(), "src/app/api/assistant/chat/route.ts"), "utf8");
     expect(src).toMatch(/validateParrainCitations/);
     expect(src).toMatch(/finalizeAnswerText/);
-    expect(src).toMatch(/AUTH_REQUIRED/);
+    // C1.6 — L'anonyme n'est plus REFUSÉ (il converse), mais il ne peut pas atteindre la voie
+    // ENTREPRISE : c'est l'invariant de sécurité que ce test doit garder, pas le 401.
+    expect(src).toMatch(/kind: "anonymous"/);
+    expect(src).toMatch(/viewer\.kind !== "user"/);
   });
   it("kill switch : le flag P16C est actif par défaut", () => {
     expect(isP16CIntegrationEnabled()).toBe(true);

@@ -1,0 +1,18 @@
+{
+  "clonechat_assistant_components": {
+    "files": 40,
+    "passed": 650,
+    "failed": 0
+  },
+  "pierre_p16c_nonRegression": {
+    "files": 113,
+    "passed": 5402,
+    "failed": 0,
+    "skipped": 1
+  },
+  "newInThisContinuation": {
+    "ephemeralAttachments": 7,
+    "promptCache": 16,
+    "evaluations": 4
+  }
+}

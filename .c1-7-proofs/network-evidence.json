@@ -1,0 +1,25 @@
+{
+  "calls": [
+    {
+      "path": "/api/assistant/chat",
+      "status": 200,
+      "contentType": "text/event-stream; charset=utf-8"
+    },
+    {
+      "path": "/api/assistant/transcribe",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "path": "/api/assistant/chat",
+      "status": 200,
+      "contentType": "text/event-stream; charset=utf-8"
+    },
+    {
+      "path": "/api/assistant/chat",
+      "status": 200,
+      "contentType": "text/event-stream; charset=utf-8"
+    }
+  ],
+  "noSecrets": true
+}

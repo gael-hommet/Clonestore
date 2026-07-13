@@ -21,7 +21,7 @@ import { createHash } from "crypto";
 import { type AnalyzedTask } from "./analysis";
 import { cognitiveAnalyze } from "./cognitive-runtime/cognitive-analyzer";
 import { evaluateGuard } from "./cloneguard";
-import { decideValidation, requiresHumanApproval, type AutonomyMode } from "./autonomy";
+import { decideValidation, requiresHumanApproval, AUTONOMY_MODES, type AutonomyMode } from "./autonomy";
 import {
   assertMissionTransition, assertTaskTransition, canTransitionMission,
   type MissionStatus, type TaskStatus, type ActorType, type TransitionReason,
@@ -55,14 +55,18 @@ export type MissionView = {
 // ── Governed transition helpers (only path to change status) ────────────────
 
 export async function transitionTask(
-  db: SqlExecutor, ctx: { company_id: string }, task: TaskRow, to: TaskStatus,
+  db: SqlExecutor, ctx: { company_id: string; user_id?: string }, task: TaskRow, to: TaskStatus,
   reason: TransitionReason, actor: ActorType, opts: { result?: unknown; scheduled_at?: string | null; bumpAttempt?: boolean; metadata?: Record<string, unknown> } = {}
 ): Promise<TaskRow> {
   assertTaskTransition(task.status, to);
   const updated = await TaskRepo.updateStatus(db, ctx.company_id, task.id, task.version, to, { result: opts.result, scheduled_at: opts.scheduled_at ?? undefined }, opts.bumpAttempt ?? false);
   await EventRepo.append(db, {
     company_id: ctx.company_id, mission_id: task.mission_id, task_id: task.id,
-    type: `task_${to}`, actor_type: actor, prev_state: task.status, new_state: to,
+    type: `task_${to}`, actor_type: actor,
+    // P16E §10 (F31) — a HUMAN transition must be ATTRIBUTABLE: record the real user_id when the
+    // actor is a human. System/worker/guard actors carry no human id (null).
+    actor_id: actor === "user" ? (ctx.user_id ?? null) : null,
+    prev_state: task.status, new_state: to,
     metadata: { reason, ...(opts.metadata ?? {}) },
   });
   return updated;
@@ -70,13 +74,16 @@ export async function transitionTask(
 
 export async function transitionMission(
   db: SqlExecutor, companyId: string, mission: MissionRow, to: MissionStatus,
-  reason: TransitionReason, actor: ActorType, patch: { summary?: string | null; next_action?: string | null; archived_at?: string | null; metadata?: Record<string, unknown> } = {}
+  reason: TransitionReason, actor: ActorType, patch: { summary?: string | null; next_action?: string | null; archived_at?: string | null; metadata?: Record<string, unknown>; actorId?: string | null } = {}
 ): Promise<MissionRow> {
   assertMissionTransition(mission.status, to);
   const updated = await MissionRepo.updateStatus(db, companyId, mission.id, mission.version, to, { summary: patch.summary, next_action: patch.next_action, archived_at: patch.archived_at });
   await EventRepo.append(db, {
     company_id: companyId, mission_id: mission.id, task_id: null,
-    type: `mission_${to}`, actor_type: actor, prev_state: mission.status, new_state: to,
+    type: `mission_${to}`, actor_type: actor,
+    // P16E §10 (F31) — attribute a human mission transition to the real user.
+    actor_id: actor === "user" ? (patch.actorId ?? null) : null,
+    prev_state: mission.status, new_state: to,
     metadata: { reason, ...(patch.metadata ?? {}) },
   });
   return updated;
@@ -106,7 +113,36 @@ export async function createMission(db: SqlExecutor, ctx: TenantContext, input: 
       return view;
     }
 
-    const autonomy: AutonomyMode = input.autonomy_mode ?? "normal";
+    // P16E §4 (F24) — VÉRIFIER les identifiants fournis par le client AVANT de créer la mission.
+    // `employee_id`/`site_id` venaient du corps de requête et étaient persistés tels quels : une
+    // entreprise A pouvait lier une mission à un salarié/site de l'entreprise B. On exige que
+    // l'employé et le site appartiennent à l'entreprise ACTIVE, avec un échec FERMÉ et NON
+    // révélateur (un id étranger est indiscernable d'un id inexistant : même réponse). Cette
+    // vérification précède tout INSERT ⇒ aucune mission / tâche / événement d'audit sur échec.
+    if (input.employee_id) {
+      const e = await tx.query<{ id: string; site_id: string | null; status: string }>(
+        `select id, site_id, status from pierre_rt_employees where company_id = $1 and id = $2`, [ctx.company_id, input.employee_id]);
+      const emp = e.rows[0];
+      if (!emp) throw Errors.validation("Référence salarié invalide"); // étranger OU inexistant — réponse identique
+      if (emp.status === "left") throw Errors.validation("Salarié inéligible");
+      if (input.site_id && emp.site_id && emp.site_id !== input.site_id) throw Errors.validation("Salarié et site incohérents");
+    }
+    if (input.site_id) {
+      const s = await tx.query<{ id: string }>(
+        `select id from pierre_rt_sites where company_id = $1 and id = $2 and archived_at is null`, [ctx.company_id, input.site_id]);
+      if (!s.rows[0]) throw Errors.validation("Référence site invalide");
+    }
+
+    // P16E §8 — l'autonomie est un RÉGLAGE D'ENTREPRISE GOUVERNÉ, pas un paramètre de confiance
+    // client. Un utilisateur `mission.create` ne doit pas pouvoir faire ESCALADER sa mission
+    // au-dessus du `default_autonomy_mode` de l'entreprise en forgeant `autonomy_mode` dans le
+    // corps de requête. On résout le plafond entreprise côté serveur et on BORNE : l'appelant
+    // peut demander un mode PLUS prudent, jamais plus élevé.
+    const companyRow = await tx.query<{ default_autonomy_mode: string }>(`select default_autonomy_mode from pierre_rt_companies where id = $1`, [ctx.company_id]);
+    const rawDefault = companyRow.rows[0]?.default_autonomy_mode;
+    const ceiling: AutonomyMode = (AUTONOMY_MODES as readonly string[]).includes(rawDefault) ? (rawDefault as AutonomyMode) : "normal";
+    const requested: AutonomyMode = input.autonomy_mode && (AUTONOMY_MODES as readonly string[]).includes(input.autonomy_mode) ? input.autonomy_mode : ceiling;
+    const autonomy: AutonomyMode = AUTONOMY_MODES[Math.min(AUTONOMY_MODES.indexOf(requested), AUTONOMY_MODES.indexOf(ceiling))];
 
     // 2) Persist mission (analyzing -> planned/awaiting_*).
     const missionId = newUuid();
@@ -122,7 +158,10 @@ export async function createMission(db: SqlExecutor, ctx: TenantContext, input: 
     await EventRepo.append(tx, { company_id: ctx.company_id, mission_id: missionId, task_id: null, type: "mission_received", actor_type: "user", actor_id: ctx.user_id, request_id: ctx.request_id, correlation_id: ctx.correlation_id, metadata: { source: input.source ?? "cockpit" } });
     await EventRepo.append(tx, { company_id: ctx.company_id, mission_id: missionId, task_id: null, type: "analysis_completed", actor_type: "system", metadata: { intent: analysis.intent, confidence: analysis.confidence } });
     if (analysis.missing_info.length > 0) {
-      await EventRepo.append(tx, { company_id: ctx.company_id, mission_id: missionId, task_id: null, type: "missing_info_detected", actor_type: "system", metadata: { count: analysis.missing_info.length } });
+      // P16E §3 (F22) — persister les QUESTIONS exactes (id/question/priorité), pas seulement leur
+      // nombre : MissionView doit exposer la raison précise du blocage (statut awaiting_info), et
+      // répondre à une question ne doit pas effacer les autres. Ordre et priorité préservés.
+      await EventRepo.append(tx, { company_id: ctx.company_id, mission_id: missionId, task_id: null, type: "missing_info_detected", actor_type: "system", metadata: { count: analysis.missing_info.length, questions: analysis.missing_info } });
     }
 
     // 3) Plan + persist tasks (governed), wire dependencies, queue ready ones.
@@ -205,6 +244,23 @@ export async function createMission(db: SqlExecutor, ctx: TenantContext, input: 
   });
 }
 
+/**
+ * P16E §3 (F22) — récupère les questions d'information manquante PERSISTÉES pour une mission
+ * (depuis le dernier événement `missing_info_detected`). Recouvre le blocage exact — pour un
+ * affichage à la création comme à la relecture. Retourne [] si aucune (ou si résolue en aval).
+ */
+export async function readMissionMissingInfo(db: SqlExecutor, companyId: string, missionId: string): Promise<Array<{ id: string; question: string; priority: string }>> {
+  const events = await EventRepo.timeline(db, companyId, missionId);
+  let questions: Array<{ id: string; question: string; priority: string }> = [];
+  for (const e of events) {
+    if (e.type === "missing_info_detected") {
+      const q = (e.metadata as { questions?: unknown } | null)?.questions;
+      if (Array.isArray(q)) questions = q as Array<{ id: string; question: string; priority: string }>;
+    }
+  }
+  return questions;
+}
+
 async function assembleView(db: SqlExecutor, companyId: string, mission: MissionRow, replay: boolean): Promise<MissionView> {
   const tasks = await TaskRepo.listByMission(db, companyId, mission.id);
   const validations = await ValidationRepo.listByMission(db, companyId, mission.id);
@@ -212,7 +268,7 @@ async function assembleView(db: SqlExecutor, companyId: string, mission: Mission
   return {
     mission_id: mission.id, status: mission.status as MissionStatus, summary: mission.summary, risk: mission.risk,
     tasks: tasks.map((t) => ({ id: t.id, type: t.type, status: t.status, approval_required: t.approval_required, risk: t.risk })),
-    missing_info: [],
+    missing_info: await readMissionMissingInfo(db, companyId, mission.id), // F22 — jamais discardé
     approvals: validations.map((v) => ({ id: v.id, status: v.status, reason: v.reason })),
     queued_actions: queued, next_action: mission.next_action,
     trace_reference: mission.correlation_id, idempotent_replay: replay,
@@ -295,7 +351,7 @@ export async function cancelMission(db: SqlExecutor, ctx: TenantContext, mission
         await cancelJobsForTask(tx, ctx.company_id, t.id);
       }
     }
-    const updated = await transitionMission(tx, ctx.company_id, m, "cancelled", "cancelled", "user");
+    const updated = await transitionMission(tx, ctx.company_id, m, "cancelled", "cancelled", "user", { actorId: ctx.user_id });
     return { mission_id: updated.id, status: updated.status as MissionStatus };
   });
 }

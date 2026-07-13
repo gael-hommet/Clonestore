@@ -1,0 +1,10 @@
+{
+  "boundary": "Termination / sanction / medical / final-recruitment are structurally HARD_BLOCK by ActionKind in cloneguard.ts, independent of wording; evaluated BEFORE executor.run (P16E R3) so a black action produces no side effect.",
+  "proven": [
+    "cloneguard lexical net closed (P16D D1) — protected characteristics + all inflections caught; test p16d-human-only-lexical-net (24)",
+    "approve-by-default removed (P16D D9) — ambiguous validation decision never defaults to approve; negation blocks approve",
+    "guard-before-execution (P16E R3) — black email_send task creates no outbox row; test p16e-r3 (2)",
+    "capability registry marks HUMAN_ONLY caps as PREPARE_ONLY (Pierre prepares, human decides) — see capability-closure-matrix.json"
+  ],
+  "MUST_NOT_still_enforced": "Pierre never autonomously: sends / signs / decides dismissal / sanction / rejects candidate / changes salary / approves payroll / modifies sensitive employee data / triggers a live provider / publishes a final document."
+}

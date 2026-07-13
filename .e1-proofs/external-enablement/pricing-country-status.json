@@ -1,0 +1,9 @@
+{
+  "countryLaunchConfigReady": true,
+  "priceCurrencyConfigReady": true,
+  "rules": {
+    "FR/BE/LU": "449 EUR",
+    "CH": "499 CHF"
+  },
+  "chCannotBuyEur": true
+}

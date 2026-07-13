@@ -4,9 +4,15 @@
 
 import { AlertTriangle, Lock, Mail, ShieldAlert, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { taskStatusView } from "@/lib/client-cockpit/status";
+import type { CockpitTone } from "@/lib/client-cockpit/types";
 
 // ── Status Badge ────────────────────────────────────────────────
 
+// P16E §5 (F32) — libellés d'affichage locaux (style) UNIQUEMENT pour les statuts connus. Tout
+// statut ABSENT de cette table NE DOIT PAS être affiché brut en anglais : on délègue alors au
+// PRÉSENTATEUR CANONIQUE (client-cockpit/status.ts) — source de vérité unique, jamais un second
+// cerveau de statut — qui rend un libellé français (ou « Inconnu »), jamais l'état interne brut.
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   done:         { label: "Terminé",      cls: "cs-badge-success" },
   completed:    { label: "Terminé",      cls: "cs-badge-success" },
@@ -24,6 +30,11 @@ const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   almost_ready: { label: "Presque prêt", cls: "cs-badge-warn" },
 };
 
+const TONE_TO_CLS: Record<CockpitTone, string> = {
+  success: "cs-badge-success", progress: "cs-badge-blue", info: "cs-badge-blue",
+  warning: "cs-badge-warn", danger: "cs-badge-danger", neutral: "cs-badge-muted",
+};
+
 export function StatusBadge({
   status,
   className,
@@ -31,10 +42,12 @@ export function StatusBadge({
   status: string;
   className?: string;
 }) {
-  const entry = STATUS_MAP[status?.toLowerCase()] ?? {
-    label: status ?? "—",
-    cls: "cs-badge-muted",
-  };
+  const known = STATUS_MAP[status?.toLowerCase()];
+  // Statut connu → style local ; sinon → présentateur canonique (jamais d'anglais brut).
+  const entry = known ?? (() => {
+    const view = taskStatusView(status);
+    return { label: view.label, cls: TONE_TO_CLS[view.tone] ?? "cs-badge-muted" };
+  })();
   return (
     <span className={cn("cs-badge", entry.cls, className)}>
       {entry.label}

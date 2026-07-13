@@ -1,0 +1,6 @@
+{
+  "stripeLiveReady": false,
+  "account": "OWNER_ACTION_REQUIRED",
+  "livePrices": "OWNER_ACTION_REQUIRED",
+  "verdict": "TEST_MODE_BLOCKED (no live keys)"
+}

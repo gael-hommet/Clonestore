@@ -1,0 +1,35 @@
+{
+  "phase": "E1.2",
+  "section": "1 — SINGLE-WRITER SAFETY",
+  "method": "8 samples x 12s (96s total) of a full recursive file snapshot (path|mtimeUtcTicks|size), excluding node_modules/.next/.git/dist/coverage. Any delta = a live writer.",
+  "windowStart": "2026-07-12T00:44:19",
+  "windowEnd": "2026-07-12T00:46:45",
+  "fileCountStart": 7755,
+  "fileCountEnd": 7758,
+  "frozen": false,
+  "changesObservedDuringWatch": [
+    {
+      "atSample": "T+48s",
+      "path": ".recette-client.json",
+      "change": "modified"
+    },
+    {
+      "atSample": "T+48s",
+      "path": ".playwright-mcp/console-2026-07-11T22-45-16-050Z.log",
+      "change": "created"
+    },
+    {
+      "atSample": "T+48s",
+      "path": ".playwright-mcp/page-2026-07-11T22-45-18-245Z.yml",
+      "change": "created"
+    },
+    {
+      "atSample": "T+96s",
+      "path": "checkout.png",
+      "change": "created"
+    }
+  ],
+  "attributedTo": "claude PID 2224 (foreign)",
+  "attributableToE12": "none — E1.2 wrote nothing to the repository before this proof set",
+  "conclusion": "The repository is NOT frozen. A concurrent writing agent is active. Any measurement (tsc, vitest, build) taken now would be a volatile green and must not be certified. Any read-only remote snapshot taken now could be invalidated by that agent's concurrent activity."
+}

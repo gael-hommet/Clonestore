@@ -34,10 +34,13 @@ export type StrictGenerationContext = {
   values: Record<string, string | null>;       // ONLY the requested fields
   sensitive_fields: string[];                    // requested fields that are sensitive/restricted
   custom_field_keys: string[];
+  /** P16D — clés canoniques / à provenance dont un override client a été REJETÉ (la base fait foi).
+   *  Vide en régime normal ; sert de preuve d'anti-forge. */
+  rejected_overrides: string[];
 };
 
 type EmployeeRow = { id: string; company_id: string; site_id: string | null; first_name: string | null; last_name: string | null; email: string | null; role_title: string | null; hired_at: string | null; manager_employee_id: string | null };
-type CompanyRow = { id: string; name: string | null; slug: string | null };
+type CompanyRow = { id: string; name: string | null; slug: string | null; legal_name: string | null; registration_number: string | null };
 type SiteRow = { id: string; company_id: string; name: string | null; code: string | null };
 
 const splitKey = (path: string) => path.split(".")[0];
@@ -81,12 +84,19 @@ export async function buildStrictGenerationContext(db: SqlExecutor, ctx: TenantC
   // 4 — only the requested sources are loaded.
   const sources = new Set(requested.map(splitKey));
   let company: CompanyRow | null = null;
-  if (sources.has("company")) company = (await db.query<CompanyRow>(`select id, name, slug from pierre_rt_companies where id=$1`, [ctx.company_id])).rows[0] ?? null;
+  if (sources.has("company")) company = (await db.query<CompanyRow>(`select id, name, slug, legal_name, registration_number from pierre_rt_companies where id=$1`, [ctx.company_id])).rows[0] ?? null;
   let manager: EmployeeRow | null = null;
   if (sources.has("manager") && emp.manager_employee_id) manager = (await db.query<EmployeeRow>(`select id, company_id, site_id, first_name, last_name, email, role_title, hired_at, manager_employee_id from pierre_rt_employees where company_id=$1 and id=$2`, [ctx.company_id, emp.manager_employee_id])).rows[0] ?? null;
 
   const canonical: Record<string, string | null> = {
-    "company.legal_name": company?.name ?? null, "company.display_name": company?.name ?? null, "company.slug": company?.slug ?? null,
+    // P16E §3 (F17) — la RAISON SOCIALE (identité juridique imprimée dans un contrat) vient de la
+    // colonne `legal_name` VÉRIFIÉE, jamais du nom d'affichage. Si `legal_name` est absent, la
+    // valeur reste null ⇒ contract-readiness bloque le champ requis « company.legal_name » (R2) :
+    // aucune raison sociale n'est INVENTÉE, la préparation échoue et demande une clarification.
+    "company.legal_name": company?.legal_name ?? null,
+    "company.display_name": company?.name ?? null,
+    "company.registration_number": company?.registration_number ?? null,
+    "company.slug": company?.slug ?? null,
     "employee.first_name": emp.first_name, "employee.last_name": emp.last_name, "employee.professional_email": emp.email, "employee.role_title": emp.role_title, "employee.hired_at": emp.hired_at,
     "manager.first_name": manager?.first_name ?? null, "manager.last_name": manager?.last_name ?? null, "manager.role_title": manager?.role_title ?? null,
     "site.name": site?.name ?? null, "site.code": site?.code ?? null,
@@ -99,6 +109,7 @@ export async function buildStrictGenerationContext(db: SqlExecutor, ctx: TenantC
 
   const values: Record<string, string | null> = {};
   const sensitive: string[] = [];
+  const rejected_overrides: string[] = [];
   for (const path of requested) {
     const pol = resolveFieldPolicy(path);
     if (path.startsWith("validated_custom_fields.")) {
@@ -108,15 +119,33 @@ export async function buildStrictGenerationContext(db: SqlExecutor, ctx: TenantC
       if (rc && rc.sensitivity !== "normal") sensitive.push(path);
       continue;
     }
-    // canonical: caller-supplied authoritative value (validated above) wins; else the value we
-    // actually loaded; unmapped canonical paths resolve to null.
-    if (input.extra_values && Object.prototype.hasOwnProperty.call(input.extra_values, path)) values[path] = input.extra_values[path];
-    else values[path] = Object.prototype.hasOwnProperty.call(canonical, path) ? canonical[path] : null;
+    // P16D §6/§8 (missing-data-invention) — le corps de requête client NE PEUT PAS falsifier les
+    // valeurs FAISANT AUTORITÉ imprimées dans un contrat. Auparavant `extra_values[path]`
+    // l'emportait sur la valeur RÉELLEMENT chargée en base pour TOUTE clé canonique : un client
+    // pouvait ainsi réécrire le nom du salarié, la raison sociale, le salaire, les dates — dans le
+    // PDF rendu, HACHÉ, APPROUVÉ puis SIGNÉ. Le commentaire d'origine prétendait « validated
+    // above » : FAUX, seul le PATH était validé (canonique), jamais la VALEUR. Deux verrous :
+    //   1) toute clé possédée par la base (map `canonical`) ⇒ la BASE gagne, l'override est REJETÉ.
+    //   2) toute clé à `required_provenance` (paie…) ⇒ une valeur fournie par le client est REJETÉE
+    //      (fail-closed → null) : aucune provenance de confiance n'est câblée ici, donc rien ne
+    //      peut se faire passer pour une donnée de paie authentifiée.
+    const dbOwned = Object.prototype.hasOwnProperty.call(canonical, path);
+    const provenanceRestricted = !!pol?.required_provenance;
+    const callerSupplied = !!input.extra_values && Object.prototype.hasOwnProperty.call(input.extra_values, path);
+    if (callerSupplied && (dbOwned || provenanceRestricted)) {
+      rejected_overrides.push(path);                 // tentative de forge : tracée, jamais appliquée
+      values[path] = dbOwned ? canonical[path] : null;
+    } else if (callerSupplied) {
+      values[path] = input.extra_values![path];       // clé non possédée par la base + sans provenance
+    } else {
+      values[path] = dbOwned ? canonical[path] : null;
+    }
     if (pol && pol.sensitivity !== "normal") sensitive.push(path);
   }
 
   return {
     document_type: input.document_type, employee_id: emp.id, site_id: site?.id ?? null,
     contract_id: input.contract_id ?? null, values, sensitive_fields: sensitive, custom_field_keys: customKeys,
+    rejected_overrides,
   };
 }

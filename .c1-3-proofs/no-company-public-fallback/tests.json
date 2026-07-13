@@ -1,0 +1,17 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "classifier": {
+    "command": "npx vitest run src/lib/clonechat/server",
+    "result": "2 files / 43 tests passed"
+  },
+  "route": {
+    "command": "npx vitest run src/app/api/assistant/__tests__/no-company-public-fallback-c1-3.test.ts",
+    "result": "29/29 passed"
+  },
+  "grouped": {
+    "command": "npx vitest run src/lib/clonechat src/app/api/assistant src/lib/clonestore/integration/p16c src/app/assistant src/components/clonechat",
+    "result": "23 files / 472 tests passed"
+  },
+  "tsc": "npx tsc --noEmit => 0 errors"
+}

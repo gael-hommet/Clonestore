@@ -1,0 +1,12 @@
+{
+  "phase": "E1.2 (continuation)",
+  "section": "5 — AUTHORIZATION CONTRACT",
+  "sentenceRequiredExactly": "I AUTHORIZE READ-ONLY REMOTE DATABASE PREFLIGHT",
+  "mechanism": "short-lived single-use local file (.e1-2-auth/authorization.json), minted ONLY after the exact sentence; NOT an environment variable",
+  "ttlMinutes": 15,
+  "sessionBound": true,
+  "singleUse": true,
+  "atomicClaimBeforeConnect": "renameSync(AUTH_FILE -> .claimed) precedes pg import and pool.connect; a concurrent run or a crash cannot replay it",
+  "authorizationReceived": false,
+  "connectionPermitted": false
+}

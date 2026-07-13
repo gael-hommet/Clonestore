@@ -1,0 +1,133 @@
+{
+  "host": "127.0.0.1 (embedded, disposable)",
+  "database": "ccdb",
+  "migration": ".\\supabase\\migrations-p941\\2026-07-07__p941_clonechat_durable.sql",
+  "steps": {
+    "migrationApplied": true,
+    "roleExists": true,
+    "rolePrivileges": {
+      "superuser": false,
+      "createdb": false,
+      "createrole": false,
+      "canlogin": false,
+      "bypassrls": false,
+      "replication": false
+    },
+    "roleLeastPrivilege": true,
+    "roleBypassesRls": false,
+    "tables": [
+      {
+        "table": "clonechat_action_executions",
+        "rls": true,
+        "force": true
+      },
+      {
+        "table": "clonechat_budget_counters",
+        "rls": true,
+        "force": true
+      },
+      {
+        "table": "clonechat_bug_cases",
+        "rls": true,
+        "force": true
+      },
+      {
+        "table": "clonechat_bug_occurrences",
+        "rls": true,
+        "force": true
+      },
+      {
+        "table": "clonechat_commands",
+        "rls": true,
+        "force": true
+      },
+      {
+        "table": "clonechat_conversations",
+        "rls": true,
+        "force": true
+      },
+      {
+        "table": "clonechat_messages",
+        "rls": true,
+        "force": true
+      },
+      {
+        "table": "clonechat_proposals",
+        "rls": true,
+        "force": true
+      },
+      {
+        "table": "clonechat_support_cases",
+        "rls": true,
+        "force": true
+      },
+      {
+        "table": "clonechat_usage_events",
+        "rls": true,
+        "force": true
+      }
+    ],
+    "rlsEnabledOnAll": true,
+    "grants": [
+      {
+        "table": "clonechat_action_executions",
+        "privileges": "DELETE,INSERT,SELECT,UPDATE"
+      },
+      {
+        "table": "clonechat_budget_counters",
+        "privileges": "DELETE,INSERT,SELECT,UPDATE"
+      },
+      {
+        "table": "clonechat_bug_cases",
+        "privileges": "DELETE,INSERT,SELECT,UPDATE"
+      },
+      {
+        "table": "clonechat_bug_occurrences",
+        "privileges": "DELETE,INSERT,SELECT,UPDATE"
+      },
+      {
+        "table": "clonechat_commands",
+        "privileges": "DELETE,INSERT,SELECT,UPDATE"
+      },
+      {
+        "table": "clonechat_conversations",
+        "privileges": "DELETE,INSERT,SELECT,UPDATE"
+      },
+      {
+        "table": "clonechat_messages",
+        "privileges": "DELETE,INSERT,SELECT,UPDATE"
+      },
+      {
+        "table": "clonechat_proposals",
+        "privileges": "DELETE,INSERT,SELECT,UPDATE"
+      },
+      {
+        "table": "clonechat_support_cases",
+        "privileges": "DELETE,INSERT,SELECT,UPDATE"
+      },
+      {
+        "table": "clonechat_usage_events",
+        "privileges": "DELETE,INSERT,SELECT,UPDATE"
+      }
+    ],
+    "grantsOnlyOnClonechatTables": true,
+    "foreignTablesGranted": [],
+    "assumedRole": "clonechat_app",
+    "durableReservationGranted": true,
+    "budgetCounters": [
+      {
+        "scope": "g:day:2026-07-11",
+        "committed": 120,
+        "reserved": 0
+      },
+      {
+        "scope": "u:c14-user:2026-07-11",
+        "committed": 120,
+        "reserved": 0
+      }
+    ],
+    "budgetCommitRecorded": true,
+    "budgetCapEnforced": true,
+    "foreignTableReadBlocked": true
+  }
+}

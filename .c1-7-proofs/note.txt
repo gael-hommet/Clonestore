@@ -1,0 +1,1 @@
+Politique RH interne CloneStore (fixture de test).

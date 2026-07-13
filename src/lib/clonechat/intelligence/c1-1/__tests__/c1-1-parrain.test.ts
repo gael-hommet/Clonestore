@@ -70,11 +70,21 @@ describe("C1.1 — A. Sources & visibilité", () => {
   });
 
   it("2. le mode public ne reçoit jamais de source tenant/interne/code", () => {
-    expect(allowedParrainVisibilities("public")).toEqual(["PUBLIC"]);
+    // C1.7 — le public voit AUSSI ses propres pièces jointes ÉPHÉMÈRES (son fichier, aucun tenant).
+    expect(allowedParrainVisibilities("public")).toEqual(["PUBLIC", "SESSION_EPHEMERAL"]);
     const tenant = makeParrainChunk({ id: "t", sourceId: "src.company_context", title: "x", text: "mission", sourceType: "company_context", authority: "tenant_data", visibility: "COMPANY_SCOPED", tenantCompanyId: "company-a", citationLabel: "x" });
     const code = makeParrainChunk({ id: "c", sourceId: "src.code_index", title: "x", text: "sym", sourceType: "code_symbol", authority: "canonical_registry", visibility: "FOUNDER_INTERNAL", citationLabel: "x" });
     expect(chunkVisibleFor(tenant, PUBLIC)).toBe(false);
     expect(chunkVisibleFor(code, PUBLIC)).toBe(false);
+
+    // C1.7 — Une pièce jointe ÉPHÉMÈRE est le fichier de l'utilisateur : visible pour lui…
+    const ephemeral = makeParrainChunk({ id: "e", sourceId: "src.uploaded_documents", title: "mon fichier", text: "contenu", sourceType: "uploaded_document", authority: "uploaded_user_content", visibility: "SESSION_EPHEMERAL", tenantCompanyId: null, citationLabel: "votre fichier" });
+    expect(chunkVisibleFor(ephemeral, PUBLIC)).toBe(true);
+
+    // …mais elle ne porte AUCUN tenant : elle ne peut jamais servir de pont vers une entreprise.
+    // Une pièce jointe qui prétendrait porter un tenant reste invisible au public (fail-closed).
+    const forged = makeParrainChunk({ id: "f", sourceId: "src.uploaded_documents", title: "forgé", text: "x", sourceType: "uploaded_document", authority: "uploaded_user_content", visibility: "SESSION_EPHEMERAL", tenantCompanyId: "company-a", citationLabel: "x" });
+    expect(chunkVisibleFor(forged, PUBLIC)).toBe(false);
   });
 
   it("3. le mode client ne reçoit jamais les sources d'une autre entreprise", () => {

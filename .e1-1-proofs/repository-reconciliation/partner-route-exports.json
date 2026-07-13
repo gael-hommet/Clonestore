@@ -1,0 +1,8 @@
+{
+  "runId": "repository-reconciliation",
+  "reportedDefect": "src/app/api/partners/contract/accept/route.ts exportait un symbole non supporté (CONTRACT_VERSION) → échec de la validation de type des routes Next.",
+  "routeFilesAudited": 12,
+  "invalidExports": [],
+  "allExportsValid": true,
+  "resolvedBy": "LE CHANTIER PARTNER : CONTRACT_VERSION déplacé dans src/lib/partner-program/contract.ts et importé par la route. E1.1 a VÉRIFIÉ, sans éditer."
+}

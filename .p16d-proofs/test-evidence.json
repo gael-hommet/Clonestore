@@ -1,0 +1,31 @@
+{
+  "captured": "P16D session end",
+  "environment": "local only; no remote DB; no live provider; no deploy; no commit",
+  "typescript": {
+    "command": "npx tsc --noEmit",
+    "result": "12 errors, ALL in 2 partner files with unresolved git merge-conflict markers (src/app/api/webhooks/stripe/route.ts x3, src/lib/partner-program/server/payouts.ts x9). ZERO errors in the entire P16D perimeter (Pierre, CloneChat, cockpit, access, documents)."
+  },
+  "p16d_focused_tests": {
+    "unit_files": 11,
+    "unit_tests": 131,
+    "integration_files": 2,
+    "integration_tests": 6,
+    "note": "approval-expiry also proven end-to-end in src/app/api/assistant/__tests__/execute-route.test.ts (route-level 410 with zero side effect)"
+  },
+  "scoped_regression": [
+    {"perimeter": "src/lib/pierre", "result": "5281 passed / 0 failed / 1 skipped"},
+    {"perimeter": "src/lib/clonechat + src/app/api/assistant + src/app/assistant", "result": "526 passed / 0 failed"},
+    {"perimeter": "src/lib/pierre/v1 (subset of Pierre)", "result": "352 passed / 0 failed / 1 skipped"},
+    {"perimeter": "src/lib/clonestore/integration/p16c + src/lib/client-cockpit + src/lib/access + src/lib/pierre/cockpit", "result": "493 passed / 0 failed"},
+    {"perimeter": "integration itests (PGlite): p16d-retro-quarantine-finalize + p16d-contract-field-injection + p83-b2g-document-contract-lifecycle", "result": "10 passed / 0 failed"}
+  ],
+  "full_suite": {
+    "run": false,
+    "reason": "section 9 gates the full suite on 'no unrelated conflicts'. The repo currently carries unresolved git merge-conflict markers in 2 partner (money-path) files from a concurrent workstream; vitest/esbuild cannot load those files, so a whole-repo run cannot be clean through no fault of the Pierre perimeter. Left untouched per the do-not-modify-payments instruction."
+  },
+  "build": {
+    "run": false,
+    "reason": "npm run build (next build) would fail to compile the 2 partner files with conflict markers. Not run to avoid a misleading red that is unrelated to P16D."
+  },
+  "concurrent_workstream_note": "Two brittle source-grep tests (access-contract-c1-4, no-company-ui-c1-5) transiently failed mid-session because the C1.6 workstream rewrote chat/route.ts (15:33) and useCloneChat.ts (22:16). Both are in the protected C1.6 perimeter, reference files P16D never edited, and were reconciled by that workstream - green at session end."
+}

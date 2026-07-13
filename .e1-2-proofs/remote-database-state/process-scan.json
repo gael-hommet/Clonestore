@@ -1,0 +1,43 @@
+{
+  "phase": "E1.2",
+  "section": "1 — SINGLE-WRITER SAFETY",
+  "capturedAt": "2026-07-12T00:46:45Z",
+  "selfPid": 27832,
+  "selfIdentification": "PID chain: powershell 25164 -> claude.exe 27832 -> Code.exe. E1.2 is PID 27832.",
+  "claudeProcesses": [
+    {
+      "pid": 2224,
+      "startedAt": "2026-07-11T23:59:59",
+      "classification": "FOREIGN — ACTIVE WRITER",
+      "cpuDeltaDuringWatch_s": 3.8,
+      "watchWindow_s": 96,
+      "evidence": [
+        "accumulated CPU continuously across all 8 samples of the 96s watch",
+        "child MCP servers alive: @playwright/mcp, @upstash/context7-mcp, sequential-thinking",
+        "chrome PID 2348 spawned at 2026-07-12T00:45:29 — DURING the E1.2 stability watch",
+        "wrote .recette-client.json, .playwright-mcp/console-*.log, .playwright-mcp/page-*.yml and checkout.png during the watch"
+      ],
+      "inferredWorkstream": "Stripe Connect onboarding + checkout 'recette client' (partner program). Root artifacts: .connect-3-link.cjs, .connect-4-link-url.cjs, .connect-5-express.cjs, .connect-6-verify.cjs, .connect-webhook-secret, .connect-onboarding-url, .recette-client-1.cjs, .recette-client.json, checkout.png",
+      "terminated": false,
+      "terminationAuthorized": false,
+      "note": "NOT terminated. E1.2 forbids terminating another agent without explicit owner authorization."
+    },
+    {
+      "pid": 24352,
+      "startedAt": "2026-07-11T21:27:40",
+      "classification": "FOREIGN — IDLE (no repository writes observed during the watch)",
+      "cpuDeltaDuringWatch_s": 0.2,
+      "watchWindow_s": 96,
+      "inferredWorkstream": "most plausibly the completed E1.1 session (its proofs stopped at 00:35)",
+      "terminated": false
+    }
+  ],
+  "buildOrTestProcessesObserved": {
+    "nextDev": false,
+    "vitest": false,
+    "tsc": false,
+    "note": "No build/test runner was observed; the foreign activity is browser + Stripe scripts."
+  },
+  "soleWriterConfirmed": false,
+  "verdict": "REPOSITORY WRITER STILL ACTIVE"
+}

@@ -1,0 +1,5 @@
+{
+  "runId": "access-openai-runtime",
+  "c13Verified": true,
+  "note": "C1.3 (découverte publique sans entreprise) accepté et NON régressé — voir c13-non-regression.json"
+}

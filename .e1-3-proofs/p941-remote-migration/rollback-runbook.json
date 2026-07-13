@@ -1,0 +1,9 @@
+{
+  "phase": "E1.3",
+  "section": "6",
+  "runbook": "E1_3_P941_ROLLBACK_AND_RECOVERY_RUNBOOK.md",
+  "present": true,
+  "autoRollbackBeforeCommit": true,
+  "noAutomaticDestructiveRollbackAfterCommit": true,
+  "postCommitDoctrine": "leave additive unused schema in place + block deployment; reviewed repair migration only with separate authorization; managed restore only for severe DB-level failure"
+}

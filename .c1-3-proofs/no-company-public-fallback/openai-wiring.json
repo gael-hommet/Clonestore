@@ -1,0 +1,8 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "responder": "createRealOpenAIResponder (existant) passe a answerPublicQuestion",
+  "secondClientCreated": false,
+  "systemPrompt": "prompt PUBLIC groundé C1.1 (buildParrainGroundedPrompt via runParrainTurn)",
+  "proofRoute": "modelCalls.length === 1, source === 'openai_public'"
+}

@@ -1,0 +1,11 @@
+{
+  "command": "npx tsc --noEmit",
+  "totalErrors": 12,
+  "errorsInC16Perimeter": 0,
+  "errorsInForeignFiles": 12,
+  "foreignFiles": [
+    "src/app/api/webhooks/stripe/route.ts",
+    "src/lib/partner-program/server/payouts.ts"
+  ],
+  "globallyGreen": false
+}

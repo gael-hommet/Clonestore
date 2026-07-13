@@ -27,7 +27,8 @@ import {
   type CockpitMissionSummary,
   type CockpitValidation,
 } from "@/lib/client-cockpit";
-import { runCloneChatTurn, type CloneChatContext } from "@/lib/clonechat/engine";
+import type { CloneChatContext } from "@/lib/clonechat/engine";
+import { createReadinessBarrier, DEFAULT_READY_TIMEOUT_MS as READY_TIMEOUT_MS, type ReadinessBarrier } from "@/lib/clonechat/readiness-barrier";
 // Import DIRECT (pas via le barrel openai) : assembleFromStructured est une fonction
 // pure ; passer par le barrel embarquerait client.ts/screenshot.ts (import dynamique
 // du SDK OpenAI, code Node) dans le bundle NAVIGATEUR. On garde le SDK hors client.
@@ -57,6 +58,8 @@ export interface CloneChatDocAttachment {
   readonly sizeBytes: number;
   /** base64 nu (pas de data: URL) — transport en ligne borné, aucun stockage durable. */
   readonly data: string;
+  /** C1.7 — chemin RELATIF dans le dossier choisi (identité du fichier). Jamais absolu. */
+  readonly relativePath?: string;
 }
 
 /** Statut de pièce jointe renvoyé par le serveur (autoritaire). */
@@ -118,12 +121,19 @@ export function useCloneChat() {
   //
   // Correction : `send` ATTEND la résolution du mode au lieu de deviner. Le chat n'est jamais
   // désactivé — il est simplement honnête sur le fait qu'il finit de s'initialiser.
-  const readyRef = useRef<Promise<void> | null>(null);
-  const resolveReadyRef = useRef<(() => void) | null>(null);
-  if (readyRef.current === null) {
-    readyRef.current = new Promise<void>((res) => { resolveReadyRef.current = res; });
-  }
-  const markReady = useCallback(() => { resolveReadyRef.current?.(); resolveReadyRef.current = null; }, []);
+  //
+  // C1.6 — LA BARRIÈRE NE DOIT JAMAIS DEVENIR UNE PORTE. Si la résolution d'identité traîne
+  // (Supabase lent, throttlé, hors ligne), attendre indéfiniment REDEVIENDRAIT un blocage du
+  // chat — exactement ce que C1.6 interdit. La barrière est donc BORNÉE : passé le délai, on
+  // envoie quand même. C'est sans risque : le SERVEUR est l'autorité d'identité (il lit le
+  // cookie de session lui-même) — au pire le tour part sur la voie PUBLIQUE, qui est une vraie
+  // conversation CloneChat. Aucune donnée privée ne peut fuiter d'une identité non résolue.
+  // La barrière vit dans un module PUR (`readiness-barrier.ts`) : le bornage est ainsi
+  // RÉELLEMENT testable, et le code testé est exactement le code qui s'exécute.
+  const barrierRef = useRef<ReadinessBarrier | null>(null);
+  if (barrierRef.current === null) barrierRef.current = createReadinessBarrier(READY_TIMEOUT_MS);
+  const markReady = useCallback(() => { barrierRef.current?.markReady(); }, []);
+  const awaitReady = useCallback(async () => { await barrierRef.current?.awaitReady(); }, []);
 
   // ── Détection de mode + chargement du contexte réel ────────────────────────
   useEffect(() => {
@@ -152,6 +162,9 @@ export function useCloneChat() {
       } catch { /* public */ }
 
       if (!authed) {
+        // C1.6 — Visiteur ANONYME : c'est un mode de PLEIN EXERCICE de la conversation, pas un
+        // mode dégradé. Aucune conversation durable (aucune identité → aucun tenant), le fil
+        // vit dans le navigateur. Le composer et la route serveur sont les mêmes que pour tous.
         if (mounted.current) { setMode("public"); setCompanyState("none"); }
         ctxRef.current = { ...ctxRef.current, mode: "public", companyLabel: null };
         markReady();
@@ -249,19 +262,18 @@ export function useCloneChat() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      // C1.5 — On ATTEND que le mode soit résolu. Sans cette barrière, un message envoyé
-      // pendant l'initialisation était traité comme PUBLIC (valeur initiale de `ctxRef`) et
-      // n'atteignait jamais le serveur : c'est LA cause du faux blocage « pas d'entreprise ».
-      await readyRef.current;
+      // C1.5 — On attend que le mode soit résolu (sinon le tour partait dans la mauvaise voie).
+      // C1.6 — …mais l'attente est BORNÉE : une identité qui ne se résout pas ne doit jamais
+      // empêcher de parler. Le serveur reste l'autorité d'identité.
+      await awaitReady();
       const ctx = { ...ctxRef.current, companyLabel };
-      if (ctx.mode === "public") {
-        // Public : aucune pièce jointe (ni capture ni document) — pas de contexte entreprise.
-        if (images.length || docs.length) { push(msg("assistant", [{ type: "text", text: "Connectez-vous pour que j'analyse vos captures d'écran et vos documents en mode opérationnel." }, { type: "boundary", provenance: "public", text: "Assistant d'orientation — je n'accède pas aux données d'une entreprise." }], "public")); return; }
-        const r = runCloneChatTurn(t, ctx);
-        push(msg("assistant", [...r.blocks], r.provenance));
-        return;
-      }
-      // Mode authentifié → route serveur (OpenAI réel gouverné, grounding C1.1, multimodal inclus).
+
+      // ── C1.6 — IL N'Y A QU'UN SEUL CLONECHAT ──────────────────────────────────
+      // L'ancien code faisait répondre les visiteurs PUBLICS par un moteur DÉTERMINISTE LOCAL
+      // (`runCloneChatTurn`) : un SECOND assistant, avec une autre personnalité et une autre
+      // qualité de réponse. C'était la vraie « porte » — invisible, mais bien réelle.
+      // Désormais TOUS les modes — anonyme, sans entreprise, sans Pierre, avec Pierre —
+      // parlent à la MÊME route serveur, avec le MÊME moteur et les mêmes sources.
       const res = await fetch("/api/assistant/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}) },
@@ -269,50 +281,109 @@ export function useCloneChat() {
         signal: ac.signal,
         body: JSON.stringify({
           message: t,
+          // C1.7 §8 — on DEMANDE le streaming. Le serveur ne le sert que sur la voie publique
+          // et seulement si le budget est accordé ; sinon il répond en JSON, et ce chemin
+          // reste inchangé. Aucune seconde route, aucun second assistant.
+          stream: true,
           history: recentHistory(messages),
           conversation_id: conversationIdRef.current,
           ...(images.length ? { images } : {}),
-          ...(docs.length ? { attachments: docs.map((d) => ({ filename: d.filename, mime_type: d.mimeType, size_bytes: d.sizeBytes, transport: "inline_base64", data: d.data })) } : {}),
+          ...(docs.length ? { attachments: docs.map((d) => ({ filename: d.filename, mime_type: d.mimeType, size_bytes: d.sizeBytes, transport: "inline_base64", data: d.data, relative_path: d.relativePath ?? d.filename })) } : {}),
         }),
       });
+      // ── C1.7 §8 — Flux SSE : rendu incrémental des VRAIS morceaux du provider ──
+      if (res.ok && (res.headers.get("content-type") ?? "").includes("text/event-stream") && res.body) {
+        const streamId = mkId("assistant");
+        let streamed = "";
+        let finalData: Record<string, unknown> | null = null;
+        let terminal: "done" | "cancelled" | "error" | null = null;
+
+        // UN SEUL message assistant est créé, puis MIS À JOUR : jamais de doublon.
+        push({ id: streamId, role: "assistant", createdAt: nowIso(), status: "streaming", provenance: "public", content: [{ type: "text", text: "" }] });
+        const paint = (text: string, status: CloneChatMessage["status"]) =>
+          setMessages((prev) => prev.map((m) => (m.id === streamId ? { ...m, status, content: [{ type: "text", text }] } : m)));
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        try {
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream: true });
+            const frames = buf.split("\n\n");
+            buf = frames.pop() ?? "";
+            for (const frame of frames) {
+              const line = frame.split("\n").find((l) => l.startsWith("data: "));
+              if (!line) continue;
+              let ev: { type?: string; text?: string; payload?: Record<string, unknown>; message?: string; reason?: string };
+              try { ev = JSON.parse(line.slice(6)); } catch { continue; }
+              if (ev.type === "delta") { streamed += ev.text ?? ""; paint(streamed, "streaming"); }
+              else if (ev.type === "done") { terminal = "done"; finalData = (ev.payload ?? null) as Record<string, unknown> | null; }
+              else if (ev.type === "cancelled") { terminal = "cancelled"; }
+              else if (ev.type === "error") { terminal = "error"; finalData = { errorMessage: ev.message }; }
+            }
+          }
+        } catch {
+          terminal = terminal ?? (ac.signal.aborted ? "cancelled" : "error");
+        }
+
+        if (terminal === "done" && finalData) {
+          // La VÉRITÉ FINALE vient du serveur (citations validées + garde de claims appliquée) :
+          // le texte diffusé n'est qu'un aperçu progressif, il ne fait jamais autorité.
+          const st = finalData.structured as { answer?: string } | undefined;
+          const blocks: CloneChatContentBlock[] = [{ type: "text", text: st?.answer ?? streamed }];
+          pushCta(blocks, finalData);
+          setMessages((prev) => prev.map((m) => (m.id === streamId ? { ...m, status: "complete", content: blocks } : m)));
+          if (finalData.public === true && finalData.anonymous !== true && mounted.current) setCompanyState("none");
+        } else if (terminal === "cancelled") {
+          // Une réponse interrompue RESTE interrompue : jamais un faux « terminé ».
+          setMessages((prev) => prev.map((m) => (m.id === streamId
+            ? { ...m, status: "complete", content: [
+                ...(streamed ? [{ type: "text" as const, text: streamed }] : []),
+                { type: "boundary" as const, provenance: "system" as const, text: "Réponse interrompue — elle est incomplète." },
+              ] }
+            : m)));
+        } else {
+          const msgText = (finalData?.errorMessage as string) ?? "Je n'ai pas pu répondre à l'instant. Réessayez — votre message est conservé.";
+          setMessages((prev) => prev.map((m) => (m.id === streamId
+            ? { ...m, status: "complete", content: [{ type: "error", category: "runtime", message: msgText, recovery: [{ kind: "retry", label: "Réessayer", href: null }] }] }
+            : m)));
+        }
+        return;
+      }
+
       const data = await res.json().catch(() => null);
       // Chemin multimodal : analyse structurée honnête.
       if (res.ok && data?.source === "openai_vision" && data.analysis) {
         push(msg("assistant", visionBlocks(data.analysis, data.knownBug), "company"));
         return;
       }
-      // P9.4.2 r2 §1 — Entreprise requise (fail-closed) : le serveur refuse SANS entreprise réelle
-      // (aucune fausse entreprise). On rend un état CLAIR « rattachez-vous à une entreprise » plutôt
-      // qu'un repli générique. Aucune action à effet n'est proposée dans cet état.
-      // C1.5 — REFUS CONTEXTUELS (entreprise requise / Pierre à activer / clarification).
-      // Ce sont des refus CIBLÉS sur une demande opérationnelle : ils n'éteignent JAMAIS le
-      // chat. On confirme explicitement que les questions générales restent disponibles, et
-      // le composer reste actif — l'utilisateur peut continuer immédiatement.
-      const CONTEXTUAL_REFUSALS = new Set(["company_required", "pierre_access_required", "clarification_required", "company_required_document"]);
-      if (res.ok && typeof data?.source === "string" && CONTEXTUAL_REFUSALS.has(data.source)) {
-        if (data.source === "company_required" && mounted.current) setCompanyState("none");
-        const text = typeof data.message === "string" && data.message
-          ? data.message
-          : (data.structured?.answer as string | undefined) ?? "Pour agir sur votre entreprise, connectez d'abord une entreprise active.";
-        const blocks: CloneChatContentBlock[] = [{ type: "text", text }];
-        if (data.source !== "clarification_required") {
-          blocks.push({ type: "boundary", provenance: "system", text: "Vos questions générales sur CloneStore et Pierre restent disponibles ici." });
-        }
-        // Aucune donnée d'entreprise n'a été touchée : provenance PUBLIQUE, jamais « company ».
+      // C1.6 — Refus de PIÈCE JOINTE / accès entreprise suspendu / limitation d'abus :
+      // ce sont des états CIBLÉS sur la demande. Ils n'éteignent jamais la conversation.
+      const TARGETED = new Set(["attachment_requires_company", "company_access_suspended", "rate_limited"]);
+      if (res.ok && typeof data?.source === "string" && TARGETED.has(data.source)) {
+        const blocks: CloneChatContentBlock[] = [{ type: "text", text: (data.structured?.answer as string) ?? "" }];
+        pushCta(blocks, data);
         push(msg("assistant", blocks, "public"));
         return;
       }
       if (!res.ok || !data?.structured) {
-        const r = runCloneChatTurn(t, ctx);
-        push(msg("assistant", [...r.blocks], r.provenance));
+        // C1.6 — On ne SIMULE plus une réponse avec un second moteur local : on dit la vérité
+        // (l'appel n'a pas abouti) et on propose de réessayer. Le chat reste utilisable.
+        push(msg("assistant", [{
+          type: "error", category: "runtime",
+          message: "Je n'ai pas pu répondre à l'instant. Réessayez — votre message est conservé.",
+          recovery: [{ kind: "retry", label: "Réessayer", href: null }],
+        }], "system"));
         return;
       }
-      // C1.5 — Une réponse de DÉCOUVERTE est une réponse PUBLIQUE : elle n'a touché aucune
-      // source tenant. On l'assemble donc dans un contexte public, sinon l'assembleur ajoutait
-      // « Données de votre entreprise (…) — visibles par vous seul » à un utilisateur qui n'a
-      // AUCUNE entreprise (et dont le libellé était fabriqué depuis l'e-mail).
-      const isDiscovery = data.discovery === true;
-      if (isDiscovery && mounted.current) setCompanyState("none");
+      // C1.6 — Une réponse de la voie PUBLIQUE est une VRAIE réponse CloneChat, simplement
+      // fondée sur des sources publiques : aucune source tenant n'a été touchée. On l'assemble
+      // donc dans un contexte public, sinon l'assembleur y ajouterait « Données de votre
+      // entreprise (…) » à quelqu'un qui n'en a aucune.
+      const isDiscovery = data.public === true || data.discovery === true;
+      if (isDiscovery && mounted.current && data.anonymous !== true) setCompanyState("none");
       const assembleCtx = isDiscovery ? { ...ctx, mode: "public" as const, companyLabel: null } : ctx;
       const assembled = assembleFromStructured(data.structured, assembleCtx, data.usageTokens ?? 0, t);
       // P9.4.2 r2 §3 — L'exécution des actions à effet est AUTHORITATIVE CÔTÉ SERVEUR. On retire
@@ -339,23 +410,92 @@ export function useCloneChat() {
       }
       // Citations discrètes (« D'après … ») — jamais de chemin de fichier / table au client.
       if (Array.isArray(data.citationLabels) && data.citationLabels.length > 0) blocks.push({ type: "boundary", provenance: "system", text: `D'après ${data.citationLabels.slice(0, 3).join(", ")}.` });
-      // C1.5 — L'indice « mode découverte » n'est PLUS répété dans le fil : il vit désormais
-      // dans une carte d'état contextuelle, discrète et persistante (§4D). Zéro spam.
+      // C1.6 §6 — Le PRÉREQUIS s'attache à la DEMANDE : CloneChat répond d'abord, puis dit
+      // ce qui manque pour aller plus loin. Jamais un blocage, jamais une bannière permanente.
+      pushCta(blocks, data);
       push(msg("assistant", blocks, isDiscovery ? "public" : "company"));
     } catch (e) {
       if ((e as { name?: string }).name === "AbortError") {
         push(msg("assistant", [{ type: "text", text: "Réponse interrompue." }], "system"));
         return;
       }
-      const r = runCloneChatTurn(t, ctxRef.current);
-      push(msg("assistant", [...r.blocks], r.provenance));
+      push(msg("assistant", [{
+        type: "error", category: "runtime",
+        message: "Je n'ai pas pu répondre à l'instant. Réessayez — votre message est conservé.",
+        recovery: [{ kind: "retry", label: "Réessayer", href: null }],
+      }], "system"));
     } finally {
       abortRef.current = null;
       if (mounted.current) setBusy(false);
     }
-  }, [busy, companyLabel, messages, push]);
+  }, [busy, companyLabel, messages, push, awaitReady]);
 
   // Interrompre la réponse en cours.
+  /**
+   * C1.7 §4 — TRANSPORT CANONIQUE UNIQUE. Le manifeste (fichiers, images, DOSSIER, glisser-déposer,
+   * collage) est converti ici en charge utile réelle, puis part par le MÊME `send()` que le texte.
+   * Les chemins RELATIFS du dossier sont préservés ; aucun chemin absolu du disque n'est transmis.
+   */
+  const sendWithFiles = useCallback(async (
+    text: string,
+    files: ReadonlyArray<{ entry: { category: string; displayName: string; relativePath: string; mime: string }; file: File }>,
+  ) => {
+    const images: string[] = [];
+    const docs: CloneChatDocAttachment[] = [];
+    for (const { entry, file } of files) {
+      const dataUrl = await new Promise<string | null>((res) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result));
+        r.onerror = () => res(null);
+        r.readAsDataURL(file);
+      });
+      if (!dataUrl) continue;
+      if (entry.category === "image") {
+        images.push(dataUrl); // le serveur assainit (EXIF retiré) — le client ne fait que transporter
+        continue;
+      }
+      const comma = dataUrl.indexOf(",");
+      const b64 = comma >= 0 ? dataUrl.slice(comma + 1) : "";
+      if (!b64) continue;
+      docs.push({ filename: entry.displayName, mimeType: entry.mime || file.type, sizeBytes: file.size, data: b64, relativePath: entry.relativePath });
+    }
+    await send(text, images, docs);
+  }, [send]);
+
+  /**
+   * C1.7 §13 — ÉDITION + RENVOI D'UN MESSAGE UTILISATEUR (sûr par construction).
+   *
+   * Le danger n'est pas l'édition : c'est la RÉUTILISATION. Une réponse déjà générée peut porter
+   * une proposition d'action (proposalId) approuvée. Réécrire la question SANS invalider ce qui
+   * suit permettrait de faire exécuter une action approuvée pour une AUTRE demande.
+   *
+   * Règles appliquées ici :
+   *   · toute génération en cours est ANNULÉE d'abord ;
+   *   · le message édité et TOUT ce qui le suit sont retirés du fil — donc aucune proposition,
+   *     aucune approbation, aucune empreinte d'action antérieure ne survit ;
+   *   · rien n'est renvoyé automatiquement : l'utilisateur doit envoyer explicitement ;
+   *   · le renvoi passe par le MÊME `send()` → aucun appel provider dupliqué, aucun message double.
+   */
+  const beginEdit = useCallback((messageId: string): { text: string } | null => {
+    const idx = messages.findIndex((m) => m.id === messageId);
+    if (idx < 0 || messages[idx].role !== "user") return null;
+
+    abortRef.current?.abort(); // une génération en cours ne doit jamais survivre à une édition
+
+    const text = messages[idx].content
+      .map((b) => (b.type === "text" ? b.text : ""))
+      .filter(Boolean)
+      .join(" ")
+      .replace(/^📄 .*/gm, "")
+      .trim();
+
+    // Le message ET toute la suite disparaissent : les propositions/approbations qui en
+    // dépendaient disparaissent avec eux. Aucune autorisation ne peut être « recyclée ».
+    setMessages((prev) => prev.slice(0, idx));
+    lastUserRef.current = null;
+    return { text };
+  }, [messages]);
+
   const stop = useCallback(() => { abortRef.current?.abort(); }, []);
   // Réémettre le dernier message utilisateur.
   const retry = useCallback(() => {
@@ -440,16 +580,38 @@ export function useCloneChat() {
   const isEmpty = messages.length === 0;
   // C1.5 — Le libellé dit la VÉRITÉ : authentifié SANS entreprise ⇒ « Mode découverte »,
   // jamais « connecté à votre entreprise ».
+  // C1.6 §7 — Statut NEUTRE : ni « orientation », ni « découverte », ni aucun mot qui
+  // suggère un CloneChat au rabais. Il n'y a qu'un CloneChat. Le statut dit seulement si le
+  // contexte privé de l'entreprise est branché — il ne qualifie jamais la conversation.
   const modeLabel = useMemo(() => {
-    if (mode === "loading") return "Initialisation…";
-    if (mode === "public") return "Assistant d'orientation";
-    return companyState === "active" ? "Assistant opérationnel" : "Mode découverte";
+    if (mode === "loading") return "…";
+    return companyState === "active" ? "Assistant opérationnel" : "Conversation générale";
   }, [mode, companyState]);
 
-  /** Découverte : authentifié, sans entreprise active. Le chat reste PLEINEMENT utilisable. */
+  /** Conserve pour compat interne : plus AUCUNE bannière permanente n'en dépend (§6). */
   const discoveryMode = mode === "authenticated" && companyState === "none";
 
-  return { mode, modeLabel, messages, busy, isEmpty, companyLabel, companyState, discoveryMode, discoveryHint: DISCOVERY_MODE_HINT, conversations, conversationId, send, executeAction, stop, retry, newConversation, openConversation, deleteConversation };
+  return { mode, modeLabel, messages, busy, isEmpty, companyLabel, companyState, discoveryMode, discoveryHint: DISCOVERY_MODE_HINT, conversations, conversationId, send, sendWithFiles, beginEdit, executeAction, stop, retry, newConversation, openConversation, deleteConversation };
+}
+
+/**
+ * C1.6 §6 — Ajoute le PRÉREQUIS CONTEXTUEL à une réponse, sous forme de note + CTA cliquable.
+ * Il complète la réponse ; il ne la remplace pas. Il n'est jamais affiché quand rien ne manque,
+ * et jamais transformé en bannière permanente : il appartient au TOUR de conversation.
+ */
+function pushCta(blocks: CloneChatContentBlock[], data: Record<string, unknown>): void {
+  const message = typeof data.prerequisiteMessage === "string" ? data.prerequisiteMessage : null;
+  const cta = data.cta as { route?: string; label?: string } | null | undefined;
+  if (message) blocks.push({ type: "boundary", provenance: "system", text: message });
+  if (cta?.route && cta.label) {
+    blocks.push({
+      type: "action_preview",
+      action: {
+        id: `cta-${cta.route}`, kind: "navigate", label: cta.label, risk: "low",
+        requiresConfirmation: false, allowed: true, reason: null, payload: {}, href: cta.route, proposalId: null,
+      },
+    });
+  }
 }
 
 /** Convertit une analyse de capture (structurée, honnête) en blocs affichables. */

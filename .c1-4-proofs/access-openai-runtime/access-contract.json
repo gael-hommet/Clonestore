@@ -1,0 +1,44 @@
+{
+  "runId": "access-openai-runtime",
+  "grantingStatuses": [
+    "active",
+    "trialing"
+  ],
+  "probes": {
+    "active": {
+      "ok": true,
+      "status": "active",
+      "orderId": "o1",
+      "error": null
+    },
+    "trialing": {
+      "ok": true,
+      "status": "trialing",
+      "orderId": "o2",
+      "error": null
+    },
+    "none": {
+      "ok": false,
+      "reason": "NO_ENTITLEMENT",
+      "error": null
+    },
+    "cancelled": {
+      "ok": false,
+      "reason": "NO_ENTITLEMENT",
+      "error": null
+    },
+    "unpaid": {
+      "ok": false,
+      "reason": "NO_ENTITLEMENT",
+      "error": null
+    },
+    "dbError": {
+      "ok": false,
+      "reason": "LOOKUP_FAILED",
+      "error": "PIERRE_ACCESS_LOOKUP_FAILED"
+    }
+  },
+  "rawDbErrorLeaked": false,
+  "typedUnion": true,
+  "accessContractTyped": true
+}

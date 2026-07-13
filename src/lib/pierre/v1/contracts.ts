@@ -149,7 +149,12 @@ async function resolveReadiness(
 
   let context: Awaited<ReturnType<typeof buildStrictGenerationContext>> | null = null;
   if (emp && policy) {
-    const extra: Record<string, string | null> = { "employment.start_date": dateStr(version.effective_from), "employment.end_date": dateStr(version.effective_to), ...fieldValues };
+    // P16D — les dates FAISANT AUTORITÉ (la version du contrat persistée) sont étalées EN DERNIER :
+    // elles l'emportent TOUJOURS sur d'éventuelles `fieldValues` client. Avant, `...fieldValues`
+    // était étalé après, si bien qu'un corps de requête pouvait réécrire `employment.start_date`
+    // /`end_date` dans le contrat rendu. (L'identité/le salaire sont, eux, verrouillés côté
+    // generation-context : la base gagne sur toute clé canonique / à provenance.)
+    const extra: Record<string, string | null> = { ...fieldValues, "employment.start_date": dateStr(version.effective_from), "employment.end_date": dateStr(version.effective_to) };
     const requested = Array.from(new Set([...policy.required_fields, ...policy.conditional_fields, ...Object.keys(fieldValues)]));
     try { context = await buildStrictGenerationContext(db, ctx, { document_type: policy.document_type, employee_id: c.employee_id, site_id: emp.site_id, contract_id: c.id, requested_fields: requested, extra_values: extra }); }
     catch { context = null; }

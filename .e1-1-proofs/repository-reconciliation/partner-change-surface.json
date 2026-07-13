@@ -1,0 +1,157 @@
+{
+  "runId": "repository-reconciliation",
+  "changedByConcurrentWorkstream": [
+    {
+      "file": "src/lib/partner-program/onboarding-rules.ts",
+      "mtime": "2026-07-11T14:10:45.486Z"
+    },
+    {
+      "file": "src/lib/partner-program/server/identity.ts",
+      "mtime": "2026-07-11T14:11:19.406Z"
+    },
+    {
+      "file": "src/lib/partner-program/server/partners.ts",
+      "mtime": "2026-07-11T14:13:55.737Z"
+    },
+    {
+      "file": "src/lib/partner-program/server/introductions.ts",
+      "mtime": "2026-07-11T14:17:11.465Z"
+    },
+    {
+      "file": "src/lib/partner-program/server/attribution.ts",
+      "mtime": "2026-07-11T14:18:39.436Z"
+    },
+    {
+      "file": "src/app/api/partners/code/route.ts",
+      "mtime": "2026-07-11T14:19:29.457Z"
+    },
+    {
+      "file": "src/app/partenaires/r/[slug]/route.ts",
+      "mtime": "2026-07-11T14:19:36.705Z"
+    },
+    {
+      "file": "src/app/api/partners/me/route.ts",
+      "mtime": "2026-07-11T14:19:57.974Z"
+    },
+    {
+      "file": "src/app/api/partners/introductions/route.ts",
+      "mtime": "2026-07-11T14:20:15.148Z"
+    },
+    {
+      "file": "src/app/api/partners/apply/route.ts",
+      "mtime": "2026-07-11T14:20:23.823Z"
+    },
+    {
+      "file": "src/lib/partner-program/__integration__/auto-onboarding.itest.ts",
+      "mtime": "2026-07-11T14:30:44.201Z"
+    },
+    {
+      "file": "src/lib/partner-program/__integration__/emails-rls-connect.itest.ts",
+      "mtime": "2026-07-11T14:34:11.179Z"
+    },
+    {
+      "file": "src/lib/partner-program/__integration__/idor-space.itest.ts",
+      "mtime": "2026-07-11T14:34:11.180Z"
+    },
+    {
+      "file": "src/lib/partner-program/__integration__/partner-harness.ts",
+      "mtime": "2026-07-11T15:09:51.341Z"
+    },
+    {
+      "file": "src/lib/partner-program/__integration__/routes.itest.ts",
+      "mtime": "2026-07-11T15:10:50.528Z"
+    },
+    {
+      "file": "src/lib/partner-program/server/applications.ts",
+      "mtime": "2026-07-11T15:13:35.972Z"
+    },
+    {
+      "file": "src/app/api/partners/admin/action/route.ts",
+      "mtime": "2026-07-11T15:16:05.115Z"
+    },
+    {
+      "file": "src/lib/partner-program/server/backfill.ts",
+      "mtime": "2026-07-11T15:18:24.193Z"
+    },
+    {
+      "file": "src/lib/partner-program/__integration__/backfill.itest.ts",
+      "mtime": "2026-07-11T15:18:31.617Z"
+    },
+    {
+      "file": "src/app/partenaires/espace/PartnerSpace.tsx",
+      "mtime": "2026-07-11T15:24:32.779Z"
+    },
+    {
+      "file": "src/app/api/partners/contract/accept/route.ts",
+      "mtime": "2026-07-11T15:32:57.136Z"
+    },
+    {
+      "file": "src/lib/partner-program/contract.ts",
+      "mtime": "2026-07-11T15:33:02.720Z"
+    },
+    {
+      "file": "src/lib/partner-program/payout-rules.ts",
+      "mtime": "2026-07-11T16:49:40.170Z"
+    },
+    {
+      "file": "src/lib/partner-program/server/connect.ts",
+      "mtime": "2026-07-11T16:52:10.412Z"
+    },
+    {
+      "file": "src/lib/partner-program/server/stripe-bridge.ts",
+      "mtime": "2026-07-11T16:52:28.563Z"
+    },
+    {
+      "file": "src/lib/partner-program/server/emails.ts",
+      "mtime": "2026-07-11T16:52:48.805Z"
+    },
+    {
+      "file": "src/lib/partner-program/server/admin-analytics.ts",
+      "mtime": "2026-07-11T16:54:40.197Z"
+    },
+    {
+      "file": "src/app/api/partners/admin/partners/route.ts",
+      "mtime": "2026-07-11T16:54:50.664Z"
+    },
+    {
+      "file": "src/app/api/partners/admin/partners/[id]/route.ts",
+      "mtime": "2026-07-11T16:55:01.996Z"
+    },
+    {
+      "file": "src/lib/partner-program/__integration__/admin-analytics.itest.ts",
+      "mtime": "2026-07-11T17:12:12.733Z"
+    },
+    {
+      "file": "src/app/partenaires/admin/AdminConsole.tsx",
+      "mtime": "2026-07-11T17:15:50.094Z"
+    },
+    {
+      "file": "src/lib/partner-program/live-authorization.ts",
+      "mtime": "2026-07-11T18:25:34.133Z"
+    },
+    {
+      "file": "src/lib/partner-program/server/payouts.ts",
+      "mtime": "2026-07-11T18:30:19.778Z"
+    },
+    {
+      "file": "src/lib/partner-program/__tests__/live-authorization.test.ts",
+      "mtime": "2026-07-11T18:30:46.772Z"
+    },
+    {
+      "file": "src/lib/partner-program/__integration__/payout-automation.itest.ts",
+      "mtime": "2026-07-11T18:31:24.913Z"
+    },
+    {
+      "file": "src/lib/partner-program/__integration__/acceptance-e2e.itest.ts",
+      "mtime": "2026-07-11T18:33:28.724Z"
+    },
+    {
+      "file": "src/lib/partner-program/__integration__/commission-flow.itest.ts",
+      "mtime": "2026-07-11T18:33:28.725Z"
+    }
+  ],
+  "count": 37,
+  "newMigrationIntroduced": true,
+  "ownedByE11": false,
+  "note": "Aucun de ces fichiers n'a été écrit par E1.1. La nouvelle migration partner est NON APPLIQUÉE et relève du chantier partner."
+}

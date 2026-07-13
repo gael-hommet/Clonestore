@@ -1,0 +1,15 @@
+{
+  "runId": "repository-reconciliation",
+  "note": "All counts are from the CURRENT runs on the frozen tree. No historical count reused.",
+  "suites": {
+    "partner-program": { "command": "vitest run src/lib/partner-program src/app/api/partners src/app/api/cron", "passed": 80, "failed": 0, "files": 7, "note": "67 before + 13 new P10 payout-floor regressions" },
+    "partner-program-integration": { "command": "vitest run --config vitest.integration.config.ts src/lib/partner-program/__integration__", "passed": 98, "failed": 0, "files": 10, "note": "PGlite: dry-run purity, idempotency, replay, timeout->reconciliation, mode/currency rejection" },
+    "payout-p10-floor": { "command": "vitest run src/lib/partner-program/__tests__/payout-p10-floor.test.ts", "passed": 13, "failed": 0, "note": "includes an exhaustive 128-combination env sweep proving no env combination bypasses the P10 floor" },
+    "premium-document-system": { "command": "vitest run src/lib/pierre/__tests__/premium-document-system.test.ts", "passed": 158, "failed": 0 },
+    "pierre-v1": { "command": "vitest run src/lib/pierre/v1", "passed": 352, "failed": 0, "skipped": 1 },
+    "clonechat-c14": { "command": "vitest run src/lib/clonechat src/app/api/assistant src/app/assistant src/components/clonechat", "passed": 436, "failed": 0 },
+    "p16c-t1-t2": { "command": "vitest run src/lib/clonestore/integration/p16c src/lib/clonestore/technologies/t1 src/lib/clonestore/product-technologies/t2", "passed": 170, "failed": 0 },
+    "production-pricing": { "command": "vitest run src/lib/clonestore/production src/lib/clonestore/pricing", "passed": 167, "failed": 0 },
+    "e1-e1-1": { "command": "vitest run src/lib/clonestore/external-enablement/e1", "passed": 55, "failed": 0 }
+  }
+}

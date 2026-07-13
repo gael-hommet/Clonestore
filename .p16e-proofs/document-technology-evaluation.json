@@ -1,0 +1,40 @@
+{
+  "status": "COMPLETED (continuation session)",
+  "scope": "Pierre document lifecycle: rendering fidelity, integrity verification, required-field provenance, approval binding",
+  "findings_resolved": [
+    {
+      "id": "F28", "severity": "medium-to-high (legal-name corruption)", "verdict": "CONFIRMED + FIXED",
+      "file": "src/lib/pierre/v1/renderers.ts",
+      "defect": "the WinAnsi PDF font replaced any non-Latin-1 char with '?': Lukasz->?ukasz, Dvorak->Dvo?ak, Nguyen->Nguy?n, CJK->?",
+      "fix": "transliterate ONLY out-of-Latin-1 chars to legible Latin while preserving Latin-1 exactly (e-acute, c-cedilla, o-slash); CJK/non-Latin with no Latin form still cannot be drawn by WinAnsi -- the DOCX renderer (Unicode OOXML) is the faithful path and preserves ALL names exactly",
+      "test": "src/lib/pierre/v1/__tests__/p16e-f28-name-fidelity.test.ts (11) -- PDF legible, DOCX exact for the full name matrix",
+      "residual_limitation": "full-Unicode PDF (CJK glyphs) requires embedding a TrueType font -- a larger change; DOCX is the faithful path today"
+    },
+    {
+      "id": "F25", "severity": "medium", "verdict": "CONFIRMED + FIXED",
+      "file": "src/lib/pierre/v1/documents.ts",
+      "defect": "verifyDocumentIntegrity compared the version content_hash (for contracts = CANONICAL model hash) against the PDF BYTES sha -- two different hashes -- so it could NEVER return ok:true for a contract-generated version",
+      "fix": "compare the file RECORDED sha256 (pierre_rt_files.sha256, set at render) against the recomputed bytes sha256 -- a true file-integrity check; content_hash still returned for reference",
+      "test": "src/lib/pierre/v1/__integration__/p16e-f25-document-integrity.itest.ts (2) -- finalized contract ok:true; tampered file bytes ok:false; + p83-files-documents.itest.ts green"
+    },
+    {
+      "id": "F15", "severity": "medium", "verdict": "REVIEWED + REFUTED",
+      "file": "src/lib/clonestore/documents/renderer.ts",
+      "assessment": "a template-author-declared fallback on a required variable is a legitimate DEFAULT for INFORMATIONAL documents (weekly-briefing), not Pierre inventing a value. The high-stakes contract/legal path does NOT use this renderer -- it uses contract-readiness (proven in P16E R2). No contract-integrity hole.",
+      "action": "left as author-declared default (a forced required-cannot-use-fallback change broke the legitimate weekly-briefing template and was reverted)"
+    }
+  ],
+  "carried_from_prior_sessions": {
+    "R2": "required-empty fields block generation; em-dash treated as missing (p16e-r2-required-fields, 9)",
+    "P16D_D3": "retro-quarantined artifact cannot be finalized (3)",
+    "P16D_D8": "client field_values cannot overwrite authoritative DB identity/salary/dates (3)",
+    "P16D_document_guard": "content_hash_changed_after_approval / signature-without-approval fail closed"
+  },
+  "hard_requirements_status": {
+    "never_silently_corrupt_a_name": "MET for Latin scripts in PDF + ALL scripts in DOCX; CJK-in-PDF documented (DOCX faithful)",
+    "never_invent_a_required_value": "MET (contract-readiness blocks required-empty; F15 fallbacks are author-declared defaults on informational docs)",
+    "no_unresolved_placeholder_in_final": "MET (readiness blocks; compiler leaves undeclared placeholders visible, never silently filled)",
+    "final_content_hash_binds_approval": "MET (P16D document-guard: content_hash_changed_after_approval blocks)",
+    "no_signature_ready_before_exact_content_approval": "MET (document-guard submit_signature requires approved + matching hash)"
+  }
+}

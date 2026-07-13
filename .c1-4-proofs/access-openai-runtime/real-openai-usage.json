@@ -1,0 +1,9 @@
+{
+  "runId": "access-openai-runtime",
+  "source": "real-openai-browser.json + real-openai-budget-commit.json",
+  "tokensObserved": true,
+  "committed": true,
+  "keyNeverExposed": true,
+  "providerReportedModel": "le champ runtime.model est celui RENVOYÉ PAR OPENAI (gpt-4o-mini-2024-07-18), distinct du modèle DEMANDÉ (gpt-4o-mini) — il ne peut pas être fabriqué depuis la config",
+  "note": "Le modèle réellement renvoyé par le provider est aussi enregistré dans clonechat_usage_events ; companyId NULL (aucune fausse entreprise)."
+}

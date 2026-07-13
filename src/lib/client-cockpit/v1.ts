@@ -8,6 +8,7 @@
 // code serveur P8 ; on consomme uniquement la forme des réponses HTTP.
 
 import {
+  artifactStatusView,
   humanize,
   maxUrgency,
   missionStatusView,
@@ -66,6 +67,11 @@ function isDocType(type: string): boolean { return DOC_RE.test(type); }
 
 const TERMINAL_TASK = new Set(["succeeded", "completed", "done", "failed", "cancelled", "canceled", "archived"]);
 const DONE_TASK = new Set(["succeeded", "completed", "done", "archived"]);
+
+// P16D — exécuteurs qui RÉUSSISSENT en ne faisant que PROGRAMMER (cf. executors.ts : sortie
+// `{ kind: "reminder", scheduled_for }`, `external_side_effect: false`). Aucun message ne part :
+// leur succès ne vaut PAS « Envoyé ».
+const SCHEDULE_ONLY_TASK = new Set(["reminder", "deadline_reminder"]);
 
 // ── Missions ──────────────────────────────────────────────────────────────────
 
@@ -275,7 +281,21 @@ export function deriveV1Artifacts(
     // Statut d'affichage : à valider si approbation requise et pas terminé, sinon d'après l'état de tâche.
     let artStatus: CockpitArtifact["status"] = "draft";
     if (requiresValidation && !TERMINAL_TASK.has(status)) artStatus = "awaiting_validation";
-    else if (DONE_TASK.has(status)) artStatus = isComm && !isDoc ? "sent" : "validated";
+    // P16D — une tâche « communication » TERMINÉE n'a pas forcément ENVOYÉ quoi que ce soit.
+    // `reminder` / `deadline_reminder` réussissent en PROGRAMMANT un rappel
+    // (`external_side_effect: false`, sortie `{ scheduled_for }`) : rien ne part. Les afficher
+    // « Envoyé » en tonalité `success` était un FAUX SUCCÈS atteignable depuis une demande
+    // banale (« relance Paul » ⇒ analysis.ts ⇒ action `reminder`). « Envoyé » reste réservé à
+    // un envoi réellement effectué ; un rappel programmé est « Planifié ».
+    //
+    // P16E §5 (F30) — un BROUILLON SENSIBLE (prepare_sensitive_draft : licenciement / sanction /
+    // contrat…) qui « réussit » n'est que PRÉPARÉ : la décision humaine reste requise. L'afficher
+    // « Validé » était trompeur. Un livrable sensible terminé reste « À valider », jamais « Validé ».
+    else if (DONE_TASK.has(status)) {
+      if (isComm && !isDoc) artStatus = SCHEDULE_ONLY_TASK.has(type) ? "scheduled" : "sent";
+      else if (SENSITIVE_RE.test(type)) artStatus = "awaiting_validation"; // brouillon sensible : décision humaine requise
+      else artStatus = "validated";
+    }
     else if (status === "failed" || status === "blocked" || status === "escalated") artStatus = "needs_review";
     // Une communication (email/relance) prime la famille « Communication » sur « Document ».
     const family = isDoc && !isComm ? "Document" : isComm && !isDoc ? "Communication" : "Document";
@@ -285,7 +305,11 @@ export function deriveV1Artifacts(
       title: str(t.objective) || humanize(type),
       family,
       status: artStatus,
-      statusView: { canonical: artStatus, label: artStatus === "sent" ? "Envoyé" : artStatus === "validated" ? "Validé" : artStatus === "awaiting_validation" ? "À valider" : artStatus === "needs_review" ? "À relire" : "Brouillon", tone: artStatus === "validated" || artStatus === "sent" ? "success" : artStatus === "needs_review" || artStatus === "awaiting_validation" ? "warning" : "neutral", urgency: artStatus === "awaiting_validation" || artStatus === "needs_review" ? "high" : "low" },
+      // P16D — un SEUL cerveau de statut : on réutilise le présentateur canonique
+      // (`artifactStatusView`, status.ts) au lieu de ré-inventer libellé/tonalité ici. La
+      // chaîne de ternaires locale était une seconde source de vérité — c'est elle qui laissait
+      // passer « Envoyé » sur un rappel simplement programmé.
+      statusView: artifactStatusView(artStatus),
       isPdf: /pdf/.test(type),
       qualityScore: null,
       requiresValidation,

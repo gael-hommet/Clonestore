@@ -1,0 +1,493 @@
+// src/lib/clonestore/external-enablement/e1/e1-external-dependency-ledger.ts
+// E1 §3 — Canonical EXTERNAL DEPENDENCY LEDGER. Recovers the REAL external blockers that stand between
+// P16C (INTEGRATION LOCALLY VERIFIED / EXTERNAL LIVE BLOCKED) and an owner-authorized production, from
+// the real repository (P10/P11/P15/P15.1/P16C modules + reports + env contract). Each entry keeps the
+// four readiness concepts SEPARATE and fail-closed. Code can never mark an external action complete.
+
+import type {
+  E1Env, E1DependencyEntry, E1DependencyStatus, E1ExternalConfigStatus,
+} from "./e1-types";
+import { detectStripeMode } from "@/lib/clonestore/pricing/stripe-pricing-config";
+import { evaluateEnvironmentContract } from "./e1-environment-contract";
+
+const present = (env: E1Env, name: string): boolean => {
+  const v = (env[name] ?? "").trim();
+  if (!v) return false;
+  const low = v.toLowerCase();
+  return !(low.startsWith("your-") || low.endsWith("...") || low === "your-internal-secret-here");
+};
+
+/** externalConfigStatus is capped at PARTIALLY_CONFIGURED_BY_SHAPE: presence-by-shape ≠ external proof. */
+function shapeConfig(anyPresent: boolean): E1ExternalConfigStatus {
+  return anyPresent ? "PARTIALLY_CONFIGURED_BY_SHAPE" : "NOT_CONFIGURED";
+}
+
+/**
+ * Build the canonical external dependency ledger. Pure (reads env presence/shape only, never values).
+ * Every entry's finalStatus is fail-closed: if any external/owner/legal/provider action is outstanding,
+ * the status reflects THAT (never LOCAL_READY unless truly no external step remains).
+ */
+export function buildE1DependencyLedger(env: E1Env = process.env): E1DependencyEntry[] {
+  const stripeMode = detectStripeMode(env);
+  const stripeLiveShaped = stripeMode === "live";
+  const stripeTestShaped = stripeMode === "test";
+  const webhookPresent = present(env, "STRIPE_WEBHOOK_SECRET");
+  const eurPricePresent = present(env, "STRIPE_PRICE_PIERRE_EUR_MONTHLY") || present(env, "STRIPE_PRICE_PIERRE");
+  const chfPricePresent = present(env, "STRIPE_PRICE_PIERRE_CHF_MONTHLY");
+  const supabaseUrlPresent = present(env, "NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRolePresent = present(env, "SUPABASE_SERVICE_ROLE_KEY");
+  const appUrl = (env.NEXT_PUBLIC_APP_URL ?? "").trim();
+  const domainNonLocal = /^https:\/\//.test(appUrl) && !/localhost|127\.0\.0\.1/.test(appUrl);
+  const resendKeyPresent = present(env, "RESEND_API_KEY");
+  const envContract = evaluateEnvironmentContract(env);
+
+  const L: E1DependencyEntry[] = [
+    // ── Legal / company identity ──
+    {
+      id: "legal.company_identity", name: "Legal company identity (éditeur, RCS/SIREN, VAT, siège)",
+      canonicalSource: "src/app/legal/mentions/page.tsx (Placeholder — à compléter), P15_1_LEGAL_TAX_REVIEW_PACKET.md",
+      localStatus: "PARTIAL", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: null, requiredCredentialNames: [], requiredDnsDomainAction: null,
+      requiredLegalOwnerAction: "Register/declare the legal entity; fill éditeur, directeur de publication, RCS/SIREN/SIRET, VAT intracommunautaire, siège social.",
+      locallyImplementableWork: "Legal page shells exist with explicit placeholders; keep placeholders visible until resolved.",
+      externalOwnerAction: "Owner/authorized company representative supplies the real legal identity and a lawyer validates the notices.",
+      validationMethod: "Manual review that /legal/mentions no longer contains 'Placeholder' and a lawyer attests.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "Keep the DRAFT banner + placeholder blocks; do not present the entity as final.",
+      forbiddenClaim: "Do NOT present the legal notices as complete/validated.",
+      currentOwner: "legal", finalStatus: "LEGAL_ACTION_REQUIRED",
+    },
+    {
+      id: "legal.country_launch", name: "Country legal launch data (FR/BE/LU/CH)",
+      canonicalSource: "P10 legalReadiness (0/4 launch-grade), P13 launch-country-fit (COUNTRY_FIT_PENDING_EXTERNAL), P8.13 WITHHELD",
+      localStatus: "PARTIAL", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: null, requiredCredentialNames: [], requiredDnsDomainAction: null,
+      requiredLegalOwnerAction: "Per-country legal review (labour law, HR disclaimers) for FR/BE/LU/CH by qualified counsel.",
+      locallyImplementableWork: "Country pricing canon + disclaimers are coded; the launch-country-fit evaluator reports PENDING_EXTERNAL honestly.",
+      externalOwnerAction: "Engage counsel per country; obtain written sign-off.",
+      validationMethod: "Signed legal opinion per country recorded in the legal-tax artifact registry (hash+date+source).",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "No positive legal verdict; disclaimers stay; no country is claimed legally-ready.",
+      forbiddenClaim: "Do NOT claim legal compliance / country legal guarantee.",
+      currentOwner: "legal", finalStatus: "LEGAL_ACTION_REQUIRED",
+    },
+
+    // ── Domain / hosting / deployment ──
+    {
+      id: "infra.production_domain", name: "Production domain + DNS verification",
+      canonicalSource: ".env.example NEXT_PUBLIC_APP_URL, next.config.ts",
+      localStatus: "LOCAL_READY", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: shapeConfig(domainNonLocal), productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Domain registrar + DNS", requiredCredentialNames: ["NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SITE_URL"],
+      requiredDnsDomainAction: "Register the domain; point A/CNAME to the host; verify propagation.",
+      requiredLegalOwnerAction: null,
+      locallyImplementableWork: "App reads NEXT_PUBLIC_APP_URL; localhost default is safe for dev.",
+      externalOwnerAction: "Owner buys/controls the domain and sets DNS at the registrar.",
+      validationMethod: "External DNS lookup resolves the domain to the host; HTTPS cert valid. Code cannot prove this.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "localhost URL in dev; no absolute production links until set.",
+      forbiddenClaim: "Do NOT claim the domain/DNS is verified from source.",
+      currentOwner: "owner", finalStatus: domainNonLocal ? "DOMAIN_DNS_REQUIRED" : "DOMAIN_DNS_REQUIRED",
+    },
+    {
+      id: "infra.production_hosting", name: "Production hosting (Next.js server runtime)",
+      canonicalSource: "next.config.ts, vercel.json, package.json (build/start)",
+      localStatus: "LOCAL_READY", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Host (Vercel or Node host)", requiredCredentialNames: [], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Build config, serverExternalPackages (sharp/pglite) and scripts are ready; deployment runbook authored.",
+      externalOwnerAction: "Owner creates the hosting project, configures env, connects the repo/domain.",
+      validationMethod: "A real deployment exists and the health/readiness endpoint responds. Code cannot prove a deploy occurred.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "Run locally (next dev / next start) only.",
+      forbiddenClaim: "Do NOT claim the app is deployed.",
+      currentOwner: "owner", finalStatus: "DEPLOYMENT_REQUIRED",
+    },
+    {
+      id: "infra.production_env_vars", name: "Production environment variables / secrets",
+      canonicalSource: "e1-environment-contract.ts, .env.example",
+      localStatus: "LOCAL_READY", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: shapeConfig(envContract.presentByShape > 0), productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Host secret manager", requiredCredentialNames: envContract.missingRequiredForProduction,
+      requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Typed environment contract enumerates every var, server/public separation, fail-closed defaults.",
+      externalOwnerAction: "Owner sets each production secret in the host secret manager (never committed).",
+      validationMethod: "Presence/shape check in the host env (never the value). Missing prod secret fails closed.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "Missing secrets → features fail closed (mock/disabled).",
+      forbiddenClaim: "Do NOT claim secrets are configured from variable names.",
+      currentOwner: "owner", finalStatus: "CREDENTIAL_REQUIRED",
+    },
+
+    // ── Supabase ──
+    {
+      id: "supabase.production_project", name: "Supabase production project",
+      canonicalSource: ".env.example (NEXT_PUBLIC_SUPABASE_URL / ANON / SERVICE_ROLE)",
+      localStatus: "LOCAL_READY", sandboxStatus: "TEST_READY", externalConfigStatus: shapeConfig(supabaseUrlPresent && serviceRolePresent), productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Supabase", requiredCredentialNames: ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"],
+      requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Migrations + RLS coded and tested on embedded PG/PGlite; no dev-only fixture required.",
+      externalOwnerAction: "Owner creates the production Supabase project and supplies URL + keys.",
+      validationMethod: "Connect to the production URL and run the RLS runtime verification script with two test users.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "Local embedded PG for tests; no production DB touched.",
+      forbiddenClaim: "Do NOT claim the production project exists from code.",
+      currentOwner: "owner", finalStatus: "OWNER_ACTION_REQUIRED",
+    },
+    {
+      id: "supabase.production_migrations", name: "Production migration execution authorization",
+      canonicalSource: "supabase/migrations/** (57 ordered files), scripts/db/migrate.mjs",
+      localStatus: "LOCAL_READY", sandboxStatus: "TEST_READY", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Supabase", requiredCredentialNames: ["SUPABASE_SERVICE_ROLE_KEY"], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Migrations are ordered/deterministic; a fresh-migrate gate is green locally.",
+      externalOwnerAction: "Owner explicitly authorizes and runs migrations against the production project.",
+      validationMethod: "Migration replay succeeds on the production project + schema matches. Code cannot run live migrations.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "No live migration runs; local replay only.",
+      forbiddenClaim: "Do NOT claim production migrations ran.",
+      currentOwner: "owner", finalStatus: "OWNER_ACTION_REQUIRED",
+    },
+    {
+      id: "supabase.rls_tenant_isolation", name: "RLS + tenant isolation (verified locally)",
+      canonicalSource: "src/lib/production-readiness/supabase/rls-policy-registry.ts, rls-verification.ts, Pierre v1 integration itests",
+      localStatus: "LOCAL_READY", sandboxStatus: "TEST_READY", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Supabase", requiredCredentialNames: ["RLS_TEST_USER_A_EMAIL", "RLS_TEST_USER_B_EMAIL"], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "RLS policy registry + coverage verification are green; cross-tenant tests pass on embedded PG.",
+      externalOwnerAction: "Run the RLS runtime verification against the production project with two real test accounts.",
+      validationMethod: "scripts/rls-runtime-verify.mjs: cross-user isolation blocked on the production DB.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "Local RLS proofs stand; production verification pending.",
+      forbiddenClaim: "Do NOT claim production RLS is verified from local tests.",
+      currentOwner: "owner", finalStatus: "OWNER_ACTION_REQUIRED",
+    },
+    {
+      id: "supabase.backup_recovery", name: "Database backup / recovery policy",
+      canonicalSource: "E1_SUPABASE_PRODUCTION_READINESS.md",
+      localStatus: "PARTIAL", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Supabase", requiredCredentialNames: [], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Backup/restore procedure documented in the Supabase readiness runbook.",
+      externalOwnerAction: "Owner enables PITR/backups on the production project and rehearses a restore.",
+      validationMethod: "A restore test succeeds on the production project. Code cannot prove backups run.",
+      blockingSeverity: "warning", launchCriticality: "launch_critical",
+      safeFallback: "No backup claim until configured.",
+      forbiddenClaim: "Do NOT claim backups are configured.",
+      currentOwner: "owner", finalStatus: "OWNER_ACTION_REQUIRED",
+    },
+
+    // ── Stripe ──
+    {
+      id: "stripe.account", name: "Authorized Stripe account (business/bank verified)",
+      canonicalSource: "P15_1_STRIPE_OWNER_SETUP_CHECKLIST.md, p15-1-payment-mode.ts",
+      localStatus: "LOCAL_READY", sandboxStatus: "TEST_READY", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Stripe", requiredCredentialNames: ["STRIPE_SECRET_KEY", "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"], requiredDnsDomainAction: null,
+      requiredLegalOwnerAction: "Verified business/legal identity + bank account (owner must have the legal authority to create the account).",
+      locallyImplementableWork: "Checkout logic + payment-mode resolver are coded and test-ready; owner setup checklist authored.",
+      externalOwnerAction: "Owner (or authorized company rep) creates the Stripe account, verifies identity + bank.",
+      validationMethod: "Owner-gated read-only dry run (scripts/p15-verify-stripe-live-readonly.mjs) + attestation. No live payment.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "Payment disabled (paymentMode never 'live'); demo/founder flows work with no payment.",
+      forbiddenClaim: "Do NOT claim Stripe live is configured.",
+      currentOwner: "owner", finalStatus: "OWNER_ACTION_REQUIRED",
+    },
+    {
+      id: "stripe.products_prices", name: "Stripe products/prices (EUR 44900 / CHF 49900, live)",
+      canonicalSource: "p15-stripe-live-verification.ts, country-pricing.ts",
+      localStatus: "LOCAL_READY", sandboxStatus: "TEST_READY", externalConfigStatus: shapeConfig(eurPricePresent || chfPricePresent), productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Stripe", requiredCredentialNames: ["STRIPE_PRICE_PIERRE_EUR_MONTHLY", "STRIPE_PRICE_PIERRE_CHF_MONTHLY"], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Canonical price expectations coded (verifyStripePrice); no cross-currency fallback.",
+      externalOwnerAction: "Owner creates the live EUR + CHF recurring prices (active, distinct) in the Stripe dashboard.",
+      validationMethod: "Read-only prices.retrieve confirms amount/currency/interval/active. Code cannot create live prices.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "Missing price → checkout fail-closed for that currency.",
+      forbiddenClaim: "Do NOT claim live prices exist from env names.",
+      currentOwner: "owner", finalStatus: "OWNER_ACTION_REQUIRED",
+    },
+    {
+      id: "stripe.checkout", name: "Stripe Checkout construction + country guard",
+      canonicalSource: "src/app/api/checkout/route.ts, checkout-country-guard.ts, p15-checkout-reconciliation-gate.ts",
+      localStatus: "LOCAL_READY", sandboxStatus: "TEST_READY", externalConfigStatus: "NOT_APPLICABLE", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Stripe", requiredCredentialNames: [], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Server-authoritative checkout + country/currency metadata propagation + reconciliation gate are coded and tested.",
+      externalOwnerAction: "None for the logic; depends on stripe.account + stripe.products_prices for live effect.",
+      validationMethod: "Test-mode checkout rehearsal (no live payment). Live requires the owner actions above.",
+      blockingSeverity: "info", launchCriticality: "launch_critical",
+      safeFallback: "Test-mode only; disabled mode short-circuits before Stripe.",
+      forbiddenClaim: "Do NOT process a live payment.",
+      currentOwner: "engineering", finalStatus: "LOCAL_READY",
+    },
+    {
+      id: "stripe.webhook", name: "Stripe webhook endpoint registration + secret",
+      canonicalSource: "src/app/api/webhooks/stripe/route.ts, evaluateWebhookReadiness()",
+      localStatus: "LOCAL_READY", sandboxStatus: "TEST_READY", externalConfigStatus: shapeConfig(webhookPresent), productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Stripe", requiredCredentialNames: ["STRIPE_WEBHOOK_SECRET"], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Route verifies signature via constructEvent BEFORE any effect; idempotent activation; 5 events handled.",
+      externalOwnerAction: "Owner registers the live webhook endpoint URL in Stripe and copies the whsec_ secret to env.",
+      validationMethod: "Stripe dashboard shows the endpoint; a signed test event is accepted. Code cannot prove external registration.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "No secret → events rejected (fail-closed); no activation.",
+      forbiddenClaim: "Do NOT claim the webhook is externally registered.",
+      currentOwner: "owner", finalStatus: "OWNER_ACTION_REQUIRED",
+    },
+
+    // ── Email + DNS ──
+    {
+      id: "email.provider", name: "Transactional email provider (Resend)",
+      canonicalSource: "src/lib/cloneos/channels/email-production/**, providers/resend.ts",
+      localStatus: "LOCAL_READY", sandboxStatus: "TEST_READY", externalConfigStatus: shapeConfig(resendKeyPresent), productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Resend", requiredCredentialNames: ["RESEND_API_KEY", "EMAIL_PROVIDER", "RESEND_DEFAULT_FROM"], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Provider-neutral email contract + policy/rate-limit/audit + Resend adapter; mock default, no real send.",
+      externalOwnerAction: "Owner creates the Resend account and supplies the API key + verified from-address.",
+      validationMethod: "Sandbox send to an allow-listed test recipient succeeds; a real message is only sent under EMAIL_SEND_LIVE.",
+      blockingSeverity: "warning", launchCriticality: "launch_critical",
+      safeFallback: "Mock mode: nothing marked sent without provider evidence.",
+      forbiddenClaim: "Draft ≠ sent. Do NOT mark an email sent without provider evidence.",
+      currentOwner: "owner", finalStatus: "PROVIDER_ACTION_REQUIRED",
+    },
+    {
+      id: "email.sending_domain_dns", name: "Sending domain authentication (SPF/DKIM/DMARC)",
+      canonicalSource: "E1_EMAIL_DOMAIN_SETUP_PLAN.md, RESEND_ALLOWED_FROM_DOMAINS",
+      localStatus: "PARTIAL", sandboxStatus: "SANDBOX_AVAILABLE_NOT_CONFIGURED", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Resend + DNS", requiredCredentialNames: ["RESEND_ALLOWED_FROM_DOMAINS", "RESEND_DEFAULT_FROM"],
+      requiredDnsDomainAction: "Add SPF TXT, DKIM CNAME/TXT, DMARC TXT records; set the return-path.", requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Sender identity validation + allow-list logic coded; setup plan authored.",
+      externalOwnerAction: "Owner adds DNS records at the registrar and verifies the domain in Resend.",
+      validationMethod: "Resend dashboard shows domain verified; external DNS lookup shows the records. Code cannot verify DNS.",
+      blockingSeverity: "warning", launchCriticality: "launch_critical",
+      safeFallback: "Unverified from-domain → send blocked.",
+      forbiddenClaim: "DNS instructions ≠ DNS verified.",
+      currentOwner: "owner", finalStatus: "DOMAIN_DNS_REQUIRED",
+    },
+
+    // ── Signature / calendar / notification / voice / telephony / connectors ──
+    {
+      id: "provider.signature_yousign", name: "Signature (Yousign) live or approved fallback",
+      canonicalSource: "p15-provider-closure.ts, p11-provider-readiness.ts, P8.7.4 OPEN",
+      localStatus: "LOCAL_READY", sandboxStatus: "SANDBOX_AVAILABLE_NOT_CONFIGURED", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Yousign", requiredCredentialNames: ["CLONESTORE_SIGNATURE_LIVE_VERIFIED", "CLONESTORE_SIGNATURE_FALLBACK_APPROVED"], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Provider closure: signature package PREPARED; live path blocked; official fallback defined.",
+      externalOwnerAction: "Owner sets up Yousign live (lift P8.7.4) OR approves the 'prepared, signed manually outside CloneStore' fallback.",
+      validationMethod: "Owner attestation CLONESTORE_SIGNATURE_LIVE_VERIFIED (live) or CLONESTORE_SIGNATURE_FALLBACK_APPROVED. No live signature created.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "Document prepared, signed outside CloneStore; NO live-signature claim.",
+      forbiddenClaim: "Package prepared ≠ signed. Do NOT claim Yousign live.",
+      currentOwner: "provider", finalStatus: "PROVIDER_ACTION_REQUIRED",
+    },
+    {
+      id: "provider.calendar", name: "Calendar provider",
+      canonicalSource: "T1 calendar tech, p16c calendar adapter (live blocked)",
+      localStatus: "LOCAL_READY", sandboxStatus: "SANDBOX_AVAILABLE_NOT_CONFIGURED", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Calendar (Google/Microsoft)", requiredCredentialNames: [], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Calendar event PREPARED via T1; createLive blocked.",
+      externalOwnerAction: "Owner connects a real calendar provider (later roadmap).",
+      validationMethod: "A prepared event is created live in the provider. Not required for launch.",
+      blockingSeverity: "info", launchCriticality: "launch_optional",
+      safeFallback: "Event prepared, not created live.",
+      forbiddenClaim: "Event prepared ≠ calendar event created.",
+      currentOwner: "provider", finalStatus: "NOT_REQUIRED_FOR_LAUNCH",
+    },
+    {
+      id: "provider.notification_push", name: "Notification / push provider",
+      canonicalSource: "T1 notification tech, T2 clonesignals, p16c notification adapter (live blocked)",
+      localStatus: "LOCAL_READY", sandboxStatus: "SANDBOX_AVAILABLE_NOT_CONFIGURED", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Push provider", requiredCredentialNames: [], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Cockpit reminders + CloneSignals candidates; push:true blocked.",
+      externalOwnerAction: "Owner connects a real push provider (later).",
+      validationMethod: "A push is delivered live. Not required for launch (in-product reminders suffice).",
+      blockingSeverity: "info", launchCriticality: "launch_optional",
+      safeFallback: "In-product cockpit reminder, no push.",
+      forbiddenClaim: "Reminder ≠ push.",
+      currentOwner: "provider", finalStatus: "NOT_REQUIRED_FOR_LAUNCH",
+    },
+    {
+      id: "provider.voice", name: "Voice provider (CloneVoice)",
+      canonicalSource: "T2 clonevoice (live_disabled), p16c voice adapter (roadmap)",
+      localStatus: "PARTIAL", sandboxStatus: "BLOCKED", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Voice/TTS-STT", requiredCredentialNames: ["CLONEVOICE_RUNTIME_MODE"], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Architecture-ready; text authoritative; live voice non-operational by design.",
+      externalOwnerAction: "Owner selects/configures a voice provider (later roadmap).",
+      validationMethod: "Live audio path exercised. Not required for launch.",
+      blockingSeverity: "info", launchCriticality: "later_roadmap",
+      safeFallback: "Text authoritative; no audio; no live-voice claim.",
+      forbiddenClaim: "Transcript contract ≠ live voice.",
+      currentOwner: "provider", finalStatus: "NOT_REQUIRED_FOR_LAUNCH",
+    },
+    {
+      id: "provider.telephony", name: "Telephony provider (CloneCall)",
+      canonicalSource: "T2 clonecall (dual-blocked), p16c call (outbound live blocked)",
+      localStatus: "PARTIAL", sandboxStatus: "BLOCKED", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Telephony (Twilio, etc.)", requiredCredentialNames: [], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Local call session safe; dialNumber blocked; outbound live path blocked.",
+      externalOwnerAction: "Owner selects/configures a telephony provider (later roadmap).",
+      validationMethod: "A real call is placed. Not required for launch.",
+      blockingSeverity: "info", launchCriticality: "later_roadmap",
+      safeFallback: "Local call session only; no real telephony.",
+      forbiddenClaim: "Local call session ≠ real telephony.",
+      currentOwner: "provider", finalStatus: "NOT_REQUIRED_FOR_LAUNCH",
+    },
+    {
+      id: "provider.sirh_payroll", name: "SIRH / payroll connectors",
+      canonicalSource: "P14 MUST_NOT (full payroll/DSN), master-split connectors",
+      localStatus: "PARTIAL", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "SIRH/payroll systems", requiredCredentialNames: [], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Pre-payroll preparation only; connector interfaces exist, not connected.",
+      externalOwnerAction: "Owner integrates a real SIRH/payroll system (later; NOT a payroll engine).",
+      validationMethod: "A real connector round-trips. Not required for launch.",
+      blockingSeverity: "info", launchCriticality: "later_roadmap",
+      safeFallback: "Pre-payroll preparation, disconnected.",
+      forbiddenClaim: "Pre-payroll preparation ≠ payroll/DSN engine. Do NOT claim full payroll.",
+      currentOwner: "provider", finalStatus: "NOT_REQUIRED_FOR_LAUNCH",
+    },
+    {
+      id: "provider.slack_connectors", name: "Slack / other connectors",
+      canonicalSource: "master-split connectors, channel identity layer",
+      localStatus: "LOCAL_READY", sandboxStatus: "SANDBOX_AVAILABLE_NOT_CONFIGURED", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Slack", requiredCredentialNames: [], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Connector interface fail-closed; not connected.",
+      externalOwnerAction: "Owner installs/authorizes the Slack app (later).",
+      validationMethod: "A message is delivered to a real workspace. Not required for launch.",
+      blockingSeverity: "info", launchCriticality: "launch_optional",
+      safeFallback: "Connector interface only; nothing delivered.",
+      forbiddenClaim: "Connector interface ≠ connected external system.",
+      currentOwner: "provider", finalStatus: "NOT_REQUIRED_FOR_LAUNCH",
+    },
+
+    // ── Observability ──
+    {
+      id: "observability.monitoring", name: "Error monitoring / logs / alerts",
+      canonicalSource: "src/lib/observability/** (health, runbook, dead-letter, event-log, redaction)",
+      localStatus: "LOCAL_READY", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: "Monitoring vendor (owner choice)", requiredCredentialNames: ["CLONESTORE_MONITORING_ROLLBACK_VERIFIED"], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Provider-neutral observability contracts (structured errors, request IDs, redaction, dead-letter, health).",
+      externalOwnerAction: "Owner picks/configures a monitoring vendor + alert channels and rehearses rollback.",
+      validationMethod: "Alerts fire in the vendor; owner attests CLONESTORE_MONITORING_ROLLBACK_VERIFIED. Code cannot prove vendor config.",
+      blockingSeverity: "warning", launchCriticality: "launch_critical",
+      safeFallback: "In-process observability; no external alerting until configured.",
+      forbiddenClaim: "Contract ready ≠ monitoring vendor configured.",
+      currentOwner: "owner", finalStatus: "OWNER_ACTION_REQUIRED",
+    },
+
+    // ── Budgets (local) ──
+    {
+      id: "budget.rate_limits", name: "Rate limits / AI budgets / cost shield",
+      canonicalSource: ".env.example (AI_* caps), AI cost shield B38A, cost ledger B38C",
+      localStatus: "LOCAL_READY", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: "NOT_APPLICABLE", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: null, requiredCredentialNames: ["AI_COST_SHIELD_MODE", "AI_GLOBAL_MONTHLY_CAP_CENTS"], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Cost shield enforce-by-default + per-scope caps + emergency shutdown are coded and tested.",
+      externalOwnerAction: "Owner reviews caps for production budget; keeps enforce mode.",
+      validationMethod: "Env review that caps are set + AI_COST_SHIELD_MODE=enforce.",
+      blockingSeverity: "info", launchCriticality: "launch_critical",
+      safeFallback: "Enforce mode by default; non-paying users get 0€ AI.",
+      forbiddenClaim: "Do NOT disable the cost shield in production.",
+      currentOwner: "engineering", finalStatus: "LOCAL_READY",
+    },
+
+    // ── Privacy / legal documents ──
+    {
+      id: "legal.privacy_documents", name: "Privacy / CGU / CGV / DPA / mentions",
+      canonicalSource: "src/app/legal/** (5 pages, DRAFT), legal-page-registry.ts",
+      localStatus: "PARTIAL", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: null, requiredCredentialNames: [], requiredDnsDomainAction: null,
+      requiredLegalOwnerAction: "Lawyer validates CGU/CGV/DPA/privacy/mentions; resolve placeholders; obtain sign-off.",
+      locallyImplementableWork: "All 5 legal pages exist with required sections + forbidden-claim guard; DRAFT banners visible.",
+      externalOwnerAction: "Owner engages counsel; validates; removes placeholders.",
+      validationMethod: "Legal-pages verdict all_required_pages_validated=true after lawyer sign-off (manual flags).",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "DRAFT banners + placeholders stay; not presented as final.",
+      forbiddenClaim: "Document presence ≠ legal approval.",
+      currentOwner: "legal", finalStatus: "LEGAL_ACTION_REQUIRED",
+    },
+    {
+      id: "legal.cookie_privacy_config", name: "Cookie / consent configuration",
+      canonicalSource: "src/app/legal/mentions/page.tsx §7 (Placeholder cookies)",
+      localStatus: "PARTIAL", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: null, requiredCredentialNames: [], requiredDnsDomainAction: null,
+      requiredLegalOwnerAction: "Define cookie policy + consent banner if required (CNIL/ePrivacy).",
+      locallyImplementableWork: "Cookie section placeholder present; only technical cookies used today.",
+      externalOwnerAction: "Owner + counsel decide on the consent mechanism.",
+      validationMethod: "Legal review confirms cookie compliance.",
+      blockingSeverity: "warning", launchCriticality: "launch_critical",
+      safeFallback: "Technical cookies only; no tracking claims.",
+      forbiddenClaim: "Do NOT claim cookie compliance.",
+      currentOwner: "legal", finalStatus: "LEGAL_ACTION_REQUIRED",
+    },
+
+    // ── Country commercial / pricing (canon) ──
+    {
+      id: "commercial.country_pricing", name: "Country pricing / currency rules (FR/BE/LU EUR, CH CHF)",
+      canonicalSource: "src/lib/clonestore/pricing/country-pricing.ts (canon), checkout-country-guard.ts",
+      localStatus: "LOCAL_READY", sandboxStatus: "TEST_READY", externalConfigStatus: "NOT_APPLICABLE", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: null, requiredCredentialNames: [], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Canonical resolver: FR/BE/LU=449 EUR, CH=499 CHF; no cross-currency; CH can't buy EUR.",
+      externalOwnerAction: "None for the logic; VAT/tax treatment is a separate legal action.",
+      validationMethod: "Pricing tests + checkout guard (CH/EUR blocked even if forged).",
+      blockingSeverity: "info", launchCriticality: "launch_critical",
+      safeFallback: "Unknown country → country_required (never cheapest offer).",
+      forbiddenClaim: "Do NOT claim VAT/tax treatment is validated (separate legal item).",
+      currentOwner: "engineering", finalStatus: "LOCAL_READY",
+    },
+
+    // ── Production smoke + owner authorization ──
+    {
+      id: "deploy.production_smoke", name: "Production smoke tests",
+      canonicalSource: "E1_DEPLOYMENT_RUNBOOK.md, health/readiness contract",
+      localStatus: "LOCAL_READY", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: null, requiredCredentialNames: ["CLONESTORE_DEPLOY_PROOF"], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Deployment smoke checklist + health/readiness contract authored.",
+      externalOwnerAction: "Operator runs smoke checks against the deployed environment.",
+      validationMethod: "Health endpoint 200 + smoke checklist pass on the deployed URL. Code cannot prove a deploy.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "No production health claim until run.",
+      forbiddenClaim: "Do NOT claim production health is verified.",
+      currentOwner: "owner", finalStatus: "DEPLOYMENT_REQUIRED",
+    },
+    {
+      id: "owner.production_authorization", name: "Owner production authorization (P10 hard floor)",
+      canonicalSource: "src/lib/clonestore/production/p10-production-gate.ts (PRODUCTION_AUTHORIZED=false as const)",
+      localStatus: "LOCAL_READY", sandboxStatus: "NOT_APPLICABLE", externalConfigStatus: "NOT_CONFIGURED", productionAuthStatus: "NOT_AUTHORIZED",
+      requiredProvider: null, requiredCredentialNames: ["CLONESTORE_OWNER_GOLIVE_APPROVED", "CLONESTORE_OWNER_GOLIVE_DECISION"], requiredDnsDomainAction: null, requiredLegalOwnerAction: null,
+      locallyImplementableWork: "Owner-approval gate + hard-floor const are coded; env can never lift the floor.",
+      externalOwnerAction: "Owner completes the go-live approval packet AND makes a deliberate code change to lift PRODUCTION_AUTHORIZED.",
+      validationMethod: "canAuthorizeProduction()=true requires all gates + owner sign-off + a code change. Never from env.",
+      blockingSeverity: "blocker", launchCriticality: "launch_critical",
+      safeFallback: "Production never authorized by code; demo-only remains possible.",
+      forbiddenClaim: "NODE_ENV / env flags can NOT authorize production.",
+      currentOwner: "owner", finalStatus: "PRODUCTION_AUTHORIZATION_REQUIRED",
+    },
+  ];
+
+  return L;
+}
+
+export interface E1LedgerSummary {
+  readonly total: number;
+  readonly byStatus: Record<E1DependencyStatus, number>;
+  readonly launchCritical: number;
+  readonly launchCriticalBlocked: number;
+  readonly localReadyCount: number;
+  readonly ownerActions: number;
+  readonly providerActions: number;
+  readonly legalActions: number;
+  readonly domainActions: number;
+  readonly deploymentActions: number;
+  readonly entries: E1DependencyEntry[];
+}
+
+/** Summarize the ledger. Pure. */
+export function summarizeE1Ledger(env: E1Env = process.env): E1LedgerSummary {
+  const entries = buildE1DependencyLedger(env);
+  const byStatus = Object.fromEntries(
+    (["LOCAL_READY", "TEST_READY", "OWNER_ACTION_REQUIRED", "PROVIDER_ACTION_REQUIRED", "LEGAL_ACTION_REQUIRED", "CREDENTIAL_REQUIRED", "DOMAIN_DNS_REQUIRED", "DEPLOYMENT_REQUIRED", "PRODUCTION_AUTHORIZATION_REQUIRED", "NOT_REQUIRED_FOR_LAUNCH", "BLOCKED"] as E1DependencyStatus[])
+      .map((s) => [s, entries.filter((e) => e.finalStatus === s).length]),
+  ) as Record<E1DependencyStatus, number>;
+  const launchCriticalEntries = entries.filter((e) => e.launchCriticality === "launch_critical");
+  return {
+    total: entries.length,
+    byStatus,
+    launchCritical: launchCriticalEntries.length,
+    launchCriticalBlocked: launchCriticalEntries.filter((e) => e.finalStatus !== "LOCAL_READY" && e.finalStatus !== "TEST_READY").length,
+    localReadyCount: entries.filter((e) => e.finalStatus === "LOCAL_READY").length,
+    ownerActions: entries.filter((e) => e.finalStatus === "OWNER_ACTION_REQUIRED").length,
+    providerActions: entries.filter((e) => e.finalStatus === "PROVIDER_ACTION_REQUIRED").length,
+    legalActions: entries.filter((e) => e.finalStatus === "LEGAL_ACTION_REQUIRED").length,
+    domainActions: entries.filter((e) => e.finalStatus === "DOMAIN_DNS_REQUIRED").length,
+    deploymentActions: entries.filter((e) => e.finalStatus === "DEPLOYMENT_REQUIRED").length,
+    entries,
+  };
+}

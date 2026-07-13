@@ -22,6 +22,10 @@ import {
 } from "../payout-rules";
 import { isPartnerPayoutDryRun } from "../flags";
 import { isPartnerLivePayoutAuthorized, explainLiveBlock } from "../live-authorization";
+// PLANCHER DUR P10 — constante de code, jamais une variable d'environnement. Aucun mouvement
+// d'argent LIVE (y compris un transfert Connect vers un cabinet) tant que la production n'est pas
+// autorisée par un changement de code DÉLIBÉRÉ. C'est ce que `.env.example` promet déjà.
+import { PRODUCTION_AUTHORIZED } from "@/lib/clonestore/production/p10-production-gate";
 import { recordAudit } from "./audit";
 import { enqueuePartnerEmailTx } from "./emails";
 import { formatMinorAmount } from "../money";
@@ -77,10 +81,17 @@ export function defaultPayoutDeps(stripe: Stripe): PayoutDeps {
       return found ? { id: found.id } : null;
     },
     stripeIsLive: () => (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_"),
-    // Garde fail-closed explicite : NODE_ENV + VERCEL_ENV production + payouts activés +
-    // dry-run explicitement désactivé + autorisation Live explicite + clé Live + secret cron.
-    // `PARTNER_PAYOUT_DRY_RUN=false` ne suffit JAMAIS à lui seul.
-    productionAuthorized: () => isPartnerLivePayoutAuthorized(),
+    // Autorisation d'un transfert LIVE = PLANCHER DUR P10 **ET** garde d'environnement.
+    //
+    //   · Le plancher P10 (`PRODUCTION_AUTHORIZED`) est une CONSTANTE de code. Aucune variable
+    //     d'environnement ne peut le lever : il faut un changement de code délibéré du propriétaire.
+    //   · La garde d'environnement (NODE_ENV + VERCEL_ENV production + payouts activés + dry-run
+    //     explicitement désactivé + autorisation Live explicite + clé Live + secret cron) ne peut
+    //     qu'AJOUTER des restrictions — jamais contourner le plancher.
+    //
+    // L'ordre est un ET : le plancher d'abord. `PARTNER_PAYOUT_DRY_RUN=false` — ni aucune autre
+    // variable, ni même la forme `sk_live_` d'une clé — ne suffit JAMAIS à autoriser un versement.
+    productionAuthorized: () => Boolean(PRODUCTION_AUTHORIZED) && isPartnerLivePayoutAuthorized(),
     // Mode réel du client Stripe : dérivé de la CLÉ utilisée, jamais d'un paramètre.
     stripeMode: () => ((process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_") ? "live" : "test"),
   };
@@ -315,10 +326,18 @@ export async function runMonthlyPayouts(
     };
   }
 
-  // Garde anti-Live FAIL-CLOSED : un transfert Live exige que TOUTES les gardes soient
-  // satisfaites. `PARTNER_PAYOUT_DRY_RUN=false` ne suffit jamais à lui seul.
+  // Garde anti-Live FAIL-CLOSED : un transfert Live exige le PLANCHER P10 **et** toutes les gardes
+  // d'environnement. `PARTNER_PAYOUT_DRY_RUN=false` ne suffit jamais à lui seul.
   if (deps.stripeIsLive() && !deps.productionAuthorized()) {
-    console.warn("[partner-payouts]", explainLiveBlock());
+    // Le refus doit dire LAQUELLE des deux causes a joué. Sans cela, un environnement pleinement
+    // autorisé bloqué par le plancher afficherait « toutes les gardes sont satisfaites » — un
+    // message qui contredirait le refus qu'il accompagne.
+    console.warn(
+      "[partner-payouts]",
+      PRODUCTION_AUTHORIZED
+        ? explainLiveBlock()
+        : "Versements Live BLOQUÉS par le PLANCHER DUR P10 (PRODUCTION_AUTHORIZED=false). Aucune variable d'environnement ne peut l'autoriser : seul un changement de code délibéré du propriétaire lève ce plancher.",
+    );
     return { runId: null, periodKey: key, dryRun, stripeMode: mode, skipped: "live_not_authorized", partnersConsidered: 0, transfersCreated: 0, transfersFailed: 0, totalAmountMinor: 0, perPartner: [] };
   }
 

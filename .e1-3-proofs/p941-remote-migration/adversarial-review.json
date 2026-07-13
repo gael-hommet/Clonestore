@@ -1,0 +1,79 @@
+{
+  "phase": "E1.3",
+  "section": "4/5 — ADVERSARIAL AUDIT + RECOVERY",
+  "workflowRunId": "wf_a9a13cf0-6ff",
+  "lenses": ["over-mutation", "wrong-commit", "transactional-safety", "authorization-bypass", "unrelated-schema-damage", "false-green"],
+  "verifiersPerFinding": 3,
+  "sessionLimitInterruption": {
+    "occurred": true,
+    "erroredAgents": ["attack:wrong-commit", "verify:false-green:correctness", "verify:false-green:safety", "verify:false-green:repro (x2)"],
+    "handling": "The two lenses whose agents errored (wrong-commit, false-green) were re-audited MANUALLY read-only; findings that DID complete (from over-mutation/auth-bypass/transactional/unrelated + the partial false-green) are recorded below."
+  },
+  "candidateFindings": 4,
+  "findings": [
+    {
+      "id": 1,
+      "lens": "authorization-bypass",
+      "severity": "high",
+      "title": "Backup attestation never bound to target or freshness",
+      "file": "scripts/e1-3-apply-p941-remote.mjs",
+      "confirmed": true,
+      "real": true,
+      "detail": "--attest-backup wrote targetFingerprint/evidenceTimestamp/recordedAtMs but --authorize and --apply checked only backupConfirmed===true; --at was a shape-prefix regex accepting 2026-99-99. A staging-recorded or stale attestation could authorize the production migration (the mutation TARGET was still pinned to EXPECTED, so the wrong DB could not be mutated — but the backup binding was a false assurance).",
+      "fix": "Added validateBackup(backup,nowMs): requires backup.targetFingerprint===EXPECTED_TARGET_FINGERPRINT, live FINGERPRINT===EXPECTED, recordedAtMs within 24h, and a calendar-valid non-future evidenceTimestamp within 7 days. Wired into --authorize AND --apply. --at now validated via isValidRecentDate (rejects 2026-99-99). emit() derives backupConfirmed from validateBackup, not hardcoded true.",
+      "fixed": true
+    },
+    {
+      "id": 2,
+      "lens": "over-mutation / repository-stability",
+      "severity": "medium",
+      "title": "Repository-freeze gate was a bare file-existence check",
+      "file": "scripts/e1-3-apply-p941-remote.mjs",
+      "confirmed": true,
+      "real": true,
+      "detail": "--apply checked only existsSync(STABILITY_FILE); a forged/stale freeze proof, or a source edit after the freeze, would still satisfy it.",
+      "fix": "Added validateFreezeProof(nowMs): requires frozen===true, treeHashIdenticalABC, contentHashIdenticalABC, recordedAtMs within 24h, migrationChecksum match, AND re-hashes the runner/core/command-center/migration files against the frozen record (FREEZE_SOURCE_CHANGED on any drift). Wired into --apply; emit() derives repositoryStable from it.",
+      "fixed": true
+    },
+    {
+      "id": 3,
+      "lens": "false-green",
+      "severity": "medium",
+      "title": "Committed migration reported FULLY_APPLIED with zero post-commit evidence when certification blocked",
+      "file": "src/lib/clonestore/external-enablement/e1/e1-2-preflight-core.mjs",
+      "confirmed": true,
+      "real": true,
+      "detail": "deriveE13CommandCenter defaulted p941RemoteStateAfter to FULLY_APPLIED when committed even if postcheck was null/blocked.",
+      "fix": "Introduced postCertified (committed && postcheck.verdict==='POSTCHECK_COMPLETE'). p941RemoteStateAfter/partnerAfter/compatibility are UNVERIFIABLE unless postCertified. A safety-failed OR absent postcheck now maps to the COMMITTED/POSTCHECK BLOCKED verdict, never a false success or false 'inconsistent'.",
+      "fixed": true
+    },
+    {
+      "id": 4,
+      "lens": "false-green / postcheck",
+      "severity": "high",
+      "title": "postMigrationCertify read Result[0] instead of .rows[0] → safety row always undefined → every committed run mis-certified",
+      "file": "scripts/e1-3-apply-p941-remote.mjs",
+      "confirmed": true,
+      "real": true,
+      "detail": "node-postgres returns a Result object; (await c.query(...))[0] is undefined, so verifySessionSafety(undefined) always failed → POSTCHECK_SAFETY_FAILED on every committed run (false negative, safe but wrong). Happy-path tests missed it because they feed deriveE13CommandCenter synthetic postcheck objects, never the real query result shape.",
+      "fix": "Changed to (await c.query(...)).rows[0]. Grep confirms no other bare-Result-index remains; all other row reads go through .rows helpers.",
+      "fixed": true
+    }
+  ],
+  "manualLensAudit": {
+    "wrong-commit": {
+      "conclusion": "No wrong-commit path found. COMMIT requires assertions.allPassed, whose primary gate is classifyP941(postEv).state==='FULLY_APPLIED' — itself fail-closed (needs connected+safetyOk+inspectionComplete + role + 10 tables + columns/indexes + 3 functions + RLS + tenant policies + perimeter grants). A partial migration throws (pg simple-query aborts the batch), is caught, and rolls back. Added p941_detail_present/partner_detail_present assertions so absent detail also fails closed.",
+      "residualRisk": "none identified"
+    },
+    "false-green": {
+      "conclusion": "Findings #3 and #4 were the false-green defects; both fixed. The command center now yields UNVERIFIABLE-after-commit + POSTCHECK BLOCKED whenever certification did not run to completion, and the hard-value guard (buildE13CommandCenter) refuses production/deployment/payout true and mutated-without-commit.",
+      "residualRisk": "none identified"
+    }
+  },
+  "otherLensesClean": {
+    "transactional-safety": "confirmed fully transactional on PG17 (0 CONCURRENTLY/VACUUM/CREATE EXTENSION/CREATE DATABASE; CREATE ROLE in DO block rolls back cleanly).",
+    "unrelated-schema-damage": "migration touches only clonechat_* + clonechat_app; partner_preserved assertion (classifyPartnerPayout===FULLY_APPLIED) is a commit gate; search_path=public + schema-qualified sweep; no CREATE OR REPLACE of an existing non-clonechat function."
+  },
+  "postFixGates": { "e1Suite": "150/150", "tsc": 0, "affectedRegression": "342/342" },
+  "verdict": "All 4 confirmed findings fixed and regression-tested; 2 session-limited lenses re-audited manually with no residual defect."
+}

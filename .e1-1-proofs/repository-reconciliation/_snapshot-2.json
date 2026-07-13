@@ -1,0 +1,733 @@
+{
+  "takenAtIso": "2026-07-11T19:45:13.986Z",
+  "root": "clonestore",
+  "dirs": [
+    "src/lib/partner-program",
+    "src/app/api/partners",
+    "src/app/partenaires",
+    "supabase/migrations"
+  ],
+  "files": [
+    "package.json",
+    "package-lock.json"
+  ],
+  "fileCount": 119,
+  "perimeterDigest": "f5caaebf5160b14885b0fde56928f243d3a5c981aa1366b98c12927f5d3e0b58",
+  "mtimeDigest": "6efdbd843ea6d7c0b9670bc5e2d389818b2c08e41a244a1888da4c492e358584",
+  "entries": [
+    {
+      "path": "package-lock.json",
+      "size": 335295,
+      "mtimeMs": 1782514983073,
+      "sha256": "50284ea1c4371e29ef7c8e9210aaacbd8ebe21577c1018d626773e9b3140a23b"
+    },
+    {
+      "path": "package.json",
+      "size": 62134,
+      "mtimeMs": 1783116226394,
+      "sha256": "a827bc03de54adf97932666cdb95e79d91e59d064dedbe1ae518ddc434debce5"
+    },
+    {
+      "path": "src/app/api/partners/admin/__tests__/admin-gate.test.ts",
+      "size": 3331,
+      "mtimeMs": 1783710013023,
+      "sha256": "127d16acb6e399312fd8cdf3c4447cbe8a020db8ec164c544b9c04473566e349"
+    },
+    {
+      "path": "src/app/api/partners/admin/action/route.ts",
+      "size": 8541,
+      "mtimeMs": 1783782965115,
+      "sha256": "273039383103ea0b93e37c0950413794ebeffd7a9ac216ce9f53674f73ad7f8d"
+    },
+    {
+      "path": "src/app/api/partners/admin/overview/route.ts",
+      "size": 2743,
+      "mtimeMs": 1783702640204,
+      "sha256": "30aad275039eae1aa2d665605f36ecda70add0abfec07a9510fe4148007bee5a"
+    },
+    {
+      "path": "src/app/api/partners/admin/partners/[id]/route.ts",
+      "size": 2369,
+      "mtimeMs": 1783788901996,
+      "sha256": "b0ab5276111ca5fb8be0d9739936556b1452ed9ae86259b56dbc4b3b5047feec"
+    },
+    {
+      "path": "src/app/api/partners/admin/partners/route.ts",
+      "size": 1963,
+      "mtimeMs": 1783788890664,
+      "sha256": "bd0bc0781e7395f471b4159c1f8fa7153d01c568b18c07834e7430a0629fcc94"
+    },
+    {
+      "path": "src/app/api/partners/apply/route.ts",
+      "size": 3607,
+      "mtimeMs": 1783779623823,
+      "sha256": "71bbb64999dfd352297a957f5b6f54d79698b4586428f47ee8d658741839419a"
+    },
+    {
+      "path": "src/app/api/partners/click/route.ts",
+      "size": 2111,
+      "mtimeMs": 1783702498003,
+      "sha256": "64e0bd9edd8f5895bdba4b2996e8818e276001da38d9e9cb783e63a69501760a"
+    },
+    {
+      "path": "src/app/api/partners/code/route.ts",
+      "size": 2259,
+      "mtimeMs": 1783779569457,
+      "sha256": "fd0486704a31f7153b350343e431dbf4c82cb0142ae92648710cb466ea38d978"
+    },
+    {
+      "path": "src/app/api/partners/connect/onboard/route.ts",
+      "size": 2078,
+      "mtimeMs": 1783702585406,
+      "sha256": "319a358bfe352fe012c3cb1dd4e6b903a76f34fba9f43248fcf230220b3018e4"
+    },
+    {
+      "path": "src/app/api/partners/contract/accept/route.ts",
+      "size": 1464,
+      "mtimeMs": 1783783977136,
+      "sha256": "914fb08534ae4c681357b0182df8177a6d89eef0c23a3e6cb1ea76c56dd3fe53"
+    },
+    {
+      "path": "src/app/api/partners/introductions/route.ts",
+      "size": 3544,
+      "mtimeMs": 1783779615148,
+      "sha256": "f72b2601dc427cfb822a5c560313f37d3657735683566eadbcabd69d4779b02b"
+    },
+    {
+      "path": "src/app/api/partners/me/route.ts",
+      "size": 4048,
+      "mtimeMs": 1783779597974,
+      "sha256": "8685f6e4091c58773b7c9fc081285823f7eaa092abb3c35365af2e44e8b00885"
+    },
+    {
+      "path": "src/app/partenaires/admin/AdminConsole.tsx",
+      "size": 63389,
+      "mtimeMs": 1783790150094,
+      "sha256": "f8b877ce9a03062ee5cf6ffd8eff8da14c7b4c5512fd8e92f16d1f0e8c190952"
+    },
+    {
+      "path": "src/app/partenaires/admin/admin-console.module.css",
+      "size": 6894,
+      "mtimeMs": 1783703107290,
+      "sha256": "5aa532db4425b69e2fac1d460bced3e5584a4efd1d0ca0018765c375df651ff7"
+    },
+    {
+      "path": "src/app/partenaires/admin/page.tsx",
+      "size": 886,
+      "mtimeMs": 1783703118380,
+      "sha256": "5ba5d7976806e4e1ae6002998789905ce852f4536f6bd70c53c2700524afcc0e"
+    },
+    {
+      "path": "src/app/partenaires/espace/PartnerSpace.tsx",
+      "size": 47911,
+      "mtimeMs": 1783783472779,
+      "sha256": "16a82ea0bb10a556958bbd1e585f5cb2d0f1b008ce6a0d9142d961810e31a817"
+    },
+    {
+      "path": "src/app/partenaires/espace/layout.tsx",
+      "size": 1134,
+      "mtimeMs": 1783703066205,
+      "sha256": "e1073ad657f46ac64962b94eb53d75f8978c939e4bef189706864cec926799c5"
+    },
+    {
+      "path": "src/app/partenaires/espace/page.tsx",
+      "size": 674,
+      "mtimeMs": 1783703073860,
+      "sha256": "418abff90297918f770a89c21e490b59bd5cd7193d561cd15fc8159b531c2c02"
+    },
+    {
+      "path": "src/app/partenaires/layout.tsx",
+      "size": 1182,
+      "mtimeMs": 1783703178355,
+      "sha256": "8410edadb62ac44681cdfcffa675ab26aedabce27c801823f8b29aaaf985162a"
+    },
+    {
+      "path": "src/app/partenaires/page.tsx",
+      "size": 1230,
+      "mtimeMs": 1783768976465,
+      "sha256": "591a8cd56d55e4e02a097c48e593df31cb7a36d0baeb783e13694f0de10fa395"
+    },
+    {
+      "path": "src/app/partenaires/partenaires.css",
+      "size": 33538,
+      "mtimeMs": 1783703154962,
+      "sha256": "d8ec1a985eef4600eaa67f935d02629edcc7e0ca6dd1b4e30f7954ec52af9453"
+    },
+    {
+      "path": "src/app/partenaires/r/[slug]/route.ts",
+      "size": 712,
+      "mtimeMs": 1783779576705,
+      "sha256": "fb4b0f429f7f24c97079e7159e1c6576f64ee59e5eda30af1c9515f498501aee"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/acceptance-e2e.itest.ts",
+      "size": 31615,
+      "mtimeMs": 1783794808724,
+      "sha256": "5e431c5001326f997e4a344f9c113c08317a378c9808ca25f1842997432e2930"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/admin-analytics.itest.ts",
+      "size": 12463,
+      "mtimeMs": 1783789932733,
+      "sha256": "b0622fe8076101017d77a1d4b02efc26b13a771a3a64350cd0bd5e88f4fb94e1"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/auto-onboarding.itest.ts",
+      "size": 28909,
+      "mtimeMs": 1783780244201,
+      "sha256": "d202b829d686612cf78f404a6723dd7dac45d984be9bb249389516ecd39e584a"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/backfill.itest.ts",
+      "size": 6837,
+      "mtimeMs": 1783783111617,
+      "sha256": "9f42618129b7639f069a5027b039c988b3b346302b81a859403f7f42c48dcfcd"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/commission-flow.itest.ts",
+      "size": 12457,
+      "mtimeMs": 1783794808725,
+      "sha256": "b0bf3e522e0fa2b51206b6e3789f1dc3744a7d0915d80171bb1c085245ef4b2f"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/emails-rls-connect.itest.ts",
+      "size": 6467,
+      "mtimeMs": 1783780451179,
+      "sha256": "69bee2c303168a4c042ece71c41ea3d79ac702ba49fb22ca7a361ca3f5cd24fa"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/idor-space.itest.ts",
+      "size": 4819,
+      "mtimeMs": 1783780451180,
+      "sha256": "9bab100509c1a27516d27f1a588b3e2b99251a9bf330e205412bac2a1758745a"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/migrations-rls.itest.ts",
+      "size": 4284,
+      "mtimeMs": 1783701120835,
+      "sha256": "dd41e1e69f637a4d718a6d72aae454d894500af78f6b9c268f1104da335fe820"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/partner-harness.ts",
+      "size": 2089,
+      "mtimeMs": 1783782591341,
+      "sha256": "9839da6eb4735dcea96740863551c38de439920908bc1d8983497a5b3930305b"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/payout-automation.itest.ts",
+      "size": 24315,
+      "mtimeMs": 1783794684913,
+      "sha256": "477dfa4f1836416a830ec970ffa866559ec3555a1fd220f95cd0f84b344315fd"
+    },
+    {
+      "path": "src/lib/partner-program/__integration__/routes.itest.ts",
+      "size": 5466,
+      "mtimeMs": 1783782650528,
+      "sha256": "9437f75f3a349f36ac900fef7a9949d47787a42470db95dba966477d4e32cef8"
+    },
+    {
+      "path": "src/lib/partner-program/__tests__/attribution-rules.test.ts",
+      "size": 2658,
+      "mtimeMs": 1783701917343,
+      "sha256": "2c3c60c9539b8db3f5669087c14b35cd949075bff417a708fc757e5a9456a931"
+    },
+    {
+      "path": "src/lib/partner-program/__tests__/live-authorization.test.ts",
+      "size": 5037,
+      "mtimeMs": 1783794646772,
+      "sha256": "104ca72034ecb1671cebb6e733603c46896499680bf47262030616e29ce3b789"
+    },
+    {
+      "path": "src/lib/partner-program/__tests__/money.test.ts",
+      "size": 4798,
+      "mtimeMs": 1783701899697,
+      "sha256": "be0166c06780fc2d37582c6eb45bbc91aa423aec5b18d637359c8ed32201a6a6"
+    },
+    {
+      "path": "src/lib/partner-program/__tests__/payout-rules.test.ts",
+      "size": 2275,
+      "mtimeMs": 1783701935600,
+      "sha256": "dfa601ada00b9e5cc2193c1a1a05529510bcfa60c507170b3f7097b65cc9a625"
+    },
+    {
+      "path": "src/lib/partner-program/attribution-rules.ts",
+      "size": 2954,
+      "mtimeMs": 1783701379790,
+      "sha256": "38a23d1f4bdd9fb70fcd03b4719464ca482178d584358ab4a005eb28c4a168e4"
+    },
+    {
+      "path": "src/lib/partner-program/calculator.ts",
+      "size": 1344,
+      "mtimeMs": 1783687959640,
+      "sha256": "18e674ea6c9032b9e3e3affa3224d17881776eaa604545069e87f8cdf9aa42fe"
+    },
+    {
+      "path": "src/lib/partner-program/contract.ts",
+      "size": 378,
+      "mtimeMs": 1783783982720,
+      "sha256": "95852fb6f03ac395d0d6f554040974c28613fac32c382f91f856badc312f8c67"
+    },
+    {
+      "path": "src/lib/partner-program/flags.ts",
+      "size": 1493,
+      "mtimeMs": 1783687926571,
+      "sha256": "63521c9015ac41cdf31c82a90263d8ff88da33392d9a65bb3d0cd07d1fb3d332"
+    },
+    {
+      "path": "src/lib/partner-program/live-authorization.ts",
+      "size": 4881,
+      "mtimeMs": 1783794334133,
+      "sha256": "c66acba3d22999fdb0c07de846f0b8ec90faedf94f1e8d5330a136c01f3e475e"
+    },
+    {
+      "path": "src/lib/partner-program/money.ts",
+      "size": 5581,
+      "mtimeMs": 1783687952917,
+      "sha256": "127a4f14ecf5547f8ba5ae7b11368301ab103504d997d8f7c42e048a65410a55"
+    },
+    {
+      "path": "src/lib/partner-program/onboarding-rules.ts",
+      "size": 6081,
+      "mtimeMs": 1783779045486,
+      "sha256": "e6570abb49bb4ee4605d91127fe20b0ddde305e7e1c72b8d98b2ca4c4f995dfc"
+    },
+    {
+      "path": "src/lib/partner-program/payout-rules.ts",
+      "size": 6136,
+      "mtimeMs": 1783788580170,
+      "sha256": "99f2388d6aa95226ae9c37d83cab57aef0a8ea3c8fa4b8abd4f4ef38c74f9cba"
+    },
+    {
+      "path": "src/lib/partner-program/server/admin-analytics.ts",
+      "size": 20945,
+      "mtimeMs": 1783788880197,
+      "sha256": "0be03b456f94fd71b89eb2bf90fd417813a9f034fe5af950f08349bb3e8c4b69"
+    },
+    {
+      "path": "src/lib/partner-program/server/applications.ts",
+      "size": 16788,
+      "mtimeMs": 1783782815972,
+      "sha256": "4ae4d3fac4d8ca0f84f75104e594f3f9b082b165a360eaf9af3ebb879afb3857"
+    },
+    {
+      "path": "src/lib/partner-program/server/attribution.ts",
+      "size": 22534,
+      "mtimeMs": 1783779519436,
+      "sha256": "ed186f1cb495d94942d34a9ffa6cd21e2a6e0e29cda9249e265ccf847d23e7d7"
+    },
+    {
+      "path": "src/lib/partner-program/server/audit.ts",
+      "size": 1018,
+      "mtimeMs": 1783701220538,
+      "sha256": "14b85b9983a7c53d913cdedaeb9c84faf1475a8cdabbedd3fdfb1f051d0db718"
+    },
+    {
+      "path": "src/lib/partner-program/server/backfill.ts",
+      "size": 8462,
+      "mtimeMs": 1783783104193,
+      "sha256": "41b807f9f72b14e0906504f128764d020546b1a87b2fc5fc40a1f1a5650a7a02"
+    },
+    {
+      "path": "src/lib/partner-program/server/commission.ts",
+      "size": 16996,
+      "mtimeMs": 1783703124242,
+      "sha256": "94c00d0e27c0a0b12161cae13e7b3c4f698caa45f768d79ad01e33ff7710c7db"
+    },
+    {
+      "path": "src/lib/partner-program/server/connect.ts",
+      "size": 6631,
+      "mtimeMs": 1783788730412,
+      "sha256": "f0ecd37bb07e84e0daa549c39ad346e1afbdc267410c7c67e123e318241b2113"
+    },
+    {
+      "path": "src/lib/partner-program/server/emails.ts",
+      "size": 14498,
+      "mtimeMs": 1783788768805,
+      "sha256": "cf24d4b50c122f70697aa75c2b8b161e81612a128d8497004518349042de1467"
+    },
+    {
+      "path": "src/lib/partner-program/server/identity.ts",
+      "size": 5742,
+      "mtimeMs": 1783779079406,
+      "sha256": "7146c5e1a881d0e47870720a45c0b6d8de7ce5dff6df5d520d5c2f47647bb3d6"
+    },
+    {
+      "path": "src/lib/partner-program/server/introductions.ts",
+      "size": 9467,
+      "mtimeMs": 1783779431465,
+      "sha256": "2eb43ae96d893cbbdfe6d8969e026896b48e8c827cda630a1ca1691c01864de4"
+    },
+    {
+      "path": "src/lib/partner-program/server/partner-auth.ts",
+      "size": 1993,
+      "mtimeMs": 1783702536206,
+      "sha256": "58fbd214a581b38a7a36b1a776ed2e8c5e199903af9a8827b7f6be6f0027159a"
+    },
+    {
+      "path": "src/lib/partner-program/server/partners.ts",
+      "size": 12362,
+      "mtimeMs": 1783779235737,
+      "sha256": "7843cbda9ab61e3282e009c84edea42bd5bec28f294686f016e02914904509bb"
+    },
+    {
+      "path": "src/lib/partner-program/server/payouts.ts",
+      "size": 31130,
+      "mtimeMs": 1783794619778,
+      "sha256": "70c500cf8e6e95a35c76713ed8ea6f764af1051ad5720dfbb5f763d79bd640ef"
+    },
+    {
+      "path": "src/lib/partner-program/server/referral-cookie.ts",
+      "size": 1467,
+      "mtimeMs": 1783702421943,
+      "sha256": "0d609184d8d5ade6ffbddf0ae71e064892e8f6e4fd243635cb8788d49ccc0743"
+    },
+    {
+      "path": "src/lib/partner-program/server/runtime.ts",
+      "size": 2504,
+      "mtimeMs": 1783701083534,
+      "sha256": "d9c6297c62d116475971dd3f29b80d480f0cccad1b97a44d1a4b186cac4b6cde"
+    },
+    {
+      "path": "src/lib/partner-program/server/settings.ts",
+      "size": 3477,
+      "mtimeMs": 1783701183730,
+      "sha256": "65cbcd5ff33436550cfe24231e53fe52a54e6030f1a9b9d0ae2d9dbaad1cfc41"
+    },
+    {
+      "path": "src/lib/partner-program/server/stripe-bridge.ts",
+      "size": 5570,
+      "mtimeMs": 1783788748563,
+      "sha256": "1430ff7e4ea88e333d041be17b8a290a81dcfda34a762c64484ac8c929b56db3"
+    },
+    {
+      "path": "src/lib/partner-program/server/summary.ts",
+      "size": 5137,
+      "mtimeMs": 1783701613775,
+      "sha256": "f3ea71a747e83b10aa109baf3e2a91555e088cd6f67e8ba226e0453a8573ac1d"
+    },
+    {
+      "path": "supabase/migrations/2026-02-03__pierre_queue_updated_at.sql",
+      "size": 258,
+      "mtimeMs": 1770143991540,
+      "sha256": "f131f9358d750e5c9f9bb5587c81e7790651fa61285a3f3d1abee9a0ac6f6878"
+    },
+    {
+      "path": "supabase/migrations/2026-06-15__pierre_v1_runtime.sql",
+      "size": 16397,
+      "mtimeMs": 1782514985227,
+      "sha256": "ec6a41aecd87c022475c401ee0e7db013cdcf3f17edfd5594b7636bc443b5dc4"
+    },
+    {
+      "path": "supabase/migrations/2026-06-15__pierre_v2_tenancy_rbac_employee360.sql",
+      "size": 10429,
+      "mtimeMs": 1782514985231,
+      "sha256": "3ed1f0fe88e40b81cb7191a1b09b7450a635aed147b6d7cf306eb9384934ec7c"
+    },
+    {
+      "path": "supabase/migrations/2026-06-15__pierre_v3_enterprise_complete.sql",
+      "size": 24778,
+      "mtimeMs": 1782514985232,
+      "sha256": "00b4b7431832c6c1a9f094a72f0eac5063f3ad32f679566fdac50d42d6f23712"
+    },
+    {
+      "path": "supabase/migrations/2026-06-15__pierre_v4_operational_closure.sql",
+      "size": 5641,
+      "mtimeMs": 1782514985234,
+      "sha256": "6a8837b3bc52f85403c077dc052eeb79294c46b46c0d3f369eea3c128822f3d9"
+    },
+    {
+      "path": "supabase/migrations/2026-06-16__pierre_v5_files_documents_contracts_signatures.sql",
+      "size": 25038,
+      "mtimeMs": 1782514985235,
+      "sha256": "da63595872ebd33930cc023b940684bd57c0584e555cb3b9611ef4b5f31dae91"
+    },
+    {
+      "path": "supabase/migrations/2026-06-16__pierre_v6_hardening_fks_webhook_ingress.sql",
+      "size": 5191,
+      "mtimeMs": 1782514985237,
+      "sha256": "a0b36e2acca39c3c3c2690f2f4b97a0db932fb2e330cd4626cb651ce7071bb91"
+    },
+    {
+      "path": "supabase/migrations/2026-06-16__pierre_v7_webhook_ingress_fk_semantics.sql",
+      "size": 5585,
+      "mtimeMs": 1782514985238,
+      "sha256": "383d0f107924ab14d4039a8ef1ffbe1a2301a4a54013a39811a9ea0e87b43bdb"
+    },
+    {
+      "path": "supabase/migrations/2026-06-16__pierre_v8_template_fingerprint.sql",
+      "size": 585,
+      "mtimeMs": 1782514985240,
+      "sha256": "3a453bddfedc901c1688d35c91a8af096f28a3f158a9bd8741ef471992733621"
+    },
+    {
+      "path": "supabase/migrations/2026-06-16__pierre_v9_template_immutability_trigger.sql",
+      "size": 3462,
+      "mtimeMs": 1782514985242,
+      "sha256": "f64807256d55c85b5d001e14ba7ef6a38b92493cd2e9ab6154ccc71b015bd91f"
+    },
+    {
+      "path": "supabase/migrations/2026-06-17__pierre_v10_template_db_guards_permissions.sql",
+      "size": 8689,
+      "mtimeMs": 1782514985244,
+      "sha256": "6fd0a045ffb7fd92ac761cecdb6d2bba9c83bc43d1d0c68cdf6f75276e29d43a"
+    },
+    {
+      "path": "supabase/migrations/2026-06-18__pierre_v11_custom_field_definitions.sql",
+      "size": 2221,
+      "mtimeMs": 1782514985245,
+      "sha256": "c33bd0f88d13992ec6346270ad8b05c6c154730085545e2f132acc0ab764aba1"
+    },
+    {
+      "path": "supabase/migrations/2026-06-19__clonestore_founder_access.sql",
+      "size": 9236,
+      "mtimeMs": 1782514985248,
+      "sha256": "5a58bbb5c0a50394ec5c3239e23056999ca041f96c126ea1e912fed770bab1e6"
+    },
+    {
+      "path": "supabase/migrations/2026-06-19__clonestore_founder_access_hardening.sql",
+      "size": 5963,
+      "mtimeMs": 1782514985249,
+      "sha256": "e124af192e82b565a19f192172ebf431a9285fff8a2940d91589dbabad3bb648"
+    },
+    {
+      "path": "supabase/migrations/2026-06-19__pierre_v12_fk_matrix_integrity.sql",
+      "size": 8252,
+      "mtimeMs": 1782514985252,
+      "sha256": "1872316e49aa51b3575b620998d66dfcfa2ff91c96c365dc4b0140a088059cd0"
+    },
+    {
+      "path": "supabase/migrations/2026-06-20__clonestore_founder_email_queue.sql",
+      "size": 1574,
+      "mtimeMs": 1782514985253,
+      "sha256": "b255f203801e8464f03a138f6b87a0a4783bbc3b4f4b4825bd18f5d07666c213"
+    },
+    {
+      "path": "supabase/migrations/2026-06-20__pierre_v13_webhook_ingress_function.sql",
+      "size": 6112,
+      "mtimeMs": 1782514985254,
+      "sha256": "508965e56b2e650dc6548f28c79093e1003c0e5539f36d5cc47d2720d5f28994"
+    },
+    {
+      "path": "supabase/migrations/2026-06-21__clonestore_founder_activation.sql",
+      "size": 1024,
+      "mtimeMs": 1782514985257,
+      "sha256": "d78c717eb777592d1b73a833451e339bc4285045a02a762cdf3b073b30e907f0"
+    },
+    {
+      "path": "supabase/migrations/2026-06-21__pierre_v14_contract_workflow_guards.sql",
+      "size": 11421,
+      "mtimeMs": 1782514985258,
+      "sha256": "e226a69396d8fa0459009fbbb478e68725967462a24f5beb1f596769c2187695"
+    },
+    {
+      "path": "supabase/migrations/2026-06-22__clonestore_founder_er1.sql",
+      "size": 2558,
+      "mtimeMs": 1782514985260,
+      "sha256": "9f80f28ebf698cc8d6c65989f2bb4289524deb8a870ea8a6be32f62db13e4230"
+    },
+    {
+      "path": "supabase/migrations/2026-06-22__pierre_v15_contract_truth_closure.sql",
+      "size": 6775,
+      "mtimeMs": 1782514985261,
+      "sha256": "b5f0a6dc0e02f230bff5a4c23370222f331c8b51dcef2e58fc735416890f9077"
+    },
+    {
+      "path": "supabase/migrations/2026-06-23__clonestore_founder_er2.sql",
+      "size": 2699,
+      "mtimeMs": 1782514985263,
+      "sha256": "0f48911bb7fcbd02e3f4e3a201045bd98d6cb7178f7eebccd3950e9dff6990c1"
+    },
+    {
+      "path": "supabase/migrations/2026-06-23__pierre_v16_signature_provider_runtime.sql",
+      "size": 9548,
+      "mtimeMs": 1782514985266,
+      "sha256": "82684b19ba3203a1748fbcaee350e7022612ce88934fd346e7f21c22e06fc8a7"
+    },
+    {
+      "path": "supabase/migrations/2026-06-24_01__clonestory_fp_founding_partners.sql",
+      "size": 15386,
+      "mtimeMs": 1782514985267,
+      "sha256": "70d0a8dea5004da0175ed31d9f578d7998d9b58253580d30b4103dc87010e46e"
+    },
+    {
+      "path": "supabase/migrations/2026-06-24_02__clonestory_fp_token_hash.sql",
+      "size": 1399,
+      "mtimeMs": 1782514985269,
+      "sha256": "98e3b91d98caccb66461a333c6d902ebae3d154ee9abfe0a42c437168e281c75"
+    },
+    {
+      "path": "supabase/migrations/2026-06-24_03__clonestory_fp_email_outbox.sql",
+      "size": 2271,
+      "mtimeMs": 1782514985269,
+      "sha256": "bbd89edb003eb0d75d7bab0533aafca585505955010d59075aa3dab0581362bc"
+    },
+    {
+      "path": "supabase/migrations/2026-06-24_04__clonestory_fp_outbox_delivery.sql",
+      "size": 1768,
+      "mtimeMs": 1782514985272,
+      "sha256": "5c0e4a1a1e74e6c698361407f9f18be84005b52b2cb0dd259e46e6f153b946cc"
+    },
+    {
+      "path": "supabase/migrations/2026-06-24__clonestore_founder_er2b_journal_role.sql",
+      "size": 3574,
+      "mtimeMs": 1782514985273,
+      "sha256": "34d8d176223ae69ad117b542d06d61dc05e6271eeb3d518b0f9a1ffdc0b88ab6"
+    },
+    {
+      "path": "supabase/migrations/2026-06-24__pierre_v17_signature_provider_truth.sql",
+      "size": 11652,
+      "mtimeMs": 1782514985274,
+      "sha256": "7ac4dd68f9bbb8f6af96671666c3859d5b78865954d78d6540ffe92eb58e4284"
+    },
+    {
+      "path": "supabase/migrations/2026-06-25_05__clonestory_fp_partner_account_and_distinctions.sql",
+      "size": 6476,
+      "mtimeMs": 1782514985276,
+      "sha256": "cf1f848e647e6755c589158ce9235ba68124e0eb2dfe81f917966ec3a253aa9b"
+    },
+    {
+      "path": "supabase/migrations/2026-06-25__clonestore_founder_cron_runs.sql",
+      "size": 1532,
+      "mtimeMs": 1782514985278,
+      "sha256": "c44a2e8d4d8cba339be96fb130dbcd7bcf00c0873df5d9d73331257a3321bce7"
+    },
+    {
+      "path": "supabase/migrations/2026-06-25__pierre_v18_signature_security_closure.sql",
+      "size": 26438,
+      "mtimeMs": 1782574366998,
+      "sha256": "590866ee5afa5545475d9dd304a4b75d8dc9772334206841912e05901844b186"
+    },
+    {
+      "path": "supabase/migrations/2026-06-26_06__clonestory_fp_attribution_engine.sql",
+      "size": 7082,
+      "mtimeMs": 1782514985281,
+      "sha256": "6fd61e7ae2917fd41d5284d7790c6ff156c32b90a303fe9f1f405bd3e49518fc"
+    },
+    {
+      "path": "supabase/migrations/2026-06-26_07__clonestory_fp_commercial_contributions.sql",
+      "size": 12609,
+      "mtimeMs": 1782514985282,
+      "sha256": "523a2bde721d44119a24581ff019647a2014b69239ceb23ad853c55eae9711de"
+    },
+    {
+      "path": "supabase/migrations/2026-06-26_08__clonestory_fp_hardening_admin_compliance.sql",
+      "size": 10819,
+      "mtimeMs": 1782514985284,
+      "sha256": "d4912b2df90c72f0baf732f912b96dbaeb08a38f521c314c4d2baa6a3b4b8d04"
+    },
+    {
+      "path": "supabase/migrations/2026-06-26_09__clonestory_fp_scale_indexes.sql",
+      "size": 1868,
+      "mtimeMs": 1782514985286,
+      "sha256": "ecb81d07cd9b2750b2492d1ccdbf671b0e707b6f17841c44a82171e28bd85b37"
+    },
+    {
+      "path": "supabase/migrations/2026-06-27__pierre_v19_signature_semantic_integrity.sql",
+      "size": 18922,
+      "mtimeMs": 1782578772399,
+      "sha256": "45e8a88394914230e2f85c9c771ab7736118988d8e5b615ec36fc1d2f83ae49b"
+    },
+    {
+      "path": "supabase/migrations/2026-06-28__pierre_v20_communication_delivery_core.sql",
+      "size": 37561,
+      "mtimeMs": 1782588962263,
+      "sha256": "718232fc7a50cc2a48167eba2d7e3bcb771d120437b8106b79708f56cd070d7b"
+    },
+    {
+      "path": "supabase/migrations/2026-06-29__pierre_v21_communication_runtime_truth.sql",
+      "size": 15596,
+      "mtimeMs": 1782607445956,
+      "sha256": "5f3deab6f080266a6097729d1c21f1139b7f672c63e12fd49afa713ba54ef524"
+    },
+    {
+      "path": "supabase/migrations/2026-06-30__pierre_v22_governed_autonomous_runtime.sql",
+      "size": 64446,
+      "mtimeMs": 1782655554567,
+      "sha256": "a2c644881e49dc3544a32227a3f4e5d76f80e5321ffa5fa86fe3d9e781cb6490"
+    },
+    {
+      "path": "supabase/migrations/2026-07-01__pierre_v23_runtime_truth_closure.sql",
+      "size": 14879,
+      "mtimeMs": 1782662715995,
+      "sha256": "45233163e83325db927099b5d188b4d9e3e6b9b72295b87ce74dd9f48e01913e"
+    },
+    {
+      "path": "supabase/migrations/2026-07-02__pierre_v24_runtime_final_closure.sql",
+      "size": 3623,
+      "mtimeMs": 1782664733079,
+      "sha256": "98ca4582da70f27f75f3e03b27edbe681b6a5c6e56a502750aa82076887c6475"
+    },
+    {
+      "path": "supabase/migrations/2026-07-03__pierre_v25_runtime_absolute_closure.sql",
+      "size": 2327,
+      "mtimeMs": 1782666810050,
+      "sha256": "cbe56bd4bb5576e3e8901470cce38cfb685f198da516d347a1c9cc7086943cbf"
+    },
+    {
+      "path": "supabase/migrations/2026-07-04__pierre_v26_runtime_tenant_leases.sql",
+      "size": 12605,
+      "mtimeMs": 1782673471129,
+      "sha256": "0679bbfc7d06ce864e602dcd2206844bc58eccb8fe77de417c50b75204ac418d"
+    },
+    {
+      "path": "supabase/migrations/2026-07-05__pierre_v27_canonical_plan_hash.sql",
+      "size": 7874,
+      "mtimeMs": 1782673946384,
+      "sha256": "a6c7b5e9187ddde33a1411958495234a18b6a5748b1eb1507ac1dcd450f920dc"
+    },
+    {
+      "path": "supabase/migrations/2026-07-05__pierre_v27_cognitive_memory.sql",
+      "size": 6693,
+      "mtimeMs": 1783417438618,
+      "sha256": "3826c60efd7da8a3f5ebcb6caacde95f275b48fbb56f392a2c99594f2d7dcf72"
+    },
+    {
+      "path": "supabase/migrations/2026-07-06__pierre_v28_customer_product_access_lifecycle.sql",
+      "size": 62525,
+      "mtimeMs": 1782696580465,
+      "sha256": "1ff5f666d3239e82756f5fb5d5bd62f556f57940b5282a217cdda163bcd72688"
+    },
+    {
+      "path": "supabase/migrations/2026-07-10_01__clonestore_pp_core.sql",
+      "size": 25375,
+      "mtimeMs": 1783688053324,
+      "sha256": "c48f9b6ad8d19681da6da89e21b9f6fe4e41bda9311be5c8cd584c8d867fdf54"
+    },
+    {
+      "path": "supabase/migrations/2026-07-10_02__clonestore_pp_finance.sql",
+      "size": 20388,
+      "mtimeMs": 1783701493153,
+      "sha256": "ade8d137d635dd586d0722004f2f1c0e631c3249a971d3ff6eee2793ebdc5453"
+    },
+    {
+      "path": "supabase/migrations/2026-07-10_03__clonestore_pp_emails.sql",
+      "size": 2516,
+      "mtimeMs": 1783702920274,
+      "sha256": "6937be85e0a017c9df1a284ec638c49dd5d98699cd6eae8c50f5da10d819cfe4"
+    },
+    {
+      "path": "supabase/migrations/2026-07-10_10__clonestore_orders_stripe_events.sql",
+      "size": 2626,
+      "mtimeMs": 1783700047888,
+      "sha256": "0f3dcf1ee3f1011da6cdcbf3159042658bb1e91a4ec1061bf018e23a59f65a02"
+    },
+    {
+      "path": "supabase/migrations/2026-07-11_04__clonestore_pp_auto_onboarding.sql",
+      "size": 8190,
+      "mtimeMs": 1783779100921,
+      "sha256": "e06badb74bc5898d16a3266a099e8adbd9bc6ec341caf135345dcba937e27ec4"
+    },
+    {
+      "path": "supabase/migrations/2026-07-11_05__clonestore_pp_payout_automation.sql",
+      "size": 5081,
+      "mtimeMs": 1783788560230,
+      "sha256": "d2e16a3832cfc232e1eac22ee9ac49d3a7c399dc83ca3670cdb8f25f4990a7f1"
+    },
+    {
+      "path": "supabase/migrations/README.md",
+      "size": 452,
+      "mtimeMs": 1770144033167,
+      "sha256": "edcbbc8d1a1fc7a9b689c7ea90099b1a06690c48b1213fdb7af7909f4e3e4192"
+    }
+  ]
+}

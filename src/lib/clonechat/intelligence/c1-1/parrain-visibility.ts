@@ -14,12 +14,15 @@ import type {
 /** Visibilités autorisées par mode — RESTRICTED_SECRET n'apparaît JAMAIS. */
 export function allowedParrainVisibilities(mode: ParrainViewerMode): readonly ParrainVisibility[] {
   switch (mode) {
+    // SESSION_EPHEMERAL : le fichier que l'utilisateur vient lui-même de joindre. Il est visible
+    // dans TOUS les modes (y compris anonyme) — c'est SON contenu — mais il n'est jamais lié à
+    // une entreprise, donc il ne peut jamais servir de pont vers des données tenant.
     case "public":
-      return ["PUBLIC"];
+      return ["PUBLIC", "SESSION_EPHEMERAL"];
     case "client":
-      return ["PUBLIC", "AUTHENTICATED_CLIENT", "COMPANY_SCOPED"];
+      return ["PUBLIC", "SESSION_EPHEMERAL", "AUTHENTICATED_CLIENT", "COMPANY_SCOPED"];
     case "founder":
-      return ["PUBLIC", "AUTHENTICATED_CLIENT", "COMPANY_SCOPED", "FOUNDER_INTERNAL"];
+      return ["PUBLIC", "SESSION_EPHEMERAL", "AUTHENTICATED_CLIENT", "COMPANY_SCOPED", "FOUNDER_INTERNAL"];
   }
 }
 
@@ -51,6 +54,7 @@ export function toLegacyVisibility(v: ParrainVisibility): KnowledgeVisibility {
   switch (v) {
     case "PUBLIC":
       return "PUBLIC";
+    case "SESSION_EPHEMERAL":
     case "AUTHENTICATED_CLIENT":
     case "COMPANY_SCOPED":
       return "AUTHENTICATED_CLIENT";

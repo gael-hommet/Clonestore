@@ -1,0 +1,23 @@
+{
+  "runId": "repository-reconciliation",
+  "serverResolvedIdentity": {
+    "contract/accept": true,
+    "introductions": true,
+    "me": true
+  },
+  "failClosedOnUnauthenticated": {
+    "contract/accept": true,
+    "introductions": true,
+    "me": true
+  },
+  "partnerIdNeverTakenFromClient": {
+    "contract/accept": true,
+    "introductions": true
+  },
+  "acceptRouteTakesNoBody": true,
+  "noStoreHeaders": true,
+  "weakenedByE11": false,
+  "stripeActivatedByE11": false,
+  "payoutsActivatedByE11": false,
+  "note": "E1.1 n'a rien modifié ici : audit en lecture seule. L'identité partenaire est résolue SERVEUR depuis la session ; aucun identifiant client n'est accepté."
+}

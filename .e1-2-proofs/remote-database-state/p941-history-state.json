@@ -1,0 +1,9 @@
+{
+  "phase": "E1.2",
+  "migration": "supabase/migrations-p941/2026-07-07__p941_clonechat_durable.sql",
+  "localSha256": "4a879e8cbfa260e8bebdbef5203213f3086015b3a8c77c8748c2b7325d15dc7b",
+  "state": "NO_LEDGER_FOR_THIS_MIGRATION",
+  "reason": "No migration-history mechanism records this file. The only remote ledger is public.pierre_rt_schema_migrations, written solely by scripts/p87-activate-remote.mjs, which filters on \"pierre_v\". History can therefore neither confirm nor refute this migration — object state is the only admissible evidence.",
+  "ledgerPresent": true,
+  "supabaseCliPresent": false
+}

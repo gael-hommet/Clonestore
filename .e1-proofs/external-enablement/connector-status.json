@@ -1,0 +1,5 @@
+{
+  "slack": false,
+  "status": "NOT_REQUIRED_FOR_LAUNCH",
+  "note": "connector interface ≠ connected system."
+}

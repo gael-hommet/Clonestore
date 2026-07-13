@@ -1,0 +1,22 @@
+[
+  {
+    "id": "legal.company_identity",
+    "action": "Register/declare the legal entity; fill éditeur, directeur de publication, RCS/SIREN/SIRET, VAT intracommunautaire, siège social.",
+    "validation": "Manual review that /legal/mentions no longer contains 'Placeholder' and a lawyer attests."
+  },
+  {
+    "id": "legal.country_launch",
+    "action": "Per-country legal review (labour law, HR disclaimers) for FR/BE/LU/CH by qualified counsel.",
+    "validation": "Signed legal opinion per country recorded in the legal-tax artifact registry (hash+date+source)."
+  },
+  {
+    "id": "legal.privacy_documents",
+    "action": "Lawyer validates CGU/CGV/DPA/privacy/mentions; resolve placeholders; obtain sign-off.",
+    "validation": "Legal-pages verdict all_required_pages_validated=true after lawyer sign-off (manual flags)."
+  },
+  {
+    "id": "legal.cookie_privacy_config",
+    "action": "Define cookie policy + consent banner if required (CNIL/ePrivacy).",
+    "validation": "Legal review confirms cookie compliance."
+  }
+]

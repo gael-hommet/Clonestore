@@ -1,0 +1,10 @@
+{
+  "runId": "access-openai-runtime",
+  "invariant": "AUCUNE RÉSERVATION ⇒ AUCUN APPEL OPENAI",
+  "codeProof": "const useModel = pubReservation.granted && !!key && cfg.enabled  → le responder n'est CONSTRUIT que si useModel",
+  "enforced": true,
+  "measuredNotAsserted": true,
+  "measurement": "reservedSeq = ++seq à la réservation accordée ; providerSeq = ++seq dans le décorateur AVANT le franchissement réseau ; reservedBeforeProvider = (providerSeq === 0) ? null : reservedSeq > 0 && reservedSeq < providerSeq",
+  "refutable": "sans appel provider le champ vaut null (jamais true) — verrouillé par test de régression",
+  "runtimeProof": "real-openai-browser.json → providerCalled=true, reservationGranted=true, reservedBeforeProvider=true (mesuré) sur chaque appel provider"
+}

@@ -1,0 +1,23 @@
+{
+  "captured": "2026-07-13 P16E",
+  "environment": "local only; no remote DB; no live provider; no deploy; no commit",
+  "scoped_suites": [
+    { "perimeter": "src/lib/pierre", "result": "5281 passed / 0 failed / 1 skipped" },
+    { "perimeter": "src/lib/pierre + src/lib/clonechat + src/app/api/assistant (consolidated after P16E fixes)", "result": "5819 passed / 0 failed / 1 skipped" },
+    { "perimeter": "src/lib/clonechat + src/app/api/assistant + src/app/assistant", "result": "569 passed / 0 failed" },
+    { "perimeter": "src/lib/clonestore/integration/p16c + src/lib/client-cockpit + src/lib/access", "result": "165 passed / 0 failed" }
+  ],
+  "p16e_new_tests": [
+    { "test": "src/lib/pierre/v1/__integration__/p16e-r1-role-revocation.itest.ts", "result": "4 passed", "proves": "R1 role revocation" },
+    { "test": "src/lib/pierre/v1/__tests__/p16e-r2-required-fields.test.ts", "result": "9 passed", "proves": "R2 required-field readiness (refuted-by-design, proven)" },
+    { "test": "src/lib/pierre/v1/__integration__/p16e-r3-guard-before-execution.itest.ts", "result": "2 passed", "proves": "R3 guard-before-execution (no side effect on black task)" },
+    { "test": "src/lib/pierre/__tests__/p16e-entity-resolution.test.ts", "result": "6 passed", "proves": "§7A employee disambiguation" },
+    { "test": "src/lib/pierre/v1/__integration__/p16e-autonomy-clamp.itest.ts", "result": "5 passed", "proves": "§8 autonomy clamp to company ceiling" }
+  ],
+  "environmental_pre_existing_failures": {
+    "suite": "p85-r4-tenant-leases.itest.ts + p85-r4-tenant-fairness.itest.ts",
+    "count": 7,
+    "cause": "lease_fencing DB function / pierre_rt_worker+scheduler DB roles not provisioned in this PGlite migration set",
+    "unrelated_to_p16e": "proven — neither file references any changed code; fail in isolation on a clean tree"
+  }
+}

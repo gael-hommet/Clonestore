@@ -1,0 +1,33 @@
+{
+  "phase": "E1.2",
+  "section": "13 — LOCAL TESTS",
+  "testsAdded": 0,
+  "testsRun": 0,
+  "tscRun": false,
+  "buildRun": false,
+  "reason": "E1.2 halted at §1. Running vitest/tsc/build now would measure a repository that a foreign agent is actively rewriting (4 file mutations observed inside a 96s window). Any green would be volatile and uncertifiable — the exact failure mode E1.1 refused to certify. Deferred to the unblocked run.",
+  "plannedTestContract": [
+    "no connection occurs without --connect",
+    "explicit authorization state is required",
+    "database URL is never printed",
+    "credentials are never printed",
+    "mutation keywords are rejected",
+    "customer-table row queries are rejected",
+    "only catalog/information-schema/migration metadata is allowed",
+    "statement timeout is configured",
+    "read-only transaction is enforced",
+    "remote errors are sanitized",
+    "migration file presence does not imply remote application",
+    "migration-history presence does not imply object correctness",
+    "partial state is detected",
+    "incompatible role attributes are detected",
+    "BYPASSRLS is a blocker",
+    "broad grants are a blocker",
+    "missing RLS is a blocker",
+    "missing idempotency constraints are a blocker",
+    "test/live schema mixing is a blocker",
+    "no remote mutation can occur from the preflight",
+    "production remains false",
+    "deployment remains false"
+  ]
+}

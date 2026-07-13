@@ -1,0 +1,11 @@
+{
+  "viewport": "390x844",
+  "realWorkspace": true,
+  "composerEnabled": true,
+  "noHorizontalOverflow": true,
+  "source": "openai_public",
+  "provider": "openai",
+  "inputTokens": 1447,
+  "outputTokens": 165,
+  "isRealProvider": true
+}

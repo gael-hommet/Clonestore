@@ -1,0 +1,15 @@
+{
+  "file": "supabase/migrations/2026-07-11_05__clonestore_pp_payout_automation.sql",
+  "presentLocally": true,
+  "appliedRemotely": false,
+  "appliedByThisSession": false,
+  "remoteStateVerified": false,
+  "remoteState": "UNKNOWN",
+  "introducedBy": "the concurrent partner workstream (not E1.1)",
+  "requires": [
+    "separate operator review",
+    "a database backup before application",
+    "explicit owner authorization"
+  ],
+  "hardRule": "The presence of the SQL file — and the fact that its tests pass — NEVER implies remote application. Code and tests prove behaviour, not deployment."
+}

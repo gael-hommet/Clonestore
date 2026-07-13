@@ -1,0 +1,10 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "command": "npm run build",
+  "exitCode": 0,
+  "compiled": "Compiled successfully in 66s",
+  "staticPages": "192/192",
+  "assistantChatRoute": "Dynamic (server-rendered on demand)",
+  "typeErrors": 0
+}

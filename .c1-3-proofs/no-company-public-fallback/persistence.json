@@ -1,0 +1,7 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "activeCompany": "persistance DURABLE tenant-scopee inchangee",
+  "noCompanyPublic": "AUCUNE persistance durable (durable:false) — le schema de conversation est scope entreprise ; on n'invente jamais de companyId ni 'u:<userId>'",
+  "honestLimitation": "les reponses du mode decouverte ne sont pas dans l'historique durable multi-device ; le fil local UI est preserve. Ne bloque jamais la reponse."
+}

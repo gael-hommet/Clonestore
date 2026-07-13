@@ -1,0 +1,60 @@
+{
+  "runId": "repository-reconciliation",
+  "processInspection": "node/next/vitest inspectés au démarrage : aucun `next dev` ni `next build` concurrent ; 3 processus `next start` orphelins sans écouteur (NON tués — un autre chantier n'est jamais arrêté automatiquement).",
+  "snapshots": [
+    {
+      "label": "1",
+      "time": "18:44:12",
+      "files": 132
+    },
+    {
+      "label": "2 (+65 s)",
+      "time": "18:45:34",
+      "files": 132,
+      "diff": 0,
+      "verdict": "PÉRIMÈTRE STABLE → autorisation d'analyser (aucune édition partner ne s'est révélée nécessaire)"
+    },
+    {
+      "label": "3 (pendant les gates)",
+      "time": "≈19:40",
+      "files": 138,
+      "diff": ">0",
+      "verdict": "LE CHANTIER A REPRIS — automatisation des reversements + NOUVELLE migration SQL"
+    },
+    {
+      "label": "A/B (+70 s)",
+      "time": "19:47:43 → 19:49:08",
+      "files": 138,
+      "diff": 0,
+      "verdict": "calme momentané"
+    },
+    {
+      "label": "4 (pendant la génération des preuves)",
+      "time": "20:25 → 20:33",
+      "files": 140,
+      "diff": ">0",
+      "verdict": "LE CHANTIER A REPRIS À NOUVEAU — live-authorization.ts, payouts.ts ; PayoutDeps.stripeMode a cassé PUIS réparé la compilation"
+    },
+    {
+      "label": "F1/F2 (+75 s)",
+      "time": "20:49:51 → 20:51:23",
+      "files": 140,
+      "diff": 0,
+      "verdict": "calme momentané — NE PROUVE PAS la fin des travaux"
+    }
+  ],
+  "writeBursts": [
+    "≈16:10–16:41",
+    "17:18–17:33",
+    "18:49–19:15",
+    "20:25–20:33"
+  ],
+  "typeCorrectnessOscillated": "tsc a mesuré 5 erreurs (PayoutDeps.stripeMode manquant dans leurs itests) PUIS 0 erreur quelques minutes plus tard, sans aucune action de ma part : la correction typologique du dépôt OSCILLE au rythme de l'autre chantier.",
+  "perimeterStableBeforeEdits": true,
+  "repositoryStable": false,
+  "concurrentWorkstreamDetected": true,
+  "partnerFilesEditedByE11": 0,
+  "partnerFilesTracked": 63,
+  "honesty": "E1.1 n'a modifié AUCUN fichier du périmètre partner : il n'y a eu AUCUNE collision d'édition. Mais le chantier concurrent a écrit en QUATRE salves pendant la session, la dernière ~18 minutes avant la mesure finale, et a cassé puis réparé la compilation PENDANT mes gates. Une fenêtre de calme de 75 s ne prouve rien : ce chantier était déjà resté silencieux 96 minutes avant de reprendre. Tout « vert global » ne vaut donc que pour l'instant où il est mesuré.",
+  "decision": "Ne pas éditer un périmètre en mouvement ; ne PAS arrêter l'autre chantier ; re-mesurer au lieu de supposer ; et refuser de certifier un état que quelqu'un d'autre réécrit."
+}

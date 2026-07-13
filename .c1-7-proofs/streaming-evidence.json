@@ -1,0 +1,31 @@
+{
+  "transport": "SSE sur la route CANONIQUE (aucune seconde route) — Content-Type text/event-stream",
+  "serverProbe": {
+    "deltaEvents": 27,
+    "networkChunksCarryingDeltas": 26,
+    "firstDeltaMs": 22843,
+    "lastDeltaMs": 25562,
+    "spreadMs": 2719
+  },
+  "browserProbe": {
+    "intermediateLengths": [
+      134,
+      311,
+      513,
+      584
+    ],
+    "grewIncrementally": true
+  },
+  "isRealNotFake": "les morceaux arrivent au RYTHME DU RÉSEAU (26 chunks étalés sur 2,7 s) — pas une réponse complète révélée lettre par lettre",
+  "claimsGuardBeforeDisplay": "porte à phrases : une phrase n'est diffusée QUE complète ET passée par la garde de claims C1",
+  "finalTruth": "l'événement `done` porte la réponse VALIDÉE (citations + garde) ; le texte diffusé n'est qu'un aperçu",
+  "cancellation": "un flux annulé reste « Réponse interrompue — elle est incomplète » ; JAMAIS un faux « terminé »",
+  "failureCategories": [
+    "TIMEOUT",
+    "RATE_LIMITED",
+    "BUDGET_BLOCKED",
+    "PROVIDER_ERROR"
+  ],
+  "defectFoundAndFixed": "1re implémentation : le responder streaming n'appliquait pas le contrat JSON → 0 delta, et la réponse retombait EN SILENCE sur le moteur déterministe TOUT EN étant étiquetée `openai_public` (faux label de provider). Détecté par mesure directe du flux, corrigé.",
+  "tests": "12/12"
+}

@@ -1,0 +1,116 @@
+{
+  "legend": {
+    "status": "fixed | reported_not_fixed | refuted",
+    "confidence": "3of3_confirmed | self_reproduced | single_lens_self_verified | single_lens"
+  },
+  "gaps": [
+    {
+      "id": "D7", "severity": "critical", "status": "fixed", "confidence": "3of3_confirmed",
+      "file": "src/app/api/pierre/email/send/route.ts", "line": 412,
+      "before": "persisted status='sent' + fabricated provider_message_id + logged 'Email envoye' + returned deliveryAccepted:true, with NO provider import or call",
+      "scenario": "authed user 'sends' an HR email; DB row + mission log claim delivery on a date; recipient never received anything; evidence fabricated, no failed/unknown state exists",
+      "correction": "fail-closed truthful: status='prepared', provider_message_id=null, log 'Email prepare (non envoye)', response sent:false / deliveryAccepted:false + disclosure",
+      "regression_test": "src/app/api/pierre/email/__tests__/p16d-email-send-truthful.test.ts"
+    },
+    {
+      "id": "D8", "severity": "critical", "status": "fixed", "confidence": "3of3_confirmed",
+      "file": "src/lib/pierre/v1/generation-context.ts", "line": 113,
+      "before": "caller-supplied extra_values won over the DB canonical value for ANY canonical path; required_provenance enforced nowhere; contracts.ts spread fieldValues after the authoritative dates",
+      "scenario": "HR user POSTs field_values forging employee.last_name / company.legal_name / employment.start_date / compensation.base_salary; rendered+hashed+approved+signed contract states a different person/employer/date/salary than the HR record",
+      "correction": "DB wins for canonical paths (override rejected+traced in rejected_overrides); provenance-restricted client values rejected fail-closed; authoritative dates spread last in contracts.ts",
+      "regression_test": "src/lib/pierre/v1/__integration__/p16d-contract-field-injection.itest.ts"
+    },
+    {
+      "id": "D9", "severity": "critical", "status": "fixed", "confidence": "3of3_confirmed",
+      "file": "src/lib/clonechat/server/proposal-builder.ts", "line": 33,
+      "before": "normalizeDecision returned 'approve' for any unrecognized/empty decision string (model omits the arg, or 'attends'/'non'/'ne valide pas')",
+      "scenario": "a decide_validation whose decision the model did not clearly express becomes an APPROVE proposal, so the human approval gate is satisfied by an unsafe default",
+      "correction": "only explicit intents map; negation blocks approve; ambiguity -> null -> no proposal built (Pierre re-asks which of the three decisions)",
+      "regression_test": "src/lib/clonechat/__tests__/p16d-decision-default-safety.test.ts"
+    },
+    {
+      "id": "D1", "severity": "high", "status": "fixed", "confidence": "self_reproduced",
+      "file": "src/lib/pierre/v1/cloneguard.ts", "line": 42,
+      "before": "prohibited patterns closed a truncated stem with trailing word-boundary (ASCII-only); matched 'licencie' (accented) but missed 'licencier'/'licenciement'/'licencie'; syndic missed 'syndicat'; handicap missed unaccented 'handicape'",
+      "scenario": "protected-characteristic mentions ('syndicat','handicape') have NO structural backstop (analysis.ts has no discrimination rule) so the leaky regex was the sole net and leaked -> guard green -> autonomous execution",
+      "correction": "accent-folded stem matching; word-boundary kept only where a stem would over-match a benign word ('virement'); all common inflections + protected characteristics now caught, 'virement' stays clean",
+      "regression_test": "src/lib/pierre/__tests__/p16d-human-only-lexical-net.test.ts"
+    },
+    {
+      "id": "D2", "severity": "high", "status": "fixed", "confidence": "self_reproduced",
+      "file": "src/app/api/assistant/execute/route.ts", "line": 64,
+      "before": "clonechat_proposals has created_at but load() never read it and execute never checked age; a confirmed proposal was executable indefinitely",
+      "scenario": "an old tab or a replayed proposalId re-authorizes an action weeks later after role/company/entitlement changed (violates section 4 EXPIRED approval -> AUTHORIZED)",
+      "correction": "15-min TTL derived from immutable created_at, fail-closed on unknown; expiresAt bound into the canonical command fingerprint; 410 PROPOSAL_EXPIRED with zero side effect (calls.length==0 proven)",
+      "regression_test": "src/lib/clonechat/__tests__/p16d-approval-expiry.test.ts + src/app/api/assistant/__tests__/execute-route.test.ts"
+    },
+    {
+      "id": "D3", "severity": "high", "status": "fixed", "confidence": "self_reproduced",
+      "file": "src/lib/pierre/v1/documents.ts", "line": 157,
+      "before": "finalizeVersion re-derived the content hash but never re-checked file cleanliness; createVersion enforced clean-file only at attach time",
+      "scenario": "rescanFile() retro-quarantines a clean artifact after approval; finalizeVersion promoted it to final + document published + document.signature_ready on an infected file",
+      "correction": "assertFileAttachable re-run at finalize; only the raw document lane leaked (the contract lane was already protected by contract-readiness artifact_clean, proven by test that 1 of 3 cases failed without the fix)",
+      "regression_test": "src/lib/pierre/v1/__integration__/p16d-retro-quarantine-finalize.itest.ts"
+    },
+    {
+      "id": "D4", "severity": "high", "status": "fixed", "confidence": "self_reproduced",
+      "file": "src/lib/client-cockpit/v1.ts", "line": 278,
+      "before": "any terminal communication task rendered 'Envoye' with success tone; reminder/deadline_reminder succeed by SCHEDULING (external_side_effect:false), nothing sent",
+      "scenario": "'Relance Paul' -> action reminder -> succeeded -> cockpit shows 'Envoye' for a relance never sent",
+      "correction": "schedule-only tasks -> 'Planifie' (neutral tone); v1.ts now consumes the canonical artifactStatusView presenter, removing the duplicate status brain that re-invented labels",
+      "regression_test": "src/lib/client-cockpit/__tests__/p16d-truthful-status.test.ts"
+    },
+    {
+      "id": "D5", "severity": "medium", "status": "fixed", "confidence": "self_reproduced",
+      "file": "src/lib/pierre/v1/analysis.ts", "line": 135,
+      "before": "'Fais le necessaire pour Paul.' -> missing_info empty (only 'who'/'when' checked, never 'what'); the word 'Paul' silenced clarification; next='Executer'; invented a create_task",
+      "scenario": "a vague delegation invents an action instead of asking which one",
+      "correction": "explicit vague-directive detector -> request_missing_info, approval_required, no side effect; detection is on vacuity (not 'no operational rule matched') so clear instructions like 'Prepare l onboarding de Sarah lundi' still pass",
+      "regression_test": "src/lib/pierre/__tests__/p16d-ambiguous-instruction.test.ts"
+    },
+    {
+      "id": "D6", "severity": "high", "status": "fixed", "confidence": "self_reproduced",
+      "file": "src/lib/pierre/v1/analysis.ts", "line": 151,
+      "before": "an explicit user restriction ('...mais ne contacte personne sans mon accord') was ignored when the action was low-risk -> CloneGuard green -> autonomous execution",
+      "scenario": "'Notifier l equipe MAIS ne contacte personne sans mon accord' auto-executed; the 'Envoie le contrat...' case was safe only by accident because 'contrat' hits a sensitive rule, not the restriction",
+      "correction": "strictest-wins: a detected restriction raises task sensitivity to restricted (CloneGuard red, prepare-only + confirm) and traces the conflict (user_restriction + prohibited_actions)",
+      "regression_test": "src/lib/pierre/__tests__/p16d-conflicting-instruction.test.ts"
+    },
+    {
+      "id": "D10", "severity": "high", "status": "fixed", "confidence": "single_lens_self_verified",
+      "file": "src/lib/clonechat/server/v1-loopback.ts", "line": 112,
+      "before": "byHint ?? active[0] (cancel) and byHint ?? first-pending (validate): a hallucinated hintId fell back to an arbitrary target",
+      "scenario": "'annule la mission X' (X hallucinated) cancels the first active mission; 'approuve la validation Y' decides an arbitrary pending validation",
+      "correction": "provided-but-unmatched id -> null (no retarget); no hint -> auto-pick only when exactly one candidate exists",
+      "regression_test": "src/lib/clonechat/__tests__/p16d-target-resolution-safety.test.ts"
+    },
+    {
+      "id": "D11", "severity": "high", "status": "fixed", "confidence": "single_lens_self_verified",
+      "file": "src/lib/pierre/v1/client.ts", "line": 125,
+      "before": "client sent idempotency_key 'ui|<companyId>|<instruction>' with no actor; the server uses the client key when present",
+      "scenario": "two users in one company, same instruction -> the second mission collapses into the first (user B receives user A's mission)",
+      "correction": "client sends no default key; the server derives its actor-bound key [company,user,mission,instruction]; double-click still protected because the server key is deterministic",
+      "regression_test": "src/lib/pierre/v1/__tests__/p16d-client-idempotency-actor.test.ts"
+    },
+    {
+      "id": "R1", "severity": "high", "status": "reported_not_fixed", "confidence": "single_lens",
+      "file": "src/lib/pierre/v1/tenant-context.ts", "line": 122,
+      "note": "claimed: removeRole leaves the legacy pierre_rt_members.role, so ROLE_PERMISSIONS codeFallback perms persist after a role is revoked. Not fixed: needs a removeRole reproduction; changing the permission-aggregation model without a failing test risks broad authz regressions. Documented for follow-up."
+    },
+    {
+      "id": "R2", "severity": "medium", "status": "reported_not_fixed", "confidence": "single_lens",
+      "file": "src/lib/pierre/v1/contract-template-compiler.ts", "line": 39,
+      "note": "claimed: a declared-but-empty field renders an em-dash in a final contract. Assessment: required-field emptiness is gated upstream (document-guard missing_fields and contract-readiness); an em-dash for OPTIONAL empties is a placeholder, not invented data. Making the compiler throw would break legitimate optional rendering. Not fixed without a repro that a REQUIRED field reaches the compiler empty AND passes readiness."
+    },
+    {
+      "id": "R3", "severity": "medium", "status": "reported_not_fixed", "confidence": "single_lens",
+      "file": "src/lib/pierre/v1/worker.ts", "line": 76,
+      "note": "claimed: the executor runs before the CloneGuard black hard-block. Assessment: the only executor reached for sensitive/black actions is prepare_sensitive_draft (external_side_effect:false, decision_taken:false, no external effect); the guard black-check runs immediately after with no send in between. Low real risk. Documented, not changed."
+    },
+    {
+      "id": "REF1", "severity": "high", "status": "refuted", "confidence": "self_verified",
+      "file": "src/app/api/pierre/queue/release-stuck/route.ts + process-task/route.ts",
+      "note": "claimed unauthenticated by default. REFUTED: both require the x-pierre-worker-secret header and return 401 otherwise."
+    }
+  ]
+}

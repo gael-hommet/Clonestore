@@ -1,0 +1,227 @@
+{
+  "generated_by": "scripts/p16e-technology-map.mts (from real T1/T2 registries)",
+  "doctrine": "Pierre remains the HR employee brain; T1 are reusable technology contracts, T2 are CloneXxx product technologies used BY that brain, never independent HR decision makers. No live provider is enabled in P16E.",
+  "t1": {
+    "count": 15,
+    "live_blocked_count": 6,
+    "live_blocked_ids": [
+      "mail",
+      "calendar",
+      "signature",
+      "voice",
+      "notification",
+      "connector"
+    ],
+    "technologies": [
+      {
+        "id": "document",
+        "label": null,
+        "live_blocked": false,
+        "live_blocked_reason": null,
+        "kind": null
+      },
+      {
+        "id": "mail",
+        "label": null,
+        "live_blocked": true,
+        "live_blocked_reason": "Envoi live bloqué — domaine/provider email externe non vérifié (ext.email_provider).",
+        "kind": null
+      },
+      {
+        "id": "calendar",
+        "label": null,
+        "live_blocked": true,
+        "live_blocked_reason": "Aucun provider calendrier live — création d'événements live impossible.",
+        "kind": null
+      },
+      {
+        "id": "signature",
+        "label": null,
+        "live_blocked": true,
+        "live_blocked_reason": "Yousign live bloqué (P8.7.4) — fallback signature préparée, aucune revendication live.",
+        "kind": null
+      },
+      {
+        "id": "voice",
+        "label": null,
+        "live_blocked": true,
+        "live_blocked_reason": "Aucun provider vocal — roadmap ; l'entrée texte reste autoritaire.",
+        "kind": null
+      },
+      {
+        "id": "notification",
+        "label": null,
+        "live_blocked": true,
+        "live_blocked_reason": "Aucun provider push — rappels cockpit uniquement.",
+        "kind": null
+      },
+      {
+        "id": "connector",
+        "label": null,
+        "live_blocked": true,
+        "live_blocked_reason": "Connecteurs SIRH/paie/Slack externes non vérifiés — tout appel live bloqué.",
+        "kind": null
+      },
+      {
+        "id": "memory",
+        "label": null,
+        "live_blocked": false,
+        "live_blocked_reason": null,
+        "kind": null
+      },
+      {
+        "id": "evidence",
+        "label": null,
+        "live_blocked": false,
+        "live_blocked_reason": null,
+        "kind": null
+      },
+      {
+        "id": "workflow",
+        "label": null,
+        "live_blocked": false,
+        "live_blocked_reason": null,
+        "kind": null
+      },
+      {
+        "id": "analytics",
+        "label": null,
+        "live_blocked": false,
+        "live_blocked_reason": null,
+        "kind": null
+      },
+      {
+        "id": "file",
+        "label": null,
+        "live_blocked": false,
+        "live_blocked_reason": null,
+        "kind": null
+      },
+      {
+        "id": "export",
+        "label": null,
+        "live_blocked": false,
+        "live_blocked_reason": null,
+        "kind": null
+      },
+      {
+        "id": "permission",
+        "label": null,
+        "live_blocked": false,
+        "live_blocked_reason": null,
+        "kind": null
+      },
+      {
+        "id": "integration_bus",
+        "label": null,
+        "live_blocked": false,
+        "live_blocked_reason": null,
+        "kind": null
+      }
+    ]
+  },
+  "t2": {
+    "count": 14,
+    "by_status": {
+      "integration_ready": 3,
+      "local_safe_ready": 10,
+      "architecture_ready": 1
+    },
+    "technologies": [
+      {
+        "id": "cloneos",
+        "status": "integration_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "cloneadn",
+        "status": "integration_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "cloneguard",
+        "status": "local_safe_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "clonetrace",
+        "status": "local_safe_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "clonevoice",
+        "status": "architecture_ready",
+        "operational_local": false,
+        "live": false
+      },
+      {
+        "id": "clonepolicy",
+        "status": "local_safe_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "clonecontinuum",
+        "status": "local_safe_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "clonetrust",
+        "status": "local_safe_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "clonereview",
+        "status": "local_safe_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "clonesignals",
+        "status": "local_safe_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "clonelearn",
+        "status": "local_safe_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "clonebrief",
+        "status": "local_safe_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "clonecall",
+        "status": "local_safe_ready",
+        "operational_local": true,
+        "live": false
+      },
+      {
+        "id": "cloneroom",
+        "status": "integration_ready",
+        "operational_local": true,
+        "live": false
+      }
+    ]
+  },
+  "integration_evidence": {
+    "p16c_suite": "src/lib/clonestore/integration/p16c/** (Pierre x T1 x T2 x CloneChat/CloneRoom integration) — 165 scoped tests green at baseline",
+    "guarantees_verified_by_p16c_and_p16d": [
+      "no technology bypasses Pierre human-only rules (CloneGuard structural HARD_BLOCK)",
+      "no technology manufactures company context (tenant resolved server-side)",
+      "no cross-tenant approval reuse (fingerprint binds company+actor)",
+      "no live provider success fabricated (executors return awaiting_integration; email/send now fail-closed per P16D D7)",
+      "authoritativeCompletion:false and externallyExecutable:false always (P16C)"
+    ]
+  }
+}

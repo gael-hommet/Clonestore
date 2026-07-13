@@ -1,0 +1,24 @@
+{
+  "phase": "C1.7",
+  "sections": {
+    "2_state_files": "DONE",
+    "3_baseline": "DONE",
+    "4_openai_router": "DONE + CÂBLÉ (26/26)",
+    "5_knowledge_brain": "AUDIT DONE (réutilise C1/C1.1 Parrain — aucun 2e cerveau)",
+    "6_sales_eval": "DONE (15 scénarios, 0 échec)",
+    "7_prompt_cache_cost": "DONE (cache versionné 16/16 · coût estimé)",
+    "8_streaming": "DONE — streaming RÉEL (27 deltas / 26 chunks / 2,7 s) + faux label provider trouvé et corrigé (12/12)",
+    "9_dictation": "DONE (17/17)",
+    "10_attachments_folder": "DONE + PROUVÉ DE BOUT EN BOUT (secret du fichier restitué)",
+    "11_ux": "PARTIAL",
+    "12_continuity": "DONE (édition/renvoi sûr)",
+    "13_security": "PRESERVED (C1.6)",
+    "14_tests": "DONE — 623 · 5392 · tsc 0 · suite complète 17687/0",
+    "15_browser_qa": "DONE — 11/11 dont envoi multimodal réel",
+    "16_cost_eval": "DONE",
+    "17_commands": "DONE — build exit 0",
+    "18_proofs": "DONE (26 fichiers)",
+    "3_attachment_transport": "DONE — défaut CONFIRMÉ puis corrigé (UI non branchée au transport) + 3 portes internes"
+  },
+  "verdict": "C1.7 — CLONECHAT PREMIUM MULTIMODAL VERIFIED LOCALLY / READY FOR CONTROLLED DEPLOYMENT"
+}

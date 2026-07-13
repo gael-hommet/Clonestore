@@ -1,0 +1,37 @@
+{
+  "phase": "E1.3",
+  "section": "7/8",
+  "runner": "scripts/e1-3-apply-p941-remote.mjs",
+  "runnerSha256": "4f2a7566b7dbaec8a77b22176f3e0392b829f4f7e0c067d5ae5c689e74dc8f75",
+  "defaultsToNoConnectionNoMutationNoAuth": true,
+  "requiresApplyFlag": true,
+  "requiresFreshAuthorization": true,
+  "requiresFingerprintMatch": true,
+  "requiresChecksumMatch": true,
+  "requiresBackupEvidence": true,
+  "requiresRepositoryStabilityProof": true,
+  "hardCodedMigrationPath": true,
+  "acceptsArbitrarySql": false,
+  "acceptsAlternatePath": false,
+  "acceptsInlineSql": false,
+  "executesOnly": [
+    "transaction/session safety statements",
+    "the exact canonical migration bytes",
+    "registry-bound metadata postchecks",
+    "COMMIT/ROLLBACK"
+  ],
+  "mutationSession": {
+    "tls": true,
+    "maxClients": 1,
+    "applicationName": "e1-3-p941-migration",
+    "lockTimeoutMs": 5000,
+    "statementTimeoutMs": 60000,
+    "idleInTransactionTimeoutMs": 30000,
+    "searchPath": "public",
+    "singleUseAuthConsumed": true
+  },
+  "adversarialAudit": {
+    "lenses": 6,
+    "verifiersPerFinding": 3
+  }
+}

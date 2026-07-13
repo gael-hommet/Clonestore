@@ -1,0 +1,39 @@
+{
+  "scannedAtIso": "2026-07-11T22:24:20.455Z",
+  "foreignAgentsFoundAlive": [
+    {
+      "name": "claude.exe",
+      "pid": 13040,
+      "cpuDeltaSeconds": 23.047,
+      "terminated": true
+    },
+    {
+      "name": "claude.exe",
+      "pid": 23468,
+      "cpuDeltaSeconds": 6.187,
+      "terminated": true
+    },
+    {
+      "name": "codex.exe",
+      "pid": 15280,
+      "cpuDeltaSeconds": 0.906,
+      "terminated": true
+    }
+  ],
+  "terminationAuthorizedByOwner": true,
+  "ownerBelievedThemClosed": true,
+  "discrepancyNote": "The owner stated every other session was closed. Measurement showed 3 alive and burning CPU. The owner then explicitly authorized termination. Measurement, not assertion, is what established the freeze.",
+  "staleNextStartTerminated": [
+    21388,
+    26620,
+    3232
+  ],
+  "orphanedPartnerBashWrappersTerminated": [
+    17936,
+    20572
+  ],
+  "nextDevRunning": false,
+  "nextBuildRunning": false,
+  "vitestRunning": false,
+  "soleWriter": "this session (claude.exe PID 24352)"
+}

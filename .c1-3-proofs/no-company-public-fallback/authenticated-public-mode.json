@@ -1,0 +1,18 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "adapter": "answerPublicQuestion (parrain-public-adapter) avec PUBLIC_VIEWER",
+  "responder": "createRealOpenAIResponder EXISTANT (aucun second client)",
+  "budgetScope": {
+    "userId": "<real>",
+    "companyId": null
+  },
+  "sourcesReturned": [
+    "openai_public (modele)",
+    "public_fallback (deterministe honnete)"
+  ],
+  "toolCall": null,
+  "proposalCreated": false,
+  "durablePersistence": false,
+  "routeTests": "29/29 (src/app/api/assistant/__tests__/no-company-public-fallback-c1-3.test.ts)"
+}

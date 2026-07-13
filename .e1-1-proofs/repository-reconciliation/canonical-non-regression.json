@@ -1,0 +1,10 @@
+{
+  "runId": "repository-reconciliation",
+  "command": "npx vitest run src/lib/nav src/lib/clonestore src/lib/clonechat src/lib/pierre/v1 src/app/api/assistant src/app/assistant src/components --testTimeout=120000",
+  "passed": 7706,
+  "failed": 0,
+  "skipped": 1,
+  "files": 187,
+  "measuredAtIso": "2026-07-11T21:23:47Z",
+  "note": "Measured on the frozen tree, after the P10 payout-floor fix."
+}

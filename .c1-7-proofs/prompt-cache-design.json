@@ -1,0 +1,37 @@
+{
+  "module": "src/lib/clonechat/openai/prompt-cache.ts (16/16)",
+  "version": "CLONECHAT_PUBLIC_PROMPT_VERSION = c1.7-public-1",
+  "stablePrefix": [
+    "identité CloneChat",
+    "vérité produit publique",
+    "doctrine comportementale",
+    "gouvernance",
+    "doctrine de vente",
+    "schémas d'outils",
+    "format de réponse"
+  ],
+  "dynamicSuffix": [
+    "état du viewer",
+    "contexte entreprise vérifié",
+    "résumé de conversation",
+    "manifeste de pièces jointes",
+    "extraits récupérés",
+    "message courant"
+  ],
+  "domains": {
+    "public": "dépend UNIQUEMENT de la version publique",
+    "company": "isolé par entreprise + version de contexte",
+    "conversation": "isolé par conversation"
+  },
+  "failClosed": [
+    "une entreprise ou une conversation dans le domaine PUBLIC → ERREUR (PublicCachePoisoning)",
+    "un horodatage, un UUID, un e-mail ou une clé dans le préfixe stable → ERREUR",
+    "un champ userId/companyId dans le préfixe partagé → ERREUR"
+  ],
+  "proven": [
+    "même vérité publique → même clé (cache réellement partagé)",
+    "l'état du compte n'empoisonne PAS le cache public",
+    "deux entreprises n'ont JAMAIS la même clé",
+    "changer la version invalide la vérité périmée"
+  ]
+}

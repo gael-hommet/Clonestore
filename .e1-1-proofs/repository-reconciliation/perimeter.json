@@ -1,0 +1,34 @@
+{
+  "runId": "repository-reconciliation",
+  "changedByE11": [
+    "src/lib/pierre/documents/premium-document-system.ts (CORRIGÉ — défaut réel d'inférence)",
+    "src/lib/pierre/__tests__/premium-document-system.test.ts (8 cas de régression AJOUTÉS)",
+    "src/lib/pierre/v1/__tests__/fair-claim.test.ts (harnais stabilisé — assertions d'équité INTACTES)",
+    "src/lib/clonestore/external-enablement/e1/e1-1-reconciliation-command-center.ts (NOUVEAU, additif)",
+    "scripts/e1-1-clonechat-remote-preflight.mjs (NOUVEAU, lecture seule)",
+    "scripts/e1-1-environment-precheck.mjs (NOUVEAU, présence/forme seulement)",
+    "scripts/e1-1-generate-proofs.mjs + scripts/e1-1-generate-context-proofs.mjs (NOUVEAUX)",
+    "E1_1_*.md (rapports)"
+  ],
+  "partnerProgramFilesChangedByE11": 0,
+  "clonechatRuntimeFilesChangedByE11": 0,
+  "c14RuntimeUnchanged": true,
+  "untouched": [
+    "C1",
+    "C1.1",
+    "C1.2",
+    "C1.3",
+    "C1.4 (runtime)",
+    "P16A",
+    "P16C",
+    "T1",
+    "T2",
+    "Pierre V1 (runtime)",
+    "partner-program"
+  ],
+  "productionAuthorized": false,
+  "paymentMode": "disabled",
+  "liveProviders": "blocked",
+  "deployed": false,
+  "remoteDbMutated": false
+}

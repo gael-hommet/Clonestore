@@ -1,0 +1,28 @@
+{
+  "prior_session_source_changes": [
+    "src/lib/pierre/v1/members.ts (R1 syncBaseRole)",
+    "src/lib/pierre/v1/worker.ts + executors.ts (R3 guard-before-exec)",
+    "src/lib/pierre/hr/employee.ts (§7A disambiguation)",
+    "src/lib/pierre/v1/mission-service.ts (§8 autonomy clamp)",
+    "src/lib/pierre/v1/signatures.ts (F19 reconcile authz)"
+  ],
+  "continuation_session_source_changes": [
+    "src/lib/cloneos/channels/providers/resend.ts (F11/F12 — no fabricated id, sandbox labelled, simulated flag)",
+    "src/lib/cloneos/channels/email-production/runtime.ts (F11 — live send requires real ack, fail-closed on silent simulation)",
+    "src/lib/pierre/v1/mission-service.ts (F24 — employee/site tenant-existence check before insert; F31 — actor_id on human transitions)",
+    "src/lib/pierre/v1/renderers.ts (F28 — transliterate out-of-Latin-1 names in PDF, preserve Latin-1; DOCX faithful)",
+    "src/lib/pierre/v1/documents.ts (F25 — verifyDocumentIntegrity compares file recorded sha to actual bytes)"
+  ],
+  "continuation_session_new_tests": [
+    "src/lib/cloneos/channels/__tests__/p16e-f11-f12-truthful-email.test.ts (4)",
+    "src/lib/pierre/v1/__integration__/p16e-f24-mission-entity-binding.itest.ts (6)",
+    "src/lib/pierre/v1/__tests__/p16e-f28-name-fidelity.test.ts (11)",
+    "src/lib/pierre/v1/__integration__/p16e-f25-document-integrity.itest.ts (2)",
+    "updated: channels-b37-resend.test.ts, pierre-b37-production-smoke.test.ts (truthful dry-run assertions)"
+  ],
+  "reverted": ["src/lib/clonestore/documents/renderer.ts (F15 change reverted — author-declared defaults are legitimate)"],
+  "protected_not_touched": [
+    "src/lib/partner-program/** + src/app/api/webhooks/stripe/** (money path)",
+    "src/lib/clonechat/openai/model-router.ts, src/app/api/assistant/chat/route.ts, useCloneChat.ts, useVoiceDictation.ts, transcribe/route.ts, CloneChatWorkspace.tsx, universal-access.ts (C1.7/C1.6)"
+  ]
+}

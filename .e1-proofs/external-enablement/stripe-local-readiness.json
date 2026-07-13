@@ -1,0 +1,6 @@
+{
+  "stripeTestReady": false,
+  "checkoutLogicReady": true,
+  "reconciliationWired": true,
+  "note": "test-mode only; no live payment."
+}

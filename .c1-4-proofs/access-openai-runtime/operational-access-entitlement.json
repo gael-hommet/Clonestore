@@ -1,0 +1,11 @@
+{
+  "runId": "access-openai-runtime",
+  "withoutEntitlement": "ENTITLEMENT_REQUIRED",
+  "withoutEntitlementButWithCompany": "ENTITLEMENT_REQUIRED",
+  "ready": true,
+  "responseCode": "PIERRE_ACCESS_REQUIRED",
+  "noModel": true,
+  "noMission": true,
+  "noProposal": true,
+  "noTenantData": true
+}

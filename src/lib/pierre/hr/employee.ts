@@ -158,7 +158,15 @@ export function findPierreEmployeeById(
 
 /**
  * Trouve un profil salarié par son full_name (insensible à la casse, tolérant les espaces).
- * Retourne le premier match exact. Si aucun exact, essaie une recherche partielle.
+ *
+ * P16E §7.A — RÉSOLUTION D'ENTITÉ NON AMBIGUË : ne JAMAIS choisir le premier match partiel.
+ * Avant, « Paul » renvoyait le premier Paul de la liste — sur un chemin d'action gouverné
+ * (/api/pierre/use/submit, /workflows/rh), cela agissait sur un salarié DEVINÉ. Désormais :
+ *   · match exact UNIQUE ⇒ résolu ;
+ *   · plusieurs matches exacts (homonymes) ⇒ null (l'appelant demande une désambiguïsation) ;
+ *   · match partiel : résolu UNIQUEMENT s'il désigne un SEUL salarié distinct ; sinon null.
+ * Les appelants traitent null comme « non résolu » et n'exécutent aucun effet de bord — Pierre
+ * doit demander, jamais deviner. (`findPierreEmployeeById` reste la voie non ambiguë par ID.)
  */
 export function findPierreEmployeeByName(
   employees: PierreEmployeeProfile[],
@@ -167,17 +175,18 @@ export function findPierreEmployeeByName(
   const needle = name.trim().toLowerCase();
   if (!needle) return null;
 
-  const exactMatch = employees.find(
-    (e) => e.full_name.toLowerCase() === needle,
-  );
-  if (exactMatch) return exactMatch;
+  const exact = employees.filter((e) => e.full_name.toLowerCase() === needle);
+  if (exact.length === 1) return exact[0];
+  if (exact.length > 1) return null; // homonymes exacts ⇒ ambigu ⇒ désambiguïser
 
-  const partialMatch = employees.find(
+  const partial = employees.filter(
     (e) =>
       e.full_name.toLowerCase().includes(needle) ||
       needle.includes(e.full_name.toLowerCase()),
   );
-  return partialMatch ?? null;
+  const distinct = new Map(partial.map((e) => [e.id, e]));
+  if (distinct.size === 1) return partial[0]; // un seul salarié distinct ⇒ résolu
+  return null; // 0 ou plusieurs ⇒ jamais de choix par défaut
 }
 
 // ══════════════════════════════════════════════════════════

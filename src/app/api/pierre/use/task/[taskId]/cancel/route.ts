@@ -216,13 +216,14 @@ export async function POST(
       };
     }
 
+    // P16E §3 (F20/F29) — attribute the human cancellation.
     await supabaseAdmin.from("pierre_task_logs").insert({
       mission_id: task.mission_id ?? null,
       task_id: taskId,
       level: "warning",
       event: "task_cancelled",
       message: `La tâche a été annulée depuis le statut ${currentStatus}.`,
-      payload: null,
+      payload: { actor_type: "user", user_id: auth.userId, action: "cancel", prev_status: currentStatus },
     });
 
     return NextResponse.json({

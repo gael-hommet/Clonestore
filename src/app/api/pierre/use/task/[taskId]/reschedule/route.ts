@@ -226,6 +226,7 @@ export async function POST(
       };
     }
 
+    // P16E §3 (F20/F29) — attribute the human reschedule.
     await supabaseAdmin.from("pierre_task_logs").insert({
       mission_id: task.mission_id ?? null,
       task_id: taskId,
@@ -233,6 +234,9 @@ export async function POST(
       event: "task_rescheduled",
       message: reason || `La tâche a été replanifiée au ${parsed.toISOString()}.`,
       payload: {
+        actor_type: "user",
+        user_id: auth.userId,
+        action: "reschedule",
         scheduled_for: parsed.toISOString(),
       },
     });

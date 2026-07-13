@@ -1,0 +1,4 @@
+{
+  "configLocallyReady": true,
+  "note": "next.config + build/start scripts; serverExternalPackages sharp/pglite."
+}

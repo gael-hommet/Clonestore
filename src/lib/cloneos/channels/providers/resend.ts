@@ -184,16 +184,27 @@ export const resendChannelProvider: ChannelProviderAdapter = {
     const payload = buildResendPayload(envelope, body, body_html ?? null, cfg);
 
     // 5. Dry-run check — no real send if EMAIL_DRY_RUN=true or EMAIL_SEND_LIVE=false
+    // P16E §3 (F11/F12) — a dry-run has NO provider acknowledgement. We must NOT fabricate a
+    // provider_message_id (an id the caller could mistake for real delivery proof), and we must
+    // signal `simulated:true` / `sent:false` so a caller in a LIVE context can detect that the
+    // provider silently simulated and fail closed. The original recipient is NEVER marked
+    // contacted: `actual_recipients` is empty (nothing left the process).
     if (cfg.dry_run || !cfg.send_live) {
-      const dry_run_id = `dry_run_${envelope.id}_${Date.now().toString(36)}`;
+      const sandbox_redirected = !!cfg.sandbox_to;
       return {
         ok: true,
-        provider_message_id: dry_run_id,
+        provider_message_id: null, // no fabricated id — a dry-run is not an acknowledgement
         error: null,
         meta: {
           provider: "resend",
+          simulated: true,
+          sent: false,
+          outcome: "PREPARED",
           dry_run: true,
           send_live: cfg.send_live,
+          sandbox_redirected,
+          intended_recipients: envelope.to,
+          actual_recipients: [], // nothing was actually transmitted
           sandbox_to: cfg.sandbox_to ?? null,
           payload_preview: {
             from: payload.from,
@@ -235,11 +246,26 @@ export const resendChannelProvider: ChannelProviderAdapter = {
         };
       }
 
+      // P16E §3 (F12) — when a sandbox address is configured the payload is redirected to it.
+      // Label the redirect EXPLICITLY and record intended vs actual recipients so no caller/audit
+      // can claim the ORIGINAL recipient was contacted. `sent:true` requires a real provider id.
+      const sandbox_redirected = !!cfg.sandbox_to;
+      const acknowledged = !!sendResult.data?.id;
       return {
         ok: true,
         provider_message_id: sendResult.data?.id ?? null,
         error: null,
-        meta: { provider: "resend", live: true, sandbox_to: cfg.sandbox_to ?? null },
+        meta: {
+          provider: "resend",
+          live: true,
+          simulated: false,
+          sent: acknowledged,           // only a real provider id counts as sent
+          outcome: acknowledged ? "PROVIDER_REQUEST_ACCEPTED" : "STATUS_UNKNOWN",
+          sandbox_redirected,
+          intended_recipients: envelope.to,
+          actual_recipients: payload.to, // = [sandbox_to] when redirected
+          sandbox_to: cfg.sandbox_to ?? null,
+        },
       };
     } catch (err) {
       return {

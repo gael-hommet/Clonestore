@@ -1,0 +1,21 @@
+{
+  "e1TargetedSuite": "43/43 passed (2 files: e1-external-enablement.test.ts 42, e1-proof-generator.test.ts 1)",
+  "families": {
+    "A_dependency_ledger": "6/6",
+    "B_environment": "6/6",
+    "C_supabase": "5/5",
+    "D_stripe": "5/5",
+    "E_email_domain": "3/3",
+    "F_other_providers": "2/2",
+    "G_deployment_observability": "3/3",
+    "H_legal_country": "5/5",
+    "I_perimeter": "4/4",
+    "verdict_gates": "3/3"
+  },
+  "perimeter": {
+    "production_p16c_p16a": "243 passed / 1 skipped (16 files)",
+    "t1_t2_c1_1_assistant": "235 passed (9 files)"
+  },
+  "tsc": 0,
+  "note": "Every assertion checks a REAL computed value from the command center / ledger / evaluators. No external action performed. The first cold directory run hit a transient vitest worker race ('failed to find the current suite'); both files pass individually and on re-run (43/43)."
+}

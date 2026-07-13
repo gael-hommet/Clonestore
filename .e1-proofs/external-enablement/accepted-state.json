@@ -1,0 +1,26 @@
+{
+  "p16cLocallyReady": true,
+  "productionAuthorized": false,
+  "paymentMode": "disabled",
+  "frozen": [
+    "P8",
+    "P9",
+    "P10",
+    "P11",
+    "P12",
+    "P13",
+    "P14",
+    "P15",
+    "P15.1",
+    "P16.0",
+    "P16A",
+    "P16C",
+    "T1",
+    "T2",
+    "C1",
+    "C1.1",
+    "C1.2"
+  ],
+  "cloneChatRevealed": true,
+  "anonymousAssistantApiBlocked": true
+}

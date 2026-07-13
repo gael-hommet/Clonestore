@@ -1,0 +1,18 @@
+{
+  "phase": "E1.2",
+  "separationProblems": [],
+  "dangerousExtensionsInstalled": [
+    "pg_cron",
+    "pg_net"
+  ],
+  "remoteCronPossible": true,
+  "triggersObserved": [
+    "clonestore_pp_commission_entries.trg_pp_entries_guard→clonestore_pp_entries_guard",
+    "clonestore_pp_referral_touches.trg_clonestore_pp_referral_touches_append_only→clonestore_pp_forbid_mutation"
+  ],
+  "outboundTriggers": [],
+  "partnerSecurityDefinerFunctions": [],
+  "p10FloorReachableFromDatabase": false,
+  "partnerPayoutRemoteExecutionEnabled": false,
+  "note": "Remote payout automation is NOT inferred from table presence. Without pg_cron it is structurally impossible; the P10 floor is a compile-time constant in application code and no SQL can reach it."
+}

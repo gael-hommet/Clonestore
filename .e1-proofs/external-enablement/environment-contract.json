@@ -1,0 +1,296 @@
+{
+  "totalVars": 32,
+  "serverOnly": 27,
+  "public": 5,
+  "secrets": 7,
+  "requiredInProduction": 15,
+  "contractReady": true,
+  "vars": [
+    {
+      "name": "NEXT_PUBLIC_APP_URL",
+      "serverOnly": false,
+      "secret": false,
+      "category": "app_url",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "Checkout return URLs, absolute links, emails."
+    },
+    {
+      "name": "NEXT_PUBLIC_SITE_URL",
+      "serverOnly": false,
+      "secret": false,
+      "category": "app_url",
+      "requiredIn": [],
+      "feature": "Founder/partner program links."
+    },
+    {
+      "name": "NEXT_PUBLIC_SUPABASE_URL",
+      "serverOnly": false,
+      "secret": false,
+      "category": "supabase",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "Database, auth."
+    },
+    {
+      "name": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "serverOnly": false,
+      "secret": false,
+      "category": "supabase",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "Client auth, RLS-scoped reads."
+    },
+    {
+      "name": "SUPABASE_SERVICE_ROLE_KEY",
+      "serverOnly": true,
+      "secret": true,
+      "category": "supabase",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "Webhooks, server writes, cost ledger."
+    },
+    {
+      "name": "PIERRE_INTERNAL_DIAGNOSTICS_SECRET",
+      "serverOnly": true,
+      "secret": true,
+      "category": "auth",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "Internal observability endpoints."
+    },
+    {
+      "name": "OPENAI_API_KEY",
+      "serverOnly": true,
+      "secret": true,
+      "category": "openai",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "CloneChat / Pierre reasoning (governed)."
+    },
+    {
+      "name": "ANTHROPIC_API_KEY",
+      "serverOnly": true,
+      "secret": true,
+      "category": "anthropic",
+      "requiredIn": [],
+      "feature": "Premium document generation (deferred)."
+    },
+    {
+      "name": "STRIPE_SECRET_KEY",
+      "serverOnly": true,
+      "secret": true,
+      "category": "stripe_test",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "Checkout, billing."
+    },
+    {
+      "name": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+      "serverOnly": false,
+      "secret": false,
+      "category": "stripe_test",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "Client checkout redirect."
+    },
+    {
+      "name": "STRIPE_WEBHOOK_SECRET",
+      "serverOnly": true,
+      "secret": true,
+      "category": "stripe_webhook",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "Payment activation via verified webhook."
+    },
+    {
+      "name": "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+      "serverOnly": true,
+      "secret": false,
+      "category": "stripe_live",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "FR/BE/LU pricing."
+    },
+    {
+      "name": "STRIPE_PRICE_PIERRE_CHF_MONTHLY",
+      "serverOnly": true,
+      "secret": false,
+      "category": "stripe_live",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "CH pricing."
+    },
+    {
+      "name": "STRIPE_COUNTRY_PRICING_ENABLED",
+      "serverOnly": true,
+      "secret": false,
+      "category": "stripe_live",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "Country pricing + reconciliation."
+    },
+    {
+      "name": "STRIPE_COUNTRY_RECONCILIATION_ENABLED",
+      "serverOnly": true,
+      "secret": false,
+      "category": "stripe_live",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "Billing-country reconciliation."
+    },
+    {
+      "name": "EMAIL_RUNTIME_MODE",
+      "serverOnly": true,
+      "secret": false,
+      "category": "email_provider",
+      "requiredIn": [],
+      "feature": "Transactional email."
+    },
+    {
+      "name": "EMAIL_SEND_LIVE",
+      "serverOnly": true,
+      "secret": false,
+      "category": "email_provider",
+      "requiredIn": [],
+      "feature": "Email delivery gate."
+    },
+    {
+      "name": "RESEND_API_KEY",
+      "serverOnly": true,
+      "secret": true,
+      "category": "email_provider",
+      "requiredIn": [],
+      "feature": "Resend delivery."
+    },
+    {
+      "name": "EMAIL_PROVIDER",
+      "serverOnly": true,
+      "secret": false,
+      "category": "email_provider",
+      "requiredIn": [],
+      "feature": "Provider selection."
+    },
+    {
+      "name": "RESEND_DEFAULT_FROM",
+      "serverOnly": true,
+      "secret": false,
+      "category": "email_domain",
+      "requiredIn": [],
+      "feature": "Sender identity."
+    },
+    {
+      "name": "RESEND_ALLOWED_FROM_DOMAINS",
+      "serverOnly": true,
+      "secret": false,
+      "category": "email_domain",
+      "requiredIn": [],
+      "feature": "Domain allow-list."
+    },
+    {
+      "name": "CLONESTORE_SIGNATURE_LIVE_VERIFIED",
+      "serverOnly": true,
+      "secret": false,
+      "category": "signature",
+      "requiredIn": [],
+      "feature": "Live e-signature."
+    },
+    {
+      "name": "CLONESTORE_SIGNATURE_FALLBACK_APPROVED",
+      "serverOnly": true,
+      "secret": false,
+      "category": "signature",
+      "requiredIn": [],
+      "feature": "Signature fallback."
+    },
+    {
+      "name": "CLONEVOICE_RUNTIME_MODE",
+      "serverOnly": true,
+      "secret": false,
+      "category": "voice",
+      "requiredIn": [],
+      "feature": "CloneVoice."
+    },
+    {
+      "name": "CLONESTORE_MONITORING_ROLLBACK_VERIFIED",
+      "serverOnly": true,
+      "secret": false,
+      "category": "monitoring",
+      "requiredIn": [],
+      "feature": "Go-live monitoring."
+    },
+    {
+      "name": "PIERRE_OBSERVABILITY_ENABLED",
+      "serverOnly": true,
+      "secret": false,
+      "category": "monitoring",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "Observability."
+    },
+    {
+      "name": "CLONESTORE_DEPLOY_PROOF",
+      "serverOnly": true,
+      "secret": false,
+      "category": "deployment",
+      "requiredIn": [],
+      "feature": "Deploy proof."
+    },
+    {
+      "name": "AI_COST_SHIELD_MODE",
+      "serverOnly": true,
+      "secret": false,
+      "category": "rate_limit_budget",
+      "requiredIn": [
+        "production"
+      ],
+      "feature": "AI cost shield."
+    },
+    {
+      "name": "AI_GLOBAL_MONTHLY_CAP_CENTS",
+      "serverOnly": true,
+      "secret": false,
+      "category": "rate_limit_budget",
+      "requiredIn": [],
+      "feature": "Budget cap."
+    },
+    {
+      "name": "CLONECHAT_ENABLED",
+      "serverOnly": true,
+      "secret": false,
+      "category": "kill_switch",
+      "requiredIn": [],
+      "feature": "CloneChat kill switch."
+    },
+    {
+      "name": "AI_EMERGENCY_SHUTDOWN",
+      "serverOnly": true,
+      "secret": false,
+      "category": "kill_switch",
+      "requiredIn": [],
+      "feature": "Global AI kill switch."
+    },
+    {
+      "name": "CLONESTORE_OWNER_GOLIVE_APPROVED",
+      "serverOnly": true,
+      "secret": false,
+      "category": "production_authorization",
+      "requiredIn": [],
+      "feature": "Go-live owner approval."
+    }
+  ]
+}

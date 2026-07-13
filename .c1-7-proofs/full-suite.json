@@ -1,0 +1,7 @@
+{
+  "command": "npx vitest run --testTimeout=120000",
+  "files": 439,
+  "passed": 17740,
+  "failed": 0,
+  "skipped": 1
+}

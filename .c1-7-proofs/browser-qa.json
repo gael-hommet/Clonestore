@@ -1,0 +1,94 @@
+{
+  "streaming": {
+    "sseContentType": "text/event-stream; charset=utf-8",
+    "usedSSE": true,
+    "httpStatus": 200,
+    "intermediateLengths": [
+      79,
+      266,
+      414,
+      506,
+      521
+    ],
+    "grewIncrementally": true,
+    "finalLength": 521
+  },
+  "dictation": {
+    "micButtonPresent": true,
+    "recordingStateShown": true,
+    "existingTextPreserved": true,
+    "transcriptInsertedInComposer": true,
+    "neverAutoSent": true,
+    "composerValueSample": "Texte déjà saisi. Prépare l'onboarding de Sarah chez CloneStore.",
+    "transcribeCall": {
+      "path": "/api/assistant/transcribe",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    "microphoneReleased": true
+  },
+  "attachments": {
+    "manifestShown": true,
+    "executableRejectedVisibly": true,
+    "archiveRejectedVisibly": true,
+    "supportedAccepted": true,
+    "saysNothingSentYet": true,
+    "folderInputSupportsDirectory": true,
+    "uploadedBeforeSend": false
+  },
+  "governance": {
+    "privateRequestExplainsPrerequisite": true,
+    "noCompanyDataLeaked": true,
+    "composerStillActive": true,
+    "anonymousNever401": true
+  },
+  "network": [
+    {
+      "path": "/api/assistant/chat",
+      "status": 200,
+      "contentType": "text/event-stream; charset=utf-8"
+    },
+    {
+      "path": "/api/assistant/transcribe",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "path": "/api/assistant/chat",
+      "status": 200,
+      "contentType": "text/event-stream; charset=utf-8"
+    },
+    {
+      "path": "/api/assistant/chat",
+      "status": 200,
+      "contentType": "text/event-stream; charset=utf-8"
+    }
+  ],
+  "entry": {
+    "url": "http://localhost:3141/assistant",
+    "noLoginRedirect": true,
+    "composerActive": true,
+    "micVisible": true,
+    "attachVisible": true
+  },
+  "multimodalSend": {
+    "fileWasSent": true,
+    "answerUsesFileContent": true,
+    "manifestClearedAfterSend": true,
+    "composerStillActive": true,
+    "tail": "s automatiquement. Pour voir un exemple concret, consultez la démo : /demo/pierre. Pour découvrir le produit : /agents/pierre.\nQuel est le code de reference indique dans le fichier joint ?📄 note.txt, note.txt\nLe code de référence indiqué est **ZORGLUB-4417**."
+  },
+  "verdict": {
+    "anonymousChatWorks": true,
+    "streamingIsReal": true,
+    "micPresentAndRecords": true,
+    "transcriptInsertedNotSent": true,
+    "existingTextPreserved": true,
+    "attachmentsSelectedNotUploaded": true,
+    "dangerousFilesRejectedVisibly": true,
+    "folderSelectionSupported": true,
+    "governancePreserved": true,
+    "multimodalSendReachesProvider": true,
+    "selectionClearedAfterSend": true
+  }
+}

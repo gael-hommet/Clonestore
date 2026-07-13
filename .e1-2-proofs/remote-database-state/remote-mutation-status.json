@@ -1,0 +1,12 @@
+{
+  "phase": "E1.2",
+  "remoteDatabaseMutated": false,
+  "mutationsExecuted": 0,
+  "migrationsApplied": 0,
+  "ddlStatements": 0,
+  "dmlStatements": 0,
+  "remoteSqlFilesExecuted": 0,
+  "businessFunctionExecutions": 0,
+  "liveProviderCalls": 0,
+  "rolledBack": true
+}

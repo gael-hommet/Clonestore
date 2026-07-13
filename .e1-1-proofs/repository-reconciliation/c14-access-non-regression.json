@@ -1,0 +1,25 @@
+{
+  "runId": "repository-reconciliation",
+  "objectTruthinessBugAbsent": true,
+  "discriminatedUnion": true,
+  "grantingStatuses": "\"active\", \"trialing\"",
+  "entitlementRequiredGate": true,
+  "companyRequiredGate": true,
+  "publicDiscoveryOpenWithoutEntitlement": true,
+  "lookupFailureFailClosed": true,
+  "tenantFailClosed": true,
+  "anonymousBlocked": true,
+  "killSwitch": true,
+  "sharedContractImporters": [
+    "npm error npx canceled due to missing packages and no YES option: [\"rg@0.0.2\"]",
+    "npm error A complete log of this run can be found in: C:\\Users\\homme\\AppData\\Local\\npm-cache\\_logs\\2026-07-11T19_01_54_109Z-debug-0.log"
+  ],
+  "suite": {
+    "command": "npx vitest run src/lib/pierre/__tests__/access-contract-c1-4.test.ts",
+    "exitCode": 0,
+    "passed": 10,
+    "failed": 0,
+    "skipped": 0,
+    "raw": "10 passed (10)"
+  }
+}

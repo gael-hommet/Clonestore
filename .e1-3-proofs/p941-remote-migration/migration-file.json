@@ -1,0 +1,7 @@
+{
+  "phase": "E1.3",
+  "path": "supabase/migrations-p941/2026-07-07__p941_clonechat_durable.sql",
+  "present": true,
+  "bytes": 16386,
+  "lines": 315
+}

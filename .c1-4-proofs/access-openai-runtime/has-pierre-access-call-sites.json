@@ -1,0 +1,17 @@
+{
+  "runId": "access-openai-runtime",
+  "sharedContractImporters": [
+    "src/app/api/assistant/chat/route.ts (BUG — corrigé)",
+    "src/app/agents/pierre/company-history/route.ts (OK: .error puis !.ok)",
+    "src/app/api/pierre/doc/rewrite/route.ts (OK)",
+    "src/app/api/pierre/use/task/[taskId]/route.ts (OK)",
+    "src/app/api/pierre/use/task/[taskId]/run/route.ts (OK: !access.ok)",
+    "src/app/api/checkout/route.ts (OK: res.ok)",
+    "src/app/api/pierre/cockpit/snapshot/route.ts (OK: .ok === true)",
+    "src/lib/access/operational-access.ts (OK: access.ok)",
+    "src/lib/clonestore/cloneos/client-readiness.ts (OK: !!access?.ok)"
+  ],
+  "note": "Les routes /api/pierre/use/** définissent leur PROPRE hasPierreAccess local renvoyant Promise<boolean> — elles n'importent pas le contrat partagé et ne sont pas concernées.",
+  "audited": true,
+  "objectTruthinessOffenders": 0
+}

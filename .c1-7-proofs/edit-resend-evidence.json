@@ -1,0 +1,10 @@
+{
+  "module": "useCloneChat.beginEdit()",
+  "danger": "le vrai risque n'est pas d'éditer, c'est de RÉUTILISER : une réponse déjà générée peut porter une proposition d'action approuvée. La réécrire sans invalider la suite ferait exécuter une approbation obtenue pour une AUTRE demande.",
+  "rules": [
+    "toute génération en cours est ANNULÉE d'abord",
+    "le message édité ET TOUT ce qui le suit sont retirés du fil ⇒ aucune proposition, approbation ou empreinte d'action antérieure ne survit",
+    "rien n'est renvoyé automatiquement : l'utilisateur envoie explicitement",
+    "le renvoi passe par le MÊME send() ⇒ aucun appel provider dupliqué, aucun message double"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "runId": "access-openai-runtime",
+  "ready": true,
+  "guard": "finalizeAnswerText (garde C1)"
+}

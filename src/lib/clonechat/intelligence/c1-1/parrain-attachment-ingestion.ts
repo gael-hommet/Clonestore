@@ -9,7 +9,7 @@ import { ATTACHMENT_LIMITS, evaluateAttachmentPolicy, redactedAttachmentError } 
 import { parseByFormat } from "./parrain-file-parsers";
 import { ATTACHMENT_SUPPORT_MATRIX, type AttachmentIngestionInput, type AttachmentIngestionResult, type ParrainAttachment, type ParrainAttachmentChunk } from "./parrain-attachment-types";
 import { derivedChunkId, makeParrainChunk } from "./parrain-knowledge-chunk";
-import type { ParrainKnowledgeChunk } from "./parrain-types";
+import type { ParrainKnowledgeChunk, ParrainVisibility } from "./parrain-types";
 
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
   try {
@@ -87,6 +87,12 @@ export async function ingestAttachment(input: AttachmentIngestionInput): Promise
 
 /** Convertit les chunks d'attachement en chunks de grounding (BORNÉS avant modèle). */
 export function attachmentGroundingChunks(result: AttachmentIngestionResult): readonly ParrainKnowledgeChunk[] {
+  // C1.7 — Une pièce jointe SANS entreprise (visiteur anonyme, ou compte sans entreprise) est
+  // ÉPHÉMÈRE : elle n'appartient à aucun tenant. On ne lui fabrique donc AUCUN companyId — la
+  // visibilité devient SESSION_EPHEMERAL et le tenant reste NULL. Elle n'ouvre aucune porte.
+  const cid = result.attachment.companyId;                       // string | null
+  const vis: ParrainVisibility = cid === null ? "SESSION_EPHEMERAL" : "COMPANY_SCOPED";
+  const scopeKey = cid ?? "ephemeral";
   let budget = ATTACHMENT_LIMITS.maxModelCharsPerAttachment;
   const out: ParrainKnowledgeChunk[] = [];
   for (const c of result.chunks) {
@@ -95,14 +101,14 @@ export function attachmentGroundingChunks(result: AttachmentIngestionResult): re
     budget -= text.length;
     out.push(
       makeParrainChunk({
-        id: derivedChunkId("att", `${result.attachment.companyId}|${c.attachmentId}|${c.ref}`),
+        id: derivedChunkId("att", `${scopeKey}|${c.attachmentId}|${c.ref}`),
         sourceId: "src.uploaded_documents",
         title: `${result.attachment.filename} — ${c.ref}`,
         text: `[${c.ref}] ${text}`,
         sourceType: "uploaded_document",
         authority: "uploaded_user_content",
-        visibility: "COMPANY_SCOPED",
-        tenantCompanyId: result.attachment.companyId,
+        visibility: vis,
+        tenantCompanyId: cid,
         citationLabel: c.citationLabel,
         freshness: "CURRENT",
       }),
@@ -111,14 +117,14 @@ export function attachmentGroundingChunks(result: AttachmentIngestionResult): re
   if (result.chunks.length > out.length) {
     out.push(
       makeParrainChunk({
-        id: derivedChunkId("att", `${result.attachment.companyId}|${result.attachment.attachmentId}|overflow`),
+        id: derivedChunkId("att", `${scopeKey}|${result.attachment.attachmentId}|overflow`),
         sourceId: "src.uploaded_documents",
         title: `${result.attachment.filename} — au-delà du budget`,
         text: `Le fichier contient ${result.chunks.length} extraits ; seuls les premiers sont fournis ici (budget). Les extraits restants sont référencés (${result.chunks.slice(out.length).map((c) => c.ref).slice(0, 6).join(", ")}…) et peuvent être demandés précisément.`,
         sourceType: "uploaded_document",
         authority: "uploaded_user_content",
-        visibility: "COMPANY_SCOPED",
-        tenantCompanyId: result.attachment.companyId,
+        visibility: vis,
+        tenantCompanyId: cid,
         citationLabel: `votre fichier « ${result.attachment.filename} »`,
       }),
     );

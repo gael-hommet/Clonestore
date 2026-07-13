@@ -1,0 +1,24 @@
+{
+  "remoteDatabaseMutated": false,
+  "connectionOpened": false,
+  "preflightRun": "node scripts/e1-1-clonechat-remote-preflight.mjs  (WITHOUT --connect)",
+  "urlPrinted": false,
+  "credentialPrinted": false,
+  "target": {
+    "configured": true,
+    "source": "DATABASE_URL",
+    "category": "managed_supabase_remote",
+    "productionSuspected": true
+  },
+  "p941": {
+    "migrationPresentLocally": true,
+    "appliedRemotely": false,
+    "remoteState": "UNKNOWN"
+  },
+  "partnerPayoutMigration": {
+    "presentLocally": true,
+    "appliedRemotely": false,
+    "remoteState": "UNKNOWN"
+  },
+  "note": "Both migrations remain locally prepared and remotely UNVERIFIED. Only an authorized operator running the preflight with --connect can establish remote state."
+}

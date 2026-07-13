@@ -1,0 +1,20 @@
+{
+  "status": "COMPLETED (continuation session) — email channel hardened; other channels honestly mapped",
+  "email_channel": {
+    "findings_resolved": [
+      { "id": "F11", "verdict": "CONFIRMED + FIXED", "file": "src/lib/cloneos/channels/email-production/runtime.ts",
+        "defect": "in LIVE mode the B37 Resend provider could silently dry-run (its own EMAIL_DRY_RUN default) and return ok:true + a FABRICATED dry_run_ id; the runtime set sent:true + audit send_allowed on fake evidence",
+        "fix": "a live send now REQUIRES a real acknowledgement (non-null provider_message_id); a silent simulation fails closed (send_blocked, sent:false, no rate-limit count)" },
+      { "id": "F12", "verdict": "CONFIRMED + FIXED", "file": "src/lib/cloneos/channels/providers/resend.ts",
+        "defect": "dry-run fabricated a provider_message_id; sandbox redirect was not explicitly labelled and the original recipient could be recorded as contacted",
+        "fix": "dry-run returns provider_message_id:null + simulated:true/sent:false; sandbox redirect labelled (sandbox_redirected + intended_recipients vs actual_recipients); a dry-run's actual_recipients is empty (nothing transmitted)" }
+    ],
+    "test": "src/lib/cloneos/channels/__tests__/p16e-f11-f12-truthful-email.test.ts (4) + updated channels-b37 (151) + pierre-b37-smoke (9)",
+    "canonical_states_enforced": ["PREPARED (dry-run/simulated)", "PROVIDER_REQUEST_ACCEPTED (real ack)", "STATUS_UNKNOWN (ok without ack -> fail closed)", "send_blocked (unavailable/simulated live)", "SANDBOX_REDIRECTED (labelled)"],
+    "doctrine_met": ["no fabricated provider message id", "sent=true requires a real acknowledgement", "sandbox redirect labelled + original recipient never marked contacted", "unavailable live provider fails closed", "provider acceptance != delivery"]
+  },
+  "in_app_and_governed_pipeline": {
+    "note": "the governed Pierre communications pipeline (src/lib/pierre/v1/communications.ts) already: submission_unknown on ambiguous timeout (no blind resend), deterministic idempotency key sha256(company:intent:recipient:channel) [F09 refuted], replay-conflict quarantine, in_app deterministic. Verified in P16D + prior P16E."
+  },
+  "not_completed": "a full per-channel matrix (telephony/CloneCall, voice, signature-invitation) was NOT built — those remain live-blocked (see technology-map.json). The exhaustive timeout/duplicate-webhook/malformed-ack matrix for every channel is queued for continuation."
+}

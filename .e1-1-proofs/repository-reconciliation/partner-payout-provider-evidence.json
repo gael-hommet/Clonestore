@@ -1,0 +1,14 @@
+{
+  "paidOnlyAfterProviderConfirmation": true,
+  "settleCalledAfterCreateTransferResolves": true,
+  "unknownOutcomeHandling": {
+    "status": "reconciliation_required",
+    "releasesNothing": true,
+    "paysNothing": true,
+    "queriesStripeBeforeRecreating": true,
+    "note": "A timeout/unknown outcome never releases the batch for a second transfer and never marks a commission paid. Stripe is queried with the same idempotency key before any recreation."
+  },
+  "netFailureReleasesBatch": true,
+  "noFakeTransferId": true,
+  "evidence": "payout-automation.itest.ts §5 (real mode) — settle only after confirmation; timeout -> reconciliation_required."
+}

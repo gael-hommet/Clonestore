@@ -1,0 +1,22 @@
+{
+  "decisions": [
+    {
+      "id": "D1",
+      "topic": "Conflits Stripe/payouts (blocage historique)",
+      "decision": "RÉSOLUS pendant C1.7, AVANT P16E. Stripe = conflit fantôme (les 2 moitiés byte-identiques, cksum 1774087574) → marqueurs retirés, contenu unique conservé, aucun arbitrage. Payouts = branche « Stashed » retenue car c'est le PLANCHER P10 (E1.1), strictement ADDITIF (garde identique des 2 côtés, appel upstream conservé dans le ET).",
+      "evidence": "0 marqueur dans tout le dépôt ; partner/Stripe 88/88 ; plancher P10 13/13 ; tsc 0 ; suite complète 17545/0"
+    },
+    {
+      "id": "D2",
+      "topic": "C1.7 interrompue par le propriétaire",
+      "decision": "Clôturée à une frontière PROPRE et honnête (verdict PARTIAL) plutôt qu'abandonnée à moitié câblée. Routeur de modèle + dictée vocale livrés/testés ; streaming, upload dossier, évals NON faits et NON revendiqués.",
+      "evidence": "C1_7_CLONECHAT_PREMIUM_INTELLIGENCE_MULTIMODAL_REPORT.md"
+    },
+    {
+      "id": "D3",
+      "topic": "Routeur de modèle C1.7",
+      "decision": "NON CÂBLÉ dans /api/assistant/chat. P16E §15 dit « réutiliser le routeur C1.7, ne pas en créer un second » — le module existe (model-router.ts, 26/26) et DOIT être réutilisé, pas dupliqué.",
+      "evidence": "src/lib/clonechat/openai/model-router.ts"
+    }
+  ]
+}

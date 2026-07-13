@@ -1,0 +1,14 @@
+{
+  "status": "PARTIAL",
+  "resolved": [
+    { "id": "F31", "verdict": "CONFIRMED + FIXED", "file": "src/lib/pierre/v1/mission-service.ts",
+      "defect": "runtime state-transition events recorded actor_type='user' with actor_id null (human decisions not attributable)",
+      "fix": "transitionTask/transitionMission now record actor_id from the real user for human ('user') transitions; system/worker/guard carry null" }
+  ],
+  "not_completed": {
+    "F20": "task approve/cancel/reschedule audit missing tenant key in some /api/pierre/use routes — not yet fixed",
+    "F29": "some document/email audit events missing user_id/agent_slug — not yet fixed",
+    "operator_metrics": "the privacy-safe operator metrics surface (mission states / blocked / retries / reconciliations / queue depth / provider categories) was NOT built this session"
+  },
+  "privacy_note": "existing audit payloads already avoid secrets and raw sensitive HR data (verified P16D); the gaps above are attributability completeness, not PII leakage."
+}

@@ -1,0 +1,10 @@
+{
+  "anonymousBudgetScope": {
+    "userId": null,
+    "companyId": null
+  },
+  "provenBy": "universal-clonechat-c1-6.test.ts — « 12/13/14. aucun faux userId, aucun faux companyId, aucune requête tenant »",
+  "tenantQueryCallsForAnonymous": 0,
+  "entitlementQueryCallsForAnonymous": 0,
+  "companyLabelDerivedFromEmail": false
+}

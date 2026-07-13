@@ -1,0 +1,16 @@
+{
+  "runId": "repository-reconciliation",
+  "reportedDefect": "un consommateur importait `listIntroductions` alors que le module serveur exporte `listIntroductionsPaged`.",
+  "currentState": {
+    "canonicalExport": "listIntroductionsPaged",
+    "legacyExportStillPresent": false,
+    "consumersUsingCanonical": [
+      "src/app/api/partners/introductions/route.ts",
+      "src/app/api/partners/me/route.ts"
+    ],
+    "consumersUsingLegacy": []
+  },
+  "duplicateImplementationCreated": false,
+  "compatibilityWrapperInvented": false,
+  "resolvedBy": "LE CHANTIER PARTNER LUI-MÊME (pas par E1.1) : une seule API canonique, tous les consommateurs alignés. E1.1 a VÉRIFIÉ, sans éditer."
+}

@@ -5,14 +5,25 @@
 // active tenant is served in one round, the noisy tenant is capped to its quota, and the
 // FOR UPDATE SKIP LOCKED no-double-claim guarantee is preserved.
 
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, afterAll, beforeAll } from "vitest";
 import { createHarness, type Harness } from "../__integration__/harness";
 import { claimJobs } from "../queue";
 import { claimJobsForTenant, fairClaimRound, dueTenants } from "../fair-claim";
 import { newUuid } from "../sql";
 
+// E1.1 — STABILISATION DU HARNESS (l'assertion d'équité n'est PAS touchée).
+// Ce test d'intégration monte une vraie base PGlite et insère ~215 travaux : il dépasse
+// légitimement le délai vitest PAR DÉFAUT (5 000 ms) dès que la machine est chargée par des
+// suites parallèles — d'où un échec « Test timed out in 5000ms » intermittent, jamais un
+// défaut produit. Deux corrections déterministes :
+//   1. le harnais est monté dans un hook (son coût de démarrage ne s'impute plus au test) ;
+//   2. le délai est déclaré DANS le fichier, au lieu de dépendre d'un drapeau de ligne de
+//      commande que la suite complète n'utilise pas forcément.
+const DB_TIMEOUT_MS = 120_000;
+
 let h: Harness;
-afterAll(async () => { if (h) await h.close(); });
+beforeAll(async () => { h = await createHarness(); }, DB_TIMEOUT_MS);
+afterAll(async () => { if (h) await h.close(); }, DB_TIMEOUT_MS); // nettoyage garanti
 
 async function makeTenant(name: string): Promise<string> {
   const cid = newUuid();
@@ -40,7 +51,6 @@ const resetJobs = () => h.pg.query("update pierre_rt_jobs set status='ready', le
 
 describe("fair-claim primitive", () => {
   it("reproduces the defect: global claimJobs lets a noisy tenant monopolize; fairClaimRound serves everyone", async () => {
-    h = await createHarness();
     const noisy = await makeTenant("noisy");
     const normals = [await makeTenant("n1"), await makeTenant("n2"), await makeTenant("n3"), await makeTenant("n4")];
     const noisyTask = await makeTask(noisy);
@@ -72,7 +82,7 @@ describe("fair-claim primitive", () => {
     // no duplicate claims
     const ids = claimed.map((j) => j.id);
     expect(new Set(ids).size).toBe(ids.length);
-  });
+  }, DB_TIMEOUT_MS);
 
   it("claimJobsForTenant is tenant-scoped and never double-claims under concurrency", async () => {
     const t = await h.pg.query<{ id: string }>("select id from pierre_rt_companies where name='n1'");
@@ -86,5 +96,5 @@ describe("fair-claim primitive", () => {
     for (const j of [...a, ...b]) expect(j.company_id).toBe(cid);         // tenant-scoped
     const overlap = a.filter((x) => b.some((y) => y.id === x.id));
     expect(overlap.length).toBe(0);                                        // no double claim
-  });
+  }, DB_TIMEOUT_MS);
 });

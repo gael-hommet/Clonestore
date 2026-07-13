@@ -1,0 +1,26 @@
+{
+  "phase": "E1.2",
+  "sourceVariable": "DATABASE_URL",
+  "remoteTargetCategory": "managed_supabase_remote",
+  "productionSuspected": true,
+  "dsnFingerprintSha256_12": "c049738d18e8",
+  "sslCategory": "tls(rejectUnauthorized=false)",
+  "sslActive": true,
+  "postgresMajorVersion": 17,
+  "currentRoleCategory": "bypassrls",
+  "extensions": [
+    "pg_cron",
+    "pg_graphql",
+    "pg_net",
+    "pg_stat_statements",
+    "pg_trgm",
+    "pgcrypto",
+    "plpgsql",
+    "supabase_vault",
+    "uuid-ossp"
+  ],
+  "urlPrinted": false,
+  "hostPrinted": false,
+  "usernamePrinted": false,
+  "passwordPrinted": false
+}

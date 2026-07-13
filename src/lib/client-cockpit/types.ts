@@ -54,13 +54,17 @@ export type CockpitValidationStatus =
   | "cancelled"
   | "unknown";
 
-/** Statut canonique d'un document/livrable. */
+/** Statut canonique d'un document/livrable.
+ *  P16D — `scheduled` (« Planifié ») existe pour NE PAS confondre « planifié » et « envoyé » :
+ *  une relance/un rappel est PROGRAMMÉ, aucun message ne part. « Envoyé » reste réservé à un
+ *  envoi réellement effectué. Programmé ne vaut jamais terminé. */
 export type CockpitArtifactStatus =
   | "draft"
   | "awaiting_validation"
   | "needs_review"
   | "validated"
   | "signed"
+  | "scheduled"
   | "sent"
   | "unknown";
 

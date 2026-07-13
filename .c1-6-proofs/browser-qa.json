@@ -1,0 +1,108 @@
+{
+  "anonymous": {
+    "entry": {
+      "navStatus": 200,
+      "finalUrl": "http://localhost:3136/assistant",
+      "redirectedToLogin": false,
+      "composerActive": true,
+      "loginWallShown": false,
+      "companyWarning": false,
+      "headerLabel": "Conversation générale"
+    },
+    "scenarioA": {
+      "question": "Comment Pierre peut-il me faire gagner du temps ?",
+      "httpStatus": 200,
+      "source": "openai_public",
+      "anonymousFlag": true,
+      "requestClass": "CONVERSATIONAL_OR_PUBLIC",
+      "provider": "openai",
+      "got401": false,
+      "answered": true,
+      "composerStillActive": true,
+      "answerTail": "uvez considérablement réduire le temps consacré à la gestion des ressources humaines. (Réponse d'orientation générale — pour un point précis, je peux citer la page ou le document exact.)\n\nRéponse d'orientation — je n'accède pas aux données de votre entreprise."
+    },
+    "scenarioB": {
+      "question": "Montre-moi les salariés de mon entreprise.",
+      "httpStatus": 200,
+      "source": "openai_public",
+      "requestClass": "PRIVATE_CONTEXT_REQUIRED",
+      "prerequisites": [
+        "authentication",
+        "active_company"
+      ],
+      "got401": false,
+      "noToolCall": true,
+      "noProposal": true,
+      "explainsPrerequisite": true,
+      "composerStillActive": true,
+      "tail": "er la page ou le document exact.)\n\nRéponse d'orientation — je n'accède pas aux données de votre entreprise.\n\nJe peux vous aider à cadrer la demande immédiatement. Pour accéder aux données de votre entreprise, connectez-vous d'abord.\n\nSe connecter\n\nSe connecter"
+    },
+    "scenarioC": {
+      "question": "Quels sont les prix ?",
+      "httpStatus": 200,
+      "source": "openai_public",
+      "answeredNormally": true,
+      "composerStillActive": true,
+      "noDeadState": true
+    },
+    "governedAction": {
+      "question": "Envoie l'avenant de Paul.",
+      "httpStatus": 200,
+      "requestClass": "GOVERNED_ACTION_REQUIRED",
+      "prerequisites": [
+        "authentication",
+        "active_company",
+        "pierre_entitlement"
+      ],
+      "noToolCall": true,
+      "noProposal": true,
+      "composerStillActive": true
+    },
+    "ui": {
+      "sameWorkspace": true,
+      "sameComposer": true,
+      "sameHeader": true,
+      "userBubbleClass": "cc-bubble-user",
+      "assistantBubbleClass": "cc-bubble-assistant"
+    }
+  },
+  "authedNoCompany": {
+    "publicQuestion": {
+      "status": 200,
+      "source": "openai_public",
+      "sameSourceAsAnonymous": true
+    },
+    "privateRequest": {
+      "status": 200,
+      "prerequisites": [
+        "active_company"
+      ],
+      "onlyCompanyMissing": true,
+      "noToolCall": true
+    },
+    "noHardCompanyBlocker": true,
+    "composerActive": true,
+    "headerLabel": "Conversation générale"
+  },
+  "privateRoutesStillProtected": {
+    "conversationsStatus": 401,
+    "executeStatus": 401,
+    "bothBlocked": true
+  },
+  "verdict": {
+    "anonymousPageOpens": true,
+    "anonymousComposerActive": true,
+    "noLoginWall": true,
+    "noCompanyWarning": true,
+    "anonymousPublicAnswered200": true,
+    "anonymousUsesRealCloneChat": true,
+    "anonymousPrivateRequestNo401": true,
+    "anonymousPrivateNoData": true,
+    "anonymousGovernedActionCreatesNothing": true,
+    "conversationSurvivesRefusal": true,
+    "sameUiEverywhere": true,
+    "authedNoCompanySamePath": true,
+    "authedNoCompanyOnlyCompanyMissing": true,
+    "privateRoutesStillProtected": true
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "runId": "access-openai-runtime",
+  "verdict": "C1.4 — ACCESS GATE AND REAL OPENAI RUNTIME VERIFIED / READY FOR CONTROLLED DEPLOYMENT",
+  "readyForControlledDeployment": true,
+  "exactBlockers": [],
+  "exactWarnings": [
+    "La base CIBLE par défaut (DATABASE_URL) est un Supabase MANAGÉ DISTANT : la production ne peut pas être exclue ⇒ AUCUNE migration n'y a été appliquée. Le provisioning du rôle a été prouvé sur une base LOCALE JETABLE (embedded-postgres).",
+    "Action OPÉRATEUR requise avant déploiement : appliquer la migration canonique P9.4.1 (qui crée `clonechat_app` de façon idempotente) sur la base de déploiement — voir C1_4_CLONECHAT_DATABASE_ROLE_RUNBOOK.md.",
+    "Scénarios navigateur B (droit + sans entreprise) et C (droit + entreprise) NON pilotés au navigateur : aucun compte de test ENTITLÉ disponible. Prouvés au niveau route (tests 26/27/29/30).",
+    "4 échecs PRÉ-EXISTANTS hors périmètre C1.4 dans src/lib/pierre/__tests__/premium-document-system.test.ts (inférence de famille documentaire). PROUVÉ pré-existant : échoue AUSSI en isolation, n'importe PAS lib/pierre/access, fichier daté du 19/05/2026. Surfacé par le scope élargi de C1.4, pas causé par lui. NON corrigé (hors périmètre).",
+    "1 échec INTERMITTENT hors périmètre : src/lib/pierre/v1/__tests__/fair-claim.test.ts (test d'intégration embedded-postgres, sensible à la charge). PROUVÉ vert 3/3 en isolation ; n'échoue que dans la suite complète parallèle. N'importe aucune surface C1.4.",
+    "Un AUTRE CHANTIER (partner-program) écrivait dans ce dépôt PENDANT la session (18 fichiers modifiés 16:10→16:41, jamais par C1.4) : il produit 7 erreurs tsc dans src/lib/partner-program|api/partners. ZÉRO erreur tsc dans le périmètre C1.4. Non corrigé — ce n'est pas mon périmètre.",
+    "2 assertions PÉRIMÉES corrigées dans src/app/__tests__/site-polish-prospection.test.ts : elles exigeaient encore « CloneChat désactivé par défaut », politique délibérément INVERSÉE par C1.2 (révélation). Rouges depuis C1.2, avant C1.4. La couverture du kill switch est CONSERVÉE et renforcée.",
+    "`readyForControlledDeployment` ne signifie PAS que la production est autorisée : PRODUCTION_AUTHORIZED reste false."
+  ],
+  "productionAuthorized": false
+}

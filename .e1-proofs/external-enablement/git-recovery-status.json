@@ -1,0 +1,4 @@
+{
+  "gitExeBlocked": true,
+  "note": "git.exe OS-blocked in this repo — additivity proven by additive file set + perimeter probes, not by git status. E1 added only src/lib/clonestore/external-enablement/e1/** + docs + proofs. No commit/push/stage."
+}

@@ -1,0 +1,36 @@
+{
+  "phase": "P16D — Pierre Reliability Hardening",
+  "recovered_after": "session-limit interruption (continuation)",
+  "method": "read real files + mtimes + baseline test runs; never file-timestamp alone as proof",
+  "baseline_at_session_start": {
+    "pierre_suite": "5209 passed / 0 failed / 1 skipped",
+    "clonechat_assistant_suite": "451 passed / 0 failed",
+    "tsc": "12 errors, ALL pre-existing git merge-conflict markers in 2 partner files (0 in Pierre)"
+  },
+  "completed_and_proven_this_workstream": [
+    { "id": "D1", "title": "CloneGuard lexical net evasion (human-only)", "file": "src/lib/pierre/v1/cloneguard.ts", "test": "src/lib/pierre/__tests__/p16d-human-only-lexical-net.test.ts", "proven_failing_without_fix": true },
+    { "id": "D2", "title": "Approval/proposal never expired", "files": ["src/lib/clonechat/durable/proposal-expiry.ts","src/lib/clonechat/durable/proposal-store.ts","src/lib/clonechat/durable/command-ledger.ts","src/app/api/assistant/execute/route.ts"], "test": ["src/lib/clonechat/__tests__/p16d-approval-expiry.test.ts","src/app/api/assistant/__tests__/execute-route.test.ts"] },
+    { "id": "D3", "title": "Retro-quarantined artifact could be finalized", "file": "src/lib/pierre/v1/documents.ts", "test": "src/lib/pierre/v1/__integration__/p16d-retro-quarantine-finalize.itest.ts", "proven_failing_without_fix": true },
+    { "id": "D4", "title": "Cockpit showed 'Envoyé' for a scheduled-only reminder", "files": ["src/lib/client-cockpit/v1.ts","src/lib/client-cockpit/status.ts","src/lib/client-cockpit/types.ts"], "test": "src/lib/client-cockpit/__tests__/p16d-truthful-status.test.ts" },
+    { "id": "D5", "title": "Ambiguous directive invented an action instead of asking", "file": "src/lib/pierre/v1/analysis.ts", "test": "src/lib/pierre/__tests__/p16d-ambiguous-instruction.test.ts" },
+    { "id": "D6", "title": "Conflicting instruction dropped the stricter user restriction", "file": "src/lib/pierre/v1/analysis.ts", "test": "src/lib/pierre/__tests__/p16d-conflicting-instruction.test.ts" },
+    { "id": "D7", "title": "email/send fabricated status=sent + provider ack without any provider (CRITICAL)", "file": "src/app/api/pierre/email/send/route.ts", "test": "src/app/api/pierre/email/__tests__/p16d-email-send-truthful.test.ts" },
+    { "id": "D8", "title": "Client field_values overwrote authoritative DB identity/salary/dates in contracts (CRITICAL)", "files": ["src/lib/pierre/v1/generation-context.ts","src/lib/pierre/v1/contracts.ts"], "test": "src/lib/pierre/v1/__integration__/p16d-contract-field-injection.itest.ts", "proven_failing_without_fix": false },
+    { "id": "D9", "title": "normalizeDecision defaulted ambiguous/omitted decision to APPROVE (CRITICAL)", "file": "src/lib/clonechat/server/proposal-builder.ts", "test": "src/lib/clonechat/__tests__/p16d-decision-default-safety.test.ts" },
+    { "id": "D10", "title": "Hallucinated mission/validation id silently retargeted first active/pending", "file": "src/lib/clonechat/server/v1-loopback.ts", "test": "src/lib/clonechat/__tests__/p16d-target-resolution-safety.test.ts" },
+    { "id": "D11", "title": "Cockpit mission idempotency key omitted the actor (cross-user collapse)", "file": "src/lib/pierre/v1/client.ts", "test": "src/lib/pierre/v1/__tests__/p16d-client-idempotency-actor.test.ts" }
+  ],
+  "proof_of_protection_suites_added": [
+    { "title": "exactly-once / crash-recovery fencing / tenant isolation", "test": "src/lib/clonechat/__tests__/p16d-exactly-once-recovery-tenant.test.ts", "tests": 13 },
+    { "title": "state-machine illegal transitions fail closed", "test": "src/lib/pierre/__tests__/p16d-state-machine-fail-closed.test.ts", "tests": 20 }
+  ],
+  "refuted_this_workstream": [
+    { "finding": "queue/release-stuck unauthenticated", "verdict": "REFUTED — has x-pierre-worker-secret -> 401" },
+    { "finding": "queue/process-task unauthenticated", "verdict": "REFUTED — has x-pierre-worker-secret -> 401" },
+    { "finding": "termination request bypasses human-only via CloneGuard regex", "verdict": "PARTIALLY REFUTED — analysis.ts SENSITIVE_RULES routes to action=termination -> HARD_BLOCK structurally; the regex gap is defense-in-depth for termination, but IS the sole net for protected characteristics (fixed in D1)" }
+  ],
+  "foreign_concurrent_workstream": {
+    "C1_6": "src/app/api/assistant/chat/route.ts (mtime 15:33) and src/app/assistant/useCloneChat.ts (mtime 22:16) rewritten by the C1.6 workstream WHILE P16D ran; two brittle source-grep tests (access-contract-c1-4, no-company-ui-c1-5) briefly failed and were reconciled by that workstream (both green at session end). Protected perimeter — not edited by P16D.",
+    "partner_money_path": "src/app/api/webhooks/stripe/route.ts + src/lib/partner-program/server/payouts.ts carry UNRESOLVED git merge-conflict markers (git stash pop) from a partner workstream. 12 tsc errors, 0 in Pierre. Left untouched per instruction (money path). Blocks a clean full-suite / build."
+  }
+}

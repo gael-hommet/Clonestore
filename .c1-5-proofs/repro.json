@@ -1,0 +1,61 @@
+{
+  "initial": {
+    "composerEnabled": true,
+    "bodyMentionsNoCompany": false
+  },
+  "scenarioA": {
+    "question": "comment je paye pierre ? tu me recommandes de le prendre pour me libérer du temps ?",
+    "threadTail": "comment je paye pierre ? tu me recommandes de le prendre pour me libérer du temps ?\nCloneStore fournit des employés IA opérationnels. Pierre, l'employé IA RH, prépare des contrats, organise des onboardings, relance des candidats et prépare vos communications — toujours sous votre validation.\n\nRéponse d'orientation — je n'accède pas aux données de votre entreprise.",
+    "apiCalls": [
+      {
+        "path": "/api/assistant/conversations",
+        "status": 200,
+        "ok": true,
+        "source": "company_required",
+        "code": "MEMBERSHIP_REQUIRED",
+        "discovery": null,
+        "answer": ""
+      }
+    ],
+    "composerStillEnabled": true,
+    "hardBlockerShown": false
+  },
+  "scenarioB": {
+    "question": "prépare l'avenant de Paul",
+    "threadTail": "comment je paye pierre ? tu me recommandes de le prendre pour me libérer du temps ?\nCloneStore fournit des employés IA opérationnels. Pierre, l'employé IA RH, prépare des contrats, organise des onboardings, relance des candidats et prépare vos communications — toujours sous votre validation.\n\nRéponse d'orientation — je n'accède pas aux données de votre entreprise.\n\nprépare l'avenant de Paul\nPierre doit être activé pour agir sur votre entreprise, accéder à vos données RH ou créer des missions. En attendant, je réponds à toutes vos questions sur CloneStore, Pierre, les prix et le fonctionnement.\n\nDonnées de votre entreprise (test-a) — visibles par vous seul.",
+    "apiCalls": [
+      {
+        "path": "/api/assistant/chat",
+        "status": 200,
+        "ok": true,
+        "source": "pierre_access_required",
+        "code": "PIERRE_ACCESS_REQUIRED",
+        "discovery": null,
+        "answer": "Pierre doit être activé pour agir sur votre entreprise, accéder à vos données RH ou créer des missions. En attendant, je"
+      }
+    ],
+    "composerStillEnabled": true,
+    "hardBlockerShown": false
+  },
+  "userBubbleStyle": null,
+  "allAssistantApiCalls": [
+    {
+      "path": "/api/assistant/conversations",
+      "status": 200,
+      "ok": true,
+      "source": "company_required",
+      "code": "MEMBERSHIP_REQUIRED",
+      "discovery": null,
+      "answer": ""
+    },
+    {
+      "path": "/api/assistant/chat",
+      "status": 200,
+      "ok": true,
+      "source": "pierre_access_required",
+      "code": "PIERRE_ACCESS_REQUIRED",
+      "discovery": null,
+      "answer": "Pierre doit être activé pour agir sur votre entreprise, accéder à vos données RH ou créer des missions. En attendant, je"
+    }
+  ]
+}

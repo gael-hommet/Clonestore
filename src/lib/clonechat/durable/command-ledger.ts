@@ -20,6 +20,10 @@ export interface CanonicalCommand {
   readonly proposalId: string;
   readonly actionKind: string;
   readonly payload: unknown;
+  /** P16D — borne d'EXPIRATION de l'approbation, dérivée du `created_at` IMMUABLE de la
+   *  proposition. Donc une fonction pure de la proposition : l'identité reste STABLE d'une
+   *  reprise à l'autre (un rejeu légitime garde le même fingerprint, l'exactly-once tient). */
+  readonly expiresAt?: string | null;
 }
 
 export interface CommandRow {
@@ -48,7 +52,7 @@ export function canonicalPayloadSha256(payload: unknown): string {
   return createHash("sha256").update(canonicalize(payload), "utf8").digest("hex");
 }
 export function commandFingerprint(c: CanonicalCommand): string {
-  const sig = canonicalize([c.companyId, c.actorId, c.conversationId ?? "", c.proposalId, c.actionKind, canonicalPayloadSha256(c.payload)]);
+  const sig = canonicalize([c.companyId, c.actorId, c.conversationId ?? "", c.proposalId, c.actionKind, canonicalPayloadSha256(c.payload), c.expiresAt ?? ""]);
   return createHash("sha256").update(sig, "utf8").digest("hex");
 }
 

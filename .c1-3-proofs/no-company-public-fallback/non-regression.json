@@ -1,0 +1,7 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "command": "npx vitest run src/lib/nav src/lib/clonestore src/lib/clonechat src/lib/pierre/v1 src/app/api/assistant src/app/assistant src/components --testTimeout=120000",
+  "result": "182 files passed / 1 skipped (183) — 7651 tests passed / 1 skipped",
+  "note": "C1.2 baseline 7414 => 7651 ; le skip est pre-existant (non lie a C1.3)"
+}

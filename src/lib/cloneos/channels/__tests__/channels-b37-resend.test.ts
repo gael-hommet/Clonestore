@@ -142,11 +142,14 @@ describe("resendChannelProvider — dry-run behavior", () => {
   });
   afterEach(() => { vi.unstubAllEnvs(); });
 
-  it("dry-run returns ok=true with dry_run provider_message_id", async () => {
+  it("dry-run: ok=true but NO fabricated provider_message_id (P16E F11 truthfulness)", async () => {
     const result = await resendChannelProvider.send(makeSendParams());
     expect(result.ok).toBe(true);
-    expect(result.provider_message_id).toMatch(/^dry_run_/);
+    // P16E — a dry-run has NO provider acknowledgement: the id must be null, never fabricated.
+    expect(result.provider_message_id).toBeNull();
     expect(result.meta.dry_run).toBe(true);
+    expect(result.meta.simulated).toBe(true);
+    expect(result.meta.sent).toBe(false);
   });
 
   it("dry-run does not actually call Resend API (no network)", async () => {
@@ -171,8 +174,9 @@ describe("resendChannelProvider — EMAIL_SEND_LIVE=false", () => {
   it("EMAIL_SEND_LIVE=false → dry-run path, no real send", async () => {
     const result = await resendChannelProvider.send(makeSendParams());
     expect(result.ok).toBe(true);
-    expect(result.provider_message_id).toMatch(/^dry_run_/);
+    expect(result.provider_message_id).toBeNull(); // no fabricated id
     expect(result.meta.dry_run).toBe(true);
+    expect(result.meta.sent).toBe(false);
   });
 });
 
@@ -320,9 +324,11 @@ describe("resendChannelProvider — provider_message_id", () => {
   });
   afterEach(() => { vi.unstubAllEnvs(); });
 
-  it("provider_message_id is non-null in dry-run", async () => {
+  it("provider_message_id is NULL in dry-run — no fabricated acknowledgement (P16E F11)", async () => {
     const result = await resendChannelProvider.send(makeSendParams());
-    expect(result.provider_message_id).not.toBeNull();
+    // A dry-run produces no provider acknowledgement, so there is no id to present as proof.
+    expect(result.provider_message_id).toBeNull();
+    expect(result.meta.simulated).toBe(true);
   });
 });
 

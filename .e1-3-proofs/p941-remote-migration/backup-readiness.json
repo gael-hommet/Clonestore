@@ -1,0 +1,10 @@
+{
+  "phase": "E1.3",
+  "section": "5",
+  "backupConfirmed": false,
+  "mechanismCategory": null,
+  "evidenceTimestamp": null,
+  "operatorCategory": null,
+  "note": "BACKUP CONFIRMATION REQUIRED — run --attest-backup before authorizing. Migration is additive/idempotent, but the target is production-suspected.",
+  "noCustomerDataDumpCreated": true
+}

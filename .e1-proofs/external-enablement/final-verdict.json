@@ -1,0 +1,26 @@
+{
+  "verdict": "E1 — EXTERNAL ENABLEMENT PREPARATION VERIFIED / OWNER, PROVIDER AND LEGAL ACTIONS REQUIRED",
+  "readyForExternalConfiguration": true,
+  "readyForProductionActivation": false,
+  "nextSafeAction": "Owner begins external configuration in this order: (1) legal entity + counsel sign-off, (2) production domain + DNS, (3) Supabase production project + authorized migrations + RLS runtime verify, (4) Stripe account + live EUR/CHF prices + webhook registration, (5) email provider + SPF/DKIM/DMARC, (6) monitoring vendor + rollback rehearsal, (7) complete the owner go-live approval packet. Then a DELIBERATE code change lifts the P10 hard floor. No production activation until every external proof exists.",
+  "ledgerStatusCounts": {
+    "LOCAL_READY": 3,
+    "TEST_READY": 0,
+    "OWNER_ACTION_REQUIRED": 8,
+    "PROVIDER_ACTION_REQUIRED": 2,
+    "LEGAL_ACTION_REQUIRED": 4,
+    "CREDENTIAL_REQUIRED": 1,
+    "DOMAIN_DNS_REQUIRED": 2,
+    "DEPLOYMENT_REQUIRED": 2,
+    "PRODUCTION_AUTHORIZATION_REQUIRED": 1,
+    "NOT_REQUIRED_FOR_LAUNCH": 6,
+    "BLOCKED": 0
+  },
+  "summary": {
+    "total": 29,
+    "launchCritical": 23,
+    "ownerActions": 8,
+    "providerActions": 2,
+    "legalActions": 4
+  }
+}

@@ -13,7 +13,7 @@ function ctx(over: Record<string, string | null> = {}): StrictGenerationContext 
   return {
     document_type: "employment_contract", employee_id: "e", site_id: null, contract_id: "c",
     values: { "company.legal_name": "Acme & Co", "employee.first_name": "Élise", "employee.last_name": "Müller", "employee.role_title": "Cheffe de projet", "employment.start_date": "2026-01-01", "employment.end_date": "2026-12-31", "employment.weekly_hours": "35", ...over },
-    sensitive_fields: [], custom_field_keys: [],
+    sensitive_fields: [], custom_field_keys: [], rejected_overrides: [],
   };
 }
 const TEMPLATE_BODY = "# Article 1 — Parties\nContrat entre Acme & Co et {{employee.first_name}} {{employee.last_name}}.\n# Article 2 — Fonctions\nPoste : {{employee.role_title}}, à compter du {{employment.start_date}}.";

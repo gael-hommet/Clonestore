@@ -6203,3 +6203,41 @@ body:has(.cos-root) { overflow: hidden; }
   .cc-msg-col { max-width: 90% !important; }
   .cc-state-card { padding: 0.6rem 0.7rem; }
 }
+
+/* ── C1.7 — Pièces jointes : menu, dépôt, refus visibles ─────────────────── */
+.cc-composer--drop {
+  border-color: rgba(84, 119, 255, 0.45);
+  box-shadow: 0 20px 56px rgba(84, 119, 255, 0.16);
+}
+.cc-attach-menu {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 13.5rem;
+  overflow: hidden;
+  border: 1px solid var(--cs-line-soft);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 20px 56px rgba(21, 25, 34, 0.14);
+}
+.cc-attach-menu button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  font-size: 0.84rem;
+  color: var(--cs-ink-2);
+  background: transparent;
+}
+.cc-attach-menu button:hover { background: var(--cs-blue-soft); color: var(--cs-ink-1); }
+/* Un fichier écarté reste VISIBLE et motivé — jamais supprimé en silence. */
+.cc-chip--rejected {
+  border-color: rgba(220, 38, 38, 0.28);
+  background: rgba(220, 38, 38, 0.05);
+  text-decoration: line-through;
+  text-decoration-color: rgba(220, 38, 38, 0.5);
+}

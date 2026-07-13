@@ -1,0 +1,19 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "serverSideAssertion": "buildKnowledgeIndex({ viewer: PUBLIC_VIEWER }) + indexLeaksForbiddenSources(...) AVANT tout appel modele ; fuite => fail-closed (source public_blocked)",
+  "excluded": [
+    "company_context",
+    "employee",
+    "mission",
+    "task",
+    "validation",
+    "generated_document",
+    "uploaded_document",
+    "tenant support memory",
+    "code_symbol (interne)",
+    "founder reports",
+    "RESTRICTED_SECRET"
+  ],
+  "browserNoTenantData": true
+}

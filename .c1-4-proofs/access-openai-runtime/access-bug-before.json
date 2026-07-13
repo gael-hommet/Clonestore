@@ -1,0 +1,8 @@
+{
+  "runId": "access-openai-runtime",
+  "file": "src/app/api/assistant/chat/route.ts (avant C1.4, ligne ~115)",
+  "code": "const access = await hasPierreAccess(supabase, userId); if (!access) { ...refus no_pierre... }",
+  "why": "hasPierreAccess renvoyait un OBJET ({ok,error}) — `!objet` est TOUJOURS false ⇒ la porte ne se déclenchait JAMAIS.",
+  "consequence": "Un utilisateur authentifié SANS droit Pierre atteignait les chemins opérationnels CloneChat.",
+  "fixed": true
+}

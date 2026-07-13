@@ -13,6 +13,7 @@
 import { requireCloneChatUser, ccNoStore } from "@/lib/clonechat/server/auth";
 import { getCloneChatStores } from "@/lib/clonechat/server/runtime";
 import { commandFingerprint, type CanonicalCommand } from "@/lib/clonechat/durable/command-ledger";
+import { proposalFreshness } from "@/lib/clonechat/durable/proposal-expiry";
 import { runGovernedCommand, type EffectResult } from "@/lib/clonechat/server/command-executor";
 import { buildV1Ctx, createMissionV1, cancelMissionV1, decideValidationV1 } from "@/lib/clonechat/server/v1-loopback";
 import { randomUUID } from "crypto";
@@ -64,11 +65,26 @@ export async function POST(req: Request) {
   const proposal = await stores.proposals.load(proposalId, { companyId, userId });
   if (!proposal) return ccNoStore({ ok: false, code: "PROPOSAL_NOT_FOUND", message: "Cette proposition n'est plus disponible. Reformulez votre demande." }, 404);
 
+  // P16D — EXPIRATION de l'approbation, AVANT tout claim et tout effet. Une proposition EST
+  // l'approbation : sans borne, un onglet laissé ouvert (ou un `proposalId` rejoué) ré-autorisait
+  // l'action des semaines plus tard, alors que rôle / effectif / entitlement avaient pu changer.
+  // FAIL-CLOSED : `unknown` (created_at absent/illisible) est refusé comme une expiration —
+  // une preuve de fraîcheur absente n'est jamais une preuve positive.
+  const freshness = proposalFreshness(proposal.createdAt);
+  if (freshness.state !== "fresh") {
+    return ccNoStore({
+      ok: false, code: "PROPOSAL_EXPIRED", kind: proposal.actionKind,
+      message: "Cette proposition a expiré. Par sécurité, redemandez-la — rien n'a été effectué.",
+    }, 410);
+  }
+
   // Identité canonique de la commande = SHA-256(entreprise, acteur, conversation, proposition,
-  // kind, payload canonique persisté). Reconstruite CÔTÉ SERVEUR à partir de la proposition.
+  // kind, payload canonique persisté, expiration). Reconstruite CÔTÉ SERVEUR à partir de la
+  // proposition. `expiresAt` dérive de `created_at` (immuable) ⇒ identité STABLE en reprise.
   const cmd: CanonicalCommand = {
     companyId, actorId: userId, conversationId: proposal.conversationId,
     proposalId: proposal.id, actionKind: proposal.actionKind, payload: proposal.payload,
+    expiresAt: freshness.expiresAt,
   };
   const fingerprint = commandFingerprint(cmd);
   const v1 = buildV1Ctx(req, companyId);

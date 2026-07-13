@@ -176,6 +176,8 @@ const ARTIFACT_CANONICAL: Record<string, CockpitArtifactStatus> = {
   good: "validated",
   excellent: "validated",
   signed: "signed",
+  scheduled: "scheduled",
+  planned: "scheduled",
   sent: "sent",
   delivered: "sent",
 };
@@ -186,6 +188,10 @@ const ARTIFACT_VIEW: Record<CockpitArtifactStatus, { label: string; tone: Cockpi
   needs_review: { label: "À relire", tone: "warning", urgency: "high" },
   validated: { label: "Validé", tone: "success", urgency: "low" },
   signed: { label: "Signé", tone: "success", urgency: "low" },
+  // P16D — « Planifié » ≠ « Envoyé ». Une relance/un rappel est PROGRAMMÉ : rien n'est parti.
+  // Tonalité NEUTRE, jamais `success` : un succès affiché sur un envoi qui n'a pas eu lieu est
+  // précisément le faux positif que P16D interdit (« queued ne vaut jamais completed »).
+  scheduled: { label: "Planifié", tone: "neutral", urgency: "low" },
   sent: { label: "Envoyé", tone: "success", urgency: "low" },
   unknown: { label: "Inconnu", tone: "neutral", urgency: "normal" },
 };

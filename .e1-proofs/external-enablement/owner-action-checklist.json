@@ -1,0 +1,132 @@
+[
+  {
+    "id": "infra.production_domain",
+    "action": "Owner buys/controls the domain and sets DNS at the registrar.",
+    "validation": "External DNS lookup resolves the domain to the host; HTTPS cert valid. Code cannot prove this.",
+    "credentials": [
+      "NEXT_PUBLIC_APP_URL",
+      "NEXT_PUBLIC_SITE_URL"
+    ]
+  },
+  {
+    "id": "infra.production_hosting",
+    "action": "Owner creates the hosting project, configures env, connects the repo/domain.",
+    "validation": "A real deployment exists and the health/readiness endpoint responds. Code cannot prove a deploy occurred.",
+    "credentials": []
+  },
+  {
+    "id": "infra.production_env_vars",
+    "action": "Owner sets each production secret in the host secret manager (never committed).",
+    "validation": "Presence/shape check in the host env (never the value). Missing prod secret fails closed.",
+    "credentials": [
+      "NEXT_PUBLIC_APP_URL",
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "PIERRE_INTERNAL_DIAGNOSTICS_SECRET",
+      "OPENAI_API_KEY",
+      "STRIPE_SECRET_KEY",
+      "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+      "STRIPE_WEBHOOK_SECRET",
+      "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+      "STRIPE_PRICE_PIERRE_CHF_MONTHLY",
+      "STRIPE_COUNTRY_PRICING_ENABLED",
+      "STRIPE_COUNTRY_RECONCILIATION_ENABLED",
+      "PIERRE_OBSERVABILITY_ENABLED",
+      "AI_COST_SHIELD_MODE"
+    ]
+  },
+  {
+    "id": "supabase.production_project",
+    "action": "Owner creates the production Supabase project and supplies URL + keys.",
+    "validation": "Connect to the production URL and run the RLS runtime verification script with two test users.",
+    "credentials": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ]
+  },
+  {
+    "id": "supabase.production_migrations",
+    "action": "Owner explicitly authorizes and runs migrations against the production project.",
+    "validation": "Migration replay succeeds on the production project + schema matches. Code cannot run live migrations.",
+    "credentials": [
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ]
+  },
+  {
+    "id": "supabase.rls_tenant_isolation",
+    "action": "Run the RLS runtime verification against the production project with two real test accounts.",
+    "validation": "scripts/rls-runtime-verify.mjs: cross-user isolation blocked on the production DB.",
+    "credentials": [
+      "RLS_TEST_USER_A_EMAIL",
+      "RLS_TEST_USER_B_EMAIL"
+    ]
+  },
+  {
+    "id": "supabase.backup_recovery",
+    "action": "Owner enables PITR/backups on the production project and rehearses a restore.",
+    "validation": "A restore test succeeds on the production project. Code cannot prove backups run.",
+    "credentials": []
+  },
+  {
+    "id": "stripe.account",
+    "action": "Owner (or authorized company rep) creates the Stripe account, verifies identity + bank.",
+    "validation": "Owner-gated read-only dry run (scripts/p15-verify-stripe-live-readonly.mjs) + attestation. No live payment.",
+    "credentials": [
+      "STRIPE_SECRET_KEY",
+      "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
+    ]
+  },
+  {
+    "id": "stripe.products_prices",
+    "action": "Owner creates the live EUR + CHF recurring prices (active, distinct) in the Stripe dashboard.",
+    "validation": "Read-only prices.retrieve confirms amount/currency/interval/active. Code cannot create live prices.",
+    "credentials": [
+      "STRIPE_PRICE_PIERRE_EUR_MONTHLY",
+      "STRIPE_PRICE_PIERRE_CHF_MONTHLY"
+    ]
+  },
+  {
+    "id": "stripe.webhook",
+    "action": "Owner registers the live webhook endpoint URL in Stripe and copies the whsec_ secret to env.",
+    "validation": "Stripe dashboard shows the endpoint; a signed test event is accepted. Code cannot prove external registration.",
+    "credentials": [
+      "STRIPE_WEBHOOK_SECRET"
+    ]
+  },
+  {
+    "id": "email.sending_domain_dns",
+    "action": "Owner adds DNS records at the registrar and verifies the domain in Resend.",
+    "validation": "Resend dashboard shows domain verified; external DNS lookup shows the records. Code cannot verify DNS.",
+    "credentials": [
+      "RESEND_ALLOWED_FROM_DOMAINS",
+      "RESEND_DEFAULT_FROM"
+    ]
+  },
+  {
+    "id": "observability.monitoring",
+    "action": "Owner picks/configures a monitoring vendor + alert channels and rehearses rollback.",
+    "validation": "Alerts fire in the vendor; owner attests CLONESTORE_MONITORING_ROLLBACK_VERIFIED. Code cannot prove vendor config.",
+    "credentials": [
+      "CLONESTORE_MONITORING_ROLLBACK_VERIFIED"
+    ]
+  },
+  {
+    "id": "deploy.production_smoke",
+    "action": "Operator runs smoke checks against the deployed environment.",
+    "validation": "Health endpoint 200 + smoke checklist pass on the deployed URL. Code cannot prove a deploy.",
+    "credentials": [
+      "CLONESTORE_DEPLOY_PROOF"
+    ]
+  },
+  {
+    "id": "owner.production_authorization",
+    "action": "Owner completes the go-live approval packet AND makes a deliberate code change to lift PRODUCTION_AUTHORIZED.",
+    "validation": "canAuthorizeProduction()=true requires all gates + owner sign-off + a code change. Never from env.",
+    "credentials": [
+      "CLONESTORE_OWNER_GOLIVE_APPROVED",
+      "CLONESTORE_OWNER_GOLIVE_DECISION"
+    ]
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "status": 401,
+  "code": "AUTH_REQUIRED",
+  "blocked": true,
+  "changedByC1_3": false,
+  "emergencyKillSwitch": "CLONECHAT_ENABLED=false => 503 CLONECHAT_DISABLED (teste)"
+}

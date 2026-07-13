@@ -1,0 +1,9 @@
+{
+  "phase": "E1.2",
+  "migration": "supabase/migrations/2026-07-11_05__clonestore_pp_payout_automation.sql",
+  "localSha256": "d2e16a3832cfc232e1eac22ee9ac49d3a7c399dc83ca3670cdb8f25f4990a7f1",
+  "state": "NO_LEDGER_FOR_THIS_MIGRATION",
+  "reason": "No migration-history mechanism records this file. The only remote ledger is public.pierre_rt_schema_migrations, written solely by scripts/p87-activate-remote.mjs, which filters on \"pierre_v\". History can therefore neither confirm nor refute this migration — object state is the only admissible evidence.",
+  "ledgerPresent": true,
+  "supabaseCliPresent": false
+}

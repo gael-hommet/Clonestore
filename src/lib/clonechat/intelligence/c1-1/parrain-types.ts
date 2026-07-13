@@ -70,6 +70,11 @@ export function authorityRank(level: ParrainAuthorityLevel): number {
 // ── Visibilités ───────────────────────────────────────────────────────────────
 export const PARRAIN_VISIBILITIES = [
   "PUBLIC",
+  // C1.7 — Pièce jointe ÉPHÉMÈRE fournie par l'utilisateur LUI-MÊME dans CE tour.
+  // Ce n'est PAS de la connaissance publique, et ce n'est PAS une donnée tenant :
+  // c'est le fichier de l'utilisateur, lié à AUCUNE entreprise (tenantCompanyId = null),
+  // jamais persisté, jamais visible d'une autre session. Il n'accorde AUCUN accès tenant.
+  "SESSION_EPHEMERAL",
   "AUTHENTICATED_CLIENT",
   "COMPANY_SCOPED",
   "FOUNDER_INTERNAL",

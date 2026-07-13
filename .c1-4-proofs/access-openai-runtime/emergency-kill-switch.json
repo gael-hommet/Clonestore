@@ -1,0 +1,5 @@
+{
+  "runId": "access-openai-runtime",
+  "ready": true,
+  "rule": "CLONECHAT_ENABLED=false → 503 CLONECHAT_DISABLED"
+}

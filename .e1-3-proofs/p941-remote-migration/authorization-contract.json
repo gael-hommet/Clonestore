@@ -1,0 +1,17 @@
+{
+  "phase": "E1.3",
+  "section": "10/11",
+  "sentenceRequiredExactly": "I AUTHORIZE P9.4.1 REMOTE MIGRATION APPLICATION",
+  "allowedAction": "APPLY_P941_REMOTE_MIGRATION",
+  "mechanism": "short-lived single-use local file (.e1-3-auth/authorization.json), minted only after the exact sentence; NOT an env var; atomically claimed before connect",
+  "boundTo": [
+    "sessionId",
+    "targetFingerprint=c049738d18e8",
+    "migrationChecksum",
+    "backupConfirmed"
+  ],
+  "ttlMinutes": 15,
+  "singleUse": true,
+  "e12ReadOnlyAuthNotReusable": true,
+  "authorizationReceived": false
+}

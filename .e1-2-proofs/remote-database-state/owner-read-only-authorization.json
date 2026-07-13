@@ -1,0 +1,9 @@
+{
+  "phase": "E1.2",
+  "authorizationSentenceRequired": "I AUTHORIZE READ-ONLY REMOTE DATABASE PREFLIGHT",
+  "authorizationReceived": true,
+  "mechanism": "short-lived single-use local file (.e1-2-auth/authorization.json), NOT an environment variable",
+  "sessionBound": true,
+  "consumedAfterRun": true,
+  "fileRemovedAfterRun": true
+}

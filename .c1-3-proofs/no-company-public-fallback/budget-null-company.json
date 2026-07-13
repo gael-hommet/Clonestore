@@ -1,0 +1,15 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "scope": {
+    "userId": "<real userId>",
+    "companyId": null
+  },
+  "proof": "espion de reserve() au niveau route : scope.companyId === null, scope.userId === userId reel",
+  "noFakeTenant": "aucun 'u:<userId>' comme entreprise",
+  "storeSupport": "durable/budget-store.ts + budget-memory.ts : scopePlan n'ajoute la cle entreprise QUE si companyId est present",
+  "orderReserveBeforeModel": true,
+  "successCommits": "commit(30) = 20 in + 10 out",
+  "modelFailureSettled": "reglee exactement une fois, 0 token debite (aucune fuite)",
+  "budgetStoreUnavailable": "REGRESSION trouvee par le QA navigateur (role PG 'clonechat_app' absent) => degradation en repli public deterministe, JAMAIS de 500, AUCUN appel modele sans reservation"
+}

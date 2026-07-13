@@ -1,0 +1,16 @@
+{
+  "captured": "2026-07-13 P16E start",
+  "environment": "local only; no remote DB; no live provider; no deploy; no commit",
+  "repo_conflicts": "ZERO markers repo-wide (partner money-path resolved by concurrent C1.7 workstream, taking the safer side: Boolean(PRODUCTION_AUTHORIZED) && isPartnerLivePayoutAuthorized; stripe webhook de-duplicated to 578 lines)",
+  "typescript_global": { "command": "npx tsc --noEmit", "errors": 0 },
+  "scoped_suites": [
+    { "perimeter": "src/lib/pierre", "result": "5281 passed / 0 failed / 1 skipped (108 files)" },
+    { "perimeter": "src/lib/clonechat + src/app/api/assistant + src/app/assistant", "result": "569 passed / 0 failed (33 files)" },
+    { "perimeter": "src/lib/clonestore/integration/p16c + src/lib/client-cockpit + src/lib/access", "result": "165 passed / 0 failed (9 files)" }
+  ],
+  "prior_context": {
+    "P16D": "11 defects fixed (3 critical), R1/R2/R3 documented-not-fixed; proofs in .p16d-proofs/",
+    "C1.7": "PARTIAL — model-router.ts (26/26) + voice dictation delivered; streaming/folder-upload/evals NOT done. model-router NOT yet wired into /api/assistant/chat (P16E §15 says reuse, not duplicate).",
+    "prior_P16E_session": "created state files, resolved+verified conflicts, recorded 17545/0 full suite; stopped before §3/§4"
+  }
+}

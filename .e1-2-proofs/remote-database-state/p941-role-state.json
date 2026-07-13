@@ -1,0 +1,16 @@
+{
+  "phase": "E1.2",
+  "roleName": "clonechat_app",
+  "exists": false,
+  "attributes": null,
+  "memberships": [],
+  "expected": {
+    "rolcanlogin": false,
+    "rolsuper": false,
+    "rolcreatedb": false,
+    "rolcreaterole": false,
+    "rolreplication": false,
+    "rolbypassrls": false
+  },
+  "leastPrivilege": false
+}

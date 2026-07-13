@@ -35,7 +35,8 @@ export const ATTACHMENT_SUPPORT_MATRIX: Readonly<Record<AttachmentFormat, { read
 
 export interface ParrainAttachment {
   readonly attachmentId: string;
-  readonly companyId: string;
+  /** C1.7 — `null` = pièce jointe ÉPHÉMÈRE de session : liée à AUCUNE entreprise. */
+  readonly companyId: string | null;
   readonly conversationId: string | null;
   readonly uploadedBy: string | null;
   readonly filename: string;
@@ -77,7 +78,8 @@ export interface AttachmentIngestionInput {
   readonly filename: string;
   readonly declaredMime: string;
   readonly bytes: Uint8Array;
-  readonly companyId: string;
+  /** C1.7 — `null` = pièce jointe ÉPHÉMÈRE de session : liée à AUCUNE entreprise. */
+  readonly companyId: string | null;
   readonly conversationId: string | null;
   readonly uploadedBy: string | null;
   readonly at: string;

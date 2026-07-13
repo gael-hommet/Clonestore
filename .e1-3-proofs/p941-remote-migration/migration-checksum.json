@@ -1,0 +1,7 @@
+{
+  "phase": "E1.3",
+  "path": "supabase/migrations-p941/2026-07-07__p941_clonechat_durable.sql",
+  "sha256": "4a879e8cbfa260e8bebdbef5203213f3086015b3a8c77c8748c2b7325d15dc7b",
+  "expected": "4a879e8cbfa260e8bebdbef5203213f3086015b3a8c77c8748c2b7325d15dc7b",
+  "matches": true
+}

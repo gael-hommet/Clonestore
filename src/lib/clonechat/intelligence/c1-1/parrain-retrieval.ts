@@ -86,10 +86,38 @@ export function retrieveParrainChunks(
   const weak = ranked.filter((s) => s.authorityScore < 60);
   const ordered = [...canonical, ...weak.filter((w) => w.authorityScore > 10), ...weak.filter((w) => w.authorityScore <= 10)];
 
-  // 3) Bornage caractères + limite.
+  // 2ter) C1.7 — CAPACITÉ RÉSERVÉE À LA PIÈCE À CONVICTION DE L'UTILISATEUR.
+  //
+  // L'anti-blanchiment (2bis) place le canonique AVANT tout contenu utilisateur : c'est une
+  // règle de SÉCURITÉ (un document hostile ne doit jamais surclasser la vérité produit) et elle
+  // reste INTACTE. Mais elle avait un effet de bord : les 10 places étaient prises par le
+  // canonique, et le fichier que l'utilisateur venait de joindre était éjecté (« limit_reached »).
+  // Le modèle répondait alors « je ne vois aucun fichier joint » — alors qu'il était bien ingéré.
+  //
+  // Correction : les extraits ÉPINGLÉS (le fichier de l'utilisateur) obtiennent une capacité
+  // RÉSERVÉE. Leur AUTORITÉ reste basse — ils ne réécrivent donc jamais la vérité produit — mais
+  // ils sont PRÉSENTS, car ils sont la preuve de la question posée.
+  const RESERVED_PINNED = 4;
+  const RESERVED_CHARS = Math.floor(maxChars * 0.5);
+  const pinned = scored
+    .filter((s) => referenced.has(s.chunk.id) || referenced.has(s.chunk.sourceId))
+    .sort((a, b) => b.relevance - a.relevance);
+
   const selected: ParrainRetrievedChunk[] = [];
   let chars = 0;
+  const taken = new Set<string>();
+
+  for (const s of pinned) {
+    if (selected.length >= RESERVED_PINNED) { excluded.push({ chunkId: s.chunk.id, reason: "pinned_limit" }); continue; }
+    if (chars + s.chunk.text.length > RESERVED_CHARS && selected.length > 0) { excluded.push({ chunkId: s.chunk.id, reason: "char_budget" }); continue; }
+    selected.push(s);
+    taken.add(s.chunk.id);
+    chars += s.chunk.text.length;
+  }
+
+  // 3) Bornage caractères + limite (le reste du contexte, canonique d'abord).
   for (const s of ordered) {
+    if (taken.has(s.chunk.id)) continue;
     if (selected.length >= limit) { excluded.push({ chunkId: s.chunk.id, reason: "limit_reached" }); continue; }
     if (chars + s.chunk.text.length > maxChars && selected.length > 0) { excluded.push({ chunkId: s.chunk.id, reason: "char_budget" }); continue; }
     selected.push(s);

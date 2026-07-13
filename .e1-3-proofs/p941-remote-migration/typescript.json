@@ -1,0 +1,7 @@
+{
+  "phase": "E1.3",
+  "command": "npx tsc --noEmit",
+  "exitCode": 0,
+  "errors": 0,
+  "measuredAtMs": 1783852811617
+}

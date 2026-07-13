@@ -1,0 +1,30 @@
+{
+  "runId": "c1-3",
+  "url": "http://localhost:3124/assistant",
+  "authenticatedNoCompany": {
+    "apiStatus": 200,
+    "source": "public_fallback",
+    "discoveryMode": true,
+    "isPublicMode": true,
+    "notAnonymous": true,
+    "notCompanyBlocked": true
+  },
+  "realWorkspace": true,
+  "composerEnabled": true,
+  "noPlaceholder": true,
+  "noBlockerOnLoad": true,
+  "headerVisible": true,
+  "q_payer_realAnswer": true,
+  "q_payer_noBlocker": true,
+  "discoveryHintShown": true,
+  "q_reco_realAnswer": true,
+  "q_prix_canonical": true,
+  "q_prix_noBlocker": true,
+  "q_clonestore_realAnswer": true,
+  "q_capacites_realAnswer": true,
+  "q_onboarding_companyRequired": true,
+  "q_salaries_companyRequired": true,
+  "noTenantData": true,
+  "refreshUsable": true,
+  "viewport": "1440x900"
+}

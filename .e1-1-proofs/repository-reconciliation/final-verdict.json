@@ -1,0 +1,19 @@
+{
+  "runId": "repository-reconciliation",
+  "verdict": "E1.1 — REPOSITORY LOCALLY RECONCILED / REMOTE MIGRATION AND DEPLOYMENT AUTHORIZATION REQUIRED",
+  "readyForRemoteMigrationAuthorization": true,
+  "readyForControlledDeployment": true,
+  "exactBlockers": [],
+  "exactWarnings": [
+    "HISTORIQUE : un CHANTIER CONCURRENT (partner-program) a écrit dans ce dépôt PENDANT E1.1 (automatisation des reversements + nouvelle migration SQL). E1.1 n'a modifié AUCUN fichier partner. Ce fait est conservé même après stabilisation.",
+    "HISTORIQUE : le chantier partner a déjà repris après une pause de ~96 minutes. Une fenêtre de calme n'a jamais prouvé son arrêt — seule la preuve de gel à trois instantanés fait foi.",
+    "La base cible par défaut est classée DISTANTE MANAGÉE : la production ne peut pas être exclue ⇒ aucune migration ne lui a été appliquée.",
+    "État distant de la migration P9.4.1 = INCONNU (prévol lancé sans --connect, qui exige un opérateur autorisé). La présence du fichier ne prouve PAS son application.",
+    "Le partner-program a introduit une NOUVELLE migration non appliquée (supabase/migrations/2026-07-11_05__clonestore_pp_payout_automation.sql) : elle relève de son chantier, pas d'E1.1, et s'ajoute aux actions opérateur.",
+    "`readyForControlledDeployment` NE VAUT PAS autorisation de déployer : PRODUCTION_AUTHORIZED reste false et le déploiement exige une décision explicite du propriétaire."
+  ],
+  "nextSafeAction": "Décision du propriétaire : autoriser un opérateur à lancer `node scripts/e1-1-clonechat-remote-preflight.mjs --connect` (lecture seule) sur la base cible, puis, si migrationState = UNAPPLIED, appliquer la migration canonique P9.4.1 — voir E1_1_P941_REMOTE_MIGRATION_PREFLIGHT.md. Aucun déploiement n'est autorisé par cette étape.",
+  "productionAuthorized": false,
+  "remoteDatabaseMutated": false,
+  "deploymentPerformed": false
+}

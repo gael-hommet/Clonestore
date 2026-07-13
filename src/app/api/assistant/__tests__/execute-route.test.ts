@@ -10,6 +10,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getCloneChatStores } from "@/lib/clonechat/server/runtime";
 import { commandFingerprint } from "@/lib/clonechat/durable/command-ledger";
+import { proposalFreshness } from "@/lib/clonechat/durable/proposal-expiry";
 import { POST } from "@/app/api/assistant/execute/route";
 
 const COMPANY = "11111111-1111-4111-8111-111111111111";
@@ -49,6 +50,21 @@ async function seed(actionKind: string, payload: Record<string, unknown>): Promi
   const p = await stores.proposals.create(ctx, { conversationId: null, actionKind, payload, at: new Date().toISOString() });
   return p.id;
 }
+
+/** P16D — recompose l'identité canonique EXACTEMENT comme le serveur : à partir de la
+ *  proposition PERSISTÉE (payload + `created_at` ⇒ `expiresAt`), jamais de champs réécrits
+ *  à la main dans le test. Si la route dérivait une autre identité, l'égalité casserait. */
+async function fingerprintOfPersisted(proposalId: string): Promise<string> {
+  const stores = await getCloneChatStores();
+  const p = await stores.proposals.load(proposalId, ctx);
+  if (!p) throw new Error("proposition introuvable");
+  const f = proposalFreshness(p.createdAt);
+  return commandFingerprint({
+    companyId: COMPANY, actorId: USER, conversationId: p.conversationId, proposalId: p.id,
+    actionKind: p.actionKind, payload: p.payload,
+    expiresAt: f.state === "fresh" ? f.expiresAt : null,
+  });
+}
 function req(proposalId: string): Request {
   return new Request("http://localhost:3000/api/assistant/execute", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ proposalId }) });
 }
@@ -65,7 +81,7 @@ describe("P9.4.2 §3 execute route — server-authoritative command execution", 
     expect(d.targetRef).toBe("m-real-1");
     expect(d.href).toContain("mission=m-real-1");
     // L'idempotency_key transmis à V1 == fingerprint canonique (identité serveur, pas client).
-    const fp = commandFingerprint({ companyId: COMPANY, actorId: USER, conversationId: null, proposalId, actionKind: "create_mission", payload: { instruction } });
+    const fp = await fingerprintOfPersisted(proposalId);
     const createCall = calls.find((c) => c.url.endsWith("/api/pierre/v1/missions") && c.method === "POST");
     expect(createCall?.body?.idempotency_key).toBe(fp);
     // RE-READ réel de la cible avant le succès.
@@ -163,5 +179,50 @@ describe("P9.5 create_mission — mode d'autonomie transmis à V1 (server-author
     const proposalId = await seed("create_mission", { instruction: "Préparer un CDI 3", autonomyMode: "hacker_mode" });
     await POST(req(proposalId));
     expect("autonomy_mode" in (createCall()?.body ?? {})).toBe(false);
+  });
+});
+
+// ── P16D §4 — une approbation EXPIRÉE n'autorise plus rien, et n'a AUCUN effet ──────────────
+describe("P16D §4 — approbation expirée ⇒ refus fail-closed, zéro effet de bord", () => {
+  /** Sème une proposition avec un instant de création ARBITRAIRE (l'approbation d'hier). */
+  async function seedAt(actionKind: string, payload: Record<string, unknown>, at: string): Promise<string> {
+    const stores = await getCloneChatStores();
+    const p = await stores.proposals.create(ctx, { conversationId: null, actionKind, payload, at });
+    return p.id;
+  }
+  const agoMs = (ms: number) => new Date(Date.now() - ms).toISOString();
+
+  it("l'onglet laissé ouvert : proposition vieille de 3 jours ⇒ 410 PROPOSAL_EXPIRED, V1 JAMAIS appelé", async () => {
+    const proposalId = await seedAt("create_mission", { instruction: "Licencier personne, juste un CDI" }, agoMs(3 * 24 * 3600_000));
+    const res = await POST(req(proposalId));
+
+    expect(res.status).toBe(410);
+    const d = await res.json() as Record<string, unknown>;
+    expect(d.ok).toBe(false);
+    expect(d.code).toBe("PROPOSAL_EXPIRED");
+    // « rien n'a été effectué » doit être VRAI : aucune mission créée, aucun appel sortant.
+    expect(calls.length).toBe(0);
+  });
+
+  it("juste sous le TTL ⇒ toujours exécutable (la borne ne casse pas le flux normal)", async () => {
+    const proposalId = await seedAt("create_mission", { instruction: "Encore frais" }, agoMs(60_000));
+    const res = await POST(req(proposalId));
+    expect(res.status).toBe(200);
+    expect((await res.json() as Record<string, unknown>).status).toBe("executed");
+  });
+
+  it("l'expiration est vérifiée AVANT le claim : une proposition expirée ne laisse aucune commande derrière elle", async () => {
+    const stores = await getCloneChatStores();
+    const proposalId = await seedAt("create_support_case", { summary: "Cas trop vieux" }, agoMs(7 * 24 * 3600_000));
+    const before = await POST(req(proposalId));
+    expect(before.status).toBe(410);
+
+    // Aucun effet support n'a été créé, et aucune commande n'a été réservée : re-confirmer
+    // (même expirée) reste un refus PROPRE — jamais un « doublon » qui masquerait un effet.
+    const again = await POST(req(proposalId));
+    expect(again.status).toBe(410);
+    expect((await again.json() as Record<string, unknown>).code).toBe("PROPOSAL_EXPIRED");
+    expect(stores).toBeTruthy();
+    expect(calls.length).toBe(0);
   });
 });

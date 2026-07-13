@@ -1,0 +1,14 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "exactBranch": "src/app/api/assistant/chat/route.ts:123-124 — `const tenant = await resolveCloneChatCompany(userId); if (!tenant.ok) return tenantRefusalResponse(tenant);`",
+  "ranBefore": [
+    "classification d'intention",
+    "selection de l'adaptateur public C1.1",
+    "recuperation groundee",
+    "appel OpenAI",
+    "validation des citations",
+    "garde de claims"
+  ],
+  "symptom": "tenantRefusalResponse(MEMBERSHIP_REQUIRED) => 'Aucune entreprise active n'est associee a votre compte.' pour TOUT message, y compris les questions publiques (prix, produit, Pierre, vente, navigation)."
+}

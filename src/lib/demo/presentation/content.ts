@@ -17,7 +17,8 @@ export const DEMO_SCENE_ORDER = [
   "system", // Acte 3 — Le système dans l'action
   "result", // Acte 4 — Un résultat concret
   "trust", // Acte 5 — La confiance
-  "pierre", // Acte 6 — Passer à Pierre
+  "cost", // Acte 6 — Le coût de continuer comme avant
+  "pierre", // Acte 7 — Passer à Pierre
 ] as const;
 
 export type DemoSceneKey = (typeof DEMO_SCENE_ORDER)[number];
@@ -750,6 +751,215 @@ export const SCENE_COMPLETION = {
   ],
   primaryCta: "Voir Pierre prendre en charge une mission",
   primaryCtaSubtext: "Démonstration interactive. Aucun compte requis.",
+} as const;
+
+// ──────────────────────────────────────────────────────────────────────────
+// E2.9 bis — LE COÛT DE CONTINUER COMME AVANT (Acte 6)
+//
+// Posture : CloneStore ne demande pas qu'on le croie. Il montre les deux
+// méthodes et laisse le dirigeant conclure. Le ton est froid, calme, factuel —
+// jamais insistant, jamais moqueur, jamais agressif. Aucune économie n'est
+// garantie, aucune suppression de poste n'est suggérée, aucune urgence n'est
+// fabriquée. Si l'écart n'est pas évident, la séquence le dit.
+// ──────────────────────────────────────────────────────────────────────────
+
+export const SCENE_COST = {
+  kicker: "Le coût de continuer comme avant",
+  title: ["Même entreprise. Même exigence.", "Deux façons d'exécuter."],
+  lede:
+    "Vous avez vu ce qu'un employé IA sait faire, et sous quel contrôle. Reste la seule question qui engage réellement votre entreprise : ce que votre organisation mobilise aujourd'hui pour obtenir le même résultat.",
+
+  // Le respect dû aux équipes : le problème n'est jamais la compétence.
+  respect: [
+    "Le problème n'est pas la compétence de votre équipe RH.",
+    "Le problème est tout ce qui l'empêche de l'utiliser pleinement.",
+  ],
+  respectDetail:
+    "Rechercher, recopier, vérifier, relancer, consolider, classer, répondre plusieurs fois à la même question, reconstruire un contexte déjà connu : ce travail est réel, il est nécessaire aujourd'hui, et il consomme le temps que vous payez pour leur expertise.",
+  respectConclusion: [
+    "CloneStore ne rend pas vos équipes moins utiles.",
+    "Il rend inutile le travail qui les empêche de l'être pleinement.",
+  ],
+
+  // Comparateur
+  comparatorKicker: "Deux méthodes",
+  comparatorTitle: "Choisissez une situation. Comparez les deux exécutions.",
+  currentLabel: "Organisation traditionnelle sous pression",
+  currentSub: "Des équipes compétentes, un travail fragmenté.",
+  governedLabel: "La même organisation, avec un employé IA CloneStore",
+  governedSub: "Le même travail, exécuté d'un seul tenant, sous vos règles.",
+  comparatorNote:
+    "Ordres de grandeur illustratifs, dérivés des étapes affichées. Votre organisation peut être plus rapide — ou plus contrainte.",
+  scopeNote:
+    "Pierre est le premier employé IA disponible, et les RH le premier périmètre ouvert. Le modèle ci-dessus n'est pas propre aux RH : chaque employé IA reprend une capacité opérationnelle complète dans son métier, travaille à partir du contexte réel de l'entreprise, applique ses règles, conserve la continuité et soumet les actions sensibles à validation.",
+
+  // Calculateur
+  calcKicker: "Ce que votre organisation mobilise déjà",
+  calcTitle: "Ne partez pas de nos estimations. Utilisez les données de votre entreprise.",
+  calcIllustrative:
+    "Exemple illustratif. Remplacez chaque donnée par celle de votre entreprise.",
+  calcAssumptionsTitle: "Hypothèses modifiables",
+  calcAssumptionsNote:
+    "Ces deux curseurs bornent ce qui est réellement repris. Mettez-les à zéro : le calcul conclura qu'il n'y a rien à récupérer. Une hypothèse cachée serait une tricherie.",
+  calcMethodTitle: "Comment ce calcul est construit",
+  calcMethod: [
+    "Coût mobilisé = collaborateurs mobilisés × coût employeur mensuel moyen.",
+    "Coût du travail répétitif = coût mobilisé × part du temps consacrée aux tâches répétitives.",
+    "Coût du statu quo = coût du travail répétitif + prestataires + outils additionnels.",
+    "Capacité récupérable = coût du travail répétitif × part couverte par le périmètre de l'employé IA.",
+    "Prestataires et outils substituables = (prestataires + outils) × part réellement substituable.",
+    "Écart net = capacité récupérable + substituable − abonnement de l'employé IA.",
+  ],
+  calcLimits: [
+    "Ce calcul n'est pas une promesse d'économie. Il chiffre une capacité mobilisée, et ce qui pourrait en être récupéré.",
+    "Aucune suppression de poste n'en est déduite. Un temps récupéré peut être réaffecté, absorber une croissance ou éviter un recrutement — c'est votre décision, pas la nôtre.",
+    "Les montants dépendent entièrement des valeurs que vous saisissez. Nous n'ajoutons aucune hypothèse invisible.",
+    "Les économies réellement réalisables dépendent du périmètre que vous confiez, et restent à confirmer par votre entreprise.",
+  ],
+
+  // Posture commerciale — la clôture
+  postureKicker: "Le coût de continuer comme avant",
+  posture: [
+    "Un employé IA CloneStore n'est probablement pas nécessaire dans toutes les entreprises.",
+    "Si votre organisation exécute déjà ces opérations rapidement, sans surcharge, sans erreurs, sans rupture de continuité et à un coût que vous jugez optimal, ne changez rien.",
+    "En revanche, si vos équipes passent encore leurs journées à rechercher, recopier, vérifier, relancer et reconstruire le même contexte, comparez simplement les deux méthodes.",
+  ],
+  postureStatement: "Si la différence n'est pas évidente, ne l'achetez pas.",
+  postureConclusion: [
+    "Votre décision ne changera pas ce que les employés CloneStore savent faire.",
+    "Elle changera seulement la quantité de travail que votre entreprise continuera d'exécuter manuellement.",
+  ],
+
+  // Verdicts — le calculateur peut conclure contre CloneStore, et le dit.
+  verdicts: {
+    no_gap: {
+      label: "Aucun écart",
+      line: "Sur vos hypothèses, l'écart ne justifie pas le changement.",
+      detail: "Ne changez rien. Ces chiffres sont les vôtres, et ils sont clairs.",
+    },
+    marginal: {
+      label: "Écart faible",
+      line: "L'écart existe, mais il reste faible.",
+      detail: "À ce niveau, la décision ne se joue pas sur le coût. Elle se joue sur la continuité et le délai — jugez-en vous-même.",
+    },
+    significant: {
+      label: "Écart significatif",
+      line: "L'écart est significatif sur vos propres données.",
+      detail: "Il reste à confirmer sur votre périmètre réel, avec vos volumes et vos règles.",
+    },
+    evident: {
+      label: "Écart net",
+      line: "L'écart est net sur vos propres données.",
+      detail: "Il reste à confirmer sur votre périmètre réel, avec vos volumes et vos règles.",
+    },
+  },
+} as const;
+
+// ──────────────────────────────────────────────────────────────────────────
+// CONTRAT DE LECTURE (Acte 1) + ARCHITECTURE DE DÉCISION (clôture)
+//
+// Doctrine : on ne cherche pas à convaincre tout le monde. On rend le problème
+// visible, on montre la preuve, on borne le risque, et on laisse le bon client
+// avancer de lui-même. La démo ne doit pas arracher un « oui » ; elle doit
+// empêcher un besoin réel de rester caché derrière une indécision vague.
+// ──────────────────────────────────────────────────────────────────────────
+
+/** Acte 1 — ce que le visiteur va juger pendant les minutes suivantes. */
+export const SCENE_CONTRACT = {
+  line: "Cette démonstration ne cherche pas à établir que CloneStore convient à toutes les entreprises.",
+  line2:
+    "Elle vous permet de vérifier une seule chose : si un travail opérationnel, déjà présent chez vous, mérite désormais un responsable.",
+  /** Les quatre points que le visiteur va pouvoir juger sur pièces. */
+  judge: [
+    "Le travail réellement repris",
+    "Ce qui reste humain",
+    "Ce qui est tracé",
+    "Le coût de continuer comme avant",
+  ],
+} as const;
+
+export const SCENE_DECISION = {
+  // ── Première mission ──
+  missionKicker: "Par quoi commencer",
+  missionTitle: "Un employé IA ne se juge pas sur une vision. Il se juge sur une première mission.",
+  missionLede:
+    "Commencez par le travail le moins sensible, le plus répétitif et le plus facile à mesurer. Choisissez une situation : voici ce qu'elle engage, et ce qu'elle vous permettra de constater.",
+  missionCriteria: ["Répétitif", "Borné", "Observable", "Faible risque initial"],
+  laterTitle: "Ce que nous ne recommandons pas de confier en premier",
+  laterLede:
+    "Ces situations sont prises en charge — mais un premier périmètre se choisit sur le risque, pas sur l'ambition.",
+  noMission: "Aucune de ces situations ne vous vient spontanément à l'esprit ?",
+  noMissionAnswer:
+    "Alors ne réservez pas aujourd'hui. Un employé IA n'a de valeur que face à un travail qui existe déjà.",
+
+  // ── Après la réservation ──
+  afterKicker: "Si vous avancez",
+  afterTitle: "Ce qui se passe ensuite. Sans zone d'ombre.",
+  afterSteps: [
+    {
+      k: "Vous réservez",
+      v: "Aucun paiement n'est prélevé avant l'ouverture des accès.",
+    },
+    {
+      k: "Vous choisissez un premier périmètre",
+      v: "Un seul, borné, celui dont le résultat sera observable.",
+    },
+    {
+      k: "Vous transmettez le contexte utile",
+      v: "Règles, modèles, validateurs. L'Empreinte Entreprise se prépare en quelques jours.",
+    },
+    {
+      k: "Vous définissez les permissions",
+      v: "Ce qu'il exécute, ce qu'il prépare, ce qu'il soumet à validation, ce qu'il ne fait pas.",
+    },
+    {
+      k: "Une première mission réelle est lancée",
+      v: "Sur vos données, selon vos règles.",
+    },
+    {
+      k: "Vous voyez chaque action",
+      v: "Les validations, les documents, les sources et l'historique restent visibles.",
+    },
+    {
+      k: "Vous jugez, puis vous décidez d'étendre",
+      v: "Le périmètre ne s'élargit qu'une fois le résultat constaté.",
+    },
+  ],
+  afterNote:
+    "Nous ne promettons pas l'absence d'erreur. Nous rendons chaque erreur visible, encadrée par une validation, et rattrapable avant qu'elle produise ses effets.",
+
+  // ── Architecture de décision (trois sorties réelles) ──
+  closeKicker: "Votre décision",
+  closeTitle: "Vous avez maintenant de quoi juger.",
+  closeLede:
+    "Trois issues sont légitimes à ce stade. Aucune ne consiste à nous croire sur parole.",
+  paths: [
+    {
+      k: "Il vous manque une preuve",
+      v: "Regardez Pierre prendre en charge une véritable semaine RH.",
+    },
+    {
+      k: "Une première mission est claire",
+      v: "Réservez votre accès. Le périmètre se choisira ensuite, avec vous.",
+    },
+    {
+      k: "Un point reste flou",
+      v: "Posez la question. Vous n'avez pas à réserver pour obtenir une réponse.",
+    },
+  ],
+
+  // ── CloneChat ──
+  chatKicker: "Une question reste ouverte ?",
+  chatTitle: "Demandez à CloneChat avant de décider.",
+  chatLede:
+    "Le prix, la sécurité, les permissions, le déploiement, votre premier périmètre. Réponse immédiate, sans rendez-vous.",
+  chatCta: "Poser ma question à CloneChat",
+
+  // ── Dernier mot ──
+  finalStatement: [
+    "Si aucune première mission claire ne vous vient à l'esprit, ne réservez pas.",
+    "Si cette mission existe déjà, vous avez désormais de quoi juger.",
+  ],
 } as const;
 
 // ──────────────────────────────────────────────────────────────────────────

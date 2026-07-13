@@ -7,7 +7,7 @@ import { getContractPolicy } from "../contract-policies";
 import type { StrictGenerationContext } from "../generation-context";
 
 function ctx(values: Record<string, string | null>, sensitive: string[] = []): StrictGenerationContext {
-  return { document_type: "employment_contract", employee_id: "e", site_id: null, contract_id: "c", values, sensitive_fields: sensitive, custom_field_keys: [] };
+  return { document_type: "employment_contract", employee_id: "e", site_id: null, contract_id: "c", values, sensitive_fields: sensitive, custom_field_keys: [], rejected_overrides: [] };
 }
 function base(over: Partial<ContractReadinessInput> = {}): ContractReadinessInput {
   return {

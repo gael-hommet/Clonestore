@@ -1,0 +1,9 @@
+{
+  "phase": "E1.2",
+  "classification": "REMOTE_SCHEMA_INCOMPLETE",
+  "p941RemoteState": "NOT_APPLIED",
+  "partnerPayoutRemoteState": "FULLY_APPLIED",
+  "deploymentAuthorized": false,
+  "productionAuthorized": false,
+  "note": "A compatible schema does NOT make the application deployable. Deployment remains a separate, still-closed gate."
+}

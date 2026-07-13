@@ -1,0 +1,11 @@
+{
+  "proven": [
+    "R1 role revocation — removeRole now actually reduces authority; integration repro (4)",
+    "F19 signature reconcile authz — viewer refused, owner allowed (2)",
+    "command fingerprint binds company+actor (P16D exactly-once suite, cross-tenant get/commit/cancel refused)",
+    "tenant resolved server-side, client company_id never authoritative (tenant-context.ts)",
+    "autonomy clamped to company ceiling — no client escalation (P16E §8, 5 tests)",
+    "cross-tenant employee/approval/document replay refused (P16D + p16c suites)"
+  ],
+  "not_run_full_campaign": "The full 25-scenario §17 adversarial campaign (image/voice-transcript injection, malicious CSV, every cross-tenant replay class) was NOT exhaustively executed this session. The load-bearing tenant/authz/human-only classes are covered. See open-limitations.json."
+}

@@ -1,0 +1,27 @@
+{
+  "runId": "repository-reconciliation",
+  "file": "supabase/migrations-p941/2026-07-07__p941_clonechat_durable.sql",
+  "idempotentRoleCreation": true,
+  "roleName": "clonechat_app",
+  "nologin": true,
+  "noSuperuserCreatedbCreateroleBypassrlsRequested": true,
+  "leastPrivilegeByPostgresDefault": "create role sans options ⇒ NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOBYPASSRLS, NOREPLICATION (et vérifié empiriquement en C1.4 sur base locale)",
+  "grantsOnlyOnClonechatSurfaces": true,
+  "grantLines": [
+    "execute format('grant select, insert, update, delete on %I to clonechat_app', t);",
+    "grant select, insert, update, delete on clonechat_bug_cases to clonechat_app;",
+    "grant select, insert, update, delete on clonechat_budget_counters to clonechat_app;",
+    "grant select, insert, update, delete on clonechat_usage_events to clonechat_app;",
+    "grant select, insert, update, delete on clonechat_action_executions to clonechat_app;",
+    "grant execute on function clonechat_budget_try_reserve(text[],text[],bigint[],bigint) to clonechat_app;",
+    "grant execute on function clonechat_budget_commit(text[],bigint,bigint) to clonechat_app;",
+    "grant execute on function clonechat_budget_release(text[],bigint) to clonechat_app;"
+  ],
+  "noBroadSchemaGrant": true,
+  "rlsEnabled": true,
+  "rlsForced": true,
+  "tenantPolicyUsesServerSetScope": true,
+  "residualObservation": "clonechat_budget_counters / clonechat_usage_events / clonechat_action_executions ont la RLS ACTIVÉE et FORCÉE mais une politique PERMISSIVE (using (true)) : ce sont des tables de COMPTABILITÉ TRANSVERSE, non isolées par tenant au niveau RLS. Elles ne contiennent que des MÉTADONNÉES de comptage (company_id, user_id, modèle, jetons, empreinte) — aucun contenu RH, aucun message, aucun document. Le rôle étant NOLOGIN (assumable uniquement par le serveur), la surface reste interne. DOCUMENTÉ, NON CORRIGÉ : modifier P9.4.1 sortirait du périmètre E1.1.",
+  "rollbackImplication": "Retrait du rôle ⇒ CloneChat perd le budget durable et retombe sur le repli DÉTERMINISTE (C1.4) : les questions publiques répondent encore, aucun appel OpenAI, aucune perte de données.",
+  "appliedRemotelyByE11": false
+}

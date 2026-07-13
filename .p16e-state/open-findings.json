@@ -1,0 +1,96 @@
+{
+  "prior_session_fixed": [
+    "R1 role-revocation",
+    "R2 required-fields (refuted+proven)",
+    "R3 guard-before-exec",
+    "§7A employee disambiguation",
+    "§8 autonomy clamp",
+    "F19 signature-reconcile authz"
+  ],
+  "continuation_session_fixed": [
+    {
+      "id": "F11/F12",
+      "status": "FIXED+PROVEN",
+      "severity": "high",
+      "file": "src/lib/cloneos/channels/providers/resend.ts + email-production/runtime.ts",
+      "fix": "dry-run never fabricates a provider_message_id (null + simulated:true/sent:false); sandbox redirect labelled (intended vs actual recipients, original never marked contacted); live send requires a real acknowledgement (non-null id) else fails closed",
+      "test": "p16e-f11-f12-truthful-email.test.ts (4) + updated channels-b37 (151)"
+    },
+    {
+      "id": "F24",
+      "status": "FIXED+PROVEN",
+      "severity": "high",
+      "file": "src/lib/pierre/v1/mission-service.ts",
+      "fix": "createMission verifies employee_id/site_id belong to the active company (fail-closed, non-revealing) before any insert; site coherence + not-left; no mission/task/audit on failure",
+      "test": "p16e-f24-mission-entity-binding.itest.ts (6)"
+    },
+    {
+      "id": "F28",
+      "status": "FIXED+PROVEN",
+      "severity": "high",
+      "file": "src/lib/pierre/v1/renderers.ts",
+      "fix": "PDF transliterates out-of-Latin-1 names legibly (Łukasz→Lukasz) preserving Latin-1 exactly; DOCX preserves ALL names exactly (faithful path); CJK-in-PDF documented",
+      "test": "p16e-f28-name-fidelity.test.ts (11)"
+    },
+    {
+      "id": "F25",
+      "status": "FIXED+PROVEN",
+      "severity": "medium",
+      "file": "src/lib/pierre/v1/documents.ts",
+      "fix": "verifyDocumentIntegrity compares the file's recorded sha256 to actual bytes (file integrity) instead of the version content_hash (canonical model hash) which never matched PDF bytes for contracts",
+      "test": "p16e-f25-document-integrity.itest.ts (2)"
+    }
+  ],
+  "continuation_session_refuted": [
+    {
+      "id": "F15",
+      "verdict": "REFUTED",
+      "why": "template-author fallback on a required var is a legitimate default for informational docs; contract path uses contract-readiness (R2), no integrity hole"
+    }
+  ],
+  "still_open_for_continuation": {
+    "F17": "company.legal_name from display-name column — cosmetic",
+    "F22": "missing-info questions discarded in MissionView — planning UX"
+  },
+  "sections_not_done": [
+    "§8 proactivity",
+    "§9 enterprise sims",
+    "§11 full adversarial campaign",
+    "§13 T1/T2 edges",
+    "§14 browser QA"
+  ],
+  "environmental_pre_existing": "p85-r4-tenant-leases/fairness 7 failures (lease_fencing DB fn / worker+scheduler DB roles absent in PGlite) — unrelated to any P16E change",
+  "third_continuation_2026_07_13": {
+    "fixed": [
+      {
+        "id": "F20/F29",
+        "status": "FIXED+PROVEN",
+        "detail": "task approve/cancel/reschedule + doc/generate audit now carry actor_type:user + user_id (3 tests)"
+      },
+      {
+        "id": "F30",
+        "status": "FIXED+PROVEN",
+        "detail": "sensitive draft -> À valider (never Validé)"
+      },
+      {
+        "id": "F32",
+        "status": "FIXED+PROVEN",
+        "detail": "status badges delegate to canonical presenter; no raw English (13 tests F30+F32)"
+      }
+    ],
+    "verified": [
+      {
+        "id": "§4 observability",
+        "detail": "existing diagnostics surface: fail-closed 403, aggregate, redacted, 215 tests — MET (no duplicate built)"
+      },
+      {
+        "id": "§6 planning",
+        "detail": "20/20 scenarios via real planner + harassment classified sensitive (10 tests)"
+      },
+      {
+        "id": "§7 temporal",
+        "detail": "no silent date invention (explicit-only), contradiction covered"
+      }
+    ]
+  }
+}

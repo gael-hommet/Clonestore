@@ -1,0 +1,31 @@
+{
+  "runId": "repository-reconciliation",
+  "reproducedBeforeFix": true,
+  "classification": "deterministic pre-existing defect (défaut produit réel, PAS un test périmé)",
+  "rootCause": "Le texte était mis en minuscules mais JAMAIS désaccentué, et plusieurs motifs n'admettaient qu'UN caractère de séparation. Conséquences : `\\bcongé\\b` ne peut jamais correspondre (« é » n'est pas un caractère de mot ASCII : la limite `\\b` finale échoue), « arrêt maladie » rate `arret.maladie`, « solde DE tout compte » rate `solde.tout.compte`. Quatre familles retombaient silencieusement sur generic_hr.",
+  "fix": {
+    "diacriticNormalization": true,
+    "punctuationNormalized": true,
+    "linkWordsTolerated": true,
+    "inflectionTolerated": true,
+    "priorityOrderPreserved": true
+  },
+  "fixedAsProductBehaviour": true,
+  "testsWeakenedOrDeleted": false,
+  "familiesRepaired": [
+    "absence",
+    "performance",
+    "offboarding",
+    "employee_summary"
+  ],
+  "regressionCasesAdded": [
+    "accents ⇄ sans accents",
+    "mots de liaison",
+    "flexions (pluriel/féminin)",
+    "formulations de départ",
+    "ponctuation/casse",
+    "ordre de priorité",
+    "repli generic_hr",
+    "non sur-classification (mot tronqué)"
+  ]
+}

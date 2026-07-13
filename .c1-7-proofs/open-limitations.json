@@ -1,0 +1,7 @@
+{
+  "remaining": [
+    "QA navigateur : profils « entreprise sans Pierre » et « entreprise avec Pierre » NON pilotés — aucun fixture sûr n'existe (les 2 comptes de test n'ont ni entreprise ni Pierre). AUCUNE entreprise ni droit n'a été fabriqué. Ces chemins sont couverts au niveau route.",
+    "PDF : le chemin de fichier natif du provider (input_file) n'est PAS utilisé — les PDF passent par l'EXTRACTION DE TEXTE existante (C1.1). La compréhension des graphiques/mise en page d'un PDF n'est donc PAS revendiquée.",
+    "Le coût est une ESTIMATION locale (hypothèses explicites), pas une mesure provider agrégée."
+  ]
+}

@@ -541,7 +541,7 @@ export async function evaluateCloneChatRevealStatus(env: Env = process.env): Pro
 
   // L'API exige l'authentification AVANT tout appel modèle → accès modèle anonyme bloqué.
   const anonymousModelAccessBlocked =
-    chatRoute !== null && /AUTH_REQUIRED/.test(chatRoute) && /resolveCloneChatCompany/.test(chatRoute) && /createRealOpenAIResponder/.test(chatRoute);
+    chatRoute !== null && /resolveCloneChatPlan/.test(chatRoute) && /resolveCloneChatCompany/.test(chatRoute) && /createRealOpenAIResponder/.test(chatRoute);
 
   // Isolation tenant : réutilise la sonde du command center principal (visibilité fail-closed).
   const tenant = makeParrainChunk({ id: "reveal.tenant", sourceId: "src.company_context", title: "x", text: "mission interne du compte A", sourceType: "company_context", authority: "tenant_data", visibility: "COMPANY_SCOPED", tenantCompanyId: "company-a", citationLabel: "x" });

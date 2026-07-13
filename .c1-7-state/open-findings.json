@@ -1,0 +1,11 @@
+{
+  "findings": [
+    {
+      "id": "C17-D1",
+      "severity": "CRITICAL",
+      "status": "FIXED + PROVEN END-TO-END",
+      "title": "ATTACHMENT UI NOT CONNECTED TO MESSAGE TRANSPORT",
+      "proof": "un secret présent UNIQUEMENT dans le fichier (ZORGLUB-4417) ressort dans la réponse ; le contrôle sans fichier répond source_missing"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "clientIsNotABoundary": "le corps de requête est REVALIDÉ côté serveur avec le module canonique",
+  "forgedClientRejected": {
+    "payload.exe (déclaré text/plain)": "EXECUTABLE_BLOCKED",
+    "archive.zip (déclaré text/plain)": "ARCHIVE_BLOCKED"
+  },
+  "neverExecuted": true,
+  "archivesNeverOpened": true,
+  "noAbsolutePathLeak": true,
+  "serverRecomputesSize": "la taille est recalculée depuis le base64 réellement reçu (la déclaration client ne fait pas foi)"
+}

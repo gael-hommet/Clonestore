@@ -1,0 +1,39 @@
+{
+  "router": "src/lib/clonechat/openai/model-router.ts (UN SEUL routeur, pur, déterministe)",
+  "defaults": {
+    "CLONECHAT_MODEL_DEFAULT": "gpt-5.6-luna",
+    "CLONECHAT_MODEL_COMPLEX": "gpt-5.6-terra"
+  },
+  "modelsVerifiedAtProvider": "GET /v1/models (gratuit, non génératif) : les 4 modèles EXISTENT sur ce compte",
+  "structuralInvariant": "la signature du routeur n'accepte AUCUN signal d'identité — router selon le compte est STRUCTURELLEMENT impossible. Un test injecte userId/anonymous/companyId/entitlement/tier/leadScore et prouve la décision INCHANGÉE.",
+  "luna": [
+    "prix",
+    "produit",
+    "Pierre",
+    "objections",
+    "comparaisons",
+    "RH générale",
+    "image normale",
+    "PDF court",
+    "relance"
+  ],
+  "terraOnlyOnEvidence": [
+    "≥3 documents",
+    "corpus ≥40k caractères",
+    "preuves contradictoires",
+    "tableur dense",
+    "image+document",
+    "analyse approfondie DEMANDÉE",
+    "le défaut se déclare insuffisant"
+  ],
+  "neverEscalatesOn": [
+    "anonymat",
+    "absence de Pierre",
+    "valeur commerciale",
+    "taille d'entreprise",
+    "question de prix"
+  ],
+  "unknownModelFailsClosed": "isAllowedModel() → retombe sur le défaut sûr",
+  "wiredIntoCanonicalRoute": true,
+  "tests": "26/26"
+}

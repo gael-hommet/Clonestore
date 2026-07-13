@@ -1,0 +1,7 @@
+{
+  "command": "rm -rf .next && npm run build",
+  "exitCode": 0,
+  "compiled": true,
+  "staticPages": "192/192",
+  "routes": 399
+}

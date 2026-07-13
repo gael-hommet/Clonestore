@@ -121,12 +121,18 @@ export function createPierreClient(cfg: PierreClientConfig) {
 
   return {
     async createMission(input: { instruction: string; source?: string; idempotency_key?: string; autonomy_mode?: string; signal?: AbortSignal }): Promise<MissionView> {
-      // Stable idempotency key so a double-click / retry never creates two missions.
-      const idempotency_key = input.idempotency_key ?? `ui|${cfg.companyId}|${input.instruction.trim()}`;
+      // P16D §5/§10 — la clé d'idempotence par défaut est calculée CÔTÉ SERVEUR
+      // (`[company_id, user_id, "mission", instruction]`, mission-service.ts) : elle lie l'ACTEUR
+      // réel résolu à l'authentification. L'ancienne clé client `ui|<company>|<instruction>` OMETTAIT
+      // l'acteur : deux utilisateurs d'une même entreprise tapant la même instruction voyaient leur
+      // seconde mission fusionner avec celle du premier (l'un récupérait la mission de l'autre). On
+      // ne transmet donc PLUS de clé sans acteur ; le double-clic reste protégé car la clé serveur
+      // est déterministe par (entreprise, acteur, instruction).
+      const idempotency_key = input.idempotency_key; // absent ⇒ le serveur dérive sa clé liée à l'acteur
       const { data } = await request("POST", "/api/pierre/v1/missions", MissionView, {
-        body: { instruction: input.instruction, source: input.source ?? "cockpit", idempotency_key, autonomy_mode: input.autonomy_mode },
+        body: { instruction: input.instruction, source: input.source ?? "cockpit", ...(idempotency_key ? { idempotency_key } : {}), autonomy_mode: input.autonomy_mode },
         signal: input.signal,
-        retrySafe: true, // safe: carries idempotency key
+        retrySafe: true, // sûr : le serveur porte une clé d'idempotence déterministe liée à l'acteur
       });
       return data;
     },

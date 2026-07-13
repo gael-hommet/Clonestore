@@ -1,0 +1,18 @@
+{
+  "phase": "E1.2",
+  "role": "clonechat_app",
+  "tableGrants": [],
+  "routineGrants": [],
+  "schemaUsage": [
+    {
+      "nspname": "information_schema",
+      "has_usage": null
+    },
+    {
+      "nspname": "public",
+      "has_usage": null
+    }
+  ],
+  "grantsOutsidePerimeter": "UNVERIFIABLE",
+  "perimeterClean": true
+}

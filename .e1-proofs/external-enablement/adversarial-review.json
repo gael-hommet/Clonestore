@@ -1,0 +1,53 @@
+{
+  "phase": "E1 external enablement — manual adversarial self-review (does anything overclaim external completion or enable something?)",
+  "lenses": [
+    {
+      "lens": "Can any command-center flag become true from code alone that represents external completion?",
+      "finding": "HOLDS",
+      "detail": "stripeLiveReady derives from verifyStripeLiveReadonly({env}) WITHOUT a readPrice reader → can never be VERIFIED (needs owner dry-run); even forged sk_live_ keys → NEEDS_OWNER_DRYRUN (ready=false), proven by test D19. stripeWebhookExternallyRegistered / productionDomainDnsVerified / supabaseProductionProjectConfigured / productionMigrationsAuthorized / productionBackupConfigured / deploymentPerformed / productionHealthVerified / monitoringProviderConfigured / legalSignoffObtained are hardcoded false (fail-closed constants)."
+    },
+    {
+      "lens": "emailProviderConfigured=true when a key is present — overclaim?",
+      "finding": "HOLDS",
+      "detail": "It means 'a provider credential is present by shape', NOT 'domain verified' (emailDomainVerified stays false) and NOT 'account valid'. It enables nothing — real sending requires EMAIL_RUNTIME_MODE=live + EMAIL_SEND_LIVE=true + paid customer, independent of this flag. readyForProductionActivation requires emailProviderConfigured AND emailDomainVerified AND 12 more external proofs. Documented in the env contract + provider matrix reports."
+    },
+    {
+      "lens": "readyForExternalConfiguration=true overclaim?",
+      "finding": "HOLDS",
+      "detail": "Means 'the LOCAL side is complete; the owner can start external configuration'. It does NOT authorize production; readyForProductionActivation stays false; the verdict string names the remaining owner/provider/legal work."
+    },
+    {
+      "lens": "Verdict logic dead branch / confusing state machine",
+      "finding": "REFUTED → FIXED",
+      "detail": "Original verdict had an unreachable LOCALLY_VERIFIED branch (readyForExternalConfiguration was both the if-guard and the ternary). Refactored to a clean deterministic 3-way: PARTIAL (local prep incomplete) / PREPARATION_VERIFIED (local done, external blockers remain) / LOCALLY_VERIFIED (local done, all external blockers resolved, production not yet activated). All three reachable; current state → PREPARATION_VERIFIED. tsc 0, 43/43 still green."
+    },
+    {
+      "lens": "Legal placeholder scan could false-negative (claim resolved when not)",
+      "finding": "HOLDS",
+      "detail": "Fail-closed direction: /legal/mentions contains literal 'Placeholder'/'À renseigner'/'Draft 1.0' → legalPlaceholdersResolved=false. Even if the scan were over-aggressive, the safe answer stands; legalSignoffObtained is independently hardcoded false, so the legal gate can never open from code."
+    },
+    {
+      "lens": "Migration audit fragility (wrong cwd in prod)",
+      "finding": "HOLDS",
+      "detail": "readdirSync failure → discoveryError + count 0 → migrationsOrderedDeterministic false → supabaseCodeReady false → localPrepBlockers non-empty → readyForExternalConfiguration false → verdict PARTIAL. Fail-closed. In the repo cwd: 57 migrations, ordered, deterministic, 0 duplicates."
+    },
+    {
+      "lens": "Does E1 modify any frozen file (P8–P16C, T1/T2, C1.x, routes)?",
+      "finding": "HOLDS",
+      "detail": "Only new files under src/lib/clonestore/external-enablement/e1/** + E1_*.md + .e1-proofs/**. No existing file modified; no app route added. Perimeter (production/p16c/p16a/t1/t2/c1-1/assistant = 478 passed/1 skipped) + full non-regression (7594 passed) green; build exit 0."
+    },
+    {
+      "lens": "noSecretsExposed scope",
+      "finding": "HOLDS (scoped)",
+      "detail": "Asserts the E1 environment-contract secret boundary holds (no secret carries NEXT_PUBLIC_, no public var flagged secret) — a static invariant, not a repo-wide secret scan. Presence/shape checks never read secret values (test B10: no 'value' key, secret never echoed)."
+    },
+    {
+      "lens": "Does anything enable production / payment / live provider?",
+      "finding": "HOLDS",
+      "detail": "productionAuthorized=false (P10 const), paymentMode=disabled (never live even with live keys), all *ProviderConfigured false, readyForProductionActivation=false. No env value lifts the P10 hard floor. No external action performed."
+    }
+  ],
+  "refutationsFixed": 1,
+  "openRefutations": 0,
+  "note": "1 refutation (dead verdict branch) found and fixed with a clean deterministic state machine; re-verified tsc 0 + 43/43 + proofs regenerated. Everything else HOLDS: no overclaim of external completion, nothing enabled."
+}

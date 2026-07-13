@@ -1,0 +1,6 @@
+{
+  "runId": "access-openai-runtime",
+  "roleBypassesRls": false,
+  "leastPrivilege": true,
+  "detail": "voir database-role-privileges.json (généré par la sonde SQL réelle)"
+}

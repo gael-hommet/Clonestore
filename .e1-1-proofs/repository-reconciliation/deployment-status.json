@@ -1,0 +1,9 @@
+{
+  "deploymentPerformed": false,
+  "deploymentAuthorized": false,
+  "productionAuthorized": false,
+  "buildRan": true,
+  "buildExitCode": 0,
+  "buildIsNotADeployment": "A green clean build proves the tree compiles and its routes validate. It does not deploy, and it does not authorize deployment.",
+  "readyForControlledDeploymentMeaning": "PREFLIGHT ready — every local gate is green on a frozen tree. It is NOT production authorization: PRODUCTION_AUTHORIZED remains false as const, and deploying requires an explicit, separate owner decision."
+}

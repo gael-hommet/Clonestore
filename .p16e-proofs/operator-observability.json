@@ -1,0 +1,33 @@
+{
+  "status": "COMPLETED (continuation)",
+  "section_3_audit_attribution": {
+    "F20": {
+      "verdict": "CONFIRMED + FIXED",
+      "files": ["src/app/api/pierre/use/task/[taskId]/approve/route.ts", "cancel/route.ts", "reschedule/route.ts"],
+      "defect": "human task approve/cancel/reschedule wrote pierre_task_logs with payload:null (no actor identity)",
+      "fix": "each audit payload now carries { actor_type:'user', user_id, action, prev_status } — a human event is never actor_id-null; no salary/medical/secret/document-body added",
+      "test": "src/app/api/pierre/use/task/__tests__/p16e-f20-f29-audit-attribution.test.ts (3)"
+    },
+    "F29": {
+      "verdict": "CONFIRMED + FIXED",
+      "file": "src/app/api/pierre/doc/generate/route.ts",
+      "defect": "document-generation audit meta_json lacked user_id/actor attribution",
+      "fix": "meta_json now carries actor_type:'user' + user_id; message stays 'Document généré' (generated != signed — truthful)"
+    },
+    "legacy_schema_note": "these /api/pierre/use/** routes use the user-scoped legacy pierre_tasks/pierre_task_logs tables (owned via pierre_missions.user_id), so tenant attribution IS the user id (there is no company_id column). The governed V1 runtime events (pierre_rt_events) already carry company_id + actor_type + actor_id (actor_id now populated for human transitions per F31)."
+  },
+  "section_4_operator_diagnostics": {
+    "verdict": "MET by existing canonical surface (verified, not duplicated)",
+    "surface": {
+      "route": "GET /api/pierre/observability/diagnostics (+ /events, /health)",
+      "authorization": "server-side internal secret PIERRE_INTERNAL_DIAGNOSTICS_SECRET; FAIL-CLOSED 403 when the secret is unset/absent; no end-user exposure",
+      "content": "AGGREGATE only — area statuses (ok/degraded/critical), error/degraded counts, health, safe_to_operate; NO raw instructions, employee data, salary, medical, or document bodies",
+      "redaction": "src/lib/observability/redaction.ts — FORBIDDEN_SECRET_KEYS + FORBIDDEN_CONTENT_KEYS, stripSensitiveKeys, redactObservabilityMetadata, containsForbiddenSecretLeak, redactErrorMessage/StackTrace",
+      "security_headers": "no-store, nosniff, no-referrer, noindex",
+      "tests": "215 passed (pierre/observability + api/observability + observability)"
+    },
+    "cross_tenant": "the surface is an OPERATOR (deployment-admin) aggregate, gated by an internal secret — it contains no per-tenant customer content, so there is no tenant to leak; per-tenant audit reads go through audit.read RBAC on the governed routes",
+    "not_built": "a NEW per-tenant metrics dashboard was intentionally NOT built (would duplicate the canonical surface); the existing diagnostics + events + health cover mission/task/blocked/retry/reconciliation/queue/provider-category/worker signals"
+  },
+  "privacy": "no secrets, salary, medical, raw documents, raw email bodies, or unnecessary PII are written to audit or diagnostics (verified: F20/F29 payloads carry only ids/action/state; diagnostics is aggregate + redacted)"
+}

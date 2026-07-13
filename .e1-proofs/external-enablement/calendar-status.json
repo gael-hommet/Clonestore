@@ -1,0 +1,5 @@
+{
+  "configured": false,
+  "status": "NOT_REQUIRED_FOR_LAUNCH",
+  "note": "event prepared ≠ created live."
+}

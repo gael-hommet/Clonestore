@@ -1,0 +1,25 @@
+{
+  "captured": "C1.7 (reprise, spec complète)",
+  "environment": "local uniquement · aucune base distante · aucun provider live · aucun déploiement · aucun commit",
+  "conflictMarkers": 0,
+  "note": "Les conflits Stripe/payouts ont été résolus par CETTE session au tour précédent (Stripe = conflit fantôme byte-identique ; payouts = plancher P10 conservé). Le dépôt est propre.",
+  "tests": {
+    "clonechat_assistant_components": {
+      "passed": 582,
+      "failed": 0
+    },
+    "pierre_p16c": {
+      "passed": 5376,
+      "failed": 0,
+      "skipped": 1
+    }
+  },
+  "typescript": {
+    "command": "npx tsc --noEmit",
+    "errors": 0
+  },
+  "alreadyBuiltInC17": [
+    "src/lib/clonechat/openai/model-router.ts (routeur pur, 26/26)",
+    "src/lib/clonechat/voice/transcription-policy.ts (+ route /api/assistant/transcribe, hook, micro câblé — 17/17)"
+  ]
+}

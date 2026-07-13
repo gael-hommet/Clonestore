@@ -1,0 +1,33 @@
+{
+  "status": "COMPLETED (continuation)",
+  "canonical_presenter": "src/lib/client-cockpit/status.ts (ONE presenter per domain: missionStatusView / taskStatusView / validationStatusView / artifactStatusView). No second status brain.",
+  "findings_resolved": [
+    {
+      "id": "F30", "verdict": "CONFIRMED + FIXED", "file": "src/lib/client-cockpit/v1.ts",
+      "defect": "a sensitive draft (prepare_sensitive_draft / contract / avenant) whose task 'succeeded' was shown as 'Valide' -- but it is only PREPARED; the human decision remains required",
+      "fix": "a sensitive document artifact that is done maps to 'awaiting_validation' -> 'A valider' (warning tone), never 'validated'/'Valide'; non-sensitive documents still show 'Valide' (no over-correction)",
+      "test": "src/lib/client-cockpit/__tests__/p16e-f30-f32-truthful-status.test.ts (F30 cases)"
+    },
+    {
+      "id": "F32", "verdict": "CONFIRMED + FIXED", "file": "src/app/agents/pierre/use/components/PierreStatusBadges.tsx",
+      "defect": "the badge local STATUS_MAP (a second status brain) fell back to displaying the RAW ENGLISH internal state (awaiting_validation, succeeded, reconciliation_required, leased, escalated) for any unmapped status",
+      "fix": "unmapped statuses now delegate to the canonical taskStatusView -> a French label (or 'Inconnu'), never the raw internal English; known local labels preserved (no regression)",
+      "test": "same file (F32 cases) -- internal states render French; unknown -> 'Inconnu'; never the raw string"
+    }
+  ],
+  "repository_sweep": {
+    "raw_english_internal_state_in_user_facing_tsx": "NONE (grep over src/app + src/components for label:'succeeded'/'awaiting_*'/raw {status} -- 0 hits outside the canonical presenter)",
+    "false_success_literals": "the only 'envoye' hits in Pierre surfaces (profile/messages/page.tsx) are TRUTHFUL disclosures: 'Aucun email n'a ete envoye ... attend une validation humaine avant envoi' and 'Aucun document n'a ete envoye'",
+    "prior_P16D_D4": "cockpit 'Envoye' for a scheduled-only reminder -> 'Planifie' (fixed); email/send fail-closed 'prepared' (D7)"
+  },
+  "hard_rules_enforced": {
+    "draft_never_valide": "MET (F30)",
+    "prepared_not_sent": "MET (P16D D4/D7 + F30)",
+    "generated_not_signed": "MET (doc/generate message 'Document genere'; document-guard blocks signature-ready before exact-content approval)",
+    "queued_not_completed": "MET (taskStatusView: queued -> 'En file', succeeded -> 'Terminee' -- distinct)",
+    "awaiting_integration_not_succeeded": "MET (executor returns awaiting_integration -> task blocked -> 'A relire', never succeeded)",
+    "status_unknown_visible": "MET (unknown -> 'Inconnu', never raw/guessed)",
+    "sensitive_draft_shows_human_decision_required": "MET (F30 -> 'A valider', warning tone)"
+  },
+  "vocabulary_note": "the cockpit presenter enforces the load-bearing anti-false-success distinctions (brouillon / a valider / planifie / en cours / envoye / termine / inconnu / bloque). The full 18-term vocabulary in the prompt is aspirational; the critical truthfulness gaps are closed."
+}

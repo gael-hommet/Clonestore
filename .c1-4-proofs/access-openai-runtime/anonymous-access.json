@@ -1,0 +1,7 @@
+{
+  "anonymous": {
+    "status": 401,
+    "code": "AUTH_REQUIRED",
+    "blocked": true
+  }
+}

@@ -35,6 +35,10 @@ export interface ParrainResponderPort {
     readonly userText: string;
     readonly history?: readonly { role: "user" | "assistant"; text: string }[];
     readonly maxOutputTokens: number;
+    /** C1.7 — images RÉELLES envoyées au provider (data URLs assainies côté serveur). */
+    readonly imageDataUrls?: readonly string[];
+    /** Détail visuel : « low » par défaut ; « high » UNIQUEMENT si la question le justifie. */
+    readonly imageDetail?: "low" | "high";
   }): Promise<{ readonly ok: boolean; readonly structured: CloneChatStructuredOutput | null; readonly usage: { inputTokens: number; outputTokens: number } }>;
 }
 
@@ -51,6 +55,9 @@ export interface ParrainTurnInput {
   readonly viewer: ParrainViewerContext;
   readonly history?: readonly { role: "user" | "assistant"; text: string }[];
   readonly attachments?: readonly AttachmentIngestionResult[];
+  /** C1.7 — images (data URLs) déjà assainies par le serveur. */
+  readonly imageDataUrls?: readonly string[];
+  readonly imageDetail?: "low" | "high";
   readonly screenshotAnalysis?: ExistingScreenshotAnalysis | null;
   readonly conversationId?: string | null;
   readonly routeHint?: string | null;
@@ -104,9 +111,13 @@ export async function runParrainTurn(input: ParrainTurnInput, ports: ParrainTurn
     if (snapshot) sessionChunks.push(...accountSnapshotChunks(snapshot));
   }
   for (const a of attachments) {
-    if (viewer.companyId && a.attachment.companyId === viewer.companyId) {
-      sessionChunks.push(...attachmentGroundingChunks(a));
-    }
+    // Pièce jointe TENANT : exige l'entreprise EXACTE (inchangé, fail-closed).
+    const sameTenant = viewer.companyId !== null && a.attachment.companyId === viewer.companyId;
+    // C1.7 — Pièce jointe ÉPHÉMÈRE (companyId === null) : c'est le fichier que l'utilisateur
+    // vient de joindre lui-même. Il est grondé pour TOUS les viewers, y compris anonyme — mais
+    // il ne porte AUCUN tenant, donc il ne peut jamais servir de pont vers des données privées.
+    const ephemeral = a.attachment.companyId === null;
+    if (sameTenant || ephemeral) sessionChunks.push(...attachmentGroundingChunks(a));
   }
   if (input.screenshotAnalysis && viewer.companyId) {
     sessionChunks.push(imageAnalysisChunk(input.screenshotAnalysis, viewer.companyId, null));
@@ -153,7 +164,16 @@ export async function runParrainTurn(input: ParrainTurnInput, ports: ParrainTurn
     viewer,
     sessionChunks,
     codeSymbols: input.codeSymbols,
-    retrieval: { referencedIds: resolveReferencedIds(question, attachments) },
+    retrieval: {
+      // C1.7 — Un fichier que l'utilisateur VIENT DE JOINDRE est, par définition, la pièce à
+      // conviction de sa question. Il ne doit pas « concourir » avec la connaissance générale
+      // dans le classement : ses extraits sont ÉPINGLÉS dans le contexte. Sans cela, le modèle
+      // répondait « je ne vois aucun fichier joint » alors que le fichier était bien ingéré.
+      referencedIds: [
+        ...resolveReferencedIds(question, attachments),
+        ...sessionChunks.filter((c) => c.sourceId === "src.uploaded_documents").map((c) => c.id),
+      ],
+    },
   });
 
   const { links, cta } = linksFor(routing.category, question);
@@ -180,6 +200,8 @@ export async function runParrainTurn(input: ParrainTurnInput, ports: ParrainTurn
         userText: question,
         history: (input.history ?? []).slice(-6),
         maxOutputTokens: input.maxOutputTokens,
+        imageDataUrls: input.imageDataUrls,   // C1.7 — l'image atteint VRAIMENT le provider
+        imageDetail: input.imageDetail,
       });
       if (result.ok && result.structured) {
         const cited = validateParrainCitations(result.structured.citations ?? [], grounded.contextChunks, viewer.mode);

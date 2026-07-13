@@ -1,0 +1,238 @@
+{
+  "generated_by": "scripts/p16e-enterprise-sim.mts (real deterministic planner + real proactive primitives; NO model calls, NO remote DB)",
+  "method": "SMALL scale is ALSO executed end-to-end on real PGlite (p16e-enterprise-simulation.itest.ts); PME/ETI/GROUP are proven at the deterministic PLANNER + PROACTIVE-ISOLATION invariant level (a pure function's invariants are scale-invariant), with a bounded deep sample for the two largest scales to stay within local compute — the manifest reflects the FULL generated roster.",
+  "scales": [
+    {
+      "scale": "small",
+      "manifest": {
+        "scale": "small",
+        "spec": {
+          "scale": "small",
+          "companies": 1,
+          "legal_entities": 1,
+          "sites": 1,
+          "employees": 15,
+          "managers": 1,
+          "countries": 1,
+          "currencies": 1,
+          "duplicate_first_names": false,
+          "stale_records": true,
+          "seeded_anomalies": [
+            "incomplete_records",
+            "missing_documents",
+            "one_contract_expiry"
+          ]
+        },
+        "generated": {
+          "employees": 15,
+          "incomplete_records": 5,
+          "stale_left": 1,
+          "onboarding": 2,
+          "expiring_contracts": 6,
+          "distinct_first_names": 7
+        }
+      },
+      "planning": {
+        "total_instructions": 28,
+        "sampled_employees": 15,
+        "external_side_effects": 0,
+        "sensitive_human_gated": 6,
+        "clarifications": 0,
+        "planning_errors": 0
+      },
+      "proactive": {
+        "signals_coA": 15,
+        "signals_coB": 15,
+        "dedup_suppressed": 15,
+        "cross_tenant_leaks": 0
+      },
+      "invariants": {
+        "no_external_side_effect_proposed": true,
+        "sensitive_requests_human_gated": true,
+        "planner_no_errors": true,
+        "proactive_dedup_deterministic": true,
+        "proactive_signal_has_company": true,
+        "cross_tenant_signal_isolated": true
+      },
+      "pass": true
+    },
+    {
+      "scale": "pme",
+      "manifest": {
+        "scale": "pme",
+        "spec": {
+          "scale": "pme",
+          "companies": 1,
+          "legal_entities": 1,
+          "sites": 2,
+          "employees": 120,
+          "managers": 8,
+          "countries": 1,
+          "currencies": 1,
+          "duplicate_first_names": true,
+          "stale_records": true,
+          "seeded_anomalies": [
+            "onboarding",
+            "absences",
+            "training",
+            "pending_validations",
+            "duplicate_first_names"
+          ]
+        },
+        "generated": {
+          "employees": 120,
+          "incomplete_records": 22,
+          "stale_left": 3,
+          "onboarding": 13,
+          "expiring_contracts": 30,
+          "distinct_first_names": 12
+        }
+      },
+      "planning": {
+        "total_instructions": 185,
+        "sampled_employees": 120,
+        "external_side_effects": 0,
+        "sensitive_human_gated": 30,
+        "clarifications": 0,
+        "planning_errors": 0
+      },
+      "proactive": {
+        "signals_coA": 120,
+        "signals_coB": 120,
+        "dedup_suppressed": 120,
+        "cross_tenant_leaks": 0
+      },
+      "invariants": {
+        "no_external_side_effect_proposed": true,
+        "sensitive_requests_human_gated": true,
+        "planner_no_errors": true,
+        "proactive_dedup_deterministic": true,
+        "proactive_signal_has_company": true,
+        "cross_tenant_signal_isolated": true
+      },
+      "pass": true
+    },
+    {
+      "scale": "eti",
+      "manifest": {
+        "scale": "eti",
+        "spec": {
+          "scale": "eti",
+          "companies": 1,
+          "legal_entities": 3,
+          "sites": 6,
+          "employees": 1500,
+          "managers": 60,
+          "countries": 1,
+          "currencies": 1,
+          "duplicate_first_names": true,
+          "stale_records": true,
+          "seeded_anomalies": [
+            "delegated_approvals",
+            "site_scoped_permissions",
+            "concurrent_workflows",
+            "document_version_changes",
+            "role_revocations"
+          ]
+        },
+        "generated": {
+          "employees": 1500,
+          "incomplete_records": 244,
+          "stale_left": 57,
+          "onboarding": 103,
+          "expiring_contracts": 333,
+          "distinct_first_names": 12
+        }
+      },
+      "planning": {
+        "total_instructions": 2180,
+        "sampled_employees": 1500,
+        "external_side_effects": 0,
+        "sensitive_human_gated": 333,
+        "clarifications": 0,
+        "planning_errors": 0
+      },
+      "proactive": {
+        "signals_coA": 200,
+        "signals_coB": 200,
+        "dedup_suppressed": 200,
+        "cross_tenant_leaks": 0
+      },
+      "invariants": {
+        "no_external_side_effect_proposed": true,
+        "sensitive_requests_human_gated": true,
+        "planner_no_errors": true,
+        "proactive_dedup_deterministic": true,
+        "proactive_signal_has_company": true,
+        "cross_tenant_signal_isolated": true
+      },
+      "pass": true
+    },
+    {
+      "scale": "group",
+      "manifest": {
+        "scale": "group",
+        "spec": {
+          "scale": "group",
+          "companies": 1,
+          "legal_entities": 8,
+          "sites": 40,
+          "employees": 10000,
+          "managers": 400,
+          "countries": 4,
+          "currencies": 3,
+          "duplicate_first_names": true,
+          "stale_records": true,
+          "seeded_anomalies": [
+            "duplicate_names",
+            "stale_records",
+            "large_imports",
+            "conflicting_local_rules",
+            "high_concurrency",
+            "provider_uncertainty",
+            "worker_restarts"
+          ]
+        },
+        "generated": {
+          "employees": 10000,
+          "incomplete_records": 1516,
+          "stale_left": 299,
+          "onboarding": 698,
+          "expiring_contracts": 2049,
+          "distinct_first_names": 12
+        }
+      },
+      "planning": {
+        "total_instructions": 2861,
+        "sampled_employees": 2000,
+        "external_side_effects": 0,
+        "sensitive_human_gated": 404,
+        "clarifications": 0,
+        "planning_errors": 0
+      },
+      "proactive": {
+        "signals_coA": 200,
+        "signals_coB": 200,
+        "dedup_suppressed": 200,
+        "cross_tenant_leaks": 0
+      },
+      "invariants": {
+        "no_external_side_effect_proposed": true,
+        "sensitive_requests_human_gated": true,
+        "planner_no_errors": true,
+        "proactive_dedup_deterministic": true,
+        "proactive_signal_has_company": true,
+        "cross_tenant_signal_isolated": true
+      },
+      "pass": true
+    }
+  ],
+  "overall_pass": true,
+  "hard_requirements": {
+    "no_cross_tenant_data": true,
+    "no_duplicate_effect": true,
+    "no_autonomous_external_effect": true,
+    "sensitive_human_gated": true
+  },
+  "honest_scope": "Full-runtime (createMission + worker + validations on real DB) execution is PROVEN at the SMALL (15-employee) scale via the integration test. Running the full 10,000-employee roster through the real DB runtime is not executed here (PGlite throughput); its correctness at scale rests on: (a) per-mission tenant isolation + idempotency proven by the exactly-once/tenant suites, and (b) the scale-invariant deterministic planner + proactive isolation proven above."
+}

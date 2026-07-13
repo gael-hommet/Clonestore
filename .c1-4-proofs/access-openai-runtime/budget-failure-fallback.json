@@ -1,0 +1,7 @@
+{
+  "runId": "access-openai-runtime",
+  "publicPath": "budget indisponible/refusé → repli PUBLIC déterministe, jamais 500, aucun appel modèle",
+  "ready": true,
+  "companyPath": "réservation refusée → repli déterministe borné (comportement existant préservé)",
+  "companySafe": true
+}

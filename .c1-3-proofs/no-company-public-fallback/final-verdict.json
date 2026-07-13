@@ -1,0 +1,21 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "verdict": "C1.3 — NO-COMPANY PUBLIC KNOWLEDGE FALLBACK VERIFIED / GENERAL CLONECHAT QUESTIONS OPERATIONAL",
+  "bugFixed": "les questions publiques d'un utilisateur authentifie SANS entreprise ne renvoient PLUS 'Aucune entreprise active...'",
+  "browserProofPresent": true,
+  "gates": {
+    "classifier": "43/43",
+    "route": "29/29",
+    "grouped": "472/472",
+    "tsc": 0,
+    "nonRegression": "7651/7651 (1 skip pre-existant)",
+    "build": "exit 0"
+  },
+  "browser": "desktop 1440x900 + mobile 390x844 : workspace reel, composer actif, indice mode decouverte, 5 questions publiques => vraies reponses (prix canoniques 449/499), 2 demandes entreprise => 'selectionnez ou creez', aucune donnee tenant, refresh ok, anonyme 401",
+  "honestNotes": [
+    "Le QA navigateur a exerce le chemin PUBLIC DETERMINISTE : le magasin de budget durable de ce poste dev n'est pas provisionne (role PG 'clonechat_app' absent, PRE-EXISTANT) => aucune reservation => aucun appel modele (invariant respecte). Le chemin OpenAI public est prouve au niveau route (source openai_public, responder reel appele 1x, scope companyId null, commit 30 tokens).",
+    "Aucune persistance durable en mode decouverte (pas d'entreprise a laquelle rattacher la conversation) — limitation documentee, ne bloque jamais la reponse.",
+    "hasPierreAccess renvoie un objet (verite toujours vraie dans `if (!access)`) — quirk PRE-EXISTANT, hors perimetre C1.3, non modifie."
+  ]
+}

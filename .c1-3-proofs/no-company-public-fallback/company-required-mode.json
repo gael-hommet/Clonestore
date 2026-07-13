@@ -1,0 +1,12 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "message": "Pour agir sur votre entreprise, selectionnez ou creez d'abord une entreprise active.",
+  "noModelCall": true,
+  "noBudgetReservation": true,
+  "noProposal": true,
+  "noMission": true,
+  "noP16C": true,
+  "noFakeCompany": true,
+  "companySelectionListPreserved": true
+}

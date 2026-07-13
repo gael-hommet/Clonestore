@@ -1,0 +1,19 @@
+{
+  "runId": "repository-reconciliation",
+  "readOnly": true,
+  "mutationsExecuted": 0,
+  "target": {
+    "configured": true,
+    "source": "DATABASE_URL",
+    "category": "managed_supabase_remote",
+    "productionSuspected": true,
+    "urlPrinted": false
+  },
+  "connected": false,
+  "checks": null,
+  "migrationState": "UNKNOWN",
+  "notes": [
+    "Exécuté SANS --connect : aucune connexion ouverte. La cible est seulement CLASSÉE.",
+    "L'existence d'un fichier de migration NE PROUVE PAS son application distante : seul --connect, lancé par un opérateur autorisé, peut l'établir."
+  ]
+}

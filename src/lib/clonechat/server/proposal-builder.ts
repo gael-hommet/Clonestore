@@ -30,11 +30,24 @@ const TOOL_TO_KIND: Partial<Record<string, CloneChatActionKind>> = {
   cancel_mission: "cancel_mission", decide_validation: "decide_validation",
 };
 
-function normalizeDecision(raw: string): "approve" | "reject" | "request_changes" {
-  const d = raw.toLowerCase();
-  if (d.includes("rejet") || d.includes("reject")) return "reject";
-  if (d.includes("chang")) return "request_changes";
-  return "approve";
+// P16D §3.A/C — décision de validation RH : jamais de défaut UNSAFE. Auparavant toute chaîne
+// non reconnue — y compris la chaîne VIDE quand le modèle omettait l'argument, ou un « attends »,
+// « non », « ne valide pas » (sans « rejet »/« chang ») — retombait sur "approve". Approuver est
+// précisément la décision qui LÈVE le blocage humain d'une tâche gouvernée : la défaillir vers
+// l'approbation viole le plancher « décision réservée à l'humain ». On ne reconnaît QUE des
+// intentions EXPLICITES ; toute ambiguïté renvoie `null` ⇒ aucune proposition n'est construite,
+// Pierre redemande laquelle des trois décisions l'humain veut prendre.
+function normalizeDecision(raw: string): "approve" | "reject" | "request_changes" | null {
+  const d = raw.trim().toLowerCase();
+  if (!d) return null;
+  if (d.includes("rejet") || d.includes("reject") || d.includes("refus")) return "reject";
+  if (d.includes("chang") || d.includes("modif")) return "request_changes";
+  // Une NÉGATION interdit toute approbation : « ne valide pas », « n'approuve pas », « non »
+  // contiennent pourtant le radical « valide »/« approuve ». Sans ce garde, une consigne de
+  // REFUS aurait été lue comme une APPROBATION — l'exact inverse de l'intention humaine.
+  const negated = /\b(ne|n'|pas|non|jamais|sans|aucun)\b/.test(d);
+  if (!negated && (d.includes("approuv") || d.includes("approve") || d.includes("valide") || d.includes("accept") || d.includes("ok"))) return "approve";
+  return null; // intention non explicite (ou niée) ⇒ jamais d'approbation par défaut
 }
 
 /**
@@ -90,6 +103,7 @@ export async function buildAndPersistProposal(args: {
     const v = await resolvePendingValidationV1(v1, String(a.validation_id ?? ""));
     if (!v) return null;                         // aucune validation en attente réelle
     const decision = normalizeDecision(String(a.decision ?? ""));
+    if (!decision) return null;                  // décision ambiguë ⇒ aucune proposition (on redemande)
     payload = { validationId: v.id, missionId: v.missionId, decision, version: v.version };
     label = decision === "reject" ? "Rejeter cette validation" : decision === "request_changes" ? "Demander des changements" : "Approuver cette validation";
   }

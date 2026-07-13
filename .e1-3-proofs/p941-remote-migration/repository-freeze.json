@@ -1,0 +1,29 @@
+{
+  "phase": "E1.3",
+  "section": "1 — CLEAN FREEZE (A = B = C)",
+  "method": "3 full-tree snapshots (path|size|mtime|sha256) across a no-edit window; excludes only node_modules/.next/.next-*/.git/coverage/dist",
+  "windowSeconds": 158,
+  "fileCounts": [
+    7800,
+    7800,
+    7800
+  ],
+  "treeHashIdenticalABC": true,
+  "contentHashIdenticalABC": true,
+  "aVsC": {
+    "added": [],
+    "removed": [],
+    "modified": [],
+    "touched": []
+  },
+  "frozen": true,
+  "recordedAtMs": 1783852811617,
+  "migrationChecksum": "4a879e8cbfa260e8bebdbef5203213f3086015b3a8c77c8748c2b7325d15dc7b",
+  "sourceHashes": {
+    "scripts/e1-3-apply-p941-remote.mjs": "4f2a7566b7dbaec8a77b22176f3e0392b829f4f7e0c067d5ae5c689e74dc8f75",
+    "src/lib/clonestore/external-enablement/e1/e1-2-preflight-core.mjs": "5b66d5433bb8efbd0dc22f8d677bff45f1d40a2452cf34ca39193aa44b47868f",
+    "src/lib/clonestore/external-enablement/e1/e1-3-p941-migration-command-center.ts": "ef92aecafcba8bf4e716be817e78d7197bad5e1b65c1afe53be45d8070b6a202",
+    "supabase/migrations-p941/2026-07-07__p941_clonechat_durable.sql": "4a879e8cbfa260e8bebdbef5203213f3086015b3a8c77c8748c2b7325d15dc7b"
+  },
+  "note": "CLEAN freeze taken AFTER all E1.3 file creation + adversarial fixes; no file was edited during the window. The runner's validateFreezeProof re-hashes sourceHashes and rejects on any drift, staleness, or a non-frozen record."
+}

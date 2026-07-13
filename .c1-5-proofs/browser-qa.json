@@ -1,0 +1,70 @@
+{
+  "scenarioA": {
+    "question": "comment je paye pierre ? tu me recommandes de le prendre pour me libérer du temps ?",
+    "reachedServer": true,
+    "source": "openai_public",
+    "discovery": true,
+    "provider": "openai",
+    "answeredByLocalDeterministicEngine": false,
+    "hardBlockerShown": false,
+    "claimsCompanyData": false,
+    "composerStillEnabled": true,
+    "answerTail": "lisant des missions structurées, en préparant des documents et en assurant le suivi et la traçabilité. C'est une bonne option pour améliorer l'efficacité de votre gestion des ressources humaines.\n\nRéponse d'orientation — je n'accède pas aux données de votre entreprise.\n\nD'après la page /reserver/pierre, la page Pierre."
+  },
+  "scenarioB": {
+    "question": "prépare l'avenant de Paul",
+    "reachedServer": true,
+    "source": "pierre_access_required",
+    "refusedAsCompanyAction": true,
+    "explanationMentionsGeneralQuestionsStillWork": true,
+    "claimsCompanyData": false,
+    "composerStillEnabledAfterRefusal": true,
+    "crashed": false,
+    "refusalTail": " l'avenant de Paul\nPierre doit être activé pour agir sur votre entreprise, accéder à vos données RH ou créer des missions. En attendant, je réponds à toutes vos questions sur CloneStore, Pierre, les prix et le fonctionnement.\n\nVos questions générales sur CloneStore et Pierre restent disponibles ici.",
+    "chatStillUsableAfterRefusal": true,
+    "discoveryHintRepeatsInThread": 0
+  },
+  "scenarioC": {
+    "viewport": "390x844",
+    "reachedServer": true,
+    "composerEnabled": true,
+    "discoveryCardVisible": true,
+    "noHorizontalOverflow": true,
+    "bubbleFitsViewport": true
+  },
+  "brand": {
+    "userBubbleFound": true,
+    "userBubbleBackgroundImage": "linear-gradient(135deg, rgba(21, 25, 34, 0.98) 0%, rgba(37, 43, 54, 0.96) 46%, rgba(48, 63, 92, 0.94) 100%), radial-grad",
+    "userBubbleColor": "rgb(244, 247, 252)",
+    "assistantBubbleBackgroundImage": "linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.74))",
+    "assistantBubbleColor": "rgb(21, 25, 34)",
+    "oldVioletPresentAnywhere": false
+  },
+  "security": {
+    "anonymousChatApi": {
+      "status": 401,
+      "blocked": true
+    }
+  },
+  "initial": {
+    "composerEnabled": true,
+    "discoveryCardVisible": false,
+    "hardBlockerText": false,
+    "modeLabel": "Mode découverte"
+  },
+  "afterSettle": {
+    "discoveryCardVisible": true,
+    "modeLabel": "Mode découverte"
+  },
+  "verdict": {
+    "publicQuestionReachesServer": true,
+    "publicQuestionNotHardBlocked": true,
+    "noFakeCompanyClaimed": true,
+    "operationalStillBlocked": true,
+    "chatUsableAfterRefusal": true,
+    "composerAlwaysActive": true,
+    "oldPurpleRemoved": true,
+    "mobileClean": true,
+    "anonymousStillBlocked": true
+  }
+}

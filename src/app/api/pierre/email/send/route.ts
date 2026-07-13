@@ -386,18 +386,26 @@ function validateSendBody(body: SendEmailBody) {
   }
 }
 
-function buildProviderMessageId() {
-  return `pierre_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+// P16D §5/§6 (false success / partial provider) — cette route NE contacte AUCUN fournisseur
+// d'envoi (aucun import provider dans ce fichier ; l'envoi live reste bloqué tant que la
+// production n'est pas autorisée). Elle PRÉPARE l'email et le persiste ; elle ne l'ENVOIE pas.
+// Avant P16D elle écrivait `status:"sent"` + un `provider_message_id` FABRIQUÉ + un log
+// « Email envoyé » + `deliveryAccepted:true` — une PREUVE d'envoi entièrement inventée, alors
+// qu'aucun octet ne partait. Doctrine : « préparé » ne vaut JAMAIS « envoyé », un accusé de
+// réception absent n'est jamais une preuve positive.
+function buildLocalReference() {
+  // Référence LOCALE de l'enregistrement préparé — surtout PAS un accusé de réception fournisseur.
+  return `pierre_prepared_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-async function insertSentEmail(params: {
+async function insertPreparedEmail(params: {
   supabaseAdmin: SupabaseClient;
   missionId: string | null;
   sender: SenderIdentityResolved;
   body: SendEmailBody;
-  providerMessageId: string;
+  localReference: string;
 }): Promise<DbRow> {
-  const { supabaseAdmin, missionId, sender, body, providerMessageId } = params;
+  const { supabaseAdmin, missionId, sender, body, localReference } = params;
 
   const insertPayload = {
     mission_id: missionId,
@@ -409,8 +417,10 @@ async function insertSentEmail(params: {
     body_html: null,
     sender_name: sender.senderName,
     sender_email: sender.senderEmail,
-    status: "sent",
-    provider_message_id: providerMessageId,
+    // FAIL-CLOSED : jamais "sent". L'email est PRÉPARÉ, pas envoyé — aucun fournisseur actif.
+    status: "prepared",
+    // Aucun fournisseur n'a accusé réception ⇒ pas de provider_message_id (ne pas fabriquer d'ID).
+    provider_message_id: null,
     attachments: body.attachments ?? null,
   };
 
@@ -423,13 +433,15 @@ async function insertSentEmail(params: {
   if (error || !data) {
     throw {
       status: 500,
-      message: "Unable to save sent email.",
-      code: "EMAIL_SEND_SAVE_FAILED",
+      message: "Unable to save prepared email.",
+      code: "EMAIL_PREPARE_SAVE_FAILED",
       details: mapDbError(error),
     };
   }
 
-  return data as DbRow;
+  // La référence locale reste dans la réponse (traçabilité) mais n'est PAS écrite comme un
+  // accusé fournisseur en base.
+  return { ...(data as DbRow), local_reference: localReference } as DbRow;
 }
 
 async function insertMissionLogIfNeeded(params: {
@@ -445,12 +457,15 @@ async function insertMissionLogIfNeeded(params: {
   const { error } = await supabaseAdmin.from("pierre_task_logs").insert({
     mission_id: missionId,
     level: "info",
-    event: "email_sent_direct",
-    message: `Email envoyé : ${subject}`,
+    // Vérité : préparé, non envoyé. Jamais « Email envoyé ».
+    event: "email_prepared_direct",
+    message: `Email préparé (non envoyé — aucun fournisseur d'envoi actif) : ${subject}`,
     payload: {
       email_id: emailId,
       to,
       subject,
+      status: "prepared",
+      sent: false,
     },
   });
 
@@ -478,14 +493,14 @@ export async function POST(request: NextRequest) {
     ]);
 
     const sender = resolveSenderIdentity(body, memory);
-    const providerMessageId = buildProviderMessageId();
+    const localReference = buildLocalReference();
 
-    const email = await insertSentEmail({
+    const email = await insertPreparedEmail({
       supabaseAdmin,
       missionId: mission ? (mission.id as string) : null,
       sender,
       body,
-      providerMessageId,
+      localReference,
     });
 
     await insertMissionLogIfNeeded({
@@ -496,19 +511,27 @@ export async function POST(request: NextRequest) {
       to: body.to as string,
     });
 
+    // P16D — réponse VÉRIDIQUE : préparé, pas envoyé. Aucun `deliveryAccepted:true`, aucun
+    // accusé fournisseur inventé. Le client sait que rien n'est parti et pourquoi.
     return NextResponse.json({
       ok: true,
+      status: "prepared",
+      sent: false,
       email,
-      sent: email,
+      disclosure:
+        "Email PRÉPARÉ, non envoyé : aucun fournisseur d'envoi n'est actif (production non autorisée). " +
+        "Rien n'a été transmis au destinataire.",
       provider: {
-        provider: "internal_stub",
-        messageId: providerMessageId,
-        deliveryAccepted: true,
+        provider: "none",
+        delivered: false,
+        deliveryAccepted: false,
+        acknowledgement: "none",
         senderIdentityResolved: sender,
       },
       meta: {
         fetchedAt: new Date().toISOString(),
         missionId: mission ? (mission.id as string) : null,
+        localReference,
       },
     });
   } catch (error) {

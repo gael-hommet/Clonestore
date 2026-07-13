@@ -1,0 +1,30 @@
+{
+  "method": "12-lens read-only adversarial audit fleet (workflow wf_672dda28-297) over the real runtime; each finding independently refuted by 3 skeptic/reproducer/severity verifiers (majority-refuted => dropped). Full raw output in .p16d-proofs/gap-audit-workflow-raw.json. Verifier pass partially truncated by a session limit; the 3 CRITICAL findings each reached 3/3 confirmation before the cap.",
+  "lenses": ["false-success","duplicate-side-effect","authorization-bypass","tenant-leakage","unsafe-human-only-decision","stale-context-execution","document-approval-mismatch","recovery-retry-corruption","ambiguity-fabrication","conflicting-instruction","missing-data-invention","truthful-status"],
+  "confirmed_and_fixed": [
+    {"lens":"false-success","id":"D7","verdict":"3/3 confirmed","severity":"critical","fixed":true},
+    {"lens":"missing-data-invention","id":"D8","verdict":"3/3 confirmed","severity":"critical","fixed":true},
+    {"lens":"unsafe-human-only-decision","id":"D9","verdict":"3/3 confirmed","severity":"critical","fixed":true},
+    {"lens":"unsafe-human-only-decision","id":"D1","verdict":"self-reproduced (empirical regex proof)","severity":"high","fixed":true},
+    {"lens":"stale-context-execution","id":"D2","verdict":"self-reproduced","severity":"high","fixed":true},
+    {"lens":"document-approval-mismatch","id":"D3","verdict":"self-reproduced on real Postgres","severity":"high","fixed":true},
+    {"lens":"false-success","id":"D4","verdict":"self-reproduced","severity":"high","fixed":true},
+    {"lens":"ambiguity-fabrication","id":"D5","verdict":"self-reproduced","severity":"medium","fixed":true},
+    {"lens":"conflicting-instruction","id":"D6","verdict":"self-reproduced","severity":"high","fixed":true},
+    {"lens":"ambiguity-fabrication","id":"D10","verdict":"single-lens, self-verified + regression test","severity":"high","fixed":true},
+    {"lens":"duplicate-side-effect","id":"D11","verdict":"single-lens, self-verified + regression test","severity":"high","fixed":true}
+  ],
+  "confirmed_out_of_scope_blockers": [
+    {"area":"partner money path","files":["src/app/api/webhooks/stripe/route.ts","src/lib/partner-program/server/payouts.ts"],"issue":"unresolved git merge-conflict markers (git stash pop) from a partner workstream; 12 tsc errors, 0 in Pierre","action":"left untouched per instruction (do not modify payments); blocks clean full-suite and build","note":"the stashed side is strictly safer - it ANDs the P10 PRODUCTION_AUTHORIZED const hard floor into live-payout authorization"}
+  ],
+  "reported_not_fixed": [
+    {"id":"R1","file":"src/lib/pierre/v1/tenant-context.ts:122","severity":"high","reason":"needs removeRole reproduction; risky authz-model change without a failing test"},
+    {"id":"R2","file":"src/lib/pierre/v1/contract-template-compiler.ts:39","severity":"medium","reason":"required-field emptiness gated upstream; em-dash on optional empties is acceptable"},
+    {"id":"R3","file":"src/lib/pierre/v1/worker.ts:76","severity":"medium","reason":"only prepare_sensitive_draft (no external effect) reaches the pre-guard executor; low real risk"},
+    {"note":"~40 further single-lens candidates whose 3-voter adversarial verification did not complete before the session-limit cap; not treated as confirmed. Raw list preserved in gap-audit-workflow-raw.json for follow-up."}
+  ],
+  "refuted": [
+    {"finding":"queue/release-stuck + process-task unauthenticated","verdict":"REFUTED - both gate on x-pierre-worker-secret -> 401"},
+    {"finding":"termination bypasses human-only via CloneGuard regex","verdict":"PARTIALLY REFUTED - analysis.ts routes termination to action=termination -> structural HARD_BLOCK; regex gap was defense-in-depth for termination but the SOLE net for protected characteristics (fixed in D1)"}
+  ]
+}

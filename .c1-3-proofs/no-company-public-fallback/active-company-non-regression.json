@@ -1,0 +1,10 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "companyModeUnchanged": true,
+  "budgetScopedToRealCompany": "reserve() scope.companyId === COMPANY reel (teste)",
+  "p16cUnchanged": true,
+  "proposalIdConfirmation": true,
+  "tenantIsolationUnchanged": true,
+  "suites": "p16c + clonechat + api + pierre v1 tous verts"
+}

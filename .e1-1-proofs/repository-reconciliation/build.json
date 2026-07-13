@@ -1,0 +1,47 @@
+{
+  "runId": "repository-reconciliation",
+  "command": "Remove-Item -Recurse -Force .next ; npm run build",
+  "exitCode": 0,
+  "compiled": true,
+  "compileTime": "25.4s",
+  "typeValidationPassed": true,
+  "routeValidationPassed": true,
+  "staticGeneration": "192/192",
+  "totalRoutes": 392,
+  "routeBreakdown": {
+    "static": 27,
+    "dynamic": 364,
+    "ssg": 1
+  },
+  "assistantRoutePresent": true,
+  "requiredRoutesPresent": [
+    "/assistant",
+    "/api/assistant/chat",
+    "/api/assistant/execute",
+    "/partenaires",
+    "/partenaires/admin",
+    "/partenaires/espace",
+    "/api/partners/apply",
+    "/api/cron/partner-payouts",
+    "/api/webhooks/stripe"
+  ],
+  "partnerRouteCount": 9,
+  "enoentOrConcurrentBuildSymptoms": 0,
+  "externalProviderCallsDuringBuild": 0,
+  "sourceMovedDuringBuild": false,
+  "snapshotDEqualsE": true,
+  "measuredAtIso": "2026-07-11T21:52:00Z",
+  "note": "Single serialized build on the frozen tree after removing .next. Compilation success AND route validation AND full static generation — all three required. Snapshot D = E proves no source moved during the build.",
+  "finalBuildOnFinalTree": {
+    "command": "rm -rf .next ; npm run build",
+    "exitCode": 0,
+    "compiled": true,
+    "compileTime": "2.1min",
+    "staticGeneration": "192/192",
+    "totalRoutes": 392,
+    "enoent": 0,
+    "externalProviderCalls": 0,
+    "snapshotEEqualsF": true,
+    "note": "Re-built after the command-center update so the build certifies the tree AS IT FINALLY STANDS. Partner perimeter unchanged (E = F)."
+  }
+}

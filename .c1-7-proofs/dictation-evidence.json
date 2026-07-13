@@ -1,0 +1,23 @@
+{
+  "route": "POST /api/assistant/transcribe — clé OpenAI SERVEUR uniquement",
+  "models": {
+    "primary": "gpt-4o-mini-transcribe",
+    "fallback": "gpt-4o-transcribe"
+  },
+  "noDoubleTranscription": "repli UNIQUEMENT si : transcript vide malgré parole · confiance MESURÉE < seuil · demande explicite",
+  "browserQA": {
+    "micButtonPresent": true,
+    "recordingStateShown": true,
+    "realTranscribeCall": "200 (appel RÉEL)",
+    "transcriptInsertedInComposer": true,
+    "neverAutoSent": true,
+    "existingTextPreserved": true,
+    "microphoneReleased": true
+  },
+  "honesty": "le micro FACTICE de Chromium émet du SILENCE : la transcription RÉELLE était donc vide et l'insertion correctement refusée. Le CONTRAT CLIENT (insertion / non-envoi / préservation / undo) est prouvé avec un stub déterministe CLAIREMENT étiqueté — ce n'est PAS une preuve de provider. La preuve provider est l'appel réel 200.",
+  "noAudioPersisted": true,
+  "noRawAudioLogged": true,
+  "noTranscriptInTelemetry": "seule la LONGUEUR est enregistrée",
+  "governance": "le texte dicté repasse par la MÊME classification C1.6 et la MÊME garde anti-injection que le texte tapé",
+  "tests": "17/17"
+}

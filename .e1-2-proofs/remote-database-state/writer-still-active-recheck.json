@@ -1,0 +1,18 @@
+{
+  "phase": "E1.2",
+  "section": "1 — SINGLE-WRITER SAFETY (re-check at report time)",
+  "recheckedAt": "2026-07-12T00:56:09",
+  "minutesAfterInitialWatch": 9.4,
+  "foreignWriterPid": 2224,
+  "stillAlive": true,
+  "cpuDeltaOver15s_s": 0.44,
+  "foreignRepoWritesInLast4Min": 1,
+  "mostRecentForeignWrite": {
+    "at": "00:56:01",
+    "path": ".recette-payout-2.cjs"
+  },
+  "escalationObserved": "The foreign agent moved from Stripe Connect onboarding + checkout ('.connect-*.cjs', '.recette-client*.cjs', 'checkout.png') into PAYOUT scripting ('.recette-payout-2.cjs'). Its scope is widening, not winding down.",
+  "standingProtection": "E1.1 (accepted): the P10 floor Boolean(PRODUCTION_AUTHORIZED) && isPartnerLivePayoutAuthorized() is enforced in application code and cannot be bypassed by environment variables. With PRODUCTION_AUTHORIZED=false, no LIVE payout can occur regardless of what that agent scripts. E1.2 did not re-verify this (it would require running tests on a volatile repository); it is carried forward from E1.1 as accepted, not re-asserted as fresh.",
+  "blockConfirmed": true,
+  "verdictUnchanged": "E1.2 — REMOTE PREFLIGHT BLOCKED / REPOSITORY WRITER STILL ACTIVE"
+}

@@ -12,8 +12,34 @@ import { createHash, randomBytes } from "crypto";
 import type { SqlExecutor } from "./sql";
 import { newUuid } from "./sql";
 import { Errors } from "./errors";
-import type { TenantContext } from "./tenant-context";
+import type { TenantContext, MemberRole } from "./tenant-context";
 import { requirePermission } from "./rbac";
+
+// P16E §4.A (R1) — the legacy `pierre_rt_members.role` column is a DUPLICATE source of truth
+// alongside `pierre_rt_membership_roles`. `resolveTenantContext` unions `ROLE_PERMISSIONS[role]`
+// (and falls back to the legacy role when no membership_roles remain), so a stale base column
+// silently re-grants revoked authority: removing a member's roles left `role` at 'hr_manager'
+// and they kept validation.decide/employee.write. Fix: after every system-role assign/remove,
+// SYNCHRONIZE the base column to the highest-privilege system role still held (or 'viewer' when
+// none remain) so the column can never re-grant an authority the member no longer holds.
+const ROLE_KEY_TO_MEMBER: Record<string, MemberRole> = {
+  OWNER: "owner", ADMIN: "admin", HR_MANAGER: "hr_manager", HR_OPERATOR: "hr_operator", VIEWER: "viewer",
+};
+const ROLE_RANK: Record<MemberRole, number> = { owner: 4, admin: 3, hr_manager: 2, hr_operator: 1, viewer: 0 };
+
+/** Recompute the legacy base role from the member's CURRENT system membership_roles.
+ *  'viewer' (read-only floor) when none remain — a member with no explicit role holds no
+ *  authority beyond reading. Custom roles do not affect the base (they add their own perms). */
+async function syncBaseRole(db: SqlExecutor, companyId: string, membershipId: string): Promise<void> {
+  const rows = (await db.query<{ role_key: string }>(
+    `select role_key from pierre_rt_membership_roles where membership_id = $1`, [membershipId])).rows;
+  let best: MemberRole = "viewer";
+  for (const r of rows) {
+    const mr = ROLE_KEY_TO_MEMBER[r.role_key];
+    if (mr && ROLE_RANK[mr] > ROLE_RANK[best]) best = mr;
+  }
+  await db.query(`update pierre_rt_members set role = $3 where company_id = $1 and id = $2`, [companyId, membershipId, best]);
+}
 
 export function hashToken(raw: string): string {
   return createHash("sha256").update(raw, "utf8").digest("hex");
@@ -362,6 +388,7 @@ export async function assignRole(db: SqlExecutor, ctx: TenantContext, membership
   const { system, custom } = await assertAssignableRoles(db, ctx, [roleKey]);
   if (system.length > 0) {
     await db.query(`insert into pierre_rt_membership_roles (company_id, membership_id, role_key) values ($1,$2,$3) on conflict do nothing`, [ctx.company_id, membershipId, roleKey]);
+    await syncBaseRole(db, ctx.company_id, membershipId); // R1 — keep the base column consistent
   } else if (custom.length > 0) {
     await db.query(`insert into pierre_rt_membership_custom_roles (company_id, membership_id, role_key) values ($1,$2,$3) on conflict do nothing`, [ctx.company_id, membershipId, roleKey]);
   }
@@ -377,6 +404,8 @@ export async function removeRole(db: SqlExecutor, ctx: TenantContext, membership
   }
   await db.query(`delete from pierre_rt_membership_roles where membership_id = $1 and role_key = $2`, [membershipId, roleKey]);
   await db.query(`delete from pierre_rt_membership_custom_roles where membership_id = $1 and role_key = $2`, [membershipId, roleKey]);
+  // R1 — the base column must reflect the roles that REMAIN, or a revoked role keeps re-granting.
+  await syncBaseRole(db, ctx.company_id, membershipId);
   await audit(db, ctx.company_id, ctx.user_id, "member", membershipId, `role_removed:${roleKey}`);
 }
 

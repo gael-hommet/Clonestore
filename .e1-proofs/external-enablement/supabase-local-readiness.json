@@ -1,0 +1,32 @@
+{
+  "migrations": {
+    "count": 51,
+    "ordered": true,
+    "deterministic": true,
+    "duplicateNames": [],
+    "first": "2026-02-03__pierre_queue_updated_at.sql",
+    "last": "2026-07-10_10__clonestore_orders_stripe_events.sql",
+    "discoveryError": null
+  },
+  "migrationsOrderedDeterministic": true,
+  "rlsRegistryComplete": true,
+  "rlsCoverageScore": 100,
+  "criticalTablesCovered": true,
+  "criticalTables": [
+    "companies",
+    "profiles",
+    "employees",
+    "tasks",
+    "documents",
+    "emails",
+    "pierre_task_artifacts",
+    "absences"
+  ],
+  "uncoveredCriticalTables": [],
+  "codeReady": true,
+  "productionProjectConfigured": false,
+  "productionMigrationsAuthorized": false,
+  "productionBackupConfigured": false,
+  "productionRlsVerified": false,
+  "note": "LOCAL audit only. Migrations ordered/deterministic and RLS registry complete prove the code is production-ready; the production Supabase project, live migration execution, backups and production RLS runtime verification remain explicit owner actions. No live migration runs."
+}

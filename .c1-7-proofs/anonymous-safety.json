@@ -1,0 +1,16 @@
+{
+  "anonymousMayChat": true,
+  "anonymousMayDiscussOwnFiles": true,
+  "anonymousGets": {
+    "tenantStorage": false,
+    "companyAssociation": false,
+    "privateRetrieval": false,
+    "missionCreation": false,
+    "actionExecution": false
+  },
+  "budgetScope": {
+    "userId": null,
+    "companyId": null
+  },
+  "never401ForPublicConversation": true
+}

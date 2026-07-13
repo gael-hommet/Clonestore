@@ -1,0 +1,147 @@
+{
+  "attempt": "E1.1 continuation #2 — final freeze / P10 payout floor closure / certification",
+  "ownerConfirmation": {
+    "recorded": true,
+    "statement": "Owner confirmed every other Claude/Codex session was CLOSED; only this session is authorized to write.",
+    "verifiedByMeasurement": true,
+    "note": "Unlike the previous attempt, the confirmation was VERIFIED: 3 foreign agent processes were still alive (claude 13040, claude 23468, codex 15280) and consuming CPU. With explicit owner authorization they were TERMINATED. Only this session (PID 24352) remained. The tree then stayed frozen through every gate."
+  },
+  "frozen": true,
+  "processScan": {
+    "foreignAgentsFoundAlive": [
+      {
+        "name": "claude.exe",
+        "pid": 13040,
+        "cpuDeltaSecondsOverWindow": 23.047
+      },
+      {
+        "name": "claude.exe",
+        "pid": 23468,
+        "cpuDeltaSecondsOverWindow": 6.187
+      },
+      {
+        "name": "codex.exe",
+        "pid": 15280,
+        "cpuDeltaSecondsOverWindow": 0.906
+      }
+    ],
+    "foreignAgentsTerminated": true,
+    "terminationAuthorizedByOwner": true,
+    "staleNextStartServersTerminated": [
+      21388,
+      26620,
+      3232
+    ],
+    "orphanedPartnerBashWrappersTerminated": [
+      17936,
+      20572
+    ],
+    "orphanedWrapperNote": "Two hung bash wrappers left by the killed partner session (NEXT_DIST_DIR=.next-ppbuild / .next-final, PartenairesLanding.tsx QA) carried trailing `pkill next start` + `rm -rf` commands that could have fired mid-build. Terminated before building.",
+    "nextDevRunning": false,
+    "nextBuildRunning": false,
+    "vitestRunning": false,
+    "soleWriterAtCertification": "this session (PID 24352)"
+  },
+  "perimeter": {
+    "widenedFrom": "the previous attempt's perimeter, which MISSED src/app/api/cron/** — the exact path the concurrent workstream wrote. A too-narrow perimeter would have produced a FALSE 'frozen' verdict.",
+    "dirs": [
+      "src/lib/partner-program",
+      "src/app/api/partners",
+      "src/app/api/cron",
+      "src/app/partenaires",
+      "src/components/partenaires",
+      "supabase/migrations",
+      "supabase/migrations-p941"
+    ],
+    "files": [
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "next.config.ts",
+      "vercel.json",
+      "vitest.config.ts",
+      "vitest.integration.config.ts"
+    ],
+    "fileCount": 135
+  },
+  "snapshots": {
+    "A": {
+      "takenAtIso": "2026-07-11T20:50:11.789Z",
+      "perimeterDigest": "031e22e5021730aa910d0a8f9aaa32c00c23a078040c33961380a2bb5b60d786",
+      "mtimeDigest": "aa7d4a7fe3c27c655ce39f36a2b84dfeaad9b452cd2b586cc580d39dc9238e9b"
+    },
+    "B": {
+      "takenAtIso": "2026-07-11T20:53:42.687Z",
+      "perimeterDigest": "031e22e5021730aa910d0a8f9aaa32c00c23a078040c33961380a2bb5b60d786",
+      "mtimeDigest": "aa7d4a7fe3c27c655ce39f36a2b84dfeaad9b452cd2b586cc580d39dc9238e9b",
+      "note": "after a 185s quiet window"
+    },
+    "C": {
+      "takenAtIso": "2026-07-11T21:15:36.409Z",
+      "perimeterDigest": "031e22e5021730aa910d0a8f9aaa32c00c23a078040c33961380a2bb5b60d786",
+      "mtimeDigest": "aa7d4a7fe3c27c655ce39f36a2b84dfeaad9b452cd2b586cc580d39dc9238e9b",
+      "note": "after `tsc --noEmit` + partner/cron tests"
+    },
+    "C2": {
+      "takenAtIso": "2026-07-11T21:17:53.931Z",
+      "perimeterDigest": "031e22e5021730aa910d0a8f9aaa32c00c23a078040c33961380a2bb5b60d786",
+      "mtimeDigest": "aa7d4a7fe3c27c655ce39f36a2b84dfeaad9b452cd2b586cc580d39dc9238e9b",
+      "note": "after terminating the foreign agent processes"
+    },
+    "D": {
+      "takenAtIso": "2026-07-11T21:38:05.101Z",
+      "perimeterDigest": "8475cfedb2ccbe554a514ce2c278012a5091f7d01d5987f09a14609321dc7d45",
+      "mtimeDigest": "7e4cd347f8f2d5e50b8f27be6004f2984cf9ee26cb4f43655247ecc7cc72c3f1",
+      "note": "after the E1.1 P10 payout-floor fix (post-fix baseline)"
+    },
+    "E": {
+      "takenAtIso": "2026-07-11T21:52:53.968Z",
+      "perimeterDigest": "8475cfedb2ccbe554a514ce2c278012a5091f7d01d5987f09a14609321dc7d45",
+      "mtimeDigest": "7e4cd347f8f2d5e50b8f27be6004f2984cf9ee26cb4f43655247ecc7cc72c3f1",
+      "note": "after the clean serialized build"
+    }
+  },
+  "equality": {
+    "A=B": true,
+    "B=C": true,
+    "C=C2": true,
+    "preFixFrozen": true,
+    "C2->D": {
+      "diffs": [
+        {
+          "kind": "ADDED",
+          "path": "src/lib/partner-program/__tests__/payout-p10-floor.test.ts"
+        },
+        {
+          "kind": "CHANGED",
+          "path": "src/lib/partner-program/server/payouts.ts"
+        }
+      ],
+      "onlyExpectedE11Edits": true,
+      "expected": [
+        "src/lib/partner-program/server/payouts.ts",
+        "src/lib/partner-program/__tests__/payout-p10-floor.test.ts"
+      ]
+    },
+    "D=E": true,
+    "buildDidNotMoveSource": true
+  },
+  "typeScriptOscillation": {
+    "observedInPreviousAttempt": true,
+    "observedNow": false,
+    "note": "In the previous attempt tsc went RED (TS2552, half-finished cronSecret->cronSecrets refactor by the other session) then GREEN with no E1.1 edit. In THIS attempt tsc was measured green repeatedly on a tree that never moved."
+  },
+  "historicalConcurrency": {
+    "concurrentWorkstreamWasDetected": true,
+    "preserved": true,
+    "evidence": "Previous attempt: src/app/api/cron/partner-payouts/route.ts rewritten at 19:45:52Z and 19:54:27Z, after an explicit owner confirmation that the workstream had finished. See E1_1_CONCURRENT_WORKSTREAM_BLOCKER.md.",
+    "note": "This historical fact is never erased. It is distinct from CURRENT activity, which is now nil."
+  },
+  "concurrentWorkstreamCurrentlyActive": false,
+  "e11PartnerFilesEdited": [
+    "src/lib/partner-program/server/payouts.ts",
+    "src/lib/partner-program/__tests__/payout-p10-floor.test.ts"
+  ],
+  "e11PartnerEditRationale": "The P10 payout-floor defect: a documented financial-safety invariant (.env.example) that the code did not enforce. Fixed fail-closed, with a regression suite. This is the ONLY partner product change made by E1.1.",
+  "verdict": "REPOSITORY FROZEN — sole writer verified, snapshots equal across the quiet window, both gates and the clean build; the only deltas are E1.1's two authorized edits."
+}

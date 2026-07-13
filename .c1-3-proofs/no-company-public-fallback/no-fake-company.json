@@ -1,0 +1,9 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "fakeCompanyCreated": false,
+  "userScopedTenantSentinelUsed": false,
+  "budgetCompanyId": null,
+  "attachmentIngestion": "jamais appelee sans entreprise (fail-closed avant classification)",
+  "proof": "test route : scope.companyId === null ; aucun appel a ingestAttachment ; aucune proposition"
+}

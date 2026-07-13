@@ -1,0 +1,37 @@
+{
+  "universalMatrix": {
+    "command": "npx vitest run src/app/api/assistant/__tests__/universal-clonechat-c1-6.test.ts",
+    "passed": 20,
+    "failed": 0
+  },
+  "readinessBarrier": {
+    "command": "npx vitest run src/app/assistant/__tests__/readiness-c1-6.test.ts",
+    "passed": 10,
+    "failed": 0
+  },
+  "cloneChatSurface": {
+    "command": "npx vitest run src/lib/clonechat src/app/api/assistant src/app/assistant src/components",
+    "files": 31,
+    "passed": 515,
+    "failed": 0
+  },
+  "canonicalScopedRegression": {
+    "passed": 7891,
+    "failed": 0,
+    "skipped": 1
+  },
+  "fullProjectSuite": {
+    "passed": 17515,
+    "failed": 17,
+    "skipped": 1,
+    "failuresAllForeign": true,
+    "failingFiles": [
+      "src/lib/partner-program/__tests__/payout-p10-floor.test.ts",
+      "src/app/api/partners/admin/__tests__/admin-gate.test.ts",
+      "src/app/api/webhooks/stripe/__tests__/founder-stripe-webhook-er2.test.ts",
+      "src/app/api/webhooks/stripe/__tests__/invoice-payment-failed-api-drift.test.ts",
+      "src/app/api/webhooks/stripe/__tests__/orders-ledger-replay.test.ts"
+    ],
+    "cause": "ces fichiers importent les 2 modules porteurs de marqueurs de conflit (chantier partner/Stripe) — aucun échec hors de ce périmètre étranger"
+  }
+}

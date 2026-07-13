@@ -1,0 +1,37 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "method": "forensics mtime (git.exe bloque OS) — meme methode honnete que C1.1/C1.2",
+  "changeSurface": [
+    "src/lib/clonechat/server/no-company-gate.ts (NOUVEAU, pur)",
+    "src/app/api/assistant/chat/route.ts (ADDITIF : porte no-company + mode public + resilience budget)",
+    "src/app/assistant/useCloneChat.ts (ADDITIF : indice mode decouverte, une seule fois)",
+    "src/lib/clonechat/server/__tests__/no-company-gate.test.ts (NOUVEAU)",
+    "src/app/api/assistant/__tests__/no-company-public-fallback-c1-3.test.ts (NOUVEAU)",
+    "scripts/c1-3-browser-qa.mjs (NOUVEAU, QA)"
+  ],
+  "unchanged": [
+    "P16A",
+    "P16C",
+    "C1",
+    "C1.1 (aucune modification de module)",
+    "C1.2 reveal",
+    "mode entreprise active",
+    "isolation tenant",
+    "planchers human-only",
+    "API anonyme 401"
+  ],
+  "invariants": {
+    "PRODUCTION_AUTHORIZED": false,
+    "paymentMode": "disabled",
+    "stripeLive": "OFF",
+    "liveEmail": "OFF",
+    "liveSignature": "OFF",
+    "liveVoice": "OFF",
+    "liveTelephony": "OFF",
+    "deploy": "none",
+    "push": "none",
+    "commit": "none",
+    "secretsPrinted": 0
+  }
+}

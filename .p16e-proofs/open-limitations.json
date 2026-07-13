@@ -1,0 +1,43 @@
+{
+  "honesty_statement": "P16E is a 22-section phase. This session genuinely completed the GATED reliability closure and the capability + technology mapping. It did NOT complete every section. Nothing below is fabricated; each is explicitly not-done or partial.",
+  "completed_and_proven": [
+    "§2 baseline recovery (Pierre 5281, CloneChat+assistant 569, p16c+cockpit+access 165, full suite 17626/0, global tsc 0, build green, zero conflict markers)",
+    "§4.A R1 role revocation — CONFIRMED + FIXED (syncBaseRole) + integration repro (4)",
+    "§4.B R2 required-field readiness — REFUTED-by-design + PROVEN (9)",
+    "§4.C R3 guard-before-execution — CONFIRMED + FIXED (2)",
+    "§7.A entity resolution (employee disambiguation) — FIXED (6)",
+    "§8 autonomy clamp to company ceiling — FIXED (5)",
+    "§17 F19 signature-reconcile authz — FIXED (2)",
+    "§5 capability closure matrix — 215 caps from the REAL registry, honest mapping (77 OPERATIONAL, 0 verified-without-evidence, 0 duplicates)",
+    "§6/§14 T1/T2 technology map — 15 T1 (6 live-blocked) + 14 T2, from the REAL registries",
+    "§3 remaining P16D candidates — 32-candidate queue reviewed; top HIGH/CRITICAL fixed or refuted (see remaining-p16d-findings.json)"
+  ],
+  "not_completed_this_session": [
+    "§7 (B/C/D) deeper temporal-reasoning / contradiction / recommendation-calibration hardening beyond entity resolution",
+    "§9 the full 20-scenario mission-planning evaluation",
+    "§10 proactive-behavior build/harden + evaluation",
+    "§11 the four enterprise fixtures (15 / 120 / 1500 / 10000 employees) and their workflow simulations",
+    "§12 the full document-technology lifecycle audit (DOCX/PDF/tables/accents/non-Latin/missing-font/corrupted-template matrix; renderer non-Latin-1 '?' finding F28)",
+    "§13 the full communication-technology channel audit (resend live-mode sandbox findings F11/F12 are latent while live is blocked)",
+    "§15 the cost/latency model-usage matrix (C1.7 model-router exists but is NOT wired into /api/assistant/chat — decision D3; a real router reuse + measurement is pending)",
+    "§16 the observability/operator-control metrics hardening",
+    "§17 the full 25-scenario adversarial campaign (image/voice/CSV injection, every replay class)",
+    "§18 the exhaustive user-facing status vocabulary sweep across all surfaces",
+    "§20 real local browser QA with the synthetic role fixtures"
+  ],
+  "remaining_p16d_candidates_not_individually_fixed": {
+    "F07": "server proposal path validateToolArgs/isToolAvailable (C1.6 protected perimeter — chat/route.ts:508; not gated per C1.6 doctrine)",
+    "F11/F12": "resend.ts live-mode sandbox redirect + sent:true (HIGH but LATENT — live email blocked; must be fixed before any live enablement)",
+    "F15": "CloneStore documents/renderer.ts required-vars validated after fallback injection (§12)",
+    "F17": "generation-context company.legal_name from display-name column (cosmetic legal/display distinction)",
+    "F20/F29/F31": "audit events missing tenant key / user_id / actor_id in some routes (evidence quality; §16)",
+    "F22": "missing-info questions computed by Pierre discarded in MissionView (planning UX)",
+    "F24": "createMission persists client employee_id/site_id without a tenant-existence check (integrity; document/mission bind to a possibly-foreign id — worth a real repro)",
+    "F25": "verifyDocumentIntegrity ok:true reachability for contract-generated versions",
+    "F27": "end-date-before-start only checked for fixed-term (non-fixed-term has no end date)",
+    "F28": "PDF renderer replaces non-Latin-1 with '?' (document fidelity; §12)",
+    "F30": "sensitive draft shows 'Valide' in one cockpit path (truthful status; §18)",
+    "F32": "English status badges in one cockpit surface (low, UX)"
+  },
+  "verdict_rationale": "Because §9-§20 are not completed and several HIGH-but-latent candidates (F11/F12/F24) remain unverified/unfixed, the honest verdict is PARTIAL. The reliability + human-only + tenant/authz + capability/technology core is genuinely closed and proven."
+}

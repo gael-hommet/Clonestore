@@ -1,0 +1,55 @@
+{
+  "runId": "repository-reconciliation",
+  "capturedBeforeAnyRepair": true,
+  "note": "Diagnostic pris APRÈS que le chantier partner ait corrigé sa propre dérive (constatée en C1.4) et AVANT toute réparation par E1.1.",
+  "baseline": [
+    {
+      "command": "npx tsc --noEmit",
+      "result": "0 erreur",
+      "classification": "—",
+      "evidence": "Les 7 erreurs observées en fin de C1.4 (partner-program / api/partners, dont listIntroductions et l'export invalide de contract/accept) avaient DISPARU : le chantier partner les a corrigées lui-même entre 17:18 et 17:33.",
+      "action": "Aucune. Vérifier, ne pas éditer."
+    },
+    {
+      "command": "npx vitest run src/lib/partner-program src/app/api/partners",
+      "result": "47 passés / 0 échec",
+      "classification": "—",
+      "evidence": "Contrat `listIntroductionsPaged` unifié ; 12 routes sans export invalide.",
+      "action": "Aucune."
+    },
+    {
+      "command": "npm run build",
+      "result": "exit 0 — compilation OK, validation de routes OK, 192/192 pages statiques, 396 routes",
+      "classification": "—",
+      "evidence": "L'échec de validation de type de route sur api/partners/contract/accept (observé en C1.4) est résolu : CONTRACT_VERSION déplacé dans src/lib/partner-program/contract.ts.",
+      "action": "Aucune."
+    },
+    {
+      "command": "npx vitest run src/lib/pierre/__tests__/premium-document-system.test.ts",
+      "result": "4 ÉCHECS (absence, performance, offboarding, employee_summary → generic_hr)",
+      "file": "src/lib/pierre/documents/premium-document-system.ts",
+      "mtimeAtBaseline": "2026-05-20 (source) / 2026-05-19 (test)",
+      "likelyOwner": "Pierre (hors périmètre C1.4 — n'importe pas lib/pierre/access)",
+      "introducedBeforeOrAfterC14": "AVANT (≈2 mois avant la session)",
+      "reproducibility": "100 % — échoue AUSSI en isolation",
+      "classification": "deterministic pre-existing defect",
+      "action": "CORRIGER le comportement produit (fait par E1.1)."
+    },
+    {
+      "command": "npx vitest run src/lib/pierre/v1  (sans --testTimeout)",
+      "result": "1 ÉCHEC : fair-claim — « Error: Test timed out in 5000ms »",
+      "file": "src/lib/pierre/v1/__tests__/fair-claim.test.ts",
+      "likelyOwner": "Pierre V1 (Phase 8.9)",
+      "introducedBeforeOrAfterC14": "AVANT",
+      "reproducibility": "UNIQUEMENT sous charge parallèle — 3/3 verts en isolation",
+      "classification": "flaky/environmental (dépassement du délai vitest par défaut de 5 000 ms sur un test d'intégration PGlite lourd)",
+      "action": "STABILISER le harnais sans toucher aux assertions (fait par E1.1)."
+    }
+  ],
+  "concurrentWorkstreamCollision": {
+    "detected": true,
+    "classification": "concurrent-workstream collision (aucune édition d'E1.1 en cause)",
+    "evidence": "4 salves d'écriture partner pendant la session ; tsc a oscillé 5 erreurs → 0 sans action de ma part.",
+    "action": "Ne pas éditer le périmètre en mouvement ; re-mesurer ; refuser de certifier un vert volatil."
+  }
+}

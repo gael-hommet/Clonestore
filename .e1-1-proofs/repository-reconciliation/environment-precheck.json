@@ -1,0 +1,118 @@
+{
+  "runId": "repository-reconciliation",
+  "secretsPrinted": false,
+  "database": {
+    "DATABASE_URL": {
+      "present": true,
+      "shapeValid": true,
+      "valuePrinted": false
+    },
+    "CLONECHAT_DB_URL": {
+      "present": false,
+      "shapeValid": null,
+      "valuePrinted": false
+    },
+    "resolutionOrder": "CLONECHAT_DB_URL || DATABASE_URL"
+  },
+  "supabase": {
+    "NEXT_PUBLIC_SUPABASE_URL": {
+      "present": true,
+      "shapeValid": true,
+      "valuePrinted": false
+    },
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": {
+      "present": true,
+      "shapeValid": true,
+      "valuePrinted": false
+    },
+    "SUPABASE_SERVICE_ROLE_KEY": {
+      "present": true,
+      "shapeValid": true,
+      "valuePrinted": false
+    }
+  },
+  "openai": {
+    "OPENAI_API_KEY": {
+      "present": true,
+      "shapeValid": true,
+      "valuePrinted": false
+    }
+  },
+  "app": {
+    "NEXT_PUBLIC_SITE_URL": {
+      "present": false,
+      "shapeValid": null,
+      "valuePrinted": false
+    },
+    "NEXT_PUBLIC_APP_URL": {
+      "present": false,
+      "shapeValid": null,
+      "valuePrinted": false
+    }
+  },
+  "flags": {
+    "CLONECHAT_ENABLED": {
+      "present": false,
+      "valuePrinted": false
+    },
+    "PRODUCTION_AUTHORIZED_ENV": {
+      "present": false,
+      "valuePrinted": false
+    }
+  },
+  "stripe": {
+    "STRIPE_SECRET_KEY": {
+      "present": true,
+      "shapeValid": true,
+      "valuePrinted": false
+    },
+    "liveKeyShapeDetected": false,
+    "testKeyShapeDetected": true
+  },
+  "providers": {
+    "YOUSIGN_API_KEY": {
+      "present": false,
+      "shapeValid": null,
+      "valuePrinted": false
+    },
+    "RESEND_API_KEY": {
+      "present": true,
+      "shapeValid": true,
+      "valuePrinted": false
+    },
+    "TWILIO_AUTH_TOKEN": {
+      "present": false,
+      "shapeValid": null,
+      "valuePrinted": false
+    },
+    "ELEVENLABS_API_KEY": {
+      "present": false,
+      "shapeValid": null,
+      "valuePrinted": false
+    }
+  },
+  "monitoring": {
+    "SENTRY_DSN": {
+      "present": false,
+      "shapeValid": null,
+      "valuePrinted": false
+    },
+    "NEXT_PUBLIC_SENTRY_DSN": {
+      "present": false,
+      "shapeValid": null,
+      "valuePrinted": false
+    }
+  },
+  "invariants": {
+    "productionAuthorizedIsConst": true,
+    "productionNotInferredFromNodeEnv": true,
+    "paymentNeverLiveWhileFloorDown": true,
+    "clonechatActiveByDefault": true,
+    "clonechatEmergencyKillSwitch": true
+  },
+  "leaks": {
+    "serverSecretsExposedAsPublic": [],
+    "serverSecretValueDuplicatedIntoPublicVar": [],
+    "none": true
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "detector": "scripts/e1-1-recent-changes.mjs (mtime scan of src/ + supabase/ + scripts/, independent of the snapshot perimeter)",
+  "purpose": "Cross-check the perimeter snapshot. In the PREVIOUS attempt this detector is what exposed the write to src/app/api/cron/** that the too-narrow perimeter missed.",
+  "duringCertification": {
+    "foreignWrites": 0,
+    "e11Writes": [
+      "src/lib/partner-program/server/payouts.ts (P10 floor fix)",
+      "src/lib/partner-program/__tests__/payout-p10-floor.test.ts (regression suite)",
+      "src/lib/clonestore/external-enablement/e1/** (command center + tests)",
+      "scripts/e1-1-*.mjs (freeze/forensics tooling)"
+    ]
+  },
+  "buildWindow": {
+    "foreignWrites": 0,
+    "note": "Zero changes tree-wide during the clean build; snapshot D = E."
+  }
+}

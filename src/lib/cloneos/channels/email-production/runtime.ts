@@ -356,12 +356,36 @@ export async function sendEmailProduction(
     };
   }
 
-  // Record rate limit on successful live send
-  if (providerResult.ok) {
+  // Record rate limit only on a REAL acknowledged live send (never on a silent simulation).
+  if (providerResult.ok && providerResult.provider_message_id !== null) {
     recordEmailSent(context.company_id, context.user_id);
   }
 
-  const eventType = providerResult.ok ? "send_allowed" : "send_failed";
+  // P16E §3 (F11) — in LIVE mode a real send REQUIRES a provider acknowledgement (a non-null
+  // provider_message_id). If the underlying provider silently simulated (e.g. EMAIL_DRY_RUN set
+  // on the B37 provider while B39 believes it is live), it returns ok:true with NO id: that is
+  // NOT a send. Fail closed — never claim `sent` or emit `send_allowed` on absent evidence.
+  const acknowledged = providerResult.ok && providerResult.provider_message_id !== null;
+  if (providerResult.ok && !acknowledged) {
+    const unknownDecision = {
+      ...decision,
+      status: "blocked_provider_not_configured" as const,
+      blocked_reason: "Provider live sans accusé de réception (envoi silencieusement simulé) — état inconnu, aucun envoi confirmé.",
+    };
+    const auditEvent = buildEmailAuditEvent({
+      event_type: "send_blocked",
+      context,
+      decision: unknownDecision,
+      subject: payload.subject,
+      provider: providerResult.provider,
+      provider_message_id: null,
+      error: unknownDecision.blocked_reason,
+    });
+    recordEmailAuditEvent(auditEvent);
+    return makeBlockedResult(unknownDecision, auditEvent);
+  }
+
+  const eventType = acknowledged ? "send_allowed" : "send_failed";
   const auditEvent = buildEmailAuditEvent({
     event_type: eventType,
     context,
@@ -369,24 +393,24 @@ export async function sendEmailProduction(
     subject: payload.subject,
     provider: providerResult.provider,
     provider_message_id: providerResult.provider_message_id,
-    error: providerResult.ok ? null : providerResult.error,
+    error: acknowledged ? null : providerResult.error,
   });
   recordEmailAuditEvent(auditEvent);
 
   return {
-    ok: providerResult.ok,
+    ok: acknowledged,
     status: decision.status,
     mode: "live",
     provider: providerResult.provider,
     provider_message_id: providerResult.provider_message_id,
     effective_recipients: decision.effective_recipients,
     dry_run: false,
-    sent: providerResult.ok,
+    sent: acknowledged, // only a real provider acknowledgement counts as sent
     sandbox: false,
     blocked_reason: null,
     requires_human_validation: decision.requires_human_validation,
     audit_event: auditEvent,
-    error: providerResult.ok ? null : providerResult.error,
+    error: acknowledged ? null : providerResult.error,
   };
 }
 

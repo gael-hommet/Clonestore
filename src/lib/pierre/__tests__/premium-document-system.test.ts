@@ -309,6 +309,72 @@ describe("inferPremiumDocumentFamily", () => {
   });
 });
 
+// ── E1.1 — RÉGRESSION : accents, liaisons et flexions ────────────────────────
+// Le défaut réel : le texte était mis en minuscules mais JAMAIS désaccentué, et plusieurs
+// motifs n'admettaient qu'UN SEUL caractère de séparation. Conséquences : `\bcongé\b` ne
+// pouvait jamais correspondre (« é » n'est pas un caractère de mot ASCII, la limite finale
+// échoue), « arrêt maladie » ratait `arret.maladie`, et « solde DE tout compte » ratait
+// `solde.tout.compte`. Quatre familles retombaient silencieusement sur generic_hr.
+describe("inferPremiumDocumentFamily — accents, liaisons, flexions (E1.1)", () => {
+  it("reconnaît la même famille avec ET sans accents", () => {
+    for (const [accented, plain] of [
+      ["demande de congé", "demande de conge"],
+      ["arrêt maladie", "arret maladie"],
+      ["entretien d'évaluation", "entretien d evaluation"],
+      ["synthèse salarié", "synthese salarie"],
+      ["éléments pre-paie", "elements pre-paie"],
+    ] as const) {
+      expect(inferPremiumDocumentFamily(accented)).toBe(inferPremiumDocumentFamily(plain));
+    }
+  });
+
+  it("tolère les mots de liaison entre les mots-clés", () => {
+    expect(inferPremiumDocumentFamily("solde de tout compte")).toBe("offboarding");
+    expect(inferPremiumDocumentFamily("solde tout compte")).toBe("offboarding");
+    expect(inferPremiumDocumentFamily("entretien d'évaluation")).toBe("performance");
+    expect(inferPremiumDocumentFamily("entretien évaluation")).toBe("performance");
+    expect(inferPremiumDocumentFamily("offre d'emploi")).toBe("offer");
+  });
+
+  it("tolère les flexions (pluriel / féminin)", () => {
+    expect(inferPremiumDocumentFamily("demandes de congés")).toBe("absence");
+    expect(inferPremiumDocumentFamily("justificatifs d'absences")).toBe("absence");
+    expect(inferPremiumDocumentFamily("licenciements")).toBe("offboarding");
+    expect(inferPremiumDocumentFamily("fiches salariés")).toBe("employee_summary");
+    expect(inferPremiumDocumentFamily("plans de formation")).toBe("training");
+  });
+
+  it("départ / offboarding sous plusieurs formulations", () => {
+    for (const s of ["licenciement", "rupture conventionnelle", "solde de tout compte", "démission", "départ salarié", "fin de contrat"]) {
+      expect(inferPremiumDocumentFamily(s)).toBe("offboarding");
+    }
+  });
+
+  it("la ponctuation et la casse ne changent pas la famille", () => {
+    expect(inferPremiumDocumentFamily("ARRÊT-MALADIE")).toBe("absence");
+    expect(inferPremiumDocumentFamily("Note   interne / RH")).toBe("internal_note");
+    expect(inferPremiumDocumentFamily("FOLLOW-UP dossier")).toBe("followup");
+  });
+
+  it("l'ordre de priorité reste intact (une convocation n'est pas un entretien d'évaluation)", () => {
+    expect(inferPremiumDocumentFamily("convocation entretien")).toBe("convocation");
+    expect(inferPremiumDocumentFamily("avenant au contrat")).toBe("amendment");
+  });
+
+  it("repli generic_hr : entrées ambiguës, vides ou hors domaine", () => {
+    for (const s of ["", "   ", "!!! ???", "xyz123 nonsense text", "réunion mardi", "budget marketing"]) {
+      expect(inferPremiumDocumentFamily(s)).toBe("generic_hr");
+    }
+    expect(inferPremiumDocumentFamily(null)).toBe("generic_hr");
+    expect(inferPremiumDocumentFamily(undefined)).toBe("generic_hr");
+  });
+
+  it("ne sur-classifie pas : un mot tronqué ne déclenche pas une famille", () => {
+    expect(inferPremiumDocumentFamily("salai")).toBe("generic_hr");
+    expect(inferPremiumDocumentFamily("conv")).toBe("generic_hr");
+  });
+});
+
 // ── inferPremiumDocumentRiskLevel ─────────────────────────────────────────
 
 describe("inferPremiumDocumentRiskLevel", () => {

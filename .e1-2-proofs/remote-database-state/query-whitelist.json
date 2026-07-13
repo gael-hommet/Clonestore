@@ -1,0 +1,48 @@
+{
+  "phase": "E1.2",
+  "section": "4 — DATABASE SESSION SAFETY",
+  "status": "PREPARED — NOT ENFORCED, NOT EXECUTED (E1.2 blocked at §1)",
+  "enforcedByCurrentTool": false,
+  "allowedQueryClasses": [
+    "pg_catalog metadata (pg_roles, pg_class, pg_namespace, pg_proc, pg_index, pg_constraint, pg_policy, pg_attribute, pg_extension)",
+    "information_schema metadata (columns, table_constraints, key_column_usage, role_table_grants, routines)",
+    "migration-history metadata (supabase_migrations.schema_migrations)",
+    "role attributes, grants, RLS flags, policy definitions",
+    "table/column/index/constraint definitions, function signatures and ownership, extension names, schema names",
+    "version()/current_user/ssl category probes"
+  ],
+  "forbiddenQueryClasses": [
+    "CREATE",
+    "ALTER",
+    "DROP",
+    "GRANT",
+    "REVOKE",
+    "INSERT",
+    "UPDATE",
+    "DELETE",
+    "TRUNCATE",
+    "MERGE",
+    "COPY",
+    "VACUUM",
+    "ANALYZE",
+    "REFRESH",
+    "CALL",
+    "DO",
+    "SECURITY DEFINER function execution",
+    "customer-row SELECT",
+    "secrets/config-value SELECT",
+    "auth token or session retrieval"
+  ],
+  "requiredSessionGuards": [
+    "set session characteristics as transaction read only",
+    "begin read only",
+    "statement_timeout (short)",
+    "lock_timeout",
+    "idle_in_transaction_session_timeout",
+    "pinned search_path (no search-path trust)",
+    "no temporary object creation",
+    "no service-role bypass"
+  ],
+  "queriesExecutedThisRun": 0,
+  "remoteSqlFilesExecuted": 0
+}

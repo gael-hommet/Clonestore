@@ -1,0 +1,36 @@
+{
+  "phase": "E1.2",
+  "migration": "supabase/migrations/2026-07-11_05__clonestore_pp_payout_automation.sql",
+  "state": "FULLY_APPLIED",
+  "reasons": [
+    "every column, index and CHECK vocabulary added by 2026-07-11_05 is present",
+    "run-key uniqueness, transfer idempotency and the single-live-batch constraint all hold",
+    "stripe_mode defaults to 'test' on both money tables; payout runs default to dry_run=true"
+  ],
+  "detail": {
+    "partnerSecurityDefinerFunctions": [],
+    "p10FloorReachableFromDatabase": false,
+    "missingBaseTables": [],
+    "missingColumns": [],
+    "missingIndexes": [],
+    "missingTransferStatuses": [],
+    "missingEmailKinds": [],
+    "idempotency": {
+      "runKeyUnique": true,
+      "transferIdempotencyUnique": true,
+      "singleLiveBatchIndex": true,
+      "singleLiveTransferIndex": true
+    },
+    "testLiveSeparationProblems": [],
+    "dangerousExtensionsInstalled": [
+      "pg_cron",
+      "pg_net"
+    ],
+    "remoteCronPossible": true,
+    "triggersObserved": [
+      "clonestore_pp_commission_entries.trg_pp_entries_guard→clonestore_pp_entries_guard",
+      "clonestore_pp_referral_touches.trg_clonestore_pp_referral_touches_append_only→clonestore_pp_forbid_mutation"
+    ],
+    "outboundTriggers": []
+  }
+}

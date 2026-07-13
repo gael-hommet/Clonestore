@@ -1,0 +1,1 @@
+﻿[{"PID":13040,"Name":"claude","CPU_baseline":371.297,"CPU_now":394.344,"CPU_delta":23.047},{"PID":23468,"Name":"claude","CPU_baseline":396.172,"CPU_now":402.359,"CPU_delta":6.187},{"PID":15280,"Name":"codex","CPU_baseline":19.625,"CPU_now":20.531,"CPU_delta":0.906}]

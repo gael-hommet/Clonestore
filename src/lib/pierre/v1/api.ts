@@ -14,7 +14,7 @@ import {
   MissionRepo, TaskRepo, ValidationRepo, EventRepo, type MissionRow,
 } from "./repositories";
 import {
-  createMission, cancelMission, decideValidationAction, type CreateMissionInput, type MissionView,
+  createMission, cancelMission, decideValidationAction, readMissionMissingInfo, type CreateMissionInput, type MissionView,
 } from "./mission-service";
 
 import { withTenantTransaction } from "./tenant-tx";
@@ -47,7 +47,9 @@ export async function apiGetMission(db: SqlExecutor, ctx: TenantContext, mission
     return {
       mission_id: m.id, status: m.status, summary: m.summary, risk: m.risk,
       tasks: tasks.map((t) => ({ id: t.id, type: t.type, status: t.status, approval_required: t.approval_required, risk: t.risk })),
-      missing_info: [],
+      // P16E §3 (F22) — la raison exacte du blocage (questions d'info manquante) est exposée à la
+      // relecture, jamais discardée : répondre à une question n'efface pas les autres.
+      missing_info: await readMissionMissingInfo(tx, ctx.company_id, missionId),
       approvals: validations.map((v) => ({ id: v.id, status: v.status, reason: v.reason })),
       queued_actions: tasks.filter((t) => ["queued", "leased", "in_progress"].includes(t.status)).length,
       next_action: m.next_action, trace_reference: m.correlation_id, idempotent_replay: false,

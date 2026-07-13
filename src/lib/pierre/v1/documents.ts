@@ -161,6 +161,16 @@ export async function finalizeVersion(db: SqlExecutor, ctx: TenantContext, versi
   if (v.status !== "approved") throw Errors.conflict("Only an approved version can be finalized");
   const docF = await loadDocument(db, ctx, v.document_id);
   assertDocumentTypePolicy({ action: "finalize", document_type: docF.document_type, role_keys: ctx.role_keys ?? [], permissions: ctx.permissions, sensitivity: docF.sensitivity === "normal" ? "normal" : "high" });
+  // P16D — RE-VÉRIFIER la propreté des artefacts AU MOMENT DE LA FINALISATION, pas seulement à
+  // l'attachement. `assertFileAttachable` était appelé dans createVersion, mais `rescanFile()`
+  // peut re-qualifier un fichier `clean` → `quarantined`/`infected` APRÈS coup (nouvelle base de
+  // signatures). Sans ce contrôle, un artefact rétro-mis-en-quarantaine devenait `final` +
+  // document `published` + événement `document.signature_ready` — « généré » valant « prêt à
+  // signer » sur un fichier infecté. downloadDocument re-vérifiait déjà (cf. §15) ; la
+  // finalisation, elle, ne le faisait pas. Une preuve de propreté PÉRIMÉE n'est pas une preuve.
+  for (const fid of [v.rendered_pdf_file_id, v.rendered_docx_file_id, v.source_file_id]) {
+    if (fid) await assertFileAttachable(db, ctx, fid);
+  }
   if (!v.content_hash && !v.rendered_pdf_file_id) throw Errors.validation("A final version requires a content hash / rendered artifact");
   // If no explicit content hash, derive it from the rendered PDF file's sha256.
   let hash = v.content_hash;
@@ -244,11 +254,16 @@ export async function verifyDocumentIntegrity(db: SqlExecutor, ctx: TenantContex
   const v = (await db.query<DocumentVersionRow>(`select * from pierre_rt_document_versions where company_id=$1 and document_id=$2 and version_number=$3`, [ctx.company_id, documentId, versionNumber])).rows[0];
   if (!v) throw Errors.notFound("Version not found");
   if (!v.rendered_pdf_file_id) return { ok: !!v.content_hash, content_hash: v.content_hash, file_sha: null };
-  const f = (await db.query<{ object_key: string }>(`select object_key from pierre_rt_files where company_id=$1 and id=$2`, [ctx.company_id, v.rendered_pdf_file_id])).rows[0];
-  // §2 — verify the REAL bytes in storage, not two values already recorded in the DB.
+  // P16E §5 (F25) — this is a FILE-integrity check: do the bytes actually in storage still match
+  // the hash recorded WHEN THE FILE WAS RENDERED (pierre_rt_files.sha256)? The previous code
+  // compared the version's `content_hash` — which for a CONTRACT version is the CANONICAL model
+  // hash, not the PDF bytes hash — against the PDF bytes, so it could NEVER return ok:true for a
+  // contract-generated version (two different hashes). Compare the file's recorded sha256 to the
+  // recomputed bytes sha256; `content_hash` is still returned for reference (approval binding).
+  const f = (await db.query<{ object_key: string; sha256: string | null }>(`select object_key, sha256 from pierre_rt_files where company_id=$1 and id=$2`, [ctx.company_id, v.rendered_pdf_file_id])).rows[0];
   const storage = deps.storage ?? getFileStorageProvider();
   const actual = f ? sha256(await storage.downloadBytes(f.object_key)) : null;
-  const ok = !!v.content_hash && v.content_hash === actual;
+  const ok = !!f?.sha256 && f.sha256 === actual;
   await audit(db, ctx, documentId, "integrity_verified", { ok }, v.id);
   return { ok, content_hash: v.content_hash, file_sha: actual };
 }

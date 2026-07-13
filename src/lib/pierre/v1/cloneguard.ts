@@ -38,19 +38,37 @@ const APPROVAL_ONLY: ReadonlySet<ActionKind> = new Set<ActionKind>([
   "contract", "amendment", "compensation", "sensitive_legal_letter",
 ]);
 
+// P16D — the lexical net is matched on ACCENT-FOLDED, lower-cased text and on STEMS, never
+// on a stem closed by `\b`. JS `\b` is ASCII-only: a trailing `\b` after a truncated stem
+// (`\blicenci\b`) can only match when the next character is NON-word, so it matched
+// "licencié" (the `é` creates the boundary) while missing every real inflection —
+// "licencier", "licenciement", "licencie". Same class of hole: `\bsyndic\b` missed
+// "syndicat"/"syndicaliste", `\bhandicap\b` missed the un-accented "handicape" users type.
+//
+// Protected characteristics are the ONLY family with no structural backstop: analysis.ts
+// SENSITIVE_RULES has rules for termination / sanction / compensation / contract / medical,
+// but none for discrimination — so for those this text net is the sole layer and MUST hold.
+//
+// Word-bounded ONLY where a stem would over-match a benign word: `virer` must not fire on
+// "virement" (a payroll bank transfer), so that one keeps its closing boundary.
+function normalizeGuardText(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 const PROHIBITED_PATTERNS: Array<{ re: RegExp; label: string }> = [
-  { re: /\b(licenci|renvoy|vir[ée]r?)\b/i, label: "termination_decision" },
-  { re: /\bsanction|avertissement disciplinaire|mise [àa] pied\b/i, label: "disciplinary_sanction" },
-  { re: /\b(origine|religion|handicap|grossesse|syndic|orientation sexuelle)\b/i, label: "protected_characteristic" },
-  { re: /\b(harc[èe]l)/i, label: "harassment" },
-  { re: /\b(arr[êe]t maladie|dossier m[ée]dical|pathologie)\b/i, label: "sensitive_medical" },
+  { re: /licenci|renvoy|renvoi|\bvir(e|es|er|ez|ent)\b/, label: "termination_decision" },
+  { re: /\bsanction|avertissement disciplinaire|mise a pied/, label: "disciplinary_sanction" },
+  { re: /\borigine|religion|handicap|grossesse|enceinte|syndic|orientation sexuelle/, label: "protected_characteristic" },
+  { re: /harcel/, label: "harassment" },
+  { re: /arret maladie|dossier medical|pathologie/, label: "sensitive_medical" },
 ];
 
 export function evaluateGuard(input: GuardInput): GuardDecision {
   const sources: string[] = ["CloneGuard:hr_absolute_rules_v1"];
   const prohibited: string[] = [];
 
-  const textHits = (input.text ? PROHIBITED_PATTERNS.filter((p) => p.re.test(input.text!)) : []).map((p) => p.label);
+  const normalized = input.text ? normalizeGuardText(input.text) : "";
+  const textHits = (normalized ? PROHIBITED_PATTERNS.filter((p) => p.re.test(normalized)) : []).map((p) => p.label);
   for (const h of textHits) prohibited.push(h);
 
   // Black: absolute-blocked HR decisions.

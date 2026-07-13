@@ -1,0 +1,6 @@
+{
+  "phase": "E1.2 (continuation)",
+  "searchPath": "pg_catalog, information_schema",
+  "noSearchPathTrust": true,
+  "pinnedBeforeAnyInspection": true
+}

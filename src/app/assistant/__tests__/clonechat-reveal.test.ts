@@ -77,8 +77,12 @@ describe("C1.2 — CloneChat Reveal", () => {
   });
 
   // 6
-  it("6. les pièces jointes restent câblées", () => {
-    expect(workspaceSrc).toMatch(/accept=\{ACCEPT_ATTR\}/);
+  it("6. les pièces jointes restent câblées (C1.7 : fichiers, images, DOSSIER)", () => {
+    // L'intention est inchangée — seul le contrôle a été élargi en C1.7.
+    expect(workspaceSrc).toMatch(/Ajouter des fichiers/);
+    expect(workspaceSrc).toMatch(/Ajouter des images/);
+    expect(workspaceSrc).toMatch(/Ajouter un dossier/);
+    expect(workspaceSrc).toMatch(/webkitdirectory/); // sélection de dossier
     expect(hookSrc).toMatch(/attachments: docs\.map/);
   });
 
@@ -95,14 +99,17 @@ describe("C1.2 — CloneChat Reveal", () => {
   });
 
   // 9
-  it("9. l'authentification reste requise (API)", () => {
-    expect(routeSrc).toMatch(/AUTH_REQUIRED/);
+  it("9. C1.6 — l'API identifie sans FILTRER : l'anonyme converse, mais n'atteint pas le tenant", () => {
+    // C1.6 — L'API n'exige plus l'authentification pour CONVERSER. Elle identifie le lecteur
+    // et interdit à l'anonyme la voie ENTREPRISE : c'est l'invariant qui compte.
+    expect(routeSrc).toMatch(/kind: "anonymous"/);
+    expect(routeSrc).toMatch(/viewer\.kind !== "user"/);
     expect(routeSrc).toMatch(/supabase\.auth\.getUser/);
   });
 
   // 10
   it("10. la résolution d'entreprise reste côté serveur", () => {
-    expect(routeSrc).toMatch(/resolveCloneChatCompany\(userId\)/);
+    expect(routeSrc).toMatch(/resolveCloneChatCompany\(viewer\.userId\)/);
     expect(routeSrc).not.toMatch(/companyId.*body\.|body\..*companyId/);
   });
 

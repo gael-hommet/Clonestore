@@ -8,17 +8,17 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Bot, Compass, FileText, Loader2, MessageSquarePlus, Paperclip, RotateCcw, Send, ShieldAlert, Sparkles, Square, Trash2, UserRound, Workflow, X } from "lucide-react";
+import { ArrowRight, Bot, FileText, FolderOpen, ImageIcon, Mic, Paperclip as PaperclipIcon, Square as SquareIcon, Loader2, MessageSquarePlus, Paperclip, RotateCcw, Send, ShieldAlert, Sparkles, Square, Trash2, UserRound, Workflow, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusChip } from "@/components/pierre/cockpit/primitives";
-import { useCloneChat, type CloneChatDocAttachment, type CloneChatUiMode } from "@/app/assistant/useCloneChat";
+import { useCloneChat, type CloneChatDocAttachment, type CloneChatCompanyState } from "@/app/assistant/useCloneChat";
+import { useVoiceDictation } from "@/app/assistant/useVoiceDictation";
+// C1.7 §10 — manifeste CANONIQUE : sélectionner ≠ téléverser ≠ analyser.
+import { buildManifest, manifestSummary, type AttachmentEntry } from "@/lib/clonechat/attachments/manifest";
 import type { CloneChatContentBlock, CloneChatMessage, CloneChatProposedAction } from "@/lib/clonechat";
 
-const EXAMPLES_PUBLIC = ["Qu'est-ce que Pierre ?", "Comment fonctionne CloneStore ?", "Montrez-moi la démo"];
+const EXAMPLES_PUBLIC = ["C'est quoi Pierre ?", "Comment Pierre peut-il me faire gagner du temps ?", "Quels sont les prix ?"];
 const EXAMPLES_AUTH = ["Où en est Pierre ?", "Qu'est-ce qui attend ma validation ?", "Prépare le contrat CDI de Marie"];
-// C1.5 — En mode découverte, ne proposez PAS des exemples qui exigent une entreprise : ce
-// serait inviter l'utilisateur à se heurter à un refus. On propose ce qui marche vraiment.
-const EXAMPLES_DISCOVERY = ["Comment je paye Pierre ?", "Pierre remplace qui exactement ?", "Quels sont les prix ?"];
 
 const MAX_ATTACH = 2;
 const MAX_ATTACH_BYTES = 4 * 1024 * 1024;
@@ -44,21 +44,79 @@ export function CloneChatWorkspace() {
   const [images, setImages] = useState<string[]>([]);
   const [docs, setDocs] = useState<CloneChatDocAttachment[]>([]);
   const [attachError, setAttachError] = useState<string | null>(null);
+  // C1.7 §8 — DICTÉE : le transcript est INSÉRÉ dans le composer et reste ÉDITABLE.
+  // Il n'est JAMAIS envoyé automatiquement. Le texte déjà saisi est préservé, et
+  // l'insertion est annulable (undo) tant que l'utilisateur n'a rien retapé.
+  const [undoDraft, setUndoDraft] = useState<string | null>(null);
+  // C1.7 §10 — Manifeste des pièces jointes. Elles sont SÉLECTIONNÉES ici ; elles ne partent
+  // qu'à l'envoi du message, et ne sont « analysées » que lorsque le serveur l'a fait.
+  const [manifest, setManifest] = useState<AttachmentEntry[]>([]);
+  const [pickedFiles, setPickedFiles] = useState<File[]>([]);
+  const [attachMenu, setAttachMenu] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const filesRef = useRef<HTMLInputElement | null>(null);
+  const imagesRef = useRef<HTMLInputElement | null>(null);
+  const folderRef = useRef<HTMLInputElement | null>(null);
+
+  /** Ajoute des fichiers au manifeste — SANS rien téléverser. */
+  const addFiles = (list: FileList | File[]) => {
+    const incoming = Array.from(list);
+    const all = [...pickedFiles, ...incoming];
+    const m = buildManifest(all.map((file) => ({
+      name: file.name,
+      mime: file.type,
+      size: file.size,
+      // `webkitRelativePath` est renseigné pour une sélection de DOSSIER.
+      relativePath: (file as File & { webkitRelativePath?: string }).webkitRelativePath || undefined,
+    })));
+    setManifest(m);
+    setPickedFiles(all);
+    setAttachMenu(false);
+  };
+
+  const removeAttachment = (id: string) => {
+    const idx = manifest.findIndex((e) => e.id === id);
+    if (idx < 0) return;
+    const nextFiles = pickedFiles.filter((_, i) => i !== idx);
+    setPickedFiles(nextFiles);
+    setManifest(buildManifest(nextFiles.map((file) => ({
+      name: file.name, mime: file.type, size: file.size,
+      relativePath: (file as File & { webkitRelativePath?: string }).webkitRelativePath || undefined,
+    }))));
+  };
+
+  const clearAttachments = () => { setManifest([]); setPickedFiles([]); };
+  const summary = manifestSummary(manifest);
+  const dictation = useVoiceDictation({
+    onTranscript: (text) => {
+      setDraft((prev) => {
+        setUndoDraft(prev);                       // permet d'annuler l'insertion
+        return prev.trim().length > 0 ? `${prev.trim()} ${text}` : text;
+      });
+    },
+  });
   const router = useRouter();
   const threadRef = useRef<HTMLDivElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => { threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" }); }, [chat.messages, chat.busy]);
 
-  const attachCount = images.length + docs.length;
+  const attachCount = manifest.filter((e) => e.state !== "rejected").length;
 
+  // C1.7 §4 — UN SEUL TRANSPORT. Le manifeste est la SOURCE DE VÉRITÉ de ce qui part.
+  // (Défaut corrigé : l'ancien `submit` envoyait `images`/`docs` et ABANDONNAIT silencieusement
+  //  les fichiers choisis via le menu, le dossier, le glisser-déposer et le collage.)
   const submit = () => {
     const t = draft.trim();
-    if ((!t && attachCount === 0) || chat.busy) return;
-    setDraft(""); const imgs = images; const ds = docs; setImages([]); setDocs([]); setAttachError(null);
-    void chat.send(t, imgs, ds);
+    const accepted = manifest.filter((e) => e.state !== "rejected");
+    if ((!t && accepted.length === 0) || chat.busy) return;
+    const files = accepted.map((e) => ({ entry: e, file: pickedFiles[manifest.indexOf(e)] })).filter((x) => x.file);
+    setDraft("");
+    clearAttachments();
+    setAttachError(null);
+    void chat.sendWithFiles(t, files);
   };
-  const examples = chat.discoveryMode ? EXAMPLES_DISCOVERY : chat.mode === "authenticated" ? EXAMPLES_AUTH : EXAMPLES_PUBLIC;
+  const examples = chat.companyState === "active" ? EXAMPLES_AUTH : EXAMPLES_PUBLIC;
 
   const onFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -137,38 +195,23 @@ export function CloneChatWorkspace() {
           </div>
         </section>
 
-        {/* C1.5 §4D — MODE DÉCOUVERTE : carte d'état contextuelle, discrète et NON bloquante.
-            Elle remplace l'ancien blocage répété. Elle informe, elle n'interdit pas : le fil
-            reste ouvert et le composer actif. Affichée UNE fois, jamais après chaque message. */}
-        {chat.discoveryMode ? (
-          <div className="cc-state-card" data-tour-id="clonechat-discovery-hint" role="status">
-            <span className="cc-state-card__icon"><Compass className="h-3.5 w-3.5" /></span>
-            <p className="text-[0.82rem] leading-5">
-              <span className="font-medium text-[var(--cs-ink-2)]">Mode découverte actif</span>{" "}
-              — posez toutes vos questions sur CloneStore, Pierre, les prix et le fonctionnement.
-              Pour agir sur vos données RH, connectez d&apos;abord une entreprise active.
-            </p>
-          </div>
-        ) : null}
-
-        {/* Historique des conversations durables (multi-device) */}
-        {chat.mode === "authenticated" && chat.conversations.length > 1 ? (
-          <div data-tour-id="clonechat-history" className="flex flex-wrap gap-2">
-            {chat.conversations.slice(0, 8).map((c) => (
-              <span key={c.id} className={cn("group inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[0.76rem]", c.id === chat.conversationId ? "border-[rgba(84,119,255,0.28)] bg-[var(--cs-blue-soft)] text-[var(--cs-ink-2)]" : "border-[var(--cs-line-soft)] bg-white/50 text-[var(--cs-ink-3)]")}>
-                <button type="button" onClick={() => void chat.openConversation(c.id)} className="max-w-[16ch] truncate">{c.title}</button>
-                <button type="button" aria-label={`Supprimer ${c.title}`} onClick={() => void chat.deleteConversation(c.id)} className="opacity-0 transition group-hover:opacity-100"><Trash2 className="h-3 w-3" /></button>
-              </span>
-            ))}
-          </div>
-        ) : null}
-
         {/* Fil */}
         <div ref={threadRef} data-tour-id="clonechat-thread" className="cs-panel min-h-0 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
           {chat.isEmpty ? (
-            <Welcome mode={chat.mode} />
+            <Welcome companyState={chat.companyState} />
           ) : (
-            chat.messages.map((m) => <MessageRow key={m.id} message={m} onAction={onAction} busy={chat.busy} />)
+            chat.messages.map((m) => (
+              <MessageRow
+                key={m.id}
+                message={m}
+                onAction={onAction}
+                busy={chat.busy}
+                onEdit={(id) => {
+                  const r = chat.beginEdit(id);
+                  if (r) { setDraft(r.text); clearAttachments(); } // l'utilisateur renvoie EXPLICITEMENT
+                }}
+              />
+            ))
           )}
           {chat.busy ? (
             <div className="flex items-center gap-2 text-[0.84rem] text-[var(--cs-ink-4)]"><Loader2 className="h-4 w-4 animate-spin" /> CloneChat réfléchit…</div>
@@ -187,7 +230,18 @@ export function CloneChatWorkspace() {
         ) : null}
 
         {/* Composer — C1.5 §4C : intégré, premium, et TOUJOURS actif en mode découverte. */}
-        <section data-tour-id="clonechat-input" className="cc-composer">
+        <section
+          data-tour-id="clonechat-input"
+          className={cn("cc-composer", dragging && "cc-composer--drop")}
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => { e.preventDefault(); setDragging(false); if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files); }}
+          onPaste={(e) => {
+            // Collage d'image depuis le presse-papiers (§10).
+            const files = Array.from(e.clipboardData?.files ?? []);
+            if (files.length > 0) { e.preventDefault(); addFiles(files); }
+          }}
+        >
           {/* Aperçus des captures jointes */}
           {images.length > 0 ? (
             <div className="mb-2 flex flex-wrap gap-2" data-tour-id="clonechat-attachments">
@@ -217,19 +271,100 @@ export function CloneChatWorkspace() {
               ))}
             </ul>
           ) : null}
+          {manifest.length > 0 ? (
+            <div className="mb-2 space-y-1.5" data-tour-id="clonechat-manifest">
+              <p className="px-1 text-[0.72rem] text-[var(--cs-ink-4)]">
+                {summary.accepted} fichier{summary.accepted > 1 ? "s" : ""} prêt{summary.accepted > 1 ? "s" : ""} · {formatBytes(summary.totalBytes)}
+                {summary.rejected > 0 ? ` · ${summary.rejected} écarté${summary.rejected > 1 ? "s" : ""}` : ""}
+                {" — "}<span className="italic">rien n&apos;est envoyé tant que vous n&apos;envoyez pas le message.</span>
+                {" "}<button type="button" onClick={clearAttachments} className="underline">Tout retirer</button>
+              </p>
+              <ul className="flex flex-wrap gap-1.5">
+                {manifest.map((e) => (
+                  <li key={e.id} className={cn("cc-chip inline-flex max-w-full items-center gap-1.5", e.state === "rejected" && "cc-chip--rejected")}>
+                    {e.category === "image" ? <ImageIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> : <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
+                    <span className="max-w-[13rem] truncate" title={e.relativePath}>{e.relativePath}</span>
+                    <span className="text-[var(--cs-ink-4)]">{formatBytes(e.size)}</span>
+                    {/* Un refus est TOUJOURS visible et motivé — jamais un silence. */}
+                    {e.rejection ? <span className="text-[var(--cs-danger)]" title={e.rejection.message}>· {e.rejection.message}</span> : null}
+                    <button type="button" aria-label={`Retirer ${e.displayName}`} onClick={() => removeAttachment(e.id)} className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded hover:bg-black/10">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {attachError ? <p className="mb-1.5 px-1 text-[0.72rem] text-[var(--cs-danger)]" role="alert">{attachError}</p> : null}
+          {dictation.state === "recording" ? (
+            <p className="mb-1.5 px-1 text-[0.72rem] text-[var(--cs-ink-3)]" role="status">Enregistrement… — le texte sera inséré, jamais envoyé automatiquement.</p>
+          ) : null}
+          {dictation.state === "transcribing" ? (
+            <p className="mb-1.5 px-1 text-[0.72rem] text-[var(--cs-ink-3)]" role="status">Transcription…</p>
+          ) : null}
+          {dictation.error ? (
+            <p className="mb-1.5 flex items-center gap-2 px-1 text-[0.72rem] text-[var(--cs-danger)]" role="alert">
+              {dictation.error.message}
+              <button type="button" onClick={() => { dictation.reset(); void dictation.start(); }} className="underline">Réessayer la dictée</button>
+            </p>
+          ) : null}
+          {undoDraft !== null && dictation.state === "idle" ? (
+            <p className="mb-1.5 px-1 text-[0.72rem] text-[var(--cs-ink-4)]">
+              Texte dicté inséré — relisez-le avant d'envoyer.{" "}
+              <button type="button" onClick={() => { setDraft(undoDraft); setUndoDraft(null); }} className="underline">Annuler l'insertion</button>
+            </p>
+          ) : null}
 
           <div className="flex items-end gap-2">
-            {/* C1.5 — Un document RH appartient au TENANT : sans entreprise active, le serveur le
-                refusera TOUJOURS. On n'affiche donc pas une pièce jointe qui ne peut qu'échouer
-                (une affordance qui échoue systématiquement est un piège, pas une fonctionnalité). */}
-            {chat.mode === "authenticated" && chat.companyState === "active" ? (
-              <>
-                <input ref={fileRef} type="file" accept={ACCEPT_ATTR} multiple className="hidden" aria-hidden="true" tabIndex={-1} onChange={(e) => void onFiles(e.target.files)} />
-                <button type="button" onClick={() => fileRef.current?.click()} disabled={chat.busy || (images.length >= MAX_ATTACH && docs.length >= MAX_DOCS)} aria-label="Joindre une capture d'écran ou un document (PDF, DOCX, XLSX, CSV, TXT, MD)" className={cn("cs-liquid-button h-[46px]", (chat.busy || (images.length >= MAX_ATTACH && docs.length >= MAX_DOCS)) && "pointer-events-none opacity-60")}>
-                  <Paperclip className="h-4 w-4" />
+            {/* C1.7 §10 — UN contrôle de pièce jointe, ouvert à TOUS (C1.6 : la conversation est
+                universelle). Un anonyme peut discuter SES fichiers dans la session ; il n'obtient
+                pour autant aucun stockage tenant, aucune récupération privée, aucune action. */}
+            <input ref={filesRef} type="file" multiple className="hidden" aria-hidden="true" tabIndex={-1} onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }} />
+            <input ref={imagesRef} type="file" accept="image/*" multiple className="hidden" aria-hidden="true" tabIndex={-1} onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }} />
+            {/* Sélection de DOSSIER : amélioration progressive. Les navigateurs qui ne la
+                supportent pas retombent naturellement sur une sélection multiple de fichiers. */}
+            <input ref={folderRef} type="file" multiple className="hidden" aria-hidden="true" tabIndex={-1}
+              {...({ webkitdirectory: "", directory: "" } as Record<string, string>)}
+              onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }} />
+            <div className="relative">
+              <button type="button" onClick={() => setAttachMenu((v) => !v)} disabled={chat.busy} aria-label="Ajouter des fichiers, des images ou un dossier" aria-expanded={attachMenu} data-tour-id="clonechat-attach" className={cn("cs-liquid-button h-[46px]", chat.busy && "pointer-events-none opacity-60")}>
+                <PaperclipIcon className="h-4 w-4" />
+              </button>
+              {attachMenu ? (
+                <div role="menu" className="cc-attach-menu">
+                  <button type="button" role="menuitem" onClick={() => filesRef.current?.click()}><FileText className="h-4 w-4" /> Ajouter des fichiers</button>
+                  <button type="button" role="menuitem" onClick={() => imagesRef.current?.click()}><ImageIcon className="h-4 w-4" /> Ajouter des images</button>
+                  <button type="button" role="menuitem" onClick={() => folderRef.current?.click()}><FolderOpen className="h-4 w-4" /> Ajouter un dossier</button>
+                </div>
+              ) : null}
+            </div>
+            {/* C1.7 §8A — Micro : disponible pour TOUS (dicter, c'est parler). Aucun compte,
+                aucune entreprise, aucun droit Pierre requis — doctrine C1.6 préservée. */}
+            {dictation.supported ? (
+              dictation.state === "recording" ? (
+                <div className="flex items-center gap-1" data-tour-id="clonechat-recording">
+                  <button type="button" onClick={dictation.stop} aria-label="Arrêter la dictée" className="cs-liquid-button cs-liquid-button--primary h-[46px]">
+                    <SquareIcon className="h-4 w-4" />
+                    <span className="tabular-nums text-[0.78rem]">{formatSeconds(dictation.seconds)}</span>
+                    <span aria-hidden="true" className="ml-1 inline-block h-3 w-1 rounded-full bg-white/80" style={{ transform: `scaleY(${0.4 + dictation.level * 1.6})` }} />
+                  </button>
+                  <button type="button" onClick={dictation.cancel} aria-label="Annuler la dictée" className="cs-liquid-button h-[46px]">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => void dictation.start()}
+                  disabled={chat.busy || dictation.state === "transcribing" || dictation.state === "requesting_permission"}
+                  aria-label="Dicter"
+                  title="Dicter"
+                  data-tour-id="clonechat-mic"
+                  className={cn("cs-liquid-button h-[46px]", (chat.busy || dictation.state === "transcribing") && "pointer-events-none opacity-60")}
+                >
+                  {dictation.state === "transcribing" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
                 </button>
-              </>
+              )
             ) : null}
             <textarea
               value={draft}
@@ -239,11 +374,9 @@ export function CloneChatWorkspace() {
               // C1.5 §4C — En mode découverte le composer reste ACTIF et le texte d'invite
               // n'insinue JAMAIS un blocage : il dit ce qui fonctionne.
               placeholder={
-                chat.discoveryMode
-                  ? "Posez votre question sur CloneStore, Pierre, les prix…"
-                  : chat.mode === "authenticated"
-                    ? "Demandez à CloneChat (missions, validations, salariés, documents…)"
-                    : "Posez une question sur CloneStore et Pierre…"
+                chat.companyState === "active"
+                  ? "Demandez à CloneChat (missions, validations, salariés, documents…)"
+                  : "Posez votre question à CloneChat…"
               }
               aria-label="Message pour CloneChat"
               disabled={chat.busy}
@@ -267,11 +400,9 @@ export function CloneChatWorkspace() {
           </div>
           <div className="mt-1.5 flex items-center justify-between gap-2 px-1">
             <p className="text-[0.72rem] text-[var(--cs-ink-4)]">
-              {chat.discoveryMode
-                ? "Questions générales disponibles — aucune donnée d'entreprise n'est consultée."
-                : chat.mode === "authenticated"
-                  ? "Rien de sensible n'est exécuté sans votre confirmation."
-                  : "Assistant d'orientation — je n'accède pas aux données d'une entreprise."}
+              {chat.companyState === "active"
+                ? "Rien de sensible n'est exécuté sans votre confirmation."
+                : "Aucune donnée d'entreprise n'est consultée sans contexte vérifié."}
             </p>
             {!chat.isEmpty && !chat.busy ? (
               <button type="button" onClick={chat.retry} aria-label="Réessayer le dernier message" className="inline-flex items-center gap-1 text-[0.72rem] text-[var(--cs-ink-4)] hover:text-[var(--cs-ink-2)]">
@@ -299,27 +430,34 @@ async function readAs(file: File, kind: "dataUrl" | "base64"): Promise<string | 
   return comma >= 0 ? dataUrl.slice(comma + 1) : null;
 }
 
+function formatSeconds(n: number): string {
+  const m = Math.floor(n / 60), s = n % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} o`;
   if (n < 1024 * 1024) return `${Math.round(n / 1024)} Ko`;
   return `${(n / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
-function Welcome({ mode }: { mode: CloneChatUiMode }) {
+function Welcome({ companyState }: { companyState: CloneChatCompanyState }) {
   return (
     <div className="mx-auto max-w-lg py-8 text-center">
       <div className="cc-brand-mark mx-auto mb-3 h-12 w-12"><Sparkles className="h-6 w-6" /></div>
       <p className="text-[1.05rem] font-semibold text-[var(--cs-ink-1)]">Bonjour, je suis CloneChat.</p>
+      {/* C1.6 §5 — MÊME accueil, MÊME identité pour tous. Aucune invitation à se connecter
+          pour avoir le droit de parler : on annonce ce qu'on sait faire, tout de suite. */}
       <p className="mt-2 text-[0.88rem] leading-6 text-[var(--cs-ink-3)]">
-        {mode === "authenticated"
+        {companyState === "active"
           ? "Je connais votre espace : je peux résumer l'activité de Pierre, retrouver vos missions, salariés et documents, expliquer vos validations et préparer une action — avec votre confirmation."
-          : "Je vous explique CloneStore et Pierre, et je vous oriente. Connectez-vous pour que je devienne opérationnel sur votre entreprise."}
+          : "Posez-moi vos questions sur CloneStore, Pierre, les prix ou vos sujets RH — je réponds tout de suite. Avec une entreprise active, je travaille en plus sur vos données réelles."}
       </p>
     </div>
   );
 }
 
-function MessageRow({ message, onAction, busy }: { message: CloneChatMessage; onAction: (a: CloneChatProposedAction) => void; busy: boolean }) {
+function MessageRow({ message, onAction, busy, onEdit }: { message: CloneChatMessage; onAction: (a: CloneChatProposedAction) => void; busy: boolean; onEdit?: (id: string) => void }) {
   const isUser = message.role === "user";
   return (
     <div className={cn("flex gap-3", isUser ? "flex-row-reverse" : "flex-row")}>
@@ -328,6 +466,13 @@ function MessageRow({ message, onAction, busy }: { message: CloneChatMessage; on
       </span>
       <div className={cn("cc-msg-col min-w-0 max-w-[85%] space-y-2", isUser && "text-right")}>
         {message.content.map((b, i) => <BlockView key={i} block={b} onAction={onAction} busy={busy} isUser={isUser} />)}
+        {/* C1.7 §13 — Modifier : le message ET tout ce qui suit sont retirés (aucune approbation
+            ni proposition antérieure ne peut être recyclée). Rien n'est renvoyé automatiquement. */}
+        {isUser && onEdit && !busy ? (
+          <button type="button" onClick={() => onEdit(message.id)} className="text-[0.72rem] text-[var(--cs-ink-4)] underline hover:text-[var(--cs-ink-2)]">
+            Modifier
+          </button>
+        ) : null}
       </div>
     </div>
   );

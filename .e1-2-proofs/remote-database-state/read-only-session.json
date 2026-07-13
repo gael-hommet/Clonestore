@@ -1,0 +1,14 @@
+{
+  "phase": "E1.2",
+  "sessionEstablished": true,
+  "readOnlyTransactionEnforced": true,
+  "searchPathPinned": "pg_catalog,information_schema",
+  "statementTimeoutMs": 5000,
+  "lockTimeoutMs": 2000,
+  "idleInTransactionTimeoutMs": 10000,
+  "safetyVerified": true,
+  "safetyFailures": [],
+  "rolledBack": true,
+  "clientReleased": true,
+  "note": "Safety was ASSERTED FROM THE SERVER after being set. If the assertion had failed, zero inspection queries would have run."
+}

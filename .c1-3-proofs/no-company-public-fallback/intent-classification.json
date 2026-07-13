@@ -1,0 +1,36 @@
+{
+  "runId": "c1-3",
+  "date": "2026-07-11",
+  "module": "src/lib/clonechat/server/no-company-gate.ts (PUR, teste 43/43)",
+  "order": [
+    "possessif/donnees tenant => company",
+    "question de capacite (comment/que peut/quels...) => public",
+    "action RH imperative + objet RH => company",
+    "verbe nu <=3 mots => ambiguous",
+    "defaut SUR => public (aucune source tenant)"
+  ],
+  "public": [
+    "Comment payer Pierre ?",
+    "Est-ce que tu me recommandes Pierre pour me liberer de la charge RH ?",
+    "Quels sont les prix ?",
+    "Comment fonctionne CloneStore ?",
+    "Que peut faire Pierre ?",
+    "Comment se passe un onboarding avec Pierre ?"
+  ],
+  "company": [
+    "Prepare l'onboarding de Sarah.",
+    "Montre-moi mes salaries.",
+    "Montre les documents de Nora.",
+    "Continue la mission.",
+    "Pourquoi ma mission est bloquee ?",
+    "Cree une mission.",
+    "Envoie ce document.",
+    "Analyse les donnees de mon entreprise.",
+    "Corrige le document que Pierre vient de preparer."
+  ],
+  "ambiguous": [
+    "Continue.",
+    "(message vide)"
+  ],
+  "hardRule": "La classification choisit UNIQUEMENT le mode ; elle n'accorde JAMAIS d'acces tenant (le mode public n'expose structurellement aucune source d'entreprise)."
+}

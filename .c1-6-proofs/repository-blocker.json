@@ -1,0 +1,19 @@
+{
+  "unresolvedConflictMarkers": [
+    {
+      "file": "src/app/api/webhooks/stripe/route.ts",
+      "markers": 2,
+      "mtime": "2026-07-12T14:07:02"
+    },
+    {
+      "file": "src/lib/partner-program/server/payouts.ts",
+      "markers": 6,
+      "mtime": "2026-07-12T14:07:02"
+    }
+  ],
+  "markerStyle": "<<<<<<< Updated upstream / >>>>>>> Stashed changes — `git stash pop` inachevé",
+  "owner": "chantier partner/Stripe concurrent — PAS C1.6",
+  "insideC16Perimeter": false,
+  "actionTaken": "AUCUNE — on ne choisit pas un côté à l'aveugle, et on ne touche pas au chantier d'autrui",
+  "consequence": "TypeScript global rouge · build impossible · suite complète rouge sur 5 fichiers étrangers ⇒ le verdict C1.6 reste PARTIAL"
+}

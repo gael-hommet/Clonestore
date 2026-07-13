@@ -1,0 +1,21 @@
+{
+  "status": "COMPLETED (continuation) — existing governed proactive layer VERIFIED (no second brain built)",
+  "canonical_modules": [
+    "src/lib/pierre/v1/hr-proactive/{detector,deduplication,signal-registry,signal-types,mission-creation}.ts",
+    "src/lib/pierre/v1/cognitive-runtime/{proactive-controller,proactive-detection}.ts (priority gate + DB tick)"
+  ],
+  "governance_verified": {
+    "detection_pure_no_side_effect": "detect() is a pure function; the DB tick (runProactiveTick) only READS tenant-scoped rows and writes to pierre_rt_proactive_signals + opens GOVERNED missions",
+    "fail_closed_unknown_signal": "only REGISTERED signal keys fire (detect ignores unknown); signalToMissionRequest returns null when no governed pack exists",
+    "no_raw_pii_in_signal": "HrSignal carries an opaque subjectRef (id) + key/severity/dedupKey/detectedAt — no email/name/salary/medical",
+    "deduplication": "one live signal per (key, subject); suppressed against in-batch dupes AND existing open dedup_keys (pierre_rt_proactive_signals status='open'); deterministic",
+    "no_autonomous_human_only_action": "decideProactive returns only observe/task/mission/alert; a 'mission' is a REQUEST the verified runtime enacts under CloneGuard + autonomy governance (human confirmation for sensitive); critical-without-pack -> alert, never a mission",
+    "tenant_isolation": "companyId bound into the signal, dedupKey, and mission request; the DB tick scopes every query by company_id -> no cross-tenant signal",
+    "priority_bounded": "severity -> priority (info 20 / warning 55 / critical 90), bounded <=100, deterministic — no fake urgency"
+  },
+  "may_proactively": ["detect deadlines/expiring contracts/incomplete files/missing documents/stalled onboarding/unresolved validations/overdue tasks/inconsistent data/stale policies", "propose next-best actions", "rank/prioritize", "prepare summaries"],
+  "may_NOT_proactively": ["send", "sign", "publish", "sanction", "dismiss", "reject", "change salary", "approve payroll", "alter sensitive data", "trigger a live provider", "make a human-only decision", "silently execute a proposal"],
+  "signal_to_mission_transition": "explicit + governed: runProactiveTick opens a mission via createMission (correlationId=proactive:<dedupKey> -> idempotent) and marks the signal 'handled'; the mission then follows the full governed pipeline (CloneGuard, validations, human confirmation)",
+  "test": "src/lib/pierre/v1/__tests__/p16e-proactive-governance.test.ts (11): registered-only, pure, no-PII, dedup (batch + existing + deterministic), governed decisions, fail-closed no-pack, bounded priority, tenant-preserving mission request, ranked batch",
+  "envelope_honesty": "the existing HrSignal envelope carries key/company/subject/severity/dedupKey/detectedAt/status. Richer fields in the prompt (explicit confidence score, per-signal expiry timestamp, evidence-version) are NOT all present as first-class fields; severity+dedup+status cover urgency/dedup/lifecycle. Not inflated — a richer envelope was intentionally NOT bolted on to avoid a second proactive brain."
+}

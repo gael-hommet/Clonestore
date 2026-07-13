@@ -39,11 +39,27 @@ const REPLACEMENTS: Array<[RegExp, string]> = [
   [/€/g, "EUR"], [/[‘’‛]/g, "'"], [/[“”]/g, '"'],
   [/[–—]/g, "-"], [/…/g, "..."], [/ /g, " "], [/œ/g, "oe"], [/Œ/g, "OE"],
 ];
+// P16E §5 (F28) — the PDF font (Helvetica / WinAnsiEncoding) can only draw Latin-1. Rather than
+// silently corrupt a valid name to "?" (e.g. "Łukasz" -> "?ukasz", "Dvořák" -> "Dvo?ák"), we
+// TRANSLITERATE the characters that fall OUTSIDE Latin-1 to their closest legible Latin form,
+// while PRESERVING every character already in Latin-1 (é, ç, à, ø, ñ… render as-is). Stroke
+// letters (Ł, Đ, Ħ, Ŧ) do not NFKD-decompose, so they are mapped explicitly. Only genuinely
+// non-Latin scripts with no Latin decomposition (e.g. CJK "李") remain unrenderable in this font
+// — the DOCX renderer (Unicode OOXML) is the faithful path for those names.
+const STROKE_TRANSLIT: Record<string, string> = {
+  "Ł": "L", "ł": "l", "Đ": "D", "đ": "d", "Ħ": "H", "ħ": "h", "Ŧ": "T", "ŧ": "t", "Ø": "O", "ø": "o",
+};
+function transliterateChar(ch: string): string {
+  if (ch.charCodeAt(0) <= 0xff) return ch; // already Latin-1 — keep exactly
+  if (STROKE_TRANSLIT[ch]) return STROKE_TRANSLIT[ch];
+  const decomposed = ch.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+  const latin = Array.from(decomposed).filter((c) => c.charCodeAt(0) <= 0xff).join("");
+  return latin.length > 0 ? latin : "?"; // no Latin form (CJK/Arabic/…): use DOCX for fidelity
+}
 function toLatin1Safe(s: string): string {
   let out = s;
   for (const [re, rep] of REPLACEMENTS) out = out.replace(re, rep);
-  // Drop anything still outside Latin-1 to avoid broken glyphs.
-  return out.replace(/[^\x00-\xFF]/g, "?");
+  return Array.from(out).map(transliterateChar).join("");
 }
 
 // ── PDF renderer ─────────────────────────────────────────────────────────────

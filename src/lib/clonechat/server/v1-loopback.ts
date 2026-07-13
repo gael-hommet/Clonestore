@@ -103,30 +103,50 @@ export async function decideValidationV1(v1: V1Ctx, missionId: string | null, va
 
 // ── Résolution SERVEUR des cibles au moment de la PROPOSITION (identité stable) ──────
 
-/** Résout une mission annulable réelle (référence du modèle sinon 1re active). null si aucune. */
+/**
+ * Résout une mission annulable réelle. P16D §3.A — JAMAIS de cible devinée :
+ *   · un `hintId` FOURNI mais introuvable (id halluciné par le modèle) ⇒ `null` (on ne retarge
+ *     PAS vers une autre mission — annuler la mauvaise mission est irréversible) ;
+ *   · SANS hint, on n'auto-choisit QUE s'il existe exactement UNE mission active (sans ambiguïté) ;
+ *     0 ou plusieurs ⇒ `null` (Pierre redemande laquelle).
+ * Avant P16D : `byHint ?? active[0]` ⇒ un id halluciné annulait la 1re mission active.
+ */
 export async function resolveCancellableMissionV1(v1: V1Ctx, hintId: string): Promise<{ id: string; title: string } | null> {
   const r = await v1Fetch(v1, "/api/pierre/v1/missions?limit=25", "GET");
   const items = (r.body?.items as Array<Record<string, unknown>> | undefined) ?? [];
   const active = items.filter((m) => ACTIVE_STATUSES.has(String(m.status)));
-  const byHint = hintId ? items.find((m) => m.id === hintId) : null;
-  const pick = byHint ?? active[0] ?? null;
-  if (!pick) return null;
-  return { id: String(pick.id), title: String(pick.summary ?? "mission") };
+  if (hintId) {
+    const byHint = items.find((m) => m.id === hintId) ?? null;
+    if (!byHint) return null;                       // id fourni mais introuvable ⇒ pas de retarget
+    return { id: String(byHint.id), title: String(byHint.summary ?? "mission") };
+  }
+  if (active.length !== 1) return null;             // ambigu (0 ou >1) ⇒ on ne devine pas
+  return { id: String(active[0].id), title: String(active[0].summary ?? "mission") };
 }
 
-/** Résout une validation en attente réelle (référence du modèle sinon 1re pending) + version. */
+/**
+ * Résout une validation en attente réelle + version. Même doctrine P16D §3.A :
+ *   · `hintId` fourni mais introuvable parmi les validations pending ⇒ `null` (jamais de retarget
+ *     vers une autre validation — approuver/rejeter la mauvaise est une décision RH sensible) ;
+ *   · sans hint, auto-résolution UNIQUEMENT s'il existe exactement UNE validation pending.
+ * Avant P16D : `byHint ?? 1re pending` ⇒ un id halluciné visait une validation arbitraire.
+ */
 export async function resolvePendingValidationV1(v1: V1Ctx, hintId: string): Promise<{ id: string; missionId: string; version: number } | null> {
   const r = await v1Fetch(v1, "/api/pierre/v1/missions?limit=25", "GET");
   const items = (r.body?.items as Array<Record<string, unknown>> | undefined) ?? [];
+  const pendings: Array<{ id: string; missionId: string; version: number }> = [];
   for (const m of items) {
     const list = await v1Fetch(v1, `/api/pierre/v1/missions/${encodeURIComponent(String(m.id))}/validations`, "GET");
     if (!Array.isArray(list.body)) continue;
-    const vals = list.body as Array<Record<string, unknown>>;
-    const byHint = hintId ? vals.find((v) => v.id === hintId && String(v.status) === "pending") : null;
-    const pending = byHint ?? vals.find((v) => String(v.status) === "pending");
-    if (pending) return { id: String(pending.id), missionId: String(m.id), version: Number(pending.version ?? 1) };
+    for (const v of list.body as Array<Record<string, unknown>>) {
+      if (String(v.status) === "pending") pendings.push({ id: String(v.id), missionId: String(m.id), version: Number(v.version ?? 1) });
+    }
   }
-  return null;
+  if (hintId) {
+    return pendings.find((p) => p.id === hintId) ?? null;   // introuvable ⇒ jamais une autre
+  }
+  if (pendings.length !== 1) return null;                   // ambigu ⇒ on redemande
+  return pendings[0];
 }
 
 // ── P9.5 — Réglage d'AUTONOMIE d'entreprise (colonne P8 pierre_rt_companies.default_autonomy_mode) ──

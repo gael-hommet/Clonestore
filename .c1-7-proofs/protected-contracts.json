@@ -1,0 +1,11 @@
+{
+  "c16_universal_access": {
+    "authRequiredInChatRoute": 0,
+    "anonymousModelled": true,
+    "anonymousNeverReachesCompanyLane": true,
+    "noSecondAssistant_runCloneChatTurnCalls": 0,
+    "oneCanonicalChatRoute": true
+  },
+  "p16d_reliability": "non touché — non-régression pierre 5392/0",
+  "entryGateReintroduced": false
+}

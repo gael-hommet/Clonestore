@@ -1,0 +1,178 @@
+{
+  "phase": "E1.1 final — adversarial review against the FROZEN tree (25 required lenses)",
+  "method": "Each lens is an attempt to REFUTE the certification. A lens 'HOLDS' only when a real measurement or source probe defeats the attack. Refutations from the previous attempt are retained, not erased.",
+  "supersedes": "The earlier 20-lens review of the pre-freeze attempt; its findings are preserved in E1_1_CONCURRENT_WORKSTREAM_BLOCKER.md.",
+  "lenses": [
+    {
+      "id": 1,
+      "lens": "Freeze claimed from a narrow perimeter",
+      "verdict": "REFUTED IN THE PREVIOUS ATTEMPT -> FIXED",
+      "detail": "The previous perimeter omitted src/app/api/cron/** — exactly where the concurrent workstream wrote. Three identical snapshots inside it would have produced a FALSE 'frozen' verdict. The perimeter now covers partner-program, api/partners, api/cron, partenaires, components/partenaires, migrations, migrations-p941 and the build/type config (135 files). An INDEPENDENT whole-tree mtime detector (scripts/e1-1-recent-changes.mjs) cross-checks it — that detector is what exposed the miss."
+    },
+    {
+      "id": 2,
+      "lens": "Agent process still alive and writing",
+      "verdict": "REFUTED -> RESOLVED",
+      "detail": "The owner stated all other sessions were closed. MEASUREMENT CONTRADICTED IT: claude 13040 (+23.0s CPU), claude 23468 (+6.2s), codex 15280 (+0.9s) were alive across the window. With explicit owner authorization they were TERMINATED, along with 3 stale next start servers and 2 hung partner bash wrappers whose trailing pkill/rm -rf commands could have fired mid-build. Only this session (PID 24352) remained. Assertion was never substituted for measurement."
+    },
+    {
+      "id": 3,
+      "lens": "Source moves between tests and build",
+      "verdict": "HOLDS",
+      "detail": "Snapshot D (post-fix) = Snapshot E (post-build): content AND mtime digests identical, 0 diffs. The whole-tree detector reports 0 changes during the build window. The build measured the tree that was actually tested."
+    },
+    {
+      "id": 4,
+      "lens": "TypeScript oscillation hidden",
+      "verdict": "HOLDS (disclosed, not hidden)",
+      "detail": "The previous attempt's RED->GREEN oscillation (TS2552, another session's half-finished cronSecret->cronSecrets refactor) is recorded in frozen-repository-proof.json and the blocker report. In THIS attempt tsc was measured green repeatedly on a tree that never moved."
+    },
+    {
+      "id": 5,
+      "lens": "P10 payout floor absent",
+      "verdict": "REFUTED -> FIXED_AND_TESTED",
+      "detail": "It WAS absent: PRODUCTION_AUTHORIZED appeared nowhere in the partner surface (grep: 0 hits), while .env.example:495 promised it blocked live payouts. defaultPayoutDeps now composes Boolean(PRODUCTION_AUTHORIZED) && isPartnerLivePayoutAuthorized(). 13 regression tests added; defaultPayoutDeps previously had ZERO coverage — which is why the gap survived."
+    },
+    {
+      "id": 6,
+      "lens": "Environment flags bypass P10",
+      "verdict": "HOLDS",
+      "detail": "EXHAUSTIVE PROOF: all 2^7 = 128 subsets of the fully-authorized live environment were swept; NONE yields productionAuthorized() === true while the const floor is false. The env gate is AND-ed AFTER the floor — it can only add restrictions, never remove one."
+    },
+    {
+      "id": 7,
+      "lens": "Stripe key shape authorizes payout",
+      "verdict": "HOLDS",
+      "detail": "sk_live_ alone -> stripeIsLive() true but productionAuthorized() false. The key shape sets the MODE, never the AUTHORIZATION. Tested."
+    },
+    {
+      "id": 8,
+      "lens": "Client body forges production/live status",
+      "verdict": "HOLDS",
+      "detail": "Every PayoutDeps function is ZERO-ARITY (productionAuthorized.length === 0, stripeIsLive.length === 0, stripeMode.length === 0) — there is no channel through which a request body could influence them. stripeMode is derived from the server-side key prefix. Asserted in test section 2."
+    },
+    {
+      "id": 9,
+      "lens": "Cron route bypasses payout authorization",
+      "verdict": "HOLDS",
+      "detail": "/api/cron/partner-payouts uses defaultPayoutDeps — which now consumes the P10 floor. It additionally requires a configured cron secret (503 if absent), a timing-safe match (401 otherwise), and PARTNER_PAYOUTS_ENABLED. Dry-run is the default."
+    },
+    {
+      "id": 10,
+      "lens": "Admin route executes a real payout",
+      "verdict": "HOLDS",
+      "detail": "src/app/api/partners/admin/action/route.ts calls runMonthlyPayouts with dryRunOverride: true — a forced preview. The admin surface CANNOT execute a transfer."
+    },
+    {
+      "id": 11,
+      "lens": "Dry-run mutates payment state",
+      "verdict": "HOLDS",
+      "detail": "runMonthlyPayouts delegates to previewPayouts (SELECT-only). No transfer, no batch row, no paid status, no email, no fake stripe id — and no run lock (a simulation must never block the real payout). Proven by payout-automation.itest.ts (98/98, PGlite)."
+    },
+    {
+      "id": 12,
+      "lens": "Commission marked paid before Stripe evidence",
+      "verdict": "HOLDS",
+      "detail": "settle() — which sets commission_entries.status='paid' — is invoked ONLY after deps.createTransfer() resolves. A failure never leaves a commission 'paid' but unfunded."
+    },
+    {
+      "id": 13,
+      "lens": "Replay creates a duplicate transfer",
+      "verdict": "HOLDS",
+      "detail": "Deterministic key partner-payout:<partnerId>:<periodKey>:<batchHash> (batchHash = sha256 of SORTED entry ids, order-independent) passed to Stripe as idempotencyKey; plus a run lock (on conflict (run_key) do nothing) and uq_pp_item_entry_live. Two workers -> one transfer; replay -> no duplicate. Integration-proven."
+    },
+    {
+      "id": 14,
+      "lens": "Unknown Stripe outcome retried unsafely",
+      "verdict": "HOLDS",
+      "detail": "A timeout/unknown outcome -> status reconciliation_required: releases NOTHING, pays NOTHING, and the entries stay locked to that batch. Stripe is queried (findTransfer, same idempotency key + batch_hash) BEFORE any recreation."
+    },
+    {
+      "id": 15,
+      "lens": "Test/live data mixed",
+      "verdict": "HOLDS",
+      "detail": "The stripe_mode filter lives IN THE SQL SELECTION (and e.stripe_mode = $2), not in an application-level filter someone can forget. assertHomogeneousBatch additionally rejects mixed_stripe_mode, mixed_currency and currency_mismatch_with_payout_account."
+    },
+    {
+      "id": 16,
+      "lens": "Migration file treated as remotely applied",
+      "verdict": "HOLDS",
+      "detail": "partnerPayoutMigrationAppliedRemotely = false and p941AppliedRemotely = false — both hard-typed false. File presence (and passing tests) never implies remote application. Both remain remoteState: UNKNOWN."
+    },
+    {
+      "id": 17,
+      "lens": "Stale proof authorizes remote migration",
+      "verdict": "HOLDS",
+      "detail": "The command center gates readyForRemoteMigrationAuthorization on CURRENT stability: if the tree moved after the tsc/test/build proofs were produced, those proofs describe a tree that no longer exists and authorize nothing. Every proof here was regenerated from CURRENT commands on the frozen tree — no historical count reused."
+    },
+    {
+      "id": 18,
+      "lens": "Stale build declared green",
+      "verdict": "HOLDS",
+      "detail": ".next was removed; exactly ONE serialized build ran; exit 0; compiled; type validation; route validation; 192/192 static pages; 392 routes. D = E proves the source did not move during it. Compilation success followed by a route-validation failure would NOT have counted as green."
+    },
+    {
+      "id": 19,
+      "lens": "C1.4 public discovery accidentally paywalled",
+      "verdict": "HOLDS",
+      "detail": "c14AccessGateReady probes the CURRENT source: AUTHENTICATED_DISCOVERY remains open, while ENTITLEMENT_REQUIRED and COMPANY_REQUIRED gate operational use. The if (!access) truthiness bug remains absent. CloneChat suite 436/436."
+    },
+    {
+      "id": 20,
+      "lens": "Company bypasses Pierre entitlement",
+      "verdict": "HOLDS",
+      "detail": "Operational access requires BOTH the Pierre entitlement and a company; the discriminated access union is intact (source-probed, not assumed)."
+    },
+    {
+      "id": 21,
+      "lens": "OpenAI called without budget reservation",
+      "verdict": "HOLDS",
+      "detail": "Source probe: const useModel = pubReservation.granted && !!key && cfg.enabled — no model call without a granted reservation. The reserved-before-provider ordering is a MEASURED logical clock, not a hardcoded true. No new OpenAI call was made this session: no C1.4 RUNTIME file changed after the existing real-provider proof."
+    },
+    {
+      "id": 22,
+      "lens": "Secret or database URL included in a proof",
+      "verdict": "HOLDS",
+      "detail": "Scanned every E1.1 proof and report against openai / stripe-live / stripe-test / webhook / resend key patterns, postgres URLs, JWTs and service-role values: 0 real secrets. The single regex hit was a FALSE POSITIVE — a previous proof literally DESCRIBING the pattern being scanned for (a 'postgres://' string with a Unicode ellipsis), not a value. The remote preflight prints no URL and no credential."
+    },
+    {
+      "id": 23,
+      "lens": "Production / payment / live floor lifted",
+      "verdict": "HOLDS",
+      "detail": "PRODUCTION_AUTHORIZED = false as const — comparing it to true is a TYPE ERROR (TS2367), so the compiler itself defends the floor. paymentMode = disabled. liveProvidersBlocked = true. partnerPayoutLiveAuthorized = false. No live Stripe call, no live payout, no live email / signature / voice / telephony."
+    },
+    {
+      "id": 24,
+      "lens": "Remote database modified",
+      "verdict": "HOLDS",
+      "detail": "The preflight ran WITHOUT --connect: connected false, mutationsExecuted 0, urlPrinted false, migrationState UNKNOWN. remoteDatabaseMutated = false (hard-typed)."
+    },
+    {
+      "id": 25,
+      "lens": "Deployment performed",
+      "verdict": "HOLDS",
+      "detail": "deploymentPerformed = false (hard-typed). A green build is not a deployment. readyForControlledDeployment = true means PREFLIGHT ready, NOT production authorization — deploying remains an explicit, separate owner decision, and PRODUCTION_AUTHORIZED stays false."
+    }
+  ],
+  "summary": {
+    "lensesRun": 25,
+    "holds": 21,
+    "refutedAndFixedThisSession": 2,
+    "refutedInPreviousAttemptAndFixed": 2,
+    "openRefutations": 0
+  },
+  "realDefectsFixedThisSession": [
+    {
+      "defect": "P10 hard floor not consumed by the partner payout path — environment alone could authorize a live Stripe Connect transfer while PRODUCTION_AUTHORIZED = false.",
+      "severity": "HIGH (financial safety; contradicted a documented invariant in .env.example)",
+      "fix": "defaultPayoutDeps: productionAuthorized = () => Boolean(PRODUCTION_AUTHORIZED) && isPartnerLivePayoutAuthorized()",
+      "regressionTests": 13,
+      "gatesRerun": ["tsc (0)", "partner unit (80)", "partner integration (98)", "canonical non-regression (7706)", "full project (17200)", "clean build (exit 0)"]
+    },
+    {
+      "defect": "The live-block warning logged explainLiveBlock(), which — for a fully-authorized environment blocked by the P10 floor — would have printed 'Versements Live autorises : toutes les gardes sont satisfaites', a message contradicting the refusal it accompanied.",
+      "severity": "LOW (observability honesty)",
+      "fix": "The refusal now names WHICH cause fired: the P10 floor, or the environment gate."
+    }
+  ]
+}

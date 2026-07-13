@@ -707,8 +707,11 @@ export async function POST(request: NextRequest) {
     await insertMissionLogIfNeeded({
       supabaseAdmin,
       missionId,
-      message: `Document généré : ${title}`,
+      message: `Document généré : ${title}`, // « généré », jamais « signé » — vérité de statut
       meta_json: {
+        // P16E §3 (F29) — attribuer l'action humaine (jamais actor_id null pour un événement user).
+        actor_type: "user",
+        user_id: auth.userId,
         document_id: document.id,
         doc_type: docType,
         tone,

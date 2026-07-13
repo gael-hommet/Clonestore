@@ -1,0 +1,6 @@
+{
+  "runId": "access-openai-runtime",
+  "entitledNoCompany": "COMPANY_REQUIRED",
+  "entitledWithCompany": "COMPANY_MODE",
+  "ready": true
+}
