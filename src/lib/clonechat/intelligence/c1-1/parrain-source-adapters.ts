@@ -9,7 +9,7 @@ import type { KnowledgeChunk } from "../../knowledge/types";
 import { buildSiteChunks } from "./parrain-site-index";
 import { retrieveCapabilities, capabilityChunks, domainSummaryChunk } from "./parrain-pierre-index";
 import { technologyChunks } from "./parrain-technology-index";
-import { productIdentityChunk, productTruthChunks, pricingChunk, externalBlockersChunk } from "./parrain-product-index";
+import { productIdentityChunk, productTruthChunks, pricingChunk, externalBlockersChunk, clonechatIdentityChunk } from "./parrain-product-index";
 import { roadmapPublicChunk } from "./parrain-roadmap-index";
 import { makeParrainChunk } from "./parrain-knowledge-chunk";
 import type { ParrainKnowledgeChunk } from "./parrain-types";
@@ -46,6 +46,9 @@ export interface GlobalChunkOptions {
   readonly question: string;
   /** Chunks de session injectés par le tour (compte, pièces jointes, lineage, code). */
   readonly sessionChunks?: readonly ParrainKnowledgeChunk[];
+  /** P19 — pays légal résolu CÔTÉ SERVEUR pour l'entreprise active. Autorité : surcharge le texte de la
+   *  question pour le prix/devise (jamais le client). Absent (public/anonyme) → repli sur le texte. */
+  readonly serverCountry?: string | null;
 }
 
 /**
@@ -57,7 +60,8 @@ export function collectCandidateChunks(opts: GlobalChunkOptions): readonly Parra
   const q = opts.question;
   const candidates: ParrainKnowledgeChunk[] = [
     productIdentityChunk(),
-    pricingChunk(q),
+    clonechatIdentityChunk(),   // ← « Tu sers à quoi ? » : la source qui manquait
+    pricingChunk(q, opts.serverCountry),
     roadmapPublicChunk(),
     externalBlockersChunk(),
     domainSummaryChunk(),

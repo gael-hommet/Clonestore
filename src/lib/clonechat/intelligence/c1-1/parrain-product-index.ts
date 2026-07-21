@@ -23,6 +23,55 @@ export function productIdentityChunk(): ParrainKnowledgeChunk {
   });
 }
 
+/**
+ * IDENTITÉ DE CLONECHAT LUI-MÊME — la source canonique qui MANQUAIT.
+ *
+ * Défaut trouvé en reproduisant la panne signalée : « Tu sers à quoi ? » ne recevait aucune
+ * réponse. Le pipeline est GROUNDÉ (il n'invente jamais) ; or l'index décrivait CloneStore, les
+ * prix, Pierre, les pages… mais **rien sur CloneChat**. Faute de source, le moteur refusait
+ * honnêtement de répondre : « Je préfère ne pas improviser. » Il ne mentait pas — il n'avait
+ * simplement rien à citer sur lui-même.
+ *
+ * On ne fige AUCUNE phrase exacte : on donne la VÉRITÉ, et le modèle la formule naturellement
+ * selon la question (tutoiement, ton, longueur). Les limites honnêtes en font partie : ce qu'il
+ * ne fait pas est aussi vrai que ce qu'il fait.
+ */
+export function clonechatIdentityChunk(): ParrainKnowledgeChunk {
+  return makeParrainChunk({
+    id: "clonechat.identity",
+    sourceId: "src.c1_product_truth",
+    title: "CloneChat — qui il est et à quoi il sert",
+    text: [
+      "CloneChat est l'employé système central de CloneStore : l'interlocuteur unique du site.",
+      "Son rôle : expliquer CloneStore et ce qu'on peut y faire ; répondre aux questions sur le produit, les prix, les pays et les limites ;",
+      "guider dans les pages et donner le lien direct vers la bonne page ; présenter Pierre, l'employé IA RH, et aider à s'en servir ;",
+      "diagnostiquer un blocage à partir de l'état RÉEL du compte ; analyser un fichier, une image ou une capture d'écran fournis ;",
+      "proposer la meilleure étape suivante ; et transmettre à un humain les cas exceptionnels (sécurité, vie privée, litige).",
+      "Il distingue toujours la vérité PRODUIT (valable pour tout le monde) de la vérité du COMPTE (propre à l'utilisateur connecté).",
+      "Ses limites, dites franchement : il ne décide jamais à la place d'un humain (pas de licenciement, pas de décision salariale, pas de garantie juridique),",
+      "il n'exécute aucune action à effet externe réel tant que la production n'est pas ouverte,",
+      "et quand il n'a pas de preuve, il le dit au lieu d'inventer.",
+      "Il n'est pas un chatbot générique : ses réponses sont fondées sur les sources CloneStore, avec citations.",
+      // ── ANCRES DE RÉCUPÉRATION ──
+      // La récupération est LEXICALE : une source que personne ne retrouve vaut une source
+      // absente. « Qui es-tu ? » ne partageait aucun mot avec le texte ci-dessus et ne la
+      // récupérait donc pas. On y inscrit le vocabulaire RÉEL des utilisateurs — ce n'est pas
+      // du bourrage : c'est la liste des questions auxquelles cette source répond.
+      "Questions auxquelles cette source répond :",
+      "qui es-tu, tu es qui, t'es qui, tu es quoi, c'est quoi CloneChat, à quoi sert CloneChat,",
+      "tu sers à quoi, tu fais quoi, que fais-tu, quel est ton rôle, ton rôle, tes fonctions, tes capacités,",
+      "que peux-tu faire, qu'est-ce que tu peux faire, comment peux-tu m'aider, tu peux m'aider,",
+      "pourquoi tu existes, pourquoi te parler, tu remplaces le support, tu gères quoi,",
+      "es-tu un chatbot, quelle différence avec ChatGPT, en quoi tu es différent, tu sers vraiment à quelque chose,",
+      "tu connais CloneStore, tu peux m'aider à utiliser Pierre.",
+    ].join(" "),
+    sourceType: "product_registry",
+    authority: "verified_report",
+    visibility: "PUBLIC",
+    citationLabel: "la présentation de CloneChat",
+  });
+}
+
 /** Chunks de vérité produit pertinents pour une question (bornés, top-k). */
 export function productTruthChunks(question: string, limit = 4): readonly ParrainKnowledgeChunk[] {
   const q = parrainNormalize(question);
@@ -52,12 +101,18 @@ export function productTruthChunks(question: string, limit = 4): readonly Parrai
 }
 
 /** Chunk pricing DÉRIVÉ du résolveur canonique P10 (jamais de montant en dur). */
-export function pricingChunk(question?: string): ParrainKnowledgeChunk {
+export function pricingChunk(question?: string, serverCountry?: string | null): ParrainKnowledgeChunk {
   const catalog = publicPricingCatalog();
   const lines = catalog.map((c) => `${c.countries.join("/")}: ${c.display}`).join(" · ");
-  const country = question ? normalizeCountry(extractCountryWord(question)) : null;
+  // P19 — the server-resolved legal country (geo authority, from the active company) OVERRIDES any country
+  // word in the message. The user text can never impose the country/currency/amount for a known company.
+  const serverResolved = serverCountry ? normalizeCountry(serverCountry) : null;
+  const country = serverResolved ?? (question ? normalizeCountry(extractCountryWord(question)) : null);
   const res = country ? pricingForCountry(country) : null;
-  const focus = res && res.status === "ok" ? ` Pour ${res.pricing.country} : ${res.pricing.display} (${res.pricing.currency}).` : "";
+  const authoritative = serverResolved != null;
+  const focus = res && res.status === "ok"
+    ? ` Pour ${res.pricing.country} : ${res.pricing.display} (${res.pricing.currency}).${authoritative ? " (Pays résolu côté serveur — non modifiable par le texte de la question.)" : ""}`
+    : "";
   return makeParrainChunk({
     id: "pricing.catalog",
     sourceId: "src.pricing_resolver",

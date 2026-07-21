@@ -6,6 +6,7 @@
 
 import { getClonechatDurable } from "../durable";
 import { createInMemoryBudget } from "../budget-memory";
+import { createResilientBudget } from "./resilient-budget";
 import { createInMemorySupportMemory, type SupportMemory } from "../support-memory";
 import { createInMemoryConversationStore } from "../conversations/memory-store";
 import { createInMemoryCommandLedger, type CommandLedger } from "../durable/command-ledger";
@@ -44,7 +45,22 @@ function memProp(): ProposalStore { return (g.__cc942Prop ??= createInMemoryProp
 export async function getCloneChatStores(): Promise<CloneChatStores> {
   const durable = await getClonechatDurable();
   if (durable) {
-    return { durable: true, budget: durable.budget, support: durable.support, conversations: durable.conversations, commands: durable.commands, proposals: durable.proposals };
+    return {
+      durable: true,
+      // C1.8 FINAL — Le budget durable est enveloppé d'un filet EN MÉMOIRE.
+      //
+      // Sans cela, une base injoignable (ou, comme en production, une migration CloneChat jamais
+      // appliquée) faisait échouer CHAQUE `reserve()`. La route attrapait l'erreur en silence, et
+      // « pas de réservation » signifie « pas d'appel modèle » : le produit entier retombait sur
+      // le moteur déterministe, définitivement, sans un seul log. Un plafond doit tenir ; une
+      // PANNE ne doit pas rendre le produit muet. Les plafonds continuent de s'appliquer
+      // (compteur mémoire), et la dégradation devient EXPLICITE (`budgetHealth()`).
+      budget: createResilientBudget(durable.budget, memBudget()),
+      support: durable.support,
+      conversations: durable.conversations,
+      commands: durable.commands,
+      proposals: durable.proposals,
+    };
   }
   return { durable: false, budget: memBudget(), support: memSupport(), conversations: memConv(), commands: memCmd(), proposals: memProp() };
 }

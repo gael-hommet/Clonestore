@@ -28,7 +28,19 @@ export interface ClonechatDb {
 /** URL de la base durable CloneChat, ou null (⇒ repli in-memory). */
 export function resolveClonechatDbUrl(): string | null {
   const url = process.env.CLONECHAT_DB_URL ?? process.env.DATABASE_URL ?? "";
-  return url && url.length > 10 ? url : null;
+  if (!(url && url.length > 10)) return null;
+
+  // ── GARDE-FOU C1.8 — jamais de DB DISTANTE en mode TEST E2E ──────────────────
+  // Le pont d'identité e2e permet d'AUTHENTIFIER CloneChat en test ; sans ce garde-fou, l'historique
+  // authentifié partirait dans la DABASE DISTANTE réelle (DATABASE_URL pointe la PROD via .env.local).
+  // On refuse donc catégoriquement toute URL non-locale quand le mode test est actif : défense en
+  // profondeur par-dessus la neutralisation d'env, pour qu'un oubli n'écrive JAMAIS en production.
+  if (process.env.PIERRE_E2E_TEST_MODE === "1" && process.env.NODE_ENV !== "production") {
+    const isLocal = /(^|@)(localhost|127\.0\.0\.1|::1)([:/]|$)/.test(url);
+    if (!isLocal) return null; // ⇒ repli in-memory : l'historique de test reste hors production
+  }
+
+  return url;
 }
 
 type PgPool = {

@@ -35,12 +35,39 @@ const SOURCE_TYPE_BOOST: Readonly<Partial<Record<ParrainKnowledgeChunk["parrainS
   technology_registry: 0.8,
 };
 
+/**
+ * INTENTIONS PRIORITAIRES — l'intention, pas la coïncidence de mots.
+ *
+ * Le score est LEXICAL, et il ignore les mots de moins de trois lettres. « Qui es-tu ? » se
+ * réduit donc à un seul jeton (« es » et « tu » sont écartés) : la source d'identité perdait le
+ * classement au profit de chunks mieux boostés, et CloneChat ne savait pas répondre à la question
+ * la plus élémentaire qu'on puisse lui poser. Ce n'est pas un défaut de connaissance : c'est un
+ * défaut de RÉCUPÉRATION.
+ *
+ * Une intention RECONNUE épingle donc sa source. Le mécanisme est générique, explicite et borné :
+ * il ne peut pas rendre visible un chunk qui ne l'était pas (la porte de visibilité passe AVANT),
+ * il ne fait que remonter dans le classement une source déjà autorisée.
+ */
+const PRIORITY_INTENTS: ReadonlyArray<{ readonly chunkId: string; readonly test: RegExp }> = [
+  {
+    chunkId: "clonechat.identity",
+    // La requête est NORMALISÉE avant d'arriver ici (minuscules, accents et ponctuation retirés) :
+    // « toi ? » devient « toi ». Les motifs doivent donc viser le texte nu, pas la ponctuation.
+    test: /(^|\b)(qui (es|est)[- ]?tu|t'?es qui|tu es (qui|quoi)|^toi$|^clonechat$|^role$|^toi\b|ton role|tes (fonctions|capacites)|tu sers|tu fais quoi|que (peux|fais)[- ]tu|qu'?est[- ]ce que tu (peux|fais)|comment peux[- ]tu|pourquoi tu existes|tu remplaces|tu geres quoi|chatbot|difference avec chatgpt|a quoi (sert|sers))(\b|$)/,
+  },
+];
+
 function relevance(chunk: ParrainKnowledgeChunk, words: readonly string[], query: string): number {
   const hay = parrainNormalize(`${chunk.title} ${chunk.text} ${(chunk.routes ?? []).join(" ")}`);
   let score = 0;
   for (const w of words) if (hay.includes(w)) score += 1;
   if ((chunk.routes ?? []).some((r) => query.includes(parrainNormalize(r)))) score += 3; // route exacte
   score += SOURCE_TYPE_BOOST[chunk.parrainSourceType] ?? 0;
+
+  // L'intention reconnue épingle SA source (et elle seule).
+  for (const intent of PRIORITY_INTENTS) {
+    if (chunk.id === intent.chunkId && intent.test.test(query)) score += 50;
+  }
   return score;
 }
 

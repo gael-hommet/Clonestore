@@ -8,6 +8,13 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 import { isCloneChatEnabled } from "@/lib/features/product-availability";
 import { resolveCloneChatCompany, type ResolvedTenantRefusal } from "./company";
+// C1.8 — PONT D'IDENTITÉ E2E (test uniquement). On RÉUTILISE la frontière signée déjà auditée de
+// Pierre (aucune architecture parallèle) : elle ne porte QU'un user_id + email vérifié, jamais un
+// rôle/entreprise/droit. Rôle et entreprise restent TOUJOURS résolus depuis la DB, ci-dessous.
+// Fail-closed absolu : `readE2EIdentityFromRequest` ne rend une identité que si
+// PIERRE_E2E_TEST_MODE=1 ET NODE_ENV≠production ET un secret ≥8 chars est configuré. En
+// production, ce branchement est du code MORT — le chemin Supabase reste le seul.
+import { isE2EModeEnabled, readE2EIdentityFromRequest } from "@/lib/pierre/v1/e2e-test-identity";
 
 export interface CloneChatIdentity {
   readonly userId: string;
@@ -47,15 +54,25 @@ export function tenantRefusalResponse(t: ResolvedTenantRefusal): NextResponse {
  */
 export async function requireCompanyUser(req: Request): Promise<{ identity: CloneChatIdentity } | { error: NextResponse }> {
   let userId: string;
-  try {
-    const supabase = await supabaseServer();
-    const token = bearer(req);
-    const { data } = token ? await supabase.auth.getUser(token) : await supabase.auth.getUser();
-    const uid = data.user?.id ?? null;
-    if (!uid) return { error: ccNoStore({ ok: false, code: "AUTH_REQUIRED", error: "Connexion requise." }, 401) };
-    userId = uid;
-  } catch {
-    return { error: ccNoStore({ ok: false, code: "AUTH_ERROR", error: "Session invalide." }, 401) };
+
+  // ── PONT E2E (test uniquement, fail-closed) — miroir exact de src/app/api/pierre/v1/_runtime.ts.
+  // Si, et seulement si, le mode test est actif ET un cookie d'identité signé valide est présent,
+  // l'identité vient de ce cookie. Sinon, on emprunte le chemin Supabase normal. Le cookie ne
+  // porte AUCUNE autorité : rôle/entreprise sont résolus depuis la DB par resolveCloneChatCompany.
+  const e2e = isE2EModeEnabled() ? readE2EIdentityFromRequest(req) : null;
+  if (e2e) {
+    userId = e2e.user_id;
+  } else {
+    try {
+      const supabase = await supabaseServer();
+      const token = bearer(req);
+      const { data } = token ? await supabase.auth.getUser(token) : await supabase.auth.getUser();
+      const uid = data.user?.id ?? null;
+      if (!uid) return { error: ccNoStore({ ok: false, code: "AUTH_REQUIRED", error: "Connexion requise." }, 401) };
+      userId = uid;
+    } catch {
+      return { error: ccNoStore({ ok: false, code: "AUTH_ERROR", error: "Session invalide." }, 401) };
+    }
   }
   const tenant = await resolveCloneChatCompany(userId);
   if (!tenant.ok) return { error: tenantRefusalResponse(tenant) };

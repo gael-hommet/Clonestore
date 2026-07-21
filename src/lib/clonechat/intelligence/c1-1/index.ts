@@ -77,7 +77,7 @@ export {
 } from "./parrain-technology-index";
 export type { ParrainTechnologyEntry } from "./parrain-technology-index";
 
-export { productIdentityChunk, productTruthChunks, pricingChunk, externalBlockersChunk } from "./parrain-product-index";
+export { productIdentityChunk, clonechatIdentityChunk, productTruthChunks, pricingChunk, externalBlockersChunk } from "./parrain-product-index";
 export { roadmapPublicChunk, readinessFounderChunk, roadmapEntryCount } from "./parrain-roadmap-index";
 
 // ── Index de connaissance unifié & récupération ───────────────────────────────

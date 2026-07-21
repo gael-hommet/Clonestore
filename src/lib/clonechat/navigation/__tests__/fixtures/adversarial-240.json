@@ -1,0 +1,1246 @@
+{
+  "generated_by": "workflow c18-adversarial-nav-phrasings (8 agents indépendants, sans accès aux regex)",
+  "total": 240,
+  "categories": [
+    {
+      "category": "purchase",
+      "cases": [
+        {
+          "message": "je le prends",
+          "expected_intent": "purchase",
+          "note": "elliptique, 'le' = Pierre implicite, engagement d'achat"
+        },
+        {
+          "message": "ok go pour pierre",
+          "expected_intent": "purchase",
+          "note": "oral, 'go' familier signale décision d'acheter"
+        },
+        {
+          "message": "comment je fais pour l'avoir",
+          "expected_intent": "purchase",
+          "note": "indirect, 'l'avoir' = obtenir Pierre"
+        },
+        {
+          "message": "jveux embaucher votre RH la",
+          "expected_intent": "purchase",
+          "note": "faute jveux, métaphore embauche = achat de Pierre"
+        },
+        {
+          "message": "vas y je signe",
+          "expected_intent": "purchase",
+          "note": "sec, oral, 'je signe' = décision d'acquérir"
+        },
+        {
+          "message": "il me le faut ce pierre",
+          "expected_intent": "purchase",
+          "note": "tournure orale insistante, désir d'obtenir"
+        },
+        {
+          "message": "comment souscrire svp",
+          "expected_intent": "purchase",
+          "note": "poli, 'souscrire' vocab abonnement/achat"
+        },
+        {
+          "message": "je voudrais me lancer avec lui",
+          "expected_intent": "purchase",
+          "note": "euphémisme 'se lancer avec' = démarrer/acheter"
+        },
+        {
+          "message": "on peut demarrer quand",
+          "expected_intent": "purchase",
+          "note": "faute demarrer, présuppose l'achat, question d'onboarding"
+        },
+        {
+          "message": "chui chaud, faut que je l'active",
+          "expected_intent": "purchase",
+          "note": "argot 'chui chaud', activation = acquisition"
+        },
+        {
+          "message": "bon aller je prends l'abonnement",
+          "expected_intent": "purchase",
+          "note": "oral 'bon aller', abonnement = achat"
+        },
+        {
+          "message": "faites moi signer",
+          "expected_intent": "purchase",
+          "note": "impératif sec, veut conclure l'achat"
+        },
+        {
+          "message": "je le veux pour ma boite",
+          "expected_intent": "purchase",
+          "note": "court, 'ma boite' contexte pro, veut l'obtenir"
+        },
+        {
+          "message": "comment on rentre pierre chez nous",
+          "expected_intent": "purchase",
+          "note": "régional/imagé 'rentrer chez nous' = adopter/acheter"
+        },
+        {
+          "message": "ça marche je valide",
+          "expected_intent": "purchase",
+          "note": "validation = confirmation d'achat"
+        },
+        {
+          "message": "je passe commande",
+          "expected_intent": "purchase",
+          "note": "vocab e-commerce direct"
+        },
+        {
+          "message": "peux tu me le mettre en place",
+          "expected_intent": "purchase",
+          "note": "'mettre en place' = souscrire + activer"
+        },
+        {
+          "message": "aller hop je le prend",
+          "expected_intent": "purchase",
+          "note": "faute 'prend', très oral, décision"
+        },
+        {
+          "message": "je suis pret a m'engager",
+          "expected_intent": "purchase",
+          "note": "faute pret, 'm'engager' = souscrire"
+        },
+        {
+          "message": "dites moi juste ou cliquer pour l'obtenir",
+          "expected_intent": "purchase",
+          "note": "veut le lien d'achat, intention nette malgré tournure navigation"
+        },
+        {
+          "message": "je le adopte",
+          "expected_intent": "purchase",
+          "note": "faute élision 'je le adopte', adopter = acquérir"
+        },
+        {
+          "message": "nous souhaitons acquérir la solution",
+          "expected_intent": "purchase",
+          "note": "registre B2B soutenu, 'acquérir'"
+        },
+        {
+          "message": "go je m'abonne",
+          "expected_intent": "purchase",
+          "note": "oral court, s'abonner"
+        },
+        {
+          "message": "faut que ça soit a moi ce truc",
+          "expected_intent": "purchase",
+          "note": "familier 'ce truc', possession = achat"
+        },
+        {
+          "message": "je le loue comment votre pierre",
+          "expected_intent": "purchase",
+          "note": "SaaS assimilé à location, veut souscrire"
+        },
+        {
+          "message": "ok banco pour l engager",
+          "expected_intent": "purchase",
+          "note": "'banco' argot accord, engager = recruter/acheter"
+        },
+        {
+          "message": "je veux qu'il bosse pour moi des demain",
+          "expected_intent": "purchase",
+          "note": "métaphore emploi, urgence = veut l'acquérir"
+        },
+        {
+          "message": "finalisons",
+          "expected_intent": "purchase",
+          "note": "un mot, 'finaliser' = conclure la vente"
+        },
+        {
+          "message": "mettez le dans mon panier",
+          "expected_intent": "purchase",
+          "note": "vocab panier e-commerce explicite"
+        },
+        {
+          "message": "je prends le pack pierre direct",
+          "expected_intent": "purchase",
+          "note": "'direct' décision immédiate, pack = offre payante"
+        }
+      ]
+    },
+    {
+      "category": "pricing",
+      "cases": [
+        {
+          "message": "c'est combien ?",
+          "expected_intent": "pricing",
+          "note": "ultra court, elliptique, sans sujet — piège le routeur naïf qui cherche 'prix'"
+        },
+        {
+          "message": "ça coûte quoi Pierre du coup",
+          "expected_intent": "pricing",
+          "note": "oral, 'du coup', ça coûte quoi"
+        },
+        {
+          "message": "vous êtes à combien par mois ?",
+          "expected_intent": "pricing",
+          "note": "suppose un abonnement mensuel, indirect"
+        },
+        {
+          "message": "jai vu 449 c pour lannée ou le mois?",
+          "expected_intent": "pricing",
+          "note": "fautes, question sur périodicité du tarif"
+        },
+        {
+          "message": "faut compter quel budget pour avoir Pierre",
+          "expected_intent": "pricing",
+          "note": "'quel budget', pas le mot prix"
+        },
+        {
+          "message": "y'a un tarif quelque part ?",
+          "expected_intent": "pricing",
+          "note": "cherche la grille tarifaire, oral 'y'a'"
+        },
+        {
+          "message": "Bonjour, pourriez-vous m'indiquer vos conditions tarifaires ?",
+          "expected_intent": "pricing",
+          "note": "registre soutenu, poli, 'conditions tarifaires'"
+        },
+        {
+          "message": "combien je banque pour ce truc",
+          "expected_intent": "pricing",
+          "note": "argot 'banquer', 'ce truc' au lieu de Pierre"
+        },
+        {
+          "message": "prix?",
+          "expected_intent": "pricing",
+          "note": "un seul mot sec"
+        },
+        {
+          "message": "ça vaut combien votre employé virtuel",
+          "expected_intent": "pricing",
+          "note": "désigne Pierre par périphrase 'employé virtuel'"
+        },
+        {
+          "message": "c'est payant ou gratuit ?",
+          "expected_intent": "pricing",
+          "note": "question payant/gratuit = intention prix"
+        },
+        {
+          "message": "combien ça me revient à l'année",
+          "expected_intent": "pricing",
+          "note": "'me revient', base annuelle, régional/oral"
+        },
+        {
+          "message": "vous facturez comment exactement",
+          "expected_intent": "pricing",
+          "note": "porte sur le modèle de facturation = prix"
+        },
+        {
+          "message": "jaimerais connaitre le montant svp",
+          "expected_intent": "pricing",
+          "note": "faute accent, 'montant' au lieu de prix, poli sec"
+        },
+        {
+          "message": "ça chiffre à combien tout ça",
+          "expected_intent": "pricing",
+          "note": "'ça chiffre', très oral"
+        },
+        {
+          "message": "g pas vu le prix sur le site",
+          "expected_intent": "pricing",
+          "note": "SMS 'g pas', se plaint de ne pas trouver le tarif"
+        },
+        {
+          "message": "abonnement mensuel c'est quel prix",
+          "expected_intent": "pricing",
+          "note": "suppose abonnement, demande le prix"
+        },
+        {
+          "message": "combien pour 3 salariés ?",
+          "expected_intent": "pricing",
+          "note": "prix conditionné à la taille, piège vers 'demo/discover'"
+        },
+        {
+          "message": "c cher votre machin?",
+          "expected_intent": "pricing",
+          "note": "'c cher', jugement de prix, 'machin'"
+        },
+        {
+          "message": "quel est le coût total, y compris frais cachés ?",
+          "expected_intent": "pricing",
+          "note": "long, poli, coût total et frais cachés"
+        },
+        {
+          "message": "donnez moi juste le tarif",
+          "expected_intent": "pricing",
+          "note": "sec, impératif, 'tarif'"
+        },
+        {
+          "message": "ça tourne autour de combien à peu près",
+          "expected_intent": "pricing",
+          "note": "demande une fourchette approximative"
+        },
+        {
+          "message": "c'est quoi la note à la fin",
+          "expected_intent": "pricing",
+          "note": "'la note', métaphore restaurant pour le prix"
+        },
+        {
+          "message": "euh... et niveau prix on est sur quoi",
+          "expected_intent": "pricing",
+          "note": "hésitation orale 'euh', 'on est sur quoi'"
+        },
+        {
+          "message": "vous prenez combien pour vos services",
+          "expected_intent": "pricing",
+          "note": "'vous prenez combien', formulation prestataire"
+        },
+        {
+          "message": "le 449 euros c'est HT ou TTC",
+          "expected_intent": "pricing",
+          "note": "détail fiscal sur le prix affiché"
+        },
+        {
+          "message": "combien ça douille",
+          "expected_intent": "pricing",
+          "note": "argot 'douiller', très familier"
+        },
+        {
+          "message": "combien faut débourser pour démarrer avec Pierre",
+          "expected_intent": "pricing",
+          "note": "'débourser', 'démarrer' — piège vers purchase"
+        },
+        {
+          "message": "y a des frais d'installation en plus du prix ?",
+          "expected_intent": "pricing",
+          "note": "coûts additionnels = toujours prix"
+        },
+        {
+          "message": "dites moi vos prix, je compare avec un concurrent",
+          "expected_intent": "pricing",
+          "note": "contexte comparaison, demande explicite des prix"
+        }
+      ]
+    },
+    {
+      "category": "demo",
+      "cases": [
+        {
+          "message": "je peux voir ce que ça donne avant ?",
+          "expected_intent": "demo",
+          "note": "elliptique, 'ce que ça donne' = voir en action, pas d'achat"
+        },
+        {
+          "message": "vous avez une démo ?",
+          "expected_intent": "demo",
+          "note": "direct mais très court, poli-neutre"
+        },
+        {
+          "message": "c koi la démo",
+          "expected_intent": "demo",
+          "note": "SMS/oral, faute 'koi', sec"
+        },
+        {
+          "message": "jaimerai bien le tester votre Pierre la avant de m'engager",
+          "expected_intent": "demo",
+          "note": "faute 'jaimerai', oral 'la', tester avant engagement = demo pas purchase"
+        },
+        {
+          "message": "y'a moyen de l'essayer pour voir",
+          "expected_intent": "demo",
+          "note": "régional/oral 'y'a moyen', essayer=demo"
+        },
+        {
+          "message": "montrez moi comment il bosse",
+          "expected_intent": "demo",
+          "note": "impératif sec, 'bosse' familier, voir le produit fonctionner"
+        },
+        {
+          "message": "une petite démonstration serait possible ?",
+          "expected_intent": "demo",
+          "note": "très poli, formulation soft"
+        },
+        {
+          "message": "faut que je le voie tourner avant de payer quoi que ce soit",
+          "expected_intent": "demo",
+          "note": "long, 'voir tourner', explicite avant paiement=demo"
+        },
+        {
+          "message": "ça marche comment concrètement, je peux jouer avec ?",
+          "expected_intent": "demo",
+          "note": "'jouer avec' = essayer le produit, piège vs support"
+        },
+        {
+          "message": "démo",
+          "expected_intent": "demo",
+          "note": "un seul mot, ultra court"
+        },
+        {
+          "message": "je voudrais un aperçu en vrai pas juste des slides",
+          "expected_intent": "demo",
+          "note": "'aperçu en vrai' oppose démo réelle à commercial"
+        },
+        {
+          "message": "on peut faire un tour du produit ensemble ?",
+          "expected_intent": "demo",
+          "note": "'tour du produit' = walkthrough/démo"
+        },
+        {
+          "message": "est-ce qu'il y a un mode essai pour voir Pierre en action",
+          "expected_intent": "demo",
+          "note": "'mode essai' ambigu mais 'en action'=demo, piège vs purchase/trial"
+        },
+        {
+          "message": "j'ai pas envie de lire, montrez le direct",
+          "expected_intent": "demo",
+          "note": "sec, refus de lecture, veut voir en direct"
+        },
+        {
+          "message": "vous auriez pas une vidéo ou un truc qui montre comment ça se passe",
+          "expected_intent": "demo",
+          "note": "long oral, 'un truc qui montre' = démo"
+        },
+        {
+          "message": "Pierre en vrai ça ressemble à quoi ?",
+          "expected_intent": "demo",
+          "note": "'en vrai ça ressemble à quoi' = voir le produit"
+        },
+        {
+          "message": "je peux le prendre en main 5 min ?",
+          "expected_intent": "demo",
+          "note": "'prendre en main' = tester soi-même"
+        },
+        {
+          "message": "faites moi voir",
+          "expected_intent": "demo",
+          "note": "impératif ultra court, régional"
+        },
+        {
+          "message": "avant de décider j'aimerais assister à une démo live",
+          "expected_intent": "demo",
+          "note": "poli, 'démo live', explicite"
+        },
+        {
+          "message": "comment je fais pour tester avant d'acheter",
+          "expected_intent": "demo",
+          "note": "piège: contient 'acheter' mais l'intention réelle = tester=demo"
+        },
+        {
+          "message": "montre moi un exemple de ce qu'il peut faire",
+          "expected_intent": "demo",
+          "note": "tutoiement, 'exemple de ce qu'il peut faire' = démonstration"
+        },
+        {
+          "message": "g envie de voir la bête en action",
+          "expected_intent": "demo",
+          "note": "'g' pour j'ai, 'la bête en action' familier"
+        },
+        {
+          "message": "possible de programmer une présentation du logiciel ?",
+          "expected_intent": "demo",
+          "note": "formel, 'présentation du logiciel' = demo/rdv démo"
+        },
+        {
+          "message": "je veux juste voir si ça fait ce que vous dites",
+          "expected_intent": "demo",
+          "note": "vérifier par soi-même = voir la démo, piège vs support"
+        },
+        {
+          "message": "un ptit test vite fait c'est jouable ?",
+          "expected_intent": "demo",
+          "note": "'ptit test vite fait', 'jouable' régional/oral"
+        },
+        {
+          "message": "vs pouvez me le faire tourner pr voir le rendu",
+          "expected_intent": "demo",
+          "note": "abréviations 'vs' 'pr', 'faire tourner pour voir le rendu'"
+        },
+        {
+          "message": "y a une version démo accessible sans payer ?",
+          "expected_intent": "demo",
+          "note": "'version démo sans payer', piège pricing/purchase mais reste demo"
+        },
+        {
+          "message": "j'aimerais voir Pierre gérer un vrai cas RH pour me rendre compte",
+          "expected_intent": "demo",
+          "note": "long, cas concret = démonstration du produit"
+        },
+        {
+          "message": "on m'a parlé de Pierre, je peux voir ça bouger ?",
+          "expected_intent": "demo",
+          "note": "'voir ça bouger' oral = voir fonctionner, piège vs discover"
+        },
+        {
+          "message": "balancez moi la démo",
+          "expected_intent": "demo",
+          "note": "très sec, argot 'balancez moi', impératif direct"
+        }
+      ]
+    },
+    {
+      "category": "discover",
+      "cases": [
+        {
+          "message": "c'est quoi Pierre exactement ?",
+          "expected_intent": "discover",
+          "note": "question directe orale, très courante"
+        },
+        {
+          "message": "jcomprends pas trop ce que vous vendez",
+          "expected_intent": "discover",
+          "note": "oral élidé + faute, exprime incompréhension"
+        },
+        {
+          "message": "CloneStore c koi",
+          "expected_intent": "discover",
+          "note": "SMS/langage texto, ellipse totale"
+        },
+        {
+          "message": "Bonjour, pourriez-vous m'expliquer en quelques mots le concept de votre plateforme ?",
+          "expected_intent": "discover",
+          "note": "registre poli et long, piège vers support/navigate"
+        },
+        {
+          "message": "Pierre il fait quoi au juste",
+          "expected_intent": "discover",
+          "note": "oral, syntaxe dislocation sujet"
+        },
+        {
+          "message": "donc en gros c'est un genre de robot RH ?",
+          "expected_intent": "discover",
+          "note": "reformulation hypothèse, ton oral"
+        },
+        {
+          "message": "expliquez",
+          "expected_intent": "discover",
+          "note": "impératif sec, ultra court, ambigu"
+        },
+        {
+          "message": "c'est une boîte d'intérim ou un logiciel ?",
+          "expected_intent": "discover",
+          "note": "clarification de nature, piège catégorie"
+        },
+        {
+          "message": "jamais entendu parler, ça sert à quoi votre truc",
+          "expected_intent": "discover",
+          "note": "familier, découverte pure"
+        },
+        {
+          "message": "Pierre = ChatGPT pour les RH ?",
+          "expected_intent": "discover",
+          "note": "comparaison, signe égal, piège vers autre produit"
+        },
+        {
+          "message": "heu bonjour du coup Pierre c'est quelqu'un ou c'est un programme",
+          "expected_intent": "discover",
+          "note": "hésitation orale, question ontologique"
+        },
+        {
+          "message": "vous faites quoi comme métier vous",
+          "expected_intent": "discover",
+          "note": "question métier, dislocation, sèche"
+        },
+        {
+          "message": "j'aimerais comprendre le principe avant de m'engager",
+          "expected_intent": "discover",
+          "note": "poli, mentionne engagement mais reste découverte"
+        },
+        {
+          "message": "kessé ça CloneStore",
+          "expected_intent": "discover",
+          "note": "régional/oral québécois, elliptique"
+        },
+        {
+          "message": "pierre c'est pour remplacer ma DRH ?",
+          "expected_intent": "discover",
+          "note": "cas d'usage formulé en question, piège vers achat"
+        },
+        {
+          "message": "dites m'en plus",
+          "expected_intent": "discover",
+          "note": "demande d'info vague, court"
+        },
+        {
+          "message": "votre site parle d'un employé IA, ça veut dire quoi concrètement",
+          "expected_intent": "discover",
+          "note": "référence au site, demande de concret"
+        },
+        {
+          "message": "c pour les grosses entreprises ou les petites ?",
+          "expected_intent": "discover",
+          "note": "cible client, ambigu vers pricing mais reste compréhension"
+        },
+        {
+          "message": "bon alors ce Pierre là il gère la paie ou pas",
+          "expected_intent": "discover",
+          "note": "oral rugueux, périmètre fonctionnel"
+        },
+        {
+          "message": "je suis tombé sur votre pub, c'est quoi le délire",
+          "expected_intent": "discover",
+          "note": "argot 'le délire', contexte pub"
+        },
+        {
+          "message": "en gros ça marche comment votre affaire",
+          "expected_intent": "discover",
+          "note": "fonctionnement général, 'affaire' familier"
+        },
+        {
+          "message": "Pierre remplace un vrai salarié ??",
+          "expected_intent": "discover",
+          "note": "double point d'interrogation, incrédulité, portée produit"
+        },
+        {
+          "message": "salut, tu peux me présenter Pierre stp",
+          "expected_intent": "discover",
+          "note": "tutoiement, présentation produit, poli casual"
+        },
+        {
+          "message": "c'est quoi la difference entre CloneStore et Pierre",
+          "expected_intent": "discover",
+          "note": "distinction marque/produit, compréhension structurelle"
+        },
+        {
+          "message": "jsais pas si c'est fait pour moi je suis artisan",
+          "expected_intent": "discover",
+          "note": "doute d'adéquation métier, découverte"
+        },
+        {
+          "message": "ça a l'air bien mais concrètement il fait quoi de mes journées",
+          "expected_intent": "discover",
+          "note": "long, ambivalent, revient au fonctionnel"
+        },
+        {
+          "message": "un employé qui existe pas ça m'intrigue expliquez le truc",
+          "expected_intent": "discover",
+          "note": "curiosité, impératif, oral"
+        },
+        {
+          "message": "vous vendez de l'IA c'est ça",
+          "expected_intent": "discover",
+          "note": "vérification catégorie, affirmation-question"
+        },
+        {
+          "message": "g vu Pierre RH mais jpige que dalle",
+          "expected_intent": "discover",
+          "note": "texto lourd + argot 'que dalle', incompréhension"
+        },
+        {
+          "message": "avant tout je veux juste savoir ce que c'est",
+          "expected_intent": "discover",
+          "note": "pose explicite d'une intention de découverte pré-achat"
+        }
+      ]
+    },
+    {
+      "category": "support",
+      "cases": [
+        {
+          "message": "ça marche pas",
+          "expected_intent": "support",
+          "note": "Elliptique, sujet implicite; piège classique du routeur naïf qui cherche un mot-clé produit"
+        },
+        {
+          "message": "y'a un bug",
+          "expected_intent": "support",
+          "note": "Oral, anglicisme 'bug'; signalement de problème sans détail"
+        },
+        {
+          "message": "jarrive pas a me connecter",
+          "expected_intent": "support",
+          "note": "Fautes (jarrive, pas d'apostrophe/accent); problème d'accès concret"
+        },
+        {
+          "message": "au secours",
+          "expected_intent": "support",
+          "note": "Très court, appel à l'aide brut sans contexte"
+        },
+        {
+          "message": "Bonjour, pourriez-vous m'indiquer comment contacter votre service client s'il vous plaît ?",
+          "expected_intent": "support",
+          "note": "Long et poli; demande explicite de contact support"
+        },
+        {
+          "message": "pierre repond plus rien",
+          "expected_intent": "support",
+          "note": "Nom produit présent mais c'est une panne, pas un achat; piège de sur-déclenchement 'purchase'"
+        },
+        {
+          "message": "g un souci",
+          "expected_intent": "support",
+          "note": "SMS/oral ('g' = j'ai); vague, signale un souci"
+        },
+        {
+          "message": "ma facture est fausse",
+          "expected_intent": "support",
+          "note": "Contient 'facture' — piège vers 'pricing'; c'est en fait une réclamation support"
+        },
+        {
+          "message": "quelqu'un peut m'aider",
+          "expected_intent": "support",
+          "note": "Demande d'aide humaine, indirecte"
+        },
+        {
+          "message": "c'est cassé votre truc",
+          "expected_intent": "support",
+          "note": "Sec, familier; signalement de dysfonctionnement"
+        },
+        {
+          "message": "j'ai un problème avec mon compte",
+          "expected_intent": "support",
+          "note": "Standard clair; problème de compte"
+        },
+        {
+          "message": "aidez moi svp ça bug depuis ce matin",
+          "expected_intent": "support",
+          "note": "Oral + faute; urgence, panne persistante"
+        },
+        {
+          "message": "page blanche impossible de rien faire",
+          "expected_intent": "support",
+          "note": "Symptôme technique décrit sans mot 'aide'"
+        },
+        {
+          "message": "le doc que pierre a généré est vide",
+          "expected_intent": "support",
+          "note": "Mentionne fonctionnalité; défaut produit à signaler, pas une découverte"
+        },
+        {
+          "message": "vous avez un numero de tel ?",
+          "expected_intent": "support",
+          "note": "Recherche d'un canal de contact; faute 'numero', 'tel'"
+        },
+        {
+          "message": "je comprends rien ça veut pas marcher",
+          "expected_intent": "support",
+          "note": "Confusion + panne; double signal frustration"
+        },
+        {
+          "message": "erreur 500",
+          "expected_intent": "support",
+          "note": "Ultra court, technique brut; signalement d'erreur serveur"
+        },
+        {
+          "message": "mon paiement est passé deux fois",
+          "expected_intent": "support",
+          "note": "Piège 'pricing'/'purchase'; réclamation facturation = support"
+        },
+        {
+          "message": "chuis bloqué là",
+          "expected_intent": "support",
+          "note": "Oral régional ('chuis'); blocage sans précision"
+        },
+        {
+          "message": "depuis la maj tout déconne",
+          "expected_intent": "support",
+          "note": "Argot 'déconne', 'maj'; régression après mise à jour"
+        },
+        {
+          "message": "Je n'arrive plus à accéder à mes documents RH, c'est urgent car j'ai un contrôle demain.",
+          "expected_intent": "support",
+          "note": "Long, contexte pro urgent; accès données bloqué"
+        },
+        {
+          "message": "ça rame de ouf",
+          "expected_intent": "support",
+          "note": "Argot jeune; problème de performance/lenteur"
+        },
+        {
+          "message": "pierre me dit une erreur je capte pas",
+          "expected_intent": "support",
+          "note": "Message d'erreur incompris; 'capte' familier"
+        },
+        {
+          "message": "comment je fais pour joindre un vrai humain",
+          "expected_intent": "support",
+          "note": "Veut escalade humaine; méfiance envers le bot"
+        },
+        {
+          "message": "rien ne se charge",
+          "expected_intent": "support",
+          "note": "Court, symptôme de chargement; pas de mot 'aide' ni produit"
+        },
+        {
+          "message": "probleme",
+          "expected_intent": "support",
+          "note": "Un seul mot avec faute; signalement minimaliste"
+        },
+        {
+          "message": "votre site plante à chaque fois que je clique",
+          "expected_intent": "support",
+          "note": "Description reproductible d'un crash"
+        },
+        {
+          "message": "j'ai payé mais j'ai toujours pas accès à pierre",
+          "expected_intent": "support",
+          "note": "Piège fort 'purchase'; en réalité accès non délivré après paiement = support"
+        },
+        {
+          "message": "help",
+          "expected_intent": "support",
+          "note": "Anglais mono-mot; francophone qui tape réflexe 'help'"
+        },
+        {
+          "message": "euh dites c bizarre mon truc affiche que dalle",
+          "expected_intent": "support",
+          "note": "Oral hésitant + argot 'que dalle'; affichage vide à diagnostiquer"
+        }
+      ]
+    },
+    {
+      "category": "cancel",
+      "cases": [
+        {
+          "message": "je veux résilier",
+          "expected_intent": "cancel",
+          "note": "formule directe standard"
+        },
+        {
+          "message": "comment j'arrête mon abonnement ?",
+          "expected_intent": "cancel",
+          "note": "question procédurale"
+        },
+        {
+          "message": "annuler svp",
+          "expected_intent": "cancel",
+          "note": "très court, poli sec"
+        },
+        {
+          "message": "je souhaite mettre fin à mon contrat avec Pierre",
+          "expected_intent": "cancel",
+          "note": "formel, mot contrat"
+        },
+        {
+          "message": "faut que je stoppe les prélèvements là",
+          "expected_intent": "cancel",
+          "note": "oral, angle prélèvement bancaire"
+        },
+        {
+          "message": "j'en veux plus de votre truc",
+          "expected_intent": "cancel",
+          "note": "sec, familier, elliptique"
+        },
+        {
+          "message": "desabonnement",
+          "expected_intent": "cancel",
+          "note": "un mot, faute (sans accent)"
+        },
+        {
+          "message": "bonjour, pourriez-vous m'indiquer la marche à suivre pour clôturer mon compte ? merci d'avance",
+          "expected_intent": "cancel",
+          "note": "long, très poli, mot clôturer compte"
+        },
+        {
+          "message": "je peux couper l'abo quand je veux ?",
+          "expected_intent": "cancel",
+          "note": "argot abo, question engagement"
+        },
+        {
+          "message": "comment on se désinscrit",
+          "expected_intent": "cancel",
+          "note": "désinscrire, sans ponctuation"
+        },
+        {
+          "message": "stop pierre",
+          "expected_intent": "cancel",
+          "note": "ultra court, impératif"
+        },
+        {
+          "message": "je paie encore alors que je m'en sers plus, comment on arrête ce bazar",
+          "expected_intent": "cancel",
+          "note": "long, contexte + demande indirecte"
+        },
+        {
+          "message": "resilier mon forfait please",
+          "expected_intent": "cancel",
+          "note": "faute accent + anglais mêlé"
+        },
+        {
+          "message": "est-ce que je suis engagé sur 12 mois ou je peux partir ?",
+          "expected_intent": "cancel",
+          "note": "indirect, intention de partir"
+        },
+        {
+          "message": "annulez tout",
+          "expected_intent": "cancel",
+          "note": "sec, impératif large"
+        },
+        {
+          "message": "je veux fermer mon espace client",
+          "expected_intent": "cancel",
+          "note": "vocabulaire espace client"
+        },
+        {
+          "message": "comment je fais pour plus être facturé",
+          "expected_intent": "cancel",
+          "note": "angle facturation, oral"
+        },
+        {
+          "message": "jaimerais annuler mon abonnement mensuel",
+          "expected_intent": "cancel",
+          "note": "apostrophe manquante, précise mensuel"
+        },
+        {
+          "message": "bon écoutez ça me convient pas je veux tout arrêter",
+          "expected_intent": "cancel",
+          "note": "oral, insatisfaction + arrêt"
+        },
+        {
+          "message": "mettre fin",
+          "expected_intent": "cancel",
+          "note": "elliptique, 2 mots"
+        },
+        {
+          "message": "je pars à la concurrence, résiliez mon compte",
+          "expected_intent": "cancel",
+          "note": "churn explicite"
+        },
+        {
+          "message": "c koi la procédure pr annuler",
+          "expected_intent": "cancel",
+          "note": "SMS/abrégé (c koi, pr)"
+        },
+        {
+          "message": "je veux plus payer Pierre chaque mois",
+          "expected_intent": "cancel",
+          "note": "négation orale, récurrence"
+        },
+        {
+          "message": "supprimez mon abonnement immédiatement",
+          "expected_intent": "cancel",
+          "note": "impératif, urgence"
+        },
+        {
+          "message": "heu comment on annule un abonnement chez vous du coup",
+          "expected_intent": "cancel",
+          "note": "hésitation orale, tics langage"
+        },
+        {
+          "message": "je voudrais me désabonner de Pierre",
+          "expected_intent": "cancel",
+          "note": "désabonner + produit nommé"
+        },
+        {
+          "message": "y'a moyen de couper mon compte ?",
+          "expected_intent": "cancel",
+          "note": "régional/familier y'a moyen"
+        },
+        {
+          "message": "résiliation abonnement RH",
+          "expected_intent": "cancel",
+          "note": "style requête mots-clés"
+        },
+        {
+          "message": "je ne veux pas renouveler l'année prochaine",
+          "expected_intent": "cancel",
+          "note": "non-renouvellement, futur"
+        },
+        {
+          "message": "comment je résilie sans frais",
+          "expected_intent": "cancel",
+          "note": "question résiliation + condition frais"
+        }
+      ]
+    },
+    {
+      "category": "negation_ambiguous",
+      "cases": [
+        {
+          "message": "non merci, pas d'achat",
+          "expected_intent": "none_of_pierre",
+          "note": "Négation directe de l'achat, refus sec."
+        },
+        {
+          "message": "je veux surtout PAS payer maintenant",
+          "expected_intent": "none_of_pierre",
+          "note": "Négation avec majuscule piège, aucune intention d'achat."
+        },
+        {
+          "message": "c'est qui Pierre au juste ?",
+          "expected_intent": "discover",
+          "note": "Le mot Pierre présent, mais pure curiosité, pas d'achat."
+        },
+        {
+          "message": "mon collègue Pierre m'a parlé de vous",
+          "expected_intent": "ambiguous",
+          "note": "PIEGE: Pierre = prénom humain, pas le produit."
+        },
+        {
+          "message": "jsp si c fait pour moi franchement",
+          "expected_intent": "discover",
+          "note": "Oral, fautes, hésitation exploratoire."
+        },
+        {
+          "message": "faut que j'annule mon truc",
+          "expected_intent": "cancel",
+          "note": "Elliptique, langage oral, intention d'annulation."
+        },
+        {
+          "message": "combien ça coûte votre machin ?",
+          "expected_intent": "pricing",
+          "note": "Vocabulaire familier, question de prix sans nommer Pierre."
+        },
+        {
+          "message": "je regarde juste, merci",
+          "expected_intent": "discover",
+          "note": "Poli, navigation passive, refus implicite de vendre."
+        },
+        {
+          "message": "ça marche vraiment ou c'est du vent ?",
+          "expected_intent": "discover",
+          "note": "Scepticisme, veut comprendre avant tout."
+        },
+        {
+          "message": "heu... vous faites quoi exactement",
+          "expected_intent": "discover",
+          "note": "Hésitation orale, découverte du produit."
+        },
+        {
+          "message": "j'aimerais voir comment ça tourne en vrai",
+          "expected_intent": "demo",
+          "note": "Demande implicite de démonstration."
+        },
+        {
+          "message": "pas convaincu du tout là",
+          "expected_intent": "none_of_pierre",
+          "note": "Sèche, rejet, aucune intention actionnable de vente."
+        },
+        {
+          "message": "vous auriez une démo ou un essai ?",
+          "expected_intent": "demo",
+          "note": "Demande claire de démo/essai."
+        },
+        {
+          "message": "mon abonnement bug, personne répond",
+          "expected_intent": "support",
+          "note": "Problème technique = support, pas achat."
+        },
+        {
+          "message": "je cherche la page tarifs, elle est où",
+          "expected_intent": "navigate",
+          "note": "Navigation vers une page précise."
+        },
+        {
+          "message": "finalement laisse tomber",
+          "expected_intent": "cancel",
+          "note": "Correction/abandon en cours de conversation."
+        },
+        {
+          "message": "c pas ce que je voulais dire, oublie",
+          "expected_intent": "ambiguous",
+          "note": "Correction pure sans nouvelle intention exprimée."
+        },
+        {
+          "message": "Pierre Dupont, service compta, bonjour",
+          "expected_intent": "ambiguous",
+          "note": "PIEGE: Pierre = identité d'une personne réelle."
+        },
+        {
+          "message": "combien pour 3 salariés par mois ?",
+          "expected_intent": "pricing",
+          "note": "Question tarifaire concrète sans le mot acheter."
+        },
+        {
+          "message": "je veux résilier avant la fin du mois",
+          "expected_intent": "cancel",
+          "note": "Résiliation explicite."
+        },
+        {
+          "message": "est-ce que ça remplace un vrai DRH ??",
+          "expected_intent": "discover",
+          "note": "Question de fond sur la capacité produit."
+        },
+        {
+          "message": "ok bah je prends, on fait comment",
+          "expected_intent": "purchase",
+          "note": "PIEGE inverse: vraie intention d'achat noyée dans l'oral."
+        },
+        {
+          "message": "vous parlez la lune, moi je comprends rien",
+          "expected_intent": "discover",
+          "note": "Régional/oral, besoin d'explication."
+        },
+        {
+          "message": "pas maintenant, peut-être plus tard",
+          "expected_intent": "none_of_pierre",
+          "note": "Report, pas d'action commerciale immédiate."
+        },
+        {
+          "message": "aidez-moi j'arrive pas à me connecter",
+          "expected_intent": "support",
+          "note": "Blocage login = support."
+        },
+        {
+          "message": "la pierre philosophale de la RH mdr",
+          "expected_intent": "ambiguous",
+          "note": "PIEGE: 'pierre' comme mot commun/blague, zéro intention."
+        },
+        {
+          "message": "montrez-moi juste un exemple concret",
+          "expected_intent": "demo",
+          "note": "Demande de démonstration concrète."
+        },
+        {
+          "message": "je veux comparer avec un concurrent avant d'acheter",
+          "expected_intent": "discover",
+          "note": "PIEGE: 'acheter' présent mais phase de comparaison."
+        },
+        {
+          "message": "renvoyez-moi vers l'accueil svp",
+          "expected_intent": "navigate",
+          "note": "Navigation explicite vers l'accueil."
+        },
+        {
+          "message": "franchement ça m'intéresse, dites m'en plus",
+          "expected_intent": "discover",
+          "note": "Intérêt réel mais demande d'information, pas d'achat ferme."
+        }
+      ]
+    },
+    {
+      "category": "typos_oral",
+      "cases": [
+        {
+          "message": "jvoudré pierre combien sa coute",
+          "expected_intent": "pricing",
+          "note": "SMS + faute 'sa coute', demande de prix noyée dans intention d'achat"
+        },
+        {
+          "message": "bon alors ct koi le tarif de votre truc rh la",
+          "expected_intent": "pricing",
+          "note": "oral relâché, 'ct koi', désigne le produit vaguement"
+        },
+        {
+          "message": "jle prend comment votre pierre",
+          "expected_intent": "purchase",
+          "note": "'jle prend' = achat, elliptique"
+        },
+        {
+          "message": "faut payé combien par moi pour lemployé ia",
+          "expected_intent": "pricing",
+          "note": "'par moi'=par mois faute, 'lemployé' collé"
+        },
+        {
+          "message": "g envie de tester avant dacheter ya moyen",
+          "expected_intent": "demo",
+          "note": "veut essayer avant, demande de démo déguisée"
+        },
+        {
+          "message": "c gratos ou pas votre bidule",
+          "expected_intent": "pricing",
+          "note": "familier 'gratos', question de coût"
+        },
+        {
+          "message": "jcomprend pas trop cé quoi pierre en fé",
+          "expected_intent": "discover",
+          "note": "veut comprendre le produit, 'en fé'=en fait"
+        },
+        {
+          "message": "vzavez une démo a me montré",
+          "expected_intent": "demo",
+          "note": "'vzavez' oral, demande explicite démo"
+        },
+        {
+          "message": "ou jclic pour souscrir",
+          "expected_intent": "navigate",
+          "note": "cherche où cliquer = navigation vers achat"
+        },
+        {
+          "message": "jveu arreté mon abonemen",
+          "expected_intent": "cancel",
+          "note": "résiliation, fautes multiples"
+        },
+        {
+          "message": "comment on annule ce truc jen veu plus",
+          "expected_intent": "cancel",
+          "note": "ras-le-bol, annulation"
+        },
+        {
+          "message": "sa marche pas jarrive pas a me conécté",
+          "expected_intent": "support",
+          "note": "problème technique login = support"
+        },
+        {
+          "message": "pierre il peut faire les fiches de paye ou pa",
+          "expected_intent": "discover",
+          "note": "question capacité produit, découverte"
+        },
+        {
+          "message": "c combien pr une boite de 10 salarié",
+          "expected_intent": "pricing",
+          "note": "prix selon effectif"
+        },
+        {
+          "message": "jveux le meme que mon pote a pris",
+          "expected_intent": "purchase",
+          "note": "achat indirect par référence sociale"
+        },
+        {
+          "message": "bjr, pourriez vous mindiquer les tarifs svp",
+          "expected_intent": "pricing",
+          "note": "registre poli formel, prix"
+        },
+        {
+          "message": "chai pas trop koi choisir aidé moi",
+          "expected_intent": "ambiguous",
+          "note": "indécis, aucune intention claire"
+        },
+        {
+          "message": "vé où pour voir les prix",
+          "expected_intent": "navigate",
+          "note": "'vé où' oral marseillais, navigation page tarifs"
+        },
+        {
+          "message": "ct pour un rdv avec un commercial",
+          "expected_intent": "demo",
+          "note": "veut échanger/démo commerciale"
+        },
+        {
+          "message": "jai payé et jai rien reçu",
+          "expected_intent": "support",
+          "note": "souci post-achat = support"
+        },
+        {
+          "message": "ok bah go, jsigne où",
+          "expected_intent": "purchase",
+          "note": "décision prise, 'go jsigne', achat"
+        },
+        {
+          "message": "vous fété quoi vous exactement",
+          "expected_intent": "discover",
+          "note": "découverte très générale de l'offre"
+        },
+        {
+          "message": "c koi la diff entre pierre et un vré rh",
+          "expected_intent": "discover",
+          "note": "comparaison, compréhension produit"
+        },
+        {
+          "message": "jveu résilié avant la fin du moi",
+          "expected_intent": "cancel",
+          "note": "annulation avec contrainte temporelle"
+        },
+        {
+          "message": "askip cé cher votre machin non",
+          "expected_intent": "pricing",
+          "note": "'askip'=à ce qu'il paraît, sujet prix"
+        },
+        {
+          "message": "envoie moi direct le lien pr payer",
+          "expected_intent": "purchase",
+          "note": "sec, veut lien de paiement"
+        },
+        {
+          "message": "la page se charge pa chez moi",
+          "expected_intent": "support",
+          "note": "bug technique site"
+        },
+        {
+          "message": "mon frigo fé un bruit bizar",
+          "expected_intent": "none_of_pierre",
+          "note": "hors sujet total, piège off-topic"
+        },
+        {
+          "message": "jvoudré parlé a quelquun",
+          "expected_intent": "ambiguous",
+          "note": "veut un humain sans dire pourquoi, intention floue"
+        },
+        {
+          "message": "heu... et donc... jfé comment moi maintenant",
+          "expected_intent": "ambiguous",
+          "note": "hésitation, elliptique, aucun objectif identifiable"
+        }
+      ]
+    }
+  ]
+}

@@ -21,7 +21,11 @@ export function buildParrainSystemPrompt(input: SystemPromptInput): string {
   const grounding =
     `Base-toi UNIQUEMENT sur ces faits autorisés :\n${facts}\n` +
     `Cite les identifiants utilisés (entre crochets ci-dessus) dans "citations" — uniquement des identifiants présents. ` +
-    `Si un fait important manque, dis-le honnêtement ("source_missing") plutôt que d'inventer. N'invente JAMAIS un prix, une route, une capacité, une page ou une action.`;
+    `Si un fait important manque, dis-le honnêtement ("source_missing") plutôt que d'inventer. N'invente JAMAIS un prix, une route, une capacité, une page ou une action. ` +
+    // C1.8 FINAL — Le modèle écrivait « https://clonestore.ai/agents/pierre » : un domaine
+    // INVENTÉ (le vrai est clonestore.pro). La règle interdisait la route, pas le DOMAINE.
+    // Un lien est donc TOUJOURS un chemin relatif, jamais une adresse absolue.
+    `LIENS : pour renvoyer vers une page CloneStore, écris UNIQUEMENT le chemin relatif tel qu'il apparaît dans les faits (ex. /agents/pierre, /reserver/pierre). N'écris JAMAIS de domaine ni d'adresse absolue (pas de « https:// », pas de « .com », « .ai » ou « www »). Le site se charge de rendre le chemin cliquable.`;
 
   const honesty =
     "Règles ABSOLUES : « préparé » ne devient jamais « envoyé » ; « chemin manuel » ne devient jamais « intégration live » ; « architecture prête » ne devient jamais « opérationnel » ; « correctif candidat » ne devient jamais « bug résolu » ; une fonctionnalité en roadmap n'est jamais « disponible ». Aucune voix, téléphonie, signature, e-mail automatique, paiement ou production « live ». Aucune garantie légale. Pas d'essai gratuit ni de bêta.";
