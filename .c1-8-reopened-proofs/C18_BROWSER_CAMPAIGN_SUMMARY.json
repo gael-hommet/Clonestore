@@ -1,0 +1,234 @@
+{
+  "engine": "webpack (next dev)",
+  "provider": "none (OPENAI_API_KEY empty)",
+  "mode": "anonymous, distinct x-forwarded-for per visitor (real per-client rate-limit buckets)",
+  "totalFlows": 37,
+  "passed": 37,
+  "consoleErrorsRaw": 0,
+  "consoleErrorsReal": 0,
+  "realErrors": [],
+  "results": [
+    {
+      "message": "REFERENCE acheter Pierre (click-through)",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "http://localhost:3037/reserver/pierre"
+    },
+    {
+      "message": "je veux acheter Pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "je veux prendre Pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "je veux réserver Pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "comment avoir Pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "comment obtenir Pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "où acheter Pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "où payer Pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "je veux Pierre pour ma société",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "je veux que Pierre travaille pour nous",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "comment m'abonner à Pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "je souhaite souscrire à Pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "quelle page pour acheter Pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "je peux acheter Pierre où",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "acheter pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "je veux acquérir pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "comment activer pierre",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "je passe commande",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "mettez le dans mon panier",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "go je m'abonne",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "je le veux pour ma boite",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "envoie moi le lien pour payer",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "je signe",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "je souscris",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "nous souhaitons acquérir la solution",
+      "kind": "purchase",
+      "ok": true,
+      "detail": "answer+CTA Réserver Pierre"
+    },
+    {
+      "message": "combien coûte Pierre ?",
+      "kind": "pricing",
+      "ok": true,
+      "detail": "CTA réserver (→/reserver/pierre)"
+    },
+    {
+      "message": "quel est le prix de Pierre",
+      "kind": "pricing",
+      "ok": true,
+      "detail": "CTA réserver (→/reserver/pierre)"
+    },
+    {
+      "message": "c'est combien par mois",
+      "kind": "pricing",
+      "ok": true,
+      "detail": "CTA réserver (→/reserver/pierre)"
+    },
+    {
+      "message": "c gratos ou pas",
+      "kind": "pricing",
+      "ok": true,
+      "detail": "CTA réserver (→/reserver/pierre)"
+    },
+    {
+      "message": "vos conditions tarifaires",
+      "kind": "pricing",
+      "ok": true,
+      "detail": "CTA réserver (→/reserver/pierre)"
+    },
+    {
+      "message": "prix → click-through",
+      "kind": "pricing",
+      "ok": true,
+      "detail": "http://localhost:3037/reserver/pierre"
+    },
+    {
+      "message": "je veux me connecter",
+      "kind": "auth-nav",
+      "ok": true,
+      "detail": "Pour accéder à votre espace, rendez-vous sur la page Connexi"
+    },
+    {
+      "message": "connexion à mon compte",
+      "kind": "auth-nav",
+      "ok": true,
+      "detail": "Pour accéder à votre espace, rendez-vous sur la page Connexi"
+    },
+    {
+      "message": "comment créer un compte",
+      "kind": "auth-nav",
+      "ok": true,
+      "detail": "Je préfère ne pas improviser : je n'ai pas de réponse canoni"
+    },
+    {
+      "message": "je veux m'inscrire",
+      "kind": "auth-nav",
+      "ok": true,
+      "detail": "Pour créer votre compte, rendez-vous sur la page Créer un co"
+    },
+    {
+      "message": "montre-moi la démo Pierre (click-through)",
+      "kind": "demo",
+      "ok": true,
+      "detail": "http://localhost:3037/demo/pierre"
+    },
+    {
+      "message": "je ne veux pas acheter Pierre, seulement voir la démo",
+      "kind": "negation",
+      "ok": true,
+      "detail": "La démo immersive est sur Démo (version centrée Pierre : Démo Pierre) "
+    }
+  ]
+}

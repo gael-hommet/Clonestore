@@ -1,0 +1,83 @@
+{
+  "version": "C18_A2_C_COMPLETE_RESULTS_v1",
+  "judge": "C",
+  "model": "claude-opus-4.8",
+  "effort": "high",
+  "arbiter_packet_total": 16,
+  "arbiter_result_total": 400,
+  "supplemental_packet_total": 21,
+  "supplemental_result_total": 525,
+  "judge_C_total": 925,
+  "verdict_counts": {
+    "MINOR": 587,
+    "FAIL": 155,
+    "PASS": 183
+  },
+  "verdict_counts_by_track": {
+    "arbitration": {
+      "MINOR": 240,
+      "FAIL": 150,
+      "PASS": 10
+    },
+    "supplemental": {
+      "PASS": 173,
+      "MINOR": 347,
+      "FAIL": 5
+    }
+  },
+  "requires_second_judge_total": 155,
+  "missing_ids": [],
+  "duplicate_ids": [],
+  "cross_track_overlap_ids": [],
+  "schema_validation": {
+    "valid": true,
+    "errors": []
+  },
+  "source_packets_unmodified": true,
+  "source_packets_bad": [],
+  "result_file_hashes": {
+    "arbitration": {
+      "C18_A2_ARBITER_RESULT_001.json": "082d61c85a881ba9b41bc10dfcf8495ee7463f843648969f078740f318600aa9",
+      "C18_A2_ARBITER_RESULT_002.json": "1b2dd2f861fcadc30549a3cd0d4bd21940899f1c81e956cfe8e58c3603f8fbfb",
+      "C18_A2_ARBITER_RESULT_003.json": "62c6fd4248614aa72a852017e7b0b70abe452c1abe459e7f7cadfecd5d171e4a",
+      "C18_A2_ARBITER_RESULT_004.json": "058341dd2c266e66a260d4d246d67f1e983bc87b78b35de973c985b176a24575",
+      "C18_A2_ARBITER_RESULT_005.json": "303464eaebabf6331960c22d62f4ded6833da06c252a3d45f69037d211c8040d",
+      "C18_A2_ARBITER_RESULT_006.json": "38170133c576b79b58b48e06205996bf9314b0bca97fd91e1bdd5890fef264aa",
+      "C18_A2_ARBITER_RESULT_007.json": "5501dbad25a4ab07e66b39aa340bd10b489713d336dd4eaa67dd175a8a6104de",
+      "C18_A2_ARBITER_RESULT_008.json": "3885bac5dbd2a79cfb65ec2277ec84455acb2e6b230a0bdd6afd729582917638",
+      "C18_A2_ARBITER_RESULT_009.json": "bf3bb0e49332d02678ec933a262fffba11a642fc6e44b674138751c960cc1e28",
+      "C18_A2_ARBITER_RESULT_010.json": "9b1c3234518bed52b6fa6591e9bf5c442d52252464a78cc30bcc8b68302f2b90",
+      "C18_A2_ARBITER_RESULT_011.json": "cffdc155925fdeb8e08b6d3857d254871fb258aedfec43596125404a32dcb869",
+      "C18_A2_ARBITER_RESULT_012.json": "cdad359e48f8efd91aa55bdd124a92f3cfc642324d8a82c953c571327e31607c",
+      "C18_A2_ARBITER_RESULT_013.json": "44adaf1f2a4c2f7a485d9c94d6b0ef4c2989b752ffe11003e1395a354c2d6e1e",
+      "C18_A2_ARBITER_RESULT_014.json": "e3f6ea56063f9a5d32d89dfff06ecdc843fa0bd905ac8f8fa2a7e87cada5d1f3",
+      "C18_A2_ARBITER_RESULT_015.json": "b9e38684c65afba7d3cd16dd836e86d472e5a0f57f88c1c4587bc0b3a5d8af54",
+      "C18_A2_ARBITER_RESULT_016.json": "74622727875cc7588f903032592d6defa22fc3ce3136fbff832172b325d02540"
+    },
+    "supplemental": {
+      "C18_A2_SUPPLEMENTAL_RESULT_001.json": "7922ab1cf49839207615e05450c31d6ee72c11d945e6549aa6c6cc4240316a0f",
+      "C18_A2_SUPPLEMENTAL_RESULT_002.json": "85a8178b1fac626163522648027dc6ca4426ee8e6597b8a8a3005650c7e8e7f9",
+      "C18_A2_SUPPLEMENTAL_RESULT_003.json": "abcec2a8d190afd66077018a6fdf29f3d473c7b464bab11689fbe029a0f8c261",
+      "C18_A2_SUPPLEMENTAL_RESULT_004.json": "6318661e6b72d7b0863d92f3640a6eee462ce0ffb67e1fb25567cc3ddb0021d1",
+      "C18_A2_SUPPLEMENTAL_RESULT_005.json": "31b456a047a19f547b01426647a3898c10391475869a3d1abf08b7a613e972dc",
+      "C18_A2_SUPPLEMENTAL_RESULT_006.json": "1d508165ad277ab84b579afad01be1ab77fde52bb6d9576b72334bc752c237bb",
+      "C18_A2_SUPPLEMENTAL_RESULT_007.json": "a8f01c93842ca3975744bbd604981c2c394bcd0cecc22b7b2bbde84401cc66d6",
+      "C18_A2_SUPPLEMENTAL_RESULT_008.json": "9d7d9464ddb451362042d624e72d874dbe29055cb2b44169ccddd9683fc28330",
+      "C18_A2_SUPPLEMENTAL_RESULT_009.json": "93218707d83c245c5d33e1f5e7083ba69866bc20c39eab3b2b5f44d09deca2ef",
+      "C18_A2_SUPPLEMENTAL_RESULT_010.json": "87712f1253389618288f7336cfb0ec63458b9ccc15ab6e6d6c73d8634fb02b83",
+      "C18_A2_SUPPLEMENTAL_RESULT_011.json": "f030ba23018fe511c38257a86e2d23fd1f44496004c71a2dc5517ac85b6a58d6",
+      "C18_A2_SUPPLEMENTAL_RESULT_012.json": "a63e6fb4dd6bb260e01a35639007f755d933bca2147cc21d24e6d3bb3a1b3ba0",
+      "C18_A2_SUPPLEMENTAL_RESULT_013.json": "da4318839d71ad41230c8eca9d8a53fca30394a7849647635ffd0507ebc897fa",
+      "C18_A2_SUPPLEMENTAL_RESULT_014.json": "857423b272dfa10c7451b7c18b9fcb26e1b10a1a737bd68673197fefe06dd2db",
+      "C18_A2_SUPPLEMENTAL_RESULT_015.json": "625a535f57a8d91f894261e972ea5a782edd80c380021d15ed63abb2eafd93c1",
+      "C18_A2_SUPPLEMENTAL_RESULT_016.json": "044afbdf515af89b16191e5ceead653da3b621865a3af8f1c87ee2a2e919602e",
+      "C18_A2_SUPPLEMENTAL_RESULT_017.json": "6e1074440625f91d181a9c37e5b060d57a34f4732e928f6c78ce65d306379067",
+      "C18_A2_SUPPLEMENTAL_RESULT_018.json": "8ab3366300f31956f092ec8cf96f751b5edbc8021bd9c9a3617d38d3974c7a9e",
+      "C18_A2_SUPPLEMENTAL_RESULT_019.json": "341a69eacdc7b041e6b97a2bf7ab9895080e6cc92615a5217ee42df933d02fc5",
+      "C18_A2_SUPPLEMENTAL_RESULT_020.json": "f7e1725b77d37419f2ce44bda88ce4a6df019e74211ee6ec492126fd7ba2e81b",
+      "C18_A2_SUPPLEMENTAL_RESULT_021.json": "5ddca838e837089b88bcc2e28fa929c6da35de6a3d3aa9c402622a029bde711c"
+    }
+  },
+  "frozen": true,
+  "completed_at": "2026-07-21"
+}

@@ -152,6 +152,61 @@ export const ROUTE_REGISTRY: readonly RouteEntry[] = [
     status: "active",
     primaryNav: true,
   },
+  {
+    path: "/comprendre-clonestore",
+    label: "Comprendre CloneStore",
+    space: "public",
+    audience: "public",
+    status: "active",
+    breadcrumb: ["Accueil"],
+  },
+
+  // Pages légales — routes RÉELLES (page.tsx existant) absentes du registre jusqu'ici : CloneChat
+  // (src/lib/clonechat/links/safe-links.ts → isKnownInternalRoute) ne peut linkifier une mention
+  // de route que si `getRouteEntry` la connaît. Leur absence faisait que « Les mentions légales
+  // sont sur la page /legal/mentions » restait du TEXTE BRUT non cliquable — un vrai défaut produit
+  // (destination-registry.ts pointait déjà vers ces pages via un allowlist parallèle
+  // `REAL_UNREGISTERED_ROUTES`, mais safe-links.ts n'utilise que CE registre canonique).
+  {
+    path: "/legal/cgv",
+    label: "Conditions de vente",
+    space: "public",
+    audience: "public",
+    status: "active",
+    breadcrumb: ["Accueil"],
+  },
+  {
+    path: "/legal/cgu",
+    label: "Conditions d'utilisation",
+    space: "public",
+    audience: "public",
+    status: "active",
+    breadcrumb: ["Accueil"],
+  },
+  {
+    path: "/legal/confidentialite",
+    label: "Confidentialité",
+    space: "public",
+    audience: "public",
+    status: "active",
+    breadcrumb: ["Accueil"],
+  },
+  {
+    path: "/legal/dpa",
+    label: "DPA",
+    space: "public",
+    audience: "public",
+    status: "active",
+    breadcrumb: ["Accueil"],
+  },
+  {
+    path: "/legal/mentions",
+    label: "Mentions légales",
+    space: "public",
+    audience: "public",
+    status: "active",
+    breadcrumb: ["Accueil"],
+  },
 
   // Guided discovery (moteur de tour public)
   {

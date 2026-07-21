@@ -1,0 +1,232 @@
+{
+  "version": "C18_A2_REMEDIATION_PLAN_v1",
+  "objet": "Carte cause racine → comportement fautif → module responsable → correction générale → tests de contrat → IDs de régression. Aucune correction ne cible un ID : les IDs ne servent qu'à mesurer la régression.",
+  "sources_de_verite": [
+    ".c1-8-reopened-proofs/a2/c/C18_A2_FINAL_AUDIT.md",
+    ".c1-8-reopened-proofs/a2/c/C18_A2_FINAL_DEFECTS.json",
+    ".c1-8-reopened-proofs/a2/c/C18_A2_FINAL_VERDICTS.json",
+    ".c1-8-reopened-proofs/a2/C18_A2_CANONICAL_REFERENCE.md",
+    ".c1-8-reopened-proofs/a2/C18_A2_BLIND_JUDGING_RUBRIC.md"
+  ],
+  "diagnostic_architectural": {
+    "surface_mesuree": "answerPublicQuestion → runParrainTurn (visiteur public, responder=null ⇒ chemin déterministe)",
+    "constat": "1003 réponses ne produisent que 29 gabarits distincts. Le texte public provient de compose() dans clonechat-answer-engine.ts, piloté par routeCloneChatQuestion (13 règles regex très larges). Le CTA, lui, provient d'une SECONDE taxonomie (intent-taxonomy.ts). Les deux divergent : d'où texte tarifaire + CTA support sur un double débit.",
+    "causes_structurelles": [
+      "Le routeur hérité classe en `pricing` tout message contenant « combien | euros | payer | prix » — y compris « combien de langues », « combien de pannes », « on m'a facturé 449 ».",
+      "La catégorie `roadmap` (déclenchée par « quand », « bientôt ») rend la feuille de route interne avec les noms de phases.",
+      "`site_navigation` (déclenchée par « où », « page », « lien ») rend le plan du site sur des incidents.",
+      "La branche `default` rend « Je préfère ne pas improviser » pour 502 messages, y compris des faits canoniques connus.",
+      "`legal_or_compliance` (déclenchée par « contrat », « juridique ») renvoie /legal/cgu pour toute demande de document RH et pour les CGV.",
+      "Le message de délégation Pierre bloquée (« Le travail RH exige une entreprise authentifiée ») est concaténé en suffixe sur des questions publiques.",
+      "runSupportTurn interpole la catégorie brute dans le texte ⇒ « (unknown) » visible."
+    ],
+    "strategie": "Construire une COUCHE PUBLIQUE unique et déterministe (src/lib/clonechat/public-answer/) : classification de SITUATION prioritaire → composition d'une réponse honnête → destination canonique cohérente texte/CTA → garde de sortie fail-closed. Elle s'insère en tête de runParrainTurn pour le viewer public sans pièce jointe ni image ; tout le reste du pipeline (tenant, attachements, modèle, support runtime) est inchangé. La garde de sortie s'applique AUSSI aux réponses du modèle."
+  },
+  "modules_crees": [
+    "src/lib/clonechat/public-answer/public-canon.ts",
+    "src/lib/clonechat/public-answer/public-situation.ts",
+    "src/lib/clonechat/public-answer/public-composer.ts",
+    "src/lib/clonechat/public-answer/public-output-guard.ts",
+    "src/lib/clonechat/public-answer/index.ts"
+  ],
+  "modules_modifies": [
+    "src/lib/clonechat/intelligence/c1-1/parrain-turn-runtime.ts",
+    "src/lib/clonechat/navigation/destination-registry.ts",
+    "src/lib/clonechat/navigation/intent-taxonomy.ts",
+    "src/lib/clonechat/intelligence/c1/clonechat-answer-engine.ts",
+    "src/lib/clonechat/intelligence/c1-1/parrain-support-runtime.ts"
+  ],
+  "clusters": [
+    {
+      "root_cause": "argumentaire_prix_hors_sujet",
+      "severity": "critical",
+      "cases": 41,
+      "fails": 41,
+      "comportement_fautif": "Sur un double débit, un remboursement, un paiement échoué, un bouton cassé ou une question de capacité, la réponse est la grille tarifaire + CTA d'achat.",
+      "module_responsable": "clonechat-answer-router.ts (règle `pricing` trop large) + compose() case pricing",
+      "correction_generale": "Classification de SITUATION en amont : `incident_*` et `capability_question` sont résolues AVANT toute lecture tarifaire. Garde de sortie `assertNoCommercialPressure` : sur une situation incident/litige/support, tout fragment tarifaire, toute mention de réservation et tout CTA commercial sont interdits (fail-closed : la réponse est recomposée).",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-incidents.test.ts", "public-answer/__tests__/c18-a2-guard.test.ts"],
+      "ids_regression": [21, 22, 24, 35, 38, 61, 63, 65, 99, 109, 138, 244, 293, 303, 313, 330, 334, 348, 353, 359, 379, 384, 389, 395, 408, 416, 417, 431, 436, 438, 462, 479, 710, 794, 869, 874, 894, 898, 913, 922, 942]
+    },
+    {
+      "root_cause": "limites_ou_capacites_non_expliquees",
+      "severity": "high",
+      "cases": 121,
+      "fails": 26,
+      "comportement_fautif": "Question de capacité/limite (langues, effectif, missions, paie, propriété des documents, ancienneté, nombre de clients, garantie) répondue par une description générique ou une dérobade.",
+      "module_responsable": "clonechat-answer-engine.ts (aucune connaissance de capacité) ",
+      "correction_generale": "Base de faits `PUBLIC_CAPABILITY_FACTS` : chaque sujet porte une réponse honnête (fait canonique OU « nous ne publions pas cette donnée » explicite), jamais une invention. Réponse directe puis destination cohérente (/agents/pierre, /agents, /questions, /legal/*).",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-capabilities.test.ts"],
+      "ids_regression": [7, 20, 25, 27, 33, 34, 36, 37, 39, 43, 44, 46, 49, 56, 59, 62, 71, 79, 80, 85, 93, 94, 95, 97, 98, 102, 105, 115, 121, 125, 132, 135, 137, 139, 140, 144, 145, 149, 171, 173, 176, 180, 181, 191, 192, 209, 217, 221, 225, 226, 227, 228, 235, 239, 246, 248, 263, 264, 267, 276, 281, 282, 287, 290, 294, 298, 306, 309, 310, 321, 323, 331, 342, 352, 360, 383, 387, 398, 400, 405, 410, 419, 432, 442, 444, 446, 491, 557, 560, 572, 574, 580, 592, 610, 628, 629, 640, 649, 663, 665, 675, 728, 732, 776, 778, 792, 798, 816, 836, 840, 856, 868, 871, 878, 893, 903, 908, 925, 939, 952, 963]
+    },
+    {
+      "root_cause": "plan_du_site_hors_sujet",
+      "severity": "high",
+      "cases": 24,
+      "fails": 15,
+      "comportement_fautif": "« Les pages clés : /demo … Quelle page cherchez-vous ? » servi sur un incident, une facture ou une question produit.",
+      "module_responsable": "clonechat-answer-router.ts règle 9 (`où|page|lien`) + compose() case site_navigation",
+      "correction_generale": "Le gabarit « pages clés » disparaît de la voie publique. Une intention de navigation ne peut être servie que si la situation est `navigation` (aucune autre situation prioritaire) ; sinon on répond au sujet réellement posé.",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-navigation.test.ts"],
+      "ids_regression": [10, 142, 160, 189, 213, 224, 292, 302, 307, 312, 333, 376, 397, 403, 423, 427, 449, 521, 588, 647, 719, 847, 883, 999]
+    },
+    {
+      "root_cause": "pays_non_repondu_ou_errone",
+      "severity": "critical",
+      "cases": 14,
+      "fails": 12,
+      "comportement_fautif": "Canada, Maroc, Québec, États-Unis, Berlin, Londres : la restriction FR/BE/LU/CH n'est pas énoncée ; un Genevois reçoit le tarif français ; on pousse à réserver pour un pays non couvert.",
+      "module_responsable": "compose() case country_availability (4 pays reconnus seulement) + intent-taxonomy règle 6",
+      "correction_generale": "Résolveur pays public : dictionnaire pays/ville (dedans ET dehors du lancement). Pays de lancement ⇒ oui + tarif du pays cité. Hors lancement ⇒ « pas encore couvert », AUCUN CTA de réservation, aucune promesse. Aucun pays cité ⇒ énoncer les 4 pays et les deux tarifs.",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-country.test.ts"],
+      "ids_regression": [54, 91, 104, 178, 215, 231, 237, 271, 295, 624, 863, 895, 904, 979]
+    },
+    {
+      "root_cause": "dump_roadmap_interne",
+      "severity": "critical",
+      "cases": 11,
+      "fails": 11,
+      "comportement_fautif": "Noms de phases internes (P16A, P16C, T1/T2, C1) et texte de chantier déversés sur des messages sans rapport, y compris des pannes.",
+      "module_responsable": "clonechat-roadmap-knowledge.ts rendu via compose() case roadmap",
+      "correction_generale": "La voie publique ne rend plus jamais la feuille de route interne. Garde de sortie `INTERNAL_TOKEN_RX` (P\\d+[A-Z]?, T1/T2, C1.x, « feuille de route interne », noms de phases, vocabulaire QA) : détection ⇒ réponse recomposée en langage client (fail-closed).",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-guard.test.ts"],
+      "ids_regression": [90, 316, 388, 411, 433, 681, 686, 708, 734, 749, 828]
+    },
+    {
+      "root_cause": "action_privee_sans_explication_connexion",
+      "severity": "high",
+      "cases": 79,
+      "fails": 10,
+      "comportement_fautif": "Demande de donnée privée ou d'action entreprise : rien n'est inventé (bon), mais la condition d'accès n'est jamais expliquée ; renvoi fréquent vers /demo ou /legal/cgu.",
+      "module_responsable": "parrain-pierre-delegation.ts (suffixe technique) + compose() case legal_or_compliance",
+      "correction_generale": "Situations `hr_document_request` et `private_data_request` : on explique ce que Pierre prépare, on énonce le plancher humain, on indique qu'un compte et une entreprise associée sont nécessaires, CTA /agents/pierre (découverte) ou /login (données existantes). Jamais /legal/cgu, jamais /demo.",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-private-access.test.ts"],
+      "ids_regression": [8, 9, 29, 52, 66, 73, 84, 110, 113, 122, 143, 328, 341, 358, 392, 399, 404, 447, 448, 451, 454, 456, 457, 463, 467, 468, 471, 472, 473, 475, 478, 481, 482, 485, 486, 487, 490, 493, 496, 499, 500, 501, 502, 504, 505, 509, 510, 511, 514, 516, 519, 524, 525, 526, 527, 531, 532, 535, 537, 541, 548, 549, 575, 579, 620, 669, 687, 897, 909, 918, 929, 945, 955, 960, 962, 970, 975, 982, 993]
+    },
+    {
+      "root_cause": "correction_ou_negation_ignoree",
+      "severity": "critical",
+      "cases": 47,
+      "fails": 10,
+      "comportement_fautif": "« je n'ai jamais dit vouloir m'inscrire » ⇒ invitation à s'inscrire ; « pas la Belgique, la France » ⇒ pays écarté redonné ; « laisse tomber » ⇒ CTA relancé.",
+      "module_responsable": "intent-taxonomy.ts (CORRECTION partielle, aucune gestion d'abandon ni de déni)",
+      "correction_generale": "Situation `negation_correction` prioritaire, trois formes : (a) ABANDON ⇒ accusé de réception court, AUCUN CTA ; (b) DÉNI d'intention attribuée ⇒ on reconnaît, on ne repropose JAMAIS la destination niée, on demande ce qu'il faut ; (c) CORRECTION de valeur (pays, page, type de compte, employé) ⇒ la valeur corrigée remplace l'ancienne.",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-negation.test.ts"],
+      "ids_regression": [234, 371, 377, 412, 651, 652, 653, 654, 656, 657, 660, 667, 668, 672, 676, 678, 683, 684, 685, 690, 691, 693, 694, 695, 696, 697, 701, 702, 703, 704, 705, 709, 712, 713, 715, 717, 725, 727, 729, 731, 733, 737, 740, 743, 781, 940, 989]
+    },
+    {
+      "root_cause": "reponse_generique_de_derobade",
+      "severity": "high",
+      "cases": 253,
+      "fails": 8,
+      "comportement_fautif": "« Je préfère ne pas improviser : je n'ai pas de réponse canonique fiable » servi 502 fois, jusque sur « Bonjour ».",
+      "module_responsable": "clonechat-answer-engine.ts branche default",
+      "correction_generale": "Le gabarit disparaît de la voie publique. Les faits canoniques (identité, Pierre, prix, pays, démo, partenaires, connexion, inscription, absence d'essai gratuit, validation humaine, routes légales) sont répondus. Salutation ⇒ accueil normal. Vraie ambiguïté ⇒ question courte et naturelle, sans vocabulaire interne (« canonique », « improviser » interdits par la garde).",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-no-dodge.test.ts"],
+      "ids_regression": [11, 13, 14, 23, 32, 40, 42, 45, 58, 75, 78, 81, 82, 108, 111, 118, 123, 126, 130, 136, 147, 168, 169, 187, 195, 208, 229, 233, 240, 257, 275, 277, 280, 283, 285, 286, 289, 297, 304, 305, 318, 320, 322, 324, 327, 329, 332, 337, 338, 340, 347, 354, 355, 362, 370, 372, 373, 378, 380, 393, 406, 407, 420, 424, 426, 445, 452, 455, 459, 460, 464, 466, 476, 477, 483, 494, 497, 506, 507, 508, 512, 517, 520, 522, 523, 529, 539, 540, 542, 545, 546, 547, 555, 561, 565, 566, 569, 571, 578, 581, 582, 585, 586, 590, 593, 595, 597, 599, 605, 611, 614, 615, 617, 618, 621, 623, 625, 627, 632, 634, 635, 636, 637, 639, 642, 644, 645, 650, 655, 659, 662, 664, 670, 671, 673, 677, 688, 692, 700, 711, 714, 716, 718, 720, 721, 724, 726, 730, 736, 739, 742, 744, 751, 753, 754, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 777, 779, 780, 783, 785, 786, 787, 788, 789, 790, 793, 795, 796, 797, 799, 801, 803, 805, 806, 807, 808, 809, 810, 811, 812, 814, 815, 817, 820, 821, 822, 823, 824, 825, 826, 827, 831, 833, 834, 835, 838, 839, 841, 842, 848, 849, 850, 851, 860, 864, 876, 880, 882, 884, 885, 886, 889, 891, 910, 916, 919, 941, 943, 948, 954, 959, 964, 972, 974, 978, 981, 983, 990, 991, 992, 994, 1001, 1002]
+    },
+    {
+      "root_cause": "support_mal_route",
+      "severity": "high",
+      "cases": 8,
+      "fails": 8,
+      "comportement_fautif": "Incidents et litiges routés vers /demo, /reserver/pierre ou /profile ; « je veux acheter » routé vers /demo ; « ramène-moi à l'accueil » vers /demo.",
+      "module_responsable": "intent-taxonomy.ts (priorité) + linksFor() hérité",
+      "correction_generale": "Table de destination unique par situation : incident/litige/blocage ⇒ /questions en CTA principal ; achat ⇒ /reserver/pierre ; accueil ⇒ / (destination `home` ajoutée au registre). Le texte et le CTA proviennent du même objet : ils ne peuvent plus diverger.",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-routing.test.ts"],
+      "ids_regression": [67, 182, 230, 375, 386, 422, 450, 609]
+    },
+    {
+      "root_cause": "validation_humaine_non_explicitee",
+      "severity": "critical",
+      "cases": 58,
+      "fails": 6,
+      "comportement_fautif": "Le plancher humain est tenu en pratique mais énoncé dans une minorité de réponses ; « as-tu le droit de licencier ? » reste sans réponse.",
+      "module_responsable": "aucun module ne porte le plancher hors délégation bloquée",
+      "correction_generale": "Bloc `HUMAN_FLOOR` obligatoire sur toute situation d'acte RH sensible (licenciement, sanction, salaire, signature, contournement de validation, autonomie totale) ET réponse directe aux questions de gouvernance. Garde : une situation `governance_limit` sans mention du plancher est recomposée.",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-governance.test.ts"],
+      "ids_regression": [4, 30, 53, 72, 88, 89, 106, 124, 127, 131, 439, 453, 458, 465, 469, 470, 474, 480, 484, 488, 492, 495, 498, 503, 513, 515, 518, 528, 530, 534, 536, 538, 543, 564, 583, 600, 612, 631, 641, 748, 853, 855, 858, 862, 865, 879, 888, 911, 923, 931, 932, 936, 938, 946, 951, 966, 971, 984]
+    },
+    {
+      "root_cause": "legal_cgv_mentions_mal_routees",
+      "severity": "high",
+      "cases": 11,
+      "fails": 5,
+      "comportement_fautif": "CGU servies quelle que soit la page légale demandée ; CTA contredisant le texte.",
+      "module_responsable": "intent-taxonomy.ts règle `legal_information` (destination unique legal_cgu)",
+      "correction_generale": "Table de routage légal exacte : CGV→/legal/cgv, CGU→/legal/cgu, mentions→/legal/mentions, confidentialité/RGPD/données personnelles→/legal/confidentialite, DPA→/legal/dpa. Le nom du document cité dans le texte est celui du CTA (invariant vérifié par la garde).",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-legal-routes.test.ts"],
+      "ids_regression": [161, 177, 197, 207, 232, 258, 274, 489, 562, 619, 682]
+    },
+    {
+      "root_cause": "placeholder_ou_texte_parasite",
+      "severity": "high",
+      "cases": 47,
+      "fails": 1,
+      "comportement_fautif": "« (unknown) » affiché en clair ; « Le travail RH exige une entreprise authentifiée » collé en fin de réponse publique.",
+      "module_responsable": "parrain-support-runtime.ts (interpolation de catégorie) + parrain-pierre-delegation.ts (suffixe)",
+      "correction_generale": "Le libellé de catégorie est traduit en langage client et omis s'il est inconnu ; le suffixe de délégation est remplacé par une explication d'accès en langage client, et n'est jamais concaténé à une question publique. Garde `PLACEHOLDER_RX` fail-closed.",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-guard.test.ts"],
+      "ids_regression": [114, 148, 150, 155, 200, 250, 256, 301, 311, 314, 319, 326, 336, 339, 343, 345, 346, 349, 350, 361, 366, 367, 381, 394, 396, 401, 415, 421, 428, 435, 437, 440, 443, 533, 544, 558, 559, 591, 608, 661, 707, 747, 844, 846, 967, 980, 1000]
+    },
+    {
+      "root_cause": "login_signup_mal_traites",
+      "severity": "high",
+      "cases": 32,
+      "fails": 1,
+      "comportement_fautif": "Renvoi vers /login à des utilisateurs qui échouent déjà sur cette page ; réinitialisation jamais nommée ; ordre des étapes jamais explicité ; déni d'inscription contredit.",
+      "module_responsable": "intent-taxonomy.ts (login/signup) + absence de traitement de l'échec",
+      "correction_generale": "Trois situations distinctes : `login_help` (accès), `signup_help` (création, avec l'ordre des étapes), `incident_access` (échec répété/mot de passe/code ⇒ réinitialisation nommée + /questions).",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-auth.test.ts"],
+      "ids_regression": [170, 206, 214, 247, 249, 266, 300, 315, 325, 335, 351, 357, 382, 390, 391, 402, 413, 418, 441, 633, 646, 679, 698, 738, 782, 845, 902, 935, 950, 958, 976, 995]
+    },
+    {
+      "root_cause": "faux_succes_ou_invention_non_refuses",
+      "severity": "high",
+      "cases": 16,
+      "fails": 1,
+      "comportement_fautif": "Aucun faux succès produit (sûr) mais la demande de falsification/manipulation n'est jamais refusée explicitement ; une prémisse fausse n'est jamais démentie.",
+      "module_responsable": "aucun module ne porte de refus nommé",
+      "correction_generale": "Situation `illicit_request` (falsification, antidatage, usurpation, piratage, ordre financier, données d'un tiers, secrets) ⇒ refus nommé, bref, sans publicité. Situation `false_premise` ⇒ démenti explicite du fait faux (prix, employé inexistant, agrément, garantie).",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-refusals.test.ts"],
+      "ids_regression": [28, 291, 374, 877, 906, 930, 933, 947, 953, 956, 961, 968, 969, 986, 988, 998]
+    },
+    {
+      "root_cause": "hors_perimetre_mal_refuse",
+      "severity": "medium",
+      "cases": 18,
+      "fails": 0,
+      "comportement_fautif": "Demande hors périmètre (pizza, recette, script Python) : rien n'est promis mais la limite n'est jamais énoncée.",
+      "module_responsable": "branche default de compose()",
+      "correction_generale": "Situation `out_of_scope` dédiée : on dit simplement que le sujet sort du périmètre CloneStore et on recentre en une phrase.",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-refusals.test.ts"],
+      "ids_regression": [568, 852, 857, 859, 861, 866, 870, 872, 875, 887, 896, 899, 900, 905, 914, 917, 921, 924]
+    },
+    {
+      "root_cause": "injection_non_refusee_explicitement",
+      "severity": "medium",
+      "cases": 12,
+      "fails": 0,
+      "comportement_fautif": "Injections neutralisées en pratique mais traitées par une dérobade générique, jamais nommées comme refusées.",
+      "module_responsable": "aucun refus explicite sur la voie publique déterministe",
+      "correction_generale": "Situation `prompt_injection` : refus nommé + rappel du cadre + réponse au fait canonique sous-jacent quand il existe (prix ferme, validations non contournables, aucune donnée d'une autre entreprise). Aucun secret, aucune consigne interne, aucun mode « développeur » reconnu.",
+      "tests_de_contrat": ["public-answer/__tests__/c18-a2-refusals.test.ts"],
+      "ids_regression": [117, 616, 920, 927, 928, 934, 937, 944, 957, 965, 985, 996]
+    }
+  ],
+  "invariants_de_securite_preserves": [
+    "aucune route inventée (toute destination provient du registre et est revalidée)",
+    "aucun faux succès (aucune action n'est jamais déclarée exécutée)",
+    "aucune fuite de prompt système ni de secret",
+    "aucune donnée tenant sur la voie publique",
+    "aucun contournement de validation",
+    "planchers P10/P14/P15 intacts (prix, pays, production non autorisée)"
+  ],
+  "gate_de_sortie": {
+    "tests_cibles": "src/lib/clonechat/public-answer/__tests__/*",
+    "suite_clonechat": "npx vitest run src/lib/clonechat",
+    "typescript": "tsc --noEmit",
+    "build_isole": "distDir .next-c18-a2-remediation",
+    "recapture": "1003 messages, mêmes IDs, même ordre, réponses complètes"
+  }
+}

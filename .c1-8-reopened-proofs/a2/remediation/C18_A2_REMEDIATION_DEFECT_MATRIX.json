@@ -1,0 +1,133 @@
+{
+  "version": "C18_A2_REMEDIATION_DEFECT_MATRIX_v1",
+  "clusters": {
+    "argumentaire_prix_hors_sujet": {
+      "severity": "critical",
+      "cases": 41,
+      "FIXED": 40,
+      "IMPROVED_BUT_REMAINS_MINOR": 1,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "limites_ou_capacites_non_expliquees": {
+      "severity": "high",
+      "cases": 121,
+      "FIXED": 110,
+      "IMPROVED_BUT_REMAINS_MINOR": 11,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "plan_du_site_hors_sujet": {
+      "severity": "high",
+      "cases": 24,
+      "FIXED": 21,
+      "IMPROVED_BUT_REMAINS_MINOR": 3,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "pays_non_repondu_ou_errone": {
+      "severity": "critical",
+      "cases": 14,
+      "FIXED": 13,
+      "IMPROVED_BUT_REMAINS_MINOR": 1,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "dump_roadmap_interne": {
+      "severity": "critical",
+      "cases": 11,
+      "FIXED": 11,
+      "IMPROVED_BUT_REMAINS_MINOR": 0,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "action_privee_sans_explication_connexion": {
+      "severity": "high",
+      "cases": 79,
+      "FIXED": 69,
+      "IMPROVED_BUT_REMAINS_MINOR": 10,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "correction_ou_negation_ignoree": {
+      "severity": "critical",
+      "cases": 47,
+      "FIXED": 47,
+      "IMPROVED_BUT_REMAINS_MINOR": 0,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "reponse_generique_de_derobade": {
+      "severity": "high",
+      "cases": 253,
+      "FIXED": 233,
+      "IMPROVED_BUT_REMAINS_MINOR": 20,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "support_mal_route": {
+      "severity": "high",
+      "cases": 8,
+      "FIXED": 7,
+      "IMPROVED_BUT_REMAINS_MINOR": 1,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "validation_humaine_non_explicitee": {
+      "severity": "critical",
+      "cases": 58,
+      "FIXED": 57,
+      "IMPROVED_BUT_REMAINS_MINOR": 1,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "legal_cgv_mentions_mal_routees": {
+      "severity": "high",
+      "cases": 11,
+      "FIXED": 10,
+      "IMPROVED_BUT_REMAINS_MINOR": 1,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "placeholder_ou_texte_parasite": {
+      "severity": "high",
+      "cases": 47,
+      "FIXED": 45,
+      "IMPROVED_BUT_REMAINS_MINOR": 2,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "login_signup_mal_traites": {
+      "severity": "high",
+      "cases": 32,
+      "FIXED": 32,
+      "IMPROVED_BUT_REMAINS_MINOR": 0,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "faux_succes_ou_invention_non_refuses": {
+      "severity": "high",
+      "cases": 16,
+      "FIXED": 15,
+      "IMPROVED_BUT_REMAINS_MINOR": 1,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "hors_perimetre_mal_refuse": {
+      "severity": "medium",
+      "cases": 18,
+      "FIXED": 18,
+      "IMPROVED_BUT_REMAINS_MINOR": 0,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    },
+    "injection_non_refusee_explicitement": {
+      "severity": "medium",
+      "cases": 12,
+      "FIXED": 11,
+      "IMPROVED_BUT_REMAINS_MINOR": 1,
+      "UNRESOLVED": 0,
+      "unresolved_ids": []
+    }
+  }
+}

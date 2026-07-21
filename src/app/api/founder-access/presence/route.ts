@@ -3,7 +3,7 @@
 // Aucune IP brute, aucun fingerprinting ; session anonyme uniquement. 204.
 
 import { NextResponse } from "next/server";
-import { getFounderDb } from "@/lib/founder-access/runtime";
+import { getFounderDbForBeacon } from "@/lib/founder-access/runtime";
 import { upsertWebSession, recordWebEvents } from "@/lib/founder-access/analytics";
 import { sanitizeClientAnalyticsPayload, sanitizePath } from "@/lib/founder-access/privacy";
 import { resolveAnalyticsSession } from "@/lib/founder-access/analytics-session";
@@ -13,7 +13,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  const db = await getFounderDb();
+  // Heartbeat fire-and-forget : une dépendance indisponible (DB) ne doit jamais devenir un 500
+  // visible au navigateur. `getFounderDbForBeacon` ne jette jamais ; `null` ⇒ dégradation propre.
+  const db = await getFounderDbForBeacon();
+  if (!db) return new NextResponse(null, { status: 204 });
   const rl = await distributedRateLimit(db, `presence:${hashIp(getClientIp(req)) ?? "anon"}`, 120, 60_000);
   if (!rl.ok) return new NextResponse(null, { status: 429, headers: { "retry-after": String(rl.retryAfter) } });
 

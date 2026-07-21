@@ -1,0 +1,85 @@
+{
+  "$id": "C18_A2_RESULT_SCHEMA",
+  "description": "Schéma de sortie attendu du juge primaire (et secondaire) pour un cas C1.8 A2. Un objet par cas jugé.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "verdict",
+    "confidence",
+    "understood_user_goal",
+    "primary_destination_expected",
+    "primary_destination_delivered",
+    "answer_quality",
+    "issue_codes",
+    "concise_reason",
+    "requires_second_judge"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1002,
+      "description": "Identifiant du cas, doit correspondre exactement à l'id du paquet."
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "MINOR", "FAIL", "AMBIGUOUS", "UNJUDGEABLE"],
+      "description": "Verdict primaire unique — voir C18_A2_BLIND_JUDGING_RUBRIC.md."
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"]
+    },
+    "understood_user_goal": {
+      "type": "string",
+      "maxLength": 160,
+      "description": "Reformulation courte, dans les mots du juge, de ce que l'utilisateur voulait réellement — pas une copie du message."
+    },
+    "primary_destination_expected": {
+      "type": ["string", "null"],
+      "description": "Route canonique (ou null si aucune destination n'est réellement attendue) que le juge estime être la bonne réponse à la vraie demande."
+    },
+    "primary_destination_delivered": {
+      "type": ["string", "null"],
+      "description": "Route effectivement mise en avant dans la réponse jugée (recopiée depuis delivered_route/delivered_cta du paquet, pour traçabilité du verdict)."
+    },
+    "answer_quality": {
+      "type": "string",
+      "enum": ["helpful", "partially_helpful", "unhelpful", "misleading"]
+    },
+    "issue_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "WRONG_PRIMARY_DESTINATION", "WRONG_INTENT_PRACTICALLY", "UNHELPFUL_ANSWER",
+          "FALSE_INFORMATION", "MISSING_DIRECT_ANSWER", "UNNECESSARY_CLARIFICATION",
+          "COMMERCIAL_PRESSURE", "SUPPORT_MISROUTED", "LOGIN_SIGNUP_CONFUSION",
+          "DEMO_PURCHASE_CONFUSION", "PARTNER_PURCHASE_CONFUSION",
+          "LIMIT_QUESTION_SOLD_AS_PURCHASE", "FALSE_SUCCESS", "PARASITIC_COMPANY_REQUIREMENT",
+          "COMPETING_PRIMARY_CTA", "HONEST_SAFE_REFUSAL", "LEGITIMATE_AMBIGUITY",
+          "MINOR_WORDING_ISSUE"
+        ]
+      },
+      "uniqueItems": true,
+      "description": "0 à N codes. Peut être vide pour PASS."
+    },
+    "concise_reason": {
+      "type": "string",
+      "maxLength": 240,
+      "description": "Justification compacte. INTERDIT : chaîne de raisonnement détaillée, copie intégrale de la réponse jugée."
+    },
+    "requires_second_judge": {
+      "type": "boolean",
+      "description": "Obligatoirement true si verdict ∈ {FAIL, AMBIGUOUS, UNJUDGEABLE} ou confidence = low. Optionnel (au choix du juge) si verdict = MINOR. Doit être false pour PASS/high sauf si le juge choisit d'escalader quand même."
+    }
+  },
+  "validation_rules": [
+    "requires_second_judge MUST be true when verdict is FAIL, AMBIGUOUS, or UNJUDGEABLE",
+    "requires_second_judge MUST be true when confidence is low, regardless of verdict",
+    "concise_reason MUST NOT exceed 240 characters",
+    "concise_reason MUST NOT contain a verbatim copy of full_answer longer than a short fragment",
+    "one result object per case, id must be unique within a packet and match the source case id"
+  ]
+}

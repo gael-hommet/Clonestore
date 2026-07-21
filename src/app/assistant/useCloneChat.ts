@@ -28,7 +28,17 @@ import {
   type CockpitValidation,
 } from "@/lib/client-cockpit";
 import type { CloneChatContext } from "@/lib/clonechat/engine";
+import { validatedLinks } from "@/lib/clonechat/links/safe-links";
+import { isAuthBypassEnabled } from "@/lib/auth/dev-bypass";
 import { createReadinessBarrier, DEFAULT_READY_TIMEOUT_MS as READY_TIMEOUT_MS, type ReadinessBarrier } from "@/lib/clonechat/readiness-barrier";
+// C1.8 FINAL PART 2 — Historique ANONYME : local au navigateur, borné, jamais serveur.
+// L'historique AUTHENTIFIÉ continue de passer par le store canonique côté serveur : ce module
+// ne le remplace pas, il couvre le seul cas où il n'existe aucune identité à interroger.
+import {
+  loadLocalConversations, createLocalConversation, appendLocalMessage,
+  deleteLocalConversation, getLocalConversation, LOCAL_HISTORY_DISCLAIMER,
+  type LocalStorageLike,
+} from "@/lib/clonechat/conversations/local-store";
 // Import DIRECT (pas via le barrel openai) : assembleFromStructured est une fonction
 // pure ; passer par le barrel embarquerait client.ts/screenshot.ts (import dynamique
 // du SDK OpenAI, code Node) dans le bundle NAVIGATEUR. On garde le SDK hors client.
@@ -144,6 +154,17 @@ export function useCloneChat() {
       if (raw) { const t = JSON.parse(raw); if (Array.isArray(t)) setMessages(t.slice(-40)); }
     } catch { /* ignore */ }
 
+    // C1.8 P2 — l'historique LOCAL (anonyme) est visible dès l'ouverture. S'il s'avère ensuite
+    // que l'utilisateur est authentifié, `refreshConversations()` écrasera la liste par celle du
+    // SERVEUR : les deux ne se mélangent jamais.
+    try {
+      const st = typeof window !== "undefined" ? window.localStorage : null;
+      if (st) {
+        const local = loadLocalConversations(st);
+        if (local.length > 0) setConversations(local.map((c) => ({ id: c.id, title: c.title, lastActivityAt: c.updatedAt })));
+      }
+    } catch { /* ignore */ }
+
     (async () => {
       let authed = false;
       try {
@@ -160,6 +181,14 @@ export function useCloneChat() {
           if (u.user) authed = true;
         }
       } catch { /* public */ }
+
+      // C1.8 — MODE TEST E2E : en l'absence de session Supabase, on peut néanmoins être
+      // authentifié par le cookie d'identité signé (pont serveur). On réutilise le flag CLIENT
+      // déjà existant de P16E (`NEXT_PUBLIC_E2E_BYPASS_AUTH`, inerte en production) pour que le
+      // CLIENT passe en mode authentifié et emprunte les routes serveur d'historique.
+      // Le bypass client seul n'accorde RIEN : le serveur exige toujours le vrai cookie signé +
+      // le mode test serveur ; sinon il renvoie 401. Le serveur reste l'autorité.
+      if (!authed && isAuthBypassEnabled()) authed = true;
 
       if (!authed) {
         // C1.6 — Visiteur ANONYME : c'est un mode de PLEIN EXERCICE de la conversation, pas un
@@ -246,7 +275,42 @@ export function useCloneChat() {
     try { localStorage.setItem(THREAD_KEY, JSON.stringify(messages.slice(-40))); } catch { /* ignore */ }
   }, [messages]);
 
-  const push = useCallback((m: CloneChatMessage) => setMessages((prev) => [...prev, m]), []);
+  // Accès au stockage local, tolérant (mode privé / stockage désactivé ⇒ null, jamais un crash).
+  const localStore = useCallback((): LocalStorageLike | null => {
+    try { return typeof window !== "undefined" ? window.localStorage : null; } catch { return null; }
+  }, []);
+  /** Anonyme = aucune identité serveur. C'est le SERVEUR qui fait foi ; ici on lit ce qu'il a dit. */
+  const isAnon = useCallback(() => ctxRef.current.mode === "public" && !tokenRef.current, []);
+
+  /** Recharge la liste locale (anonyme) dans l'état affiché. */
+  const refreshLocal = useCallback(() => {
+    const st = localStore();
+    if (!st) return;
+    const list = loadLocalConversations(st);
+    if (mounted.current) {
+      setConversations(list.map((c) => ({ id: c.id, title: c.title, lastActivityAt: c.updatedAt })));
+    }
+  }, [localStore]);
+
+  const push = useCallback((m: CloneChatMessage) => {
+    setMessages((prev) => [...prev, m]);
+    // ANONYME : on écrit le message dans l'historique LOCAL (jamais serveur — aucune identité).
+    if (isAnon()) {
+      const st = localStore();
+      if (st) {
+        let id = conversationIdRef.current;
+        if (!id) { id = `loc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`; setConv(id); }
+        try {
+          appendLocalMessage(st, id, {
+            role: m.role === "user" ? "user" : "assistant",
+            content: m.content as unknown[],
+            at: new Date().toISOString(),
+          });
+          refreshLocal();
+        } catch { /* un historique local ne doit JAMAIS casser une conversation */ }
+      }
+    }
+  }, [isAnon, localStore, setConv, refreshLocal]);
 
   // ── Envoi d'un message (texte + captures + documents optionnels) ────────────
   const send = useCallback(async (rawText: string, images: string[] = [], docs: CloneChatDocAttachment[] = []) => {
@@ -267,6 +331,20 @@ export function useCloneChat() {
       // empêcher de parler. Le serveur reste l'autorité d'identité.
       await awaitReady();
       const ctx = { ...ctxRef.current, companyLabel };
+
+      // ── C1.8 — AUTO-CRÉATION DE CONVERSATION (utilisateur AUTHENTIFIÉ) ─────────
+      // Défaut réel : la route ne persiste un message QUE si `conversation_id` est fourni. Un
+      // authentifié qui tape son PREMIER message sans cliquer « Nouvelle conversation » envoyait
+      // `conversation_id: null` ⇒ le message n'était JAMAIS enregistré, et son historique restait
+      // vide. On crée donc la conversation à la volée, côté serveur, avant le premier message.
+      // (L'anonyme, lui, persiste dans le navigateur via `push` → aucune conversation serveur.)
+      if (!isAnon() && !conversationIdRef.current) {
+        try {
+          const cr = await fetch("/api/assistant/conversations", { method: "POST", headers: authHeaders(), credentials: "same-origin", body: JSON.stringify({}) });
+          const cd = await cr.json().catch(() => null);
+          if (cr.ok && cd?.ok && cd.conversation?.id) setConv(cd.conversation.id);
+        } catch { /* si la création échoue, le tour se déroule quand même — simplement non persisté */ }
+      }
 
       // ── C1.6 — IL N'Y A QU'UN SEUL CLONECHAT ──────────────────────────────────
       // L'ancien code faisait répondre les visiteurs PUBLICS par un moteur DÉTERMINISTE LOCAL
@@ -333,6 +411,12 @@ export function useCloneChat() {
           // le texte diffusé n'est qu'un aperçu progressif, il ne fait jamais autorité.
           const st = finalData.structured as { answer?: string } | undefined;
           const blocks: CloneChatContentBlock[] = [{ type: "text", text: st?.answer ?? streamed }];
+          // P17 — TRAÇABILITÉ : le payload `done` porte `citationLabels` (validées serveur) mais la
+          // voie streaming les JETAIT — la provenance « D'après … » n'apparaissait que sur la voie JSON.
+          // Or l'UI demande toujours le streaming, donc la source était perdue sur le chemin le plus courant.
+          if (Array.isArray(finalData.citationLabels) && (finalData.citationLabels as unknown[]).length > 0) {
+            blocks.push({ type: "boundary", provenance: "system", text: `D'après ${(finalData.citationLabels as string[]).slice(0, 3).join(", ")}.` });
+          }
           pushCta(blocks, finalData);
           setMessages((prev) => prev.map((m) => (m.id === streamId ? { ...m, status: "complete", content: blocks } : m)));
           if (finalData.public === true && finalData.anonymous !== true && mounted.current) setCompanyState("none");
@@ -401,9 +485,13 @@ export function useCloneChat() {
         if (prop.autonomy) blocks.push({ type: "boundary", provenance: "company", text: `Pierre opérera cette mission en mode « ${prop.autonomy.label} » — ${prop.autonomy.tagline}` });
       }
       // C1.1 — Statut HONNÊTE des pièces jointes (autoritaire serveur) + limites connues.
-      const serverAttachments = Array.isArray(data.attachments) ? (data.attachments as CloneChatServerAttachment[]) : [];
+      // P17 — la voie PUBLIQUE émettait les pièces jointes avec la clé `name` (au lieu de `filename`)
+      // et sans `supportStatus` pour les fichiers refusés ⇒ le client rendait « undefined — undefined ».
+      // On lit les DEUX clés et describeSupport ne rend jamais « undefined » (défense en profondeur ;
+      // le serveur émet aussi désormais `filename`/`supportStatus` — voir chat/route.ts).
+      const serverAttachments = Array.isArray(data.attachments) ? (data.attachments as Array<{ filename?: string; name?: string; supportStatus?: string }>) : [];
       if (serverAttachments.length > 0) {
-        blocks.push({ type: "boundary", provenance: "system", text: serverAttachments.map((a) => `${a.filename} — ${describeSupport(a.supportStatus)}`).join(" · ") });
+        blocks.push({ type: "boundary", provenance: "system", text: serverAttachments.map((a) => `${a.filename ?? a.name ?? "Fichier"} — ${describeSupport(a.supportStatus)}`).join(" · ") });
       }
       if (Array.isArray(data.knownLimitations) && data.knownLimitations.length > 0) {
         blocks.push({ type: "boundary", provenance: "system", text: (data.knownLimitations as string[]).slice(0, 2).join(" ") });
@@ -413,7 +501,36 @@ export function useCloneChat() {
       // C1.6 §6 — Le PRÉREQUIS s'attache à la DEMANDE : CloneChat répond d'abord, puis dit
       // ce qui manque pour aller plus loin. Jamais un blocage, jamais une bannière permanente.
       pushCta(blocks, data);
+
+      // ── C1.8 BLOC A — AUCUNE SOURCE NE PEUT PRODUIRE UNE RÉPONSE INVISIBLE ──
+      //
+      // L'interface connaissait chaque source une par une. C'est précisément ainsi qu'un champ
+      // finit renvoyé par le serveur et jamais affiché (`analysis` l'a été). La route fournit
+      // désormais une forme CANONIQUE (`rendered`) : si, pour une raison quelconque, aucun bloc
+      // de texte n'a été produit ci-dessus, on affiche la réponse canonique plutôt que RIEN.
+      // Un tour muet est un faux succès — et un faux succès est pire qu'une erreur.
+      const rendered = (data.rendered ?? null) as { answer?: string; retryable_error?: string | null; limitation?: string | null } | null;
+      const hasVisibleText = blocks.some((b) => b.type === "text" && b.text.trim().length > 0);
+      if (!hasVisibleText && rendered?.answer) {
+        blocks.unshift({ type: "text", text: rendered.answer });
+      }
+      // Une limite honnête s'affiche À CÔTÉ de la réponse — jamais à sa place.
+      if (rendered?.limitation && !blocks.some((b) => b.type === "boundary" && b.text === rendered.limitation)) {
+        blocks.push({ type: "boundary", provenance: "system", text: rendered.limitation });
+      }
+      if (blocks.length === 0) {
+        blocks.push({
+          type: "error", category: "runtime",
+          message: "Je n'ai pas réussi à produire une réponse complète. Réessayez.",
+          recovery: [{ kind: "retry", label: "Réessayer", href: null }],
+        });
+      }
+
       push(msg("assistant", blocks, isDiscovery ? "public" : "company"));
+
+      // C1.8 — L'authentifié voit sa conversation apparaître/monter dans l'historique dès qu'elle
+      // a reçu son premier échange (elle vient d'être créée + persistée côté serveur).
+      if (!isAnon()) { void refreshConversations(); }
     } catch (e) {
       if ((e as { name?: string }).name === "AbortError") {
         push(msg("assistant", [{ type: "text", text: "Réponse interrompue." }], "system"));
@@ -499,9 +616,23 @@ export function useCloneChat() {
   const stop = useCallback(() => { abortRef.current?.abort(); }, []);
   // Réémettre le dernier message utilisateur.
   const retry = useCallback(() => {
+    if (busy) return;
     const last = lastUserRef.current;
-    if (last && !busy) void send(last.text, last.images, last.docs);
-  }, [busy, send]);
+    if (last) { void send(last.text, last.images, last.docs); return; }
+    // P17 — après un RECHARGEMENT, `lastUserRef` est null (jamais reconstruit depuis l'hydratation)
+    // alors que le bouton « Réessayer » du footer reste visible (`!isEmpty && !busy`) : cliquer était
+    // un no-op silencieux. On reconstitue le DERNIER tour utilisateur depuis le fil hydraté (texte seul —
+    // les pièces jointes base64 ne survivent pas au rechargement, seul leur résumé « 📄 … » est stocké).
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role !== "user") continue;
+      const text = messages[i].content
+        .map((b) => (b.type === "text" ? b.text : ""))
+        .filter(Boolean).join(" ")
+        .replace(/^📎.*$/gm, "").replace(/^📄.*$/gm, "").trim();
+      if (text) void send(text, [], []);
+      return;
+    }
+  }, [busy, send, messages]);
 
   // ── Exécution d'une action confirmée — AUTHORITATIVE CÔTÉ SERVEUR (P9.4.2 r2 §3) ─
   // Le client ne détient JAMAIS le payload canonique : il ne soumet que la RÉFÉRENCE de la
@@ -547,23 +678,44 @@ export function useCloneChat() {
 
   // ── Gestion des conversations durables (multi-device) ──────────────────────
   const refreshConversations = useCallback(async () => {
+    // ANONYME : aucun serveur à interroger — il n'y a pas d'identité. On lit le navigateur.
+    if (isAnon()) { refreshLocal(); return; }
     try {
       const res = await fetch("/api/assistant/conversations", { headers: authHeaders(), credentials: "same-origin" });
       const d = await res.json().catch(() => null);
       if (res.ok && d?.ok && mounted.current) setConversations(d.conversations.map((c: { id: string; title: string; lastActivityAt: string }) => ({ id: c.id, title: c.title, lastActivityAt: c.lastActivityAt })));
     } catch { /* ignore */ }
-  }, [authHeaders]);
+  }, [authHeaders, isAnon, refreshLocal]);
 
   const openConversation = useCallback(async (id: string) => {
     setConv(id);
+    if (isAnon()) {
+      const st = localStore();
+      const conv = st ? getLocalConversation(st, id) : null;
+      if (conv && mounted.current) {
+        setMessages(conv.messages.map((m) => msg(m.role, (m.content ?? []) as CloneChatContentBlock[], m.role === "user" ? "user" : "company")));
+      }
+      return;
+    }
     try {
       const res = await fetch(`/api/assistant/conversations/${id}`, { headers: authHeaders(), credentials: "same-origin" });
       const d = await res.json().catch(() => null);
       if (res.ok && d?.ok && mounted.current) setMessages((d.messages ?? []).map((m: { role: CloneChatMessage["role"]; content: unknown[] }) => msg(m.role, (m.content ?? []) as CloneChatContentBlock[], m.role === "user" ? "user" : "company")));
     } catch { /* ignore */ }
-  }, [authHeaders, setConv]);
+  }, [authHeaders, setConv, isAnon, localStore]);
 
   const newConversation = useCallback(async () => {
+    if (isAnon()) {
+      // Une conversation VIDE n'est pas une conversation : on ne l'écrit pas dans l'historique.
+      // On ouvre un fil neuf, et il n'apparaîtra dans la liste qu'au PREMIER message réel
+      // (`push` → `appendLocalMessage` le crée à ce moment-là). Sinon la liste se remplirait
+      // de « Nouvelle conversation » sans contenu.
+      const id = `loc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      setConv(id);
+      if (mounted.current) setMessages([]);
+      refreshLocal();
+      return;
+    }
     try {
       const res = await fetch("/api/assistant/conversations", { method: "POST", headers: authHeaders(), credentials: "same-origin", body: JSON.stringify({}) });
       const d = await res.json().catch(() => null);
@@ -572,10 +724,15 @@ export function useCloneChat() {
   }, [authHeaders, setConv, refreshConversations]);
 
   const deleteConversation = useCallback(async (id: string) => {
-    try { await fetch(`/api/assistant/conversations/${id}`, { method: "DELETE", headers: authHeaders(), credentials: "same-origin" }); } catch { /* ignore */ }
+    if (isAnon()) {
+      const st = localStore();
+      if (st) deleteLocalConversation(st, id);
+    } else {
+      try { await fetch(`/api/assistant/conversations/${id}`, { method: "DELETE", headers: authHeaders(), credentials: "same-origin" }); } catch { /* ignore */ }
+    }
     if (conversationIdRef.current === id) { setConv(null); if (mounted.current) setMessages([]); }
     await refreshConversations();
-  }, [authHeaders, setConv, refreshConversations]);
+  }, [authHeaders, setConv, refreshConversations, isAnon, localStore]);
 
   const isEmpty = messages.length === 0;
   // C1.5 — Le libellé dit la VÉRITÉ : authentifié SANS entreprise ⇒ « Mode découverte »,
@@ -603,15 +760,30 @@ function pushCta(blocks: CloneChatContentBlock[], data: Record<string, unknown>)
   const message = typeof data.prerequisiteMessage === "string" ? data.prerequisiteMessage : null;
   const cta = data.cta as { route?: string; label?: string } | null | undefined;
   if (message) blocks.push({ type: "boundary", provenance: "system", text: message });
-  if (cta?.route && cta.label) {
+
+  // ── C1.8 P2 §7 — LES LIENS STRUCTURÉS ARRIVENT ENFIN JUSQU'AU CLIENT ──
+  //
+  // La route renvoyait déjà `suggestedCTA` ET `relevantLinks`. Seul le premier était consommé :
+  // les liens utiles étaient calculés côté serveur puis **jetés** côté navigateur. On les rend,
+  // mais UNIQUEMENT après validation par le REGISTRE de routes : une route inventée, un
+  // `javascript:` ou un domaine non autorisé ne deviennent jamais une carte cliquable.
+  const seen = new Set<string>();
+  const emit = (href: string, label: string) => {
+    if (seen.has(href)) return;                      // pas de doublon
+    seen.add(href);
     blocks.push({
       type: "action_preview",
       action: {
-        id: `cta-${cta.route}`, kind: "navigate", label: cta.label, risk: "low",
-        requiresConfirmation: false, allowed: true, reason: null, payload: {}, href: cta.route, proposalId: null,
+        id: `cta-${href}`, kind: "navigate", label, risk: "low",
+        requiresConfirmation: false, allowed: true, reason: null, payload: {}, href, proposalId: null,
       },
     });
-  }
+  };
+
+  // Priorité : la CTA la plus utile d'abord, puis quelques alternatives — jamais un mur de boutons.
+  for (const l of validatedLinks(cta ? [cta] : [])) emit(l.href, l.label);
+  const relevant = validatedLinks(data.relevantLinks as Array<{ route?: string; label?: string }> | undefined);
+  for (const l of relevant.slice(0, 3)) emit(l.href, l.label);
 }
 
 /** Convertit une analyse de capture (structurée, honnête) en blocs affichables. */
@@ -633,7 +805,7 @@ function visionBlocks(
 }
 
 /** Traduit le statut de support serveur en langage clair — jamais de jargon de parseur. */
-function describeSupport(status: string): string {
+function describeSupport(status: string | undefined): string {
   switch (status) {
     case "fully_parsed": return "lu intégralement";
     case "text_extracted": return "texte extrait";
@@ -643,7 +815,9 @@ function describeSupport(status: string): string {
     case "unsupported": return "format non pris en charge";
     case "parse_failed": return "lecture impossible";
     case "manual_review_required": return "mis en quarantaine (revue manuelle)";
-    default: return status;
+    // P17 — JAMAIS « undefined » : un statut absent ou inconnu (ex. voie publique qui omet
+    // `supportStatus` sur un fichier refusé) se dit simplement « reçu » — le fichier est bien là.
+    default: return status && status.trim().length > 0 ? status : "reçu";
   }
 }
 

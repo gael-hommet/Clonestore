@@ -5,7 +5,7 @@
 // La liaison réservation N'EST PAS acceptée depuis le navigateur (§4) : un événement
 // de heartbeat ne peut pas rattacher une session à une réservation.
 import { NextResponse } from "next/server";
-import { getFounderDb } from "@/lib/founder-access/runtime";
+import { getFounderDbForBeacon } from "@/lib/founder-access/runtime";
 import { recordFunnelEvent } from "@/lib/founder-access/store";
 import { isClientAnalyticsEvent, isServerFunnelEvent } from "@/lib/founder-access/analytics";
 import type { ClientAnalyticsEvent } from "@/lib/founder-access/types";
@@ -30,7 +30,10 @@ export async function POST(req: Request) {
   // Tout le reste hors liste blanche client est ignoré silencieusement.
   if (!isClientAnalyticsEvent(name)) return new NextResponse(null, { status: 204 });
 
-  const db = await getFounderDb();
+  // Événement fire-and-forget : une dépendance indisponible (DB) ne doit jamais devenir un 500
+  // visible au navigateur. `getFounderDbForBeacon` ne jette jamais ; `null` ⇒ dégradation propre.
+  const db = await getFounderDbForBeacon();
+  if (!db) return new NextResponse(null, { status: 204 });
   const rl = await distributedRateLimit(db, `funnel:${hashIp(getClientIp(req)) ?? "anon"}`, 60, 60_000);
   if (!rl.ok) return new NextResponse(null, { status: 429, headers: { "retry-after": String(rl.retryAfter) } });
 

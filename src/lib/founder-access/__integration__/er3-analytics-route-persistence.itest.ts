@@ -33,6 +33,10 @@ async function reservation(body: Record<string, unknown>, cookie?: string) {
   const { POST } = await import("@/app/api/founder-access/reservations/route");
   return POST(new Request("http://x/api/founder-access/reservations", { method: "POST", body: JSON.stringify(body), headers: { "content-type": "application/json", ...(cookie ? { cookie } : {}) } }));
 }
+async function funnel(body: Record<string, unknown>) {
+  const { POST } = await import("@/app/api/founder-access/funnel/route");
+  return POST(new Request("http://x/api/founder-access/funnel", { method: "POST", body: JSON.stringify(body) }));
+}
 
 describe("§4 — session analytics serveur + persistance", () => {
   it("première requête émet la session ; la réutilise ; ignore l'id du corps", async () => {
@@ -90,5 +94,19 @@ describe("§4 — session analytics serveur + persistance", () => {
     // referrer réduit à origin+path (pas de credentials/query/fragment)
     expect(blob.includes("tracker.com")).toBe(true);
     expect(blob.includes("zzz")).toBe(false);
+  });
+});
+
+// C1.8 — défaut trouvé par l'acceptation propriétaire assistée par IA : `funnel` (comme
+// `presence`) doit persister réellement quand sa dépendance DB fonctionne (régression positive,
+// symétrique aux tests fail-open de c18-founder-access-beacon-fail-open.test.ts).
+describe("C1.8 — funnel persiste réellement quand la DB fonctionne", () => {
+  it("un événement client connu est écrit en base et répond 204", async () => {
+    const res = await funnel({ name: "founder_cta_clicked", ctaVariant: "hero", landingPath: "/reserver/pierre" });
+    expect(res.status).toBe(204);
+    const row = await h.db.query<{ n: number }>(
+      "select count(*)::int n from clonestore_founder_funnel_events where event_name='founder_cta_clicked'",
+    );
+    expect(row.rows[0].n).toBeGreaterThan(0);
   });
 });

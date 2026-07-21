@@ -1,0 +1,32 @@
+{
+  "title": "C1.8 — Founder-access presence/funnel 500 fix — résultats",
+  "root_cause": "getFounderDb() (src/lib/founder-access/runtime.ts) jette de façon synchrone quand DATABASE_URL est absente (singletonPool(), src/lib/pierre/v1/db.ts). Presence et funnel appelaient ce getter AVANT tout bloc try/catch — seul point non protégé dans les deux routes (distributedRateLimit et les écritures analytics avaient déjà leur propre protection).",
+  "fix": "Nouveau helper getFounderDbForBeacon() (src/lib/founder-access/runtime.ts) réservé aux routes fire-and-forget : ne jette jamais, journalise un nom d'erreur redacted en interne, retourne null. Les deux routes dégradent alors vers 204 (statut de succès déjà existant) sans jamais toucher DB/rate-limit/écriture. getFounderDb() lui-même est INCHANGÉ (reservations/route.ts et webhooks/stripe/route.ts en dépendent pour rester fail-loud, correctement).",
+  "files_changed": [
+    "src/lib/founder-access/runtime.ts (+getFounderDbForBeacon)",
+    "src/app/api/founder-access/presence/route.ts (getFounderDb -> getFounderDbForBeacon, +garde 204)",
+    "src/app/api/founder-access/funnel/route.ts (getFounderDb -> getFounderDbForBeacon, +garde 204)"
+  ],
+  "tests_added": {
+    "src/lib/founder-access/__tests__/c18-founder-access-beacon-fail-open.test.ts": "8 cas (DB absente ×2, rate-limit/écriture qui jettent ×2, 0 fuite, régression 422, régression 204 sans DB, 0 appel externe/synchrone)",
+    "src/lib/founder-access/__integration__/er3-analytics-route-persistence.itest.ts": "+1 cas (funnel persiste réellement avec DB PGlite réelle)"
+  },
+  "tests_results": {
+    "c18-founder-access-beacon-fail-open.test.ts": "8/8",
+    "er3-analytics-route-persistence.itest.ts (itest, PGlite réelle)": "5/5",
+    "founder-access/ suite complète (unit)": "151/151",
+    "safe-links.test.ts (contrat déjà ajouté en session)": "19/19",
+    "demo-decision.test.ts (consommateur)": "50/50 (fichier combiné, voir log)",
+    "typescript": "0 erreur"
+  },
+  "unrelated_finding_not_fixed": {
+    "file": "src/lib/founder-access/__integration__/er2-cohort-temporal.itest.ts",
+    "note": "échec pré-existant/concurrent, reproduit 2/2, AUCUN chevauchement de code avec ce correctif (insertions SQL directes + analytics.ts, fichiers non touchés par cette session) — non corrigé, hors périmètre explicite de cette tâche."
+  },
+  "isolated_build": {
+    "distDir": ".next-c18-final-closure",
+    "exit_code": 0,
+    "rebuilt_after_fix": true
+  },
+  "production_touched": false
+}

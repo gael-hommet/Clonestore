@@ -1,0 +1,73 @@
+{
+  "version": "C18_A2_FINAL_v1",
+  "total": 1003,
+  "final_verdict_counts": {
+    "PASS": 205,
+    "MINOR": 643,
+    "FAIL": 155
+  },
+  "decision_source_counts": {
+    "C_SUPPLEMENTAL": 525,
+    "C_ARBITRATION": 400,
+    "AB_CONSENSUS": 78
+  },
+  "requires_product_fix_total": 792,
+  "defect_cluster_total": 16,
+  "missing_ids": [],
+  "duplicate_ids": [],
+  "source_hashes": {
+    "results_A": {
+      "checked": 41,
+      "bad": []
+    },
+    "results_B": {
+      "checked": 20,
+      "bad": []
+    },
+    "packets_primary": {
+      "checked": 41,
+      "bad": []
+    },
+    "packets_secondary": {
+      "checked": 20,
+      "bad": []
+    },
+    "results_C_arbitration": {
+      "checked": 16,
+      "bad": []
+    },
+    "results_C_supplemental": {
+      "checked": 21,
+      "bad": []
+    },
+    "canonical_reference": "397d5eb2677bcf2928c0ad30048cf3e4df0c9fc6a8b4f52b2c8f544bbd6ba0d0",
+    "rubric": "4c54cc35877a9a060962cce8b2935ee96c7f9749fdab19a94f9179dd00a73081",
+    "result_schema": "c30f174e3ba1cfa82f928a1e46d7eb8dd1dc7f93b4d5480ad8631e54f8d90460"
+  },
+  "output_hashes": {
+    "C18_A2_FINAL_VERDICTS.json": "3eb379923bf87c7258d1c8496c0f33965a9268daa12cfdc7951be2b3a01830dd",
+    "C18_A2_FINAL_DEFECTS.json": "4acae40e6d5f6317e593b407f5f41aca94debaad52bf67b5f15dd27a9ba45dda",
+    "C18_A2_C_COMPLETE_RESULTS_MANIFEST.json": "c5d2694bb1df372065038f12e2da565706bd8fdd4ae4fd4385007da1b6826c02",
+    "C18_A2_ARBITER_PACKETS_MANIFEST.json": "2c70c9f70b7f3963fa26b5881b049419e638553848368df79f9cf4576d8ffa27",
+    "C18_A2_SUPPLEMENTAL_PACKETS_MANIFEST.json": "03be86e4e349bdc8a519bbdae5d444a2adb1daf0aa94f2dfb71925f006b16fd1",
+    "C18_A2_FINAL_AUDIT.md": "8de915c39b858814a944c1628edfa0f5e1dc1cf603fa7c5e2c4430e0d7736bae",
+    "C18_A2_FINAL_MANIFEST.json": "(self)"
+  },
+  "integrity": {
+    "decisions_total_1003": true,
+    "ids_0_to_1002_complete": true,
+    "duplicate_ids": true,
+    "C_ARBITRATION_400": true,
+    "AB_CONSENSUS_78": true,
+    "C_SUPPLEMENTAL_525": true,
+    "sum_matches_total": true,
+    "results_A_unmodified": true,
+    "results_B_unmodified": true,
+    "results_C_unmodified": true,
+    "source_packets_unmodified": true,
+    "judge_C_frozen_before_AB_access": true,
+    "product_files_modified": 0,
+    "production_touched": false
+  },
+  "completed_at": "2026-07-21"
+}

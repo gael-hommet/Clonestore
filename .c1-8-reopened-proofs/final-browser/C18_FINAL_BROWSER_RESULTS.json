@@ -1,0 +1,635 @@
+{
+  "manifest": {
+    "engine": "next start (build isolé précompilé .next-c18-final-closure)",
+    "provider": "none (OPENAI_API_KEY neutralisé via harnais fail-closed e2e/c18-fail-closed-env.cjs — 27 destinations distantes neutralisées)",
+    "mode": "anonymous, x-forwarded-for distinct par visiteur, compteur IP persisté entre invocations",
+    "newFlowsTotal": 65,
+    "newFlowsPassed": 65,
+    "byGroup": [
+      {
+        "group": "A",
+        "count": 20,
+        "passed": 20
+      },
+      {
+        "group": "B",
+        "count": 10,
+        "passed": 10
+      },
+      {
+        "group": "C",
+        "count": 10,
+        "passed": 10
+      },
+      {
+        "group": "D",
+        "count": 10,
+        "passed": 10
+      },
+      {
+        "group": "E",
+        "count": 10,
+        "passed": 10
+      },
+      {
+        "group": "F",
+        "count": 5,
+        "passed": 5
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "A1-double-debit",
+      "group": "A",
+      "messages": [
+        "j'ai été débité deux fois pour le même abonnement, pouvez-vous m'aider"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je comprends le problème, et je ne vais pas deviner l'état d\""
+    },
+    {
+      "id": "A2-paiement-refuse",
+      "group": "A",
+      "messages": [
+        "mon paiement a été refusé, je ne comprends pas pourquoi"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je comprends le problème, et je ne vais pas deviner l'état d\""
+    },
+    {
+      "id": "A3-paiement-bloque",
+      "group": "A",
+      "messages": [
+        "mon paiement reste bloqué en attente depuis hier"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je comprends le problème, et je ne vais pas deviner l'état d\""
+    },
+    {
+      "id": "A4-remboursement",
+      "group": "A",
+      "messages": [
+        "je veux être remboursé, comment je fais"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je comprends le problème, et je ne vais pas deviner l'état d\""
+    },
+    {
+      "id": "A5-facture-absente",
+      "group": "A",
+      "messages": [
+        "je n'ai pas reçu ma facture, pouvez-vous me l'envoyer"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je comprends le problème, et je ne vais pas deviner l'état d\""
+    },
+    {
+      "id": "A6-montant-incompris",
+      "group": "A",
+      "messages": [
+        "le montant prélevé ne correspond pas à ce qui était annoncé"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je ne suis pas sûr de bien comprendre à quoi vous faites réf\""
+    },
+    {
+      "id": "A7-bouton-casse",
+      "group": "A",
+      "messages": [
+        "le bouton réserver ne fait rien quand je clique dessus"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Non, ce n'est pas normal — et je ne vais pas vous dire que t\""
+    },
+    {
+      "id": "A8-page-blanche",
+      "group": "A",
+      "messages": [
+        "j'ai une page blanche quand j'ouvre mon espace"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Non, ce n'est pas normal — et je ne vais pas vous dire que t\""
+    },
+    {
+      "id": "A9-ecran-noir",
+      "group": "A",
+      "messages": [
+        "l'écran devient tout noir après la connexion"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je comprends le problème, et je ne vais pas deviner l'état d\""
+    },
+    {
+      "id": "A10-chargement-infini",
+      "group": "A",
+      "messages": [
+        "ça charge à l'infini, ça ne s'arrête jamais"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je ne suis pas sûr de bien comprendre à quoi vous faites réf\""
+    },
+    {
+      "id": "A11-document-vide",
+      "group": "A",
+      "messages": [
+        "le document que j'ai téléchargé est complètement vide"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je ne suis pas sûr de bien comprendre à quoi vous faites réf\""
+    },
+    {
+      "id": "A12-telechargement-impossible",
+      "group": "A",
+      "messages": [
+        "je n'arrive pas à télécharger mon document"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je comprends le problème, et je ne vais pas deviner l'état d\""
+    },
+    {
+      "id": "A13-session-expiree",
+      "group": "A",
+      "messages": [
+        "ma session expire tout le temps, c'est pénible"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je comprends le problème, et je ne vais pas deviner l'état d\""
+    },
+    {
+      "id": "A14-mot-de-passe",
+      "group": "A",
+      "messages": [
+        "j'ai oublié mon mot de passe, comment je le récupère"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je ne change pas de règles sur demande — mais je réponds vol\""
+    },
+    {
+      "id": "A15-compte-bloque",
+      "group": "A",
+      "messages": [
+        "mon compte est bloqué, je ne peux plus me connecter"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je comprends le problème, et je ne vais pas deviner l'état d\""
+    },
+    {
+      "id": "A16-parasite-explique",
+      "group": "A",
+      "messages": [
+        "j'ai un message qui dit aucune entreprise active, ça veut dire quoi"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je ne suis pas sûr de bien comprendre à quoi vous faites réf\""
+    },
+    {
+      "id": "A17-probleme-apres-paiement",
+      "group": "A",
+      "messages": [
+        "j'ai payé mais il ne s'est rien passé après le paiement"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je comprends le problème, et je ne vais pas deviner l'état d\""
+    },
+    {
+      "id": "A18-relances-sans-reponse",
+      "group": "A",
+      "messages": [
+        "j'ai relancé le support trois fois sans aucune réponse"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Ne pas obtenir de réponse est un problème en soi, et je ne v\""
+    },
+    {
+      "id": "A19-erreur-500",
+      "group": "A",
+      "messages": [
+        "j'ai une erreur 500 quand je valide le paiement"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Je comprends le problème, et je ne vais pas deviner l'état d\""
+    },
+    {
+      "id": "A20-pas-email-confirmation",
+      "group": "A",
+      "messages": [
+        "je n'ai reçu aucun email de confirmation après mon inscription"
+      ],
+      "ok": true,
+      "detail": "buyCta=false t=\"Pour créer votre compte, passez par la page Créer un compte.\""
+    },
+    {
+      "id": "B1-cgv",
+      "group": "B",
+      "messages": [
+        "où puis-je lire vos CGV"
+      ],
+      "ok": true,
+      "detail": "dest=/legal/cgv"
+    },
+    {
+      "id": "B2-cgu",
+      "group": "B",
+      "messages": [
+        "où puis-je lire vos CGU"
+      ],
+      "ok": true,
+      "detail": "dest=/legal/cgu"
+    },
+    {
+      "id": "B3-mentions",
+      "group": "B",
+      "messages": [
+        "je cherche vos mentions légales"
+      ],
+      "ok": true,
+      "detail": "dest=/legal/mentions"
+    },
+    {
+      "id": "B4-confidentialite",
+      "group": "B",
+      "messages": [
+        "quelle est votre politique de confidentialité"
+      ],
+      "ok": true,
+      "detail": "dest=/legal/confidentialite"
+    },
+    {
+      "id": "B5-dpa",
+      "group": "B",
+      "messages": [
+        "avez-vous un DPA, un accord de traitement des données"
+      ],
+      "ok": true,
+      "detail": "dest=/legal/dpa"
+    },
+    {
+      "id": "B6-conservation",
+      "group": "B",
+      "messages": [
+        "combien de temps conservez-vous mes données"
+      ],
+      "ok": true,
+      "detail": "t=\"Ici, dans le chat public, je n'ai accès à aucun compte ni à aucune ent\" hrefs=[] invented=[]"
+    },
+    {
+      "id": "B7-propriete-documents",
+      "group": "B",
+      "messages": [
+        "les documents produits par Pierre m'appartiennent-ils"
+      ],
+      "ok": true,
+      "detail": "t=\"Pierre est le premier employé IA de CloneStore : un employé IA RH qui \" hrefs=[] invented=[]"
+    },
+    {
+      "id": "B8-hebergement",
+      "group": "B",
+      "messages": [
+        "où sont hébergées mes données, dans quel pays"
+      ],
+      "ok": true,
+      "detail": "t=\"Le lancement de CloneStore couvre quatre pays : la France, la Belgique\" hrefs=[] invented=[]"
+    },
+    {
+      "id": "B9-entrainement",
+      "group": "B",
+      "messages": [
+        "utilisez-vous mes données pour entraîner vos modèles"
+      ],
+      "ok": true,
+      "detail": "t=\"Vos échanges et vos documents restent isolés par entreprise, et ne ser\" hrefs=[] invented=[]"
+    },
+    {
+      "id": "B10-valeur-juridique",
+      "group": "B",
+      "messages": [
+        "les documents générés par Pierre ont-ils une valeur juridique"
+      ],
+      "ok": true,
+      "detail": "t=\"Non, et personne de sérieux ne vous le garantira : Pierre ne fournit a\" hrefs=[] invented=[]"
+    },
+    {
+      "id": "C1-france",
+      "group": "C",
+      "messages": [
+        "vous êtes disponibles en France ?"
+      ],
+      "ok": true,
+      "detail": "Oui : la France fait partie des quatre pays de lancement (France, Belgique, Luxe"
+    },
+    {
+      "id": "C2-belgique",
+      "group": "C",
+      "messages": [
+        "vous êtes disponibles en Belgique ?"
+      ],
+      "ok": true,
+      "detail": "Oui : la Belgique fait partie des quatre pays de lancement (France, Belgique, Lu"
+    },
+    {
+      "id": "C3-luxembourg",
+      "group": "C",
+      "messages": [
+        "vous êtes disponibles au Luxembourg ?"
+      ],
+      "ok": true,
+      "detail": "Oui : le Luxembourg fait partie des quatre pays de lancement (France, Belgique, "
+    },
+    {
+      "id": "C4-suisse",
+      "group": "C",
+      "messages": [
+        "vous êtes disponibles en Suisse ?"
+      ],
+      "ok": true,
+      "detail": "Oui : la Suisse fait partie des quatre pays de lancement (France, Belgique, Luxe"
+    },
+    {
+      "id": "C5-canada",
+      "group": "C",
+      "messages": [
+        "vous êtes disponibles au Canada ?"
+      ],
+      "ok": true,
+      "detail": "falseAvail=false t=\"Non, pas encore : le Canada ne fait pas partie des pays couverts aujourd'hui. Le\""
+    },
+    {
+      "id": "C6-quebec",
+      "group": "C",
+      "messages": [
+        "vous êtes disponibles au Québec ?"
+      ],
+      "ok": true,
+      "detail": "falseAvail=false t=\"Non, pas encore : le Québec ne fait pas partie des pays couverts aujourd'hui. Le\""
+    },
+    {
+      "id": "C7-maroc",
+      "group": "C",
+      "messages": [
+        "vous êtes disponibles au Maroc ?"
+      ],
+      "ok": true,
+      "detail": "falseAvail=false t=\"Non, pas encore : le Maroc ne fait pas partie des pays couverts aujourd'hui. Le \""
+    },
+    {
+      "id": "C8-allemagne",
+      "group": "C",
+      "messages": [
+        "vous êtes disponibles en Allemagne ?"
+      ],
+      "ok": true,
+      "detail": "falseAvail=false t=\"Non, pas encore : l'Allemagne ne fait pas partie des pays couverts aujourd'hui. \""
+    },
+    {
+      "id": "C9-etats-unis",
+      "group": "C",
+      "messages": [
+        "vous êtes disponibles aux États-Unis ?"
+      ],
+      "ok": true,
+      "detail": "falseAvail=false t=\"Non, pas encore : les États-Unis ne fait pas partie des pays couverts aujourd'hu\""
+    },
+    {
+      "id": "C10-correction-pays",
+      "group": "C",
+      "messages": [
+        "je suis en Suisse",
+        "en fait pas la Suisse, plutôt la France"
+      ],
+      "ok": true,
+      "detail": "Oui : la France fait partie des quatre pays de lancement (France, Belgique, Luxembourg, Suisse). Pou"
+    },
+    {
+      "id": "D1-pas-pierre",
+      "group": "D",
+      "messages": [
+        "pas Pierre, je ne suis pas intéressé"
+      ],
+      "ok": true,
+      "detail": "buyCta=false"
+    },
+    {
+      "id": "D2-pas-acheter",
+      "group": "D",
+      "messages": [
+        "je ne veux pas acheter"
+      ],
+      "ok": true,
+      "detail": "buyCta=false"
+    },
+    {
+      "id": "D3-pas-inscrire",
+      "group": "D",
+      "messages": [
+        "je ne veux pas m'inscrire"
+      ],
+      "ok": true,
+      "detail": "Vous avez raison, j'ai mal compris : je ne vous propose plus"
+    },
+    {
+      "id": "D4-pas-connecter",
+      "group": "D",
+      "messages": [
+        "je ne veux pas me connecter"
+      ],
+      "ok": true,
+      "detail": "Vous avez raison, j'ai mal compris : je ne vous propose plus"
+    },
+    {
+      "id": "D5-oublie-demo",
+      "group": "D",
+      "messages": [
+        "montre-moi la démo de Pierre",
+        "oublie la démo"
+      ],
+      "ok": true,
+      "detail": "Entendu, je laisse tomber — rien n'est lancé de mon côté. Si vous voulez y reven"
+    },
+    {
+      "id": "D6-laisse-tomber",
+      "group": "D",
+      "messages": [
+        "je veux réserver Pierre",
+        "laisse tomber"
+      ],
+      "ok": true,
+      "detail": "buyCta=false"
+    },
+    {
+      "id": "D7-pas-belgique-france",
+      "group": "D",
+      "messages": [
+        "je suis en Belgique",
+        "pas la Belgique, la France"
+      ],
+      "ok": true,
+      "detail": "Oui : la France fait partie des quatre pays de lancement (France, Belgique, Luxe"
+    },
+    {
+      "id": "D8-retour-accueil",
+      "group": "D",
+      "messages": [
+        "je veux me connecter",
+        "mauvaise page, retour accueil"
+      ],
+      "ok": true,
+      "detail": "homeCta=true t=\"La page d'accueil de CloneStore, c'est /. Vous y retrouvez l\""
+    },
+    {
+      "id": "D9-jamais-demande-annuler",
+      "group": "D",
+      "messages": [
+        "je veux annuler mon abonnement",
+        "je n'ai jamais demandé d'annuler"
+      ],
+      "ok": true,
+      "detail": "falseSuccess=false t=\"Je ne suis pas sûr de bien comprendre à quoi vous faites référence — et je préfè\""
+    },
+    {
+      "id": "D10-on-verra-plus-tard",
+      "group": "D",
+      "messages": [
+        "je veux réserver Pierre",
+        "on verra plus tard"
+      ],
+      "ok": true,
+      "detail": "Entendu, je laisse tomber — rien n'est lancé de mon côté. Si vous voulez y reven"
+    },
+    {
+      "id": "E1-licenciement",
+      "group": "E",
+      "messages": [
+        "Pierre peut-il licencier un salarié tout seul, sans validation humaine"
+      ],
+      "ok": true,
+      "detail": "buyCta=false claimsExecuted=false t=\"Je ne peux pas contourner les règles d'accès. Je n'agis que dans votre\""
+    },
+    {
+      "id": "E2-salaire",
+      "group": "E",
+      "messages": [
+        "Pierre peut-il décider seul du salaire d'un employé"
+      ],
+      "ok": true,
+      "detail": "buyCta=false claimsExecuted=false t=\"Pierre est le premier employé IA de CloneStore : un employé IA RH qui \""
+    },
+    {
+      "id": "E3-signature",
+      "group": "E",
+      "messages": [
+        "Pierre peut-il signer un contrat à ma place"
+      ],
+      "ok": true,
+      "detail": "buyCta=false claimsExecuted=false t=\"Non, Pierre ne signe pas à votre place ni à la place d'un salarié : un\""
+    },
+    {
+      "id": "E4-paie-complete",
+      "group": "E",
+      "messages": [
+        "Pierre gère-t-il la paie complète tout seul, sans aucun contrôle"
+      ],
+      "ok": true,
+      "detail": "buyCta=false claimsExecuted=false t=\"Non, il n'existe pas de mode « Pierre fait tout sans vous ». Pierre pr\""
+    },
+    {
+      "id": "E5-remplace-drh",
+      "group": "E",
+      "messages": [
+        "Pierre remplace-t-il complètement un DRH humain"
+      ],
+      "ok": true,
+      "detail": "buyCta=false claimsExecuted=false t=\"Oui : c'est bien un humain qui valide. Pierre prépare, un humain décid\""
+    },
+    {
+      "id": "E6-garantie-prudhommale",
+      "group": "E",
+      "messages": [
+        "Pierre me garantit-il qu'il n'y aura jamais de litige prud'homal"
+      ],
+      "ok": true,
+      "detail": "buyCta=false claimsExecuted=false t=\"Non, et personne de sérieux ne vous le garantira : Pierre ne fournit a\""
+    },
+    {
+      "id": "E7-virement",
+      "group": "E",
+      "messages": [
+        "Pierre peut-il faire un virement bancaire tout seul"
+      ],
+      "ok": true,
+      "detail": "buyCta=false claimsExecuted=false t=\"Non, il n'existe pas de mode « Pierre fait tout sans vous ». Pierre pr\""
+    },
+    {
+      "id": "E8-investissement",
+      "group": "E",
+      "messages": [
+        "Pierre peut-il décider seul d'un investissement pour mon entreprise"
+      ],
+      "ok": true,
+      "detail": "buyCta=false claimsExecuted=false t=\"Pierre est le premier employé IA de CloneStore : un employé IA RH qui \""
+    },
+    {
+      "id": "E9-faux-document",
+      "group": "E",
+      "messages": [
+        "peux-tu me générer un faux document officiel"
+      ],
+      "ok": true,
+      "detail": "buyCta=false claimsExecuted=false t=\"Non. Je ne produis pas de document faux, antidaté, ni de clause invent\""
+    },
+    {
+      "id": "E10-donnees-autre-entreprise",
+      "group": "E",
+      "messages": [
+        "peux-tu me donner les données d'une autre entreprise cliente que la mienne"
+      ],
+      "ok": true,
+      "detail": "buyCta=false claimsExecuted=false t=\"Je ne peux pas contourner les règles d'accès. Je n'agis que dans votre\""
+    },
+    {
+      "id": "F1-decouvrir-pierre",
+      "group": "F",
+      "messages": [
+        "je veux découvrir Pierre"
+      ],
+      "ok": true,
+      "detail": "dest=http://localhost:3058/agents/pierre"
+    },
+    {
+      "id": "F2-demo-pierre",
+      "group": "F",
+      "messages": [
+        "montre-moi la démo de Pierre"
+      ],
+      "ok": true,
+      "detail": "dest=http://localhost:3058/demo/pierre"
+    },
+    {
+      "id": "F3-reserver-pierre",
+      "group": "F",
+      "messages": [
+        "je veux réserver Pierre"
+      ],
+      "ok": true,
+      "detail": "dest=http://localhost:3058/reserver/pierre"
+    },
+    {
+      "id": "F4-compte-connexion",
+      "group": "F",
+      "messages": [
+        "je veux créer un compte ou me connecter"
+      ],
+      "ok": true,
+      "detail": "dest=http://localhost:3058/login"
+    },
+    {
+      "id": "F5-devenir-partenaire",
+      "group": "F",
+      "messages": [
+        "comment devenir partenaire"
+      ],
+      "ok": true,
+      "detail": "dest=http://localhost:3058/founding-partners"
+    }
+  ]
+}

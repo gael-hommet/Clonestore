@@ -1,0 +1,82 @@
+{
+  "title": "C1.8 FINAL REAL-BROWSER TECHNICAL CLOSURE",
+  "date": "2026-07-21",
+  "legacy_flows_valid": 37,
+  "new_flows_executed": 65,
+  "total_cumulative": 102,
+  "groups": [
+    {
+      "group": "A",
+      "count": 20,
+      "passed": 20
+    },
+    {
+      "group": "B",
+      "count": 10,
+      "passed": 10
+    },
+    {
+      "group": "C",
+      "count": 10,
+      "passed": 10
+    },
+    {
+      "group": "D",
+      "count": 10,
+      "passed": 10
+    },
+    {
+      "group": "E",
+      "count": 10,
+      "passed": 10
+    },
+    {
+      "group": "F",
+      "count": 5,
+      "passed": 5
+    }
+  ],
+  "all_new_flows_passed": true,
+  "hard_assertions": {
+    "console_errors_real": 0,
+    "page_errors": 0,
+    "requests_404": 0,
+    "requests_5xx": 0,
+    "external_requests": 0,
+    "empty_responses": 0
+  },
+  "real_product_defects_found": 2,
+  "real_product_defects_fixed": 2,
+  "defects": [
+    {
+      "id": "legal-routes-not-linkified",
+      "file": "src/lib/nav/route-registry.ts",
+      "status": "fixed",
+      "regression_proof": "safe-links.test.ts 19/19; browser B1-B10 10/10"
+    },
+    {
+      "id": "country-correction-ignored",
+      "file": "src/lib/clonechat/public-answer/public-situation.ts",
+      "status": "fixed",
+      "regression_proof": "c18-a2-contracts.test.ts +4 cases, public-answer/ 110/110; browser C10, D7 green"
+    }
+  ],
+  "regression": {
+    "typescript_errors": 0,
+    "clonechat_suite": "895/895",
+    "public_answer_suite": "110/110"
+  },
+  "isolated_build": {
+    "distDir": ".next-c18-final-closure",
+    "compiled": true,
+    "static_pages_generated": true,
+    "exit_clean": true,
+    "rebuilt_after_each_product_fix": true
+  },
+  "production_touched": false,
+  "deployment_touched": false,
+  "migrations_touched": false,
+  "payments_touched": false,
+  "external_provider_calls": false,
+  "verdict": "C1.8 FINAL REAL-BROWSER TECHNICAL CLOSURE — COMPLETE"
+}

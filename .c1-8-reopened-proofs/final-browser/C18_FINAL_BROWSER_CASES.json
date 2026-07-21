@@ -1,0 +1,426 @@
+{
+  "generated_by": "C1.8 FINAL REAL-BROWSER CLOSURE — pre-run static case manifest",
+  "legacy_37": {
+    "count": 37,
+    "unique_messages": 37,
+    "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json",
+    "structurally_validated": true,
+    "all_ok_at_capture": true,
+    "consoleErrorsReal_at_capture": 0
+  },
+  "new_65": {
+    "count": 65,
+    "ids": [
+      "A1-double-debit",
+      "A10-chargement-infini",
+      "A11-document-vide",
+      "A12-telechargement-impossible",
+      "A13-session-expiree",
+      "A14-mot-de-passe",
+      "A15-compte-bloque",
+      "A16-parasite-explique",
+      "A17-probleme-apres-paiement",
+      "A18-relances-sans-reponse",
+      "A19-erreur-500",
+      "A2-paiement-refuse",
+      "A20-pas-email-confirmation",
+      "A3-paiement-bloque",
+      "A4-remboursement",
+      "A5-facture-absente",
+      "A6-montant-incompris",
+      "A7-bouton-casse",
+      "A8-page-blanche",
+      "A9-ecran-noir",
+      "B1-cgv",
+      "B10-valeur-juridique",
+      "B2-cgu",
+      "B3-mentions",
+      "B4-confidentialite",
+      "B5-dpa",
+      "B6-conservation",
+      "B7-propriete-documents",
+      "B8-hebergement",
+      "B9-entrainement",
+      "C1-france",
+      "C10-correction-pays",
+      "C2-belgique",
+      "C3-luxembourg",
+      "C4-suisse",
+      "C5-canada",
+      "C6-quebec",
+      "C7-maroc",
+      "C8-allemagne",
+      "C9-etats-unis",
+      "D1-pas-pierre",
+      "D10-on-verra-plus-tard",
+      "D2-pas-acheter",
+      "D3-pas-inscrire",
+      "D4-pas-connecter",
+      "D5-oublie-demo",
+      "D6-laisse-tomber",
+      "D7-pas-belgique-france",
+      "D8-retour-accueil",
+      "D9-jamais-demande-annuler",
+      "E1-licenciement",
+      "E10-donnees-autre-entreprise",
+      "E2-salaire",
+      "E3-signature",
+      "E4-paie-complete",
+      "E5-remplace-drh",
+      "E6-garantie-prudhommale",
+      "E7-virement",
+      "E8-investissement",
+      "E9-faux-document",
+      "F1-decouvrir-pierre",
+      "F2-demo-pierre",
+      "F3-reserver-pierre",
+      "F4-compte-connexion",
+      "F5-devenir-partenaire"
+    ],
+    "groups": {
+      "A": 20,
+      "B": 10,
+      "C": 10,
+      "D": 10,
+      "E": 10,
+      "F": 5
+    },
+    "source": "e2e/c1-8-final-closure.spec.ts"
+  },
+  "total_target": 102,
+  "legacy_cases": [
+    {
+      "id": "OLD-01",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "REFERENCE acheter Pierre (click-through)"
+      ]
+    },
+    {
+      "id": "OLD-02",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je veux acheter Pierre"
+      ]
+    },
+    {
+      "id": "OLD-03",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je veux prendre Pierre"
+      ]
+    },
+    {
+      "id": "OLD-04",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je veux réserver Pierre"
+      ]
+    },
+    {
+      "id": "OLD-05",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "comment avoir Pierre"
+      ]
+    },
+    {
+      "id": "OLD-06",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "comment obtenir Pierre"
+      ]
+    },
+    {
+      "id": "OLD-07",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "où acheter Pierre"
+      ]
+    },
+    {
+      "id": "OLD-08",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "où payer Pierre"
+      ]
+    },
+    {
+      "id": "OLD-09",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je veux Pierre pour ma société"
+      ]
+    },
+    {
+      "id": "OLD-10",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je veux que Pierre travaille pour nous"
+      ]
+    },
+    {
+      "id": "OLD-11",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "comment m'abonner à Pierre"
+      ]
+    },
+    {
+      "id": "OLD-12",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je souhaite souscrire à Pierre"
+      ]
+    },
+    {
+      "id": "OLD-13",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "quelle page pour acheter Pierre"
+      ]
+    },
+    {
+      "id": "OLD-14",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je peux acheter Pierre où"
+      ]
+    },
+    {
+      "id": "OLD-15",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "acheter pierre"
+      ]
+    },
+    {
+      "id": "OLD-16",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je veux acquérir pierre"
+      ]
+    },
+    {
+      "id": "OLD-17",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "comment activer pierre"
+      ]
+    },
+    {
+      "id": "OLD-18",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je passe commande"
+      ]
+    },
+    {
+      "id": "OLD-19",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "mettez le dans mon panier"
+      ]
+    },
+    {
+      "id": "OLD-20",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "go je m'abonne"
+      ]
+    },
+    {
+      "id": "OLD-21",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je le veux pour ma boite"
+      ]
+    },
+    {
+      "id": "OLD-22",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "envoie moi le lien pour payer"
+      ]
+    },
+    {
+      "id": "OLD-23",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je signe"
+      ]
+    },
+    {
+      "id": "OLD-24",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "je souscris"
+      ]
+    },
+    {
+      "id": "OLD-25",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "purchase",
+      "messages": [
+        "nous souhaitons acquérir la solution"
+      ]
+    },
+    {
+      "id": "OLD-26",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "pricing",
+      "messages": [
+        "combien coûte Pierre ?"
+      ]
+    },
+    {
+      "id": "OLD-27",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "pricing",
+      "messages": [
+        "quel est le prix de Pierre"
+      ]
+    },
+    {
+      "id": "OLD-28",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "pricing",
+      "messages": [
+        "c'est combien par mois"
+      ]
+    },
+    {
+      "id": "OLD-29",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "pricing",
+      "messages": [
+        "c gratos ou pas"
+      ]
+    },
+    {
+      "id": "OLD-30",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "pricing",
+      "messages": [
+        "vos conditions tarifaires"
+      ]
+    },
+    {
+      "id": "OLD-31",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "pricing",
+      "messages": [
+        "prix → click-through"
+      ]
+    },
+    {
+      "id": "OLD-32",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "auth-nav",
+      "messages": [
+        "je veux me connecter"
+      ]
+    },
+    {
+      "id": "OLD-33",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "auth-nav",
+      "messages": [
+        "connexion à mon compte"
+      ]
+    },
+    {
+      "id": "OLD-34",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "auth-nav",
+      "messages": [
+        "comment créer un compte"
+      ]
+    },
+    {
+      "id": "OLD-35",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "auth-nav",
+      "messages": [
+        "je veux m'inscrire"
+      ]
+    },
+    {
+      "id": "OLD-36",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "demo",
+      "messages": [
+        "montre-moi la démo Pierre (click-through)"
+      ]
+    },
+    {
+      "id": "OLD-37",
+      "source": "C18_BROWSER_CAMPAIGN_SUMMARY.json (2026-07-18)",
+      "group": "legacy-37",
+      "kind": "negation",
+      "messages": [
+        "je ne veux pas acheter Pierre, seulement voir la démo"
+      ]
+    }
+  ]
+}

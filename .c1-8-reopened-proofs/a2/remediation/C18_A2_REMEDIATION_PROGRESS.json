@@ -1,0 +1,55 @@
+{
+  "version": "C18_A2_REMEDIATION_PROGRESS_v1",
+  "phases": [
+    {
+      "id": "P0_lecture_sources",
+      "state": "done",
+      "note": "audit/défauts/verdicts/référentiel lus ; baseline suite CloneChat 777/777 verte"
+    },
+    {
+      "id": "P1_plan",
+      "state": "done",
+      "note": "C18_A2_REMEDIATION_PLAN.json — 16 causes racines couvertes"
+    },
+    {
+      "id": "P2_implementation",
+      "state": "done",
+      "note": "src/lib/clonechat/public-answer/ (5 modules) + 5 modules produit modifiés"
+    },
+    {
+      "id": "P3_tests_contrat",
+      "state": "done",
+      "note": "3 fichiers, 106 tests : contrats par cause (formulations NEUVES), 16 clusters, régression des 155 FAIL"
+    },
+    {
+      "id": "P4_validation_locale",
+      "state": "done",
+      "note": "CloneChat 885/885 · geo/nav/pricing/ultimate 1083/1083 · tsc 0 · build isolé .next-c18-a2-remediation EXIT=0, 196/196 pages"
+    },
+    {
+      "id": "P5_recapture_1003",
+      "state": "done",
+      "note": "1003 cas, 0 vide, 0 erreur, 0 doublon, 0 ID manquant, réponses complètes (moyenne 345 caractères)"
+    },
+    {
+      "id": "P6_gate_regression",
+      "state": "done",
+      "note": "17 contrôles à 0 ; 185/185 contrats ; 739 FIXED · 53 IMPROVED · 0 UNRESOLVED · 0 REGRESSED ; 0/155 anciens FAIL non résolus"
+    },
+    {
+      "id": "P7_artefacts_finaux",
+      "state": "done",
+      "note": "RESULTS + DEFECT_MATRIX + MANIFEST + AUDIT + RECAPTURE_AUDIT écrits"
+    },
+    {
+      "id": "P8_rebuild_final",
+      "state": "done",
+      "note": "build isolé final EXIT=0 · compilé 12,7 min · 196/196 pages statiques · BUILD_ID j2rgkBh3RvzEMW-7EVAWQ"
+    }
+  ],
+  "garde_artefacts": {
+    "frozen_backup": ".c1-8-reopened-proofs/a2/remediation/_frozen-backup/",
+    "raison": "la suite CloneChat régénère C18_FROZEN_CAPTURE_*.json ; le corpus A2 figé est restauré après chaque exécution",
+    "verifie": "hash identique à l'original après restauration"
+  }
+}

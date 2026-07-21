@@ -1,0 +1,75 @@
+{
+  "title": "C1.8 FINAL REAL-BROWSER CLOSURE — manifeste cumulé",
+  "legacy_37": {
+    "count": 37,
+    "unique_messages": 37,
+    "all_ok_at_capture": true,
+    "consoleErrorsReal_at_capture": 0,
+    "source": ".c1-8-reopened-proofs/C18_BROWSER_CAMPAIGN_SUMMARY.json",
+    "date_captured": "2026-07-18",
+    "validation_method": "structurelle (relecture de l'artefact existant : 37 messages uniques, 37/37 ok, 0 erreur console reelle) — non ré-exécutée (webpack dev + mur RAM documenté), conforme à la consigne §2 du run C1.8 FINAL"
+  },
+  "new_65": {
+    "count": 65,
+    "passed": 65,
+    "unique_ids": 65,
+    "groups": [
+      {
+        "group": "A",
+        "size": 20
+      },
+      {
+        "group": "B",
+        "size": 10
+      },
+      {
+        "group": "C",
+        "size": 10
+      },
+      {
+        "group": "D",
+        "size": 10
+      },
+      {
+        "group": "E",
+        "size": 10
+      },
+      {
+        "group": "F",
+        "size": 5
+      }
+    ],
+    "source": "e2e/c1-8-final-closure.spec.ts",
+    "date_run": "2026-07-21",
+    "environment": "build isolé précompilé .next-c18-final-closure (NEXT_DIST_DIR), next start, harnais fail-closed (27 destinations distantes neutralisées, 0 provider, garde qui refuse de démarrer si une destination distante subsiste)"
+  },
+  "total_cumulative": 102,
+  "ids_unique_overall": true,
+  "hard_assertions": {
+    "console_errors_real": 0,
+    "page_errors": 0,
+    "requests_404": 0,
+    "requests_5xx": 0,
+    "external_requests": 0,
+    "empty_responses": 0
+  },
+  "files_modified_by_this_session": [
+    "src/lib/nav/route-registry.ts (ajout de 6 routes réelles déjà existantes : 5 pages légales + /comprendre-clonestore)",
+    "src/lib/clonechat/public-answer/public-situation.ts (detectCountry : dernier pays cité l'emporte, au lieu du premier du tableau)",
+    "src/lib/clonechat/links/__tests__/safe-links.test.ts (test de contrat, +6 cas)",
+    "src/lib/clonechat/public-answer/__tests__/c18-a2-contracts.test.ts (test de contrat, +4 cas)",
+    "e2e/c1-8-final-closure.spec.ts (nouveau, 65 flux)",
+    "playwright.c1-8-final-closure.config.ts (nouveau)"
+  ],
+  "production_touched": false,
+  "deployment_touched": false,
+  "migrations_touched": false,
+  "payments_touched": false,
+  "hashes": {
+    "C18_FINAL_BROWSER_RESULTS.jsonl": "e119337320a96050826d8fddd95f3ae9e86d4e91865d12d6736d821d7603de90",
+    "C18_BROWSER_CAMPAIGN_SUMMARY.json (legacy 37)": "ea5793f1972001019cd83593a719182d5203e6a9998f13de0d8e828f6a7d3b71",
+    "e2e/c1-8-final-closure.spec.ts": "ef81e2203593595ad0fb8812928d892baa733d895b869456627561d0bb2c0056",
+    "src/lib/nav/route-registry.ts": "31b4e77e2783b2ea96d70583ad13b62de7c8c74fd190f638867358dc58b04c65",
+    "src/lib/clonechat/public-answer/public-situation.ts": "85d85d82d6e157973b5086943d57d05292e50aec2e2eac411c6a9a1fdb85a146"
+  }
+}

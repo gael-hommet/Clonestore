@@ -111,7 +111,10 @@ export async function delegateToPierre(
     return Object.freeze({
       ...NOT_DELEGATED(kind, "Inviter à se connecter pour que Pierre travaille sur l'entreprise."),
       status: "blocked" as const,
-      blockedReason: "Le travail RH exige une entreprise authentifiée (résolue côté serveur).",
+      // C1.8 A2 — formulation CLIENT : la condition d'accès est expliquée, jamais énoncée comme un
+      // prérequis technique collé en fin de réponse (défaut « texte parasite » du corpus A2).
+      blockedReason:
+        "Pour que Pierre travaille sur ce dossier, il faut être connecté avec votre entreprise associée : c'est ce qui lui donne le contexte de vos salariés et de vos documents.",
     });
   }
   if (question.trim().length < 12) {

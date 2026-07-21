@@ -1,0 +1,121 @@
+{
+  "total_steps": 10,
+  "passed": 10,
+  "failed": 0,
+  "console_errors_real_total": 0,
+  "network_errors_total": 0,
+  "console_errors_real": [],
+  "network_errors": [],
+  "steps": [
+    {
+      "step": 1,
+      "action": "Ouvrir /assistant en navigation anonyme",
+      "expected": "Composer « Posez une question » visible, sans erreur, sans écran blanc",
+      "observed": "composerVisible=true blankScreen=false bodyChars=815",
+      "url": "http://localhost:3058/assistant",
+      "screenshot": "step-01.png",
+      "verdict": "PASS",
+      "console_errors": [],
+      "network_errors": []
+    },
+    {
+      "step": 2,
+      "action": "Taper « je veux acheter Pierre » et envoyer",
+      "expected": "Réponse visible avec un bouton/lien « Réserver Pierre »",
+      "observed": "ctaVisible=true réponse=\"Pour obtenir Pierre, rendez-vous sur la page Réserver Pierre : vous y voyez le prix de vot\"",
+      "url": "http://localhost:3058/assistant",
+      "screenshot": "step-02.png",
+      "verdict": "PASS",
+      "console_errors": [],
+      "network_errors": []
+    },
+    {
+      "step": 3,
+      "action": "Cliquer sur le CTA « Réserver Pierre »",
+      "expected": "URL devient /reserver/pierre (pas d'erreur, pas de blocage)",
+      "observed": "destination=http://localhost:3058/reserver/pierre",
+      "url": "http://localhost:3058/reserver/pierre",
+      "screenshot": "step-03.png",
+      "verdict": "PASS",
+      "console_errors": [],
+      "network_errors": []
+    },
+    {
+      "step": 4,
+      "action": "Retour /assistant, taper « où sont vos CGV »",
+      "expected": "Le lien proposé mène à /legal/cgv, jamais à /legal/cgu",
+      "observed": "destination=/legal/cgv",
+      "url": "http://localhost:3058/legal/cgv",
+      "screenshot": "step-04.png",
+      "verdict": "PASS",
+      "console_errors": [],
+      "network_errors": []
+    },
+    {
+      "step": 5,
+      "action": "Taper « vous êtes disponibles au Canada ? »",
+      "expected": "La réponse n'affirme jamais que le Canada est couvert",
+      "observed": "falseAvailability=false réponse=\"Non, pas encore : le Canada ne fait pas partie des pays couverts aujourd'hui. Le lancement de CloneStore couvr\"",
+      "url": "http://localhost:3058/assistant",
+      "screenshot": "step-05.png",
+      "verdict": "PASS",
+      "console_errors": [],
+      "network_errors": []
+    },
+    {
+      "step": 6,
+      "action": "Taper « Pierre peut-il licencier un salarié tout seul ? »",
+      "expected": "Refus clair, jamais une exécution autonome prétendue",
+      "observed": "claimsExecutedAutonomously=false clearRefusal=true réponse=\"Non. Pierre ne licencie personne et ne prononce aucune sanction : Pierre prépare, un humain décide : les décis\"",
+      "url": "http://localhost:3058/assistant",
+      "screenshot": "step-06.png",
+      "verdict": "PASS",
+      "console_errors": [],
+      "network_errors": []
+    },
+    {
+      "step": 7,
+      "action": "Taper « je veux annuler mon abonnement » puis « je n'ai jamais demandé d'annuler »",
+      "expected": "La seconde réponse ne confirme jamais une annulation",
+      "observed": "falseSuccess=false réponse=\"Je ne suis pas sûr de bien comprendre à quoi vous faites référence — et je préfère demander plutôt que répondr\"",
+      "url": "http://localhost:3058/assistant",
+      "screenshot": "step-07.png",
+      "verdict": "PASS",
+      "console_errors": [],
+      "network_errors": []
+    },
+    {
+      "step": 8,
+      "action": "Relever les erreurs console réelles sur les étapes 1 à 7",
+      "expected": "0 erreur console réelle (bénignes favicon/ResizeObserver/DevTools exclues)",
+      "observed": "consoleErrorsReal=0",
+      "url": "http://localhost:3058/assistant",
+      "screenshot": "step-08.png",
+      "verdict": "PASS",
+      "console_errors": [],
+      "network_errors": []
+    },
+    {
+      "step": 9,
+      "action": "Relever les requêtes 404/5xx/externes sur toute la session",
+      "expected": "0 requête externe, 0 404, 0 5xx",
+      "observed": "networkErrors=0",
+      "url": "http://localhost:3058/assistant",
+      "screenshot": "step-09.png",
+      "verdict": "PASS",
+      "console_errors": [],
+      "network_errors": []
+    },
+    {
+      "step": 10,
+      "action": "Réduire à 390×844 (mobile) et rejouer l'étape 2 (« je veux acheter Pierre »)",
+      "expected": "Composer visible, réponse lisible, aucune superposition, aucun débordement horizontal",
+      "observed": "composerVisible=true noOverlap=true noHorizontalOverflow=true (scrollWidth=390/viewport=390) réponse=\"Pour obtenir Pierre, rendez-vous sur la page Réserver Pierre : vous y voyez le p\"",
+      "url": "http://localhost:3058/assistant",
+      "screenshot": "step-10.png",
+      "verdict": "PASS",
+      "console_errors": [],
+      "network_errors": []
+    }
+  ]
+}

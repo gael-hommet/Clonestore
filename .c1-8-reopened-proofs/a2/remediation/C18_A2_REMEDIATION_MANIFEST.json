@@ -1,0 +1,191 @@
+{
+  "version": "C18_A2_REMEDIATION_MANIFEST_v1",
+  "perimetre": "Remédiation systémique de la voie publique CloneChat après le jugement aveugle A/B/C du corpus A2 (1003 cas).",
+  "corpus": {
+    "total": 1003,
+    "ids_manquants": [],
+    "ids_dupliques": 0,
+    "ordre_identique_au_corpus_source": true,
+    "messages_identiques_au_corpus_fige": true,
+    "reponses_vides": 0,
+    "erreurs_execution": 0,
+    "reponses_tronquees_a_90": 0,
+    "longueur_moyenne_reponse": 345,
+    "reponses_modifiees": 1003,
+    "destinations_modifiees": 547
+  },
+  "resultats": {
+    "cas_a_corriger": 792,
+    "FIXED": 739,
+    "IMPROVED_BUT_REMAINS_MINOR": 53,
+    "UNRESOLVED": 0,
+    "REGRESSED": 0,
+    "anciens_fail": 155,
+    "anciens_fail_non_resolus": 0,
+    "signatures_exactes_encore_presentes": 0,
+    "destinations": {
+      "exactes": 426,
+      "equivalentes": 24,
+      "divergentes": 53,
+      "sans_attente": 289
+    }
+  },
+  "gate_zero": {
+    "internal_leak": 0,
+    "placeholder": 0,
+    "parasite": 0,
+    "generic_dodge": 0,
+    "commercial_on_incident": 0,
+    "incident_bad_route": 0,
+    "cgv_served_cgu": 0,
+    "legal_route_mismatch": 0,
+    "legal_cta_incoherent": 0,
+    "out_country_presented_available": 0,
+    "out_country_reservation_push": 0,
+    "negation_ignored": 0,
+    "illicit_not_refused": 0,
+    "false_success": 0,
+    "system_leak": 0,
+    "empty_answers": 0,
+    "invented_routes": 0
+  },
+  "clusters": {
+    "argumentaire_prix_hors_sujet": {
+      "cas": 41,
+      "FIXED": 40,
+      "IMPROVED": 1,
+      "UNRESOLVED": 0
+    },
+    "limites_ou_capacites_non_expliquees": {
+      "cas": 121,
+      "FIXED": 110,
+      "IMPROVED": 11,
+      "UNRESOLVED": 0
+    },
+    "plan_du_site_hors_sujet": {
+      "cas": 24,
+      "FIXED": 21,
+      "IMPROVED": 3,
+      "UNRESOLVED": 0
+    },
+    "pays_non_repondu_ou_errone": {
+      "cas": 14,
+      "FIXED": 13,
+      "IMPROVED": 1,
+      "UNRESOLVED": 0
+    },
+    "dump_roadmap_interne": {
+      "cas": 11,
+      "FIXED": 11,
+      "IMPROVED": 0,
+      "UNRESOLVED": 0
+    },
+    "action_privee_sans_explication_connexion": {
+      "cas": 79,
+      "FIXED": 69,
+      "IMPROVED": 10,
+      "UNRESOLVED": 0
+    },
+    "correction_ou_negation_ignoree": {
+      "cas": 47,
+      "FIXED": 47,
+      "IMPROVED": 0,
+      "UNRESOLVED": 0
+    },
+    "reponse_generique_de_derobade": {
+      "cas": 253,
+      "FIXED": 233,
+      "IMPROVED": 20,
+      "UNRESOLVED": 0
+    },
+    "support_mal_route": {
+      "cas": 8,
+      "FIXED": 7,
+      "IMPROVED": 1,
+      "UNRESOLVED": 0
+    },
+    "validation_humaine_non_explicitee": {
+      "cas": 58,
+      "FIXED": 57,
+      "IMPROVED": 1,
+      "UNRESOLVED": 0
+    },
+    "legal_cgv_mentions_mal_routees": {
+      "cas": 11,
+      "FIXED": 10,
+      "IMPROVED": 1,
+      "UNRESOLVED": 0
+    },
+    "placeholder_ou_texte_parasite": {
+      "cas": 47,
+      "FIXED": 45,
+      "IMPROVED": 2,
+      "UNRESOLVED": 0
+    },
+    "login_signup_mal_traites": {
+      "cas": 32,
+      "FIXED": 32,
+      "IMPROVED": 0,
+      "UNRESOLVED": 0
+    },
+    "faux_succes_ou_invention_non_refuses": {
+      "cas": 16,
+      "FIXED": 15,
+      "IMPROVED": 1,
+      "UNRESOLVED": 0
+    },
+    "hors_perimetre_mal_refuse": {
+      "cas": 18,
+      "FIXED": 18,
+      "IMPROVED": 0,
+      "UNRESOLVED": 0
+    },
+    "injection_non_refusee_explicitement": {
+      "cas": 12,
+      "FIXED": 11,
+      "IMPROVED": 1,
+      "UNRESOLVED": 0
+    }
+  },
+  "hashes": {
+    "entrees": {
+      "C18_A2_FINAL_DEFECTS.json": "4acae40e6d5f6317e593b407f5f41aca94debaad52bf67b5f15dd27a9ba45dda",
+      "C18_A2_FINAL_VERDICTS.json": "3eb379923bf87c7258d1c8496c0f33965a9268daa12cfdc7951be2b3a01830dd",
+      "C18_A2_FINAL_AUDIT.md": "8de915c39b858814a944c1628edfa0f5e1dc1cf603fa7c5e2c4430e0d7736bae",
+      "torture-1000.json": "ecdcf1fc7aa5cad0ae732d443adee186d6183484ae1819afe00526fd1d984e78",
+      "corpus_fige_avant": "d344364e5c8b771d2799255f0c29226288866dea20fa8b4db50f243b982bdc73"
+    },
+    "sorties": {
+      "C18_A2_REMEDIATED_FULL_RESPONSE_META.json": "b7b4fdb84f39cff84bd1db87de30ee4053e4d1bf0f0da580d1bc580aa6c0b9db",
+      "C18_A2_REMEDIATED_BLIND_CORPUS.json": "fa53b52c818de8b0bbc2fa141bda2946cf855347dabc2fc428d00857f1ce0372",
+      "C18_A2_REMEDIATION_RESULTS.json": "8e8abca51cac910225b0b6a57bda54802d4e5c56fceb5d32b4d94262e2379c98",
+      "C18_A2_REMEDIATION_DEFECT_MATRIX.json": "129dc16e5b7fefc1cee8f0e7d6356e3859c952b2593bb24e64c08a6cce75ef05"
+    },
+    "code_produit": {
+      "src/lib/clonechat/public-answer/public-canon.ts": "f4810ad9bb4eb073c732b620520c9d593ab8263eff01c743fd055e2d81aa8652",
+      "src/lib/clonechat/public-answer/public-situation.ts": "7b45cf2948af4dfd2228bddad42cf69e18022eb338b508018fd4a5e438c4bc8b",
+      "src/lib/clonechat/public-answer/public-composer.ts": "8643e616af24870a8f136a1cef96707a15a0cf36bbfbbf6d133974c42a61b408",
+      "src/lib/clonechat/public-answer/public-output-guard.ts": "88670266948fa6fc00f7e95e25da5cd34bf9f6e85d2408724b9b30f425a90278",
+      "src/lib/clonechat/public-answer/index.ts": "e6f34ca989bf3650e75ca909f94447be104096800a0975a67b0dd3f7f3dc33a7",
+      "src/lib/clonechat/intelligence/c1-1/parrain-turn-runtime.ts": "d7ade97f02d053d3db69bb62ad9ef2a7a90a215e531825c0802f386138642681",
+      "src/lib/clonechat/intelligence/c1-1/parrain-support-runtime.ts": "3d4d1d9921bf44b3df0e2ebc2e58ab375e0ac3acf69e6969097b201364758bac",
+      "src/lib/clonechat/intelligence/c1-1/parrain-pierre-delegation.ts": "3b99e24534473dc864844939246f7c0eafcd76b4c8d1f2c7a3447d4bf124e0ad",
+      "src/lib/clonechat/navigation/intent-taxonomy.ts": "e5f0c718daad505451f95e52a840414f79fc98a77cc6be46d3fc889e002da37c",
+      "src/lib/clonechat/navigation/destination-registry.ts": "f3337bc3c4c6b4ca2266f0fe7f86a2f2bce2b96bdccadedcb7778d7e342b6e7f"
+    },
+    "tests": {
+      "src/lib/clonechat/public-answer/__tests__/c18-a2-contracts.test.ts": "6288c3a09983da591dd21863c91c499c523b2432875a6b37bc62d2ccfc06f8f0",
+      "src/lib/clonechat/public-answer/__tests__/c18-a2-clusters.test.ts": "68f1be81b8184d9bba613d61915b7b357b1f062fded619a8661124a9724c8807",
+      "src/lib/clonechat/public-answer/__tests__/c18-a2-regression-155.test.ts": "1aab82a6344bbcc5e455d94e23238eed4501b442b40cebcb220f38e5f442c894",
+      "src/lib/clonechat/navigation/__tests__/c18-a2-remediated-recapture.test.ts": "45d61698e508557eb1b2675a761f2cd1187e8428e52438346448387b1286a5ef",
+      "src/lib/clonechat/navigation/__tests__/intent-taxonomy.test.ts": "2b1bc6180e56d5d47cde5122476d22e9bb181b902ec05f96d5e8e799310a7108"
+    }
+  },
+  "production": {
+    "deploiement": "aucun",
+    "base_de_donnees": "aucun accès",
+    "paiement": "aucun",
+    "reseau_externe": "aucun",
+    "env_local_lu": false
+  }
+}

@@ -1,0 +1,267 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\homme\\clonestore\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--config=playwright.c1-8-final-closure.config.ts",
+      "--grep",
+      "click-through réel"
+    ],
+    "configFile": "C:\\Users\\homme\\clonestore\\playwright.c1-8-final-closure.config.ts",
+    "rootDir": "C:/Users/homme/clonestore/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/homme/clonestore/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/homme/clonestore/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/c1-8-final-closure\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json",
+        {
+          "outputFile": ".c1-8-reopened-proofs/final-browser/C18_FINAL_BROWSER_PLAYWRIGHT_RUN.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 1,
+    "webServer": {
+      "command": "node e2e/c18-fail-closed-env.cjs start 3058",
+      "port": 3058,
+      "reuseExistingServer": true,
+      "timeout": 240000,
+      "env": {
+        "NEXT_DIST_DIR": ".next-c18-final-closure",
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "c1-8-final-closure.spec.ts",
+      "file": "c1-8-final-closure.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "F F1-decouvrir-pierre — click-through réel",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1407,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-21T14:28:57.339Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "90f78be5f2e7413edb90-9e00ec6249c75ffaf885",
+          "file": "c1-8-final-closure.spec.ts",
+          "line": 487,
+          "column": 7
+        },
+        {
+          "title": "F F2-demo-pierre — click-through réel",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1339,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-21T14:28:59.023Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "90f78be5f2e7413edb90-6280e388445cb5e5eaf4",
+          "file": "c1-8-final-closure.spec.ts",
+          "line": 487,
+          "column": 7
+        },
+        {
+          "title": "F F3-reserver-pierre — click-through réel",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1249,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-21T14:29:00.388Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "90f78be5f2e7413edb90-07ce7c5eb6b8d9424f65",
+          "file": "c1-8-final-closure.spec.ts",
+          "line": 487,
+          "column": 7
+        },
+        {
+          "title": "F F4-compte-connexion — click-through réel",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1304,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-21T14:29:01.661Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "90f78be5f2e7413edb90-a0d3c3d590a42dcec4e2",
+          "file": "c1-8-final-closure.spec.ts",
+          "line": 487,
+          "column": 7
+        },
+        {
+          "title": "F F5-devenir-partenaire — click-through réel",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1291,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-21T14:29:02.989Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "90f78be5f2e7413edb90-88773734a1d2860891ff",
+          "file": "c1-8-final-closure.spec.ts",
+          "line": 487,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-21T14:28:56.209Z",
+    "duration": 8224.821,
+    "expected": 5,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

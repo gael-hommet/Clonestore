@@ -10,6 +10,14 @@
 import type { CloneChatStructuredOutput } from "../../openai/structured-output";
 import { routeCloneChatQuestion } from "../c1/clonechat-answer-router";
 import { answerCloneStoreQuestion } from "../c1/clonechat-answer-engine";
+// C1.8 REOUVERT — taxonomie de navigation : achat/réservation/démo/découverte détectés en amont,
+// réponse directe + CTA canonique (jamais Support, jamais liste, jamais bruit « entreprise active »).
+import { resolveNavigationIntent } from "../../navigation/intent-taxonomy";
+import { isRealDestinationRoute } from "../../navigation/destination-registry";
+import { qualifiesForDirectAnswer, directNavigationAnswer } from "../../navigation/navigation-answer";
+// C1.8 A2 — couche PUBLIQUE unique : une situation ⇒ un texte honnête ⇒ une destination, avec
+// garde de sortie fail-closed (jargon interne, placeholder, pression commerciale sur un incident).
+import { resolvePublicAnswer, checkPublicOutput, sanitizePublicText } from "../../public-answer";
 import { buildParrainGroundedPrompt } from "./parrain-grounding";
 import { validateParrainCitations, qualifyUnsupported } from "./parrain-citations";
 import { deriveHonesty, finalizeAnswerText, type ParrainAnswer } from "./parrain-answer-schema";
@@ -68,7 +76,9 @@ export interface ParrainTurnInput {
   readonly at: string;
 }
 
-function linksFor(category: string, question: string): { links: ParrainLink[]; cta: ParrainLink | null } {
+// Exporté pour la PREUVE de reproduction C1.8 réouvert : mesurer le CTA hérité (chemin d'origine
+// routeCloneChatQuestion → linksFor) SANS le court-circuit de navigation, afin de démontrer le défaut.
+export function linksFor(category: string, question: string): { links: ParrainLink[]; cta: ParrainLink | null } {
   const push = (route: string): ParrainLink | null => {
     const p = sitePageByRoute(route);
     return p ? { route: p.route, label: p.title } : null;
@@ -176,7 +186,94 @@ export async function runParrainTurn(input: ParrainTurnInput, ports: ParrainTurn
     },
   });
 
-  const { links, cta } = linksFor(routing.category, question);
+  let { links, cta } = linksFor(routing.category, question);
+
+  // ── C1.8 REOUVERT — NAVIGATION CLAIRE : réponse directe déterministe ──────────
+  // Une intention de navigation nette (« où acheter Pierre ? », « la démo », « me connecter »…)
+  // mérite UNE phrase utile + UN CTA vers la bonne page — jamais une liste, une clarification, un
+  // renvoi Support, ou un avertissement d'entreprise. On court-circuite AVANT le modèle (qui, non
+  // déterministe, pourrait réintroduire ce bruit) — mais uniquement en l'absence de pièce jointe,
+  // d'image et de délégation (ces flux ont leur propre traitement). Une question SUBSTANTIELLE
+  // (prix chiffré, capacités, support) n'est pas concernée : elle garde le chemin groundé.
+  const nav = resolveNavigationIntent(
+    question,
+    { mode: viewer.mode === "public" ? "visitor" : "client", hasActiveCompany: viewer.companyId !== null, country: null },
+    input.history,
+  );
+  const noAttachmentsOrImage = attachments.length === 0 && !input.imageDataUrls?.length && !input.screenshotAnalysis;
+
+  // ── C1.8 A2 — VOIE PUBLIQUE DÉTERMINISTE : autorité unique de composition ─────
+  // Le visiteur non connecté ne reçoit plus le texte du routeur hérité (grille tarifaire sur un
+  // double débit, plan du site sur une panne, feuille de route interne sur « depuis quand ») : une
+  // SITUATION est résolue, une réponse honnête est composée, une seule destination l'accompagne.
+  // Le chemin modèle (responder réel) est conservé — il est simplement contrôlé par la même garde.
+  if (viewer.mode === "public" && noAttachmentsOrImage && !ports.responder) {
+    const pub = resolvePublicAnswer(question);
+    const finalizedPub = finalizeAnswerText(pub.answer);
+    return Object.freeze({
+      answer: finalizedPub.safeText,
+      honesty: finalizedPub.violated ? "escalated" : pub.escalate ? "escalated" : "answered",
+      confidence: finalizedPub.violated ? "low" : pub.confidence,
+      category: routing.category,
+      citations: [],
+      citationLabels: [],
+      relevantLinks: pub.links.map((l) => ({ route: l.route, label: l.label })),
+      suggestedCTA: pub.cta ? { route: pub.cta.route, label: pub.cta.label } : null,
+      knownLimitations: [],
+      needsHumanEscalation: finalizedPub.violated || pub.escalate,
+      supportArtifact: supportResult?.artifact ?? null,
+      learningCandidate: null,
+      pierreDelegation: null,
+      attachments: [],
+      documentFindings: [],
+      usageTokens: 0,
+      source: "deterministic_parrain",
+    }) as ParrainAnswer;
+  }
+
+  if (noAttachmentsOrImage && !delegation && qualifiesForDirectAnswer(nav) && nav.cta) {
+    // La route du CTA est validée par le registre de destinations (taxonomie) : jamais inventée.
+    const navCta = { route: nav.cta.route, label: nav.cta.label };
+    const navLinks = [navCta];
+    const finalizedNav = finalizeAnswerText(directNavigationAnswer(nav));
+    return Object.freeze({
+      answer: finalizedNav.safeText,
+      honesty: "answered",
+      confidence: nav.confidence === "certain" ? "high" : nav.confidence === "high" ? "high" : "medium",
+      category: routing.category,
+      citations: [],
+      citationLabels: [],
+      relevantLinks: navLinks,
+      suggestedCTA: navCta,
+      knownLimitations: [],
+      needsHumanEscalation: false,
+      supportArtifact: null,
+      learningCandidate: null,
+      pierreDelegation: null,
+      attachments: [],
+      documentFindings: [],
+      usageTokens: 0,
+      source: "deterministic_parrain",
+    }) as ParrainAnswer;
+  }
+  // Pour une intention commerciale confiante NON court-circuitée (prix chiffré, démo, découverte),
+  // on garde le contenu groundé/modèle MAIS on impose le CTA canonique de la destination : ainsi
+  // « combien coûte Pierre ? » garde son explication et pointe /reserver/pierre, « la démo » pointe
+  // /demo/pierre, « c'est quoi Pierre » pointe /agents/pierre. Jamais un CTA Support par défaut.
+  // On impose la destination CANONIQUE de la taxonomie pour TOUTE intention confiante (commerciale
+  // OU client : annulation→/profile, support→/questions, connexion→/login…), pas seulement le
+  // commercial. Sans cela, deux routeurs coexistaient (routeCloneChatQuestion hérité vs taxonomie) et
+  // le CTA délivré suivait l'ancien, misroutant l'annulation/le support/la connexion. Le CONTENU de
+  // la réponse (diagnostic CloneCare, savoir, etc.) reste inchangé ; seule la destination est unifiée.
+  if (nav.cta && (nav.confidence === "certain" || nav.confidence === "high") && !nav.clarification_required && isRealDestinationRoute(nav.cta.route)) {
+    const navCta = { route: nav.cta.route, label: nav.cta.label };
+    cta = navCta;
+    // Le CLIENT rend `relevantLinks` (pas `suggestedCTA`) : la destination canonique doit donc en
+    // être le PREMIER lien, sinon la belle réponse pointerait un bouton hérité imprécis (ex. /demo
+    // au lieu de /demo/pierre). On mène avec navCta puis on conserve les alternatives distinctes.
+    links = [navCta, ...links.filter((l) => l.route !== navCta.route)].slice(0, 3);
+  }
+
   const knownLimitations: string[] = [];
   for (const a of attachments) {
     if (a.attachment.supportStatus === "unsupported" || a.attachment.supportStatus === "parse_failed" || a.attachment.supportStatus === "manual_review_required") {
@@ -209,6 +306,24 @@ export async function runParrainTurn(input: ParrainTurnInput, ports: ParrainTurn
         if (supportResult) answerText = `${answerText}\n\n${supportResult.message}`;
         if (delegation?.status === "blocked" && delegation.blockedReason) answerText = `${answerText}\n\n${delegation.blockedReason}`;
         answerText = qualifyUnsupported(answerText, cited.valid.length > 0, grounded.retrieval.staleSourceIds);
+        // C1.8 A2 — la garde publique s'applique AUSSI au modèle : ni jargon interne, ni placeholder,
+        // ni suffixe parasite, ni argumentaire commercial sur un incident. En cas de violation
+        // persistante après nettoyage, la réponse déterministe honnête reprend la main (fail-closed).
+        if (viewer.mode === "public") {
+          answerText = sanitizePublicText(answerText);
+          const pubGuard = resolvePublicAnswer(question);
+          const verdict = checkPublicOutput({
+            text: answerText,
+            ctaRoute: cta?.route ?? null,
+            linkRoutes: links.map((l) => l.route),
+            commercialForbidden: pubGuard.commercialForbidden,
+          });
+          if (!verdict.ok) {
+            answerText = pubGuard.answer;
+            cta = pubGuard.cta ? { route: pubGuard.cta.route, label: pubGuard.cta.label } : null;
+            links = pubGuard.links.map((l) => ({ route: l.route, label: l.label }));
+          }
+        }
         const finalized = finalizeAnswerText(answerText);
         const honesty = deriveHonesty(result.structured.honesty, {
           citationsKept: cited.valid.length,

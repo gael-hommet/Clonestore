@@ -22,9 +22,13 @@ import { prepareImagesForModel } from "@/lib/clonechat/openai/image-sanitizer";
 import { detectPromptInjection, injectionRefusalMessage } from "@/lib/clonechat";
 import { redactSymptom } from "@/lib/clonechat/bug-memory";
 import { getCloneChatStores } from "@/lib/clonechat/server/runtime";
+import { budgetHealth, budgetDegradationReason } from "@/lib/clonechat/server/resilient-budget";
+import { isE2EModeEnabled, readE2EIdentityFromRequest } from "@/lib/pierre/v1/e2e-test-identity";
 import { resolveCloneChatCompany, type TenantResolution } from "@/lib/clonechat/server/company";
 import { tenantRefusalResponse } from "@/lib/clonechat/server/auth";
 import { buildAndPersistProposal } from "@/lib/clonechat/server/proposal-builder";
+// P19 — CloneOS sur le vrai chemin + statut structurel du tour (jamais déduit d'une phrase).
+import { buildCloneOsTurn, deriveStructuralStatus } from "@/lib/clonechat/server/cloneos-turn";
 // ── C1.6 — CONTRAT UNIVERSEL : la conversation est un DROIT, le contexte privé et l'action
 // sont des PRIVILÈGES. Ce module SUPPLANTE la matrice d'entrée de C1.3/C1.4/C1.5.
 import {
@@ -39,6 +43,14 @@ import {
   anonymousFingerprint,
   anonymousRateLimitMessage,
 } from "@/lib/clonechat/server/anonymous-rate-limit";
+// ── C1.8 — CLONECARE : le support autonome derrière l'UNIQUE CloneChat.
+// Aucune seconde route, aucun second assistant : une ENVELOPPE additive sur les réponses
+// existantes. Le client décrit son ÉCRAN ; le serveur résout son IDENTITÉ.
+import { resolveAccountContext } from "@/lib/clonechat/care/context-resolver";
+import { buildCareEnvelope, type CareEnvelope } from "@/lib/clonechat/care/envelope";
+// C1.8 BLOC A — UNE SEULE FORME VISIBLE. Toute branche passe par le normalisateur : c'est ce qui
+// rend structurellement impossible qu'un champ (comme `analysis`) soit renvoyé sans être affiché.
+import { buildRenderedResponse } from "@/lib/clonechat/response/canonical";
 import { getRouteEntry } from "@/lib/nav/route-registry";
 // C1.7 §4C — UN SEUL routeur de modèle, pur et déterministe. Aucun appel IA pour choisir une IA,
 // et AUCUN signal d'identité : la qualité dépend de la TÂCHE, jamais du compte.
@@ -98,6 +110,12 @@ interface ChatBody {
   images?: string[];
   attachments?: AttachmentBody[];
   conversation_id?: string;
+  /**
+   * C1.8 §4 — CONTEXTE D'ÉCRAN déclaré par le client. Volontairement typé `unknown` :
+   * il est VALIDÉ et NETTOYÉ côté serveur (`validatePageContext`), jamais cru sur parole.
+   * Tout champ d'identité qui s'y trouverait est ignoré et signalé comme usurpation.
+   */
+  page_context?: unknown;
 }
 
 const BUG_HINT = /(bug|erreur|probl[eè]me|marche pas|ne fonctionne|plante|grisé|bloqué|vide|impossible|n'arrive pas|échoue|ne s'affiche)/i;
@@ -146,7 +164,15 @@ export async function POST(req: Request) {
   // L'authentification ne conditionne plus la parole, seulement le contexte privé et l'action.
   let userId: string | null = null;
   let supabase: Awaited<ReturnType<typeof supabaseServer>> | null = null;
-  try {
+  // ── PONT E2E (test uniquement, fail-closed) ──────────────────────────────────
+  // La route CHAT résout l'identité INLINE (pas via requireCompanyUser). Sans ce pont, elle
+  // ne reconnaissait pas le cookie d'identité signé : un utilisateur authentifié par e2e était
+  // vu ANONYME ici, donc ses messages n'étaient jamais persistés (les routes conversations, elles,
+  // ont le pont — d'où une conversation créée mais VIDE). Miroir exact de requireCompanyUser :
+  // inerte en production (readE2EIdentityFromRequest exige mode test + NODE_ENV≠production + secret).
+  const e2eId = isE2EModeEnabled() ? readE2EIdentityFromRequest(req) : null;
+  if (e2eId) userId = e2eId.user_id;
+  else try {
     supabase = await supabaseServer();
     const token = bearer(req);
     const { data } = token ? await supabase.auth.getUser(token) : await supabase.auth.getUser();
@@ -187,12 +213,57 @@ export async function POST(req: Request) {
   const tenant = viewer.kind === "user" ? await resolveCloneChatCompany(viewer.userId) : null;
   const plan = resolveCloneChatPlan({ requestClass, viewer, entitlement, tenant });
 
+  // ── C1.8 §4 — CLONECONTEXT ───────────────────────────────────────────────────
+  //
+  // L'identité est RÉSOLUE ici, à partir des autorités que la route vient de calculer
+  // (viewer, droit Pierre, entreprise, plan). Le `page_context` éventuellement envoyé par le
+  // navigateur décrit un ÉCRAN — il est validé, nettoyé, et toute tentative d'y glisser une
+  // identité (companyId, permissions, abonnement…) est ignorée ET signalée.
+  //
+  // `liveEnabled: false` est un PLANCHER : aucune action à effet externe réel (e-mail, portail
+  // de facturation) ne peut être autorisée localement, quoi que demande le client.
+  const accountContext = resolveAccountContext({ viewer, entitlement, tenant, plan, at });
+  const care: CareEnvelope = buildCareEnvelope({
+    message,
+    account: accountContext,
+    rawPageContext: (body as { page_context?: unknown } | null)?.page_context ?? null,
+    // C1.6 : la PERTINENCE d'un blocage de compte dépend de la DEMANDE. Sur une question
+    // publique (« quels sont les prix ? »), CloneChat ne rappelle pas à l'utilisateur ce qui
+    // manque à son compte : ce n'est pas ce qu'on lui a demandé.
+    requestClass,
+    currentPageVersion: null,
+    liveEnabled: false, // ← jamais d'effet externe réel depuis cette route en l'état
+  });
+
+  // Toute réponse émise À PARTIR D'ICI porte l'enveloppe de support. Purement ADDITIF :
+  // aucun champ existant n'est modifié, aucune réponse C1.6/C1.7 n'est altérée.
+  const reply = (json: Record<string, unknown>, status = 200) =>
+    noStore({ ...json, care, rendered: buildRenderedResponse({ ...json, care }, care as unknown as Record<string, unknown>) }, status);
+
+  // ── C1.8 — PERSISTANCE D'HISTORIQUE INDÉPENDANTE DE LA VOIE ──────────────────
+  // Défaut trouvé en QA navigateur authentifiée : la persistance (persistUser/persistAssistant)
+  // vivait UNIQUEMENT dans la voie ENTREPRISE. Or un message conversationnel (« bonjour ») prend
+  // la voie PUBLIQUE — même pour un membre d'entreprise. Résultat : la conversation existait mais
+  // restait VIDE, et la réouverture n'affichait aucun message. La persistance ne dépend pas de la
+  // façon dont la réponse est produite : dès qu'il y a une identité AUTHENTIFIÉE, un tenant résolu
+  // SERVEUR et un `conversation_id`, le tour est enregistré. L'anonyme (tenant null) ne persiste
+  // jamais côté serveur — son historique vit dans le navigateur.
+  const convCtx = (viewer.kind === "user" && tenant?.ok && conversationId)
+    ? { userId: viewer.userId, companyId: tenant.companyId } : null;
+  const persistPublicTurn = async (answerText: string) => {
+    if (!convCtx || !conversationId || !message) return;
+    try {
+      await stores.conversations.appendMessage(conversationId, convCtx, { role: "user", content: [{ type: "text", text: message }], at });
+      await stores.conversations.appendMessage(conversationId, convCtx, { role: "assistant", content: [{ type: "text", text: answerText }], at: now() });
+    } catch { /* persistance best-effort : ne casse JAMAIS le tour */ }
+  };
+
   // Limitation d'abus de la voie anonyme (jamais une porte : un message honnête + réessai).
   if (viewer.kind === "anonymous") {
     const rl = checkAnonymousRateLimit(anonymousFingerprint(req.headers));
     if (!rl.allowed) {
       const msg = anonymousRateLimitMessage(rl.retryAfterSeconds);
-      return noStore({
+      return reply({
         ok: true, source: "rate_limited", public: true, retryAfterSeconds: rl.retryAfterSeconds,
         structured: { answer: msg, honesty: "answered", tool_call: null, citations: [] },
       });
@@ -232,7 +303,7 @@ export async function POST(req: Request) {
   // la conversation PUBLIQUE reste ouverte (C1.6 §1). Seul le contexte privé est coupé.
   if (plan.tenantSecurityFailure && (requestClass === "PRIVATE_CONTEXT_REQUIRED" || requestClass === "GOVERNED_ACTION_REQUIRED")) {
     const refusal = tenant as Extract<TenantResolution, { ok: false }>;
-    return noStore({
+    return reply({
       ok: true, source: "company_access_suspended", public: true, code: refusal.code,
       structured: {
         answer: "Votre accès à cette entreprise est suspendu : je ne peux pas consulter ses données ni agir dessus. Je reste disponible pour toutes vos autres questions.",
@@ -281,7 +352,7 @@ export async function POST(req: Request) {
     // contenir AUCUNE source tenant / interne / secrète (fail-closed si jamais c'était le cas).
     const publicIndex = buildKnowledgeIndex({ question: message, viewer: PUBLIC_VIEWER });
     if (indexLeaksForbiddenSources(publicIndex, PUBLIC_VIEWER)) {
-      return noStore({ ok: true, source: "public_blocked", discovery: true, structured: { answer: "Je ne peux pas répondre en mode découverte pour le moment.", honesty: "unknown", tool_call: null, citations: [] } });
+      return reply({ ok: true, source: "public_blocked", discovery: true, structured: { answer: "Je ne peux pas répondre en mode découverte pour le moment.", honesty: "unknown", tool_call: null, citations: [] } });
     }
 
     // BUDGET : scope UTILISATEUR + global, companyId = null — JAMAIS de fausse entreprise.
@@ -342,6 +413,8 @@ export async function POST(req: Request) {
 
             const tokens = pub.usageTokens ?? 0;
             settled = true;
+            // C1.8 — enregistre le tour pour un utilisateur authentifié (voie publique streamée).
+            await persistPublicTurn(pub.answer);
             try { await stores.budget.commit(pubReservation, tokens); } catch { /* comptabilité best-effort */ }
             if (sink.usage && tokens > 0) {
               try { await stores.budget.recordUsage(buildUsageRecord({ usage: sink.usage, userId, companyId: null as unknown as string, at: now() })); } catch { /* optionnel */ }
@@ -358,15 +431,18 @@ export async function POST(req: Request) {
               // extraits réellement fournis au modèle. Sinon on le dit — jamais un faux « analysé ».
               attachments: [
                 ...ephemeral.map((e) => ({
-                  name: e.attachment.filename,
+                  // P17 — clé CANONIQUE `filename` (le client lit `filename`, pas `name`) : sans elle
+                  // il rendait « undefined — … » sur la voie publique. `name` conservé (compat).
+                  name: e.attachment.filename, filename: e.attachment.filename,
                   state: e.chunks.length > 0 ? "analysed" : "unsupported_analysis",
                   supportStatus: e.attachment.supportStatus,
                   detail: e.honestSummary,
                 })),
-                ...serverRejected.map((r) => ({ name: r.name, state: "rejected", detail: r.reason })),
+                ...serverRejected.map((r) => ({ name: r.name, filename: r.name, state: "rejected", supportStatus: "unsupported", detail: r.reason })),
               ],
               imagesSentToProvider: pubImageUrls.length,
               citationLabels: [...pub.citationLabels],
+              relevantLinks: pub.relevantLinks,
               usageTokens: tokens,
               runtime: {
                 provider: sink.providerCalled ? "openai" : "deterministic",
@@ -470,9 +546,29 @@ export async function POST(req: Request) {
           await stores.budget.recordUsage(buildUsageRecord({ usage, userId, companyId: null as unknown as string, at: now() }));
         } catch { /* l'événement d'usage est optionnel : ne fait jamais échouer la réponse */ }
       }
-      return noStore({
+      // ── C1.8 BLOC C — CLONEINSPECTOR SUR LA VOIE PUBLIQUE ──────────────────────
+      // L'analyse STRUCTURÉE (`analysis`) n'était produite que sur la voie ENTREPRISE : sur la
+      // voie publique — de très loin la plus fréquente — l'image était comprise mais AUCUN
+      // diagnostic n'était calculé, donc CloneInspector ne tournait jamais. On réutilise le
+      // MÊME analyseur canonique (`analyzeScreenshotReal`), jamais un second système.
+      let publicAnalysis: Awaited<ReturnType<typeof analyzeScreenshotReal>>["analysis"] | null = null;
+      if (pubImageUrls.length > 0 && !!key && cfg.enabled && pubReservation.granted) {
+        try {
+          const shot = await analyzeScreenshotReal(key, {
+            model: chosenModel, userText: message, imageDataUrls: pubImageUrls,
+            maxOutputTokens: Math.min(500, outputCeiling),
+          });
+          if (shot.ok && shot.analysis) publicAnalysis = shot.analysis;
+        } catch { /* une capture non diagnosticable n'échoue JAMAIS le tour */ }
+      }
+
+      // C1.8 — enregistre le tour pour un utilisateur authentifié (voie publique NON streamée).
+      await persistPublicTurn(pub.answer);
+
+      return reply({
         ok: true,
         source: viaProvider ? "openai_public" : "public_fallback",
+        ...(publicAnalysis ? { analysis: publicAnalysis } : {}),
         // C1.6 — `public: true` remplace `discovery` : ce n'est PAS un mode dégradé, c'est LA
         // conversation CloneChat sur sources publiques. `discovery` reste émis pour la
         // compatibilité des clients existants.
@@ -492,12 +588,14 @@ export async function POST(req: Request) {
         // extraits réellement fournis au modèle. Sinon on le dit — jamais un faux « analysé ».
         attachments: [
           ...ephemeral.map((e) => ({
-            name: e.attachment.filename,
+            // P17 — clé CANONIQUE `filename` (le client lit `filename`, pas `name`) : sans elle il
+            // rendait « undefined — … » sur la voie publique JSON. `name` conservé (compat).
+            name: e.attachment.filename, filename: e.attachment.filename,
             state: e.chunks.length > 0 ? "analysed" : "unsupported_analysis",
             supportStatus: e.attachment.supportStatus,
             detail: e.honestSummary,
           })),
-          ...serverRejected.map((r) => ({ name: r.name, state: "rejected", detail: r.reason })),
+          ...serverRejected.map((r) => ({ name: r.name, filename: r.name, state: "rejected", supportStatus: "unsupported", detail: r.reason })),
         ],
         imagesSentToProvider: pubImageUrls.length,
         citationLabels: [...pub.citationLabels],
@@ -520,6 +618,8 @@ export async function POST(req: Request) {
           inputTokens: viaProvider ? (usage?.inputTokens ?? 0) : 0,
           outputTokens: viaProvider ? (usage?.outputTokens ?? 0) : 0,
           committedTokens: pubReservation.granted ? pubTokens : 0,
+          budgetHealth: budgetHealth(),
+          budgetDegraded: budgetHealth() !== "healthy" ? budgetDegradationReason() : null,
           entitlementKnown: viewer.kind === "user" && !plan.entitlementLookupFailed,
         },
       });
@@ -527,7 +627,7 @@ export async function POST(req: Request) {
       // Échec modèle → repli PUBLIC déterministe honnête, réservation libérée (0 token).
       if (pubReservation.granted && !pubSettled) { pubSettled = true; try { await stores.budget.release(pubReservation); } catch { /* ignore */ } }
       const fb = await answerPublicQuestion({ question: message, at });
-      return noStore({
+      return reply({
         ok: true, source: "public_fallback", public: true, discovery: true,
         anonymous: viewer.kind === "anonymous", requestClass,
         ...(prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {}),
@@ -596,7 +696,7 @@ export async function POST(req: Request) {
     const guarded = finalizeAnswerText(answer);
     const structured = { ...base, answer: guarded.safeText, citations: [] as string[] };
     await persistAssistant([{ type: "text", text: structured.answer }]);
-    return noStore({ ok: true, source, structured, attachments: attachmentSummaries, documentFindings, durable: stores.durable });
+    return reply({ ok: true, source, structured, attachments: attachmentSummaries, documentFindings, durable: stores.durable });
   };
 
   await persistUser();
@@ -626,7 +726,7 @@ export async function POST(req: Request) {
         // Transformation pixel OBLIGATOIRE : aucune image survivante → refus honnête, 0 token.
         if (prepared.dataUrls.length === 0) {
           await commit(0);
-          return noStore({ ok: true, source: "image_unavailable", structured: { answer: "Je ne peux pas traiter cette image pour le moment (transformation d'image indisponible). Réessayez, ou décrivez ce que vous voyez.", honesty: "unknown", tool_call: null, citations: [] }, imageSanitization: prepared.report, rejectedImages: [...rawImgs.rejected, ...prepared.rejected], attachments: attachmentSummaries, durable: stores.durable });
+          return reply({ ok: true, source: "image_unavailable", structured: { answer: "Je ne peux pas traiter cette image pour le moment (transformation d'image indisponible). Réessayez, ou décrivez ce que vous voyez.", honesty: "unknown", tool_call: null, citations: [] }, imageSanitization: prepared.report, rejectedImages: [...rawImgs.rejected, ...prepared.rejected], attachments: attachmentSummaries, durable: stores.durable });
         }
         const shot = await analyzeScreenshotReal(key, { model: cfg.model, userText: message, imageDataUrls: prepared.dataUrls, maxOutputTokens: reservation.maxOutputTokens });
         const tokens = shot.usage.inputTokens + shot.usage.outputTokens;
@@ -638,7 +738,7 @@ export async function POST(req: Request) {
         const match = await stores.support.findReusable(symptomText);
         if (!match.matched) await stores.support.report(ctx, { symptoms: symptomText, route: "screenshot", evidence: a.visibly_proven.map((t) => ({ kind: "screenshot_finding", text: redactSymptom(t), at: now() })), at: now() });
         await persistAssistant([{ type: "text", text: a.summary }], { imageMeta: prepared.meta });
-        return noStore({ ok: true, source: "openai_vision", analysis: a, knownIssue: match.matched ? { title: match.case!.title, workaround: match.case!.workaround, solution: match.case!.solution, reusable: match.case!.reusable } : null, imageSanitization: prepared.report, rejectedImages: rawImgs.rejected, attachments: attachmentSummaries, documentFindings, usageTokens: tokens, durable: stores.durable });
+        return reply({ ok: true, source: "openai_vision", analysis: a, knownIssue: match.matched ? { title: match.case!.title, workaround: match.case!.workaround, solution: match.case!.solution, reusable: match.case!.reusable } : null, imageSanitization: prepared.report, rejectedImages: rawImgs.rejected, attachments: attachmentSummaries, documentFindings, usageTokens: tokens, durable: stores.durable });
       } catch {
         return deterministicFallback();
       }
@@ -724,10 +824,32 @@ export async function POST(req: Request) {
         }
       } catch { governance = null; }
 
-      return noStore({
+      // ── P19 — CLONEOS sur le vrai chemin : pour une demande de travail, le VRAI orchestrateur canonique
+      // (segmentation → Guard/Policy/Trust strictest-wins → routage → trace) s'exécute avec le PAYS SERVEUR.
+      // Client-safe, best-effort, rien d'exécuté ici (exécution = /execute → runtime mission V1).
+      let cloneos: Awaited<ReturnType<typeof buildCloneOsTurn>> = null;
+      try {
+        if (proposal?.kind === "create_mission") {
+          const tc = (structured.tool_call ?? null) as { arguments?: Record<string, unknown> } | null;
+          cloneos = await buildCloneOsTurn({
+            message,
+            instruction: typeof tc?.arguments?.instruction === "string" ? (tc.arguments.instruction as string) : message,
+            companyId: tenant.companyId, userId: ctx.userId, nowIso: now(), correlationId: conversationId ?? ctx.userId,
+          });
+        }
+      } catch { cloneos = null; }
+      // Statut STRUCTUREL du tour — dérivé des faits (honesty canonique + proposition + plan CloneOS),
+      // jamais d'une phrase libre. mission_created/executed restent réservés à /execute (runtime V1).
+      const structural_status = deriveStructuralStatus({
+        honesty: structured.honesty, proposalKind: proposal?.kind ?? null, cloneos,
+      });
+
+      return reply({
         ok: true,
         source: "openai",
         structured,
+        structural_status,
+        cloneos,
         proposal,
         governance,
         usageTokens: tokens,

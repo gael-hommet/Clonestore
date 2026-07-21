@@ -7,6 +7,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { SafeText } from "./SafeText";
+import { HistoryPanel, HistoryDrawer } from "./HistoryPanel";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Bot, FileText, FolderOpen, ImageIcon, Mic, Paperclip as PaperclipIcon, Square as SquareIcon, Loader2, MessageSquarePlus, Paperclip, RotateCcw, Send, ShieldAlert, Sparkles, Square, Trash2, UserRound, Workflow, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -57,6 +59,9 @@ export function CloneChatWorkspace() {
   const filesRef = useRef<HTMLInputElement | null>(null);
   const imagesRef = useRef<HTMLInputElement | null>(null);
   const folderRef = useRef<HTMLInputElement | null>(null);
+  // P17 — a11y du menu pièce jointe : fermeture au clic extérieur + Escape (avec retour du focus).
+  const attachWrapRef = useRef<HTMLDivElement | null>(null);
+  const attachBtnRef = useRef<HTMLButtonElement | null>(null);
 
   /** Ajoute des fichiers au manifeste — SANS rien téléverser. */
   const addFiles = (list: FileList | File[]) => {
@@ -98,6 +103,33 @@ export function CloneChatWorkspace() {
   const router = useRouter();
   const threadRef = useRef<HTMLDivElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+
+  // C1.8 §18 — DÉFAUT TROUVÉ EN QA NAVIGATEUR RÉELLE (erreur d'hydratation React sur /assistant).
+  //
+  // `dictation.supported` interroge `navigator.mediaDevices` : il vaut FALSE au rendu serveur et
+  // TRUE au rendu client. Le bouton micro n'existait donc que d'un côté, et React reconstruisait
+  // tout le sous-arbre du composeur (« server rendered HTML didn't match the client »).
+  // On attend le montage : le PREMIER rendu client est alors identique au rendu serveur.
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const micAvailable = mounted && dictation.supported;
+
+  // P17 — le menu pièce jointe (role="menu") n'avait ni Escape, ni fermeture au clic extérieur :
+  // annuler la boîte de dialogue native (ou cliquer ailleurs) le laissait ouvert. On ferme au clic
+  // hors du menu et à Escape (le focus revient au déclencheur), sans piéger le Tab.
+  useEffect(() => {
+    if (!attachMenu) return;
+    const onDocDown = (e: PointerEvent) => {
+      if (attachWrapRef.current && !attachWrapRef.current.contains(e.target as Node)) setAttachMenu(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setAttachMenu(false); attachBtnRef.current?.focus(); }
+    };
+    document.addEventListener("pointerdown", onDocDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("pointerdown", onDocDown); document.removeEventListener("keydown", onKey); };
+  }, [attachMenu]);
 
   useEffect(() => { threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" }); }, [chat.messages, chat.busy]);
 
@@ -166,6 +198,16 @@ export function CloneChatWorkspace() {
     // C1.2 — la surface réelle porte la cible du tour public `clonechat-entry`
     // (auparavant sur l'écran de lancement obsolète, désormais retiré).
     <main className="cs-page" data-tour-id="clonechat-entry">
+      <HistoryDrawer
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        conversations={chat.conversations}
+        activeId={chat.conversationId}
+        anonymous={chat.mode !== "authenticated"}
+        onNew={() => { void chat.newConversation(); setHistoryOpen(false); }}
+        onOpen={(id) => { void chat.openConversation(id); setHistoryOpen(false); }}
+        onDelete={(id) => void chat.deleteConversation(id)}
+      />
       <div className="cs-page-shell flex min-h-[70vh] flex-col gap-4">
         {/* Header — C1.5 : le sous-titre dit la VÉRITÉ (plus de « connecté à votre entreprise »
             affiché à un utilisateur qui n'a aucune entreprise active). */}
@@ -183,12 +225,19 @@ export function CloneChatWorkspace() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {/* Les conversations durables n'existent qu'avec une entreprise réelle. */}
-            {chat.mode === "authenticated" && chat.companyState === "active" ? (
-              <button type="button" onClick={() => void chat.newConversation()} aria-label="Nouvelle conversation" data-tour-id="clonechat-new" className="cs-liquid-button">
-                <MessageSquarePlus className="h-4 w-4" /><span className="hidden sm:inline">Nouvelle</span>
-              </button>
-            ) : null}
+            {/* C1.8 P2 — L'historique existe pour TOUT LE MONDE : durable côté serveur pour un
+                compte, local au navigateur pour un visiteur anonyme (et on le lui DIT).
+                Auparavant le bouton n'apparaissait qu'avec une entreprise active : l'immense
+                majorité des utilisateurs n'avait donc aucun historique visible. */}
+            <button
+              type="button"
+              onClick={() => setHistoryOpen(true)}
+              aria-label="Ouvrir l'historique"
+              className="cs-liquid-button lg:hidden"
+              data-testid="history-open"
+            >
+              <MessageSquarePlus className="h-4 w-4" /><span className="hidden sm:inline">Historique</span>
+            </button>
             <Link href="/agents/pierre/use" data-tour-id="clonechat-cockpit-link" className="cs-liquid-button">
               <Workflow className="h-4 w-4" /><span className="hidden sm:inline">Cockpit Pierre</span>
             </Link>
@@ -196,6 +245,17 @@ export function CloneChatWorkspace() {
         </section>
 
         {/* Fil */}
+        {/* C1.8 P2 — Fil + HISTORIQUE côte à côte sur desktop. Le panneau reste discret
+            (colonne étroite, aucun mur de boutons) et disparaît sous `lg`. */}
+        <div className="flex min-h-0 flex-1 gap-4">
+        <HistoryPanel
+          conversations={chat.conversations}
+          activeId={chat.conversationId}
+          anonymous={chat.mode !== "authenticated"}
+          onNew={() => void chat.newConversation()}
+          onOpen={(id) => void chat.openConversation(id)}
+          onDelete={(id) => void chat.deleteConversation(id)}
+        />
         <div ref={threadRef} data-tour-id="clonechat-thread" className="cs-panel min-h-0 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
           {chat.isEmpty ? (
             <Welcome companyState={chat.companyState} />
@@ -205,6 +265,7 @@ export function CloneChatWorkspace() {
                 key={m.id}
                 message={m}
                 onAction={onAction}
+                onRetry={chat.retry}
                 busy={chat.busy}
                 onEdit={(id) => {
                   const r = chat.beginEdit(id);
@@ -216,6 +277,7 @@ export function CloneChatWorkspace() {
           {chat.busy ? (
             <div className="flex items-center gap-2 text-[0.84rem] text-[var(--cs-ink-4)]"><Loader2 className="h-4 w-4 animate-spin" /> CloneChat réfléchit…</div>
           ) : null}
+        </div>
         </div>
 
         {/* Exemples */}
@@ -326,21 +388,25 @@ export function CloneChatWorkspace() {
             <input ref={folderRef} type="file" multiple className="hidden" aria-hidden="true" tabIndex={-1}
               {...({ webkitdirectory: "", directory: "" } as Record<string, string>)}
               onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }} />
-            <div className="relative">
-              <button type="button" onClick={() => setAttachMenu((v) => !v)} disabled={chat.busy} aria-label="Ajouter des fichiers, des images ou un dossier" aria-expanded={attachMenu} data-tour-id="clonechat-attach" className={cn("cs-liquid-button h-[46px]", chat.busy && "pointer-events-none opacity-60")}>
+            <div ref={attachWrapRef} className="relative">
+              <button ref={attachBtnRef} type="button" onClick={() => setAttachMenu((v) => !v)} disabled={chat.busy} aria-label="Ajouter des fichiers, des images ou un dossier" aria-haspopup="menu" aria-expanded={attachMenu} data-tour-id="clonechat-attach" className={cn("cs-liquid-button h-[46px]", chat.busy && "pointer-events-none opacity-60")}>
                 <PaperclipIcon className="h-4 w-4" />
               </button>
               {attachMenu ? (
+                // P17 — on ferme le menu AVANT d'ouvrir la boîte de dialogue native : annuler le
+                // dialogue (onChange jamais émis) ne laisse plus le menu ouvert.
                 <div role="menu" className="cc-attach-menu">
-                  <button type="button" role="menuitem" onClick={() => filesRef.current?.click()}><FileText className="h-4 w-4" /> Ajouter des fichiers</button>
-                  <button type="button" role="menuitem" onClick={() => imagesRef.current?.click()}><ImageIcon className="h-4 w-4" /> Ajouter des images</button>
-                  <button type="button" role="menuitem" onClick={() => folderRef.current?.click()}><FolderOpen className="h-4 w-4" /> Ajouter un dossier</button>
+                  <button type="button" role="menuitem" onClick={() => { setAttachMenu(false); filesRef.current?.click(); }}><FileText className="h-4 w-4" /> Ajouter des fichiers</button>
+                  <button type="button" role="menuitem" onClick={() => { setAttachMenu(false); imagesRef.current?.click(); }}><ImageIcon className="h-4 w-4" /> Ajouter des images</button>
+                  <button type="button" role="menuitem" onClick={() => { setAttachMenu(false); folderRef.current?.click(); }}><FolderOpen className="h-4 w-4" /> Ajouter un dossier</button>
                 </div>
               ) : null}
             </div>
             {/* C1.7 §8A — Micro : disponible pour TOUS (dicter, c'est parler). Aucun compte,
-                aucune entreprise, aucun droit Pierre requis — doctrine C1.6 préservée. */}
-            {dictation.supported ? (
+                aucune entreprise, aucun droit Pierre requis — doctrine C1.6 préservée.
+                C1.8 : `micAvailable` (et non `dictation.supported`) — la capacité micro n'est
+                connue qu'APRÈS montage ; s'en servir au premier rendu cassait l'hydratation. */}
+            {micAvailable ? (
               dictation.state === "recording" ? (
                 <div className="flex items-center gap-1" data-tour-id="clonechat-recording">
                   <button type="button" onClick={dictation.stop} aria-label="Arrêter la dictée" className="cs-liquid-button cs-liquid-button--primary h-[46px]">
@@ -371,13 +437,11 @@ export function CloneChatWorkspace() {
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
               rows={1}
-              // C1.5 §4C — En mode découverte le composer reste ACTIF et le texte d'invite
-              // n'insinue JAMAIS un blocage : il dit ce qui fonctionne.
-              placeholder={
-                chat.companyState === "active"
-                  ? "Demandez à CloneChat (missions, validations, salariés, documents…)"
-                  : "Posez votre question à CloneChat…"
-              }
+              // C1.8 FINAL §9 — UN SEUL texte d'invite, court, identique dans tous les modes.
+              // L'invite variable listait les capacités (« missions, validations, salariés… ») :
+              // c'était de la documentation dans un champ de saisie. Ce qu'il faut expliquer se dit
+              // AUTOUR du composeur, pas DEDANS.
+              placeholder="Posez une question"
               aria-label="Message pour CloneChat"
               disabled={chat.busy}
               className="max-h-40 min-h-[46px] flex-1 resize-none px-3 py-3 text-[0.9rem] leading-6"
@@ -457,7 +521,7 @@ function Welcome({ companyState }: { companyState: CloneChatCompanyState }) {
   );
 }
 
-function MessageRow({ message, onAction, busy, onEdit }: { message: CloneChatMessage; onAction: (a: CloneChatProposedAction) => void; busy: boolean; onEdit?: (id: string) => void }) {
+function MessageRow({ message, onAction, onRetry, busy, onEdit }: { message: CloneChatMessage; onAction: (a: CloneChatProposedAction) => void; onRetry?: () => void; busy: boolean; onEdit?: (id: string) => void }) {
   const isUser = message.role === "user";
   return (
     <div className={cn("flex gap-3", isUser ? "flex-row-reverse" : "flex-row")}>
@@ -465,7 +529,7 @@ function MessageRow({ message, onAction, busy, onEdit }: { message: CloneChatMes
         {isUser ? <UserRound className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
       </span>
       <div className={cn("cc-msg-col min-w-0 max-w-[85%] space-y-2", isUser && "text-right")}>
-        {message.content.map((b, i) => <BlockView key={i} block={b} onAction={onAction} busy={busy} isUser={isUser} />)}
+        {message.content.map((b, i) => <BlockView key={i} block={b} onAction={onAction} onRetry={onRetry} busy={busy} isUser={isUser} />)}
         {/* C1.7 §13 — Modifier : le message ET tout ce qui suit sont retirés (aucune approbation
             ni proposition antérieure ne peut être recyclée). Rien n'est renvoyé automatiquement. */}
         {isUser && onEdit && !busy ? (
@@ -478,14 +542,17 @@ function MessageRow({ message, onAction, busy, onEdit }: { message: CloneChatMes
   );
 }
 
-function BlockView({ block, onAction, busy, isUser }: { block: CloneChatContentBlock; onAction: (a: CloneChatProposedAction) => void; busy: boolean; isUser: boolean }) {
+function BlockView({ block, onAction, onRetry, busy, isUser }: { block: CloneChatContentBlock; onAction: (a: CloneChatProposedAction) => void; onRetry?: () => void; busy: boolean; isUser: boolean }) {
   switch (block.type) {
     // C1.5 §4A/B — Le violet vif est SUPPRIMÉ. Bulle utilisateur = dégradé sombre CloneStore
     // (graphite → bleu nuit, halo bleu discret), bulle assistant = surface claire secondaire.
     case "text":
       return (
         <div className={cn("inline-block px-3.5 py-2 text-left text-[0.9rem] leading-6", isUser ? "cc-bubble-user" : "cc-bubble-assistant")}>
-          {block.text}
+          {/* C1.8 FINAL §7 — Les routes CloneStore deviennent de VRAIS liens cliquables.
+              Le message de l'utilisateur, lui, reste du texte brut : on ne transforme jamais
+              ce que l'utilisateur a tapé en lien (ce serait lui prêter une intention). */}
+          {isUser ? block.text : <SafeText text={block.text} />}
         </div>
       );
     case "boundary":
@@ -545,6 +612,12 @@ function BlockView({ block, onAction, busy, isUser }: { block: CloneChatContentB
             <div className="mt-2 flex flex-wrap gap-2">
               {block.recovery.map((r) => r.href ? (
                 <Link key={r.kind} href={r.href} className="cs-liquid-button">{r.label}</Link>
+              ) : r.kind === "retry" && onRetry ? (
+                // P17 — la récup « retry » n'a PAS de href (ce n'est pas une navigation) : elle était
+                // rendue en <span> INERTE. On la câble au vrai `retry()` du hook (bouton cliquable).
+                <button key={r.kind} type="button" onClick={onRetry} disabled={busy} className={cn("cs-liquid-button", busy && "pointer-events-none opacity-60")}>
+                  <RotateCcw className="h-3.5 w-3.5" /> {r.label}
+                </button>
               ) : (
                 <span key={r.kind} className="text-[0.78rem] text-[var(--cs-ink-4)]">{r.label}</span>
               ))}

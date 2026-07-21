@@ -52,6 +52,22 @@ export interface SupportTurnResult {
   readonly learningEligible: boolean;
 }
 
+/** Libellé client d'une catégorie d'incident — vide si la catégorie n'est pas identifiée. */
+function categoryLabel(category: BugCategory): string {
+  const map: Partial<Record<BugCategory, string>> = {
+    login: " sur votre connexion",
+    payment: " sur votre paiement",
+    demo: " sur la démo",
+    pierre: " sur Pierre",
+    document: " sur votre document",
+    pricing: " sur le tarif",
+    mobile: " sur mobile",
+    performance: " sur la lenteur constatée",
+    visual: " sur l'affichage",
+  };
+  return map[category] ?? "";
+}
+
 export function runSupportTurn(input: SupportTurnInput, bugStore: ParrainBugStore): SupportTurnResult {
   const category = classifyBugCategory(input.description, input.route);
   const severity = inferSeverity(input.description);
@@ -117,7 +133,9 @@ export function runSupportTurn(input: SupportTurnInput, bugStore: ParrainBugStor
 
   if (status === "needs_info") {
     return Object.freeze({
-      message: `Pour vous aider précisément (${category}), deux questions maximum : ${questions.join(" ")}${visualNote} En attendant : ${safeTroubleshooting(category)}`,
+      // C1.8 A2 — le libellé de catégorie est traduit en langage client et OMIS s'il est inconnu :
+      // « (unknown) » ne doit jamais atteindre un utilisateur (placeholder technique en clair).
+      message: `Pour vous aider précisément${categoryLabel(category)}, deux questions maximum : ${questions.join(" ")}${visualNote} En attendant : ${safeTroubleshooting(category)}`,
       artifact,
       askedQuestions: questions,
       workaround: null,
@@ -128,7 +146,7 @@ export function runSupportTurn(input: SupportTurnInput, bugStore: ParrainBugStor
 
   return Object.freeze({
     message:
-      `Merci — votre signalement (${category}, sévérité ${severity}) est enregistré et transmis.${visualNote}${pageNote} ` +
+      `Merci — votre signalement${categoryLabel(category)} est enregistré et transmis (sévérité ${severity}).${visualNote}${pageNote} ` +
       `${safeTroubleshooting(category)} Je ne promets pas de correctif immédiat : le dossier est tracé et suivi.`,
     artifact,
     askedQuestions: [],
