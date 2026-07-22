@@ -50,7 +50,7 @@ export const cloneReviewProductTech: ProductTechnologyContract<CloneReviewInput,
     safeFallback: PRODUCT_TECHNOLOGY_FALLBACKS.clonereview,
     liveBlockedReason: null,
     requiresValidation: true, // la version relue est un contenu à utiliser → l'humain valide
-    commercialClaimAllowed: "Chaque livrable passe une relecture qualité interne (ton, cohérence, clarté) avant validation humaine.",
+    commercialClaimAllowed: "Peut analyser un livrable préparé et proposer une relecture qualité (ton, cohérence, clarté) avant validation humaine lorsqu'il est intégré au flux concerné.",
     commercialClaimForbidden: ["qualité garantie sans relecture humaine", "validation juridique"],
     prepareArtifact: (input) => {
       const draft = (input?.draft ?? "").trim();

@@ -50,6 +50,7 @@ import {
 
 import { AGENTS } from "@/lib/agent-catalog";
 import { getSessionClient } from "@/lib/auth/session-client";
+import { isAuthBypassEnabled } from "@/lib/auth/dev-bypass";
 import { useAuthGate } from "@/lib/auth/useAuthGate";
 import { cn } from "@/lib/utils";
 
@@ -58,10 +59,10 @@ import {
   EMPLOYEE_RUNTIME_REGISTRY,
   PIERRE_EMPLOYEE_RUNTIME_CONTRACT,
 } from "@/lib/clonestore/employees/employee-registry";
-import {
-  DEFAULT_GLOBAL_TECH_CONFIGS,
-  DEFAULT_GLOBAL_TECH_CONFIG_LIST,
-} from "@/lib/clonestore/technologies/global-tech-defaults";
+// P20 CONVERGENCE : identité/membership/statut public viennent de l'autorité canonique unique,
+// jointe à la configuration TECH-03 par l'adaptateur officiel. Cette page n'itère plus jamais
+// DEFAULT_GLOBAL_TECH_CONFIG_LIST pour produire un total ou une liste publique.
+import { buildTenantConfiguredTechnologies } from "@/lib/clonestore/technologies/canonical/tenant-configuration-adapter";
 
 // ── PHASE 3.9 — Empreinte Entreprise Cockpit ──────────────────────────────────
 // localStorage uniquement — pas de Supabase, pas de DB write.
@@ -2313,6 +2314,23 @@ export default function ProfileAgentsPage() {
 
       setError(null);
 
+      // DEV/TEST UNIQUEMENT — MORT EN PRODUCTION. Réutilise la garde centralisée existante
+      // `isAuthBypassEnabled()` (src/lib/auth/dev-bypass.ts), déjà verrouillée par
+      // `NODE_ENV !== "production"` : la condition est évaluée à false à la compilation d'un
+      // build de production et le bloc est éliminé. Aucun nouveau mécanisme de contournement
+      // n'est introduit ; on étend seulement le mécanisme de test déjà prévu par le dépôt à
+      // cette page, dont la garde locale (supabase.auth.getUser) empêchait toute QA navigateur
+      // authentifiée en local. Aucune donnée privée réelle n'est chargée : sans session, les
+      // requêtes Supabase qui suivent ne renvoient rien pour cet utilisateur de test.
+      if (isAuthBypassEnabled()) {
+        setUserId("e2e-local-test-user");
+        setUserEmail("e2e-local@test.invalid");
+        setOrders([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
       if (!supabase) {
         setError(
           "Configuration Supabase manquante. Vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY."
@@ -2524,10 +2542,14 @@ export default function ProfileAgentsPage() {
   // Remplacement des mock tech items par les données réelles de GlobalTechnologyConfig.
   // Pour la vue complète et configurable : /profile/technologies (TECH-04).
 
+  // P20 — la liste complète canonique (15) jointe à la configuration TECH-03. Source unique.
+  const canonicalTechnologies = useMemo(() => buildTenantConfiguredTechnologies(), []);
+
   const technologies = useMemo<TechnologyItem[]>(
     () =>
       COCKPIT_VISIBLE_TECH_KEYS.map((key) => {
-        const cfg = DEFAULT_GLOBAL_TECH_CONFIGS[key];
+        const entry = canonicalTechnologies.find((t) => t.id === key)!;
+        const cfg = entry.config;
         const hasGuardPending =
           key === "cloneguard" &&
           validations.some((item) => item.status === "pending");
@@ -2537,42 +2559,53 @@ export default function ProfileAgentsPage() {
 
         const state: TechnologyItem["state"] = hasGuardPending
           ? "needs_attention"
-          : isVoice || cfg.mode === "disabled" || cfg.runtime_status === "not_implemented"
+          : isVoice || !cfg || cfg.mode === "disabled" || cfg.runtime_status === "not_implemented"
             ? "watching"
             : cfg.status === "active"
               ? "active"
               : "watching";
 
+        // Aucun score inventé : sans configuration réelle, on le dit au lieu d'afficher 0/100.
         const lastEvent = isVoice
           ? "Préparation uniquement — non actif en production."
-          : `Préparation repo : ${cfg.readiness_score}/100.`;
+          : cfg
+            ? `Préparation repo : ${cfg.readiness_score}/100.`
+            : "À venir — aucune configuration disponible.";
+
+        const displayName = entry.displayName;
 
         return {
-          id: cfg.key,
-          name: cfg.display_name,
-          role: cfg.short_description,
+          id: entry.id,
+          name: displayName,
+          role: cfg?.short_description ?? "Technologie à venir — non configurable pour l'instant.",
           state,
           lastEvent,
           rules: rules.filter(
-            (rule) =>
-              rule.target === cfg.display_name || rule.target === "CloneStore",
+            (rule) => rule.target === displayName || rule.target === "CloneStore",
           ).length,
         };
       }),
-    [rules, validations],
+    [rules, validations, canonicalTechnologies],
   );
 
-  // ── PHASE 2.2 — Résumé technologies globales pour le cockpit ─────────────────
+  // ── P20 — Résumé technologies : totaux DÉRIVÉS de l'autorité canonique (15), jamais de
+  // la liste de configuration TECH-03 (13). Les technologies À venir et externes sont comptées
+  // honnêtement, sans readiness fabriqué.
   const techSummary = useMemo(() => {
-    const all = DEFAULT_GLOBAL_TECH_CONFIG_LIST;
+    const all = canonicalTechnologies;
     return {
       total: all.length,
-      active: all.filter((c) => c.status === "active").length,
-      partial: all.filter((c) => c.status === "partial").length,
-      roadmap: all.filter((c) => c.status === "roadmap").length,
-      platformLocked: all.filter((c) => c.locked_by_platform).length,
+      active: all.filter((t) => t.config?.status === "active").length,
+      partial: all.filter((t) => t.config?.status === "partial").length,
+      roadmap: all.filter(
+        (t) => t.config?.status === "roadmap" || t.configurationState === "NOT_CONFIGURABLE_YET",
+      ).length,
+      platformLocked: all.filter((t) => t.config?.locked_by_platform === true).length,
+      upcoming: all.filter((t) => t.launchStatus === "À venir").length,
+      external: all.filter((t) => t.ownership === "EXTERNAL_CLONECHAT_WORKSTREAM").length,
+      configured: all.filter((t) => t.configurationState === "CONFIGURED").length,
     };
-  }, []);
+  }, [canonicalTechnologies]);
 
   const targetOptions = useMemo(
     () => [
@@ -4930,12 +4963,13 @@ export default function ProfileAgentsPage() {
                   <h2 className="mt-3 text-[1.65rem] font-semibold tracking-[-0.055em] text-[var(--cs-ink-1)]">
                     Couches globales du système.
                   </h2>
-                  {/* PHASE 2.2 — résumé techSummary depuis DEFAULT_GLOBAL_TECH_CONFIG_LIST (TECH-03) */}
-                  <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--cs-ink-3)]">
+                  {/* P20 — résumé DÉRIVÉ de l'autorité canonique (15), plus de TECH-03 (13) */}
+                  <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--cs-ink-3)]" data-testid="tech-summary-line">
                     {techSummary.total} technologies au total —{" "}
                     {techSummary.active} actives,{" "}
                     {techSummary.partial} partielles,{" "}
-                    {techSummary.roadmap} en roadmap.{" "}
+                    {techSummary.roadmap} en roadmap,{" "}
+                    {techSummary.upcoming} à venir.{" "}
                     CloneVoice : préparation uniquement, non actif production.
                   </p>
                 </div>
@@ -4958,6 +4992,37 @@ export default function ProfileAgentsPage() {
                     onConfigure={() => configureTechnology(technology.name)}
                   />
                 ))}
+              </div>
+
+              {/* P20 — inventaire canonique COMPLET (15). Même projection que /profile/technologies
+                  et /demo. Aucune liste locale : ownership, statut et ordre viennent de l'autorité. */}
+              <div className="mt-6" data-testid="canonical-technology-inventory">
+                <p className="cs-eyebrow">Inventaire canonique — {canonicalTechnologies.length} technologies</p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {canonicalTechnologies.map((tech) => (
+                    <div
+                      key={tech.id}
+                      data-testid={`canonical-tech-${tech.id}`}
+                      data-ownership={tech.ownership}
+                      data-launch-status={tech.launchStatus}
+                      data-configuration-state={tech.configurationState}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-[var(--cs-line-1)] px-3 py-2"
+                    >
+                      <span className="text-sm font-medium text-[var(--cs-ink-2)]">
+                        {tech.displayName}
+                      </span>
+                      <span className="flex-shrink-0 text-xs text-[var(--cs-ink-3)]">
+                        {tech.ownership === "EXTERNAL_CLONECHAT_WORKSTREAM"
+                          ? "Externe"
+                          : tech.launchStatus === "À venir"
+                            ? "À venir"
+                            : tech.readinessScore !== null
+                              ? `${tech.readinessScore}/100`
+                              : "Non configurable"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
 

@@ -42,18 +42,19 @@ describe("tech-04 config — page existence et imports TECH-03", () => {
     expect(usesGlobal).toBe(true);
   });
 
-  it("3. page mentionne les 13 technologies", () => {
+  it("3. page mentionne les 15 technologies (projection publique canonique P20)", () => {
     const techs = [
       "cloneos", "cloneadn", "cloneguard", "clonetrace",
       "clonevoice", "clonechat", "clonepolicy", "clonecontinuum",
       "clonetrust", "clonereview", "clonesignals", "clonelearn", "clonebrief",
+      "clonecall", "cloneroom",
     ];
     const allPresent = techs.every((t) => page.toLowerCase().includes(t));
     expect(allPresent).toBe(true);
   });
 });
 
-// ── 2. Page — 13 technologies mentionnées individuellement ────────────────────
+// ── 2. Page — 15 technologies mentionnées individuellement ────────────────────
 
 describe("tech-04 config — mention individuelle de chaque technologie", () => {
   const page = readPage();
@@ -71,6 +72,8 @@ describe("tech-04 config — mention individuelle de chaque technologie", () => 
   it("14. page mentionne CloneSignals",  () => { expect(page).toMatch(/clonesignals/i); });
   it("15. page mentionne CloneLearn",    () => { expect(page).toMatch(/clonelearn/i); });
   it("16. page mentionne CloneBrief",    () => { expect(page).toMatch(/clonebrief/i); });
+  it("16b. page mentionne CloneCall (À venir, projection P20)",  () => { expect(page).toMatch(/clonecall/i); });
+  it("16c. page mentionne CloneRoom (À venir, projection P20)",  () => { expect(page).toMatch(/cloneroom/i); });
 });
 
 // ── 3. Page — corrections factuelles ─────────────────────────────────────────

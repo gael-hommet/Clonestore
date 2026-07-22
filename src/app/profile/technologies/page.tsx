@@ -1,12 +1,14 @@
 "use client";
 
 // TECH-04 — /profile/technologies — Centre de contrôle des technologies CloneStore
-// Données pilotées par GlobalTechnologyConfig (TECH-03) + profile-tech-ui.ts (TECH-04).
+// Données pilotées par la projection publique canonique P20 (identité/statut/ownership) +
+// GlobalTechnologyConfig (TECH-03, configuration tenant) + profile-tech-ui.ts (TECH-04, projection UI).
 //
-// Technologies couvertes (13) :
+// Technologies couvertes (15, dérivées de la projection canonique — jamais une liste locale) :
 //   Essentiels : cloneos, cloneadn, cloneguard, clonetrace
-//   Interfaces : clonechat, clonecontinuum, clonevoice
-//   En développement : clonetrust, clonereview, clonesignals, clonelearn, clonebrief
+//   Interfaces : clonechat (ownership externe — CloneChat), clonecontinuum, clonevoice
+//   En développement : clonetrust, clonereview, clonesignals, clonelearn, clonebrief,
+//                       clonecall (À venir), cloneroom (À venir)
 //   Moteurs internes : clonepolicy
 //
 // Corrections appliquées :
@@ -14,7 +16,7 @@
 //   [FIX-2] clonetrust — "autonomie graduelle", calibration progressive (pas zéro-accès)
 //   [FIX-3] clonepolicy — moteur interne actif dans CloneGuard, pas roadmap
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRequireAuth } from "@/lib/auth/useRequireAuth";
 import {
   Shield,
@@ -50,7 +52,7 @@ import type {
 import { buildProfileTechPageData } from "../../../lib/clonestore/technologies/profile-tech-ui";
 
 // ── TECH-03 GlobalTechConfig ──────────────────────────────────────────────────
-import { DEFAULT_GLOBAL_TECH_CONFIG_LIST } from "../../../lib/clonestore/technologies/global-tech-defaults";
+import { buildTenantConfiguredTechnologies } from "../../../lib/clonestore/technologies/canonical/tenant-configuration-adapter";
 import { buildGlobalTechnologyConfigSnapshot } from "../../../lib/clonestore/technologies/global-tech-snapshot";
 
 // ── TECH-02 Employee Runtime ──────────────────────────────────────────────────
@@ -63,11 +65,17 @@ const PIERRE = PIERRE_EMPLOYEE_RUNTIME_CONTRACT;
 
 const PIERRE_HARD_TECHS = PIERRE.required_technologies.filter((t) => t.required);
 const PIERRE_SOFT_TECHS = PIERRE.required_technologies.filter((t) => !t.required);
-const CONFIGURABLE_TECHS = DEFAULT_GLOBAL_TECH_CONFIG_LIST.filter(
-  (c) => c.configurable_by_customer,
+// P20 : dérivé de l'autorité canonique jointe à la configuration TECH-03 (adaptateur officiel).
+// Une technologie sans configuration P20 (à venir / chantier externe) n'apparaît dans aucune de
+// ces deux listes — elle n'est ni configurable, ni verrouillée plateforme.
+const CANONICAL_TECHS = buildTenantConfiguredTechnologies();
+const CONFIGURABLE_TECHS = CANONICAL_TECHS.flatMap((t) =>
+  t.config && t.config.configurable_by_customer ? [t.config] : [],
 );
-const LOCKED_PLATFORM_TECHS = DEFAULT_GLOBAL_TECH_CONFIG_LIST.filter(
-  (c) => c.locked_by_platform && c.control_level !== "internal_only",
+const LOCKED_PLATFORM_TECHS = CANONICAL_TECHS.flatMap((t) =>
+  t.config && t.config.locked_by_platform && t.config.control_level !== "internal_only"
+    ? [t.config]
+    : [],
 );
 const ALL_CARDS = PAGE_DATA.sections.flatMap((s) => s.cards);
 const PIERRE_TECH_KEYS = new Set(PIERRE.required_technologies.map((t) => t.slug as string));
@@ -438,11 +446,82 @@ function TechSection({ section }: { section: TechUISection }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+// P19 — état réel Technologies Prime du tenant, servi par /api/clonestore/technologies (champ `canonical`),
+// lui-même produit par la MÊME source canonique (buildTenantTechnologyView). Aucune liste statique
+// concurrente : la page affiche ce que l'API renvoie pour CE tenant (readiness, provider, dispo, raison).
+type CanonicalPrimeEntry = {
+  id: string; version: string; readiness: string; providerState: string;
+  claimableNow: string; mustNotClaim: string[]; dependencies: string[]; t1Capabilities: string[];
+  tenantStatus: string | null; tenantConfigured: boolean; availableForTenant: boolean;
+  unavailabilityReason: string | null;
+};
+
+function PrimeStateSection({ entries, error }: { entries: CanonicalPrimeEntry[] | null; error: string | null }) {
+  // data-testid inertes (P19 §5) : ciblage e2e stable des trois états réels de la
+  // section — aucun changement de comportement ni de texte utilisateur.
+  if (error) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6" data-testid="technologies-prime-section">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800" data-testid="technologies-prime-error">
+          État réel des Technologies Prime indisponible : {error}
+        </div>
+      </div>
+    );
+  }
+  if (!entries) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6" data-testid="technologies-prime-section">
+        <div className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-500" data-testid="technologies-prime-loading">Chargement de l'état réel…</div>
+      </div>
+    );
+  }
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6" data-testid="technologies-prime-section">
+      <h2 className="text-base font-semibold text-stone-800 mb-1">Technologies Prime — état réel de votre entreprise</h2>
+      <p className="text-xs text-stone-500 mb-3">Source canonique unique (identique à l'API). Un provider externe non configuré est affiché désactivé — jamais actif.</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" data-testid="prime-state-grid">
+        {entries.map((e) => (
+          <div key={e.id} className="rounded-xl border border-stone-200 bg-white p-4" data-testid={`prime-${e.id}`}>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-semibold text-stone-800">{e.id}</span>
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${e.availableForTenant ? "bg-emerald-50 text-emerald-700" : "bg-stone-100 text-stone-500"}`}>
+                {e.availableForTenant ? "Disponible" : "Indisponible"}
+              </span>
+            </div>
+            <p className="text-xs text-stone-500 mt-1">readiness : {e.readiness} · provider : {e.providerState} · v{e.version}</p>
+            <p className="text-xs text-stone-600 mt-2">{e.claimableNow}</p>
+            {e.unavailabilityReason ? <p className="text-xs text-amber-700 mt-2">{e.unavailabilityReason}</p> : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function TechnologiesPage() {
   useRequireAuth();
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
   const { sections, total, essential_score, essential_ok } = PAGE_DATA;
   const { summary } = SNAPSHOT;
+
+  // P19 — fetch de l'état réel tenant (même source canonique que l'API ; pas de constante build-time).
+  const [primeEntries, setPrimeEntries] = useState<CanonicalPrimeEntry[] | null>(null);
+  const [primeError, setPrimeError] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/clonestore/technologies", { cache: "no-store" });
+        const json = await res.json();
+        if (cancelled) return;
+        if (!res.ok || !Array.isArray(json.canonical)) { setPrimeError(json?.error || `HTTP ${res.status}`); return; }
+        setPrimeEntries(json.canonical as CanonicalPrimeEntry[]);
+      } catch (e) {
+        if (!cancelled) setPrimeError(e instanceof Error ? e.message : "réseau");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const filteredCards = getFilteredCards(activeFilter);
   const activeFilterLabel = FILTER_TABS.find((t) => t.id === activeFilter)?.label ?? "";
@@ -470,6 +549,9 @@ export default function TechnologiesPage() {
           </div>
         </div>
       </div>
+
+      {/* ── P19 — état réel Technologies Prime (source canonique via l'API, jamais une constante) ── */}
+      <PrimeStateSection entries={primeEntries} error={primeError} />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-10">
 

@@ -1,9 +1,21 @@
 // TECH-03 — Global Technology Config Defaults
 // Pure module: no Supabase, no Next, no async, no side effects. No throw.
 //
-// DEFAULT_GLOBAL_TECH_CONFIGS: one entry per technology.
-// Scores sourced from TECH-01 real audit.
-// All configs reflect current reality — no wishful thinking.
+// P20 CONVERGENCE — TECH-03 IS A CONFIGURATION LAYER, NOT A MEMBERSHIP AUTHORITY.
+// This file holds the real tenant-configuration data (readiness_score, guardrails, autonomy,
+// control_level, visibility, configurability) for the 13 technologies that are actually
+// configurable today. It does NOT — and must never again — decide WHICH technologies exist
+// publicly. That authority belongs exclusively to:
+//   src/lib/clonestore/technologies/canonical/public-technology-projection.ts
+//
+// A technology absent from DEFAULT_GLOBAL_TECH_CONFIGS is NOT non-existent: it is
+// NOT_CONFIGURABLE_YET (CloneCall, CloneRoom) or EXTERNAL_WORKSTREAM_METADATA_ONLY (CloneChat).
+// Public consumers MUST iterate the canonical projection and join here via the official adapter:
+//   src/lib/clonestore/technologies/canonical/tenant-configuration-adapter.ts
+// Iterating DEFAULT_GLOBAL_TECH_CONFIG_LIST to build a public list/count is a convergence
+// violation and is enforced against by the P20 anti-divergence suite.
+//
+// Scores sourced from TECH-01 real audit. All configs reflect current reality — no wishful thinking.
 
 import type {
   GlobalTechnologyConfig,
@@ -516,6 +528,14 @@ export const DEFAULT_GLOBAL_TECH_CONFIGS: Record<GlobalTechnologyKey, GlobalTech
   clonebrief:   CLONEBRIEF_DEFAULT,
 };
 
+/**
+ * The 13 technologies that have a real tenant configuration TODAY.
+ *
+ * P20: this is a CONFIGURATION inventory, never a public membership list. Do NOT use its
+ * `.length` as a public technology count, and do NOT iterate it to render a public surface —
+ * iterate `buildTenantConfiguredTechnologies()` (canonical/tenant-configuration-adapter.ts)
+ * instead, which returns the full canonical set with honest per-id configuration states.
+ */
 export const DEFAULT_GLOBAL_TECH_CONFIG_LIST: GlobalTechnologyConfig[] =
   Object.values(DEFAULT_GLOBAL_TECH_CONFIGS);
 

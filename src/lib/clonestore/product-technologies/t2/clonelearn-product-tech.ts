@@ -47,7 +47,7 @@ export const cloneLearnProductTech: ProductTechnologyContract<CloneLearnInput, C
     safeFallback: PRODUCT_TECHNOLOGY_FALLBACKS.clonelearn,
     liveBlockedReason: null,
     requiresValidation: true, // chaque apprentissage est une proposition à valider
-    commercialClaimAllowed: "Le système apprend les habitudes de l'entreprise et propose des améliorations — chaque apprentissage est validé par l'humain avant application.",
+    commercialClaimAllowed: "Analyse les validations et corrections fournies pour proposer des préférences à faire valider par l'humain — ne modifie ni l'ADN ni le modèle automatiquement.",
     commercialClaimForbidden: ["apprentissage autonome silencieux", "le système se reprogramme seul", "entraînement de modèle sur vos données"],
     prepareArtifact: (input) => {
       const events = (input?.events ?? []).filter((e) => !!e?.type && typeof e.detail === "string" && e.detail.trim().length > 0);

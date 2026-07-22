@@ -66,7 +66,7 @@ export const cloneBriefProductTech: ProductTechnologyContract<CloneBriefInput, C
     safeFallback: PRODUCT_TECHNOLOGY_FALLBACKS.clonebrief,
     liveBlockedReason: null,
     requiresValidation: true, // un brief livré au client est relu
-    commercialClaimAllowed: "Un brief exécutif clair matin et soir : missions, blocages, validations en attente, décisions à prendre — construit sur les faits tracés.",
+    commercialClaimAllowed: "Peut préparer un brief exécutif clair — missions, blocages, validations en attente, décisions à prendre — construit sur les faits tracés fournis. Aucune diffusion planifiée automatique tant qu'aucun scheduler produit n'y est branché.",
     commercialClaimForbidden: ["rapport garanti exhaustif", "aucune supervision nécessaire"],
     prepareArtifact: (input) => {
       const missions = input?.missions ?? [];

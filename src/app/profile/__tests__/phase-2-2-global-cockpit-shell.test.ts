@@ -45,16 +45,25 @@ describe("T01 — Page /profile/agents existe", () => {
     expect(page).toContain("employee-registry");
   });
 
-  it("T01.5 — page utilise DEFAULT_GLOBAL_TECH_CONFIGS", () => {
-    expect(page).toContain("DEFAULT_GLOBAL_TECH_CONFIGS");
+  // P20 CONVERGENCE — ces trois assertions encodaient l'ANCIENNE architecture, où la page
+  // lisait directement TECH-03 (global-tech-defaults) et en tirait sa liste et son total.
+  // TECH-03 n'est plus une autorité de membership : la page consomme désormais l'autorité
+  // canonique via l'adaptateur officiel. Les assertions sont donc INVERSÉES, pas supprimées :
+  // elles garantissent maintenant que l'ancien couplage ne peut pas revenir.
+
+  it("T01.5 — page consomme l'adaptateur de configuration canonique (autorité unique)", () => {
+    expect(page).toContain("buildTenantConfiguredTechnologies");
+    expect(page).toContain("canonical/tenant-configuration-adapter");
   });
 
-  it("T01.6 — page utilise DEFAULT_GLOBAL_TECH_CONFIG_LIST", () => {
-    expect(page).toContain("DEFAULT_GLOBAL_TECH_CONFIG_LIST");
+  it("T01.6 — page n'itère plus la liste de configuration TECH-03", () => {
+    const code = page.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    expect(code).not.toMatch(/DEFAULT_GLOBAL_TECH_CONFIG_LIST\s*\.\s*(?:filter|map|forEach|length|reduce)/);
   });
 
-  it("T01.7 — page importe depuis global-tech-defaults", () => {
-    expect(page).toContain("global-tech-defaults");
+  it("T01.7 — page n'importe plus global-tech-defaults comme source de liste", () => {
+    const code = page.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    expect(code).not.toMatch(/import[\s\S]{0,200}from\s+["'][^"']*global-tech-defaults["']/);
   });
 });
 

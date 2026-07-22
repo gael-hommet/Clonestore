@@ -1,7 +1,19 @@
 // CloneStore Technologies Foundation — Registry (Bloc 18)
 // Pure module: no Supabase, no Next, no async, no side effects.
-// Defines all 12 CloneStore technology definitions and registry functions.
+//
+// P20 CONVERGENCE — BLOC-18 IS A LEGACY CONFIGURATION ADAPTER, NOT A MEMBERSHIP AUTHORITY.
+// It keeps its genuinely useful job: the legacy per-company technology *configuration*
+// definitions, settings parsing/validation, runtime-state computation and storage compatibility
+// consumed by /api/clonestore/technologies/{[technologySlug],snapshot,validate,save,reset}.
+//
+// It NO LONGER decides which technologies exist. Slug validation is delegated to the single
+// canonical authority (canonical/public-technology-projection.ts via the tenant-configuration
+// adapter), so a technology can never be "recognised by Bloc-18 but absent from the product"
+// nor the reverse. The local VALID_SLUGS set below is retained ONLY as the legacy-configuration
+// whitelist (which slugs have a Bloc-18 definition and can therefore carry a stored config) and
+// is asserted to be a strict subset of the canonical ids by the P20 anti-divergence suite.
 
+import { isCanonicalTechnologyId, validateConfigurableTechnologyId } from "./canonical/tenant-configuration-adapter";
 import type {
   TechnologySlug,
   TechnologyDefinition,
@@ -26,14 +38,51 @@ function asStr(v: unknown): string | null {
   return null;
 }
 
-const VALID_SLUGS = new Set<TechnologySlug>([
+/**
+ * LEGACY-CONFIGURATION whitelist: the slugs that have a Bloc-18 definition and can therefore
+ * carry a stored per-company configuration. NOT a membership authority — see the file header.
+ * The P20 anti-divergence suite asserts this is a strict subset of the canonical id set.
+ */
+const LEGACY_CONFIGURABLE_SLUGS = new Set<TechnologySlug>([
   "cloneos", "cloneadn", "cloneguard", "clonetrace", "clonecontinuum",
   "clonetrust", "clonereview", "clonesignals", "clonelearn",
   "clonevoice", "clonechat", "clonebrief",
 ]);
 
+/**
+ * A slug is valid here only if BOTH the canonical authority recognises it AND Bloc-18 has a
+ * legacy configuration definition for it. Canonical-first: an id the product doesn't know can
+ * never be accepted, even if it lingers in the legacy list.
+ */
 function isTechnologySlug(v: unknown): v is TechnologySlug {
-  return typeof v === "string" && VALID_SLUGS.has(v as TechnologySlug);
+  if (typeof v !== "string") return false;
+  if (!isCanonicalTechnologyId(v)) return false;
+  return LEGACY_CONFIGURABLE_SLUGS.has(v as TechnologySlug);
+}
+
+/**
+ * Public, canonical-first validation for the Bloc-18 configuration ROUTES. Distinguishes the
+ * three real refusals (unknown / upcoming / externally-owned) instead of a flat "not found",
+ * then additionally requires a legacy Bloc-18 definition to exist.
+ */
+export function validateLegacyConfigurationSlug(id: string):
+  | { readonly ok: true; readonly slug: TechnologySlug }
+  | { readonly ok: false; readonly code: string; readonly message: string } {
+  const canonical = validateConfigurableTechnologyId(id);
+  if (!canonical.ok) return canonical;
+  if (!LEGACY_CONFIGURABLE_SLUGS.has(id as TechnologySlug)) {
+    return {
+      ok: false,
+      code: "NO_LEGACY_CONFIGURATION",
+      message: `« ${id} » n'a pas de configuration Bloc-18 (couche de configuration legacy).`,
+    };
+  }
+  return { ok: true, slug: id as TechnologySlug };
+}
+
+/** The legacy-configurable slugs, exposed read-only for tests/diagnostics. Never a public list. */
+export function legacyConfigurableSlugs(): readonly TechnologySlug[] {
+  return [...LEGACY_CONFIGURABLE_SLUGS];
 }
 
 const VALID_STATUSES = new Set<TechnologyOperationalStatus>([

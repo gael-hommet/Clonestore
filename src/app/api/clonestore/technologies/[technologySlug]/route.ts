@@ -8,6 +8,7 @@ import {
   buildTechnologyRegistry,
   buildTechnologyPublicDigest,
   isTechnologyEnabledForEmployee,
+  validateLegacyConfigurationSlug,
 } from "../../../../../lib/clonestore/technologies/registry";
 import {
   validateTechnologySetting,
@@ -189,6 +190,12 @@ export async function GET(
 ) {
   try {
     const { technologySlug } = await params;
+    // P20 : validation CANONIQUE d'abord — distingue inconnue / à venir / externe au lieu d'un 404 plat.
+    const canonical = validateLegacyConfigurationSlug(technologySlug);
+    if (!canonical.ok) {
+      const status = canonical.code === "UNKNOWN_TECHNOLOGY" ? 404 : 409;
+      return jsonError(canonical.message, status, { code: canonical.code });
+    }
     const definition = getTechnologyDefinition(technologySlug);
     if (!definition) return jsonError(`Technologie "${technologySlug}" introuvable.`, 404, { code: "TECHNOLOGY_NOT_FOUND" });
 
@@ -241,6 +248,12 @@ export async function PATCH(
 ) {
   try {
     const { technologySlug } = await params;
+    // P20 : validation CANONIQUE d'abord — distingue inconnue / à venir / externe au lieu d'un 404 plat.
+    const canonical = validateLegacyConfigurationSlug(technologySlug);
+    if (!canonical.ok) {
+      const status = canonical.code === "UNKNOWN_TECHNOLOGY" ? 404 : 409;
+      return jsonError(canonical.message, status, { code: canonical.code });
+    }
     const definition = getTechnologyDefinition(technologySlug);
     if (!definition) return jsonError(`Technologie "${technologySlug}" introuvable.`, 404, { code: "TECHNOLOGY_NOT_FOUND" });
 

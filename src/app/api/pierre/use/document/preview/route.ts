@@ -8,6 +8,8 @@ import {
   type PierrePremiumDocumentChannel,
   type PierrePremiumDocumentTone,
 } from "../../../../../../lib/pierre/documents/premium-document-system";
+import { resolveRequestContextAuthority } from "../../../../../../lib/pierre/v1/request-context-authority";
+import { resolveDocumentJurisdiction } from "../../../../../../lib/geo/document-jurisdiction";
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -184,6 +186,31 @@ export async function POST(request: NextRequest) {
     };
     const family = inferPremiumDocumentFamily(familyHint);
 
+    // ── P20.1 (D11 fix) — server-authoritative jurisdiction gate BEFORE any rendering ──────────
+    // legal_country is resolved SERVER-SIDE only (V1 membership + P18 geo resolver) — the client
+    // never supplies company/country, and a missing/ambiguous context is refused, never guessed.
+    const requestContext = await resolveRequestContextAuthority(userId, new Date().toISOString());
+    if (requestContext.status !== "resolved") {
+      const statusToHttp: Record<string, number> = {
+        no_company: 422,
+        ambiguous_company: 409,
+        country_unresolved: 422,
+      };
+      return jsonError(requestContext.reason, statusToHttp[requestContext.status] ?? 422, {
+        code: `DOCUMENT_CONTEXT_${requestContext.status.toUpperCase()}`,
+      });
+    }
+
+    const docTypeForJurisdiction = asString(body.doc_type) || family;
+    const jurisdiction = resolveDocumentJurisdiction(requestContext.legal_country, docTypeForJurisdiction);
+    if (!jurisdiction.draftAllowed) {
+      // blocked_no_local_template / blocked_country_required / blocked_country_unsupported — never render.
+      return jsonError(jurisdiction.reason, 422, {
+        code: "DOCUMENT_JURISDICTION_BLOCKED",
+        details: { status: jurisdiction.status, country: jurisdiction.country, notice: jurisdiction.notice },
+      });
+    }
+
     const rawChannel = asString(body.channel);
     const validChannels: PierrePremiumDocumentChannel[] = ["document", "pdf", "email", "html", "internal_note"];
     const channel: PierrePremiumDocumentChannel = validChannels.includes(rawChannel as PierrePremiumDocumentChannel)
@@ -264,6 +291,14 @@ export async function POST(request: NextRequest) {
         employee_id: employeeId,
         employee_loaded: Boolean(employeeFile),
         generated_at: result.rendered.metadata.generated_at,
+      },
+      jurisdiction: {
+        status: jurisdiction.status,
+        country: jurisdiction.country,
+        jurisdictional: jurisdiction.jurisdictional,
+        finalization_allowed: jurisdiction.finalizationAllowed,
+        requires_human_validation: jurisdiction.requiresHumanValidation,
+        notice: jurisdiction.notice,
       },
     });
   } catch (error) {

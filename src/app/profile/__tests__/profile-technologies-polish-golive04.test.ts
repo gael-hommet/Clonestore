@@ -112,7 +112,16 @@ describe("profile/technologies — safety rules", () => {
   });
 
   it("does not call external APIs", () => {
-    expect(page).not.toMatch(/fetch\s*\(/);
+    // P19/P20 : la page DOIT lire l'état canonique du tenant via la route interne
+    // same-origin /api/clonestore/technologies. La règle réelle n'est donc pas
+    // « aucun fetch » (l'ancienne formulation, devenue fausse et contredite par
+    // profile-tech-ui-tech04.test.ts qui EXIGE ce fetch) mais « aucun fetch externe » :
+    // chaque fetch est énuméré et doit viser exactement la route canonique.
+    const fetches = [...page.matchAll(/fetch\s*\(\s*(["'`])([^"'`]+)\1/g)].map((m) => m[2]);
+    for (const url of fetches) {
+      expect(url.startsWith("/api/clonestore/technologies"), `fetch non canonique: ${url}`).toBe(true);
+    }
+    expect(page).not.toMatch(/fetch\s*\(\s*["'`]https?:\/\//);
     expect(page).not.toMatch(/https:\/\/api\.stripe\.com/);
     expect(page).not.toMatch(/https:\/\/api\.openai\.com/);
   });

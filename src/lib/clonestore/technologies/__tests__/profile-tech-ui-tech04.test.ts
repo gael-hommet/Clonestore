@@ -61,11 +61,11 @@ describe("tech-04 — section structure", () => {
     expect(data.sections).toHaveLength(4);
   });
 
-  it("covers all 13 technologies", () => {
+  it("covers all 15 technologies (P20 canonical public projection: 14 P20-internal + CloneChat external)", () => {
     const data = buildProfileTechPageData();
     const total = data.sections.reduce((n, s) => n + s.cards.length, 0);
-    expect(total).toBe(13);
-    expect(data.total).toBe(13);
+    expect(total).toBe(15);
+    expect(data.total).toBe(15);
   });
 
   it("essential section has 4 techs", () => {
@@ -100,13 +100,13 @@ describe("tech-04 — section structure", () => {
     expect(keys).toContain("clonevoice");
   });
 
-  it("development section has 5 techs", () => {
+  it("development section has 7 techs (5 TECH-03-configured + CloneCall/CloneRoom, P20 convergence)", () => {
     const data = buildProfileTechPageData();
     const dev = data.sections.find((s) => s.id === "development");
-    expect(dev?.count).toBe(5);
+    expect(dev?.count).toBe(7);
   });
 
-  it("development section contains clonetrust, clonereview, clonesignals, clonelearn, clonebrief", () => {
+  it("development section contains clonetrust, clonereview, clonesignals, clonelearn, clonebrief, clonecall, cloneroom", () => {
     const data = buildProfileTechPageData();
     const dev = data.sections.find((s) => s.id === "development");
     const keys = dev?.cards.map((c) => c.key) ?? [];
@@ -115,6 +115,29 @@ describe("tech-04 — section structure", () => {
     expect(keys).toContain("clonesignals");
     expect(keys).toContain("clonelearn");
     expect(keys).toContain("clonebrief");
+    expect(keys).toContain("clonecall");
+    expect(keys).toContain("cloneroom");
+  });
+
+  it("CloneCall/CloneRoom are configState=not_configurable_yet with no fabricated readiness", () => {
+    const data = buildProfileTechPageData();
+    const allCards = data.sections.flatMap((s) => s.cards);
+    for (const key of ["clonecall", "cloneroom"]) {
+      const card = allCards.find((c) => c.key === key);
+      expect(card).toBeDefined();
+      expect(card?.configState).toBe("not_configurable_yet");
+      expect(card?.readiness_score).toBe(0);
+      expect(card?.status_variant).toBe("roadmap");
+    }
+  });
+
+  it("CloneChat card has ownership=EXTERNAL_CLONECHAT_WORKSTREAM, all P20-owned cards have ownership=P20_INTERNAL", () => {
+    const data = buildProfileTechPageData();
+    const allCards = data.sections.flatMap((s) => s.cards);
+    const clonechat = allCards.find((c) => c.key === "clonechat");
+    expect(clonechat?.ownership).toBe("EXTERNAL_CLONECHAT_WORKSTREAM");
+    const others = allCards.filter((c) => c.key !== "clonechat");
+    for (const card of others) expect(card.ownership).toBe("P20_INTERNAL");
   });
 
   it("internal_engines section has 1 tech (clonepolicy)", () => {
@@ -374,12 +397,13 @@ describe("tech-04 — page.tsx content", () => {
     expect(page.toLowerCase()).not.toMatch(/zéro.confiance|zero.confiance/);
   });
 
-  it("page mentions all 13 technologies (via comment block)", () => {
+  it("page mentions all 15 technologies (via comment block)", () => {
     const techs = [
       "cloneos", "cloneadn", "cloneguard", "clonetrace",
       "clonechat", "clonecontinuum", "clonevoice",
       "clonepolicy", "clonetrust", "clonereview",
       "clonesignals", "clonelearn", "clonebrief",
+      "clonecall", "cloneroom",
     ];
     for (const tech of techs) {
       expect(page.toLowerCase()).toContain(tech);
@@ -410,8 +434,17 @@ describe("tech-04 — page.tsx content", () => {
     expect(page).toMatch(/\bsm:|md:/);
   });
 
-  it("page does not call external APIs (no fetch)", () => {
-    expect(page).not.toMatch(/fetch\s*\(/);
+  it("page ne contacte AUCUNE API externe (seul le fetch canonique same-origin est autorisé)", () => {
+    // P19 : la page DOIT consommer la route interne canonique /api/clonestore/technologies
+    // (source unique de l'état Prime). L'exigence historique de ce test est CONSERVÉE et
+    // durcie : chaque fetch est énuméré et doit viser exactement la route canonique ;
+    // toute URL absolue (http/https) reste interdite.
+    const fetches = [...page.matchAll(/fetch\s*\(\s*(["'`])([^"'`]+)\1/g)].map((m) => m[2]);
+    expect(fetches.length).toBeGreaterThan(0); // le câblage canonique doit exister
+    for (const url of fetches) {
+      expect(url.startsWith("/api/clonestore/technologies"), `fetch non canonique: ${url}`).toBe(true);
+    }
+    expect(page).not.toMatch(/fetch\s*\(\s*["'`]https?:\/\//);
   });
 
   it("page does not set B48_PUBLIC_LAUNCH_ENABLED to true", () => {

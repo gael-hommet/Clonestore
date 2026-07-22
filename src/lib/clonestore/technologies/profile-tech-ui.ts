@@ -10,7 +10,9 @@
 //   [FIX-3] ClonePolicy: active internal engine — NOT a roadmap "Bientôt" item.
 
 import type { GlobalTechnologyKey, GlobalTechnologyConfig } from "./global-tech-config";
-import { DEFAULT_GLOBAL_TECH_CONFIGS, DEFAULT_GLOBAL_TECH_CONFIG_LIST } from "./global-tech-defaults";
+import { DEFAULT_GLOBAL_TECH_CONFIGS } from "./global-tech-defaults";
+import { getPublicTechnologyEntry, type PublicTechnologyOwnership } from "./canonical/public-technology-projection";
+import { buildTenantConfiguredTechnologies } from "./canonical/tenant-configuration-adapter";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -34,8 +36,16 @@ export type TechUIBadge = {
   variant: TechUIBadgeVariant;
 };
 
+/** Mirrors the canonical adapter's TenantConfigurationState:
+ *  - "configured": a real, P20-owned TECH-03 tenant config exists (12 technologies today);
+ *  - "not_configurable_yet": public per the canonical authority, no config yet (CloneCall/CloneRoom);
+ *  - "external_workstream_metadata_only": live but owned by the CloneChat workstream — P20 shows
+ *    metadata and never claims its readiness/guardrails/autonomy.
+ *  For the last two, readiness_score is a non-measurement sentinel (0), never a fabricated value. */
+export type TechUIConfigState = "configured" | "not_configurable_yet" | "external_workstream_metadata_only";
+
 export type TechUICardData = {
-  key: GlobalTechnologyKey;
+  key: string;
   display_name: string;
   category_label: string;
   description: string;
@@ -52,6 +62,9 @@ export type TechUICardData = {
   is_internal: boolean;
   icon_key: string;
   accent: string;
+  /** From the P20 canonical public projection — never decided locally. */
+  ownership: PublicTechnologyOwnership;
+  configState: TechUIConfigState;
 };
 
 export type TechUISectionId =
@@ -81,7 +94,7 @@ export type TechUIPageData = {
 // ── Section assignment ────────────────────────────────────────────────────────
 // Hard assignment — not derived dynamically, intentional for UI clarity.
 
-const SECTION_ASSIGNMENT: Record<GlobalTechnologyKey, TechUISectionId> = {
+const SECTION_ASSIGNMENT: Record<string, TechUISectionId> = {
   cloneos:       "essential",
   cloneadn:      "essential",
   cloneguard:    "essential",
@@ -95,6 +108,10 @@ const SECTION_ASSIGNMENT: Record<GlobalTechnologyKey, TechUISectionId> = {
   clonesignals:  "development",
   clonelearn:    "development",
   clonebrief:    "development",
+  // P20 convergence: CloneCall/CloneRoom are public (canonical projection) but have no TECH-03
+  // tenant config yet — "À venir" at launch, so they belong in the roadmap/development bucket.
+  clonecall:     "development",
+  cloneroom:     "development",
 };
 
 // ── UI-only display metadata ──────────────────────────────────────────────────
@@ -112,7 +129,7 @@ type TechUIMeta = {
   accent: string;
 };
 
-const TECH_UI_META: Record<GlobalTechnologyKey, TechUIMeta> = {
+const TECH_UI_META: Record<string, TechUIMeta> = {
   cloneos: {
     category_label: "Orchestration",
     visibility_label: "Moteur interne",
@@ -250,6 +267,29 @@ const TECH_UI_META: Record<GlobalTechnologyKey, TechUIMeta> = {
     icon_key: "cpu",
     accent: "#9333EA",
   },
+  // P20 convergence: public per the canonical projection (launchStatus="À venir"), no TECH-03
+  // tenant config exists yet — configState will be "not_configurable_yet", readiness_score=0
+  // (non-measurement sentinel, never a fabricated score).
+  clonecall: {
+    category_label: "Communication",
+    visibility_label: "Visible client",
+    impact: "Ligne d'appel directe entre l'entreprise et ses employés IA — à venir.",
+    active_now: undefined,
+    roadmap_note: "Session d'appel encadrée : transcript, intentions, mission proposée, sortant bloqué.",
+    planned: undefined,
+    icon_key: "message-circle",
+    accent: "#0F766E",
+  },
+  cloneroom: {
+    category_label: "Communication",
+    visibility_label: "Visible client",
+    impact: "Salon de travail partagé entre employés IA — à venir.",
+    active_now: undefined,
+    roadmap_note: "Coordination multi-employés IA, routage via CloneOS, aucun pair-à-pair direct.",
+    planned: undefined,
+    icon_key: "cpu",
+    accent: "#6366F1",
+  },
 };
 
 // ── Status helpers ────────────────────────────────────────────────────────────
@@ -325,12 +365,56 @@ export function buildTechUIBadges(
 
 // ── Card data builder ─────────────────────────────────────────────────────────
 
+/** Static, honest display names for public technologies with no P20-owned TECH-03 config. */
+const UNCONFIGURED_DISPLAY_NAME: Record<string, string> = {
+  clonecall: "CloneCall",
+  cloneroom: "CloneRoom",
+  clonechat: "CloneChat",
+};
+
 export function buildTechUICardData(
-  key: GlobalTechnologyKey,
-  config?: GlobalTechnologyConfig,
+  key: string,
+  config: GlobalTechnologyConfig | undefined,
+  ownership: PublicTechnologyOwnership,
 ): TechUICardData {
-  const resolvedConfig = config ?? DEFAULT_GLOBAL_TECH_CONFIGS[key];
   const meta = TECH_UI_META[key];
+  const isExternal = ownership === "EXTERNAL_CLONECHAT_WORKSTREAM";
+  // An externally-owned technology is NEVER given a P20 configuration card, even if a TECH-03
+  // row happens to exist for it: P20 does not own or certify its readiness/guardrails/autonomy.
+  const resolvedConfig = isExternal
+    ? undefined
+    : config ?? DEFAULT_GLOBAL_TECH_CONFIGS[key as GlobalTechnologyKey];
+
+  if (!resolvedConfig) {
+    // Two honest no-configuration cases, deliberately NOT collapsed into one:
+    //   - external (CloneChat): live and available, but owned by another workstream;
+    //   - not_configurable_yet (CloneCall/CloneRoom): genuinely upcoming.
+    // Neither gets a fabricated readiness: readiness_score 0 here is a non-measurement sentinel,
+    // and the external card is never labelled "Bientôt" (that would misstate a live technology).
+    return {
+      key,
+      display_name: UNCONFIGURED_DISPLAY_NAME[key] ?? key,
+      category_label: meta.category_label,
+      description: meta.impact,
+      impact: meta.impact,
+      active_now: undefined,
+      roadmap_note: meta.roadmap_note,
+      planned: isExternal ? undefined : meta.planned,
+      status_variant: isExternal ? "internal" : "roadmap",
+      status_label: isExternal ? "Chantier externe" : "Bientôt",
+      readiness_score: 0,
+      badges: isExternal
+        ? [{ label: "Visible client", variant: "visibility_client" }]
+        : [{ label: "Bientôt", variant: "coming_soon" }],
+      is_locked: false,
+      is_required: false,
+      is_internal: false,
+      icon_key: meta.icon_key,
+      accent: meta.accent,
+      ownership,
+      configState: isExternal ? "external_workstream_metadata_only" : "not_configurable_yet",
+    };
+  }
 
   return {
     key,
@@ -350,6 +434,8 @@ export function buildTechUICardData(
     is_internal: resolvedConfig.control_level === "internal_only",
     icon_key: meta.icon_key,
     accent: meta.accent,
+    ownership,
+    configState: "configured",
   };
 }
 
@@ -386,10 +472,11 @@ export function buildTechUISections(
     internal_engines: [],
   };
 
-  for (const key of Object.keys(SECTION_ASSIGNMENT) as GlobalTechnologyKey[]) {
-    const sectionId = SECTION_ASSIGNMENT[key];
-    const config = configs?.[key] ?? DEFAULT_GLOBAL_TECH_CONFIGS[key];
-    sectionMap[sectionId].push(buildTechUICardData(key, config));
+  // Single source of membership: the canonical public authority, joined to TECH-03 config via the
+  // official adapter. TECH-04 never reads DEFAULT_GLOBAL_TECH_CONFIGS to decide WHAT exists.
+  for (const entry of buildTenantConfiguredTechnologies(configs)) {
+    const sectionId = SECTION_ASSIGNMENT[entry.id] ?? "development";
+    sectionMap[sectionId].push(buildTechUICardData(entry.id, entry.config ?? undefined, entry.ownership));
   }
 
   const sectionOrder: TechUISectionId[] = ["essential", "complementary", "development", "internal_engines"];
@@ -432,10 +519,12 @@ export function buildProfileTechPageData(
 // ── Quick getters ──────────────────────────────────────────────────────────────
 
 export function getTechUICardByKey(
-  key: GlobalTechnologyKey,
+  key: string,
   configs?: Partial<Record<GlobalTechnologyKey, GlobalTechnologyConfig>>,
 ): TechUICardData {
-  return buildTechUICardData(key, configs?.[key]);
+  const entry = getPublicTechnologyEntry(key);
+  const ownership = entry?.ownership ?? "P20_INTERNAL";
+  return buildTechUICardData(key, configs?.[key as GlobalTechnologyKey], ownership);
 }
 
 export function getTechUIBadgeLabel(variant: TechUIBadgeVariant): string {
