@@ -1,0 +1,21 @@
+{
+  "note": "Defects found by the DETERMINISTIC portion of MPA-1 actually run this pass. The model-dependent campaigns (Pierre quality, email, memory, baseline, conversational red-team) were NOT run (OpenAI insufficient_quota), so defects that only those campaigns could surface are UNKNOWN — not zero. This ledger does not claim P0/P1=0 for the product overall; it reports what deterministic testing found.",
+  "defects": [],
+  "deterministicFindings": {
+    "P0_found": 0,
+    "P1_found": 0,
+    "P2_found": 0,
+    "P3_found": 0,
+    "scope": "585 gate tests + 1169x2 regression + 52 browser observations + build. No new defect surfaced by the deterministic layer; the integrated P20+CloneChat tree is green."
+  },
+  "openP0": 0,
+  "openP1": 0,
+  "unknownDueToBlockedModelCampaigns": [
+    "Pierre mission-quality defects (understanding/personalization/invention) — require the model to surface",
+    "Email genericness / wrong-dossier-info — require the model",
+    "Multi-turn memory errors — require the model",
+    "Conversational prompt-injection / red-team — require the model",
+    "Baseline inferiority — requires the model"
+  ],
+  "honestStatement": "openP0=0 and openP1=0 apply ONLY to what deterministic MPA-1 testing exercised. They are NOT a certification that the model-driven product has zero P0/P1 — that certification is BLOCKED until OpenAI quota is restored and the frozen corpus + holdout are run."
+}

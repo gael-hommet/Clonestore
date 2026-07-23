@@ -1,0 +1,25 @@
+{
+  "method": "Real execution of the deterministic jurisdiction/pricing gate tests (server-authoritative, no model). 105 assertions across 8 files.",
+  "countries": {
+    "FR": { "currency": "EUR", "price": 449, "verdict": "GREEN" },
+    "BE": { "currency": "EUR", "price": 449, "verdict": "GREEN" },
+    "LU": { "currency": "EUR", "price": 449, "verdict": "GREEN" },
+    "CH": { "currency": "CHF", "price": 499, "verdict": "GREEN" }
+  },
+  "deterministicEvidence": {
+    "country-pricing.test.ts": "PASS — FR/BE/LU=449 EUR, CH=499 CHF, server-authoritative resolver",
+    "p10-emit-proofs.test.ts": "PASS",
+    "p10-production-gate.test.ts": "PASS — PRODUCTION_AUTHORIZED const HARD FLOOR, env alone never authorizes prod",
+    "document-jurisdiction-p19.test.ts": "PASS — fail-closed never-FR document gate",
+    "geo-guards.test.ts": "PASS — server-authoritative resolver reads registration_country, fail-closed",
+    "geo-packs.test.ts": "PASS — FR/BE/LU/CH packs",
+    "document-preview-jurisdiction-p20.test.ts": "PASS — D11 fix: 422 for non-resolved/non-FR jurisdiction",
+    "payout-p10-floor.test.ts": "PASS — partner payout respects P10 floor"
+  },
+  "totalAssertions": 105,
+  "passed": 105,
+  "failed": 0,
+  "jurisdictionCriticalGate": "GREEN (deterministic layer)",
+  "modelLayerNote": "Pierre's model-driven legal reasoning (does he verbally refuse to invent a foreign rule, promise no legal guarantee, ask for competent validation) is a MODEL-DEPENDENT behaviour and is BLOCKED this pass by OpenAI insufficient_quota. The deterministic jurisdiction GATES (pricing, document country-gate, fail-closed never-FR, production floor) are proven; the conversational legal-caution behaviour is UNMEASURED, not assumed.",
+  "verdict": "DETERMINISTIC_JURISDICTION_GATES_GREEN / MODEL_LEGAL_CAUTION_UNMEASURED_BLOCKED"
+}

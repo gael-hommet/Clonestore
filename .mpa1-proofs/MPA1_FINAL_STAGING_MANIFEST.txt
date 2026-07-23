@@ -1,0 +1,22 @@
+MPA-1 — FINAL STAGING MANIFEST
+Base commit: 700ed5b8e12c7766a0b1f918f849febb9de14b79 (CloneChat) -> 8628f43 (P20) -> 9a0612af
+
+MPA-1 is a deterministic-infrastructure + verification pass. It adds test-only tooling and proof
+artifacts; it modifies NO product runtime code (no Pierre/CloneStore/CloneChat source changed —
+nothing to fix surfaced in the deterministic layer, and the model layer was quota-blocked).
+
+STAGE (MPA-1 deterministic tooling + proofs):
+scripts/mpa1/gen-census.mjs
+scripts/mpa1/gen-fixtures.mjs
+scripts/mpa1/gen-corpus.mjs
+scripts/mpa1/browser-crawl.mjs
+.mpa1-proofs/**   (all MPA1_*.json + this manifest + handoff)
+
+NEVER STAGE:
+src/lib/clonechat/**, src/app/assistant/**, src/app/api/assistant/**, scripts/c1-9-*, .c1-9-proofs/**
+(all owned by CloneChat commit 700ed5b8 — untouched by MPA-1)
+.env*, .next*, node_modules/, *.log, secrets, .git/index.backup-*
+P20 files (already committed at 8628f43 — not re-touched)
+
+No product source file is staged because MPA-1 changed none. If a future model-campaign run
+surfaces a P0/P1 and a fix is applied, that fix is added to this manifest explicitly.

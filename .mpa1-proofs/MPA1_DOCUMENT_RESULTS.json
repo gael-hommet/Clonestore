@@ -1,0 +1,4 @@
+{"status":"BLOCKED_INSUFFICIENT_QUOTA","reason":"OpenAI probe returned HTTP 429 insufficient_quota. This gate requires Pierre to generate real output via the model. Per instruction: no score fabricated, Pierre not declared certified.","infrastructureReady":true,
+"documentTypesPlanned":12,"documentsMeasured":null,
+"deterministicPortion":"The document RENDERING pipeline + D11 jurisdiction gate (422 non-FR) is proven deterministically (document-preview-jurisdiction-p20 PASS). The model-AUTHORED document CONTENT quality is BLOCKED.",
+"verdict":"DOCUMENT_CONTENT_UNMEASURED / RENDER+JURISDICTION_GATE_GREEN"}

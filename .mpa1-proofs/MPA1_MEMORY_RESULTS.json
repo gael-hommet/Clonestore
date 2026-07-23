@@ -1,0 +1,4 @@
+{"status":"BLOCKED_INSUFFICIENT_QUOTA","reason":"OpenAI probe returned HTTP 429 insufficient_quota. This gate requires Pierre to generate real output via the model. Per instruction: no score fabricated, Pierre not declared certified.","infrastructureReady":true,
+"conversationsPlanned":"3/5/10/20 turns with correction-overrides","measured":null,
+"note":"Multi-turn memory (last-correction-wins, no employee/company merge, no invented memory) requires the model in the loop. UNMEASURED. The durable persistence substrate it relies on IS proven (cognitive-durable + repositories PASS).",
+"verdict":"MEMORY_BEHAVIOUR_UNMEASURED_MODEL_BLOCKED"}

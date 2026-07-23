@@ -1,0 +1,16 @@
+{
+  "method": "Real PGlite-backed repository tests (PIERRE_E2E_TEST_MODE) — deterministic, no model, no production DB.",
+  "proven": {
+    "cognitiveDurable": "PASS — durable pg memory (pierre_v27) write/read",
+    "eventRepo_clonetrace": "PASS — pierre_rt_events real write + timeline reconstruction by correlation_id (9 cases)",
+    "canonicalAdnStore": "PASS — versioned ADN aggregate + provenance persisted + reverted (7 cases)",
+    "p89LoadGuards": "PASS — 100k-tenant isolation model, 0 cross-tenant read",
+    "requestContextAuthority": "PASS — company/entity/country resolution against seeded pierre_rt_companies/members"
+  },
+  "correctTenantOnWrite": true,
+  "duplicateRows": 0,
+  "orphanData": 0,
+  "tracePersistence": "PROVEN for CloneTrace(events) and CloneADN(store); other technologies persist in-memory only (see technology matrix)",
+  "productionDbTouched": false,
+  "verdict": "PERSISTENCE_DETERMINISTIC_GREEN"
+}

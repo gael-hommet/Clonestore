@@ -1,0 +1,33 @@
+{
+  "method": "Derived from the P20 consumer graph + the T2 certification tests actually run this session + the OpenAI probe. RUNTIME_PROVEN requires a real, non-model runtime path with observed data+trace; where the only real execution path is inside CloneChat (external) or needs OpenAI (blocked), the honest state is UI_ONLY / EXTERNAL / RUNTIME_PARTIAL, never RUNTIME_PROVEN.",
+  "publicSet": 15,
+  "p20Internal": 14,
+  "external": 1,
+  "technologies": [
+    { "id": "cloneos", "public": "Disponible", "authority": "public-technology-projection.ts", "consumer": "T2 composition + CloneChat p16c", "runtimeCallObserved": "deterministic plan-only (tested); real product execution only via CloneChat route", "dataProduced": "mission/task plan artifact", "trace": "in-memory", "state": "RUNTIME_PARTIAL", "proof": "cloneos-guard-policy-trust-p20-2-certification.test.ts (7 CloneOS cases)" },
+    { "id": "cloneadn", "public": "Disponible", "authority": "canonical", "consumer": "canonical-adn-store", "runtimeCallObserved": "real PGlite write/read", "dataProduced": "versioned ADN aggregate + provenance", "trace": "persisted", "state": "RUNTIME_PROVEN", "proof": "canonical-adn-store-p20-2-certification.test.ts (7 real PGlite cases)" },
+    { "id": "cloneguard", "public": "Disponible", "authority": "canonical", "consumer": "governance pipeline", "runtimeCallObserved": "deterministic decision with exact value assertions", "dataProduced": "allow/require_validation/block decision", "trace": "in-memory", "state": "RUNTIME_PARTIAL", "proof": "cloneos-guard-policy-trust cert (5 CloneGuard cases, exact decision content)" },
+    { "id": "clonetrace", "public": "Disponible", "authority": "canonical", "consumer": "clonetrace-t2-bridge -> EventRepo/pierre_rt_events", "runtimeCallObserved": "real PGlite write + timeline reconstruction", "dataProduced": "persisted events by correlation_id", "trace": "persisted", "state": "RUNTIME_PROVEN", "proof": "clonetrace-persistence-p20-2-d1-fix.test.ts (9 real PGlite cases)" },
+    { "id": "clonevoice", "public": "Disponible", "authority": "canonical", "consumer": "CloneCall (internal)", "runtimeCallObserved": "text-layer only", "dataProduced": "segmented intents on text transcript", "trace": "none", "state": "RUNTIME_PARTIAL", "proof": "clonevoice-p20-2-certification.test.ts (text layer; browser/telephony correctly not claimed)" },
+    { "id": "clonepolicy", "public": "Disponible(interne)", "authority": "canonical", "consumer": "CloneGuard pipeline", "runtimeCallObserved": "deterministic rule decision", "dataProduced": "policy decision", "trace": "in-memory", "state": "RUNTIME_PARTIAL", "proof": "cloneos-guard-policy-trust cert (5 ClonePolicy cases)" },
+    { "id": "clonecontinuum", "public": "Disponible", "authority": "canonical", "consumer": "CloneCall (internal)", "runtimeCallObserved": "in-memory state machine", "dataProduced": "continuity state", "trace": "none", "state": "RUNTIME_PARTIAL", "proof": "clonecontinuum-p20-2-certification.test.ts (15 cases)" },
+    { "id": "clonetrust", "public": "Disponible", "authority": "canonical", "consumer": "governance", "runtimeCallObserved": "deterministic autonomy scoring", "dataProduced": "autonomy level capped by policy", "trace": "in-memory", "state": "RUNTIME_PARTIAL", "proof": "cloneos-guard-policy-trust cert (4 CloneTrust cases)" },
+    { "id": "clonereview", "public": "Disponible", "authority": "canonical", "consumer": "0 real product consumer", "runtimeCallObserved": "deterministic quality report", "dataProduced": "review report + flag", "trace": "none", "state": "RUNTIME_PARTIAL", "proof": "clonereview-p20-certification.test.ts (19 cases); claim corrected to 'when integrated'" },
+    { "id": "clonesignals", "public": "Disponible", "authority": "canonical", "consumer": "0 real consumer", "runtimeCallObserved": "deterministic trigger candidates", "dataProduced": "trigger candidates", "trace": "none", "state": "RUNTIME_PARTIAL", "proof": "clonesignals-p20-2-certification.test.ts (context-scope only, storage NOT proven)" },
+    { "id": "clonelearn", "public": "Disponible", "authority": "canonical", "consumer": "0 real consumer", "runtimeCallObserved": "deterministic candidate generation, no ADN mutation", "dataProduced": "learning candidates (approvalRequired)", "trace": "none", "state": "RUNTIME_PARTIAL", "proof": "clonelearn-p20-certification.test.ts (18 cases); claim corrected" },
+    { "id": "clonebrief", "public": "Disponible", "authority": "canonical", "consumer": "CloneCall (internal)", "runtimeCallObserved": "deterministic brief from provided facts", "dataProduced": "brief sections", "trace": "none", "state": "RUNTIME_PARTIAL", "proof": "clonebrief-p20-certification.test.ts (22 cases); claim corrected (no active scheduler)" },
+    { "id": "clonecall", "public": "À venir", "authority": "canonical", "consumer": "n/a", "runtimeCallObserved": "none (upcoming)", "dataProduced": "none", "trace": "none", "state": "UPCOMING", "proof": "NOT_CONFIGURABLE_YET, no fabricated readiness (P20 anti-divergence test 18)" },
+    { "id": "cloneroom", "public": "À venir", "authority": "canonical", "consumer": "n/a", "runtimeCallObserved": "none (upcoming)", "dataProduced": "none", "trace": "none", "state": "UPCOMING", "proof": "NOT_CONFIGURABLE_YET, no fabricated readiness" },
+    { "id": "clonechat", "public": "Disponible(externe)", "authority": "external overlay", "consumer": "CloneChat workstream", "runtimeCallObserved": "owned by commit 700ed5b8, its own proofs", "dataProduced": "n/a to MPA-1", "trace": "n/a", "state": "EXTERNAL", "proof": "EXTERNAL_CLONECHAT_WORKSTREAM; MPA-1 does not re-certify" }
+  ],
+  "summary": {
+    "RUNTIME_PROVEN": 2,
+    "RUNTIME_PARTIAL": 9,
+    "UPCOMING": 2,
+    "EXTERNAL": 1,
+    "UI_ONLY": 0,
+    "BROKEN": 0
+  },
+  "loadBearingFinding": "Consistent with the entire P20 campaign: 2 technologies (CloneADN, CloneTrace) have a proven REAL persistence runtime path; the other 9 P20-internal are deterministic contracts proven at the unit level but with 0 product-runtime consumer outside CloneChat. This is NOT a P1 UI_ONLY/BROKEN defect (the public surface honestly reflects capability, and P20 corrected the over-strong claims) — it is the known, documented wiring gap. No technology is publicly claimed 'available' while being UI_ONLY or BROKEN.",
+  "p1TechnologyDefects": 0
+}

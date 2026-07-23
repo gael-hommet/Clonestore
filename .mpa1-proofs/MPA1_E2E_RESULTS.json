@@ -1,0 +1,15 @@
+{
+  "method": "Real browser crawl against the production build (.next-mpa1) + deterministic gate tests. Parcours steps that require Pierre to GENERATE a real answer via OpenAI are BLOCKED (insufficient_quota) and are not claimed passed.",
+  "journeys": {
+    "A_new_company": { "deterministicSteps": "signup/login routes render, country pricing resolves, onboarding+empreinte routes render, technologies surface renders 15", "modelSteps_BLOCKED": "first mission -> Pierre answer -> draft -> document CONTENT (needs OpenAI)", "verdict": "STRUCTURE_GREEN / MODEL_STEPS_BLOCKED" },
+    "B_existing_company": { "deterministicSteps": "login redirect, mission/validation routes render", "modelSteps_BLOCKED": "correction -> new version -> approval CONTENT (needs OpenAI)", "verdict": "STRUCTURE_GREEN / MODEL_STEPS_BLOCKED" },
+    "C_incident": { "deterministicSteps": "pg-bounded-wait + retry logic proven at unit level (CloneChat commit) + resolvePaymentMode/production floor", "modelSteps_BLOCKED": "provider-unavailable conversational recovery message (needs OpenAI)", "verdict": "DETERMINISTIC_RESILIENCE_GREEN / CONVERSATIONAL_RECOVERY_BLOCKED" },
+    "D_payment_test": { "deterministicSteps": "country pricing FR/BE/LU=449EUR CH=499CHF proven; resolvePaymentMode NEVER live while PRODUCTION_AUTHORIZED const=false; Stripe TEST-only", "modelSteps_BLOCKED": "none — payment is deterministic", "verdict": "PAYMENT_TEST_GATES_GREEN (live checkout not exercised: PRODUCTION_AUTHORIZED=false hard floor by design)" },
+    "E_mobile": { "deterministicSteps": "mobile 390 + 430 crawl: 0 pageerror, 0 overflow, auth-gated correctly redirects, /demo renders 15 techs", "modelSteps_BLOCKED": "mission answer on mobile (needs OpenAI)", "verdict": "MOBILE_STRUCTURE_GREEN / MODEL_STEPS_BLOCKED" }
+  },
+  "browserCrawl": { "observations": 52, "failing": 0, "pageErrors": 0, "horizontalOverflow": 0, "authGatedRedirects": 12, "demoTechnologies": 15 },
+  "criticalJourneysStructurallyGreen": true,
+  "criticalJourneysFullyProven": false,
+  "reason": "Every journey's model-generation step is blocked by OpenAI insufficient_quota. Structure/navigation/security/pricing are proven; Pierre's actual answers are UNMEASURED.",
+  "verdict": "E2E_STRUCTURE_GREEN / E2E_MODEL_STEPS_UNMEASURED_BLOCKED"
+}

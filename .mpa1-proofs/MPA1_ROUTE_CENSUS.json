@@ -1,0 +1,576 @@
+{
+  "method": "Deterministic filesystem enumeration of src/app/**/page.tsx + static import inspection. No model, no network.",
+  "totalRoutes": 71,
+  "authGatedRoutes": 12,
+  "dynamicRoutes": 6,
+  "routes": [
+    {
+      "route": "/",
+      "file": "src/app/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 33529
+    },
+    {
+      "route": "/activate/pierre",
+      "file": "src/app/activate/pierre/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 3780
+    },
+    {
+      "route": "/agents",
+      "file": "src/app/agents/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 8206
+    },
+    {
+      "route": "/agents/[slug]",
+      "file": "src/app/agents/[slug]/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": true,
+      "authGated": false,
+      "bytes": 597
+    },
+    {
+      "route": "/agents/[slug]/use",
+      "file": "src/app/agents/[slug]/use/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": true,
+      "authGated": true,
+      "bytes": 6721
+    },
+    {
+      "route": "/agents/alex",
+      "file": "src/app/agents/alex/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 273
+    },
+    {
+      "route": "/agents/clara",
+      "file": "src/app/agents/clara/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 277
+    },
+    {
+      "route": "/agents/emma",
+      "file": "src/app/agents/emma/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 274
+    },
+    {
+      "route": "/agents/noah",
+      "file": "src/app/agents/noah/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 273
+    },
+    {
+      "route": "/agents/pierre",
+      "file": "src/app/agents/pierre/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 16039
+    },
+    {
+      "route": "/agents/pierre/employees",
+      "file": "src/app/agents/pierre/employees/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": true,
+      "bytes": 21966
+    },
+    {
+      "route": "/agents/pierre/setup",
+      "file": "src/app/agents/pierre/setup/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 55061
+    },
+    {
+      "route": "/agents/pierre/use",
+      "file": "src/app/agents/pierre/use/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": true,
+      "bytes": 29544
+    },
+    {
+      "route": "/assistant",
+      "file": "src/app/assistant/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 525
+    },
+    {
+      "route": "/checkout",
+      "file": "src/app/checkout/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": true,
+      "bytes": 19718
+    },
+    {
+      "route": "/clonestore/[slug]",
+      "file": "src/app/clonestore/[slug]/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": true,
+      "authGated": false,
+      "bytes": 5421
+    },
+    {
+      "route": "/cockpit",
+      "file": "src/app/cockpit/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 430
+    },
+    {
+      "route": "/cockpit/pierre",
+      "file": "src/app/cockpit/pierre/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 324
+    },
+    {
+      "route": "/cockpit/pierre/documents",
+      "file": "src/app/cockpit/pierre/documents/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 325
+    },
+    {
+      "route": "/cockpit/pierre/evidence",
+      "file": "src/app/cockpit/pierre/evidence/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 324
+    },
+    {
+      "route": "/cockpit/pierre/missions",
+      "file": "src/app/cockpit/pierre/missions/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 324
+    },
+    {
+      "route": "/cockpit/pierre/settings",
+      "file": "src/app/cockpit/pierre/settings/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 324
+    },
+    {
+      "route": "/cockpit/pierre/validations",
+      "file": "src/app/cockpit/pierre/validations/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 327
+    },
+    {
+      "route": "/cockpit/room",
+      "file": "src/app/cockpit/room/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 525
+    },
+    {
+      "route": "/comprendre-clonestore",
+      "file": "src/app/comprendre-clonestore/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 41362
+    },
+    {
+      "route": "/demo",
+      "file": "src/app/demo/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 1450
+    },
+    {
+      "route": "/demo/pierre",
+      "file": "src/app/demo/pierre/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 3975
+    },
+    {
+      "route": "/diagnostic-rh",
+      "file": "src/app/diagnostic-rh/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 1536
+    },
+    {
+      "route": "/founder",
+      "file": "src/app/founder/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 2918
+    },
+    {
+      "route": "/founder/readiness",
+      "file": "src/app/founder/readiness/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 1505
+    },
+    {
+      "route": "/founding-partners",
+      "file": "src/app/founding-partners/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 6736
+    },
+    {
+      "route": "/founding-partners/admin",
+      "file": "src/app/founding-partners/admin/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 2250
+    },
+    {
+      "route": "/founding-partners/conditions",
+      "file": "src/app/founding-partners/conditions/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 3445
+    },
+    {
+      "route": "/founding-partners/confirm",
+      "file": "src/app/founding-partners/confirm/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 1746
+    },
+    {
+      "route": "/founding-partners/join",
+      "file": "src/app/founding-partners/join/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 3864
+    },
+    {
+      "route": "/founding-partners/merci",
+      "file": "src/app/founding-partners/merci/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 2073
+    },
+    {
+      "route": "/founding-partners/my-registry",
+      "file": "src/app/founding-partners/my-registry/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 11679
+    },
+    {
+      "route": "/founding-partners/r/[token]",
+      "file": "src/app/founding-partners/r/[token]/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": true,
+      "authGated": false,
+      "bytes": 3469
+    },
+    {
+      "route": "/founding-partners/refuse",
+      "file": "src/app/founding-partners/refuse/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 1661
+    },
+    {
+      "route": "/founding-partners/verify",
+      "file": "src/app/founding-partners/verify/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 1707
+    },
+    {
+      "route": "/geo",
+      "file": "src/app/geo/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 8117
+    },
+    {
+      "route": "/healt",
+      "file": "src/app/healt/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 471
+    },
+    {
+      "route": "/installer",
+      "file": "src/app/installer/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 565
+    },
+    {
+      "route": "/internal/[slug]/command-center",
+      "file": "src/app/internal/[slug]/command-center/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": true,
+      "authGated": false,
+      "bytes": 3459
+    },
+    {
+      "route": "/internal/[slug]/command-center/readiness",
+      "file": "src/app/internal/[slug]/command-center/readiness/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": true,
+      "authGated": false,
+      "bytes": 1365
+    },
+    {
+      "route": "/legal/cgu",
+      "file": "src/app/legal/cgu/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 11606
+    },
+    {
+      "route": "/legal/cgv",
+      "file": "src/app/legal/cgv/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 11352
+    },
+    {
+      "route": "/legal/confidentialite",
+      "file": "src/app/legal/confidentialite/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 24569
+    },
+    {
+      "route": "/legal/dpa",
+      "file": "src/app/legal/dpa/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 13358
+    },
+    {
+      "route": "/legal/mentions",
+      "file": "src/app/legal/mentions/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 9838
+    },
+    {
+      "route": "/login",
+      "file": "src/app/login/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": true,
+      "bytes": 14821
+    },
+    {
+      "route": "/mon-clonestore",
+      "file": "src/app/mon-clonestore/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 204
+    },
+    {
+      "route": "/mon-clonestore/facturation",
+      "file": "src/app/mon-clonestore/facturation/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 609
+    },
+    {
+      "route": "/mon-clonestore/setup",
+      "file": "src/app/mon-clonestore/setup/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 215
+    },
+    {
+      "route": "/paiement",
+      "file": "src/app/paiement/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 9450
+    },
+    {
+      "route": "/paiement/cancel",
+      "file": "src/app/paiement/cancel/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 5627
+    },
+    {
+      "route": "/paiement/success",
+      "file": "src/app/paiement/success/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": true,
+      "bytes": 14052
+    },
+    {
+      "route": "/partenaires",
+      "file": "src/app/partenaires/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 1207
+    },
+    {
+      "route": "/partenaires/admin",
+      "file": "src/app/partenaires/admin/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 868
+    },
+    {
+      "route": "/partenaires/espace",
+      "file": "src/app/partenaires/espace/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 663
+    },
+    {
+      "route": "/profile",
+      "file": "src/app/profile/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": true,
+      "bytes": 17377
+    },
+    {
+      "route": "/profile/agents",
+      "file": "src/app/profile/agents/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": true,
+      "bytes": 216193
+    },
+    {
+      "route": "/profile/go-live",
+      "file": "src/app/profile/go-live/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 22813
+    },
+    {
+      "route": "/profile/launch-readiness",
+      "file": "src/app/profile/launch-readiness/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 14865
+    },
+    {
+      "route": "/profile/messages",
+      "file": "src/app/profile/messages/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": true,
+      "bytes": 287997
+    },
+    {
+      "route": "/profile/onboarding",
+      "file": "src/app/profile/onboarding/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": true,
+      "bytes": 84210
+    },
+    {
+      "route": "/profile/technologies",
+      "file": "src/app/profile/technologies/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": true,
+      "bytes": 43502
+    },
+    {
+      "route": "/questions",
+      "file": "src/app/questions/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 10559
+    },
+    {
+      "route": "/reserver/pierre",
+      "file": "src/app/reserver/pierre/page.tsx",
+      "kind": "server_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 1715
+    },
+    {
+      "route": "/signup",
+      "file": "src/app/signup/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": true,
+      "bytes": 15730
+    },
+    {
+      "route": "/test-pierre",
+      "file": "src/app/test-pierre/page.tsx",
+      "kind": "client_component",
+      "dynamicSegment": false,
+      "authGated": false,
+      "bytes": 7508
+    }
+  ]
+}

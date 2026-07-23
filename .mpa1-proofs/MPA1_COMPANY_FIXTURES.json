@@ -1,0 +1,1348 @@
+{
+  "note": "16 synthetic companies, deterministic, test-only, MPA1-prefixed. No real company data. Legal specifics deliberately marked SOURCE_REQUIRED — Pierre must never invent country law.",
+  "countries": [
+    "FR",
+    "BE",
+    "LU",
+    "CH"
+  ],
+  "count": 16,
+  "distinctSectors": 16,
+  "companies": [
+    {
+      "id": "mpa1-co-01",
+      "name": "MPA1 restauration FR-12",
+      "country": "FR",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "restauration",
+      "headcount": 12,
+      "hr_structure": "dirigeant assure la RH",
+      "managers": [
+        "Julien Lambert"
+      ],
+      "employees": [
+        {
+          "name": "Julien Lambert",
+          "role": "assistant RH",
+          "contract": "CDI",
+          "tenure_months": 7
+        },
+        {
+          "name": "Sofia Roux",
+          "role": "manager",
+          "contract": "CDD",
+          "tenure_months": 14
+        },
+        {
+          "name": "Marc Dumas",
+          "role": "salarié",
+          "contract": "CDI cadre",
+          "tenure_months": 21
+        },
+        {
+          "name": "Chloé Henry",
+          "role": "chef d'équipe",
+          "contract": "CDI",
+          "tenure_months": 28
+        },
+        {
+          "name": "Karim Lambert",
+          "role": "comptable",
+          "contract": "CDD",
+          "tenure_months": 35
+        },
+        {
+          "name": "Emma Roux",
+          "role": "commercial",
+          "contract": "CDI cadre",
+          "tenure_months": 42
+        },
+        {
+          "name": "Lucas Dumas",
+          "role": "technicien",
+          "contract": "CDI",
+          "tenure_months": 49
+        },
+        {
+          "name": "Inès Henry",
+          "role": "responsable RH",
+          "contract": "CDD",
+          "tenure_months": 56
+        }
+      ],
+      "communication_tone": "chaleureux-direct",
+      "formality": "vouvoiement",
+      "working_hours": "variables selon activité",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "toute sortie relue par le dirigeant",
+      "autonomy_level": "brouillon",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 restauration",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Julien Lambert",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-02",
+      "name": "MPA1 batiment FR-60",
+      "country": "FR",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "batiment",
+      "headcount": 60,
+      "hr_structure": "1 responsable RH",
+      "managers": [
+        "Emma Bonnet",
+        "Lucas Blanc"
+      ],
+      "employees": [
+        {
+          "name": "Emma Bonnet",
+          "role": "commercial",
+          "contract": "CDI",
+          "tenure_months": 12
+        },
+        {
+          "name": "Lucas Blanc",
+          "role": "technicien",
+          "contract": "CDD",
+          "tenure_months": 19
+        },
+        {
+          "name": "Inès Berger",
+          "role": "responsable RH",
+          "contract": "CDI cadre",
+          "tenure_months": 26
+        },
+        {
+          "name": "Théo Petit",
+          "role": "assistant RH",
+          "contract": "CDI",
+          "tenure_months": 33
+        },
+        {
+          "name": "Léa Bonnet",
+          "role": "manager",
+          "contract": "CDD",
+          "tenure_months": 40
+        },
+        {
+          "name": "Hugo Blanc",
+          "role": "salarié",
+          "contract": "CDI cadre",
+          "tenure_months": 47
+        },
+        {
+          "name": "Manon Berger",
+          "role": "chef d'équipe",
+          "contract": "CDI",
+          "tenure_months": 54
+        },
+        {
+          "name": "Yanis Petit",
+          "role": "comptable",
+          "contract": "CDD",
+          "tenure_months": 61
+        }
+      ],
+      "communication_tone": "factuel-cadre",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "manager propose, RH valide, direction pour >5000€",
+      "autonomy_level": "copilote",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 batiment",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Emma Bonnet",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-03",
+      "name": "MPA1 clotures amenagement exterieur FR-30",
+      "country": "FR",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "clotures-amenagement-exterieur",
+      "headcount": 30,
+      "hr_structure": "1 responsable RH",
+      "managers": [
+        "Hugo Marchand",
+        "Manon Moreau"
+      ],
+      "employees": [
+        {
+          "name": "Hugo Marchand",
+          "role": "salarié",
+          "contract": "CDI",
+          "tenure_months": 17
+        },
+        {
+          "name": "Manon Moreau",
+          "role": "chef d'équipe",
+          "contract": "CDD",
+          "tenure_months": 24
+        },
+        {
+          "name": "Yanis Girard",
+          "role": "comptable",
+          "contract": "CDI cadre",
+          "tenure_months": 31
+        },
+        {
+          "name": "Sarah Faure",
+          "role": "commercial",
+          "contract": "CDI",
+          "tenure_months": 38
+        },
+        {
+          "name": "Adam Marchand",
+          "role": "technicien",
+          "contract": "CDD",
+          "tenure_months": 45
+        },
+        {
+          "name": "Nora Moreau",
+          "role": "responsable RH",
+          "contract": "CDI cadre",
+          "tenure_months": 52
+        },
+        {
+          "name": "Julien Girard",
+          "role": "assistant RH",
+          "contract": "CDI",
+          "tenure_months": 59
+        },
+        {
+          "name": "Sofia Faure",
+          "role": "manager",
+          "contract": "CDD",
+          "tenure_months": 66
+        }
+      ],
+      "communication_tone": "concret-terrain",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "manager propose, RH valide, direction pour >5000€",
+      "autonomy_level": "copilote",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 clotures amenagement exterieur",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Hugo Marchand",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-04",
+      "name": "MPA1 cabinet comptable BE-15",
+      "country": "BE",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "cabinet-comptable",
+      "headcount": 15,
+      "hr_structure": "dirigeant assure la RH",
+      "managers": [
+        "Nora Roux"
+      ],
+      "employees": [
+        {
+          "name": "Nora Roux",
+          "role": "responsable RH",
+          "contract": "CDI",
+          "tenure_months": 22
+        },
+        {
+          "name": "Julien Dumas",
+          "role": "assistant RH",
+          "contract": "CDD",
+          "tenure_months": 29
+        },
+        {
+          "name": "Sofia Henry",
+          "role": "manager",
+          "contract": "CDI cadre",
+          "tenure_months": 36
+        },
+        {
+          "name": "Marc Lambert",
+          "role": "salarié",
+          "contract": "CDI",
+          "tenure_months": 43
+        },
+        {
+          "name": "Chloé Roux",
+          "role": "chef d'équipe",
+          "contract": "CDD",
+          "tenure_months": 50
+        },
+        {
+          "name": "Karim Dumas",
+          "role": "comptable",
+          "contract": "CDI cadre",
+          "tenure_months": 57
+        },
+        {
+          "name": "Emma Henry",
+          "role": "commercial",
+          "contract": "CDI",
+          "tenure_months": 64
+        },
+        {
+          "name": "Lucas Lambert",
+          "role": "technicien",
+          "contract": "CDD",
+          "tenure_months": 71
+        }
+      ],
+      "communication_tone": "formel-precis",
+      "formality": "vouvoiement",
+      "working_hours": "variables selon activité",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "toute sortie relue par le dirigeant",
+      "autonomy_level": "brouillon",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 cabinet comptable",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Nora Roux",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-05",
+      "name": "MPA1 energie FR-250",
+      "country": "FR",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "energie",
+      "headcount": 250,
+      "hr_structure": "responsable RH + assistant",
+      "managers": [
+        "Karim Blanc",
+        "Emma Berger",
+        "Lucas Petit",
+        "Inès Bonnet",
+        "Théo Blanc"
+      ],
+      "employees": [
+        {
+          "name": "Karim Blanc",
+          "role": "comptable",
+          "contract": "CDI",
+          "tenure_months": 27
+        },
+        {
+          "name": "Emma Berger",
+          "role": "commercial",
+          "contract": "CDD",
+          "tenure_months": 34
+        },
+        {
+          "name": "Lucas Petit",
+          "role": "technicien",
+          "contract": "CDI cadre",
+          "tenure_months": 41
+        },
+        {
+          "name": "Inès Bonnet",
+          "role": "responsable RH",
+          "contract": "CDI",
+          "tenure_months": 48
+        },
+        {
+          "name": "Théo Blanc",
+          "role": "assistant RH",
+          "contract": "CDD",
+          "tenure_months": 55
+        },
+        {
+          "name": "Léa Berger",
+          "role": "manager",
+          "contract": "CDI cadre",
+          "tenure_months": 62
+        },
+        {
+          "name": "Hugo Petit",
+          "role": "salarié",
+          "contract": "CDI",
+          "tenure_months": 69
+        },
+        {
+          "name": "Manon Bonnet",
+          "role": "chef d'équipe",
+          "contract": "CDD",
+          "tenure_months": 76
+        }
+      ],
+      "communication_tone": "institutionnel",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "manager propose, RH valide, direction pour >5000€",
+      "autonomy_level": "copilote",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 energie",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Karim Blanc",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-06",
+      "name": "MPA1 e commerce FR-45",
+      "country": "FR",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "e-commerce",
+      "headcount": 45,
+      "hr_structure": "1 responsable RH",
+      "managers": [
+        "Léa Moreau",
+        "Hugo Girard"
+      ],
+      "employees": [
+        {
+          "name": "Léa Moreau",
+          "role": "manager",
+          "contract": "CDI",
+          "tenure_months": 32
+        },
+        {
+          "name": "Hugo Girard",
+          "role": "salarié",
+          "contract": "CDD",
+          "tenure_months": 39
+        },
+        {
+          "name": "Manon Faure",
+          "role": "chef d'équipe",
+          "contract": "CDI cadre",
+          "tenure_months": 46
+        },
+        {
+          "name": "Yanis Marchand",
+          "role": "comptable",
+          "contract": "CDI",
+          "tenure_months": 53
+        },
+        {
+          "name": "Sarah Moreau",
+          "role": "commercial",
+          "contract": "CDD",
+          "tenure_months": 60
+        },
+        {
+          "name": "Adam Girard",
+          "role": "technicien",
+          "contract": "CDI cadre",
+          "tenure_months": 67
+        },
+        {
+          "name": "Nora Faure",
+          "role": "responsable RH",
+          "contract": "CDI",
+          "tenure_months": 74
+        },
+        {
+          "name": "Julien Marchand",
+          "role": "assistant RH",
+          "contract": "CDD",
+          "tenure_months": 81
+        }
+      ],
+      "communication_tone": "moderne-rapide",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "manager propose, RH valide, direction pour >5000€",
+      "autonomy_level": "copilote",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 e commerce",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Léa Moreau",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-07",
+      "name": "MPA1 industrie BE-250",
+      "country": "BE",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "industrie",
+      "headcount": 250,
+      "hr_structure": "responsable RH + assistant",
+      "managers": [
+        "Adam Dumas",
+        "Nora Henry",
+        "Julien Lambert",
+        "Sofia Roux",
+        "Marc Dumas"
+      ],
+      "employees": [
+        {
+          "name": "Adam Dumas",
+          "role": "technicien",
+          "contract": "CDI",
+          "tenure_months": 37
+        },
+        {
+          "name": "Nora Henry",
+          "role": "responsable RH",
+          "contract": "CDD",
+          "tenure_months": 44
+        },
+        {
+          "name": "Julien Lambert",
+          "role": "assistant RH",
+          "contract": "CDI cadre",
+          "tenure_months": 51
+        },
+        {
+          "name": "Sofia Roux",
+          "role": "manager",
+          "contract": "CDI",
+          "tenure_months": 58
+        },
+        {
+          "name": "Marc Dumas",
+          "role": "salarié",
+          "contract": "CDD",
+          "tenure_months": 65
+        },
+        {
+          "name": "Chloé Henry",
+          "role": "chef d'équipe",
+          "contract": "CDI cadre",
+          "tenure_months": 72
+        },
+        {
+          "name": "Karim Lambert",
+          "role": "comptable",
+          "contract": "CDI",
+          "tenure_months": 79
+        },
+        {
+          "name": "Emma Roux",
+          "role": "commercial",
+          "contract": "CDD",
+          "tenure_months": 86
+        }
+      ],
+      "communication_tone": "rigoureux-securite",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "manager propose, RH valide, direction pour >5000€",
+      "autonomy_level": "copilote",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 industrie",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Adam Dumas",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-08",
+      "name": "MPA1 logistique FR-120",
+      "country": "FR",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "logistique",
+      "headcount": 120,
+      "hr_structure": "responsable RH + assistant",
+      "managers": [
+        "Chloé Berger",
+        "Karim Petit",
+        "Emma Bonnet"
+      ],
+      "employees": [
+        {
+          "name": "Chloé Berger",
+          "role": "chef d'équipe",
+          "contract": "CDI",
+          "tenure_months": 42
+        },
+        {
+          "name": "Karim Petit",
+          "role": "comptable",
+          "contract": "CDD",
+          "tenure_months": 49
+        },
+        {
+          "name": "Emma Bonnet",
+          "role": "commercial",
+          "contract": "CDI cadre",
+          "tenure_months": 56
+        },
+        {
+          "name": "Lucas Blanc",
+          "role": "technicien",
+          "contract": "CDI",
+          "tenure_months": 63
+        },
+        {
+          "name": "Inès Berger",
+          "role": "responsable RH",
+          "contract": "CDD",
+          "tenure_months": 70
+        },
+        {
+          "name": "Théo Petit",
+          "role": "assistant RH",
+          "contract": "CDI cadre",
+          "tenure_months": 77
+        },
+        {
+          "name": "Léa Bonnet",
+          "role": "manager",
+          "contract": "CDI",
+          "tenure_months": 84
+        },
+        {
+          "name": "Hugo Blanc",
+          "role": "salarié",
+          "contract": "CDD",
+          "tenure_months": 91
+        }
+      ],
+      "communication_tone": "operationnel",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "manager propose, RH valide, direction pour >5000€",
+      "autonomy_level": "copilote",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 logistique",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Chloé Berger",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-09",
+      "name": "MPA1 hotellerie CH-60",
+      "country": "CH",
+      "currency": "CHF",
+      "monthly_price": 499,
+      "sector": "hotellerie",
+      "headcount": 60,
+      "hr_structure": "1 responsable RH",
+      "managers": [
+        "Théo Girard",
+        "Léa Faure"
+      ],
+      "employees": [
+        {
+          "name": "Théo Girard",
+          "role": "assistant RH",
+          "contract": "CDI",
+          "tenure_months": 47
+        },
+        {
+          "name": "Léa Faure",
+          "role": "manager",
+          "contract": "CDD",
+          "tenure_months": 54
+        },
+        {
+          "name": "Hugo Marchand",
+          "role": "salarié",
+          "contract": "CDI cadre",
+          "tenure_months": 61
+        },
+        {
+          "name": "Manon Moreau",
+          "role": "chef d'équipe",
+          "contract": "CDI",
+          "tenure_months": 68
+        },
+        {
+          "name": "Yanis Girard",
+          "role": "comptable",
+          "contract": "CDD",
+          "tenure_months": 75
+        },
+        {
+          "name": "Sarah Faure",
+          "role": "commercial",
+          "contract": "CDI cadre",
+          "tenure_months": 82
+        },
+        {
+          "name": "Adam Marchand",
+          "role": "technicien",
+          "contract": "CDI",
+          "tenure_months": 89
+        },
+        {
+          "name": "Nora Moreau",
+          "role": "responsable RH",
+          "contract": "CDD",
+          "tenure_months": 6
+        }
+      ],
+      "communication_tone": "soigne-service",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "vacances selon droit suisse cantonal (à valider)",
+      "validation_process": "toute sortie relue par le dirigeant",
+      "autonomy_level": "brouillon",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 hotellerie",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Théo Girard",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-10",
+      "name": "MPA1 agence marketing FR-15",
+      "country": "FR",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "agence-marketing",
+      "headcount": 15,
+      "hr_structure": "dirigeant assure la RH",
+      "managers": [
+        "Sarah Henry"
+      ],
+      "employees": [
+        {
+          "name": "Sarah Henry",
+          "role": "commercial",
+          "contract": "CDI",
+          "tenure_months": 52
+        },
+        {
+          "name": "Adam Lambert",
+          "role": "technicien",
+          "contract": "CDD",
+          "tenure_months": 59
+        },
+        {
+          "name": "Nora Roux",
+          "role": "responsable RH",
+          "contract": "CDI cadre",
+          "tenure_months": 66
+        },
+        {
+          "name": "Julien Dumas",
+          "role": "assistant RH",
+          "contract": "CDI",
+          "tenure_months": 73
+        },
+        {
+          "name": "Sofia Henry",
+          "role": "manager",
+          "contract": "CDD",
+          "tenure_months": 80
+        },
+        {
+          "name": "Marc Lambert",
+          "role": "salarié",
+          "contract": "CDI cadre",
+          "tenure_months": 87
+        },
+        {
+          "name": "Chloé Roux",
+          "role": "chef d'équipe",
+          "contract": "CDI",
+          "tenure_months": 94
+        },
+        {
+          "name": "Karim Dumas",
+          "role": "comptable",
+          "contract": "CDD",
+          "tenure_months": 11
+        }
+      ],
+      "communication_tone": "creatif-informel",
+      "formality": "vouvoiement",
+      "working_hours": "variables selon activité",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "toute sortie relue par le dirigeant",
+      "autonomy_level": "brouillon",
+      "writing_preferences": {
+        "greeting": "Bonjour {prénom},",
+        "signature": "L'équipe RH — MPA1 agence marketing",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Sarah Henry",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-11",
+      "name": "MPA1 services informatiques LU-30",
+      "country": "LU",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "services-informatiques",
+      "headcount": 30,
+      "hr_structure": "1 responsable RH",
+      "managers": [
+        "Marc Petit",
+        "Chloé Bonnet"
+      ],
+      "employees": [
+        {
+          "name": "Marc Petit",
+          "role": "salarié",
+          "contract": "CDI",
+          "tenure_months": 57
+        },
+        {
+          "name": "Chloé Bonnet",
+          "role": "chef d'équipe",
+          "contract": "CDD",
+          "tenure_months": 64
+        },
+        {
+          "name": "Karim Blanc",
+          "role": "comptable",
+          "contract": "CDI cadre",
+          "tenure_months": 71
+        },
+        {
+          "name": "Emma Berger",
+          "role": "commercial",
+          "contract": "CDI",
+          "tenure_months": 78
+        },
+        {
+          "name": "Lucas Petit",
+          "role": "technicien",
+          "contract": "CDD",
+          "tenure_months": 85
+        },
+        {
+          "name": "Inès Bonnet",
+          "role": "responsable RH",
+          "contract": "CDI cadre",
+          "tenure_months": 92
+        },
+        {
+          "name": "Théo Blanc",
+          "role": "assistant RH",
+          "contract": "CDI",
+          "tenure_months": 9
+        },
+        {
+          "name": "Léa Berger",
+          "role": "manager",
+          "contract": "CDD",
+          "tenure_months": 16
+        }
+      ],
+      "communication_tone": "technique-clair",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "manager propose, RH valide, direction pour >5000€",
+      "autonomy_level": "copilote",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 services informatiques",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Marc Petit",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-12",
+      "name": "MPA1 commerce detail FR-90",
+      "country": "FR",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "commerce-detail",
+      "headcount": 90,
+      "hr_structure": "responsable RH + assistant",
+      "managers": [
+        "Inès Faure",
+        "Théo Marchand",
+        "Léa Moreau"
+      ],
+      "employees": [
+        {
+          "name": "Inès Faure",
+          "role": "responsable RH",
+          "contract": "CDI",
+          "tenure_months": 62
+        },
+        {
+          "name": "Théo Marchand",
+          "role": "assistant RH",
+          "contract": "CDD",
+          "tenure_months": 69
+        },
+        {
+          "name": "Léa Moreau",
+          "role": "manager",
+          "contract": "CDI cadre",
+          "tenure_months": 76
+        },
+        {
+          "name": "Hugo Girard",
+          "role": "salarié",
+          "contract": "CDI",
+          "tenure_months": 83
+        },
+        {
+          "name": "Manon Faure",
+          "role": "chef d'équipe",
+          "contract": "CDD",
+          "tenure_months": 90
+        },
+        {
+          "name": "Yanis Marchand",
+          "role": "comptable",
+          "contract": "CDI cadre",
+          "tenure_months": 7
+        },
+        {
+          "name": "Sarah Moreau",
+          "role": "commercial",
+          "contract": "CDI",
+          "tenure_months": 14
+        },
+        {
+          "name": "Adam Girard",
+          "role": "technicien",
+          "contract": "CDD",
+          "tenure_months": 21
+        }
+      ],
+      "communication_tone": "accessible",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "manager propose, RH valide, direction pour >5000€",
+      "autonomy_level": "copilote",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 commerce detail",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Inès Faure",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-13",
+      "name": "MPA1 immobilier CH-20",
+      "country": "CH",
+      "currency": "CHF",
+      "monthly_price": 499,
+      "sector": "immobilier",
+      "headcount": 20,
+      "hr_structure": "1 responsable RH",
+      "managers": [
+        "Yanis Lambert"
+      ],
+      "employees": [
+        {
+          "name": "Yanis Lambert",
+          "role": "comptable",
+          "contract": "CDI",
+          "tenure_months": 67
+        },
+        {
+          "name": "Sarah Roux",
+          "role": "commercial",
+          "contract": "CDD",
+          "tenure_months": 74
+        },
+        {
+          "name": "Adam Dumas",
+          "role": "technicien",
+          "contract": "CDI cadre",
+          "tenure_months": 81
+        },
+        {
+          "name": "Nora Henry",
+          "role": "responsable RH",
+          "contract": "CDI",
+          "tenure_months": 88
+        },
+        {
+          "name": "Julien Lambert",
+          "role": "assistant RH",
+          "contract": "CDD",
+          "tenure_months": 95
+        },
+        {
+          "name": "Sofia Roux",
+          "role": "manager",
+          "contract": "CDI cadre",
+          "tenure_months": 12
+        },
+        {
+          "name": "Marc Dumas",
+          "role": "salarié",
+          "contract": "CDI",
+          "tenure_months": 19
+        },
+        {
+          "name": "Chloé Henry",
+          "role": "chef d'équipe",
+          "contract": "CDD",
+          "tenure_months": 26
+        }
+      ],
+      "communication_tone": "premium-mesure",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "vacances selon droit suisse cantonal (à valider)",
+      "validation_process": "toute sortie relue par le dirigeant",
+      "autonomy_level": "brouillon",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 immobilier",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Yanis Lambert",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-14",
+      "name": "MPA1 centre formation BE-30",
+      "country": "BE",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "centre-formation",
+      "headcount": 30,
+      "hr_structure": "1 responsable RH",
+      "managers": [
+        "Sofia Bonnet",
+        "Marc Blanc"
+      ],
+      "employees": [
+        {
+          "name": "Sofia Bonnet",
+          "role": "manager",
+          "contract": "CDI",
+          "tenure_months": 72
+        },
+        {
+          "name": "Marc Blanc",
+          "role": "salarié",
+          "contract": "CDD",
+          "tenure_months": 79
+        },
+        {
+          "name": "Chloé Berger",
+          "role": "chef d'équipe",
+          "contract": "CDI cadre",
+          "tenure_months": 86
+        },
+        {
+          "name": "Karim Petit",
+          "role": "comptable",
+          "contract": "CDI",
+          "tenure_months": 93
+        },
+        {
+          "name": "Emma Bonnet",
+          "role": "commercial",
+          "contract": "CDD",
+          "tenure_months": 10
+        },
+        {
+          "name": "Lucas Blanc",
+          "role": "technicien",
+          "contract": "CDI cadre",
+          "tenure_months": 17
+        },
+        {
+          "name": "Inès Berger",
+          "role": "responsable RH",
+          "contract": "CDI",
+          "tenure_months": 24
+        },
+        {
+          "name": "Théo Petit",
+          "role": "assistant RH",
+          "contract": "CDD",
+          "tenure_months": 31
+        }
+      ],
+      "communication_tone": "pedagogique",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "manager propose, RH valide, direction pour >5000€",
+      "autonomy_level": "copilote",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 centre formation",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Sofia Bonnet",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-15",
+      "name": "MPA1 association FR-5",
+      "country": "FR",
+      "currency": "EUR",
+      "monthly_price": 449,
+      "sector": "association",
+      "headcount": 5,
+      "hr_structure": "dirigeant assure la RH",
+      "managers": [
+        "Lucas Marchand"
+      ],
+      "employees": [
+        {
+          "name": "Lucas Marchand",
+          "role": "technicien",
+          "contract": "CDI",
+          "tenure_months": 77
+        },
+        {
+          "name": "Inès Moreau",
+          "role": "responsable RH",
+          "contract": "CDD",
+          "tenure_months": 84
+        },
+        {
+          "name": "Théo Girard",
+          "role": "assistant RH",
+          "contract": "CDI cadre",
+          "tenure_months": 91
+        },
+        {
+          "name": "Léa Faure",
+          "role": "manager",
+          "contract": "CDI",
+          "tenure_months": 8
+        },
+        {
+          "name": "Hugo Marchand",
+          "role": "salarié",
+          "contract": "CDD",
+          "tenure_months": 15
+        }
+      ],
+      "communication_tone": "humain-proche",
+      "formality": "vouvoiement",
+      "working_hours": "variables selon activité",
+      "leave_policy": "congés selon convention applicable (à valider)",
+      "validation_process": "toute sortie relue par le dirigeant",
+      "autonomy_level": "brouillon",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 association",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Lucas Marchand",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    },
+    {
+      "id": "mpa1-co-16",
+      "name": "MPA1 multi sites CH-500",
+      "country": "CH",
+      "currency": "CHF",
+      "monthly_price": 499,
+      "sector": "multi-sites",
+      "headcount": 500,
+      "hr_structure": "direction RH multi-sites",
+      "managers": [
+        "Manon Roux",
+        "Yanis Dumas",
+        "Sarah Henry",
+        "Adam Lambert",
+        "Nora Roux",
+        "Julien Dumas",
+        "Sofia Henry",
+        "Marc Lambert"
+      ],
+      "employees": [
+        {
+          "name": "Manon Roux",
+          "role": "chef d'équipe",
+          "contract": "CDI",
+          "tenure_months": 82
+        },
+        {
+          "name": "Yanis Dumas",
+          "role": "comptable",
+          "contract": "CDD",
+          "tenure_months": 89
+        },
+        {
+          "name": "Sarah Henry",
+          "role": "commercial",
+          "contract": "CDI cadre",
+          "tenure_months": 6
+        },
+        {
+          "name": "Adam Lambert",
+          "role": "technicien",
+          "contract": "CDI",
+          "tenure_months": 13
+        },
+        {
+          "name": "Nora Roux",
+          "role": "responsable RH",
+          "contract": "CDD",
+          "tenure_months": 20
+        },
+        {
+          "name": "Julien Dumas",
+          "role": "assistant RH",
+          "contract": "CDI cadre",
+          "tenure_months": 27
+        },
+        {
+          "name": "Sofia Henry",
+          "role": "manager",
+          "contract": "CDI",
+          "tenure_months": 34
+        },
+        {
+          "name": "Marc Lambert",
+          "role": "salarié",
+          "contract": "CDD",
+          "tenure_months": 41
+        }
+      ],
+      "communication_tone": "structure-multi-entites",
+      "formality": "vouvoiement",
+      "working_hours": "35h base, horaires postés selon service",
+      "leave_policy": "vacances selon droit suisse cantonal (à valider)",
+      "validation_process": "manager propose, RH valide, direction pour >5000€",
+      "autonomy_level": "copilote",
+      "writing_preferences": {
+        "greeting": "Bonjour {Prénom Nom},",
+        "signature": "L'équipe RH — MPA1 multi sites",
+        "avoid": [
+          "promesses juridiques",
+          "menaces",
+          "jargon RH inutile"
+        ]
+      },
+      "prior_missions": [
+        "onboarding Manon Roux",
+        "relance document manquant"
+      ],
+      "legal_certainty": "SOURCE_REQUIRED"
+    }
+  ]
+}

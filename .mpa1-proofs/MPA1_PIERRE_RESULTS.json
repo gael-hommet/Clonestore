@@ -1,0 +1,10 @@
+{"status":"BLOCKED_INSUFFICIENT_QUOTA","reason":"OpenAI probe returned HTTP 429 insufficient_quota. This gate requires Pierre to generate real output via the model. Per instruction: no score fabricated, Pierre not declared certified.","infrastructureReady":true,
+"corpusFrozen":{"total":375,"main":315,"adversarial":60,"dev":238,"holdout":137,"hashes":"MPA1_CORPUS_HASHES.json"},
+"whatWouldRun":"Each of the 238 dev + 137 holdout missions sent to the real Pierre runtime, multi-layer judged (deterministic assertions + fact validation + permission validation + displayed result + AI judge + adversarial review + expected comparison + baseline A/B), scored on 15 dimensions (understanding/completeness/exactness/grounding/personalization/relevance/naturalness/writing/memory/clarification/security/jurisdiction/action/traceability/usability).",
+"scoresMeasured":null,
+"globalSuccess":null,
+"weakestCategory":null,
+"understanding":null,"exactness":null,"grounding":null,"personalization":null,"relevance":null,"naturalness":null,
+"criticalMemory":null,"criticalSecurity":null,"criticalJurisdiction":null,"sensitiveActions":null,
+"note":"NULL means UNMEASURED because the model is unavailable — never 0, never a fabricated pass. When quota is restored, run scripts against MPA1_MISSION_CORPUS then MPA1_HOLDOUT_CORPUS.",
+"verdict":"PIERRE_UNCERTIFIED_MODEL_BLOCKED"}

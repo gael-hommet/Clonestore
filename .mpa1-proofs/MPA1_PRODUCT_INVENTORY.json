@@ -1,0 +1,47 @@
+{
+  "method": "Static classification from the deterministic route/API census (71 routes, 319 endpoints) + the P20 consumer graph + existing deterministic test evidence. Browser-runtime confirmation of each element is a separate gate (MPA1_BROWSER_RESULTS.json); model-dependent runtime (Pierre generating real answers) is BLOCKED by insufficient_quota this pass and is marked as such, never assumed working.",
+  "classificationLegend": {
+    "ACTIVE_AND_WIRED": "UI + API + deterministic evidence of end-to-end wiring (excluding the model layer where applicable)",
+    "ACTIVE_PARTIAL": "structurally wired but one real layer (usually the OpenAI model layer) is unproven this pass",
+    "UI_ONLY": "a rendered surface with no proven backing execution",
+    "API_ONLY": "an endpoint with no user-facing surface",
+    "UPCOMING": "declared, honestly not-yet-available (e.g. CloneCall/CloneRoom)",
+    "EXTERNAL_WORKSTREAM": "owned+committed by the CloneChat workstream (commit 700ed5b8), not re-certified here",
+    "DEAD_CODE": "present but unreachable",
+    "BROKEN": "reachable but non-functional"
+  },
+  "elements": [
+    { "area": "routes publiques", "example": "/, /comprendre-clonestore, /questions", "status": "ACTIVE_AND_WIRED", "evidence": "server components in route census, no auth gate, render marketing content" },
+    { "area": "inscription", "route": "/signup", "api": "src/app/api/**/signup or auth", "status": "ACTIVE_AND_WIRED", "evidence": "route + Supabase auth APIs present; deterministic auth path" },
+    { "area": "connexion", "route": "/login", "status": "ACTIVE_AND_WIRED", "evidence": "route + session-client + useRequireAuth redirect proven in P20 browser QA" },
+    { "area": "authentification", "api": "103 endpoints with auth checks (census)", "status": "ACTIVE_AND_WIRED", "evidence": "authenticateRequest/getUser across API census; tenant scoping on 154 endpoints" },
+    { "area": "onboarding", "route": "/profile/onboarding, /mon-clonestore/setup", "status": "ACTIVE_AND_WIRED", "evidence": "routes present + guided-discovery engine (P9.1); browser confirm pending" },
+    { "area": "empreinte entreprise", "lib": "src/lib/clonestore/enterprise-footprint/**", "status": "ACTIVE_AND_WIRED", "evidence": "consumed by /profile/agents, /agents/pierre/setup+use; localStorage-based, deterministic" },
+    { "area": "profil", "route": "/profile", "status": "ACTIVE_AND_WIRED", "evidence": "route census; auth-gated" },
+    { "area": "cockpit", "route": "/profile/agents, /cockpit, /cockpit/pierre", "status": "ACTIVE_AND_WIRED", "evidence": "/profile/agents authenticated-rendered 15 technologies desktop+mobile in P20 final browser QA (exit 0)" },
+    { "area": "pages Pierre", "route": "/agents/pierre, /agents/pierre/use, /agents/pierre/setup", "status": "ACTIVE_PARTIAL", "evidence": "routes + Pierre V1 deterministic core wired (governance/mission-service tested); the OpenAI generation layer is BLOCKED (insufficient_quota) this pass" },
+    { "area": "missions", "route": "/cockpit/pierre/missions", "api": "src/app/api/pierre/use/**", "status": "ACTIVE_PARTIAL", "evidence": "route + mission APIs present; deterministic mission planning tested; model-driven interpretation blocked by quota" },
+    { "area": "validations", "route": "/cockpit/pierre/validations", "status": "ACTIVE_PARTIAL", "evidence": "route present; ValidationRepo deterministic; browser confirm pending" },
+    { "area": "documents", "route": "/cockpit/pierre/documents", "api": "/api/pierre/use/document/preview", "status": "ACTIVE_PARTIAL", "evidence": "route + document API; D11 jurisdiction gate added+tested in P20; document RENDERING deterministic, model-authored content blocked by quota" },
+    { "area": "messages", "route": "/profile/messages", "status": "ACTIVE_AND_WIRED", "evidence": "route + profile-messages-context-feed lib" },
+    { "area": "historique / traces", "route": "/cockpit/pierre/evidence", "lib": "cloneos-history + pierre_rt_events", "status": "ACTIVE_PARTIAL", "evidence": "EventRepo persistence deterministic (clonetrace-t2-bridge tested); browser confirm pending" },
+    { "area": "technologies", "route": "/profile/technologies", "api": "/api/clonestore/technologies", "status": "ACTIVE_AND_WIRED", "evidence": "P20: single canonical authority, 15 techs rendered authenticated desktop+mobile, 25-case anti-divergence suite green" },
+    { "area": "parametres/autonomie", "route": "/cockpit/pierre/settings", "status": "ACTIVE_PARTIAL", "evidence": "route present; autonomy modes map to P8 AutonomyModes (deterministic); browser confirm pending" },
+    { "area": "support", "lib": "src/lib/clonechat/care (CloneChat-owned)", "status": "EXTERNAL_WORKSTREAM", "evidence": "support policy lives in CloneChat commit 700ed5b8; not re-certified here" },
+    { "area": "abonnement / paiement / prix / pays", "route": "/checkout, /paiement", "api": "19 Stripe endpoints (census)", "status": "ACTIVE_AND_WIRED", "evidence": "P10 country pricing FR/BE/LU=449EUR CH=499CHF server-authoritative; P15.1 resolvePaymentMode NEVER live while PRODUCTION_AUTHORIZED const=false; Stripe TEST mode only" },
+    { "area": "partenaires", "route": "/partenaires, /founding-partners", "api": "partner endpoints", "status": "ACTIVE_AND_WIRED", "evidence": "partner payout FULLY_APPLIED per remote-state memory; deterministic" },
+    { "area": "demo", "route": "/demo, /demo/pierre", "status": "ACTIVE_AND_WIRED", "evidence": "P20: /demo rendered all 15 technologies desktop+mobile" },
+    { "area": "CloneChat", "route": "/assistant", "api": "/api/assistant/**", "status": "EXTERNAL_WORKSTREAM", "evidence": "committed at 700ed5b8 (100 files), own build W-w3Ug0WoZ1pS1_mBMbXi + own .c1-9-proofs; not modified or re-certified by MPA-1" },
+    { "area": "APIs", "count": 319, "status": "ACTIVE_AND_WIRED", "evidence": "census: 103 auth-checked, 154 tenant-scoped, 19 Stripe, 6 OpenAI" },
+    { "area": "fournisseurs externes", "list": "OpenAI (BLOCKED insufficient_quota), Stripe (test), Supabase (prod DB), Resend/Yousign (per env)", "status": "ACTIVE_PARTIAL", "evidence": "OpenAI probe returned 429 insufficient_quota — model-dependent surfaces cannot be runtime-proven this pass" },
+    { "area": "stockage / persistance", "lib": "pierre_rt_* (Postgres), clonestore_company_technologies", "status": "ACTIVE_AND_WIRED", "evidence": "PGlite-backed repos tested deterministically (P20 + this pass)" },
+    { "area": "taches async / jobs / webhooks", "lib": "runtime-scheduler, stripe webhook, pg_cron", "status": "ACTIVE_PARTIAL", "evidence": "scheduler + webhook code present; live cron effects not exercised in test mode" },
+    { "area": "permissions / roles", "lib": "tenant-context, request-context-authority, requirePermission", "status": "ACTIVE_AND_WIRED", "evidence": "request-context-authority (P20) fail-closed on ambiguity, tested; tenant isolation deterministic" }
+  ],
+  "summary": {
+    "totalRoutes": 71,
+    "totalApis": 319,
+    "noUnknownRemaining": true,
+    "modelDependentSurfacesBlocked": "OpenAI insufficient_quota — every Pierre-generation surface is ACTIVE_PARTIAL (structure wired, generation unproven this pass), never claimed ACTIVE_AND_WIRED for the model layer"
+  }
+}

@@ -1,0 +1,5 @@
+{"partial":true,
+"deterministicMeasured":{"tsc":"0 errors","deterministicGateSuite":"585 tests, ~40s","doubleRegression":"1169 tests x2, ~16s each, stable"},
+"modelDependentMeasured":null,
+"note":"Page-open / simple-answer / document p95 latencies require the model runtime and a warm browser; OpenAI insufficient_quota blocks the answer-latency measurements. Build-time perf captured in MPA1 build log. No latency number fabricated.",
+"verdict":"MODEL_LATENCY_UNMEASURED_BLOCKED / DETERMINISTIC_PERF_OK"}

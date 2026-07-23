@@ -1,0 +1,4 @@
+{"status":"BLOCKED_INSUFFICIENT_QUOTA","reason":"OpenAI probe returned HTTP 429 insufficient_quota. This gate requires Pierre to generate real output via the model. Per instruction: no score fabricated, Pierre not declared certified.","infrastructureReady":true,
+"emailsPlanned":50,"emailsMeasured":null,"genericUnusable":null,"wrongDossierInfo":null,
+"note":"Email generation + blind quality judging require the model. UNMEASURED, not fabricated.",
+"verdict":"EMAIL_QUALITY_UNMEASURED_MODEL_BLOCKED"}

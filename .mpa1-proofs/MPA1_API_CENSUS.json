@@ -1,0 +1,4223 @@
+{
+  "method": "Deterministic filesystem enumeration of src/app/api/**/route.ts + static signal detection. No model, no network.",
+  "totalEndpoints": 319,
+  "withAuthCheck": 103,
+  "tenantScoped": 154,
+  "usingStripe": 19,
+  "usingOpenAI": 6,
+  "withIdempotencySignal": 33,
+  "groupCounts": {
+    "api/assistant": 8,
+    "api/billing": 3,
+    "api/checkout": 2,
+    "api/cloneos": 4,
+    "api/clonestore": 10,
+    "api/conversion": 3,
+    "api/cron": 7,
+    "api/founder-access": 7,
+    "api/founding-partners": 13,
+    "api/geo": 1,
+    "api/go-live": 1,
+    "api/internal": 29,
+    "api/orders": 2,
+    "api/partners": 11,
+    "api/pierre": 210,
+    "api/pricing": 1,
+    "api/profile": 1,
+    "api/router": 1,
+    "api/site-health": 1,
+    "api/stripe": 1,
+    "api/webhooks": 3
+  },
+  "endpoints": [
+    {
+      "route": "/api/assistant",
+      "file": "src/app/api/assistant/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/assistant/autonomy",
+      "file": "src/app/api/assistant/autonomy/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/assistant/chat",
+      "file": "src/app/api/assistant/chat/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": true,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/assistant/conversations",
+      "file": "src/app/api/assistant/conversations/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/assistant/conversations/[id]",
+      "file": "src/app/api/assistant/conversations/[id]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/assistant/execute",
+      "file": "src/app/api/assistant/execute/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/assistant/support",
+      "file": "src/app/api/assistant/support/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/assistant/transcribe",
+      "file": "src/app/api/assistant/transcribe/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": true,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/billing/activate",
+      "file": "src/app/api/billing/activate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/billing/portal",
+      "file": "src/app/api/billing/portal/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/billing/subscription",
+      "file": "src/app/api/billing/subscription/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/checkout",
+      "file": "src/app/api/checkout/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/checkout/confirm",
+      "file": "src/app/api/checkout/confirm/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/cloneos/ai/contracts",
+      "file": "src/app/api/cloneos/ai/contracts/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/cloneos/ai/dry-run",
+      "file": "src/app/api/cloneos/ai/dry-run/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/cloneos/ai/status",
+      "file": "src/app/api/cloneos/ai/status/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/cloneos/landing",
+      "file": "src/app/api/cloneos/landing/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/clonestore/launch-readiness",
+      "file": "src/app/api/clonestore/launch-readiness/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/clonestore/runtime",
+      "file": "src/app/api/clonestore/runtime/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/clonestore/runtime/mission-drafts",
+      "file": "src/app/api/clonestore/runtime/mission-drafts/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/clonestore/runtime/simulate",
+      "file": "src/app/api/clonestore/runtime/simulate/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/clonestore/technologies",
+      "file": "src/app/api/clonestore/technologies/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/clonestore/technologies/[technologySlug]",
+      "file": "src/app/api/clonestore/technologies/[technologySlug]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/clonestore/technologies/reset",
+      "file": "src/app/api/clonestore/technologies/reset/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/clonestore/technologies/save",
+      "file": "src/app/api/clonestore/technologies/save/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/clonestore/technologies/snapshot",
+      "file": "src/app/api/clonestore/technologies/snapshot/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/clonestore/technologies/validate",
+      "file": "src/app/api/clonestore/technologies/validate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/conversion/diagnostic",
+      "file": "src/app/api/conversion/diagnostic/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/conversion/events",
+      "file": "src/app/api/conversion/events/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/conversion/test-seed-grant",
+      "file": "src/app/api/conversion/test-seed-grant/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/cron/clonestory-commercial-outbox",
+      "file": "src/app/api/cron/clonestory-commercial-outbox/route.ts",
+      "methods": [],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/cron/clonestory-notifications",
+      "file": "src/app/api/cron/clonestory-notifications/route.ts",
+      "methods": [],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/cron/clonestory-outbox",
+      "file": "src/app/api/cron/clonestory-outbox/route.ts",
+      "methods": [],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/cron/founder-email",
+      "file": "src/app/api/cron/founder-email/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/cron/partner-emails",
+      "file": "src/app/api/cron/partner-emails/route.ts",
+      "methods": [],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/cron/partner-payouts",
+      "file": "src/app/api/cron/partner-payouts/route.ts",
+      "methods": [],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/cron/pierre",
+      "file": "src/app/api/cron/pierre/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founder-access/funnel",
+      "file": "src/app/api/founder-access/funnel/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founder-access/presence",
+      "file": "src/app/api/founder-access/presence/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founder-access/resend-verification",
+      "file": "src/app/api/founder-access/resend-verification/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/founder-access/reservations",
+      "file": "src/app/api/founder-access/reservations/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/founder-access/reservations/[id]/qualification",
+      "file": "src/app/api/founder-access/reservations/[id]/qualification/route.ts",
+      "methods": [
+        "PATCH"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founder-access/unsubscribe",
+      "file": "src/app/api/founder-access/unsubscribe/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/founder-access/verify",
+      "file": "src/app/api/founder-access/verify/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founding-partners/admin/action",
+      "file": "src/app/api/founding-partners/admin/action/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founding-partners/attribution/capture",
+      "file": "src/app/api/founding-partners/attribution/capture/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/founding-partners/attribution/visit",
+      "file": "src/app/api/founding-partners/attribution/visit/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founding-partners/cockpit",
+      "file": "src/app/api/founding-partners/cockpit/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founding-partners/confirm",
+      "file": "src/app/api/founding-partners/confirm/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/founding-partners/introduce",
+      "file": "src/app/api/founding-partners/introduce/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founding-partners/refuse",
+      "file": "src/app/api/founding-partners/refuse/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/founding-partners/register",
+      "file": "src/app/api/founding-partners/register/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/founding-partners/registration-status",
+      "file": "src/app/api/founding-partners/registration-status/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founding-partners/registry-session",
+      "file": "src/app/api/founding-partners/registry-session/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founding-partners/rotate-link",
+      "file": "src/app/api/founding-partners/rotate-link/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founding-partners/verify",
+      "file": "src/app/api/founding-partners/verify/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/founding-partners/withdraw",
+      "file": "src/app/api/founding-partners/withdraw/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/geo/resolve",
+      "file": "src/app/api/geo/resolve/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/go-live/verdict",
+      "file": "src/app/api/go-live/verdict/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/clonestory/health",
+      "file": "src/app/api/internal/clonestory/health/route.ts",
+      "methods": [],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/e2e/activation-tick",
+      "file": "src/app/api/internal/e2e/activation-tick/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/e2e/apply-commercial-event",
+      "file": "src/app/api/internal/e2e/apply-commercial-event/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/e2e/commercial-event",
+      "file": "src/app/api/internal/e2e/commercial-event/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/e2e/communication-tick",
+      "file": "src/app/api/internal/e2e/communication-tick/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/e2e/mailbox",
+      "file": "src/app/api/internal/e2e/mailbox/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/e2e/reset",
+      "file": "src/app/api/internal/e2e/reset/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/e2e/runtime-tick",
+      "file": "src/app/api/internal/e2e/runtime-tick/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/e2e/scheduler-tick",
+      "file": "src/app/api/internal/e2e/scheduler-tick/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/e2e/seed-user",
+      "file": "src/app/api/internal/e2e/seed-user/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/e2e/session",
+      "file": "src/app/api/internal/e2e/session/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/e2e/state",
+      "file": "src/app/api/internal/e2e/state/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/analytics",
+      "file": "src/app/api/internal/founder-access/analytics/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/clients",
+      "file": "src/app/api/internal/founder-access/clients/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/dashboard",
+      "file": "src/app/api/internal/founder-access/dashboard/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/email-jobs",
+      "file": "src/app/api/internal/founder-access/email-jobs/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/email-requeue",
+      "file": "src/app/api/internal/founder-access/email-requeue/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/email-run",
+      "file": "src/app/api/internal/founder-access/email-run/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/email-tick",
+      "file": "src/app/api/internal/founder-access/email-tick/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/export",
+      "file": "src/app/api/internal/founder-access/export/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/live",
+      "file": "src/app/api/internal/founder-access/live/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/presence",
+      "file": "src/app/api/internal/founder-access/presence/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/reservations",
+      "file": "src/app/api/internal/founder-access/reservations/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/founder-access/reservations/[id]",
+      "file": "src/app/api/internal/founder-access/reservations/[id]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/owner-gate/lock",
+      "file": "src/app/api/internal/owner-gate/lock/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/owner-gate/unlock",
+      "file": "src/app/api/internal/owner-gate/unlock/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/pierre/runtime/recovery",
+      "file": "src/app/api/internal/pierre/runtime/recovery/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/pierre/runtime/scheduler",
+      "file": "src/app/api/internal/pierre/runtime/scheduler/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/internal/pierre/runtime/tick",
+      "file": "src/app/api/internal/pierre/runtime/tick/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/orders/cancel",
+      "file": "src/app/api/orders/cancel/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/orders/resume",
+      "file": "src/app/api/orders/resume/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/partners/admin/action",
+      "file": "src/app/api/partners/admin/action/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/partners/admin/overview",
+      "file": "src/app/api/partners/admin/overview/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/partners/admin/partners",
+      "file": "src/app/api/partners/admin/partners/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/partners/admin/partners/[id]",
+      "file": "src/app/api/partners/admin/partners/[id]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/partners/apply",
+      "file": "src/app/api/partners/apply/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/partners/click",
+      "file": "src/app/api/partners/click/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/partners/code",
+      "file": "src/app/api/partners/code/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/partners/connect/onboard",
+      "file": "src/app/api/partners/connect/onboard/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/partners/contract/accept",
+      "file": "src/app/api/partners/contract/accept/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/partners/introductions",
+      "file": "src/app/api/partners/introductions/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/partners/me",
+      "file": "src/app/api/partners/me/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre",
+      "file": "src/app/api/pierre/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/action",
+      "file": "src/app/api/pierre/action/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/brain",
+      "file": "src/app/api/pierre/brain/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": true,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/cockpit/snapshot",
+      "file": "src/app/api/pierre/cockpit/snapshot/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": true,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/company-memory",
+      "file": "src/app/api/pierre/company-memory/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/doc",
+      "file": "src/app/api/pierre/doc/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/doc/generate",
+      "file": "src/app/api/pierre/doc/generate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/doc/rewrite",
+      "file": "src/app/api/pierre/doc/rewrite/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/documents/preview",
+      "file": "src/app/api/pierre/documents/preview/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/documents/render",
+      "file": "src/app/api/pierre/documents/render/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/documents/validate",
+      "file": "src/app/api/pierre/documents/validate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/email",
+      "file": "src/app/api/pierre/email/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/email/draft",
+      "file": "src/app/api/pierre/email/draft/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/email/send",
+      "file": "src/app/api/pierre/email/send/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/empreinte/reset",
+      "file": "src/app/api/pierre/empreinte/reset/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/empreinte/save",
+      "file": "src/app/api/pierre/empreinte/save/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/empreinte/snapshot",
+      "file": "src/app/api/pierre/empreinte/snapshot/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/empreinte/validate",
+      "file": "src/app/api/pierre/empreinte/validate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/execute",
+      "file": "src/app/api/pierre/execute/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/generate",
+      "file": "src/app/api/pierre/generate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": true,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/history",
+      "file": "src/app/api/pierre/history/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/history/list",
+      "file": "src/app/api/pierre/history/list/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/launch-readiness",
+      "file": "src/app/api/pierre/launch-readiness/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/legal/guardrails",
+      "file": "src/app/api/pierre/legal/guardrails/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/legal/readiness",
+      "file": "src/app/api/pierre/legal/readiness/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/legal/validate-output",
+      "file": "src/app/api/pierre/legal/validate-output/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/observability/diagnostics",
+      "file": "src/app/api/pierre/observability/diagnostics/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/observability/events",
+      "file": "src/app/api/pierre/observability/events/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/observability/health",
+      "file": "src/app/api/pierre/observability/health/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/onboarding",
+      "file": "src/app/api/pierre/onboarding/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/pdf",
+      "file": "src/app/api/pierre/pdf/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/pdf/generate",
+      "file": "src/app/api/pierre/pdf/generate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/queue/process-next",
+      "file": "src/app/api/pierre/queue/process-next/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/queue/process-task",
+      "file": "src/app/api/pierre/queue/process-task/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": true,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/queue/release-stuck",
+      "file": "src/app/api/pierre/queue/release-stuck/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/queue/run-next",
+      "file": "src/app/api/pierre/queue/run-next/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/run",
+      "file": "src/app/api/pierre/run/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/security/audit",
+      "file": "src/app/api/pierre/security/audit/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/security/export",
+      "file": "src/app/api/pierre/security/export/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/security/purge",
+      "file": "src/app/api/pierre/security/purge/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/tick",
+      "file": "src/app/api/pierre/tick/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/use/audit-trail",
+      "file": "src/app/api/pierre/use/audit-trail/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/audit-trail/alerts",
+      "file": "src/app/api/pierre/use/audit-trail/alerts/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/audit-trail/export",
+      "file": "src/app/api/pierre/use/audit-trail/export/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/brain/contracts",
+      "file": "src/app/api/pierre/use/brain/contracts/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/brain/final/dry-run",
+      "file": "src/app/api/pierre/use/brain/final/dry-run/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/cloneadn",
+      "file": "src/app/api/pierre/use/cloneadn/route.ts",
+      "methods": [
+        "GET",
+        "PATCH",
+        "PUT"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/cloneadn/analyze",
+      "file": "src/app/api/pierre/use/cloneadn/analyze/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/cloneadn/preview",
+      "file": "src/app/api/pierre/use/cloneadn/preview/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/cloneadn/rules",
+      "file": "src/app/api/pierre/use/cloneadn/rules/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/cloneguard/evaluate",
+      "file": "src/app/api/pierre/use/cloneguard/evaluate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/cloneguard/preview",
+      "file": "src/app/api/pierre/use/cloneguard/preview/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/clonepolicy/evaluate",
+      "file": "src/app/api/pierre/use/clonepolicy/evaluate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/clonetrust/evaluate",
+      "file": "src/app/api/pierre/use/clonetrust/evaluate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/continuity",
+      "file": "src/app/api/pierre/use/continuity/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/continuity/run-next",
+      "file": "src/app/api/pierre/use/continuity/run-next/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/customer-success",
+      "file": "src/app/api/pierre/use/customer-success/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/customer-success/actions",
+      "file": "src/app/api/pierre/use/customer-success/actions/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/customer-success/value",
+      "file": "src/app/api/pierre/use/customer-success/value/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/dashboard",
+      "file": "src/app/api/pierre/use/dashboard/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/dashboard/execute-safe",
+      "file": "src/app/api/pierre/use/dashboard/execute-safe/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/dashboard/run-plan",
+      "file": "src/app/api/pierre/use/dashboard/run-plan/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/document-templates",
+      "file": "src/app/api/pierre/use/document-templates/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/document-templates/[templateId]",
+      "file": "src/app/api/pierre/use/document-templates/[templateId]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH",
+        "PUT",
+        "DELETE"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/document-templates/preview",
+      "file": "src/app/api/pierre/use/document-templates/preview/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/document/config",
+      "file": "src/app/api/pierre/use/document/config/route.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/document/preview",
+      "file": "src/app/api/pierre/use/document/preview/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/employee/[employeeId]",
+      "file": "src/app/api/pierre/use/employee/[employeeId]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/employee/[employeeId]/actions",
+      "file": "src/app/api/pierre/use/employee/[employeeId]/actions/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/employee/[employeeId]/file",
+      "file": "src/app/api/pierre/use/employee/[employeeId]/file/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/employee/[employeeId]/history",
+      "file": "src/app/api/pierre/use/employee/[employeeId]/history/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/employees",
+      "file": "src/app/api/pierre/use/employees/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/employees/[employeeId]",
+      "file": "src/app/api/pierre/use/employees/[employeeId]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/employees/actions",
+      "file": "src/app/api/pierre/use/employees/actions/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/employees/files",
+      "file": "src/app/api/pierre/use/employees/files/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/governance/evaluate",
+      "file": "src/app/api/pierre/use/governance/evaluate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/governance/preview",
+      "file": "src/app/api/pierre/use/governance/preview/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/messages",
+      "file": "src/app/api/pierre/use/messages/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/messages/[category]",
+      "file": "src/app/api/pierre/use/messages/[category]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/messages/briefing",
+      "file": "src/app/api/pierre/use/messages/briefing/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/mission-control",
+      "file": "src/app/api/pierre/use/mission-control/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/mission-control/briefing",
+      "file": "src/app/api/pierre/use/mission-control/briefing/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/mission-control/run-plan",
+      "file": "src/app/api/pierre/use/mission-control/run-plan/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/mission-control/run-safe",
+      "file": "src/app/api/pierre/use/mission-control/run-safe/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/mission/[missionId]",
+      "file": "src/app/api/pierre/use/mission/[missionId]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/mission/[missionId]/continue",
+      "file": "src/app/api/pierre/use/mission/[missionId]/continue/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/readiness",
+      "file": "src/app/api/pierre/use/readiness/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/readiness/scenarios",
+      "file": "src/app/api/pierre/use/readiness/scenarios/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/readiness/scenarios/dry-run",
+      "file": "src/app/api/pierre/use/readiness/scenarios/dry-run/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/release-candidate",
+      "file": "src/app/api/pierre/use/release-candidate/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/release-candidate/invariants",
+      "file": "src/app/api/pierre/use/release-candidate/invariants/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/release-candidate/preflight",
+      "file": "src/app/api/pierre/use/release-candidate/preflight/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/release-proof",
+      "file": "src/app/api/pierre/use/release-proof/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/release-proof/demo-scenarios",
+      "file": "src/app/api/pierre/use/release-proof/demo-scenarios/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/release-proof/demo-scenarios/dry-run",
+      "file": "src/app/api/pierre/use/release-proof/demo-scenarios/dry-run/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/scenarios",
+      "file": "src/app/api/pierre/use/scenarios/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/scenarios/[scenarioId]/run",
+      "file": "src/app/api/pierre/use/scenarios/[scenarioId]/run/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/scenarios/report",
+      "file": "src/app/api/pierre/use/scenarios/report/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/scenarios/run-suite",
+      "file": "src/app/api/pierre/use/scenarios/run-suite/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/submit",
+      "file": "src/app/api/pierre/use/submit/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/task/[taskId]",
+      "file": "src/app/api/pierre/use/task/[taskId]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/task/[taskId]/approve",
+      "file": "src/app/api/pierre/use/task/[taskId]/approve/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/task/[taskId]/cancel",
+      "file": "src/app/api/pierre/use/task/[taskId]/cancel/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/task/[taskId]/reschedule",
+      "file": "src/app/api/pierre/use/task/[taskId]/reschedule/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/task/[taskId]/run",
+      "file": "src/app/api/pierre/use/task/[taskId]/run/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/trial/activation",
+      "file": "src/app/api/pierre/use/trial/activation/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/trial/first-value-prompt",
+      "file": "src/app/api/pierre/use/trial/first-value-prompt/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/trial/plan",
+      "file": "src/app/api/pierre/use/trial/plan/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/trial/templates",
+      "file": "src/app/api/pierre/use/trial/templates/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/use/workflows/rh",
+      "file": "src/app/api/pierre/use/workflows/rh/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/activation",
+      "file": "src/app/api/pierre/v1/activation/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/admin/backfill",
+      "file": "src/app/api/pierre/v1/admin/backfill/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/v1/audit/data-access",
+      "file": "src/app/api/pierre/v1/audit/data-access/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/brief",
+      "file": "src/app/api/pierre/v1/brief/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/cockpit/snapshot",
+      "file": "src/app/api/pierre/v1/cockpit/snapshot/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/communications",
+      "file": "src/app/api/pierre/v1/communications/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/communications/[id]/cancel",
+      "file": "src/app/api/pierre/v1/communications/[id]/cancel/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/communications/[id]/retry",
+      "file": "src/app/api/pierre/v1/communications/[id]/retry/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/communications/dead-letter",
+      "file": "src/app/api/pierre/v1/communications/dead-letter/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/communications/dispatch",
+      "file": "src/app/api/pierre/v1/communications/dispatch/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/companies",
+      "file": "src/app/api/pierre/v1/companies/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/company",
+      "file": "src/app/api/pierre/v1/company/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/company/export",
+      "file": "src/app/api/pierre/v1/company/export/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/company/switch",
+      "file": "src/app/api/pierre/v1/company/switch/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts",
+      "file": "src/app/api/pierre/v1/contracts/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]",
+      "file": "src/app/api/pierre/v1/contracts/[id]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/amendments",
+      "file": "src/app/api/pierre/v1/contracts/[id]/amendments/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/approve",
+      "file": "src/app/api/pierre/v1/contracts/[id]/approve/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/finalize",
+      "file": "src/app/api/pierre/v1/contracts/[id]/finalize/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/generate",
+      "file": "src/app/api/pierre/v1/contracts/[id]/generate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/history",
+      "file": "src/app/api/pierre/v1/contracts/[id]/history/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/prepare-signature",
+      "file": "src/app/api/pierre/v1/contracts/[id]/prepare-signature/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/readiness",
+      "file": "src/app/api/pierre/v1/contracts/[id]/readiness/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/request-changes",
+      "file": "src/app/api/pierre/v1/contracts/[id]/request-changes/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/signature",
+      "file": "src/app/api/pierre/v1/contracts/[id]/signature/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/signature/cancel",
+      "file": "src/app/api/pierre/v1/contracts/[id]/signature/cancel/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/signature/submit",
+      "file": "src/app/api/pierre/v1/contracts/[id]/signature/submit/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/submit-review",
+      "file": "src/app/api/pierre/v1/contracts/[id]/submit-review/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/contracts/[id]/versions",
+      "file": "src/app/api/pierre/v1/contracts/[id]/versions/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees",
+      "file": "src/app/api/pierre/v1/employees/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]",
+      "file": "src/app/api/pierre/v1/employees/[id]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/absences",
+      "file": "src/app/api/pierre/v1/employees/[id]/absences/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/access-log",
+      "file": "src/app/api/pierre/v1/employees/[id]/access-log/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/anonymize",
+      "file": "src/app/api/pierre/v1/employees/[id]/anonymize/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/archive",
+      "file": "src/app/api/pierre/v1/employees/[id]/archive/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/completeness",
+      "file": "src/app/api/pierre/v1/employees/[id]/completeness/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/contracts",
+      "file": "src/app/api/pierre/v1/employees/[id]/contracts/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/contracts/[contractId]/versions",
+      "file": "src/app/api/pierre/v1/employees/[id]/contracts/[contractId]/versions/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/documents",
+      "file": "src/app/api/pierre/v1/employees/[id]/documents/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/documents/[documentId]",
+      "file": "src/app/api/pierre/v1/employees/[id]/documents/[documentId]/route.ts",
+      "methods": [
+        "DELETE"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/export",
+      "file": "src/app/api/pierre/v1/employees/[id]/export/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/legal-hold",
+      "file": "src/app/api/pierre/v1/employees/[id]/legal-hold/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/missions",
+      "file": "src/app/api/pierre/v1/employees/[id]/missions/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/reactivate",
+      "file": "src/app/api/pierre/v1/employees/[id]/reactivate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/sensitive",
+      "file": "src/app/api/pierre/v1/employees/[id]/sensitive/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/tasks",
+      "file": "src/app/api/pierre/v1/employees/[id]/tasks/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/[id]/timeline",
+      "file": "src/app/api/pierre/v1/employees/[id]/timeline/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/import/[batchId]",
+      "file": "src/app/api/pierre/v1/employees/import/[batchId]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/import/[batchId]/rollback",
+      "file": "src/app/api/pierre/v1/employees/import/[batchId]/rollback/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/import/commit",
+      "file": "src/app/api/pierre/v1/employees/import/commit/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/import/preview",
+      "file": "src/app/api/pierre/v1/employees/import/preview/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/employees/search",
+      "file": "src/app/api/pierre/v1/employees/search/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/health",
+      "file": "src/app/api/pierre/v1/health/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/intelligence/cancel",
+      "file": "src/app/api/pierre/v1/intelligence/cancel/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/intelligence/confirm",
+      "file": "src/app/api/pierre/v1/intelligence/confirm/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/v1/intelligence/continue",
+      "file": "src/app/api/pierre/v1/intelligence/continue/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/intelligence/proactive-tick",
+      "file": "src/app/api/pierre/v1/intelligence/proactive-tick/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/intelligence/request",
+      "file": "src/app/api/pierre/v1/intelligence/request/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/intelligence/status",
+      "file": "src/app/api/pierre/v1/intelligence/status/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/invitations",
+      "file": "src/app/api/pierre/v1/invitations/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/invitations/[id]/resend",
+      "file": "src/app/api/pierre/v1/invitations/[id]/resend/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/invitations/[id]/revoke",
+      "file": "src/app/api/pierre/v1/invitations/[id]/revoke/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/invitations/accept",
+      "file": "src/app/api/pierre/v1/invitations/accept/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/members",
+      "file": "src/app/api/pierre/v1/members/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/members/[id]",
+      "file": "src/app/api/pierre/v1/members/[id]/route.ts",
+      "methods": [
+        "PATCH"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/members/[id]/reactivate",
+      "file": "src/app/api/pierre/v1/members/[id]/reactivate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/members/[id]/remove",
+      "file": "src/app/api/pierre/v1/members/[id]/remove/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/members/[id]/roles",
+      "file": "src/app/api/pierre/v1/members/[id]/roles/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/members/[id]/roles/[role]",
+      "file": "src/app/api/pierre/v1/members/[id]/roles/[role]/route.ts",
+      "methods": [
+        "DELETE"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/members/[id]/suspend",
+      "file": "src/app/api/pierre/v1/members/[id]/suspend/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/members/[id]/transfer-ownership",
+      "file": "src/app/api/pierre/v1/members/[id]/transfer-ownership/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/members/leave",
+      "file": "src/app/api/pierre/v1/members/leave/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/messages",
+      "file": "src/app/api/pierre/v1/messages/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/messages/[id]/archive",
+      "file": "src/app/api/pierre/v1/messages/[id]/archive/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/messages/[id]/read",
+      "file": "src/app/api/pierre/v1/messages/[id]/read/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/v1/missions",
+      "file": "src/app/api/pierre/v1/missions/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/v1/missions/[id]",
+      "file": "src/app/api/pierre/v1/missions/[id]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/missions/[id]/cancel",
+      "file": "src/app/api/pierre/v1/missions/[id]/cancel/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/missions/[id]/runtime",
+      "file": "src/app/api/pierre/v1/missions/[id]/runtime/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/missions/[id]/tasks",
+      "file": "src/app/api/pierre/v1/missions/[id]/tasks/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/missions/[id]/timeline",
+      "file": "src/app/api/pierre/v1/missions/[id]/timeline/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/missions/[id]/validations",
+      "file": "src/app/api/pierre/v1/missions/[id]/validations/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/missions/first",
+      "file": "src/app/api/pierre/v1/missions/first/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/v1/onboarding",
+      "file": "src/app/api/pierre/v1/onboarding/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/onboarding/complete",
+      "file": "src/app/api/pierre/v1/onboarding/complete/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/onboarding/steps/[step]",
+      "file": "src/app/api/pierre/v1/onboarding/steps/[step]/route.ts",
+      "methods": [
+        "PATCH"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/product-access",
+      "file": "src/app/api/pierre/v1/product-access/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/roles",
+      "file": "src/app/api/pierre/v1/roles/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/roles/[key]",
+      "file": "src/app/api/pierre/v1/roles/[key]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/roles/[key]/archive",
+      "file": "src/app/api/pierre/v1/roles/[key]/archive/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/signatures/[id]/evidence",
+      "file": "src/app/api/pierre/v1/signatures/[id]/evidence/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/signatures/reconcile",
+      "file": "src/app/api/pierre/v1/signatures/reconcile/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/sites",
+      "file": "src/app/api/pierre/v1/sites/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/sites/[id]",
+      "file": "src/app/api/pierre/v1/sites/[id]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/sites/[id]/archive",
+      "file": "src/app/api/pierre/v1/sites/[id]/archive/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/sites/[id]/assign-manager",
+      "file": "src/app/api/pierre/v1/sites/[id]/assign-manager/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/sites/[id]/reactivate",
+      "file": "src/app/api/pierre/v1/sites/[id]/reactivate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/validations/[id]/[action]",
+      "file": "src/app/api/pierre/v1/validations/[id]/[action]/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    },
+    {
+      "route": "/api/pierre/v1/webhooks/signature",
+      "file": "src/app/api/pierre/v1/webhooks/signature/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pierre/v1/worker/tick",
+      "file": "src/app/api/pierre/v1/worker/tick/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/pricing/public",
+      "file": "src/app/api/pricing/public/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/profile/enterprise-footprint",
+      "file": "src/app/api/profile/enterprise-footprint/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasAuthCheck": true,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/router",
+      "file": "src/app/api/router/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": true,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/site-health",
+      "file": "src/app/api/site-health/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/stripe/return",
+      "file": "src/app/api/stripe/return/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": false,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/webhooks/pierre/communications",
+      "file": "src/app/api/webhooks/pierre/communications/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/webhooks/pierre/signature",
+      "file": "src/app/api/webhooks/pierre/signature/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": false,
+      "usesStripe": false,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": false
+    },
+    {
+      "route": "/api/webhooks/stripe",
+      "file": "src/app/api/webhooks/stripe/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasAuthCheck": false,
+      "tenantScoped": true,
+      "usesSupabase": true,
+      "usesStripe": true,
+      "usesOpenAI": false,
+      "hasIdempotencySignal": true
+    }
+  ]
+}

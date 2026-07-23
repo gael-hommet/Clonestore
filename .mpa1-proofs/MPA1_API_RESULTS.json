@@ -1,0 +1,17 @@
+{
+  "method": "Static API census (319 endpoints) + deterministic endpoint-behaviour tests actually run (document jurisdiction gate, request-context authority, pricing). Live concurrency/double-POST/idempotency browser exercises against a running server are model/heavy and partially deferred; the deterministic guarantees below ARE proven.",
+  "totalEndpoints": 319,
+  "withAuthCheck": 103,
+  "tenantScoped": 154,
+  "stripeEndpoints": 19,
+  "openaiEndpoints": 6,
+  "deterministicProven": {
+    "authFailClosed": "request-context-authority: 0 or >1 active membership -> refused (tested)",
+    "jurisdictionGate": "document/preview: non-resolved/non-FR -> 422 with typed code (tested)",
+    "pricingAuthority": "server-authoritative country pricing, CH fail-closed even forging EUR (tested)",
+    "idempotencySignals": "P9.4.2 SHA-256 command ledger + persisted proposals; clonetrace bridge exactly-once by correlation_id (tested)"
+  },
+  "openaiEndpointsStatus": "The 6 OpenAI-backed endpoints (Pierre generation / assistant) cannot be exercised end-to-end this pass: insufficient_quota. Their auth/validation/tenant scaffolding is present in the census; their generation path is UNMEASURED.",
+  "concurrencyDoublePostLiveTests": "DEFERRED — require a live server; deterministic idempotency ledger proven at unit level instead. Not fabricated as passed.",
+  "verdict": "DETERMINISTIC_API_GUARANTEES_GREEN / OPENAI_ENDPOINTS+LIVE_CONCURRENCY_UNMEASURED"
+}

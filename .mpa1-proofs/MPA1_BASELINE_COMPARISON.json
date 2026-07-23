@@ -1,0 +1,5 @@
+{"status":"BLOCKED_INSUFFICIENT_QUOTA","reason":"OpenAI probe returned HTTP 429 insufficient_quota. This gate requires Pierre to generate real output via the model. Per instruction: no score fabricated, Pierre not declared certified.","infrastructureReady":true,
+"design":"Blind A/B vs a generic HR assistant on the same underlying model, randomized order, blind judge, identical criteria. Target Pierre win >=70%.",
+"winRate":null,
+"note":"Requires TWO model calls per case (Pierre + baseline) plus a judge call. Fully BLOCKED. No win-rate fabricated.",
+"verdict":"BASELINE_UNMEASURED_MODEL_BLOCKED"}
