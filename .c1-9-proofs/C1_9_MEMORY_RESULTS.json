@@ -1,0 +1,45 @@
+{
+  "artifact": "C1_9_MEMORY_RESULTS",
+  "generatedAt": "2026-07-22",
+  "source": "Dérivé de C1_9_REAL_MODEL_RESULTS.json (campagne provider réelle, 12 cas, corpus inédit, juge séparé).",
+  "legacyDefect": {
+    "id": "D3",
+    "finding": "L'historique atteignait le modèle en messages bruts mais la RÉCUPÉRATION ne recevait que le tour courant.",
+    "proof": {
+      "systemPromptIdenticalWithAndWithoutHistory": true,
+      "charsWithHistory": 5900,
+      "charsWithoutHistory": 5900,
+      "historyFactsPresentInPrompt": false
+    }
+  },
+  "c19": {
+    "mechanism": "absorbTurn() capture les entités par tour ; memoryRetrievalTerms() les injecte dans la requête de récupération.",
+    "multiTurnCases": [
+      {
+        "id": "multi-tour",
+        "turns": 2,
+        "dependsOnHistoryDetected": true,
+        "factsCarried": [
+          "type_entreprise=PME",
+          "solution=employé IA RH Pierre de CloneStore",
+          "fonction=RH",
+          "effectif=22 salariés",
+          "temps_consacré=2 jours par semaine",
+          "personne_concernée=la responsable"
+        ],
+        "verdict": "pass"
+      },
+      {
+        "id": "correction",
+        "turns": 2,
+        "dependsOnHistoryDetected": true,
+        "factsCarried": [
+          "effectif=15 salariés",
+          "produit=Pierre, employé IA RH de CloneStore",
+          "unité_de_mesure=temps de travail économisé"
+        ],
+        "verdict": "pass"
+      }
+    ]
+  }
+}

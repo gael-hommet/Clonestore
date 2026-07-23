@@ -1,0 +1,30 @@
+{
+  "artifact": "C1_9_GROUNDING_RESULTS",
+  "generatedAt": "2026-07-22",
+  "source": "Dérivé de C1_9_REAL_MODEL_RESULTS.json (campagne provider réelle, 12 cas, corpus inédit, juge séparé).",
+  "legacyDefects": {
+    "D9": "La récupération ne pouvait JAMAIS renvoyer vide : sur zéro correspondance le classement dégénérait vers l'ordre des bonus de source (« paperasse administrative » → n°1 pricing.catalog).",
+    "D8": "Éviction par budget de caractères : le meilleur chunk était jeté et remplacé par du bruit plus court."
+  },
+  "c19": {
+    "sufficiencyDistribution": {
+      "strong": 13,
+      "none": 1
+    },
+    "canReportNothingFound": true,
+    "judgeFidelity": 5,
+    "judgeAbsenceOfInvention": 4.83,
+    "truthContextEvidenceLevels": [
+      "official",
+      "retrieved",
+      "derived",
+      "assumption"
+    ],
+    "note": "Un fait porte sa source, son autorité et son niveau de preuve. C'est ce qui rend une ESTIMATION possible sans ouvrir la porte à l'invention : le vérificateur distingue un chiffre officiel d'une valeur dérivée."
+  },
+  "retrievalComparison": {
+    "beforeRetrieved": 1,
+    "afterRetrieved": 3,
+    "total": 3
+  }
+}

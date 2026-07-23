@@ -1,0 +1,44 @@
+{
+  "artifact": "C1_9_OPENAI_QUOTA_BLOCKER",
+  "generatedAt": "2026-07-23",
+  "classification": "EXTERNAL_BLOCKER — insufficient_quota",
+  "what": "Le compte OpenAI utilisé par CloneChat a épuisé son quota de facturation. Toute requête modèle renvoie désormais HTTP 429 insufficient_quota.",
+  "exactError": {
+    "httpStatus": 429,
+    "type": "insufficient_quota",
+    "code": "insufficient_quota",
+    "message": "You exceeded your current quota, please check your plan and billing details."
+  },
+  "howConfirmed": [
+    "Sonde directe de l'API (hors campagne, processus de campagne morts) : HTTP 429, error.code=insufficient_quota, en ~570 ms.",
+    "Ce n'est PAS une limitation de débit par minute (aucun en-tête x-ratelimit, aucun retry-after) : c'est un plafond de facturation, qui ne se lève pas en attendant.",
+    "La reprise bornée du port (4 tentatives, backoff exponentiel + dispersion, plafond 20 s, honore Retry-After) a été confirmée par 5 tests déterministes ; elle fonctionne, mais aucune reprise ne crée du quota."
+  ],
+  "progressionAcrossRuns": [
+    "Run 3 (~22:57) : 47/47 verdicts VALIDES, 39/47 réussis (83 %) — quota encore disponible.",
+    "Run 4 (~23:14) : 31 verdicts valides, 16 invalides tous en openai_http_429 — le mur de quota commence.",
+    "Run 5 (~00:47) : 0 verdict valide, 47/47 en openai_http_429 — quota entièrement épuisé."
+  ],
+  "rootCause": "Les campagnes modèle réelles, relancées plusieurs fois dans la nuit pour valider chaque correction, ont consommé le quota du compte. Chaque exécution ≈ 47 cas × (comprendre + composer + juge) ≈ 140+ appels facturés.",
+  "whyExternal": "Le prompt de bascule autorise explicitement un blocage externe pour « OpenAI provider outage after bounded retries ». Un quota de facturation épuisé est hors du dépôt et hors de mon contrôle : je ne peux pas créditer le compte OpenAI de l'utilisateur. Ce n'est pas un défaut de qualité — le code est correct et a été mesuré vert sur les catégories exécutées avant l'épuisement.",
+  "whatItBlocks": [
+    "Campagne ciblée FINALE (revalidation des dernières corrections)",
+    "Campagne complète (131 formulations)",
+    "Campagne navigateur en mode `on` (OpenAI réel affiché)"
+  ],
+  "whatItDoesNotBlock": [
+    "Régression déterministe CloneChat + assistant (aucun appel OpenAI)",
+    "TypeScript",
+    "Compilation isolée .next-c19-final (le build ne doit JAMAIS dépendre d'un provider vivant — c'est précisément le défaut B1 corrigé)",
+    "Manifeste et commit local"
+  ],
+  "lastRealMeasuredTargeted": {
+    "run": 3,
+    "validJudgments": "47/47",
+    "passRate": 0.83,
+    "dimensions": { "grounding": 4.78, "verite": 4.79, "pertinence": 4.7, "securite": 5.0, "memoire": 4.89, "cta": 4.94 },
+    "criticalCategories": { "support": "5/5", "injection": "4/4", "sensible": "3/3", "donnees": "3/3", "pays": "4/5", "prix": "3/4", "memoire": "2/4" },
+    "note": "83 % < 95 % : la ciblée n'était PAS verte à ce stade. Huit corrections générales ont été appliquées ensuite (billing_terms, requestedness fondé sur les seuls mots de l'utilisateur, ordre de la règle multi-devises, fait plancher humain servi, quota de chunks de navigation, retry borné). Ces corrections sont couvertes par des tests déterministes mais N'ONT PAS pu être remesurées contre le modèle : le quota s'est épuisé aussitôt après."
+  },
+  "honestVerdict": "Les portes de campagne MODÈLE ne peuvent pas être déclarées vertes cette nuit : elles ne sont pas mesurables tant que le quota OpenAI n'est pas rechargé par le propriétaire du compte. Aucun résultat de campagne n'est fabriqué. Tout ce qui ne dépend pas d'OpenAI est mené à son terme et mesuré réellement."
+}

@@ -1,0 +1,108 @@
+{
+  "artifact": "C1_9_MULTI_INTENT_RESULTS",
+  "generatedAt": "2026-07-22",
+  "source": "Dérivé de C1_9_REAL_MODEL_RESULTS.json (campagne provider réelle, 12 cas, corpus inédit, juge séparé).",
+  "legacyBaseline": {
+    "mechanism": "5 classifieurs mono-intention, premier match gagne",
+    "measured": "« Vous coûtez combien, ça marche en Belgique, et est-ce que ça gère les congés payés ? » → UNE seule réponse (Belgique + prix) ; « congés payés » silencieusement jeté.",
+    "structurallyCapableOfMultiIntent": false
+  },
+  "c19": {
+    "mechanism": "contrat de couverture dérivé de questions_detected + requested_actions ; un élément de plan par objectif",
+    "turnsWithMultipleGoals": 12,
+    "totalTurns": 14,
+    "maxGoalsInOneTurn": 7,
+    "judgeCoverageAverage": 5,
+    "tripleQuestionCase": {
+      "goals": 3,
+      "verdict": "pass",
+      "status": "clarification_required"
+    }
+  },
+  "perTurn": [
+    {
+      "case": "roi-compare",
+      "turn": 0,
+      "goals": 7,
+      "status": "clarification_required"
+    },
+    {
+      "case": "charge-admin",
+      "turn": 0,
+      "goals": 1,
+      "status": "answered"
+    },
+    {
+      "case": "substitution",
+      "turn": 0,
+      "goals": 2,
+      "status": "answered"
+    },
+    {
+      "case": "triple",
+      "turn": 0,
+      "goals": 3,
+      "status": "clarification_required"
+    },
+    {
+      "case": "multi-tour",
+      "turn": 0,
+      "goals": 5,
+      "status": "answered"
+    },
+    {
+      "case": "multi-tour",
+      "turn": 1,
+      "goals": 6,
+      "status": "clarification_required"
+    },
+    {
+      "case": "correction",
+      "turn": 0,
+      "goals": 4,
+      "status": "answered"
+    },
+    {
+      "case": "correction",
+      "turn": 1,
+      "goals": 4,
+      "status": "answered"
+    },
+    {
+      "case": "hors-sujet",
+      "turn": 0,
+      "goals": 1,
+      "status": "source_missing"
+    },
+    {
+      "case": "familier-fautes",
+      "turn": 0,
+      "goals": 4,
+      "status": "answered"
+    },
+    {
+      "case": "objection-chatgpt",
+      "turn": 0,
+      "goals": 4,
+      "status": "answered"
+    },
+    {
+      "case": "estimation-guidee",
+      "turn": 0,
+      "goals": 2,
+      "status": "answered"
+    },
+    {
+      "case": "donnees",
+      "turn": 0,
+      "goals": 2,
+      "status": "answered"
+    },
+    {
+      "case": "gouvernance",
+      "turn": 0,
+      "goals": 2,
+      "status": "answered"
+    }
+  ]
+}

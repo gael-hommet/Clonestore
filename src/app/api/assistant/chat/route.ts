@@ -60,6 +60,18 @@ import { buildManifest, imageDetailFor } from "@/lib/clonechat/attachments/manif
 import { createSentenceGate, encodeStreamEvent, classifyProviderFailure } from "@/lib/clonechat/openai/streaming";
 import { createStreamingOpenAIResponder, type StreamingResponderResult } from "@/lib/clonechat/openai/streaming-responder";
 import { answerPublicQuestion, PUBLIC_VIEWER } from "@/lib/clonechat/intelligence/c1-1/parrain-public-adapter";
+// ── C1.9 — SHADOW (observation seule) ────────────────────────────────────────
+// La pipeline True AI s'exécute À CÔTÉ de la voie stable et n'altère JAMAIS la réponse
+// renvoyée. Drapeau `off` par défaut : sans lui, rien de tout ceci ne s'exécute ni ne coûte.
+// Outils désactivés par le contexte lecture seule, budget de tokens plafonné par processus,
+// délai maximum, et aucune exception ne peut remonter jusqu'au tour de l'utilisateur.
+import { readC19Mode } from "@/lib/clonechat/intelligence/c1-9/flags";
+import { runShadowComparison } from "@/lib/clonechat/intelligence/c1-9/shadow-runner";
+import { recordShadowComparison } from "@/lib/clonechat/intelligence/c1-9/shadow-log";
+import { collectCandidateChunks } from "@/lib/clonechat/intelligence/c1-1/parrain-source-adapters";
+import { runCloneChatIntelligence } from "@/lib/clonechat/intelligence/c1-9/intelligence-runtime";
+import { createOpenAIC19Port, createTokenBudget, loadC19ModelConfig } from "@/lib/clonechat/intelligence/c1-9/openai-port";
+import { EMPTY_MEMORY } from "@/lib/clonechat/intelligence/c1-9/conversation-memory";
 import { buildKnowledgeIndex, indexLeaksForbiddenSources } from "@/lib/clonechat/intelligence/c1-1/parrain-knowledge-index";
 import type { ParrainResponderPort } from "@/lib/clonechat/intelligence/c1-1/parrain-turn-runtime";
 import type { ParrainHonesty } from "@/lib/clonechat/intelligence/c1-1/parrain-types";
@@ -258,6 +270,77 @@ export async function POST(req: Request) {
     } catch { /* persistance best-effort : ne casse JAMAIS le tour */ }
   };
 
+  // ── C1.9 — OBSERVATION SHADOW ────────────────────────────────────────────────
+  // Appelée UNIQUEMENT après que la réponse stable a été produite (et persistée), donc
+  // jamais sur le chemin critique de ce que voit l'utilisateur. Elle ne renvoie rien :
+  // son unique effet autorisé est d'écrire une comparaison dans le journal.
+  //
+  // Invariants garantis ici, en plus de ceux du runtime :
+  //   — `mode !== "shadow"` ⇒ aucun appel, aucun coût ;
+  //   — toute exception est absorbée : un shadow en panne est un shadow absent ;
+  //   — aucune persistance, aucun outil, aucune proposition, aucun CTA.
+  const c19Mode = readC19Mode();
+  const runShadow = async (legacy: {
+    answer: string; source: string; honesty: string; hasCta: boolean;
+  }): Promise<void> => {
+    if (c19Mode !== "shadow") return;
+    try {
+      const outcome = await runShadowComparison({
+        requestId: conversationId ?? `${at}:${message.length}`,
+        message,
+        history: (body?.history ?? []).slice(-6),
+        viewer: PUBLIC_VIEWER, // voie publique : aucune source tenant, aucun contexte privé
+        candidates: collectCandidateChunks({ question: message }),
+        serverCountry: null,
+        at,
+        apiKey: key,
+        legacyAnswer: legacy.answer,
+        legacySource: legacy.source,
+        legacyHonesty: legacy.honesty,
+        legacyHasCta: legacy.hasCta,
+      });
+      recordShadowComparison(outcome.comparison);
+    } catch {
+      /* le shadow ne peut jamais dégrader un tour : on l'oublie silencieusement */
+    }
+  };
+
+  // ── C1.9 — MODE `on` : la pipeline OpenAI devient la voie AFFICHÉE ───────────
+  // La pipeline n'est pas incrémentale : elle comprend, récupère, raisonne, compose puis
+  // VÉRIFIE avant de rendre un texte. On ne prétend donc pas diffuser jeton par jeton —
+  // on calcule entièrement, puis on envoie une réponse finale déjà vérifiée (§13, option B).
+  // En `on`, le shadow ne tourne pas : il n'y a plus deux voies à comparer, et un second
+  // appel serait un coût sans objet.
+  const runC19Primary = async (): Promise<{
+    answer: string; citations: readonly string[]; status: string; clarifying: boolean;
+  } | null> => {
+    if (c19Mode !== "on" || !key) return null;
+    try {
+      const port = createOpenAIC19Port(key, loadC19ModelConfig(), createTokenBudget(60_000));
+      const r = await runCloneChatIntelligence(port, {
+        turnId: conversationId ?? `${at}:${message.length}`,
+        message,
+        history: (body?.history ?? []).slice(-6),
+        memory: EMPTY_MEMORY,
+        viewer: PUBLIC_VIEWER,
+        candidates: collectCandidateChunks({ question: message }),
+        serverCountry: null,
+        at,
+        mode: "on",
+      });
+      // Une pipeline dégradée ne doit PAS s'afficher : mieux vaut la voie stable que du vide.
+      if (r.status === "degraded" || r.answer.trim().length === 0) return null;
+      return {
+        answer: r.answer,
+        citations: r.citations.map((c) => String(c)),
+        status: r.status,
+        clarifying: r.status === "clarification_required",
+      };
+    } catch {
+      return null; // repli sur la voie stable, jamais d'échec de tour
+    }
+  };
+
   // Limitation d'abus de la voie anonyme (jamais une porte : un message honnête + réessai).
   if (viewer.kind === "anonymous") {
     const rl = checkAnonymousRateLimit(anonymousFingerprint(req.headers));
@@ -382,6 +465,8 @@ export async function POST(req: Request) {
       const encoder = new TextEncoder();
       const sink: StreamingResponderResult = { usage: null, providerCalled: false };
       let settled = false;
+      // Réponse stable à comparer, retenue le temps que le flux se ferme (voir `finally`).
+      let shadowPayload: { answer: string; source: string; honesty: string; hasCta: boolean } | null = null;
 
       const stream = new ReadableStream<Uint8Array>({
         async start(controller) {
@@ -392,6 +477,24 @@ export async function POST(req: Request) {
           const gate = createSentenceGate((t) => finalizeAnswerText(t).safeText);
 
           try {
+            // C1.9 mode `on` — la pipeline compose et VÉRIFIE avant d'écrire quoi que ce
+            // soit dans le flux : rien de non vérifié n'atteint l'écran. Une seule requête,
+            // une seule réponse, une seule écriture d'historique, puis fermeture immédiate.
+            const primary = await runC19Primary();
+            if (primary) {
+              for (const sentence of gate.push(primary.answer)) send({ type: "delta", text: sentence });
+              for (const rest of gate.flush()) send({ type: "delta", text: rest });
+              settled = true;
+              await persistPublicTurn(primary.answer);
+              try { await stores.budget.commit(pubReservation, 0); } catch { /* comptabilité best-effort */ }
+              send({ type: "done", payload: {
+                ok: true, source: "c1-9_openai", public: true,
+                structured: { answer: primary.answer, honesty: primary.clarifying ? "clarify" : "answered", tool_call: null, citations: primary.citations },
+                runtime: { provider: "openai", engine: "c1-9", streamed: true },
+              } });
+              return; // le `finally` ferme le flux ; aucun shadow en mode `on`
+            }
+
             const responder = createStreamingOpenAIResponder(
               key!,
               (delta) => { for (const sentence of gate.push(delta)) send({ type: "delta", text: sentence }); },
@@ -455,6 +558,18 @@ export async function POST(req: Request) {
                 streamed: true,
               },
             } });
+
+            // C1.9 — le shadow ne s'exécute qu'APRÈS la fermeture du flux (voir `finally`).
+            // Émettre `done` ne suffit pas : le client boucle sur `reader.read()` jusqu'à la
+            // FIN du flux et n'applique la réponse finale qu'ensuite. Observer avant de
+            // fermer retardait donc la fin du tour de la durée du shadow — jusqu'à son
+            // délai maximum. On se contente ici de retenir de quoi comparer.
+            shadowPayload = {
+              answer: pub.answer,
+              source: sink.providerCalled ? "openai_public" : "public_fallback",
+              honesty: publicHonesty(pub.honesty),
+              hasCta: Boolean(pub.suggestedCTA),
+            };
           } catch (e) {
             // Une annulation reste une ANNULATION : jamais un faux « terminé ».
             if (req.signal?.aborted) {
@@ -466,6 +581,9 @@ export async function POST(req: Request) {
           } finally {
             if (!settled) { try { await stores.budget.release(pubReservation); } catch { /* ignore */ } }
             try { controller.close(); } catch { /* déjà fermé */ }
+            // Flux FERMÉ : le tour de l'utilisateur est terminé et affiché. L'observation
+            // ne peut donc plus lui coûter la moindre milliseconde.
+            if (shadowPayload) await runShadow(shadowPayload);
           }
         },
       });
@@ -562,8 +680,34 @@ export async function POST(req: Request) {
         } catch { /* une capture non diagnosticable n'échoue JAMAIS le tour */ }
       }
 
+      // C1.9 mode `on` (voie NON streamée) : la réponse affichée vient de la pipeline
+      // OpenAI vérifiée. Une seule persistance, aucun recours au dictionnaire hérité.
+      const primaryNonStream = await runC19Primary();
+      if (primaryNonStream) {
+        await persistPublicTurn(primaryNonStream.answer);
+        return reply({
+          ok: true, source: "c1-9_openai", public: true,
+          structured: {
+            answer: primaryNonStream.answer,
+            honesty: primaryNonStream.clarifying ? "clarify" : "answered",
+            tool_call: null,
+            citations: primaryNonStream.citations,
+          },
+          runtime: { provider: "openai", engine: "c1-9", streamed: false },
+        });
+      }
+
       // C1.8 — enregistre le tour pour un utilisateur authentifié (voie publique NON streamée).
       await persistPublicTurn(pub.answer);
+
+      // C1.9 — observation shadow : la persistance a déjà eu lieu (une seule écriture),
+      // et l'objet renvoyé ci-dessous n'est construit qu'ensuite, à partir de `pub` seul.
+      await runShadow({
+        answer: pub.answer,
+        source: viaProvider ? "openai_public" : "public_fallback",
+        honesty: publicHonesty(pub.honesty),
+        hasCta: Boolean(pub.suggestedCTA),
+      });
 
       return reply({
         ok: true,

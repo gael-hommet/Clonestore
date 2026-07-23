@@ -9,7 +9,7 @@ import type { KnowledgeChunk } from "../../knowledge/types";
 import { buildSiteChunks } from "./parrain-site-index";
 import { retrieveCapabilities, capabilityChunks, domainSummaryChunk } from "./parrain-pierre-index";
 import { technologyChunks } from "./parrain-technology-index";
-import { productIdentityChunk, productTruthChunks, pricingChunk, externalBlockersChunk, clonechatIdentityChunk } from "./parrain-product-index";
+import { productIdentityChunk, productTruthChunks, pricingChunk, externalBlockersChunk, clonechatIdentityChunk, roiProductivityChunk } from "./parrain-product-index";
 import { roadmapPublicChunk } from "./parrain-roadmap-index";
 import { makeParrainChunk } from "./parrain-knowledge-chunk";
 import type { ParrainKnowledgeChunk } from "./parrain-types";
@@ -62,6 +62,7 @@ export function collectCandidateChunks(opts: GlobalChunkOptions): readonly Parra
     productIdentityChunk(),
     clonechatIdentityChunk(),   // ← « Tu sers à quoi ? » : la source qui manquait
     pricingChunk(q, opts.serverCountry),
+    roiProductivityChunk(),
     roadmapPublicChunk(),
     externalBlockersChunk(),
     domainSummaryChunk(),

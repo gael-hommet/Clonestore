@@ -1,0 +1,68 @@
+{
+  "artifact": "C1_9_COUNTRY_FINAL_RESULTS",
+  "generatedAt": "2026-07-22",
+  "question": "La couverture pays et la devise sortent-elles du canon, et sans déborder ?",
+  "method": "Matrice déterministe dérivée de SUPPORTED_LAUNCH_COUNTRIES et pricingForCountry — aucune valeur littérale écrite dans le test hors vérification finale.",
+  "authority": "P10 — src/lib/clonestore/pricing/country-pricing.ts",
+  "perCountry": [
+    {
+      "country": "FR",
+      "expectedDisplay": "449 € / mois",
+      "served": true,
+      "othersWithheld": true,
+      "scopeServed": true,
+      "currency": "EUR"
+    },
+    {
+      "country": "BE",
+      "expectedDisplay": "449 € / mois",
+      "served": true,
+      "othersWithheld": true,
+      "scopeServed": true,
+      "currency": "EUR"
+    },
+    {
+      "country": "LU",
+      "expectedDisplay": "449 € / mois",
+      "served": true,
+      "othersWithheld": true,
+      "scopeServed": true,
+      "currency": "EUR"
+    },
+    {
+      "country": "CH",
+      "expectedDisplay": "499 CHF / mois",
+      "served": true,
+      "othersWithheld": true,
+      "scopeServed": true,
+      "currency": "CHF"
+    }
+  ],
+  "mixedCountries": {
+    "requested": [
+      "FR",
+      "CH"
+    ],
+    "bothServed": true,
+    "thirdCountryWithheld": true
+  },
+  "unsupported": {
+    "requested": [
+      "PT",
+      "DE",
+      "IT",
+      "ES"
+    ],
+    "scopeStated": true,
+    "noOpeningDatePromised": true
+  },
+  "verdict": {
+    "launchCountries": [
+      "FR",
+      "BE",
+      "LU",
+      "CH"
+    ],
+    "allDerivedFromCanon": true
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "artifact": "C1_9_NEUTRALIZATION_RESULTS",
+  "generatedAt": "2026-07-22",
+  "method": "runParrainTurn appelé directement, responder stub, aucun réseau.",
+  "fixes": {
+    "M1": "parrain-turn-runtime.ts — le raccourci de navigation exige désormais `!ports.responder`.",
+    "M2": "parrain-turn-runtime.ts — violation de CTA seul ⇒ retrait de la destination ; violation de texte ⇒ excision phrase à phrase ; substitution intégrale seulement en dernier recours.",
+    "L": "parrain-turn-runtime.ts — une intention à destination unique ne porte qu'un lien (garantie C1.8 rendue explicite)."
+  },
+  "proof": {
+    "m1WithResponder": {
+      "modelCalled": 1,
+      "source": "openai_parrain",
+      "answer": "La réservation se fait depuis la page dédiée, sans paiement en ligne pour l'instant. (Réponse d'orientation générale — pour un point précis, je peux citer la page ou le document exact.)"
+    },
+    "m1WithoutResponder": {
+      "source": "deterministic_parrain",
+      "answer": "Pour obtenir Pierre, rendez-vous sur la page Réserver Pierre : vous y voyez le prix de votre pays et vous lancez l'activation. Le paiement en ligne n'est pas encore ouvert : la réservation se fait sans paiement."
+    },
+    "singleDestination": {
+      "links": [
+        {
+          "route": "/reserver/pierre",
+          "label": "Réserver Pierre"
+        }
+      ],
+      "cta": {
+        "route": "/reserver/pierre",
+        "label": "Réserver Pierre"
+      }
+    },
+    "m2TextExcision": {
+      "answer": "Pierre prépare vos documents RH et un humain valide toujours. Vous gardez la main sur chaque décision sensible. Pour que Pierre travaille sur ce dossier, il faut être connecté avec votre entreprise associée : c'est ce qui lui donne le contexte de vos salariés et de vos documents. (Réponse d'orientation générale — pour un point précis, je peux citer la page ou le document exact.)"
+    },
+    "m2CtaOnly": {
+      "answer": "Je comprends, et je ne peux pas consulter votre facture depuis ce chat public. Le support peut vérifier votre dossier. (Réponse d'orientation générale — pour un point précis, je peux citer la page ou le document exact.)",
+      "cta": null,
+      "links": [
+        {
+          "route": "/questions",
+          "label": "Contacter le support"
+        },
+        {
+          "route": "/comprendre-clonestore",
+          "label": "Comprendre CloneStore"
+        }
+      ]
+    }
+  }
+}

@@ -99,8 +99,14 @@ const RULES: readonly Rule[] = [
     test: /\bou\s+(?:je\s+)?clique[^.?!]{0,25}(?:reserv|achet|payer|pierre)|comment\s+on\s+paie|comment\s+(?:je\s+)?(?:paie|paye)\b|\bje\s+reserve\b|\ble\s+acheter\b|a\s+la\s+caisse\b|komen\s+on\s+paye/ },
   // 4. PRIX de Pierre. Élargi (adverse) : « conditions tarifaires », « c cher », « gratos »,
   // « vous facturez comment », un montant explicite « 449 € », « la note à la fin ».
+  // « combien » garde un lookahead négatif sur « de temps » (C1.8 réouvert : « combien de temps »
+  // n'est pas un signal de prix, contrairement à « combien pour 3 salariés », « vous prenez
+  // combien », « c combien » — retirer le mot entier cassait 8 formulations de prix légitimes de
+  // la matrice adverse 240 qui n'ont AUCUN autre mot-prix). Le texte final de la voie publique sans
+  // provider ne dépend de toute façon jamais de ce fichier (voir public-situation.ts, court-circuit
+  // AVANT ce routeur) : cette classe ne pilote que le CTA imposé quand un modèle réel est actif.
   { intent: "pierre_pricing", dest: "pierre_pricing", confidence: "high",
-    test: /\b(combien|cout[e]?s?|coute|prix|tarif[a-z]*|c['e ]?est\s+combien|par\s+mois|mensuel|budget|payant\s+ou\s+gratuit|gratuit\s+ou\s+payant|gratos|gratui[a-z]*|ht\s+ou\s+ttc|montant|douille|banque\s+combien|ca\s+chiffre|\bcher\b|(?:vous\s+)?factur[a-z]*\s+comment|conditions\s+tarifaires|la\s+note\s+a\s+la\s+fin|ristourne[a-z]*|reduction[a-z]*|reduc\b|remise[a-z]*|rabais|devis|essai\s+gratuit|payer?\s+en\s+plusieurs?\s+fois|plusieur[a-z]*\s+foi[sx]?|par\s+virement)\b|\b\d{2,4}\s*(?:e|eur|euros?|chf|c)\b/ },
+    test: /\b(combien(?!\s+de\s+temps)|cout[e]?s?|coute|prix|tarif[a-z]*|c['e ]?est\s+combien|par\s+mois|mensuel|budget|payant\s+ou\s+gratuit|gratuit\s+ou\s+payant|gratos|gratui[a-z]*|ht\s+ou\s+ttc|montant|douille|banque\s+combien|ca\s+chiffre|\bcher\b|(?:vous\s+)?factur[a-z]*\s+comment|conditions\s+tarifaires|la\s+note\s+a\s+la\s+fin|ristourne[a-z]*|reduction[a-z]*|reduc\b|remise[a-z]*|rabais|devis|essai\s+gratuit|payer?\s+en\s+plusieurs?\s+fois|plusieur[a-z]*\s+foi[sx]?|par\s+virement)\b|\b\d{2,4}\s*(?:e|eur|euros?|chf|c)\b/ },
   // 5. DÉMO (voir en action / tester / essayer) — distincte de l'achat. Élargi (campagne adverse) :
   // « montrez-moi », « voir la bête en action », « tour du produit », « prendre en main », « un aperçu »,
   // « rdv avec un commercial », « je peux jouer avec ».

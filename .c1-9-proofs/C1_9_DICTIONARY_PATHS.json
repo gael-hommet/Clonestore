@@ -1,0 +1,121 @@
+{
+  "artifact": "C1_9_DICTIONARY_PATHS",
+  "generatedAt": "2026-07-22",
+  "definition": "A dictionary path is any mechanism where a decision that determines the FINAL ANSWER TEXT is made by matching surface forms of the user's message (regex, substring, keyword list, bag-of-words score) or by mapping a closed intent label to pre-written prose.",
+  "globalCensus": {
+    "method": "AST-free literal census over src/lib/clonechat/**, excluding __tests__. Script: scratchpad/census.cjs. Raw: _census_raw.json.",
+    "runtimeFiles": 131,
+    "runtimeLines": 21219,
+    "regexLiterals": 1207,
+    "userFacingProseLiterals": 724,
+    "userFacingProseCharacters": 400850,
+    "switchCaseArms": 174,
+    "interpretation": "The CloneChat runtime carries roughly 19 characters of pre-written French prose per line of code, and one regex literal per 17.6 lines. 400,850 characters is on the order of 100,000 tokens of answers written by hand rather than reasoned."
+  },
+  "topOffenders": [
+    { "file": "src/lib/clonechat/public-answer/public-composer.ts", "lines": 549, "regex": 76, "prose": 63, "role": "THE answer dictionary: 37-case switch + 79 `return S(...)` sites" },
+    { "file": "src/lib/clonechat/public-answer/public-situation.ts", "lines": 583, "regex": 115, "prose": 12, "role": "THE classifier: ~45 regex constants, one 1900-char and one 1400-char alternation" },
+    { "file": "src/lib/clonechat/navigation/intent-taxonomy.ts", "lines": 277, "regex": 44, "prose": 33, "role": "Second classifier: ~24 ordered rules, purchase rule ~2600 chars" },
+    { "file": "src/lib/clonechat/intelligence/c1/clonechat-answer-engine.ts", "lines": 508, "regex": 60, "prose": 21, "role": "Legacy engine: 13-case switch → 16 paragraphs (now a fallback)" },
+    { "file": "src/lib/clonechat/intelligence/c1/clonechat-site-map.ts", "lines": 473, "regex": 72, "prose": 13, "role": "Route inventory" },
+    { "file": "src/lib/clonechat/intelligence/c1-1/parrain-command-center.ts", "lines": 570, "regex": 38, "prose": 19, "role": "Self-audit harness (not request path)" },
+    { "file": "src/lib/clonechat/knowledge/sources.ts", "lines": 185, "regex": 22, "prose": 27, "role": "70 knowledge chunks" },
+    { "file": "src/lib/clonechat/intelligence/c1/clonechat-claims-policy.ts", "lines": 167, "regex": 29, "prose": 7, "role": "THE censor — governs 100% of emitted bytes" }
+  ],
+  "classifiersInPlay": {
+    "count": 3,
+    "note": "Three independent, mutually unaware classifiers evaluate the same message with different vocabularies. Their verdicts can disagree; nothing reconciles them.",
+    "list": [
+      { "id": "C_SITUATION", "file": "src/lib/clonechat/public-answer/public-situation.ts", "line": 409, "outputs": "37 PublicSituationKind values", "mechanism": "ordered regex cascade over ~45 constants, first match wins", "controls": "the whole answer paragraph, and the post-model overwrite" },
+      { "id": "C_NAVIGATION", "file": "src/lib/clonechat/navigation/intent-taxonomy.ts", "line": 249, "outputs": "~24 intents", "mechanism": "ordered first-match-wins over ~24 regexes", "controls": "the CTA, and on 4 intents the ENTIRE answer via the pre-model short-circuit" },
+      { "id": "C_LEGACY", "file": "src/lib/clonechat/intelligence/c1/clonechat-answer-router.ts", "line": 46, "outputs": "13 ANSWER_CATEGORIES", "mechanism": "ordered first-match-wins over 13 regexes", "controls": "the `category` field returned to the client on EVERY path including the OpenAI path, and the fallback answer" }
+    ],
+    "consequence": "A client can receive category=X from C_LEGACY while being offered a destination chosen by C_NAVIGATION and text composed for a situation chosen by C_SITUATION."
+  },
+  "dictionaryPaths": [
+    { "id": "DP01", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 288, "mechanism": "intentMap", "controls": "answer", "detail": "switch (sit.kind) — 37 cases, 79 `return S(...)` sites, 82 prose literals >100 chars. This is the answer dictionary in the strictest sense.", "empiricallyConfirmed": true },
+    { "id": "DP02", "file": "src/lib/clonechat/public-answer/public-situation.ts", "line": 409, "mechanism": "regex", "controls": "answer", "detail": "classifyPublicSituation: 150-line ordered regex cascade. Its single `kind` output selects the whole paragraph via DP01. TROUBLE_RX (line 119) is a ~1900-char alternation; INJECTION_RX (line 100) ~1400 chars.", "empiricallyConfirmed": true },
+    { "id": "DP03", "file": "src/lib/clonechat/public-answer/public-situation.ts", "line": 265, "mechanism": "intentMap", "controls": "answer", "detail": "CAPABILITY_TOKENS — 17 regex→CapabilityKey pairs, first match wins, selecting 1 of 17 fixed paragraphs.", "empiricallyConfirmed": false },
+    { "id": "DP04", "file": "src/lib/clonechat/public-answer/public-situation.ts", "line": 173, "mechanism": "keywordList", "controls": "answer", "detail": "OUT_OF_LAUNCH_TOKENS (14) + LAUNCH_TOKENS (4) map country/city words to labels. SOURCE OF DEFECT D1: 'Australie' in an off-topic question triggers a country-coverage answer that was never asked for.", "empiricallyConfirmed": true },
+    { "id": "DP05", "file": "src/lib/clonechat/navigation/navigation-answer.ts", "line": 38, "mechanism": "intentMap", "controls": "answer", "detail": "directNavigationAnswer(nav): switch over 12 intents → 12 hardcoded French sentences. This is the literal intent→paragraph map that REPLACES a live model (mechanism M1).", "empiricallyConfirmed": true },
+    { "id": "DP06", "file": "src/lib/clonechat/navigation/intent-taxonomy.ts", "line": 68, "mechanism": "regex", "controls": "answer", "detail": "RULES: ~24 giant ordered regexes; the support_request test is a single ~5000-char alternation, the purchase rule ~2600 chars matching bare tokens like \\bsigner\\b, 'je valide', 'souscri[a-z]*', 'finalis[a-z]*'.", "empiricallyConfirmed": true },
+    { "id": "DP07", "file": "src/lib/clonechat/intelligence/c1/clonechat-answer-router.ts", "line": 46, "mechanism": "regex", "controls": "answer", "detail": "routeCloneChatQuestion — 13 ordered regex rules, first match wins. The ENTIRE understanding step of the legacy engine. confidence is a literal baked into each rule, not measured.", "empiricallyConfirmed": false },
+    { "id": "DP08", "file": "src/lib/clonechat/intelligence/c1/clonechat-answer-engine.ts", "line": 98, "mechanism": "intentMap", "controls": "answer", "detail": "compose(): switch over 13 categories → 16 paragraphs, with nested regex sub-dispatch inside 'pricing' (5 regexes → 6 texts), 'site_navigation' (10-branch ternary) and 'technology_explanation'.", "empiricallyConfirmed": false },
+    { "id": "DP09", "file": "src/lib/clonechat/intelligence/c1/clonechat-sales-brain.ts", "line": 169, "mechanism": "regex", "controls": "answer", "detail": "findSalesObjection — 10 sequential if(/regex/.test(q)) lines selecting 1 of 10 objections × 4 prose fields (40 canned strings). Unmatched commercial questions ALWAYS default to the same 'readiness' paragraph.", "empiricallyConfirmed": false },
+    { "id": "DP10", "file": "src/lib/clonechat/intelligence/c1/clonechat-sales-brain.ts", "line": 195, "mechanism": "bagOfWords", "controls": "answer", "detail": "deepObjectionAnswer — word-overlap >= 2 over words longer than 3 chars. The only 'fuzzy' matching in the layer, and it is a bag-of-words count.", "empiricallyConfirmed": false },
+    { "id": "DP11", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 169, "mechanism": "regex", "controls": "answer", "detail": "governanceAnswer — 6 raw regexes on the message decide the entire governance answer among 7 paragraphs.", "empiricallyConfirmed": false },
+    { "id": "DP12", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 253, "mechanism": "regex", "controls": "answer", "detail": "injectionAnswer — `/prompt|instruction|consigne|regle|api|token|cle/` unanchored. 'cle' and 'regle' match inside ordinary French words, selecting a whole anti-injection paragraph.", "empiricallyConfirmed": false },
+    { "id": "DP13", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 220, "mechanism": "regex", "controls": "answer", "detail": "illicitAnswer — 9 sequential unanchored regexes (e.g. /hack|pirate|craquer|boite\\s+mail/, /scrap|python|script/) selecting 1 of 10 refusals.", "empiricallyConfirmed": false },
+    { "id": "DP14", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 326, "mechanism": "intentMap", "controls": "answer", "detail": "Literal Record<string,{route,sentence}> — a 5-entry sentence dictionary selecting both text and CTA.", "empiricallyConfirmed": false },
+    { "id": "DP15", "file": "src/lib/clonechat/intelligence/c1-1/parrain-turn-runtime.ts", "line": 81, "mechanism": "intentMap", "controls": "cta", "detail": "linksFor(category, question): switch over 6 legacy categories → fixed route lists + CTA. Called at line 189, BEFORE any answer text exists.", "empiricallyConfirmed": true },
+    { "id": "DP16", "file": "src/lib/clonechat/intelligence/c1-1/parrain-retrieval.ts", "line": 60, "mechanism": "substringCount", "controls": "grounding", "detail": "relevance(): `for (const w of words) if (hay.includes(w)) score += 1` over title+text+routes flattened into one string. No word boundaries, no TF, no IDF, no stemming, no length normalization. See SEMANTIC_RETRIEVAL findings — this is the deepest dictionary path, because it decides what the model is allowed to know.", "empiricallyConfirmed": true },
+    { "id": "DP17", "file": "src/lib/clonechat/intelligence/c1-1/parrain-retrieval.ts", "line": 51, "mechanism": "regex", "controls": "grounding", "detail": "PRIORITY_INTENTS — a hardcoded +50 regex pin forcing one specific chunkId for 'qui es-tu' style questions. A per-question hardcode compensating for the scorer.", "empiricallyConfirmed": true },
+    { "id": "DP18", "file": "src/lib/clonechat/intelligence/c1-1/parrain-product-index.ts", "line": 155, "mechanism": "keywordList", "controls": "grounding", "detail": "'ANCRES DE RÉCUPÉRATION' — natural-language keyword blocks pasted into chunk bodies so the lexical scorer can find them. Works only for literal phrasings; each new paraphrase needs a new hand-written anchor.", "empiricallyConfirmed": true },
+    { "id": "DP19", "file": "src/lib/clonechat/intelligence/c1/clonechat-claims-policy.ts", "line": 116, "mechanism": "regex", "controls": "answer", "detail": "guardAnswerText — 21 regexes (13 C1 + 8 P15.1). ANY single match discards the ENTIRE answer and substitutes the fixed 4-sentence SAFE_REFUSAL_TEXT. All-or-nothing, no redaction, no partial repair.", "empiricallyConfirmed": true },
+    { "id": "DP20", "file": "src/lib/clonechat/public-answer/public-output-guard.ts", "line": 48, "mechanism": "regex", "controls": "answer", "detail": "checkPublicOutput — 5 regexes tested against the OUTPUT. A hit causes the caller to swap the entire answer for the deterministic composition (mechanism M2).", "empiricallyConfirmed": true }
+  ],
+  "legitimateRegexUses": {
+    "note": "The doctrine permits regex for precise technical detection. These are KEPT.",
+    "list": [
+      "src/app/api/assistant/chat/route.ts:194 detectPromptInjection — security floor",
+      "src/lib/clonechat/openai/image-sanitizer.ts — format/signature detection",
+      "src/lib/clonechat/attachments/manifest.ts — MIME and extension validation",
+      "src/lib/clonechat/bug-memory.ts redactSymptom — PII redaction",
+      "src/lib/clonechat/intelligence/c1-1/parrain-visibility.ts quarantineIfSecret — secret detection",
+      "route/URL shape validation in src/lib/nav/route-registry.ts"
+    ]
+  },
+  "additionalDefects": [
+    {
+      "id": "D7",
+      "severity": "P0",
+      "title": "The claims guard injects a canned refusal MID-STREAM, then the answer resumes",
+      "site": "src/app/api/assistant/chat/route.ts:392 — createSentenceGate((t) => finalizeAnswerText(t).safeText)",
+      "why": "The guard is applied per sentence during streaming. One tripped sentence is replaced by the whole 4-sentence SAFE_REFUSAL_TEXT inline; the remaining sentences stream normally afterwards.",
+      "empiricalProof": "_probe_streamguard.json — verified by driving the real createSentenceGate with a plausible model answer. The user reads: 'Bonne question. Pierre prépare vos contrats et vos avenants, puis un humain valide. Je préfère ne pas affirmer cela : ... Une revue humaine peut vous répondre précisément.Pour une équipe de vingt personnes, cela représente plusieurs heures par semaine. Voulez-vous que nous estimions cela ensemble ?'",
+      "secondaryDefect": "Sentence concatenation loses the inter-sentence space ('précisément.Pour').",
+      "impact": "Streaming and non-streaming produce DIFFERENT answers for identical input (streamAndWholeDiverge = true). The visible result is incoherent."
+    },
+    {
+      "id": "D8",
+      "severity": "P0",
+      "title": "Char-budget eviction discards the single most relevant chunk",
+      "site": "src/lib/clonechat/intelligence/c1-1/parrain-retrieval.ts:149",
+      "why": "The selection loop uses `continue` instead of `break` when a chunk exceeds the remaining char budget. A long, highly relevant chunk is skipped and backfilled with many shorter, less relevant ones.",
+      "empiricalProof": "Executed: product.roi-productivity (1599 chars, THE correct chunk) excluded with reason 'char_budget' after clonechat.identity (1703 chars) won a tie broken only by candidate insertion order. Nine shorter lower-ranked chunks then filled the budget.",
+      "impact": "Systematically biases grounding toward short irrelevant chunks."
+    },
+    {
+      "id": "D9",
+      "severity": "P1",
+      "title": "Retrieval can never report 'I found nothing'",
+      "site": "src/lib/clonechat/intelligence/c1-1/parrain-retrieval.ts:154-157",
+      "why": "The function guarantees a non-empty result. On a zero-match query the ranking degenerates to SOURCE_TYPE_BOOST order.",
+      "empiricalProof": "Query 'paperasse administrative' scores 0 lexical hits corpus-wide; the #1 result is pricing.catalog. An automation question is grounded on the price list.",
+      "impact": "The pipeline cannot signal low confidence to the model or to the verifier. It always hands over plausible-looking noise."
+    },
+    {
+      "id": "D10",
+      "severity": "P1",
+      "title": "The negation-stripper is greedy and the two rule sets are asymmetric",
+      "site": "src/lib/clonechat/intelligence/c1/clonechat-claims-policy.ts:69-73",
+      "why": "affirmativeText() deletes 12 greedy negation regexes (e.g. /\\bno\\s+[^.,;:!?]*/gi) that consume everything up to the next punctuation. C1's 13 rules test the stripped text; P15.1's 8 rules test the RAW text — the same sentence is judged on two different inputs.",
+      "impact": "False negatives (a real forbidden claim hiding after a negation in the same clause escapes) and false positives (a sentence merely mentioning a concept is nuked)."
+    },
+    {
+      "id": "D11",
+      "severity": "P2",
+      "title": "Dead code inflates the layer's apparent capability",
+      "detail": "answerSalesQuestion, answerSupportQuestion, salesPitchFor, deepObjectionAnswer have zero non-test callers. clonechat-command-center.ts (332 lines), clonechat-truth-matrix.ts (343) and clonechat-learning-loop.ts (117) have no request-path consumer.",
+      "impact": "Maintenance burden and misleading audits."
+    },
+    {
+      "id": "D12",
+      "severity": "P2",
+      "title": "A second, older lexical scorer still exists on a separate surface",
+      "site": "src/lib/assistant/knowledge.ts:361-399 scoreArticle()",
+      "detail": "Substring matching plus ~15 hardcoded `if (intent === X && article.id === Y) score += 10` rules, reachable via src/app/api/assistant/route.ts. Same failure mode, different surface.",
+      "action": "Confirm dead or deprecate."
+    }
+  ]
+}

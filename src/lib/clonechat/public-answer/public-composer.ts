@@ -415,6 +415,18 @@ export function composePublicAnswer(sit: PublicSituation, message: string): Publ
         "/demo/pierre",
       );
 
+    // C1.8 réouvert — ROI/productivité : distinct du prix. Le gain dépend de facteurs réels de
+    // l'entreprise, jamais d'une moyenne inventée. Répond séparément temps / argent / méthode /
+    // limites, comme exigé — le prix n'apparaît qu'en ENTRÉE du calcul, jamais comme réponse seule.
+    case "roi_productivity":
+      return S(
+        `${NOT_PUBLISHED} Le gain dépend de plusieurs facteurs propres à votre entreprise : sa taille, le volume de tâches RH concernées, le nombre de salariés, la part de processus aujourd'hui manuels, et votre niveau d'usage de Pierre. ` +
+        `Temps : Pierre absorbe l'exécution répétitive — ${PIERRE_MISSION_DOMAINS} — que vos équipes referaient sinon à la main. ` +
+        `Argent : l'économie se lit en comparant ce temps libéré au coût de l'abonnement (${bothPricesSentence()}) et, le cas échéant, au coût d'une embauche ou d'un prestataire externe pour le même volume. ` +
+        `Méthode : un calcul honnête part de vos heures RH actuelles sur les tâches concernées, pas d'un chiffre moyen théorique — donnez-moi la taille de votre équipe et vos tâches les plus chronophages, je peux vous aider à estimer un ordre de grandeur, jamais une garantie. ${HUMAN_FLOOR}`,
+        "/demo/pierre",
+      );
+
     case "private_data_request":
       return S(
         `${PUBLIC_VISITOR_ACCESS} Je ne vais rien inventer sur votre dossier : une fois connecté, avec votre entreprise associée, vous retrouvez vos documents, vos missions et leur suivi dans votre espace.`,

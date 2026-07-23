@@ -1,0 +1,66 @@
+{
+  "artifact": "C1_9_RUNTIME_RESULTS",
+  "generatedAt": "2026-07-22",
+  "method": "Port modèle scripté, aucun réseau. Garanties structurelles uniquement.",
+  "results": [
+    {
+      "test": "model reached",
+      "calls": [
+        "understand",
+        "compose"
+      ],
+      "status": "clarification_required"
+    },
+    {
+      "test": "multi-intent plan",
+      "goals": 3
+    },
+    {
+      "test": "incomplete coverage detected",
+      "uncovered": 2,
+      "action": "clarify"
+    },
+    {
+      "test": "claims repair not substitution",
+      "action": "repaired",
+      "keptChars": 96
+    },
+    {
+      "test": "false execution claim caught",
+      "action": "clarify"
+    },
+    {
+      "test": "degraded honesty",
+      "status": "degraded"
+    },
+    {
+      "test": "out of scope honest",
+      "status": "source_missing",
+      "sufficiency": "none"
+    },
+    {
+      "test": "estimation differs per company",
+      "a": [
+        39,
+        78
+      ],
+      "b": [
+        5,
+        10
+      ]
+    },
+    {
+      "test": "estimation asks rather than invents",
+      "missing": 2
+    },
+    {
+      "test": "tool governance",
+      "shadow": "tools_disabled",
+      "unknown": "unknown_tool"
+    },
+    {
+      "test": "trace observable and clean",
+      "stages": 6
+    }
+  ]
+}

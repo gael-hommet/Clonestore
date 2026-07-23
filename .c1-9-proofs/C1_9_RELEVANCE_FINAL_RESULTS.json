@@ -1,0 +1,49 @@
+{
+  "artifact": "C1_9_RELEVANCE_FINAL_RESULTS",
+  "generatedAt": "2026-07-22",
+  "question": "Une réponse juste peut-elle encore être polluée par ce que personne n'a demandé ?",
+  "method": "Chaque sujet périphérique est éprouvé deux fois — demandé puis non demandé. Le même détecteur lit la demande et contrôle la réponse ; il ne peut donc pas encoder une règle par question.",
+  "rule": "§4 — un sujet est autorisé s'il apparaît dans la DEMANDE, interdit sinon ; une assistance et un hors-sujet les interdisent tous.",
+  "topics": [
+    {
+      "topic": "pricing",
+      "allowedWhenAsked": true,
+      "forbiddenWhenNotAsked": true
+    },
+    {
+      "topic": "payment_status",
+      "allowedWhenAsked": true,
+      "forbiddenWhenNotAsked": true
+    },
+    {
+      "topic": "founder_reservation",
+      "allowedWhenAsked": true,
+      "forbiddenWhenNotAsked": true
+    },
+    {
+      "topic": "demo",
+      "allowedWhenAsked": true,
+      "forbiddenWhenNotAsked": true
+    },
+    {
+      "topic": "roi",
+      "allowedWhenAsked": true,
+      "forbiddenWhenNotAsked": true
+    }
+  ],
+  "capability": {
+    "verbsSeparated": true,
+    "strongVerbStatedInactive": true,
+    "unprovenCapabilityDeclared": true,
+    "noGenericPanoramaSubstitute": true
+  },
+  "judgeContext": {
+    "includesAuthorizedPages": true,
+    "withheldFactsNotCounted": true,
+    "note": "Le banc reçoit ce qui a été FOURNI — faits servis et pages autorisées — et rien d'autre. Un fait retenu par le contrat n'est pas compté comme étayant."
+  },
+  "verdict": {
+    "probes": 10,
+    "allCorrect": true
+  }
+}

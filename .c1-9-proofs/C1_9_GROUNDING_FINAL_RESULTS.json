@@ -1,0 +1,44 @@
+{
+  "artifact": "C1_9_GROUNDING_FINAL_RESULTS",
+  "generatedAt": "2026-07-22",
+  "question": "Pourquoi le modèle affirmait-il des faits produit VRAIS mais réputés « non fournis » ?",
+  "method": "Diagnostic de récupération sur 16 formulations (§5), puis deux campagnes ciblées identiques ne différant QUE par le juge.",
+  "threeCausesFound": [
+    {
+      "id": "GC1",
+      "kind": "CONNAISSANCE",
+      "title": "Deux faits de politique produit étaient réservés aux clients connectés",
+      "detail": "Les chunks 'gov.isolation' (« Chaque entreprise ne voit que ses propres données. CloneChat n'accède jamais aux données d'une autre entreprise et refuse toute demande de contournement. ») et 'gov.confirmation' (une action sensible est PROPOSÉE puis confirmée) portaient visibility = AUTHENTICATED_CLIENT. Or ce sont des ÉNONCÉS DE POLITIQUE, qui ne contiennent aucune donnée de locataire. Les visiteurs qui posent exactement ces questions — « mes données sont isolées ? », « compare avec un autre client », « qu'est-ce qui garantit qu'il ne fait pas n'importe quoi ? » — ne les recevaient donc JAMAIS.",
+      "fix": "Reclassés PUBLIC, avec justification en commentaire. 'gov.permissions' reste réservé : il parle des permissions DU visiteur, ce qui est une donnée de compte.",
+      "measured": "Catégorie « données » 3/3 après correction. 'legacy.gov.isolation' arrive désormais en tête des chunks sélectionnés pour les deux questions concernées ; auparavant la récupération ne rendait que des entrées de plan de site."
+    },
+    {
+      "id": "GC2",
+      "kind": "RECUPERATION",
+      "title": "Le plan de site gonflait la confiance déclarée de la récupération",
+      "detail": "Une entrée de navigation comme « /legal/dpa — DPA. Data Processing Agreement. Accord de traitement des données. » contient le mot « données » : elle satisfaisait donc le besoin « isolation des données ». La récupération se déclarait 'strong' alors qu'elle n'avait trouvé que des NOMS DE PAGES, et le modèle, se croyant documenté, complétait de lui-même. Une confiance fausse est pire qu'une confiance basse : elle empêche la pipeline de demander une précision.",
+      "fix": "Les entrées 'src.site_index' restent sélectionnées — elles servent à proposer un lien juste — mais ne peuvent plus, à elles seules, déclarer couvert un besoin de connaissance. Critère structurel (sourceId), aucune liste de mots.",
+      "measured": "withUnmatchedNeeds 4 → 5 sur les 16 sondes : la récupération avoue désormais ce qu'elle n'a pas trouvé."
+    },
+    {
+      "id": "GC3",
+      "kind": "MESURE",
+      "title": "Le juge ne voyait pas les faits — il notait le grounding contre ses propres a priori",
+      "detail": "Le banc ne recevait que la transcription. Il déclarait donc « non étayées » des phrases reprises MOT POUR MOT d'un fait transmis : « le paiement en ligne n'est pas encore ouvert » et « la réservation fondateur ne demande aucun paiement » figurent tous deux dans le chunk 'truth.external-blockers'. Toutes les campagnes précédentes ont donc SOUS-MESURÉ le grounding, et deux correctifs de prompt ont été décidés sur cette base faussée — dont un qui a dégradé l'ensemble.",
+      "fix": "diagnostics.groundingFacts expose les faits réellement transmis au rédacteur ; le juge les reçoit avec la consigne explicite qu'une affirmation reprise d'un fait fourni est parfaitement étayée, même si elle le surprend.",
+      "measured": "Même corpus, même modèle, même pipeline — seul le juge change : vérité 3,95 → 4,48 · grounding 3,49 → 3,67 · sécurité 4,79 → 5,00 · réussite 0,676 → 0,788."
+    }
+  ],
+  "retrievalDiagnostic": { "probes": 16, "none": 0, "weak": 0, "strong": 16, "withUnmatchedNeeds": 5 },
+  "targetedCampaign": {
+    "blindJudge": { "passed": 25, "judged": 37, "passRate": 0.676, "grounding": 3.49, "verite": 3.95, "securite": 4.79 },
+    "factAwareJudge": { "passed": 26, "judged": 33, "passRate": 0.788, "grounding": 3.67, "verite": 4.48, "securite": 5.0 },
+    "caveat": "Le juge informé n'a rendu que 33 verdicts exploitables sur 37 : la liste de faits allonge son entrée et 4 réponses ont été tronquées avant le JSON. C'est une limite de mesure connue, pas un résultat produit."
+  },
+  "verdict": {
+    "groundingThreshold": 4.5,
+    "groundingMeasured": 3.67,
+    "met": false,
+    "honestReading": "Trois causes réelles ont été trouvées et corrigées, dont une qui invalidait la mesure elle-même. Le grounding progresse mais reste sous le seuil. Ce qui subsiste n'est plus de l'invention pure : le juge reproche surtout des AJOUTS PÉRIPHÉRIQUES non demandés — contexte commercial, mention des pays couverts, rappel du mode de réservation — greffés sur une réponse par ailleurs juste. C'est un défaut de concision et de pertinence, pas de vérité ; il demande sa propre passe de mesure."
+  }
+}

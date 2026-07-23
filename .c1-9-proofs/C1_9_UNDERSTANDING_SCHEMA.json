@@ -1,0 +1,125 @@
+{
+  "artifact": "C1_9_UNDERSTANDING_SCHEMA",
+  "generatedAt": "2026-07-22",
+  "source": "src/lib/clonechat/intelligence/c1-9/understanding-schema.ts (Zod = source de vérité)",
+  "doctrine": "Structure OUVERTE : aucun champ n'est un enum fermé de sujets produit ; les objectifs sont multiples par construction ; knowledge_needs est écrit librement par le modèle, ce qui règle la paraphrase à la source.",
+  "fields": [
+    {
+      "field": "goal",
+      "zod": "string().min(1)"
+    },
+    {
+      "field": "answer_type",
+      "zod": "string().min(1)"
+    },
+    {
+      "field": "must_clarify",
+      "zod": "boolean().default(false)"
+    },
+    {
+      "field": "kind",
+      "zod": "string().min(1)"
+    },
+    {
+      "field": "value",
+      "zod": "string().min(1)"
+    },
+    {
+      "field": "inferred",
+      "zod": "boolean().default(false)"
+    },
+    {
+      "field": "summary",
+      "zod": "string().min(1)"
+    },
+    {
+      "field": "primary_goal",
+      "zod": "string().min(1)"
+    },
+    {
+      "field": "secondary_goals",
+      "zod": "array(z.string()).default([])"
+    },
+    {
+      "field": "questions_detected",
+      "zod": "array(z.string()).default([])"
+    },
+    {
+      "field": "entities",
+      "zod": "array(EntitySchema).default([])"
+    },
+    {
+      "field": "requested_metrics",
+      "zod": "array(z.string()).default([])"
+    },
+    {
+      "field": "requested_actions",
+      "zod": "array(z.string()).default([])"
+    },
+    {
+      "field": "constraints",
+      "zod": "array(z.string()).default([])"
+    },
+    {
+      "field": "assumptions",
+      "zod": "array(z.string()).default([])"
+    },
+    {
+      "field": "missing_information",
+      "zod": "array(z.string()).default([])"
+    },
+    {
+      "field": "ambiguities",
+      "zod": "array(z.string()).default([])"
+    },
+    {
+      "field": "user_emotion",
+      "zod": "string().default(\"neutre\")"
+    },
+    {
+      "field": "requires_clarification",
+      "zod": "boolean().default(false)"
+    },
+    {
+      "field": "clarification_question",
+      "zod": "string().nullable().default(null)"
+    },
+    {
+      "field": "knowledge_needs",
+      "zod": "array(z.string()).default([])"
+    },
+    {
+      "field": "tool_needs",
+      "zod": "array(z.string()).default([])"
+    },
+    {
+      "field": "risk_signals",
+      "zod": "array(z.string()).default([])"
+    },
+    {
+      "field": "confidence",
+      "zod": "number().min(0).max(1).default(0.5)"
+    },
+    {
+      "field": "depends_on_history",
+      "zod": "boolean().default(false)"
+    },
+    {
+      "field": "is_correction",
+      "zod": "boolean().default(false)"
+    },
+    {
+      "field": "out_of_scope",
+      "zod": "boolean().default(false)"
+    }
+  ],
+  "fieldCount": 27,
+  "coverageContract": "coverageContract(u) = questions_detected + requested_actions (dédupliqués), repli sur primary_goal. C est ce que le vérificateur contrôle.",
+  "coherenceRules": [
+    "clarification demandée sans question",
+    "question de clarification sans demande",
+    "aucune question ni action détectée",
+    "confiance hors bornes"
+  ],
+  "degradation": "Une compréhension incohérente est dégradée en confiance basse (<=0.3) plutôt que rejetée : la pipeline demande alors une précision."
+}

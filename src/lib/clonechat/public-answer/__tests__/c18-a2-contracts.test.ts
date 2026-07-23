@@ -91,6 +91,70 @@ describe("C1.8 FINAL — une correction de pays fait gagner le pays CORRIGÉ, ja
   });
 });
 
+// ═══════ C1.8 RÉOUVERT — ROI/productivité n'est jamais réduit au prix pur (raisonnement, pas mots-clés) ═══════
+// Défaut réel : « en moyenne pierre fait gagner combien de temps a une entreprise, et combien
+// d'argent, dans une pme » recevait « Pierre coûte 449 €/mois ». Cause racine (double, cf.
+// C18_ROI_SEMANTIC_REASONING_AUDIT.md) : (1) `intent-taxonomy.ts` déclenchait `pierre_pricing` sur
+// le simple mot « combien » (interrogatif de quantité générique, pas un signal de prix) — retiré ;
+// (2) la récupération de connaissance (`parrain-retrieval.ts`) est LEXICALE et n'avait AUCUNE
+// source ROI/productivité — un mot comme « argent » ne pouvait remonter que la grille tarifaire.
+// Correctif : un signal MULTI-FORME (jamais une phrase exacte) reconnaît la classe ROI/productivité
+// et compose une réponse honnête distincte sur le temps ET l'argent, jamais un chiffre inventé.
+describe("C1.8 RÉOUVERT — ROI/productivité distinct du prix pur, jamais de moyenne inventée", () => {
+  const NO_INVENTED_AVERAGE = /\b\d+\s*(?:%|heures?|jours?|semaines?|mois)\s*(?:de\s+)?(?:gain|gagn|econom)/i;
+
+  // Corpus §6 — ROI/économies. AUCUNE de ces formulations n'existe mot pour mot dans le code produit
+  // (elles sont écrites ici, dans le test, jamais recopiées dans public-situation.ts/public-composer.ts).
+  const ROI_CORPUS: readonly string[] = [
+    "en moyenne pierre fait gagner combien de temps a une entreprise, et combien d'argent, dans une pme",
+    "combien d'argent Pierre peut faire économiser",
+    "est-ce que Pierre est rentable",
+    "au bout de combien de temps l'abonnement est amorti",
+    "quel impact sur les coûts RH",
+    "est-ce que ça remplace réellement du travail humain",
+    "ça représente quoi comme économie pour 20 salariés",
+    "une petite entreprise gagne quoi concrètement avec Pierre",
+    "mon équipe RH passe 30 heures par semaine sur l'administratif, ça changerait quoi",
+    "est-ce plus rentable qu'embaucher quelqu'un",
+  ];
+  for (const q of ROI_CORPUS) {
+    it(`« ${q.slice(0, 55)}… » → ROI/productivité, jamais un prix pur`, async () => {
+      const sit = classifyPublicSituation(q);
+      expect(sit.kind).toBe("roi_productivity");
+      const a = await ask(q);
+      const t = norm(a.answer);
+      // Traite le temps ET l'argent — pas une seule dimension choisie arbitrairement.
+      expect(t).toMatch(/temps/);
+      expect(t).toMatch(/argent|economi|cout/);
+      // Le prix n'est qu'un INTRANT (mentionné dans le calcul), jamais la réponse seule : la
+      // réponse ne peut donc pas ÊTRE juste "Pierre coûte X" — elle doit rester substantiellement
+      // plus longue et parler de méthode/facteurs.
+      expect(a.answer).not.toBe(`Pierre coûte ${a.answer.includes("449") ? "449 € / mois" : ""}.`);
+      expect(t).toMatch(/depend|facteur|taille|volume/); // dépend de facteurs réels de l'entreprise
+      expect(t).not.toMatch(NO_INVENTED_AVERAGE); // 0 moyenne chiffrée inventée
+    });
+  }
+
+  it("régression — le prix PUR reste une question de prix, pas du ROI", async () => {
+    for (const q of ["combien coûte Pierre", "quel est son tarif", "c'est 449 euros par mois ?", "le prix suisse est combien", "y a-t-il un essai gratuit"]) {
+      const sit = classifyPublicSituation(q);
+      expect(sit.kind, q).not.toBe("roi_productivity");
+    }
+  });
+
+  it("régression — « combien de temps » seul (hors argent/ROI) ne bascule plus sur le prix", () => {
+    // Défaut historique : bare "combien" déclenchait `pierre_pricing` dans intent-taxonomy.ts.
+    const sit = classifyPublicSituation("combien de temps faut-il pour configurer Pierre");
+    expect(sit.kind).not.toBe("pricing_question");
+  });
+
+  it("paraphrase inédite jamais écrite dans le produit : « ça me ferait gagner quoi en temps et en budget »", async () => {
+    const q = "ça me ferait gagner quoi en temps et en budget si on prend Pierre pour notre pme";
+    const sit = classifyPublicSituation(q);
+    expect(sit.kind).toBe("roi_productivity");
+  });
+});
+
 // ═══════════════════ B. Plus de gabarit de dérobade ═══════════════════
 describe("C1.8 A2 §B — la dérobade générique ne sert plus de réponse par défaut", () => {
   const KNOWN_FACTS: readonly string[] = [

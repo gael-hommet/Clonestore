@@ -125,6 +125,49 @@ export function pricingChunk(question?: string, serverCountry?: string | null): 
   });
 }
 
+/**
+ * ROI / PRODUCTIVITÉ — C1.8 réouvert.
+ *
+ * Défaut trouvé : « en moyenne Pierre fait gagner combien de temps à une entreprise, et combien
+ * d'argent, dans une PME ? » recevait une réponse de PRIX pur (« Pierre coûte 449 €/mois »). Cause
+ * réelle : aucune source ne couvrait le ROI/la productivité — la récupération est LEXICALE
+ * (parrain-retrieval.ts), donc sans chunk dédié, un mot comme « argent » ne pouvait remonter que
+ * la grille tarifaire. Cette source donne au modèle de quoi répondre HONNÊTEMENT sur le temps et
+ * l'argent gagnés SANS jamais inventer une moyenne — aucun chiffre de gain n'est publié par
+ * CloneStore, seul le prix l'est.
+ */
+export function roiProductivityChunk(): ParrainKnowledgeChunk {
+  return makeParrainChunk({
+    id: "product.roi-productivity",
+    sourceId: "src.c1_product_truth",
+    title: "ROI et productivité — ce que Pierre fait gagner",
+    text: [
+      "Aucune moyenne de gain de temps ou d'argent n'est publiée par CloneStore, et il ne faut jamais en inventer une.",
+      "Le gain réel dépend de facteurs propres à chaque entreprise : sa taille, le volume de tâches RH concernées,",
+      "le nombre de salariés, la part de processus aujourd'hui manuels, et le niveau d'usage de Pierre.",
+      "Temps : Pierre absorbe l'exécution répétitive — contrats et avenants, onboarding et offboarding,",
+      "absences et congés, attestations et courriers RH, relances et suivis, préparation des variables de paie —",
+      "que les équipes referaient sinon à la main.",
+      "Argent : l'économie se lit en comparant ce temps libéré au coût de l'abonnement et, le cas échéant,",
+      "au coût d'une embauche ou d'un prestataire externe pour le même volume de travail.",
+      "Méthode honnête : partir des heures RH actuelles sur les tâches concernées, jamais d'un chiffre moyen théorique.",
+      "Le prix de Pierre est un INTRANT du calcul de ROI, jamais la réponse à la question du gain.",
+      // ── ANCRES DE RÉCUPÉRATION — vocabulaire réel des questions ROI/productivité ──
+      "Questions auxquelles cette source répond :",
+      "combien de temps Pierre fait gagner, combien d'argent Pierre fait économiser, est-ce que Pierre est rentable,",
+      "rentabilité de Pierre, retour sur investissement, ROI, au bout de combien de temps l'abonnement est amorti,",
+      "amortissement, quel impact sur les coûts RH, est-ce que ça remplace réellement du travail humain,",
+      "économie pour plusieurs salariés, qu'est-ce qu'une petite entreprise gagne concrètement avec Pierre,",
+      "mon équipe RH passe des heures par semaine sur l'administratif ça changerait quoi,",
+      "est-ce plus rentable qu'embaucher quelqu'un, combien ça rapporte, gain de productivité, productivité RH.",
+    ].join(" "),
+    sourceType: "product_registry",
+    authority: "verified_report",
+    visibility: "PUBLIC",
+    citationLabel: "l'explication ROI et productivité",
+  });
+}
+
 function extractCountryWord(q: string): string {
   const m = q.match(/suisse|switzerland|belgique|belgium|luxembourg|france|\bfr\b|\bbe\b|\blu\b|\bch\b/i);
   return m ? m[0] : "";

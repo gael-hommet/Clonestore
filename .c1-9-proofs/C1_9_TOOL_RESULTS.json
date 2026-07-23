@@ -1,0 +1,68 @@
+{
+  "artifact": "C1_9_TOOL_RESULTS",
+  "generatedAt": "2026-07-22",
+  "source": "Dérivé de C1_9_REAL_MODEL_RESULTS.json (campagne provider réelle, 12 cas, corpus inédit, juge séparé).",
+  "governance": {
+    "externalEffectTools": "refusés par construction (executeGovernedTool : external_effect_blocked)",
+    "shadowMode": "aucun outil exécuté (tools_disabled) — aucun effet ne peut être joué deux fois",
+    "unknownTool": "refusé (unknown_tool), jamais exécuté ni prétendu exécuté",
+    "anonymousAccess": "par outil, via availableToAnonymous"
+  },
+  "registry": [
+    {
+      "id": "estimate_workload",
+      "risk": "read_only",
+      "availableToAnonymous": true,
+      "requiresHumanValidation": false
+    }
+  ],
+  "campaign": {
+    "turnsWithToolExecuted": 6,
+    "totalTurns": 14,
+    "executed": [
+      {
+        "case": "substitution",
+        "turn": 0,
+        "tools": [
+          "estimate_workload"
+        ]
+      },
+      {
+        "case": "multi-tour",
+        "turn": 1,
+        "tools": [
+          "estimate_workload"
+        ]
+      },
+      {
+        "case": "correction",
+        "turn": 0,
+        "tools": [
+          "estimate_workload"
+        ]
+      },
+      {
+        "case": "correction",
+        "turn": 1,
+        "tools": [
+          "estimate_workload"
+        ]
+      },
+      {
+        "case": "objection-chatgpt",
+        "turn": 0,
+        "tools": [
+          "estimate_workload"
+        ]
+      },
+      {
+        "case": "estimation-guidee",
+        "turn": 0,
+        "tools": [
+          "estimate_workload"
+        ]
+      }
+    ]
+  },
+  "estimationDoctrine": "Le calcul est fait par l'outil, jamais par le modèle seul ; les hypothèses sont retournées AVEC le résultat pour être explicitées dans la réponse. Sans paramètres, l'outil refuse et dit ce qui manque au lieu d'inventer une moyenne."
+}

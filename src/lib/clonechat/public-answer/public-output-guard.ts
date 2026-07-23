@@ -42,7 +42,9 @@ export interface PublicGuardInput {
   readonly commercialForbidden: boolean;
 }
 
-const COMMERCIAL_ROUTES = new Set(["/reserver/pierre", "/demo", "/demo/pierre"]);
+/** Destinations à intention commerciale. Exporté : la réparation ciblée C1.9 doit pouvoir
+ *  retirer LA destination fautive sans jeter le texte du modèle avec elle. */
+export const COMMERCIAL_ROUTES = new Set(["/reserver/pierre", "/demo", "/demo/pierre"]);
 
 /** Contrôle fail-closed d'une réponse publique avant émission. */
 export function checkPublicOutput(input: PublicGuardInput): PublicGuardVerdict {

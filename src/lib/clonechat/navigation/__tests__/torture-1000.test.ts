@@ -125,5 +125,8 @@ describe("C1.8 TORTURE §1 — 1000 messages adverses indépendants", () => {
     expect(parasiteViolations, `parasite entreprise: ${JSON.stringify(parasiteViolations.slice(0, 5))}`).toEqual([]);
     // INTENTIONS CLAIRES ≥ 98 %
     expect(clearRate).toBeGreaterThanOrEqual(0.98);
-  });
+  // C1.9 — délai EXPLICITE : ce test traite ~1000 cas et prenait ~8 s contre les 5 s par
+  // défaut de vitest. Il échouait donc selon la vitesse de la machine, pas selon le code —
+  // un échec de cette nature finit par masquer un vrai échec.
+  }, 60_000);
 });

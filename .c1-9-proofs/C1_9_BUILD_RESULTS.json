@@ -1,0 +1,46 @@
+{
+  "artifact": "C1_9_BUILD_RESULTS",
+  "generatedAt": "2026-07-23",
+  "status": "BUILD_GREEN",
+  "honest": true,
+  "command": "DATABASE_URL=\"\" CLONECHAT_DB_URL=\"\" NEXT_DIST_DIR=.next-c19-final NODE_OPTIONS=--max-old-space-size=4096 npx next build",
+  "env": {
+    "DATABASE_URL": "\"\" (production DÉBRANCHÉE)",
+    "CLONECHAT_DB_URL": "\"\" (durable DÉBRANCHÉE)"
+  },
+  "result": {
+    "exitCode": 0,
+    "buildId": "W-w3Ug0WoZ1pS1_mBMbXi",
+    "compiled": "Compiled successfully in 19.7min",
+    "staticPages": "196/196 générées",
+    "finalize": "Finalizing page optimization — OK",
+    "routeTablePrinted": true,
+    "warnings": "2 avertissements pré-existants et connus (Edge Runtime @supabase/realtime-js + @supabase/supabase-js — process.version(s) non supporté en Edge). Identiques au build P20 ; sans rapport avec cette passe.",
+    "errors": []
+  },
+  "timeline": {
+    "attempt1_cap6144": {
+      "start": "00:54:33",
+      "outcome": "AVORTÉE (moi) après diagnostic",
+      "note": "A compilé et fait 5 494 CPU-sec de travail RÉEL en 18 min (~5 cœurs) AVANT que la machine ne commence à se METTRE EN VEILLE la nuit. Le ralentissement observé (~0,78 cœur puis quasi-nul pendant ~8 h) était la mise en veille du poste, PAS un blocage RAM ni le hang pg. Arrêtée pour relancer proprement à l'éveil.",
+      "buildId": null
+    },
+    "attempt2_cap4096": {
+      "start": "11:20:01",
+      "end": "11:43:37",
+      "durationMin": 23.5,
+      "outcome": "BUILD_GREEN",
+      "note": "Relancée à l'éveil de la machine avec un plafond de tas réduit (4096) pour tenir dans la RAM disponible. Compilation à ~6 cœurs soutenus, puis vérification des types, collecte des données de page, 196/196 pages statiques, finalisation. Exit 0, BUILD_ID réel.",
+      "buildId": "W-w3Ug0WoZ1pS1_mBMbXi"
+    }
+  },
+  "b1_verification": {
+    "claim": "Le blocage de compilation de 4 heures était une ATTENTE INFINIE sur le pool pg (connectionTimeoutMillis = 0).",
+    "proof": "Avec DATABASE_URL et CLONECHAT_DB_URL DÉBRANCHÉES, la compilation TRAVERSE désormais la collecte des données de page et génère 196/196 pages statiques jusqu'à exit 0 + BUILD_ID. L'ancien hang laissait le processus à 44 Mo, 0 CPU, quatre heures, sans BUILD_ID. Le nouveau build fait un travail CPU RÉEL et soutenu (jusqu'à ~6 cœurs) et TERMINE. La borne d'attente (connexion 8 s, requête 15 s) transforme une base injoignable en repli in-memory au lieu d'une suspension.",
+    "verified": true
+  },
+  "monitoring": {
+    "method": "Surveillance par TAUX de CPU du worker (le vrai signal de progression) plutôt que par croissance du log, qui reste muet pendant la collecte des données de page. Garde d'arrêt sur stagnation réelle. Un premier build a été arrêté après diagnostic (mise en veille du poste, non un hang) ; le second, à l'éveil, a terminé sans intervention.",
+    "noFourHourWait": true
+  }
+}

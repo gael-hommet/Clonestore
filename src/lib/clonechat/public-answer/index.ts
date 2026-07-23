@@ -81,5 +81,5 @@ export function resolvePublicAnswer(message: string): PublicAnswerResult {
 
 export { classifyPublicSituation } from "./public-situation";
 export type { PublicSituation, PublicSituationKind } from "./public-situation";
-export { checkPublicOutput, sanitizePublicText, PUBLIC_GUARD_FALLBACK } from "./public-output-guard";
+export { checkPublicOutput, sanitizePublicText, PUBLIC_GUARD_FALLBACK, COMMERCIAL_ROUTES } from "./public-output-guard";
 export * from "./public-canon";

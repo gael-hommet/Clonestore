@@ -58,7 +58,27 @@ export async function createPgClonechatDb(connectionString: string, opts?: { ass
   // Import serveur du driver pg (ce module n'est jamais bundlé côté client : il n'est
   // importé que par la couche serveur). Specifier statique → résolu par le runtime nodejs.
   const { default: pg } = (await import("pg")) as unknown as { default: { Pool: new (c: unknown) => PgPool } };
-  const pool = new pg.Pool({ connectionString, max: 8, ...(opts?.ssl ? { ssl: { rejectUnauthorized: false } } : {}) });
+  // ── ATTENTE BORNÉE (obligatoire) ────────────────────────────────────────────
+  // `pg` attend INDÉFINIMENT par défaut : `connectionTimeoutMillis` vaut 0. Une base
+  // injoignable — coupure réseau, TLS intercepté, base volontairement débranchée pendant
+  // une compilation — ne produit alors ni erreur ni repli : le processus reste suspendu,
+  // sans consommer de mémoire ni de CPU, indistinguable d'un travail en cours. C'est
+  // exactement la signature du blocage observé pendant la collecte des données de page
+  // (processus vivant à 44 Mo, quatre heures, aucun octet écrit).
+  //
+  // Une base inaccessible doit ÉCHOUER, vite et franchement : l'appelant retombe alors sur
+  // l'implémentation en mémoire, comme lorsqu'aucune URL n'est configurée. Un échec net
+  // est une information ; une attente infinie n'en est pas une.
+  const pool = new pg.Pool({
+    connectionString,
+    max: 8,
+    connectionTimeoutMillis: 8_000,
+    idleTimeoutMillis: 30_000,
+    // Une requête qui n'aboutit pas ne doit pas non plus retenir le tour indéfiniment.
+    statement_timeout: 15_000,
+    query_timeout: 15_000,
+    ...(opts?.ssl ? { ssl: { rejectUnauthorized: false } } : {}),
+  });
   // OBLIGATOIRE (pg) : un client INACTIF du pool peut être coupé (redémarrage Postgres,
   // coupure réseau, arrêt côté serveur). pg relaie alors l'erreur au niveau du pool ; SANS
   // écouteur, Node émet un `uncaughtException` et le process PLANTE. On CONSOMME l'erreur et

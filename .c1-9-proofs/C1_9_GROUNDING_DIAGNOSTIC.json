@@ -1,0 +1,385 @@
+{
+  "artifact": "C1_9_GROUNDING_DIAGNOSTIC",
+  "generatedAt": "2026-07-22",
+  "purpose": "Distinguer « la connaissance manque » de « la récupération ne la trouve pas ».",
+  "summary": {
+    "probes": 16,
+    "none": 0,
+    "weak": 0,
+    "strong": 16,
+    "withUnmatchedNeeds": 5
+  },
+  "rows": [
+    {
+      "question": "Pierre fait quoi ?",
+      "expected": "rôle + capacités",
+      "candidates": 122,
+      "sufficiency": "strong",
+      "selected": 10,
+      "chars": 3353,
+      "unmatchedNeeds": [],
+      "selectedIds": [
+        "clonechat.identity",
+        "cap.domain-summary",
+        "legacy.route./agents/pierre",
+        "legacy.release.demo",
+        "legacy.route./demo/pierre",
+        "legacy.price.pierre",
+        "site./demo/pierre",
+        "truth.clonestore.marketplace",
+        "legacy.gov.validation",
+        "legacy.route./reserver/pierre"
+      ],
+      "preview": [
+        "clonechat.identity: CloneChat est l'employé système central de CloneStore : l'interlocuteur unique du site. Son rôle : expliquer CloneStore et ce qu'on peut y faire ; rép",
+        "cap.domain-summary: Pierre couvre 215 capacités RH canoniques réparties sur 22 domaines : Organisation & planning (12) · Recruitment (11) · Offer & pre-hire (6) · Contrac",
+        "legacy.route./agents/pierre: « Pierre » (/agents/pierre) — espace public, audience public."
+      ]
+    },
+    {
+      "question": "Il prépare les contrats ?",
+      "expected": "préparation documentaire",
+      "candidates": 122,
+      "sufficiency": "strong",
+      "selected": 10,
+      "chars": 4687,
+      "unmatchedNeeds": [],
+      "selectedIds": [
+        "product.roi-productivity",
+        "truth.pierre.hr_operational_preparation",
+        "cap.contract.create",
+        "site./agents/pierre",
+        "product.identity",
+        "truth.external-blockers",
+        "legacy.vision.employee",
+        "truth.pierre.identity",
+        "truth.pierre.no_final_legal_decision",
+        "legacy.vision.governance"
+      ],
+      "preview": [
+        "product.roi-productivity: Aucune moyenne de gain de temps ou d'argent n'est publiée par CloneStore, et il ne faut jamais en inventer une. Le gain réel dépend de facteurs propre",
+        "truth.pierre.hr_operational_preparation: Préparation RH opérationnelle — statut : verified_local_safe. Pierre prépare et suit le travail RH opérationnel ; les décisions et envois sensibles re",
+        "cap.contract.create: Create employment contract : Create employment contract Mode de fonctionnement : préparation de brouillon — l'humain envoie/décide. Le volet légal pay"
+      ]
+    },
+    {
+      "question": "Il les signe ?",
+      "expected": "signature NON active",
+      "candidates": 122,
+      "sufficiency": "strong",
+      "selected": 2,
+      "chars": 1833,
+      "unmatchedNeeds": [],
+      "selectedIds": [
+        "truth.external-blockers",
+        "product.identity"
+      ],
+      "preview": [
+        "truth.external-blockers: Activation du paiement (Stripe) : Le paiement en ligne n'est pas encore ouvert ; la réservation fondateur ne demande aucun paiement. Signature électro",
+        "product.identity: CloneStore est la boutique d'employés IA d'entreprise : des employés IA opérationnels, gouvernés et tracés — le premier est Pierre, employé IA RH. Un "
+      ]
+    },
+    {
+      "question": "Il envoie les mails ?",
+      "expected": "envoi NON actif",
+      "candidates": 122,
+      "sufficiency": "strong",
+      "selected": 10,
+      "chars": 3706,
+      "unmatchedNeeds": [],
+      "selectedIds": [
+        "tech.mail",
+        "truth.ext.email_provider",
+        "product.identity",
+        "truth.external-blockers",
+        "truth.t1.mail",
+        "site./diagnostic-rh",
+        "legacy.gov.validation",
+        "truth.pierre.hr_operational_preparation",
+        "site./agents/pierre",
+        "cap.domain-summary"
+      ],
+      "preview": [
+        "tech.mail: MailTech — statut registre : partial. Vos e-mails RH arrivent prêts à envoyer : vous relisez, vous cliquez. Verrou live : aucun envoi automatique (pro",
+        "truth.ext.email_provider: Provider e-mail — statut : external_blocked. Les e-mails sont préparés ; l'envoi reste chez vous.",
+        "product.identity: CloneStore est la boutique d'employés IA d'entreprise : des employés IA opérationnels, gouvernés et tracés — le premier est Pierre, employé IA RH. Un "
+      ]
+    },
+    {
+      "question": "Vous êtes disponibles en Suisse ?",
+      "expected": "CH couvert + CHF",
+      "candidates": 117,
+      "sufficiency": "strong",
+      "selected": 5,
+      "chars": 3194,
+      "unmatchedNeeds": [],
+      "selectedIds": [
+        "pricing.catalog",
+        "cap.domain-summary",
+        "clonechat.identity",
+        "truth.clonestore.paid_launch_blocked",
+        "site./agents"
+      ],
+      "preview": [
+        "pricing.catalog: Pays de lancement : FR, BE, LU, CH. FR/BE/LU: 449 € / mois · CH: 499 CHF / mois. Pour CH : 499 CHF / mois (CHF). Un client suisse voit et paiera l'off",
+        "cap.domain-summary: Pierre couvre 215 capacités RH canoniques réparties sur 22 domaines : Organisation & planning (12) · Recruitment (11) · Offer & pre-hire (6) · Contrac",
+        "clonechat.identity: CloneChat est l'employé système central de CloneStore : l'interlocuteur unique du site. Son rôle : expliquer CloneStore et ce qu'on peut y faire ; rép"
+      ]
+    },
+    {
+      "question": "On est en Belgique",
+      "expected": "BE couvert + EUR",
+      "candidates": 122,
+      "sufficiency": "strong",
+      "selected": 4,
+      "chars": 3111,
+      "unmatchedNeeds": [
+        "Belgique"
+      ],
+      "selectedIds": [
+        "cap.org.restructuring_prepare",
+        "pricing.catalog",
+        "cap.domain-summary",
+        "clonechat.identity"
+      ],
+      "preview": [
+        "cap.org.restructuring_prepare: Prepare restructuring scenarios (analysis only) : Prepare restructuring scenarios (analysis only) Mode de fonctionnement : observation et signalement ",
+        "pricing.catalog: Pays de lancement : FR, BE, LU, CH. FR/BE/LU: 449 € / mois · CH: 499 CHF / mois. Pour BE : 449 € / mois (EUR). Un client suisse voit et paiera l'offre",
+        "cap.domain-summary: Pierre couvre 215 capacités RH canoniques réparties sur 22 domaines : Organisation & planning (12) · Recruitment (11) · Offer & pre-hire (6) · Contrac"
+      ]
+    },
+    {
+      "question": "Et en Espagne ?",
+      "expected": "ES non couvert",
+      "candidates": 113,
+      "sufficiency": "strong",
+      "selected": 3,
+      "chars": 2839,
+      "unmatchedNeeds": [
+        "Espagne"
+      ],
+      "selectedIds": [
+        "pricing.catalog",
+        "cap.domain-summary",
+        "clonechat.identity"
+      ],
+      "preview": [
+        "pricing.catalog: Pays de lancement : FR, BE, LU, CH. FR/BE/LU: 449 € / mois · CH: 499 CHF / mois. Un client suisse voit et paiera l'offre suisse (CHF). Pays non déterm",
+        "cap.domain-summary: Pierre couvre 215 capacités RH canoniques réparties sur 22 domaines : Organisation & planning (12) · Recruitment (11) · Offer & pre-hire (6) · Contrac",
+        "clonechat.identity: CloneChat est l'employé système central de CloneStore : l'interlocuteur unique du site. Son rôle : expliquer CloneStore et ce qu'on peut y faire ; rép"
+      ]
+    },
+    {
+      "question": "Combien en CHF ?",
+      "expected": "499 CHF",
+      "candidates": 113,
+      "sufficiency": "strong",
+      "selected": 7,
+      "chars": 4435,
+      "unmatchedNeeds": [],
+      "selectedIds": [
+        "pricing.catalog",
+        "legacy.price.pierre",
+        "site./paiement",
+        "site./comprendre-clonestore",
+        "legacy.employees.future",
+        "clonechat.identity",
+        "product.roi-productivity"
+      ],
+      "preview": [
+        "pricing.catalog: Pays de lancement : FR, BE, LU, CH. FR/BE/LU: 449 € / mois · CH: 499 CHF / mois. Un client suisse voit et paiera l'offre suisse (CHF). Pays non déterm",
+        "legacy.price.pierre: Pierre est proposé à 449 € HT/mois (449 € HT). C'est le tarif de référence, source de vérité commerciale unique.",
+        "site./paiement: /paiement — Paiement (page d'information). Page statique d'explication paiement/prix. Le paiement en ligne n'est pas encore ouvert. Comprendre le fonc"
+      ]
+    },
+    {
+      "question": "Vous apprenez nos habitudes ?",
+      "expected": "usage des données",
+      "candidates": 118,
+      "sufficiency": "strong",
+      "selected": 5,
+      "chars": 2279,
+      "unmatchedNeeds": [],
+      "selectedIds": [
+        "legacy.tech.clonelearn",
+        "site./legal/dpa",
+        "legacy.gov.isolation",
+        "site./diagnostic-rh",
+        "clonechat.identity"
+      ],
+      "preview": [
+        "legacy.tech.clonelearn: CloneLearn : CloneLearn ingère les retours humains et les patterns d'usage pour améliorer progressivement les réponses. Tout apprentissage passe par u",
+        "site./legal/dpa: /legal/dpa — DPA. Data Processing Agreement. Accord de traitement des données.",
+        "legacy.gov.isolation: Chaque entreprise ne voit que ses propres données. CloneChat n'accède jamais aux données d'une autre entreprise et refuse toute demande de contourneme"
+      ]
+    },
+    {
+      "question": "Mes données sont isolées ?",
+      "expected": "isolation",
+      "candidates": 118,
+      "sufficiency": "strong",
+      "selected": 5,
+      "chars": 2799,
+      "unmatchedNeeds": [
+        "cloisonnement tenant"
+      ],
+      "selectedIds": [
+        "legacy.gov.isolation",
+        "product.identity",
+        "site./legal/dpa",
+        "site./diagnostic-rh",
+        "clonechat.identity"
+      ],
+      "preview": [
+        "legacy.gov.isolation: Chaque entreprise ne voit que ses propres données. CloneChat n'accède jamais aux données d'une autre entreprise et refuse toute demande de contourneme",
+        "product.identity: CloneStore est la boutique d'employés IA d'entreprise : des employés IA opérationnels, gouvernés et tracés — le premier est Pierre, employé IA RH. Un ",
+        "site./legal/dpa: /legal/dpa — DPA. Data Processing Agreement. Accord de traitement des données."
+      ]
+    },
+    {
+      "question": "Supprime le dossier",
+      "expected": "action interdite sans validation",
+      "candidates": 117,
+      "sufficiency": "strong",
+      "selected": 10,
+      "chars": 3467,
+      "unmatchedNeeds": [
+        "suppression"
+      ],
+      "selectedIds": [
+        "legacy.gov.validation",
+        "legacy.vision.platform",
+        "legacy.vision.employee",
+        "site./agents/pierre",
+        "product.identity",
+        "cap.domain-summary",
+        "legacy.vision.governance",
+        "site./legal/cgu",
+        "roadmap.public",
+        "legacy.tech.clonereview"
+      ],
+      "preview": [
+        "legacy.gov.validation: Pierre ne fait rien de sensible sans validation humaine. Les actions à risque (envoi, document sensible, décision) exigent une confirmation explicite.",
+        "legacy.vision.platform: CloneStore est une plateforme d'employés IA opérationnels : une entreprise se compose progressivement d'employés IA qui réalisent un vrai travail méti",
+        "legacy.vision.employee: Un employé IA reçoit une demande, la transforme en mission, prépare le travail, suit, relance et garde la trace. Rien de sensible n'est exécuté sans v"
+      ]
+    },
+    {
+      "question": "Compare avec un autre client",
+      "expected": "impossible",
+      "candidates": 116,
+      "sufficiency": "strong",
+      "selected": 5,
+      "chars": 1588,
+      "unmatchedNeeds": [],
+      "selectedIds": [
+        "legacy.gov.isolation",
+        "site./login",
+        "legacy.employees.future",
+        "pricing.catalog",
+        "product.identity"
+      ],
+      "preview": [
+        "legacy.gov.isolation: Chaque entreprise ne voit que ses propres données. CloneChat n'accède jamais aux données d'une autre entreprise et refuse toute demande de contourneme",
+        "site./login: /login — Connexion. Entrée canonique de l'espace client (auth Supabase). Se connecter à son espace.",
+        "legacy.employees.future: L'organisation se composera progressivement d'autres employés IA, présentés comme départements génériques (sans nom ni prix ni date tant qu'ils n'exis"
+      ]
+    },
+    {
+      "question": "J'ai été débité deux fois",
+      "expected": "support, aucune offre",
+      "candidates": 122,
+      "sufficiency": "strong",
+      "selected": 8,
+      "chars": 3462,
+      "unmatchedNeeds": [
+        "incident de facturation"
+      ],
+      "selectedIds": [
+        "site./legal/cgv",
+        "legacy.route./questions",
+        "site./questions",
+        "legacy.employees.future",
+        "clonechat.identity",
+        "legacy.release.clonechat",
+        "legacy.vision.suite",
+        "product.identity"
+      ],
+      "preview": [
+        "site./legal/cgv: /legal/cgv — CGV. Conditions générales de vente : abonnement Pierre 449 € / mois, facturation, résiliation, périmètre inclus/exclu. Cadre commercial d",
+        "legacy.route./questions: « Support » (/questions) — espace public, audience public.",
+        "site./questions: /questions — Support / FAQ. Hub support public : choisir un employé IA, comprendre Pierre, paiement & accès, cockpit & missions, sécurité & contrôle, "
+      ]
+    },
+    {
+      "question": "Il sait faire un solde de tout compte ?",
+      "expected": "capacité RH",
+      "candidates": 117,
+      "sufficiency": "strong",
+      "selected": 5,
+      "chars": 2818,
+      "unmatchedNeeds": [],
+      "selectedIds": [
+        "clonechat.identity",
+        "legacy.route./signup",
+        "site./signup",
+        "site./demo",
+        "cap.domain-summary"
+      ],
+      "preview": [
+        "clonechat.identity: CloneChat est l'employé système central de CloneStore : l'interlocuteur unique du site. Son rôle : expliquer CloneStore et ce qu'on peut y faire ; rép",
+        "legacy.route./signup: « Créer un compte » (/signup) — espace public, audience public.",
+        "site./signup: /signup — Créer un compte. Création de compte avec présentation des fonctionnalités. Créer son compte CloneStore."
+      ]
+    },
+    {
+      "question": "Pourquoi pas juste ChatGPT ?",
+      "expected": "positionnement",
+      "candidates": 117,
+      "sufficiency": "strong",
+      "selected": 7,
+      "chars": 3839,
+      "unmatchedNeeds": [],
+      "selectedIds": [
+        "clonechat.identity",
+        "legacy.route./assistant",
+        "legacy.vision.suite",
+        "site./assistant",
+        "site./#guided-discovery",
+        "product.identity",
+        "roadmap.public"
+      ],
+      "preview": [
+        "clonechat.identity: CloneChat est l'employé système central de CloneStore : l'interlocuteur unique du site. Son rôle : expliquer CloneStore et ce qu'on peut y faire ; rép",
+        "legacy.route./assistant: « CloneChat » (/assistant) — espace clonechat, audience public.",
+        "legacy.vision.suite: Pierre est l'employé IA RH opérationnel. CloneChat est l'assistant conversationnel (orientation en public, opérationnel une fois connecté). CloneVoice"
+      ]
+    },
+    {
+      "question": "Qu'est-ce qui garantit qu'il ne raconte pas n'importe quoi ?",
+      "expected": "garde-fous",
+      "candidates": 122,
+      "sufficiency": "strong",
+      "selected": 10,
+      "chars": 3138,
+      "unmatchedNeeds": [],
+      "selectedIds": [
+        "legacy.vision.employee",
+        "legacy.vision.governance",
+        "legacy.employee.pierre",
+        "cap.org.create_site",
+        "legacy.gov.validation",
+        "legacy.vision.platform",
+        "cap.offboarding.orchestrate",
+        "site./agents/pierre",
+        "product.identity",
+        "cap.domain-summary"
+      ],
+      "preview": [
+        "legacy.vision.employee: Un employé IA reçoit une demande, la transforme en mission, prépare le travail, suit, relance et garde la trace. Rien de sensible n'est exécuté sans v",
+        "legacy.vision.governance: Le modèle CloneStore garde l'humain au contrôle : l'employé IA propose et prépare, l'humain valide le sensible, le système exécute puis relit le résul",
+        "legacy.employee.pierre: Pierre — Employé IA RH opérationnel. Reçoit une demande RH, la transforme en mission, prépare le travail, suit, relance et garde la trace. Domaines : "
+      ]
+    }
+  ]
+}

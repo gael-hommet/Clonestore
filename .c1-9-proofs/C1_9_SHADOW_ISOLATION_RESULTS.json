@@ -1,0 +1,28 @@
+{
+  "artifact": "C1_9_SHADOW_ISOLATION_RESULTS",
+  "generatedAt": "2026-07-22",
+  "method": "Route RÉELLE (POST de src/app/api/assistant/chat/route.ts) avec dépendances lourdes mockées. Aucun réseau.",
+  "proven": {
+    "offModeCostsNothing": true,
+    "displayedResponseByteIdentical": true,
+    "noDoubleHistoryWrite": true,
+    "noToolExecutedInShadow": true,
+    "shadowFailureNeverDegradesTurn": true,
+    "tokenCapEnforced": true,
+    "noSecretInLog": true,
+    "streamingShadowRunsOnlyAfterStreamClose": true
+  },
+  "summary": {
+    "total": 1,
+    "ran": 1,
+    "skipped": 0,
+    "avgLegacyCoverage": 0,
+    "avgShadowCoverage": 0,
+    "shadowBetterCoverage": 0,
+    "legacyBetterCoverage": 0,
+    "totalTokens": 180,
+    "totalCostUsd": 0.000063,
+    "avgLatencyMs": 10,
+    "toolsExecutedInShadow": 0
+  }
+}

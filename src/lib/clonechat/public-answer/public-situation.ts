@@ -43,6 +43,7 @@ export type PublicSituationKind =
   | "payment_method"
   | "human_contact"
   | "value_question"
+  | "roi_productivity"
   | "capability_question"
   | "false_price_premise"
   | "pricing_question"
@@ -245,6 +246,20 @@ const COMPANY_IDENTITY_RX =
 /** Question de VALEUR (« ça vaut le coup ? », « concrètement je gagne quoi ? »). */
 const VALUE_RX =
   /\b(ca\s+vaut\s+le\s+coup|vaut\s+quoi|jgagne\s+koi|je\s+gagne\s+quoi|concretemen[t]?\s+j|quel\s+interet|pourquoi\s+(?:je\s+)?(?:le\s+)?prendre|c'?est\s+fiable|ca\s+marche\s+vraiment|c'?est\s+du\s+vent|costaud|convainc)\b/;
+
+// C1.8 réouvert — un ROI/gain de productivité n'est PAS un prix : « combien de temps » et
+// « combien d'argent » un employé IA fait-il gagner sont deux dimensions distinctes du prix
+// affiché. Signaux génériques (temps gagné, argent économisé, rentabilité, amortissement, impact
+// sur les coûts, remplacement de travail humain, comparaison à l'embauche) — jamais une phrase
+// exacte : toute formulation nouvelle qui porte l'un de ces signaux doit être reconnue.
+// Écarts bornés `[^.!?]{0,N}` plutôt qu'une adjacence stricte : « gagner QUOI EN temps », « fait
+// gagner COMBIEN DE temps », « économie POUR 20 salariés » sont des ordres de mots différents pour
+// le MÊME signal — une correspondance rigide ne comprendrait qu'une seule formulation. Chaque
+// alternative porte ses PROPRES limites de mot (pas de `\b` global autour du groupe) : certaines
+// se terminent volontairement en préfixe d'un mot plus long (« salari » dans « salariés »), un `\b`
+// global échouerait alors juste après (pas de frontière au milieu de « salariés »).
+const ROI_PRODUCTIVITY_RX =
+  /(?:\brentable\b|\brentabilite\b|\broi\b|\bretour\s+sur\s+investissement\b|\bamorti[a-z]*\b|\bgagn[a-z]*\b[^.!?]{0,25}\btemps\b|\btemps\b[^.!?]{0,25}\bgagn[a-z]*\b|\beconom[a-z]*\b[^.!?]{0,25}\b(?:argent|temps|cout|salari)|\b(?:argent|temps|cout|salari)[a-z]*\b[^.!?]{0,25}\beconom[a-z]*\b|\bimpact\s+(?:sur\s+)?(?:les\s+)?couts?\b|\bremplace[a-z]*\s+(?:reellement\s+|vraiment\s+)?(?:du\s+)?travail\s+humain\b|\bgagne[a-z]*\b[^.!?]{0,20}\bconcretement\b|\bheures?\s+par\s+semaine\b|\bproductivite\b|\bplus\s+rentable\s+qu[e']|\bca\s+changerait\s+quoi\b|\bcombien\s+(?:ca\s+)?(?:rapporte|fait\s+gagner)\b)/;
 
 // ── Capacités / limites produit ──────────────────────────────────────────────
 const CAPABILITY_TOKENS: ReadonlyArray<{ rx: RegExp; key: CapabilityKey }> = [
@@ -497,6 +512,15 @@ export function classifyPublicSituation(message: string): PublicSituation {
 
   // 8. Capacités et limites produit — répondre avant de vendre.
   if (capability !== null) return of("capability_question", `capacité ${capability}`, { capability });
+
+  // 8b. ROI / productivité — gain de temps, économie, rentabilité, amortissement. Distinct du prix :
+  // une question sur ce que Pierre FAIT GAGNER n'est pas une question sur ce qu'il COÛTE. Vérifiée
+  // AVANT le travail RH/donnée privée (9) : « mon équipe passe X heures, ça changerait quoi » cite
+  // « mon équipe » (normalement un signal de donnée privée réelle) mais dans un cadrage HYPOTHÉTIQUE
+  // d'estimation ROI, pas une demande d'accès à un vrai compte — le signal ROI, plus spécifique,
+  // doit l'emporter sur le simple mot « mon équipe » (même défaut de fond que « combien » pour le
+  // prix : un score lexical court ne doit pas dominer le sens complet de la phrase).
+  if (ROI_PRODUCTIVITY_RX.test(m)) return of("roi_productivity", "question de retour sur investissement / productivité");
 
   // 9. Travail RH : valider, piloter une mission, préparer un document, consulter une donnée privée.
   if (VALIDATION_REQUEST_RX.test(m)) return of("validation_request", "demande de validation");

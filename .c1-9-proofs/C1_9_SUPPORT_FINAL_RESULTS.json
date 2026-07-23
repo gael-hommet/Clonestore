@@ -1,0 +1,161 @@
+{
+  "artifact": "C1_9_SUPPORT_FINAL_RESULTS",
+  "generatedAt": "2026-07-22",
+  "question": "Une demande d'assistance peut-elle encore devenir une conversation commerciale ?",
+  "method": "Matrice déterministe sur 7 situations d'incident reformulées, distinctes des corpus de campagne.",
+  "rule": "§6 — la nature `support_incident` interdit TOUS les sujets périphériques, retient prix et périmètre pays, et n'autorise que la page d'assistance réelle.",
+  "situations": [
+    {
+      "id": "double-debit",
+      "forbiddenTopics": [
+        "pricing",
+        "payment_status",
+        "founder_reservation",
+        "demo",
+        "roi",
+        "billing_terms",
+        "country_coverage"
+      ],
+      "allowedTopics": [],
+      "shouldOfferNextStep": false,
+      "shouldUseCommercialCta": false,
+      "pricingServed": false,
+      "countryTableServed": false,
+      "supportRouteAllowed": true,
+      "promptForbidsDiagnosis": true,
+      "promptForbidsSale": true
+    },
+    {
+      "id": "resiliation",
+      "forbiddenTopics": [
+        "pricing",
+        "payment_status",
+        "founder_reservation",
+        "demo",
+        "roi",
+        "billing_terms",
+        "country_coverage"
+      ],
+      "allowedTopics": [],
+      "shouldOfferNextStep": false,
+      "shouldUseCommercialCta": false,
+      "pricingServed": false,
+      "countryTableServed": false,
+      "supportRouteAllowed": true,
+      "promptForbidsDiagnosis": true,
+      "promptForbidsSale": true
+    },
+    {
+      "id": "connexion",
+      "forbiddenTopics": [
+        "pricing",
+        "payment_status",
+        "founder_reservation",
+        "demo",
+        "roi",
+        "billing_terms",
+        "country_coverage"
+      ],
+      "allowedTopics": [],
+      "shouldOfferNextStep": false,
+      "shouldUseCommercialCta": false,
+      "pricingServed": false,
+      "countryTableServed": false,
+      "supportRouteAllowed": true,
+      "promptForbidsDiagnosis": true,
+      "promptForbidsSale": true
+    },
+    {
+      "id": "page-echoue",
+      "forbiddenTopics": [
+        "pricing",
+        "payment_status",
+        "founder_reservation",
+        "demo",
+        "roi",
+        "billing_terms",
+        "country_coverage"
+      ],
+      "allowedTopics": [],
+      "shouldOfferNextStep": false,
+      "shouldUseCommercialCta": false,
+      "pricingServed": false,
+      "countryTableServed": false,
+      "supportRouteAllowed": true,
+      "promptForbidsDiagnosis": true,
+      "promptForbidsSale": true
+    },
+    {
+      "id": "panne-technique",
+      "forbiddenTopics": [
+        "pricing",
+        "payment_status",
+        "founder_reservation",
+        "demo",
+        "roi",
+        "billing_terms",
+        "country_coverage"
+      ],
+      "allowedTopics": [],
+      "shouldOfferNextStep": false,
+      "shouldUseCommercialCta": false,
+      "pricingServed": false,
+      "countryTableServed": false,
+      "supportRouteAllowed": true,
+      "promptForbidsDiagnosis": true,
+      "promptForbidsSale": true
+    },
+    {
+      "id": "acces-compte",
+      "forbiddenTopics": [
+        "pricing",
+        "payment_status",
+        "founder_reservation",
+        "demo",
+        "roi",
+        "billing_terms",
+        "country_coverage"
+      ],
+      "allowedTopics": [],
+      "shouldOfferNextStep": false,
+      "shouldUseCommercialCta": false,
+      "pricingServed": false,
+      "countryTableServed": false,
+      "supportRouteAllowed": true,
+      "promptForbidsDiagnosis": true,
+      "promptForbidsSale": true
+    },
+    {
+      "id": "facturation",
+      "forbiddenTopics": [
+        "pricing",
+        "payment_status",
+        "founder_reservation",
+        "demo",
+        "roi",
+        "billing_terms",
+        "country_coverage"
+      ],
+      "allowedTopics": [],
+      "shouldOfferNextStep": false,
+      "shouldUseCommercialCta": false,
+      "pricingServed": false,
+      "countryTableServed": false,
+      "supportRouteAllowed": true,
+      "promptForbidsDiagnosis": true,
+      "promptForbidsSale": true
+    }
+  ],
+  "repairExample": {
+    "removedSentences": 2,
+    "topics": [
+      "pricing",
+      "founder_reservation"
+    ]
+  },
+  "verdict": {
+    "situations": 7,
+    "allForbidCommercial": true,
+    "supportRouteAlwaysAllowed": true
+  }
+}

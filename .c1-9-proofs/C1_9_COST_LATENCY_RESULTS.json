@@ -1,0 +1,36 @@
+{
+  "artifact": "C1_9_COST_LATENCY_RESULTS",
+  "generatedAt": "2026-07-22",
+  "source": "Dérivé de C1_9_REAL_MODEL_RESULTS.json (campagne provider réelle, 12 cas, corpus inédit, juge séparé).",
+  "spend": {
+    "pipelineInput": 36945,
+    "pipelineOutput": 21592,
+    "judgeInput": 8136,
+    "judgeOutput": 4225,
+    "totalTokens": 70898
+  },
+  "perTurn": {
+    "turns": 14,
+    "avgInputTokens": 2507,
+    "avgOutputTokens": 1428,
+    "modelCallsPerTurn": 2
+  },
+  "budgets": {
+    "understandMaxOutputTokens": 1500,
+    "composeMaxOutputTokens": "700 + 250 par objectif de couverture, plafonné à 1600",
+    "hardPortCap": 1600,
+    "campaignCaps": {
+      "productionDatabase": "not used",
+      "externalEffectTools": "blocked by governance",
+      "tokenCapPipeline": 400000,
+      "tokenCapJudge": 150000,
+      "corpusUnseen": true,
+      "judgeIsSeparateCall": true
+    }
+  },
+  "knownInefficiencies": [
+    "Deux appels modèle par tour (comprendre + composer). Acceptable au vu du gain mesuré ; à réévaluer après la bascule.",
+    "Le cache de prompt n'est toujours pas utilisé (prompt-cache.ts reste sans appelant dans la couche héritée).",
+    "La table PRICING héritée ne connaît pas les modèles gpt-5.6 : tout chiffrage en dollars issu de clonechat_usage_events reste sous-estimé."
+  ]
+}

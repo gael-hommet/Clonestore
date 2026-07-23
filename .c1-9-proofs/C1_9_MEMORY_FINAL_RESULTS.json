@@ -1,0 +1,114 @@
+{
+  "artifact": "C1_9_MEMORY_FINAL_RESULTS",
+  "generatedAt": "2026-07-22",
+  "method": "Vrai modèle OpenAI, scénarios multi-tours, juge séparé. Aucune base distante.",
+  "summary": {
+    "cases": 8,
+    "passed": 7,
+    "avgMemoire": 5,
+    "before": {
+      "passed": 4,
+      "avgMemoire": 4.4
+    },
+    "after": {
+      "passed": 7,
+      "avgMemoire": 5
+    }
+  },
+  "rootCauseFixed": "Une valeur corrigée survivait sous un kind DÉRIVÉ (effectif_RH_précédemment_indiqué), donc l ancien chiffre restait sous les yeux du rédacteur. Purge structurelle (préfixe de kind + valeur écartée), sans aucune liste de mots.",
+  "scenarios": [
+    {
+      "id": "mem1",
+      "turns": [
+        "Est-ce rentable pour une PME ?",
+        "On est 22 et ma responsable y passe deux jours par semaine.",
+        "Et avec ces chiffres ?"
+      ],
+      "verdict": "pass",
+      "memoire": 5,
+      "justification": "La réponse résout correctement « on » comme l’entreprise, interprète 22 comme l’effectif et réutilise les deux jours hebdomadaires de tâches RH. Elle recalcule effectivement les scénarios sans redemander tout le contexte, avec des montants globalement justes et des hypothèses explicitement signalées. Les seules réserves sont l’usage d’une fourchette d’automatisation de 30 à 60 %, non étayée par un",
+      "finalAnswer": "Avec vos chiffres, Pierre peut être rentable, mais pas dans tous les scénarios. Le calcul repose sur les hypothèses suivantes : 22 salariés, 2 jours RH par semaine, 7 heures par journée, 4,33 semaines par mois, soit une estimation d’environ 60,6 heures RH par mois. La part réellement automatisable est estimée entre 30 % et 60 %, et l’abonnement est de 449 € HT par mois en France, en Belgique et au Luxembourg.\n\nÀ 20 € de coût horaire chargé, 30 % d’automatisation représenteraient environ 18,2 heures libérées par mois. La valeur estimée serait de 364 €, soit une perte estimée d’environ 85 € par mois après l’abonnement. Avec 60 % d’automatisation, environ 36,4 heures seraient libérées, pour une"
+    },
+    {
+      "id": "mem2",
+      "turns": [
+        "C'est rentable pour une boîte de 15 ?",
+        "Non, je parlais du temps gagné, pas de votre abonnement."
+      ],
+      "verdict": "pass",
+      "memoire": 5,
+      "justification": "Au deuxième tour, l’assistant reconnaît explicitement la correction et recentre correctement la réponse sur le temps gagné, non sur le prix ou la rentabilité de l’abonnement. Il évite d’inventer un nombre d’heures ou un pourcentage à partir du seul effectif de 15 salariés, explique les facteurs nécessaires à l’estimation et propose une méthode de calcul pertinente. La demande d’informations complé",
+      "finalAnswer": "Vous avez raison : vous demandez le temps gagné, pas la rentabilité de l’abonnement. Pour une entreprise de 15 salariés, je ne peux pas donner un nombre d’heures crédible avec l’effectif seul. Il manque le nombre de personnes qui traitent l’administratif RH et le temps qu’elles y consacrent chaque semaine. Le gain potentiel correspondrait à la part de ce temps que Pierre peut prendre en charge ou préparer, avec validation humaine lorsque nécessaire. Il doit être mesuré séparément pour les contrats et avenants, l’onboarding et l’offboarding, les absences et congés, les attestations et courriers RH, les relances et suivis, ainsi que la préparation des variables de paie. Je ne peux pas attribue"
+    },
+    {
+      "id": "mem3",
+      "turns": [
+        "On a deux personnes aux RH.",
+        "Finalement on est plutôt trois.",
+        "Ça change quoi à ton estimation ?"
+      ],
+      "verdict": "pass",
+      "memoire": 5,
+      "justification": "La réponse prend correctement en compte la correction de 2 à 3 personnes et n'utilise plus l'ancien effectif. Elle explique clairement qu'un chiffrage est impossible sans connaître l'estimation précédente et la charge administrative, sans inventer de données ni de capacités. Elle répond aux conséquences possibles sur le besoin de Pierre et indique les informations nécessaires pour recalculer. Elle",
+      "finalAnswer": "Le passage de 2 à 3 personnes aux RH ajoute une capacité interne, mais je ne peux pas chiffrer son effet sur l’estimation précédente, car son contenu exact n’est pas disponible et il manque surtout le temps hebdomadaire consacré aux tâches administratives. L’estimation révisée avec 3 personnes reste donc non chiffrée : je ne peux pas déterminer les heures libérées, le besoin de Pierre ni sa rentabilité sans ces données. Pour Pierre, le besoin peut être moindre si la troisième personne absorbe déjà la charge, mais il peut aussi rester pertinent si le volume de contrats, avenants, onboarding, absences, attestations, relances ou préparation de paie augmente. L’effectif seul ne permet pas de con"
+    },
+    {
+      "id": "mem4",
+      "turns": [
+        "Combien coûte Pierre ?",
+        "Et il fait les contrats ?",
+        "On revient au prix : c'est par mois ou par an ?"
+      ],
+      "verdict": "pass",
+      "memoire": 5,
+      "justification": "La réponse revient correctement au sujet du prix, répond directement à la question mensuel ou annuel, reprend les tarifs et devises déjà mentionnés, et ne les confond pas avec la question précédente sur les contrats. Elle évite aussi d’inventer un engagement annuel ou une remise.",
+      "finalAnswer": "Le tarif de Pierre est facturé par mois, et non par an : 449 € HT/mois en France, en Belgique et au Luxembourg, ou 499 CHF/mois en Suisse. Je ne dispose pas d’information confirmant un engagement annuel ou une remise pour un paiement annuel."
+    },
+    {
+      "id": "mem5",
+      "turns": [
+        "Je dirige une entreprise de 40 salariés en Suisse.",
+        "Ça me coûterait combien ?"
+      ],
+      "verdict": "pass",
+      "memoire": 5,
+      "justification": "La réponse réutilise correctement la Suisse et le CHF mémorisés, donne le prix mensuel communiqué (499 CHF) et calcule correctement le coût annuel (5’988 CHF). Elle précise à juste titre que les frais, taxes et options ne sont pas documentés. Seule réserve mineure : l’affirmation selon laquelle le tarif ne dépend pas de l’effectif n’est pas explicitement étayée par le contexte fourni.",
+      "finalAnswer": "Pour votre entreprise en Suisse, l’abonnement à Pierre coûte 499 CHF par mois. À titre d’estimation, cela représente 5’988 CHF par an si l’abonnement reste actif pendant 12 mois (499 × 12). Les éventuels frais de mise en place, taxes ou options additionnelles ne sont pas précisés ici. Le tarif communiqué ne dépend pas de votre effectif de 40 salariés."
+    },
+    {
+      "id": "mem6",
+      "turns": [
+        "Mon équipe RH passe 30 heures par semaine sur l'administratif.",
+        "Est-ce que ça vaut le coup ?",
+        "Et si je te dis qu'on paye 28 € de l'heure chargé ?"
+      ],
+      "verdict": "pass",
+      "memoire": 5,
+      "justification": "La réponse réutilise correctement les 30 heures hebdomadaires et le coût chargé de 28 €/h, explicite l’hypothèse de conversion mensuelle (52 semaines / 12 mois) et fournit les calculs de seuil de rentabilité ainsi que des scénarios chiffrés. Les calculs sont cohérents et les pourcentages sont présentés comme des hypothèses, non comme une promesse. La seule réserve est que les tarifs et certaines c",
+      "finalAnswer": "Avec un coût horaire chargé de 28 €, les 30 heures hebdomadaires représentent une valeur de 840 € par semaine. En estimant un mois à 52 semaines réparties sur 12 mois, cela représente environ 130 heures et 3 640 € de capacité RH mobilisée par mois. En France, en Belgique ou au Luxembourg, l’abonnement Pierre est de 449 € par mois. Il faudrait donc, selon cette estimation, libérer environ 16 heures par mois, soit près de 3 h 45 par semaine ou 12 % des 30 heures, pour couvrir l’abonnement. La rentabilité mensuelle estimée se calcule ainsi : heures libérées × 28 € − 449 €. Par exemple, si Pierre libérait 20 % des 130 heures mensuelles, soit environ 26 heures, la valeur estimée du temps libéré s"
+    },
+    {
+      "id": "mem7",
+      "turns": [
+        "Bonjour, je m'appelle Claire et je suis DRH.",
+        "Tu peux me tutoyer.",
+        "Alors, qu'est-ce que tu ferais pour moi concrètement ?"
+      ],
+      "verdict": "pass",
+      "memoire": 5,
+      "justification": "La réponse comprend bien la demande concrète, tient compte du rôle de DRH et du tutoiement, sans redemander l’identité de Claire. Elle couvre plusieurs cas d’usage RH, distingue préparation et décision humaine, évite les promesses chiffrées et encadre correctement les actions sensibles. Les demandes de précisions sont pertinentes et posées après une première réponse utile. Seule réserve : plusieur",
+      "finalAnswer": "Concrètement, Pierre pourrait prendre en charge une grande partie de l’administratif RH répétitif pour te faire gagner du temps : préparer des contrats et des avenants, organiser les étapes d’onboarding et d’offboarding, traiter le suivi des absences et des congés, préparer des attestations et des courriers RH, effectuer les relances et les suivis, ainsi que préparer les variables de paie.\n\nPar exemple, lors d’une embauche, il peut préparer les documents nécessaires et suivre les étapes à réaliser. Lors d’un départ, il peut aider à structurer le processus et à préparer les éléments administratifs. Au quotidien, il peut assister le suivi des congés, des absences, des demandes récurrentes et d"
+    },
+    {
+      "id": "mem8",
+      "turns": [
+        "On est en Belgique.",
+        "Et pour les congés payés, ça marche comment ?"
+      ],
+      "verdict": "fail",
+      "memoire": 5,
+      "justification": "La réponse tient bien compte de la Belgique et identifie correctement que le statut, le régime de travail et le temps de travail influencent les congés. Toutefois, elle ne répond presque pas à la question « comment ça marche » : elle aurait dû donner au moins les principes généraux belges, puis demander les précisions nécessaires pour un calcul exact. Les affirmations sur les capacités de Pierre (",
+      "finalAnswer": "En Belgique, je ne peux pas détailler ici les règles applicables, le nombre de jours ou le mode de calcul sans connaître le statut des travailleurs, leur régime et leur temps de travail. Ces éléments peuvent modifier le traitement des congés ; il faut donc une vérification juridique adaptée à votre situation.\n\nPierre peut contribuer au suivi des absences et des congés et prendre en charge les tâches administratives répétitives liées à ces processus. En revanche, les vérifications légales propres à la Belgique et les décisions sensibles restent à contrôler et à valider par un humain. Il ne faut donc pas le présenter comme un dispositif qui décide seul des droits à congé ou qui exécute automat"
+    }
+  ]
+}

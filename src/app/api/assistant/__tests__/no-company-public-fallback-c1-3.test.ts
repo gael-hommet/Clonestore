@@ -6,6 +6,12 @@
 // proposition, aucune fausse entreprise). Les échecs SENSIBLES restent fail-closed.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+// C1.9 — DÉLAI EXPLICITE. Ces tests instancient la VRAIE route (module lourd) et frôlaient
+// les 5 s par défaut de vitest : ils passent seuls, mais tombaient dès qu une autre session
+// chargeait la machine. Un test dont le verdict dépend de la charge finit par masquer un
+// vrai échec ; on borne donc explicitement, sans rien changer à ce qui est vérifié.
+vi.setConfig({ testTimeout: 30_000 });
+
 
 const USER = "aaaaaaaa-1111-4111-8111-111111111111";
 const COMPANY = "11111111-1111-4111-8111-111111111111";

@@ -29,5 +29,8 @@ describe("C1.8 §1 — capture figée pour jugement indépendant", () => {
     // eslint-disable-next-line no-console
     console.log(`\n  ▸ FROZEN CAPTURE : ${forJudges.length} cas figés (id 0..${forJudges.length - 1})`);
     expect(forJudges.length).toBe(1003);
-  });
+  // C1.9 — délai EXPLICITE : ce test traite ~1000 cas et prenait ~8 s contre les 5 s par
+  // défaut de vitest. Il échouait donc selon la vitesse de la machine, pas selon le code —
+  // un échec de cette nature finit par masquer un vrai échec.
+  }, 60_000);
 });

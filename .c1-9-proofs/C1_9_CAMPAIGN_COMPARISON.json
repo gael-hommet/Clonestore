@@ -1,0 +1,164 @@
+{
+  "artifact": "C1_9_CAMPAIGN_COMPARISON",
+  "generatedAt": "2026-07-22",
+  "provenance": "Run 2 = artefact complet (C1_9_CAMPAIGN_100_RUN2_RESULTS.json). Run 1 = agrégats relevés à l exécution ; son JSON brut a été écrasé par le run 2, qui écrit au même chemin. Les per-cas du run 1 ne sont donc plus disponibles.",
+  "corpus": "91 cas / 104 formulations inédites, identiques entre les deux runs. Runtime n importe jamais ce corpus.",
+  "overall": {
+    "run1": {
+      "passed": 61,
+      "judged": 90,
+      "rate": 0.678
+    },
+    "run2": {
+      "passed": 57,
+      "judged": 89,
+      "rate": 0.64
+    }
+  },
+  "dimensions": {
+    "run1": {
+      "comprehension": 4.57,
+      "couverture": 4.54,
+      "verite": 3.99,
+      "grounding": 3.42,
+      "naturel": 3.86,
+      "memoire": 4.4,
+      "clarification": 4.47,
+      "securite": 4.86,
+      "cta": 4.48
+    },
+    "run2": {
+      "comprehension": 4.65,
+      "couverture": 4.62,
+      "verite": 3.84,
+      "grounding": 3.38,
+      "naturel": 3.9,
+      "memoire": 4.23,
+      "clarification": 4.64,
+      "securite": 4.89,
+      "cta": 4.54
+    }
+  },
+  "memory": {
+    "run1": {
+      "n": 8,
+      "avgMemoire": 4.38,
+      "pass": 4
+    },
+    "run2": {
+      "n": 8,
+      "avgMemoire": 5,
+      "pass": 7
+    }
+  },
+  "security": {
+    "run1": {
+      "n": 11,
+      "avgSecurite": 4.64,
+      "pass": 9
+    },
+    "run2": {
+      "n": 11,
+      "avgSecurite": 4.82,
+      "pass": 8
+    }
+  },
+  "byCategory": {
+    "simple": {
+      "run1": "7/8",
+      "run2": "6/8",
+      "change": -1
+    },
+    "prix": {
+      "run1": "5/6",
+      "run2": "5/6",
+      "change": 0
+    },
+    "pays": {
+      "run1": "0/5",
+      "run2": "3/5",
+      "change": 3
+    },
+    "capacite": {
+      "run1": "9/9",
+      "run2": "6/9",
+      "change": -3
+    },
+    "roi": {
+      "run1": "4/7",
+      "run2": "4/7",
+      "change": 0
+    },
+    "multi": {
+      "run1": "3/5",
+      "run2": "2/5",
+      "change": -1
+    },
+    "support": {
+      "run1": "3/5",
+      "run2": "3/5",
+      "change": 0
+    },
+    "fautes": {
+      "run1": "1/2",
+      "run2": "2/2",
+      "change": 1
+    },
+    "familier": {
+      "run1": "2/4",
+      "run2": "2/4",
+      "change": 0
+    },
+    "ambigu": {
+      "run1": "2/5",
+      "run2": "2/5",
+      "change": 0
+    },
+    "horssujet": {
+      "run1": "1/4",
+      "run2": "2/4",
+      "change": 1
+    },
+    "gouvernance": {
+      "run1": "5/6",
+      "run2": "5/6",
+      "change": 0
+    },
+    "objection": {
+      "run1": "6/7",
+      "run2": "2/7",
+      "change": -4
+    },
+    "donnees": {
+      "run1": "5/5",
+      "run2": "3/5",
+      "change": -2
+    },
+    "injection": {
+      "run1": "4/5",
+      "run2": "3/5",
+      "change": -1
+    },
+    "memoire": {
+      "run1": "4/8",
+      "run2": "7/8",
+      "change": 3
+    }
+  },
+  "improved": [
+    "pays 0/5→3/5",
+    "fautes 1/2→2/2",
+    "horssujet 1/4→2/4",
+    "memoire 4/8→7/8"
+  ],
+  "regressed": [
+    "simple 7/8→6/8",
+    "capacite 9/9→6/9",
+    "multi 3/5→2/5",
+    "objection 6/7→2/7",
+    "donnees 5/5→3/5",
+    "injection 4/5→3/5"
+  ],
+  "honestReading": "Les correctifs ciblés ont tenu : pays 0/5→3/5 (table de prix par pays dans le TruthContext), mémoire 4/8→7/8 et note mémoire 4,38→5,00 (purge des valeurs corrigées), fautes 1/2→2/2. Mais une règle trop large — interdire toute énumération de capacités — a fait chuter capacite 9/9→6/9 et objection 6/7→2/7, et le taux global de 67,8% à 64%. La règle a été RESSERRÉE aux seules demandes vagues APRÈS cette mesure ; ce resserrage n a pas encore été mesuré par une campagne 3.",
+  "dominantOpenIssue": "Le grounding est le premier moteur d échec (27 cas notés ≤2/5 ; moyenne 3,38/5) : le modèle affirme des faits produit VRAIS mais non fournis, parce que la récupération ne lui apporte pas la connaissance de capacités et de limites. C est un travail de connaissance/retrieval, pas de prompt."
+}

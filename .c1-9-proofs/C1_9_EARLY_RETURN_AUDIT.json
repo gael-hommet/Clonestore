@@ -1,0 +1,135 @@
+{
+  "artifact": "C1_9_EARLY_RETURN_AUDIT",
+  "generatedAt": "2026-07-22",
+  "scope": "Every terminal answer path reachable from POST /api/assistant/chat that produces user-visible text WITHOUT the model authoring it.",
+  "method": [
+    "Static: call-graph trace from src/app/api/assistant/chat/route.ts through parrain-public-adapter -> parrain-turn-runtime -> public-answer.",
+    "Empirical: instrumented responder port (no network, no cost) recording whether respond() was invoked and whether the model's text survived to the caller. Artifacts: _probe_instrumented.json, _probe_surface.json, _probe_deterministic.json, _probe_memory.json."
+  ],
+  "empiricalSummary": {
+    "corpusSize": 61,
+    "note": "61 unseen French formulations, none present verbatim in production code. Responder always supplied (i.e. the FAVOURABLE case where OpenAI is available and budget is granted).",
+    "modelInvoked": 58,
+    "modelTextSurvivedToUser": 51,
+    "dictionaryAnswered": 10,
+    "dictionaryShare": 0.164,
+    "interpretation": "Even in the favourable case, 1 turn in 6 is answered by hand-written prose. In the unfavourable case (no key, or budget reservation denied) the share is 100%."
+  },
+  "twoDistinctBypassMechanisms": [
+    {
+      "id": "M1_PRE_MODEL_SHORT_CIRCUIT",
+      "severity": "P0",
+      "description": "A live responder is silently discarded before any call. Budget is reserved, an OpenAI client is constructed, respond() is never invoked, and the turn returns source='deterministic_parrain' with usageTokens=0.",
+      "site": "src/lib/clonechat/intelligence/c1-1/parrain-turn-runtime.ts:234",
+      "predicate": "if (noAttachmentsOrImage && !delegation && qualifiesForDirectAnswer(nav) && nav.cta)",
+      "rootCause": "The predicate has NO `ports.responder` check, unlike its sibling at line 210 which explicitly requires `!ports.responder`. The presence of a model is simply not consulted.",
+      "textSource": "src/lib/clonechat/navigation/navigation-answer.ts:38-67 — switch(nav.intent) over 12 hardcoded French sentences.",
+      "triggeringClassifier": "src/lib/clonechat/navigation/intent-taxonomy.ts:249 — ordered first-match-wins over ~24 regexes; the purchase rule alone is ~2600 characters.",
+      "capturedIntents": ["purchase_pierre", "reserve_pierre", "login_help", "signup_help"],
+      "empiricalProof": {
+        "family": "achat",
+        "observed": "3 of 6 purchase-intent formulations never reached the model",
+        "examples": [
+          "Je valide, envoyez-moi ce qu'il faut signer.",
+          "Où est-ce que je souscris exactement ?",
+          "Je voudrais finaliser aujourd'hui si possible."
+        ],
+        "allThreeReceivedIdenticalText": "Pour obtenir Pierre, rendez-vous sur la page Réserver Pierre. Vous y réservez le prix fondateur et lancez l'activation."
+      },
+      "aggravatingFactor": "This path applies only finalizeAnswerText (claims policy) and never calls checkPublicOutput. It therefore ships the phrase 'prix fondateur', which COMMERCIAL_RX (public-output-guard.ts:30) is written specifically to block on the guarded path. Two paths, two standards.",
+      "streamingConsequence": "route.ts:395-410 wires SSE deltas to the responder callback. When this short-circuit fires, respond() is never called, so no delta can be emitted and the client receives only a final canned string."
+    },
+    {
+      "id": "M2_POST_MODEL_OVERWRITE",
+      "severity": "P0",
+      "description": "The model IS called and tokens ARE spent, then its answer is discarded and replaced wholesale by the deterministic composition for the same question.",
+      "site": "src/lib/clonechat/intelligence/c1-1/parrain-turn-runtime.ts:312-325",
+      "predicate": "if (viewer.mode === 'public') { answerText = sanitizePublicText(answerText); const pubGuard = resolvePublicAnswer(question); const verdict = checkPublicOutput({...}); if (!verdict.ok) { answerText = pubGuard.answer; cta = ...; links = ...; } }",
+      "rootCause": "resolvePublicAnswer(question) is invoked on the SAME question purely to keep a canned replacement ready. The guard is not a corrector; it is a substitution.",
+      "empiricalProof": {
+        "observed": "7 of 58 model-authored answers were overwritten",
+        "byFamily": { "support": "3/3 overwritten", "connexion": "2/4 overwritten", "pays": "1/3 overwritten", "horssujet": "1/4 overwritten" }
+      }
+    }
+  ],
+  "earlyReturns": [
+    { "id": "ER01", "file": "src/lib/clonechat/intelligence/c1-1/parrain-turn-runtime.ts", "line": 234, "trigger": "noAttachmentsOrImage && !delegation && qualifiesForDirectAnswer(nav) && nav.cta", "returns": "finalizeAnswerText(directNavigationAnswer(nav)).safeText — 1 of 12 hardcoded sentences", "bypassesModel": true, "responderChecked": false, "empiricallyConfirmed": true, "mechanism": "M1" },
+    { "id": "ER02", "file": "src/lib/clonechat/intelligence/c1-1/parrain-turn-runtime.ts", "line": 210, "trigger": "viewer.mode === 'public' && noAttachmentsOrImage && !ports.responder", "returns": "resolvePublicAnswer(question) -> composePublicAnswer switch, 1 of 37 canned paragraphs", "bypassesModel": true, "responderChecked": true, "empiricallyConfirmed": true, "mechanism": "provider-absent lane", "note": "Correct to exist, but dishonest in output: emits honesty='answered' rather than declaring degraded mode. See DEFECT D4." },
+    { "id": "ER03", "file": "src/lib/clonechat/intelligence/c1-1/parrain-turn-runtime.ts", "line": 375, "trigger": "fall-through: responder null, or responder threw, or !(result.ok && result.structured)", "returns": "answerCloneStoreQuestion(question).answer (legacy C1 engine) or supportResult.message", "bypassesModel": true, "responderChecked": false, "empiricallyConfirmed": false, "mechanism": "fallback" },
+    { "id": "ER04", "file": "src/lib/clonechat/intelligence/c1-1/parrain-turn-runtime.ts", "line": 322, "trigger": "!verdict.ok from checkPublicOutput, AFTER a successful model call", "returns": "pubGuard.answer — the deterministic composition replaces the model's text, CTA and links", "bypassesModel": false, "discardsModelOutput": true, "empiricallyConfirmed": true, "mechanism": "M2" },
+    { "id": "ER05", "file": "src/lib/clonechat/public-answer/index.ts", "line": 54, "trigger": "!verdict.ok from checkPublicOutput", "returns": "PUBLIC_GUARD_FALLBACK (public-output-guard.ts:63)", "bypassesModel": true, "empiricallyConfirmed": false, "mechanism": "guard" },
+    { "id": "ER06", "file": "src/lib/clonechat/public-answer/index.ts", "line": 69, "trigger": "default return of resolvePublicAnswer", "returns": "hostilePrefix(situation) + composePublicAnswer(...).answer", "bypassesModel": true, "empiricallyConfirmed": true, "mechanism": "dictionary core" },
+    { "id": "ER07", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 288, "trigger": "switch (sit.kind) over 37 PublicSituationKind cases; 79 total `return S(...)` sites", "returns": "one hardcoded French paragraph + one route per case", "bypassesModel": true, "empiricallyConfirmed": true, "mechanism": "dictionary core" },
+    { "id": "ER08", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 44, "trigger": "switch (sit.incidentKind) {payment|access|document|unanswered|default}", "returns": "5 canned incident paragraphs", "bypassesModel": true, "empiricallyConfirmed": true, "mechanism": "dictionary core" },
+    { "id": "ER09", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 81, "trigger": "switch (sit.capability) over 17 CapabilityKey values", "returns": "17 canned capability paragraphs", "bypassesModel": true, "empiricallyConfirmed": false, "mechanism": "dictionary core" },
+    { "id": "ER10", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 169, "trigger": "6 independent regexes (bypass/sign/fire/pay/autonomy/guarantee) then an if-cascade", "returns": "7 canned governance paragraphs", "bypassesModel": true, "empiricallyConfirmed": false, "mechanism": "dictionary core" },
+    { "id": "ER11", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 220, "trigger": "9 sequential regex tests + default", "returns": "10 canned refusal paragraphs", "bypassesModel": true, "empiricallyConfirmed": false, "mechanism": "dictionary core" },
+    { "id": "ER12", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 253, "trigger": "3 regex tests + default", "returns": "4 canned anti-injection paragraphs", "bypassesModel": true, "empiricallyConfirmed": false, "mechanism": "dictionary core" },
+    { "id": "ER13", "file": "src/lib/clonechat/public-answer/public-composer.ts", "line": 269, "trigger": "branches on sit.country", "returns": "3 canned country paragraphs", "bypassesModel": true, "empiricallyConfirmed": true, "mechanism": "dictionary core", "note": "Source of DEFECT D1 (fabricated intent)." },
+    { "id": "ER14", "file": "src/lib/clonechat/intelligence/c1/clonechat-claims-policy.ts", "line": 120, "trigger": "any of 13 C1_FORBIDDEN_CLAIM_RULES matches, or verifyNoLiveClaim fails", "returns": "SAFE_REFUSAL_TEXT replaces the entire answer", "bypassesModel": false, "discardsModelOutput": true, "empiricallyConfirmed": false, "mechanism": "claims guard", "note": "Legitimate as a safety floor, but it substitutes rather than repairs." },
+    { "id": "ER15", "file": "src/app/api/assistant/chat/route.ts", "line": 629, "trigger": "catch around the public model path", "returns": "answerPublicQuestion({question, at}) — called WITHOUT a responder, forcing ER02", "bypassesModel": true, "empiricallyConfirmed": true, "mechanism": "route fallback" },
+    { "id": "ER16", "file": "src/app/api/assistant/chat/route.ts", "line": 194, "trigger": "detectPromptInjection(message)", "returns": "injectionRefusalMessage()", "bypassesModel": true, "empiricallyConfirmed": false, "mechanism": "security", "legitimate": true, "note": "KEEP. This is a deterministic security floor, explicitly permitted by the doctrine." },
+    { "id": "ER17", "file": "src/app/api/assistant/chat/route.ts", "line": 157, "trigger": "!isCloneChatEnabled()", "returns": "503 CLONECHAT_DISABLED", "bypassesModel": true, "empiricallyConfirmed": false, "mechanism": "kill switch", "legitimate": true, "note": "KEEP." },
+    { "id": "ER18", "file": "src/app/api/assistant/chat/route.ts", "line": 264, "trigger": "anonymous rate limit exceeded", "returns": "anonymousRateLimitMessage(retryAfter)", "bypassesModel": true, "empiricallyConfirmed": false, "mechanism": "abuse control", "legitimate": true, "note": "KEEP." },
+    { "id": "ER19", "file": "src/app/api/assistant/chat/route.ts", "line": 304, "trigger": "plan.tenantSecurityFailure && request needs private context", "returns": "canned suspension sentence", "bypassesModel": true, "empiricallyConfirmed": false, "mechanism": "authorization", "legitimate": true, "note": "KEEP (permission floor), but the sentence should be composed, not fixed." },
+    { "id": "ER20", "file": "src/app/api/assistant/chat/route.ts", "line": 704, "trigger": "!key || !cfg.enabled (company lane)", "returns": "deterministicFallback('disabled_fallback')", "bypassesModel": true, "empiricallyConfirmed": false, "mechanism": "provider-absent lane" },
+    { "id": "ER21", "file": "src/app/api/assistant/chat/route.ts", "line": 710, "trigger": "!reservation.granted (company lane)", "returns": "deterministicFallback('budget_fallback')", "bypassesModel": true, "empiricallyConfirmed": false, "mechanism": "budget", "note": "Memory records a production outage where the budget store was unavailable and this path made OpenAI unreachable for every turn." }
+  ],
+  "counts": {
+    "totalEarlyReturns": 21,
+    "legitimateSecurityOrPermissionFloors": 4,
+    "illegitimateDictionaryOrBypassPaths": 17,
+    "confirmedEmpirically": 9
+  },
+  "defectsFoundByProbe": [
+    {
+      "id": "D1",
+      "severity": "P0",
+      "title": "Fabricated intent: an off-topic question is answered as a question that was never asked",
+      "input": "Quelle est la capitale de l'Australie ?",
+      "observedOutput": "Non, pas encore : ce pays ne fait pas partie des pays couverts aujourd'hui. Le lancement de CloneStore couvre quatre pays : la France, la Belgique, le Luxembourg et la Suisse.",
+      "honestyEmitted": "answered",
+      "why": "'Australie' matched OUT_OF_LAUNCH_TOKENS (public-situation.ts:173); the situation classifier emitted a country kind and countryAnswer (public-composer.ts:269) composed a coverage answer. The model HAD produced an answer; it was discarded by M2.",
+      "impact": "The system invents the user's question, answers it confidently, and self-reports honesty='answered'. This is a false success."
+    },
+    {
+      "id": "D2",
+      "severity": "P0",
+      "title": "Multi-intent collapse: only one of three questions is answered",
+      "input": "Vous coûtez combien, ça marche en Belgique, et est-ce que ça gère les congés payés ?",
+      "observedOutput": "Oui : la Belgique fait partie des quatre pays de lancement (...). Pour la Belgique, le tarif est 449 € / mois. Le paiement en ligne n'est pas encore ouvert (...)",
+      "why": "classifyPublicSituation returns ONE `kind`; composePublicAnswer switches on it. 'congés payés' is silently dropped.",
+      "impact": "Structurally impossible to answer a compound question on the deterministic lane."
+    },
+    {
+      "id": "D3",
+      "severity": "P0",
+      "title": "Retrieval is blind to conversation history",
+      "evidence": "_probe_memory.json — with 4 turns of prior context stating '22 personnes' and 'deux jours par semaine', the grounded system prompt is BYTE-IDENTICAL to the no-history case (5900 chars both). systemMentions22=false, systemMentionsDeuxJours=false.",
+      "why": "History is forwarded to the responder as raw messages, but buildKnowledgeIndex/retrieval receives only the current turn's text.",
+      "impact": "An elliptical follow-up ('tu l'estimes à combien ?') is grounded on chunks selected from a sentence with no retrievable content. Masterprompt §10 is unmet at the retrieval layer."
+    },
+    {
+      "id": "D4",
+      "severity": "P1",
+      "title": "The degraded lane claims honesty='answered'",
+      "evidence": "_probe_deterministic.json — 12/12 provider-absent turns returned honesty='answered'; 8 of them returned the SAME 383-character clarification paragraph.",
+      "why": "ER02 composes a dictionary answer and stamps it as a real answer.",
+      "impact": "Masterprompt §15 requires the degraded mode to be honest. It is not: the fallback presents itself as intelligence."
+    },
+    {
+      "id": "D5",
+      "severity": "P1",
+      "title": "Answer diversity collapses to 33% without a provider",
+      "evidence": "_probe_deterministic.json — 12 semantically distinct questions produced 4 distinct answers. 8 of 12 shared one identical 383-char text, including a ROI comparison, a workload statement, a 20-person sizing request, a typo'd contract-capability question and an explicit request for help estimating hours.",
+      "impact": "Two different companies receive the same paragraph — the exact failure the masterprompt names in §8."
+    },
+    {
+      "id": "D6",
+      "severity": "P1",
+      "title": "Tokens are spent on answers that are then thrown away",
+      "evidence": "_probe_surface.json — 7 of 58 model calls had their output discarded by M2; the support family was 3/3 discarded.",
+      "impact": "Cost is incurred with no benefit, and the user receives a template regardless."
+    }
+  ]
+}

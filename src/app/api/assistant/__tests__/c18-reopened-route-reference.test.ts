@@ -26,7 +26,14 @@ vi.mock("@/lib/clonechat/openai", async (orig) => {
     createRealOpenAIResponder: vi.fn(() => ({
       respond: async (r: { userText: string }) => {
         modelCalls.push(r.userText);
-        return { ok: true, structured: { answer: "…", honesty: "answered" as const, tool_call: null, citations: [] }, usage: { inputTokens: 10, outputTokens: 5 } };
+        // C1.9 — le raccourci de navigation ne supprime plus le modèle quand il existe
+        // (correctif M1). Ce stub renvoie donc une réponse PLAUSIBLE plutôt qu'un « … »,
+        // sinon on mesurerait un artefact de test et non le comportement du produit.
+        return {
+          ok: true,
+          structured: { answer: "La réservation de Pierre se fait depuis la page dédiée, sans paiement en ligne pour le moment.", honesty: "answered" as const, tool_call: null, citations: [] },
+          usage: { inputTokens: 10, outputTokens: 5 },
+        };
       },
     })),
   };
@@ -86,9 +93,15 @@ describe("C1.8 REOUVERT §16 — RÉFÉRENCE ROUTE : connecté SANS entreprise a
     expect(res.status).toBe(200);
     expect(d.ok).toBe(true);
     expect(d.requestClass).toBe("CONVERSATIONAL_OR_PUBLIC");   // conversation = droit, pas de gate
-    // Réponse directe, EXACTE dans l'esprit demandé.
-    expect(answer).toMatch(/Réserver Pierre/i);
-    expect(answer).toMatch(/pour obtenir pierre/i);
+    // C1.9 — la GARANTIE testée ici est « une réponse directe vers la bonne page, pas une
+    // liste ni un renvoi au support ». Elle était auparavant vérifiée en exigeant la phrase
+    // figée « Pour obtenir Pierre… », ce qui revenait à verrouiller le dictionnaire : le
+    // raccourci de navigation renvoyait cette phrase SANS jamais appeler le modèle, même
+    // lorsqu'un responder existait. On vérifie désormais la propriété, et en plus que le
+    // modèle a bien eu la parole.
+    expect(modelCalls.length).toBeGreaterThan(0);
+    expect(answer.trim().length).toBeGreaterThan(20);
+    expect(answer).not.toMatch(/^\s*…?\s*$/);
     // CTA canonique vers la vraie page.
     expect(cta?.route).toBe("/reserver/pierre");
     expect(cta?.label).toMatch(/réserver pierre/i);

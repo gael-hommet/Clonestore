@@ -139,8 +139,19 @@ function governanceChunks(): KnowledgeChunk[] {
   return [
     chunk({ id: "gov.validation", sourceId: "governance-policy", title: "Validation humaine", kind: "legal_limit", category: "permissions", visibility: "PUBLIC", authority: "governance-policy", citationLabel: "la règle de validation", text: "Pierre ne fait rien de sensible sans validation humaine. Les actions à risque (envoi, document sensible, décision) exigent une confirmation explicite." }),
     chunk({ id: "gov.permissions", sourceId: "governance-policy", title: "Permissions", kind: "client_surface", category: "permissions", visibility: "AUTHENTICATED_CLIENT", authority: "client-cockpit/permissions", citationLabel: "vos permissions", text: "Ce que vous pouvez confier ou décider dépend de vos permissions dans l'entreprise. Le serveur reste l'autorité : une action non permise n'est jamais exécutée." }),
-    chunk({ id: "gov.isolation", sourceId: "governance-policy", title: "Isolation des données", kind: "legal_limit", category: "security", visibility: "AUTHENTICATED_CLIENT", authority: "governance-policy", citationLabel: "l'isolation de vos données", text: "Chaque entreprise ne voit que ses propres données. CloneChat n'accède jamais aux données d'une autre entreprise et refuse toute demande de contournement." }),
-    chunk({ id: "gov.confirmation", sourceId: "governance-policy", title: "Flux de confirmation", kind: "client_surface", category: "security", visibility: "AUTHENTICATED_CLIENT", authority: "governance-policy", citationLabel: "le flux de confirmation", text: "Une action sensible est d'abord PROPOSÉE, puis confirmée par vous, puis exécutée par le système, puis relue pour montrer le résultat réel." }),
+    // C1.9 — VISIBILITÉ CORRIGÉE : « AUTHENTICATED_CLIENT » → « PUBLIC ».
+    // Ce fait ne contient AUCUNE donnée de locataire : il énonce la POLITIQUE du produit
+    // (chaque entreprise ne voit que la sienne, et toute demande de contournement est
+    // refusée). Le réserver aux clients connectés privait précisément les visiteurs qui
+    // posent la question — « mes données sont isolées ? », « compare avec un autre
+    // client ». Mesuré : la récupération ne leur rendait alors que des entrées de plan de
+    // site (« /legal/dpa — DPA »), et le modèle comblait le vide de lui-même.
+    chunk({ id: "gov.isolation", sourceId: "governance-policy", title: "Isolation des données", kind: "legal_limit", category: "security", visibility: "PUBLIC", authority: "governance-policy", citationLabel: "l'isolation des données", text: "Chaque entreprise ne voit que ses propres données. CloneChat n'accède jamais aux données d'une autre entreprise et refuse toute demande de contournement." }),
+    // C1.9 — même raisonnement : le cycle proposer → confirmer → exécuter est le modèle de
+    // gouvernance du produit, pas une donnée privée. C'est la réponse attendue à « qu'est-ce
+    // qui garantit qu'il ne fait pas n'importe quoi ? » et aux demandes d'action sensible.
+    // `gov.permissions`, lui, RESTE réservé : il parle des permissions DU visiteur.
+    chunk({ id: "gov.confirmation", sourceId: "governance-policy", title: "Flux de confirmation", kind: "client_surface", category: "security", visibility: "PUBLIC", authority: "governance-policy", citationLabel: "le flux de confirmation", text: "Une action sensible est d'abord PROPOSÉE, puis confirmée par vous, puis exécutée par le système, puis relue pour montrer le résultat réel." }),
   ];
 }
 

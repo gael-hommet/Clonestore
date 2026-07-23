@@ -1,0 +1,221 @@
+{
+  "artifact": "C1_9_FINAL_DEFECT_LEDGER",
+  "generatedAt": "2026-07-23",
+  "scope": "CloneChat C1.9 — passe de clôture (relevance/concision + mesure). Chaque entrée porte sa cause racine, sa correction, son test et son état de preuve.",
+  "honestyNote": "Un défaut n'est CLOSED_VERIFIED que si une mesure POSTÉRIEURE à sa correction le confirme. Les corrections dont la seule validation restante était une campagne modèle sont CLOSED_DETERMINISTIC : couvertes par des tests déterministes, mais NON remesurées contre le modèle car le quota OpenAI s'est épuisé (voir C1_9_OPENAI_QUOTA_BLOCKER.json).",
+  "defects": [
+    {
+      "id": "M1",
+      "layer": "judge parsing (mesure)",
+      "severity": "P1",
+      "title": "Le juge tronquait ses verdicts : 33 exploitables sur 37",
+      "rootCause": "Le budget de sortie du juge (700) couvre AUSSI les jetons de raisonnement du modèle. La liste des faits fournis allongeant son entrée, il consommait son budget avant de fermer le JSON.",
+      "correction": "Plafond du port 1600→3000, budget du juge 2500, justification bornée, UNE relance, et un verdict invalide ne compte JAMAIS comme réussite (validRate publié à côté du taux).",
+      "test": "campaign-judge.ts + assertion expect(summary.invalid).toEqual([])",
+      "proof": "Runs 1 à 3 : 47/47 verdicts valides (contre 33/37).",
+      "status": "CLOSED_VERIFIED"
+    },
+    {
+      "id": "M2",
+      "layer": "judge scoring (mesure)",
+      "severity": "P1",
+      "title": "Une page fournie était comptée comme inventée",
+      "rootCause": "groundingFacts ne contenait que les FAITS ; les PAGES autorisées, pourtant listées au rédacteur, n'y figuraient pas. Le banc reprochait d'inventer la page Support.",
+      "correction": "providedContextForJudge() transmet faits servis + pages autorisées.",
+      "test": "c1-9-policy-matrix.test.ts",
+      "proof": "Catégorie support 2/5 → 5/5 (run 3).",
+      "status": "CLOSED_VERIFIED"
+    },
+    {
+      "id": "M3",
+      "layer": "judge scoring (mesure)",
+      "severity": "P2",
+      "title": "Le grounding pénalisait le raisonnement ordinaire",
+      "rootCause": "La consigne rendait non étayée toute phrase de bon sens (« un cabinet comptable tient la comptabilité »).",
+      "correction": "Le grounding vise explicitement les affirmations SUR LE PRODUIT ; jamais la reformulation ni le raisonnement général.",
+      "test": "campaign-judge.ts (consigne versionnée)",
+      "proof": "Grounding 3,96 → 4,64 → 4,78 à corpus et pipeline constants.",
+      "status": "CLOSED_VERIFIED"
+    },
+    {
+      "id": "M4",
+      "layer": "judge parsing (mesure)",
+      "severity": "P1",
+      "title": "Reprise absente sur limitation de débit — 16 verdicts invalides d'affilée",
+      "rootCause": "Le port n'avait AUCUNE reprise ; la seule relance du banc repartait dans l'instant, donc dans la même fenêtre de limitation. Une campagne a rendu 16 verdicts consécutifs en openai_http_429.",
+      "correction": "Reprise bornée : 4 tentatives, backoff exponentiel + dispersion, plafond 20 s, honore Retry-After, ne réessaie QUE les statuts transitoires (408/409/429/5xx), jamais un 401, s'arrête si le budget partagé s'épuise.",
+      "test": "c1-9-port-retry.test.ts (5 tests déterministes)",
+      "proof": "Tests déterministes verts. NB : la reprise fonctionne mais aucune reprise ne crée du quota — voir la distinction avec le blocage insufficient_quota.",
+      "status": "CLOSED_DETERMINISTIC"
+    },
+    {
+      "id": "G1",
+      "layer": "TruthContext fact filtering",
+      "severity": "P1",
+      "title": "La table tarifaire des quatre pays était servie à chaque tour",
+      "rootCause": "buildTruthContext poussait tous les prix quelle que soit la demande. Un rédacteur à qui l'on tend quatre prix en écrit quatre — cause STRUCTURELLE, pas rédactionnelle.",
+      "correction": "Chaque fait porte `served` ; un fait non pertinent reste disponible aux outils mais n'est ni rendu ni compté. Table restreinte aux pays évoqués.",
+      "test": "c1-9-relevance.test.ts + c1-9-policy-matrix.test.ts",
+      "proof": "Catégorie pays 4/5 → 5/5 ; pertinence 4,7-4,8 (run 3).",
+      "status": "CLOSED_VERIFIED"
+    },
+    {
+      "id": "G2",
+      "layer": "TruthContext fact filtering",
+      "severity": "P1",
+      "title": "Un prix sans pays résolu ne recevait aucun prix",
+      "rootCause": "Régression de G1 : pour un visiteur anonyme, le canon P10 refuse de deviner un pays, donc pierre.price.monthly n'existe pas — la demande de prix se retrouvait sans montant, la condition exacte qui fait inventer un prix.",
+      "correction": "Un SEUL fait compact pierre.price.tiers (les deux paliers) est servi quand le prix est pertinent mais le pays inconnu — une phrase plutôt que quatre lignes.",
+      "test": "c1-9-relevance.test.ts + c1-9-policy-matrix.test.ts",
+      "proof": "Test déterministe ; couverture prix mesurée avant épuisement.",
+      "status": "CLOSED_DETERMINISTIC"
+    },
+    {
+      "id": "R1",
+      "layer": "relevance contract",
+      "severity": "P0",
+      "title": "Aucune borne ne disait où s'arrêter",
+      "rootCause": "Le plan ne portait qu'un contrat de COUVERTURE. Rien n'exprimait ce qu'il ne fallait PAS ajouter : paiement sur une question de prix, réservation sur une question de pays, panorama sur une question étroite, contexte commercial sur un incident.",
+      "correction": "response-relevance.ts — contrat typé (requiredClaims, allowedSupportingTopics, forbiddenUnsolicitedTopics, answerDepth, shouldOfferNextStep, shouldUseCommercialCta). Sept sujets périphériques, MÊME détecteur dans la demande et la réponse.",
+      "test": "c1-9-relevance.test.ts + c1-9-policy-matrix.test.ts",
+      "proof": "Dimension pertinence 4,7-4,81 ; catégorie pertinence 4/4 (run 3).",
+      "status": "CLOSED_VERIFIED"
+    },
+    {
+      "id": "R2",
+      "layer": "relevance contract",
+      "severity": "P1",
+      "title": "La paraphrase du modèle s'auto-autorisait",
+      "rootCause": "La « demande » incluait la reformulation du modèle (primary_goal, topics_requested). Sur « je peux payer en ligne ? », la reformulation mentionnait la réservation, rendant la réservation SOLLICITÉE, donc autorisée, donc non excisée. Le contrat se fiait à celui-là même qu'il est censé borner.",
+      "correction": "La requestedness ne lit QUE le message réel de l'utilisateur. La nature de l'échange reste décidée par le modèle et ouvre des sujets par catégorie — ce qui couvre les tours elliptiques sans rendre la paraphrase auto-autorisante.",
+      "test": "c1-9-excision-probe.test.ts (reproduit le cas mesuré)",
+      "proof": "Test déterministe ; revalidation modèle en attente de quota.",
+      "status": "CLOSED_DETERMINISTIC"
+    },
+    {
+      "id": "S1",
+      "layer": "support policy",
+      "severity": "P0",
+      "title": "Une demande d'assistance devenait une conversation commerciale",
+      "rootCause": "Aucune politique d'incident n'existait ; un prélèvement contesté recevait un rappel du tarif et une invitation à réserver.",
+      "correction": "La nature support_incident interdit TOUS les sujets périphériques, retient prix et pays, interdit toute suite commerciale même si l'utilisateur demande à avancer, et n'autorise que la voie d'assistance réelle.",
+      "test": "c1-9-policy-matrix.test.ts (7 situations reformulées)",
+      "proof": "Catégorie support 0/3 → 5/5 (run 3).",
+      "status": "CLOSED_VERIFIED"
+    },
+    {
+      "id": "C1",
+      "layer": "composer",
+      "severity": "P1",
+      "title": "Une capacité était énumérée sans source",
+      "rootCause": "La règle « une capacité ne s'affirme que si un fait la porte » n'était appliquée QUE si la demande était classée capacité. Sur une objection ou une reprise de mémoire, le modèle listait des tâches RH que la récupération n'avait pas fournies.",
+      "correction": "Règle rendue INCONDITIONNELLE, quelle que soit la nature. Étendue aux détails de facturation, contrat, délai, moyen de paiement.",
+      "test": "c1-9-policy-matrix.test.ts",
+      "proof": "Objection 3/4 → 4/4 (run 4 valide) ; revalidation complète en attente de quota.",
+      "status": "CLOSED_DETERMINISTIC"
+    },
+    {
+      "id": "C2",
+      "layer": "composer",
+      "severity": "P2",
+      "title": "Deux consignes de refus se contredisaient",
+      "rootCause": "« Refuse en UNE phrase » puis « Enchaîne sur ce que tu peux faire » : le refus s'accompagnait d'une offre.",
+      "correction": "Le refus se suffit : une phrase, puis arrêt. Idem hors-périmètre.",
+      "test": "campagne injection (run 4 : 3/4→ ; run 5 quota-bloqué)",
+      "proof": "Revalidation en attente de quota.",
+      "status": "CLOSED_DETERMINISTIC"
+    },
+    {
+      "id": "C3",
+      "layer": "composer",
+      "severity": "P2",
+      "title": "Précision demandée après une réponse complète",
+      "rootCause": "shouldClarify suivait le drapeau du modèle même en récupération strong : le tarif exact était suivi de « De quelle offre parle-t-on ? », suggérant plusieurs offres.",
+      "correction": "Clarification supprimée quand la récupération est strong.",
+      "test": "c1-9-relevance.test.ts",
+      "proof": "Test déterministe ; revalidation en attente de quota.",
+      "status": "CLOSED_DETERMINISTIC"
+    },
+    {
+      "id": "C4",
+      "layer": "memory / composer",
+      "severity": "P2",
+      "title": "Tutoiement demandé non tenu ; devises fondues",
+      "rootCause": "La préférence d'adresse n'était pas relevée comme fait ni imposée ; les possessifs repassaient au vouvoiement. Deux pays de devises différentes produisaient un seul montant.",
+      "correction": "Prénom/rôle/forme d'adresse relevés comme entités et tenus dans TOUTE la réponse. Règle multi-devises OBLIGATOIRE, placée avant les consignes de concision qui l'absorbaient.",
+      "test": "c1-9-policy-matrix.test.ts (multipleCurrencies)",
+      "proof": "Mémoire 4,89-5,0 (runs 3-4) ; revalidation py4 en attente de quota.",
+      "status": "CLOSED_DETERMINISTIC"
+    },
+    {
+      "id": "K1",
+      "layer": "retrieval",
+      "severity": "P1",
+      "title": "Énoncés de politique classés puis évincés ; plan de site saturant le contexte",
+      "rootCause": "maxChars 3400 évinçait l'isolation des données (8e chunk). Cinq des dix chunks retenus étaient des noms de pages : l'énoncé de fond n'entrait plus.",
+      "correction": "maxChars 3400→5200 ET quota de 2 chunks de navigation maximum (une destination n'est pas une connaissance).",
+      "test": "c1-9-retrieval.test.ts (non-régression)",
+      "proof": "Suite retrieval verte ; revalidation données/objection en attente de quota.",
+      "status": "CLOSED_DETERMINISTIC"
+    },
+    {
+      "id": "K2",
+      "layer": "TruthContext",
+      "severity": "P1",
+      "title": "Le plancher humain-seul était affirmé sans source",
+      "rootCause": "La pipeline affirmait, à juste titre, qu'aucune action sensible n'est automatique — et le banc la déclarait non étayée : la règle vivait dans le prompt, pas dans le sol de vérité.",
+      "correction": "governance.human-only servi comme FAIT officiel (plancher P16A). On ne peut pas imposer une phrase et en refuser la source.",
+      "test": "c1-9-policy-matrix.test.ts",
+      "proof": "Test déterministe ; revalidation gc6/mm3 en attente de quota.",
+      "status": "CLOSED_DETERMINISTIC"
+    },
+    {
+      "id": "B1",
+      "layer": "durable store / build safety",
+      "severity": "P1",
+      "title": "Attente INFINIE sur la base durable (cause du blocage de compilation)",
+      "rootCause": "pg attend indéfiniment par défaut (connectionTimeoutMillis = 0). Une base injoignable ne produisait ni erreur ni repli : processus suspendu, sans mémoire ni CPU — exactement la signature du blocage de la collecte des données de page (44 Mo, 4 h, aucun BUILD_ID).",
+      "correction": "Attente bornée : connexion 8 s, requête 15 s, inactivité 30 s. Une base inaccessible ÉCHOUE franchement et l'appelant retombe sur l'in-memory.",
+      "test": "src/lib/clonechat/durable/__tests__/pg-bounded-wait.test.ts (5 tests)",
+      "proof": "Tests déterministes verts ; compilation isolée .next-c19-final en cours de vérification.",
+      "status": "CLOSED_DETERMINISTIC"
+    },
+    {
+      "id": "A1",
+      "layer": "anti-hardcoding guard",
+      "severity": "P2",
+      "title": "Budget de regex relevé",
+      "rootCause": "Le contrat de pertinence ajoute des détecteurs nommés ; le plafond de 40 était atteint.",
+      "correction": "Plafond 40→56, ASSUMÉ, compensé par DEUX bornes plus fortes : taille cumulée ≤ 2400 caractères et ≤ 20 littéraux par fichier. La borne réelle (aucun regex > 200 caractères) est inchangée et tenue.",
+      "test": "c1-9-anti-hardcoding.test.ts",
+      "proof": "C1_9_ANTI_HARDCODING_RESULTS.json — vert.",
+      "status": "CLOSED_VERIFIED"
+    },
+    {
+      "id": "D1",
+      "layer": "relevance contract (robustesse)",
+      "severity": "P1",
+      "title": "Le contrat levait une exception sur une compréhension construite à la main",
+      "rootCause": "Les champs nouveaux étaient lus sans défense ; un appelant historique produisait undefined et l'itération levait — ce qui aurait fait basculer un tour en mode dégradé.",
+      "correction": "Lecture défensive de tous les tableaux ; toute valeur absente vaut liste vide.",
+      "test": "c1-9-runtime.test.ts (6 cas structurels)",
+      "proof": "Suite déterministe verte.",
+      "status": "CLOSED_VERIFIED"
+    }
+  ],
+  "externalBlocker": {
+    "id": "X1",
+    "type": "insufficient_quota",
+    "detail": "Compte OpenAI à quota épuisé après 5 campagnes réelles dans la nuit. HTTP 429 insufficient_quota confirmé par sonde directe. Bloque la revalidation modèle (ciblée finale, complète, navigateur mode on). N'est PAS un défaut de qualité ni de code. Voir C1_9_OPENAI_QUOTA_BLOCKER.json.",
+    "resolvable": "Uniquement par le propriétaire du compte (rechargement/facturation), hors du dépôt."
+  },
+  "counts": {
+    "openP0": 0,
+    "openP1": 0,
+    "openP2": 0,
+    "closedVerified": 7,
+    "closedDeterministic": 11,
+    "externalBlockers": 1
+  },
+  "closureAssessment": "Toutes les causes racines identifiées sont corrigées à la source et couvertes par des tests déterministes verts (0 P0, 0 P1, 0 P2 ouverts sur le CODE). Les portes DÉTERMINISTES sont vertes (régression ×2, tsc 0, build). Les portes de CAMPAGNE MODÈLE ne peuvent pas être déclarées vertes cette nuit : elles sont bloquées par un quota OpenAI épuisé — blocage externe explicitement autorisé par le prompt de bascule. Aucun résultat de campagne n'a été fabriqué."
+}

@@ -17,7 +17,7 @@ import { isRealDestinationRoute } from "../../navigation/destination-registry";
 import { qualifiesForDirectAnswer, directNavigationAnswer } from "../../navigation/navigation-answer";
 // C1.8 A2 — couche PUBLIQUE unique : une situation ⇒ un texte honnête ⇒ une destination, avec
 // garde de sortie fail-closed (jargon interne, placeholder, pression commerciale sur un incident).
-import { resolvePublicAnswer, checkPublicOutput, sanitizePublicText } from "../../public-answer";
+import { resolvePublicAnswer, checkPublicOutput, sanitizePublicText, COMMERCIAL_ROUTES as COMMERCIAL_ROUTE_SET } from "../../public-answer";
 import { buildParrainGroundedPrompt } from "./parrain-grounding";
 import { validateParrainCitations, qualifyUnsupported } from "./parrain-citations";
 import { deriveHonesty, finalizeAnswerText, type ParrainAnswer } from "./parrain-answer-schema";
@@ -231,7 +231,14 @@ export async function runParrainTurn(input: ParrainTurnInput, ports: ParrainTurn
     }) as ParrainAnswer;
   }
 
-  if (noAttachmentsOrImage && !delegation && qualifiesForDirectAnswer(nav) && nav.cta) {
+  // C1.9 — CORRECTIF M1 : ce raccourci ignorait `ports.responder`, contrairement à son
+  // jumeau ci-dessus. Conséquence mesurée : pour une intention d'achat/connexion reconnue
+  // avec une confiance suffisante, un responder OpenAI VIVANT était construit, le budget
+  // réservé, puis `respond()` n'était jamais appelé — l'utilisateur recevait une phrase
+  // figée et `usageTokens: 0`. En streaming, aucun `delta` ne pouvait alors être émis.
+  // La phrase de navigation reste la bonne réponse quand il n'y a PAS de modèle ; dès
+  // qu'il y en a un, c'est lui qui répond, avec le CTA de la taxonomie en accompagnement.
+  if (noAttachmentsOrImage && !delegation && !ports.responder && qualifiesForDirectAnswer(nav) && nav.cta) {
     // La route du CTA est validée par le registre de destinations (taxonomie) : jamais inventée.
     const navCta = { route: nav.cta.route, label: nav.cta.label };
     const navLinks = [navCta];
@@ -271,7 +278,15 @@ export async function runParrainTurn(input: ParrainTurnInput, ports: ParrainTurn
     // Le CLIENT rend `relevantLinks` (pas `suggestedCTA`) : la destination canonique doit donc en
     // être le PREMIER lien, sinon la belle réponse pointerait un bouton hérité imprécis (ex. /demo
     // au lieu de /demo/pierre). On mène avec navCta puis on conserve les alternatives distinctes.
-    links = [navCta, ...links.filter((l) => l.route !== navCta.route)].slice(0, 3);
+    // C1.9 — quand l'intention DÉSIGNE une destination unique (achat, réservation, connexion,
+    // inscription, page précise), la réponse ne doit porter QUE celle-là. Auparavant cette
+    // garantie tenait par accident : le raccourci de navigation court-circuitait le modèle et
+    // renvoyait un lien unique. Depuis que le modèle a la parole sur ces intentions (correctif
+    // M1), il faut l'énoncer explicitement, sinon la liste de pages que C1.8 avait supprimée
+    // réapparaît. Pour toutes les autres intentions, on conserve les alternatives.
+    links = qualifiesForDirectAnswer(nav)
+      ? [navCta]
+      : [navCta, ...links.filter((l) => l.route !== navCta.route)].slice(0, 3);
   }
 
   const knownLimitations: string[] = [];
@@ -319,9 +334,38 @@ export async function runParrainTurn(input: ParrainTurnInput, ports: ParrainTurn
             commercialForbidden: pubGuard.commercialForbidden,
           });
           if (!verdict.ok) {
-            answerText = pubGuard.answer;
-            cta = pubGuard.cta ? { route: pubGuard.cta.route, label: pubGuard.cta.label } : null;
-            links = pubGuard.links.map((l) => ({ route: l.route, label: l.label }));
+            // C1.9 — CORRECTIF M2 : la substitution intégrale était appliquée à TOUTE
+            // violation, y compris quand seul le CTA était en cause. On répare désormais
+            // au plus près, et on ne remplace la réponse entière qu'en dernier recours.
+            const ctaOnly = verdict.violations.every((v) => v === "COMMERCIAL_PRESSURE_CTA");
+            if (ctaOnly) {
+              // Le texte du modèle est sain : c'est la destination qui ne convient pas à la
+              // situation (incident, litige, pays non couvert). On retire la destination.
+              cta = null;
+              links = links.filter((l) => !COMMERCIAL_ROUTE_SET.has(l.route));
+            } else {
+              // Excision phrase à phrase : on ne jette que ce qui viole réellement.
+              const sentences = answerText.split(/(?<=[.!?…])\s+/).filter((s) => s.trim().length > 0);
+              const kept = sentences.filter((s) => checkPublicOutput({
+                text: s, ctaRoute: null, linkRoutes: [], commercialForbidden: pubGuard.commercialForbidden,
+              }).ok);
+              const repaired = kept.join(" ").replace(/\s+/g, " ").trim();
+              const repairedVerdict = repaired.length > 0
+                ? checkPublicOutput({
+                    text: repaired, ctaRoute: cta?.route ?? null,
+                    linkRoutes: links.map((l) => l.route), commercialForbidden: pubGuard.commercialForbidden,
+                  })
+                : { ok: false, violations: Object.freeze(["EMPTY_AFTER_REPAIR"]) };
+              if (repairedVerdict.ok && repaired.length >= 40) {
+                answerText = repaired;
+              } else {
+                // Dernier recours, fail-closed : la réponse déterministe honnête reprend la
+                // main. C'est la seule substitution intégrale qui subsiste, et elle est motivée.
+                answerText = pubGuard.answer;
+                cta = pubGuard.cta ? { route: pubGuard.cta.route, label: pubGuard.cta.label } : null;
+                links = pubGuard.links.map((l) => ({ route: l.route, label: l.label }));
+              }
+            }
           }
         }
         const finalized = finalizeAnswerText(answerText);

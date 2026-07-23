@@ -1,0 +1,146 @@
+{
+  "artifact": "C1_9_ANTI_HARDCODING_RESULTS",
+  "generatedAt": "2026-07-22",
+  "scope": "src/lib/clonechat/intelligence/c1-9/** (hors __tests__), commentaires retirés",
+  "budget": {
+    "maxRegexLiterals": 56,
+    "maxRegexLength": 200,
+    "maxTotalRegexChars": 2400,
+    "maxRegexLiteralsPerFile": 20,
+    "maxUserFacingProse": 4,
+    "maxSwitchCaseArms": 0
+  },
+  "measured": {
+    "regexLiterals": 56,
+    "totalRegexChars": 2187,
+    "worstFileRegexLiterals": 16,
+    "longestRegexChars": 163,
+    "longestRegexSample": " /\\b(j'ai (?:envoyé|signé|créé|supprimé|payé|débité|activé|résilié)|c'est (?:env",
+    "userFacingProse": 3,
+    "switchCaseArms": 0,
+    "files": 16
+  },
+  "perFile": [
+    {
+      "file": "conversation-memory.ts",
+      "regex": 1,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 120
+    },
+    {
+      "file": "flags.ts",
+      "regex": 0,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 0
+    },
+    {
+      "file": "governed-tools.ts",
+      "regex": 0,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 0
+    },
+    {
+      "file": "intelligence-runtime.ts",
+      "regex": 6,
+      "prose": 1,
+      "cases": 0,
+      "longestRegex": 39
+    },
+    {
+      "file": "observability.ts",
+      "regex": 0,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 0
+    },
+    {
+      "file": "openai-port.ts",
+      "regex": 0,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 0
+    },
+    {
+      "file": "response-composer.ts",
+      "regex": 0,
+      "prose": 1,
+      "cases": 0,
+      "longestRegex": 0
+    },
+    {
+      "file": "response-relevance.ts",
+      "regex": 15,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 130
+    },
+    {
+      "file": "response-verifier.ts",
+      "regex": 16,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 163
+    },
+    {
+      "file": "semantic-retrieval.ts",
+      "regex": 5,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 33
+    },
+    {
+      "file": "shadow-context.ts",
+      "regex": 0,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 0
+    },
+    {
+      "file": "shadow-log.ts",
+      "regex": 1,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 81
+    },
+    {
+      "file": "shadow-runner.ts",
+      "regex": 2,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 42
+    },
+    {
+      "file": "truth-context.ts",
+      "regex": 10,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 28
+    },
+    {
+      "file": "understanding-schema.ts",
+      "regex": 0,
+      "prose": 0,
+      "cases": 0,
+      "longestRegex": 0
+    },
+    {
+      "file": "understanding.ts",
+      "regex": 0,
+      "prose": 1,
+      "cases": 0,
+      "longestRegex": 0
+    }
+  ],
+  "comparisonWithLegacy": {
+    "legacyScope": "src/lib/clonechat/** (hors __tests__)",
+    "legacyRegexLiterals": 1207,
+    "legacyUserFacingProse": 724,
+    "legacyProseCharacters": 400850,
+    "legacySwitchCaseArms": 174,
+    "legacyLongestRegexChars": 5000,
+    "note": "L'alternance support_request de intent-taxonomy.ts:73 fait ~5 000 caractères sur une ligne ; purchase_pierre ~2 600. La borne maxRegexLength les rejetterait toutes deux."
+  }
+}

@@ -79,5 +79,8 @@ describe("C1.8 A2 — recapture des 1003 réponses après remédiation", () => {
     expect(ids.size).toBe(1003);
     expect(empties).toEqual([]);
     expect(executionErrors).toBe(0);
-  });
+  // C1.9 — délai EXPLICITE : ce test traite ~1000 cas et prenait ~8 s contre les 5 s par
+  // défaut de vitest. Il échouait donc selon la vitesse de la machine, pas selon le code —
+  // un échec de cette nature finit par masquer un vrai échec.
+  }, 60_000);
 });
