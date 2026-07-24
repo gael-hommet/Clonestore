@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Cabinets Fondateurs CloneStore",
     description:
-      "Proposez à vos clients une équipe RH IA complète. 20 % de commission récurrente.",
+      "Proposez à vos clients une équipe RH IA complète. 20 % de commission récurrente sur le HT réellement encaissé.",
     type: "website",
   },
 };

@@ -72,7 +72,12 @@ async function post() {
   const req = new NextRequest("http://localhost:3000/api/checkout", {
     method: "POST",
     headers: { authorization: "Bearer tok", "content-type": "application/json" },
-    body: JSON.stringify({ agent_slug: "pierre" }),
+    // LEGAL AND COMMERCIAL TRUST CLOSURE (2026-07-24) — acceptation CGV/confidentialité désormais
+    // requise avant session ; ce test porte sur le mapping client Stripe, pas l'acceptation.
+    body: JSON.stringify({
+      agent_slug: "pierre",
+      legal_acceptance: { cgv_version: "Draft 1.0", privacy_version: "Draft 1.0", accepted_at: "2026-07-24T00:00:00.000Z" },
+    }),
   });
   return POST(req);
 }
@@ -83,7 +88,9 @@ beforeEach(() => {
   process.env.SUPABASE_SERVICE_ROLE_KEY = "service_role_test";
   process.env.STRIPE_SECRET_KEY = "sk_test_customer_mapping";
   process.env.STRIPE_PRICE_PIERRE = "price_x";
-  delete process.env.STRIPE_COUNTRY_PRICING_ENABLED;
+  // Ce fichier teste le mapping Customer Stripe, pas la tarification par pays (révélée par
+  // défaut depuis PAYMENT PATH CLOSURE) — désactivation explicite pour isoler le chemin testé.
+  process.env.STRIPE_COUNTRY_PRICING_ENABLED = "false";
   delete process.env.CLONESTORE_PAYMENT_MODE;
   h.existingCustomerId = null;
   h.retrieved = null;

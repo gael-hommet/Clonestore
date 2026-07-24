@@ -222,6 +222,29 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // LEGAL AND COMMERCIAL TRUST CLOSURE (2026-07-24) — acceptance des CGV/confidentialité
+    // requise avant toute création de session. Le checkbox client (non précoché) n'est qu'une
+    // UX ; l'application est ici, côté serveur, pour qu'aucun appelant ne puisse la contourner.
+    // Enregistrée dans la même metadata bag Stripe que le reste (pas de nouvelle table/migration).
+    const legalAcceptance = (body as Record<string, unknown>).legal_acceptance as
+      | Record<string, unknown>
+      | undefined;
+    const cgvVersion =
+      legalAcceptance && typeof legalAcceptance.cgv_version === "string" ? legalAcceptance.cgv_version : null;
+    const privacyVersion =
+      legalAcceptance && typeof legalAcceptance.privacy_version === "string"
+        ? legalAcceptance.privacy_version
+        : null;
+    const legalAcceptedAt =
+      legalAcceptance && typeof legalAcceptance.accepted_at === "string" ? legalAcceptance.accepted_at : null;
+    if (!cgvVersion || !privacyVersion || !legalAcceptedAt || Number.isNaN(Date.parse(legalAcceptedAt))) {
+      return json(400, {
+        ok: false,
+        code: "LEGAL_ACCEPTANCE_REQUIRED",
+        error: "Merci d'accepter les CGV et la politique de confidentialité avant de continuer.",
+      });
+    }
+
     const isProd = process.env.NODE_ENV === "production";
 
     // ── P10 : TARIFICATION PAR PAYS (opt-in). Server-authoritative. Le client ne contrôle pas le prix.

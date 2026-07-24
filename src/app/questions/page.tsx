@@ -207,7 +207,7 @@ export default function QuestionsPage() {
                 },
                 {
                   q: "Pourquoi Pierre vaut 449 €/mois ?",
-                  a: "Pierre absorbe une part réelle du travail RH répétitif : documents, emails, relances, suivi de missions, traçabilité. Le gain de temps et la réduction de charge mentale doivent être perceptibles dès la première semaine d'utilisation.",
+                  a: "Pierre absorbe une part réelle du travail RH répétitif : documents, emails, relances, suivi de missions, traçabilité. Le gain de temps et la réduction de charge mentale sont généralement perceptibles dès les premières semaines d'utilisation, selon le volume RH de l'entreprise — un résultat individuel peut varier.",
                 },
               ].map((item) => (
                 <LiquidGlass

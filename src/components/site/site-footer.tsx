@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isCockpitSurfaceRoute } from "@/lib/clonestore/cloneos/cloneos-app-shell-contract";
+import { isAdminCockpitRoute } from "@/lib/nav/connected-routes";
 
 // Footer public du site. Comme SiteHeader, il se masque sur les surfaces console CloneOS
 // (cos-root, invariant « pas de scroll de page ») : sur /cockpit, /cockpit/pierre*, /cockpit/room
@@ -10,7 +11,8 @@ import { isCockpitSurfaceRoute } from "@/lib/clonestore/cloneos/cloneos-app-shel
 // (site public, /mon-clonestore, /profile, /agents/*, /assistant…) il reste strictement inchangé. (P12)
 export default function SiteFooter() {
   const pathname = usePathname() || "/";
-  if (isCockpitSurfaceRoute(pathname)) return null;
+  // Cockpit admin : pas de pied de page marketing sous un tableau de bord d'administration.
+  if (isCockpitSurfaceRoute(pathname) || isAdminCockpitRoute(pathname)) return null;
 
   return (
     <footer className="cs-footer">
@@ -49,12 +51,27 @@ export default function SiteFooter() {
             </p>
           </div>
 
-          <div className="flex items-center gap-5">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link
+              href="/legal/mentions"
+              className="hover:text-[var(--cs-ink-1)]"
+            >
+              Mentions légales
+            </Link>
+            <Link href="/legal/cgv" className="hover:text-[var(--cs-ink-1)]">
+              CGV
+            </Link>
+            <Link href="/legal/cgu" className="hover:text-[var(--cs-ink-1)]">
+              CGU
+            </Link>
             <Link
               href="/legal/confidentialite"
               className="hover:text-[var(--cs-ink-1)]"
             >
               Confidentialité
+            </Link>
+            <Link href="/legal/dpa" className="hover:text-[var(--cs-ink-1)]">
+              DPA
             </Link>
             <Link href="/questions" className="hover:text-[var(--cs-ink-1)]">
               Support

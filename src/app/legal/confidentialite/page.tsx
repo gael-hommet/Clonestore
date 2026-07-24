@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LegalNavBar, LegalValidationBanner } from "../_shared/legal-components";
 import {
   ArrowRight,
   Bot,
@@ -158,6 +159,9 @@ export default function ConfidentialitePage() {
     <div className="cs-page">
       <div className="cs-page-shell">
         <div className="space-y-6">
+          <LegalNavBar />
+          <LegalValidationBanner version="Draft 1.0" />
+
           <section className="cs-command-surface overflow-hidden">
             <div className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr] xl:items-start">
               <div className="space-y-6">
@@ -544,6 +548,8 @@ export default function ConfidentialitePage() {
               </div>
             </div>
           </section>
+
+          <LegalValidationBanner version="Draft 1.0" />
         </div>
       </div>
     </div>

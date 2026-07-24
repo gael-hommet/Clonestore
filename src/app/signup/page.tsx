@@ -404,6 +404,18 @@ export default function SignupPage() {
                       </>
                     )}
                   </button>
+
+                  <p className="text-center text-xs leading-5 text-[var(--cs-ink-4)]">
+                    En créant un compte, vous acceptez les{" "}
+                    <Link href="/legal/cgu" className="underline hover:text-[var(--cs-ink-2)]">
+                      CGU
+                    </Link>{" "}
+                    et la{" "}
+                    <Link href="/legal/confidentialite" className="underline hover:text-[var(--cs-ink-2)]">
+                      politique de confidentialité
+                    </Link>
+                    .
+                  </p>
                 </form>
 
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/42 pt-4">
