@@ -131,6 +131,56 @@ export interface OperatingScenario {
 
 export const HR_SCENARIOS: readonly OperatingScenario[] = [
   {
+    // MISSION COMPLÈTE (scénario « choc » du chapitre valeur) : l'arrivée d'un
+    // responsable commercial avec TOUT le travail périphérique — dossier, contrat,
+    // avenant, accès, matériel, communications, coordination, relances, suivi
+    // jusqu'au jour J. Étapes et minutes DÉCLARÉES (ordres de grandeur illustratifs,
+    // règle n°2 en tête de fichier) — reconstruction déclarée : l'ancien scénario
+    // « ~11 h 20 » n'a pas été retrouvé dans l'historique, celui-ci est déclaré
+    // pas à pas. L'attention humaine résiduelle reste RÉALISTE : la validation d'un
+    // contrat ne descend jamais à 2 minutes (doctrine : le contractuel se valide).
+    id: "arrival-full",
+    domain: "hr",
+    trigger: "Un responsable commercial arrive — mission complète",
+    stake: "Une arrivée cadre réussie mobilise une équipe entière pendant des jours. Personne n'en voit le coût total.",
+    current: {
+      delay: "2 à 3 semaines calendaires",
+      steps: [
+        { label: "Rassembler les informations dispersées (poste, équipe, site, manager)", kind: "search", on: "Dossiers partagés", minutes: 45 },
+        { label: "Constituer le dossier salarié complet", kind: "consolidate", on: "SIRH", minutes: 60 },
+        { label: "Retrouver et adapter le modèle de contrat cadre", kind: "search", on: "Modèles", minutes: 35 },
+        { label: "Rédiger le contrat et le package variable", kind: "copy", on: "Traitement de texte", minutes: 90 },
+        { label: "Préparer l'avenant véhicule / téléphone", kind: "copy", on: "Traitement de texte", minutes: 45 },
+        { label: "Faire contrôler les clauses par la direction", kind: "chase", on: "Direction", minutes: 30 },
+        { label: "Attendre le retour de la direction", kind: "wait", on: "Email", minutes: 0 },
+        { label: "Reprendre le dossier et intégrer les corrections", kind: "verify", on: "Traitement de texte", minutes: 40 },
+        { label: "Demander les accès (messagerie, CRM, badges)", kind: "switch", on: "Informatique", minutes: 30 },
+        { label: "Commander le matériel (poste, téléphone, véhicule)", kind: "chase", on: "Achats", minutes: 35 },
+        { label: "Attendre les confirmations accès + matériel", kind: "wait", on: "Email", minutes: 0 },
+        { label: "Relancer informatique et achats", kind: "chase", on: "Email", minutes: 25 },
+        { label: "Coordonner manager, équipe et RH pour la première semaine", kind: "interrupt", on: "Réunions", minutes: 60 },
+        { label: "Préparer les communications (équipe, direction, nouvel arrivant)", kind: "copy", on: "Email", minutes: 45 },
+        { label: "Construire le parcours d'intégration et les rendez-vous", kind: "consolidate", on: "Calendrier", minutes: 50 },
+        { label: "Vérifier chaque élément à J-3", kind: "verify", on: "Tableur", minutes: 45 },
+        { label: "Relancer les retardataires à J-2", kind: "chase", on: "Email", minutes: 20 },
+        { label: "Contrôle final et remise du dossier au manager", kind: "verify", on: "Réunion", minutes: 40 },
+      ],
+    },
+    governed: {
+      delay: "Préparé en continu, contrôle humain à J-3",
+      steps: [
+        { label: "Rassemble le contexte complet (poste, équipe, site, historique)", kind: "context", minutes: 0 },
+        { label: "Constitue le dossier et prépare contrat + avenant selon vos modèles", kind: "prepare", minutes: 0 },
+        { label: "Coordonne accès, matériel et intervenants — relance sans oubli", kind: "execute", minutes: 0 },
+        { label: "Prépare les communications et le parcours d'intégration", kind: "execute", minutes: 0 },
+        { label: "Signale ce qui manque — ne l'invente jamais", kind: "flag", minutes: 0 },
+        { label: "Soumet le contrat et l'avenant à validation humaine", kind: "validate", minutes: 8 },
+        { label: "Présente le contrôle final à J-3", kind: "validate", minutes: 4 },
+        { label: "Trace chaque action jusqu'au jour J", kind: "trace", minutes: 0 },
+      ],
+    },
+  },
+  {
     id: "onboarding",
     domain: "hr",
     trigger: "Un nouveau salarié arrive lundi",
