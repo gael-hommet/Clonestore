@@ -8,25 +8,57 @@ export const runtime = "nodejs";
 
 /**
  * =========================================
- * 0) ENV
+ * 0) Runtime (lazy — jamais évalué à l'import)
  * =========================================
+ * Vercel importe cette route pendant "Collecting page data" : toute validation
+ * d'environnement ou instanciation de client AU NIVEAU MODULE y fait échouer le
+ * build. getRuntime() lit process.env et construit le client Supabase UNIQUEMENT
+ * au premier appel réel (depuis POST()), puis met le résultat en cache pour les
+ * invocations suivantes de la même instance de fonction.
  */
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const ROUTER_HMAC_SECRET = process.env.ROUTER_HMAC_SECRET!;
-
-function assertEnv() {
-  const missing: string[] = [];
-  if (!SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL");
-  if (!SUPABASE_SERVICE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY");
-  if (!ROUTER_HMAC_SECRET) missing.push("ROUTER_HMAC_SECRET");
-  if (missing.length) throw new Error(`Missing env vars: ${missing.join(", ")}`);
+class RuntimeConfigError extends Error {
+  constructor(public readonly missing: string[]) {
+    super(`Missing env vars: ${missing.join(", ")}`);
+  }
 }
-assertEnv();
 
-const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-  auth: { persistSession: false },
-});
+// Type dérivé d'un appel CONCRET (2 arguments string) plutôt que de `typeof createClient`
+// (surchargé) : `ReturnType<typeof createClient>` résout vers une surcharge générique dont le
+// schéma vaut `never`, ce qui casse tous les `.from(...)` en aval. Ce wrapper reproduit
+// exactement la résolution de surcharge de l'appel direct d'origine.
+function instantiateSupabaseAdmin(url: string, key: string) {
+  return createClient(url, key, { auth: { persistSession: false } });
+}
+type SupabaseAdminClient = ReturnType<typeof instantiateSupabaseAdmin>;
+
+type PierreRunRuntime = {
+  supabaseAdmin: SupabaseAdminClient;
+  routerHmacSecret: string;
+};
+
+let cachedRuntime: PierreRunRuntime | null = null;
+
+function getRuntime(): PierreRunRuntime {
+  if (cachedRuntime) return cachedRuntime;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const routerHmacSecret = process.env.ROUTER_HMAC_SECRET;
+
+  const missing: string[] = [];
+  if (!supabaseUrl) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!supabaseServiceKey) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (!routerHmacSecret) missing.push("ROUTER_HMAC_SECRET");
+  if (missing.length) throw new RuntimeConfigError(missing);
+
+  // Non-null : la présence des trois valeurs vient d'être prouvée ci-dessus (aucune
+  // affirmation au niveau module — uniquement ici, après le garde runtime réel).
+  cachedRuntime = {
+    supabaseAdmin: instantiateSupabaseAdmin(supabaseUrl!, supabaseServiceKey!),
+    routerHmacSecret: routerHmacSecret!,
+  };
+  return cachedRuntime;
+}
 
 /**
  * =========================================
@@ -62,7 +94,7 @@ function timingSafeEqualHex(aHex: string, bHex: string) {
  * 2) Router Auth (HMAC + anti-replay)
  * =========================================
  */
-function assertRouterAuth(req: Request, rawBody: string) {
+function assertRouterAuth(req: Request, rawBody: string, routerHmacSecret: string) {
   const clientId = req.headers.get("x-client-id") || "";
   const timestamp = req.headers.get("x-timestamp") || "";
   const signature = req.headers.get("x-signature") || "";
@@ -76,7 +108,7 @@ function assertRouterAuth(req: Request, rawBody: string) {
   if (Math.abs(now - ts) > 5 * 60 * 1000) throw new Error("UNAUTHORIZED");
 
   const expected = crypto
-    .createHmac("sha256", ROUTER_HMAC_SECRET)
+    .createHmac("sha256", routerHmacSecret)
     .update(`${clientId}.${timestamp}.${rawBody}`)
     .digest("hex");
 
@@ -89,7 +121,7 @@ function assertRouterAuth(req: Request, rawBody: string) {
  * 3) Access check (Pierre configuré)
  * =========================================
  */
-async function assertPierreAccess(client_id: string) {
+async function assertPierreAccess(client_id: string, supabaseAdmin: SupabaseAdminClient) {
   const { data: cfg, error } = await supabaseAdmin
     .from("agent_configs")
     .select("client_id,agent_key")
@@ -113,9 +145,10 @@ async function auditLog(params: {
   ok: boolean;
   result: any;
   actor?: string;
+  supabaseAdmin: SupabaseAdminClient;
 }) {
   try {
-    await supabaseAdmin.from("audit_log").insert({
+    await params.supabaseAdmin.from("audit_log").insert({
       client_id: params.client_id,
       action: params.action,
       payload: params.payload ?? {},
@@ -201,12 +234,23 @@ async function fetchJson(url: string, options: RequestInit, timeoutMs = 45000) {
  * =========================================
  */
 export async function POST(req: Request) {
+  let runtime: PierreRunRuntime;
+  try {
+    runtime = getRuntime();
+  } catch (e) {
+    if (e instanceof RuntimeConfigError) {
+      return NextResponse.json({ ok: false, error: e.message }, { status: 503 });
+    }
+    throw e;
+  }
+  const { supabaseAdmin, routerHmacSecret } = runtime;
+
   const raw = await req.text();
 
   // 1) Auth HMAC
   let client_id_from_header = "";
   try {
-    client_id_from_header = assertRouterAuth(req, raw);
+    client_id_from_header = assertRouterAuth(req, raw, routerHmacSecret);
   } catch {
     return jsonFail("UNAUTHORIZED", "Router signature invalid or missing", undefined, 401);
   }
@@ -237,13 +281,14 @@ export async function POST(req: Request) {
       payload: input,
       ok: false,
       result: { error: "CLIENT_ID_MISMATCH" },
+      supabaseAdmin,
     });
     return jsonFail("CLIENT_ID_MISMATCH", "client_id mismatch", undefined, 403);
   }
 
   // 5) Access check
   try {
-    await assertPierreAccess(client_id);
+    await assertPierreAccess(client_id, supabaseAdmin);
   } catch (e: any) {
     await auditLog({
       client_id,
@@ -251,6 +296,7 @@ export async function POST(req: Request) {
       payload: input,
       ok: false,
       result: { error: "FORBIDDEN" },
+      supabaseAdmin,
     });
     return jsonFail("FORBIDDEN", "Pierre access denied or not configured", undefined, 403);
   }
@@ -285,6 +331,7 @@ export async function POST(req: Request) {
       payload: { step: "generate", generateBody },
       ok: false,
       result: { status: gen.status, response: gen.json },
+      supabaseAdmin,
     });
     return jsonFail(
       "GENERATE_ERROR",
@@ -305,6 +352,7 @@ export async function POST(req: Request) {
       payload: { step: "generate_parse", generateBody },
       ok: false,
       result: { zod: e?.errors ?? e, raw: gen.json },
+      supabaseAdmin,
     });
     return jsonFail(
       "GENERATE_ERROR",
@@ -364,6 +412,7 @@ export async function POST(req: Request) {
       executed_count: executions.length,
       executions,
     },
+    supabaseAdmin,
   });
 
   // 10) Return summary

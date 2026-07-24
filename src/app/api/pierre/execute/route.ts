@@ -1,39 +1,82 @@
 // src/app/api/pierre/execute/route.ts
+//
+// P0 GOVERNANCE CLOSURE (2026-07-23) — cette route legacy ("V0", auth HMAC externe)
+// exécutait auparavant email.send/doc.generate/hris.sync en appelant directement des
+// webhooks Make.com, SANS AUCUNE évaluation CloneGuard/gouvernance — contradiction directe
+// avec la règle "un email n'est jamais auto-exécuté par Pierre" appliquée partout ailleurs
+// (voir src/lib/pierre/hr/cloneguard.ts, src/lib/pierre/tasks/execute-task.ts).
+//
+// Correctif : chaque action passe désormais par les MÊMES évaluateurs canoniques purs que
+// le moteur v1/hr (evaluatePierreCloneGuard + evaluateGovernance) avant toute exécution.
+// Toute décision autre que "autorisé" est refusée ou mise en attente d'approbation humaine —
+// jamais un fallback silencieux vers l'ancien comportement permissif. Les appels sortants
+// directs vers Make.com (email/document/HRIS) ont été retirés : cette route ne peut plus,
+// par construction, déclencher un effet externe réel (email envoyé, document publié,
+// synchronisation HRIS). Voir audit-20260723-full/CLONESTORE_AUDIT_EVIDENCE/p0-governance-closure/.
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import crypto from "crypto";
 import { createClient, PostgrestError } from "@supabase/supabase-js";
+import {
+  evaluateLegacyExecuteGovernance,
+  type LegacyExecuteDecision,
+} from "@/lib/pierre/legacy-execute-governance";
 
 export const runtime = "nodejs";
 
 /**
  * =========================================
- * 0) ENV
+ * 0) Runtime (lazy — jamais évalué à l'import)
  * =========================================
+ * Vercel importe cette route pendant "Collecting page data" : toute validation
+ * d'environnement ou instanciation de client AU NIVEAU MODULE y fait échouer le
+ * build. getRuntime() lit process.env et construit le client Supabase UNIQUEMENT
+ * au premier appel réel (depuis POST()), puis met le résultat en cache pour les
+ * invocations suivantes de la même instance de fonction.
  */
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const ROUTER_HMAC_SECRET = process.env.ROUTER_HMAC_SECRET!;
-
-const MAKE_EMAIL_WEBHOOK_URL = process.env.MAKE_EMAIL_WEBHOOK_URL!;
-const MAKE_DOC_WEBHOOK_URL = process.env.MAKE_DOC_WEBHOOK_URL!;
-const MAKE_INTEGRATIONS_WEBHOOK_URL = process.env.MAKE_INTEGRATIONS_WEBHOOK_URL!;
-
-function assertEnv() {
-  const missing: string[] = [];
-  if (!SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL");
-  if (!SUPABASE_SERVICE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY");
-  if (!ROUTER_HMAC_SECRET) missing.push("ROUTER_HMAC_SECRET");
-  if (!MAKE_EMAIL_WEBHOOK_URL) missing.push("MAKE_EMAIL_WEBHOOK_URL");
-  if (!MAKE_DOC_WEBHOOK_URL) missing.push("MAKE_DOC_WEBHOOK_URL");
-  if (!MAKE_INTEGRATIONS_WEBHOOK_URL) missing.push("MAKE_INTEGRATIONS_WEBHOOK_URL");
-  if (missing.length) throw new Error(`Missing env vars: ${missing.join(", ")}`);
+class RuntimeConfigError extends Error {
+  constructor(public readonly missing: string[]) {
+    super(`Missing env vars: ${missing.join(", ")}`);
+  }
 }
-assertEnv();
 
-const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-  auth: { persistSession: false },
-});
+// Type dérivé d'un appel CONCRET (2 arguments string) plutôt que de `typeof createClient`
+// (surchargé) : `ReturnType<typeof createClient>` résout vers une surcharge générique dont le
+// schéma vaut `never`, ce qui casse tous les `.from(...)` en aval. Ce wrapper reproduit
+// exactement la résolution de surcharge de l'appel direct d'origine.
+function instantiateSupabaseAdmin(url: string, key: string) {
+  return createClient(url, key, { auth: { persistSession: false } });
+}
+type SupabaseAdminClient = ReturnType<typeof instantiateSupabaseAdmin>;
+
+type PierreExecuteRuntime = {
+  supabaseAdmin: SupabaseAdminClient;
+  routerHmacSecret: string;
+};
+
+let cachedRuntime: PierreExecuteRuntime | null = null;
+
+function getRuntime(): PierreExecuteRuntime {
+  if (cachedRuntime) return cachedRuntime;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const routerHmacSecret = process.env.ROUTER_HMAC_SECRET;
+
+  const missing: string[] = [];
+  if (!supabaseUrl) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!supabaseServiceKey) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (!routerHmacSecret) missing.push("ROUTER_HMAC_SECRET");
+  if (missing.length) throw new RuntimeConfigError(missing);
+
+  // Non-null : la présence des trois valeurs vient d'être prouvée ci-dessus (aucune
+  // affirmation au niveau module — uniquement ici, après le garde runtime réel).
+  cachedRuntime = {
+    supabaseAdmin: instantiateSupabaseAdmin(supabaseUrl!, supabaseServiceKey!),
+    routerHmacSecret: routerHmacSecret!,
+  };
+  return cachedRuntime;
+}
 
 /**
  * =========================================
@@ -46,12 +89,33 @@ type ApiErrorCode =
   | "BAD_REQUEST"
   | "UNKNOWN_ACTION"
   | "FORBIDDEN"
-  | "MAKE_ERROR"
+  | "GOVERNANCE_BLOCKED"
+  | "HUMAN_APPROVAL_REQUIRED"
   | "DB_ERROR"
   | "INTERNAL_ERROR";
 
 function jsonOk(action: string, result: any) {
   return NextResponse.json({ ok: true, action, result }, { status: 200 });
+}
+
+/**
+ * Réponse 202 : action reçue et classée, mais retenue en attente d'une validation humaine.
+ * Jamais exécutée automatiquement — aucun effet externe déclenché.
+ */
+function jsonPendingApproval(action: string, decision: LegacyExecuteDecision) {
+  return NextResponse.json(
+    {
+      ok: false,
+      action,
+      error: {
+        code: "HUMAN_APPROVAL_REQUIRED" as ApiErrorCode,
+        message: decision.explanation,
+      },
+      decision: "REQUIRE_APPROVAL",
+      governance: decision.summary,
+    },
+    { status: 202 }
+  );
 }
 
 function jsonFail(code: ApiErrorCode, message: string, details?: any, status = 400) {
@@ -81,7 +145,7 @@ function timingSafeEqualHex(aHex: string, bHex: string) {
  * - x-timestamp (ms)
  * - x-signature = HMAC_SHA256(secret, `${clientId}.${timestamp}.${rawBody}`) hex
  */
-function assertRouterAuth(req: Request, rawBody: string) {
+function assertRouterAuth(req: Request, rawBody: string, routerHmacSecret: string) {
   const clientId = req.headers.get("x-client-id") || "";
   const timestamp = req.headers.get("x-timestamp") || "";
   const signature = req.headers.get("x-signature") || "";
@@ -95,7 +159,7 @@ function assertRouterAuth(req: Request, rawBody: string) {
   if (Math.abs(now - ts) > 5 * 60 * 1000) throw new Error("UNAUTHORIZED");
 
   const expected = crypto
-    .createHmac("sha256", ROUTER_HMAC_SECRET)
+    .createHmac("sha256", routerHmacSecret)
     .update(`${clientId}.${timestamp}.${rawBody}`)
     .digest("hex");
 
@@ -115,8 +179,9 @@ async function auditLog(params: {
   ok: boolean;
   result: any;
   actor?: string;
+  supabaseAdmin: SupabaseAdminClient;
 }) {
-  const { client_id, action, payload, ok, result, actor } = params;
+  const { client_id, action, payload, ok, result, actor, supabaseAdmin } = params;
   try {
     await supabaseAdmin.from("audit_log").insert({
       client_id,
@@ -136,7 +201,12 @@ async function auditLog(params: {
  * 4) Idempotency (optional)
  * =========================================
  */
-async function maybeReturnIdempotentResult(client_id: string, action: string, payload: any) {
+async function maybeReturnIdempotentResult(
+  client_id: string,
+  action: string,
+  payload: any,
+  supabaseAdmin: SupabaseAdminClient
+) {
   const request_id = typeof payload?.request_id === "string" ? payload.request_id.trim() : "";
   if (!request_id) return null;
 
@@ -160,7 +230,7 @@ async function maybeReturnIdempotentResult(client_id: string, action: string, pa
  * 5) Access check
  * =========================================
  */
-async function assertPierreAccess(client_id: string) {
+async function assertPierreAccess(client_id: string, supabaseAdmin: SupabaseAdminClient) {
   const { data: cfg, error: cfgErr } = await supabaseAdmin
     .from("agent_configs")
     .select("client_id,agent_key")
@@ -170,39 +240,6 @@ async function assertPierreAccess(client_id: string) {
 
   if (cfgErr) throw cfgErr;
   if (!cfg) throw new Error("FORBIDDEN");
-}
-
-/**
- * =========================================
- * 6) Make call (ROBUST)
- * =========================================
- */
-async function callMake(url: string, payload: any) {
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const text = await res.text();
-
-    let parsed: any = null;
-    try {
-      parsed = text ? JSON.parse(text) : null;
-    } catch {
-      parsed = text;
-    }
-
-    if (!res.ok) {
-      return { ok: false, error: "MAKE_HTTP_ERROR", status: res.status, body: parsed };
-    }
-
-    if (parsed && typeof parsed === "object") return parsed;
-    return { ok: true, data: parsed };
-  } catch (e: any) {
-    return { ok: false, error: "MAKE_FETCH_ERROR", message: e?.message ?? "unknown" };
-  }
 }
 
 /**
@@ -275,25 +312,35 @@ const HrisSyncSchema = withRequestId(
  */
 async function tryInsertDocument(params: {
   client_id: string;
-  doc_url: string;
+  doc_url: string | null;
   title?: string | null;
   doc_type?: string | null;
   employee_id?: string | null;
   metadata?: any;
-}) {
+  supabaseAdmin: SupabaseAdminClient;
+}): Promise<string | null> {
   try {
-    await supabaseAdmin.from("documents").insert({
-      client_id: params.client_id,
-      doc_url: params.doc_url,
-      title: params.title ?? null,
-      doc_type: params.doc_type ?? null,
-      employee_id: params.employee_id ?? null,
-      status: "final",
-      version: 1,
-      metadata: params.metadata ?? {},
-    });
+    const { data, error } = await params.supabaseAdmin
+      .from("documents")
+      .insert({
+        client_id: params.client_id,
+        doc_url: params.doc_url,
+        title: params.title ?? null,
+        doc_type: params.doc_type ?? null,
+        employee_id: params.employee_id ?? null,
+        // P19 — status honesty: a freshly generated artifact is "generated", not "final". "final" implies an
+        // approved/finalized document (see finalizeVersion state machine + real signature) and must never be
+        // fabricated at generation time.
+        status: "generated",
+        version: 1,
+        metadata: params.metadata ?? {},
+      })
+      .select("id")
+      .single();
+    if (error || !data) return null;
+    return typeof (data as any)?.id === "string" ? (data as any).id : null;
   } catch {
-    // ignore
+    return null;
   }
 }
 
@@ -317,12 +364,23 @@ function safeParseJsonString(s: any) {
  * =========================================
  */
 export async function POST(req: Request) {
+  let runtime: PierreExecuteRuntime;
+  try {
+    runtime = getRuntime();
+  } catch (e) {
+    if (e instanceof RuntimeConfigError) {
+      return NextResponse.json({ ok: false, error: e.message }, { status: 503 });
+    }
+    throw e;
+  }
+  const { supabaseAdmin, routerHmacSecret } = runtime;
+
   const raw = await req.text();
 
   // 1) HMAC auth
   let client_id_from_header = "";
   try {
-    client_id_from_header = assertRouterAuth(req, raw);
+    client_id_from_header = assertRouterAuth(req, raw, routerHmacSecret);
   } catch {
     return jsonFail("UNAUTHORIZED", "Router signature invalid or missing", undefined, 401);
   }
@@ -353,152 +411,177 @@ export async function POST(req: Request) {
       payload,
       ok: false,
       result: { error: "CLIENT_ID_MISMATCH" },
+      supabaseAdmin,
     });
     return jsonFail("CLIENT_ID_MISMATCH", "client_id mismatch", undefined, 403);
   }
 
   // 5) Access
   try {
-    await assertPierreAccess(client_id);
+    await assertPierreAccess(client_id, supabaseAdmin);
   } catch {
-    await auditLog({ client_id, action, payload, ok: false, result: { error: "FORBIDDEN" } });
+    await auditLog({ client_id, action, payload, ok: false, result: { error: "FORBIDDEN" }, supabaseAdmin });
     return jsonFail("FORBIDDEN", "Pierre access denied or not configured", undefined, 403);
   }
 
   // 6) Idempotency
   try {
-    const prev = await maybeReturnIdempotentResult(client_id, action, payload);
+    const prev = await maybeReturnIdempotentResult(client_id, action, payload, supabaseAdmin);
     if (prev) return jsonOk(action, { idempotent: true, ...prev });
   } catch {
     // ignore
   }
 
-  // 7) Execute
+  // 6.5) Gouvernance canonique — évaluée pour TOUTE action reconnue, avant toute exécution.
+  // Une décision DENY/REQUIRE_APPROVAL est journalisée et retournée SANS jamais tomber sur
+  // l'ancien comportement permissif (plus aucun appel externe direct dans cette route).
+  const now = new Date().toISOString();
+  const recognizedActions = new Set(["email.send", "doc.generate", "hris.sync"]);
+  let decision: LegacyExecuteDecision | null = null;
+
+  if (recognizedActions.has(action)) {
+    decision = evaluateLegacyExecuteGovernance({ action, payload, now });
+
+    if (decision.outcome === "DENY") {
+      await auditLog({
+        client_id,
+        action,
+        payload,
+        ok: false,
+        result: {
+          governance: decision.summary,
+          audit: decision.governanceAudit.meta_json,
+          cloneguard_audit: decision.cloneGuardAudit.meta_json,
+        },
+        supabaseAdmin,
+      });
+      return jsonFail("GOVERNANCE_BLOCKED", decision.explanation, decision.summary, 403);
+    }
+
+    if (decision.outcome === "REQUIRE_APPROVAL") {
+      await auditLog({
+        client_id,
+        action,
+        payload,
+        ok: false,
+        result: {
+          governance: decision.summary,
+          audit: decision.governanceAudit.meta_json,
+          cloneguard_audit: decision.cloneGuardAudit.meta_json,
+        },
+        supabaseAdmin,
+      });
+      return jsonPendingApproval(action, decision);
+    }
+
+    // decision.outcome === "ALLOW" à partir d'ici.
+  }
+
+  // 7) Execute (uniquement atteint pour une action ALLOW ou non reconnue — cf. branche
+  // "Unknown action" ci-dessous, qui reste fail-closed comme avant ce correctif)
   try {
     /**
      * =========================
      * email.send
      * =========================
+     * Garde de sécurité absolue : CloneGuard force allowed_to_auto_execute=false pour
+     * TOUTE action email.send, quelle que soit la configuration (cloneguard.ts, règle
+     * "email_send_block" + garde explicite non-contournable). Cette branche ne devrait
+     * donc jamais être atteinte avec outcome==="ALLOW" — le garde ci-dessous le prouve
+     * en refusant explicitement plutôt que d'envoyer quoi que ce soit.
      */
     if (action === "email.send") {
-      const p = EmailSendSchema.parse(payload);
-
-      const { data: cfg, error: cfgErr } = await supabaseAdmin
-        .from("agent_configs")
-        .select("sender_email,sender_name,email_signature,legal_footer,email_provider")
-        .eq("client_id", client_id)
-        .eq("agent_key", "pierre")
-        .maybeSingle();
-
-      if (cfgErr) throw cfgErr;
-
-      const signature = cfg?.email_signature ? `<br><br>${cfg.email_signature}` : "";
-      const footer = cfg?.legal_footer ? `<br><br><small>${cfg.legal_footer}</small>` : "";
-
-      const makePayload = {
+      await auditLog({
         client_id,
-        from: cfg?.sender_email,
-        from_name: cfg?.sender_name ?? "Pierre",
-        to: p.to,
-        subject: p.subject,
-        body_html: p.body_html + signature + footer,
-        reply_to: p.reply_to,
-        request_id: (p as any).request_id,
-      };
-
-      const makeRes = await callMake(MAKE_EMAIL_WEBHOOK_URL, makePayload);
-
-      if (makeRes?.ok === false) {
-        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes } });
-        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
-      }
-
-      await auditLog({ client_id, action, payload, ok: true, result: makeRes });
-      return jsonOk(action, makeRes);
+        action,
+        payload,
+        ok: false,
+        result: { error: "EMAIL_SEND_NEVER_AUTO_EXECUTED" },
+        supabaseAdmin,
+      });
+      return jsonFail(
+        "GOVERNANCE_BLOCKED",
+        "Un email n'est jamais auto-exécuté par Pierre, même via cette route legacy.",
+        undefined,
+        403
+      );
     }
 
     /**
      * =========================
      * doc.generate
      * =========================
+     * P0 governance closure : plus aucun appel externe (ex-MAKE_DOC_WEBHOOK_URL). Le document
+     * est enregistré localement en statut "generated" (brouillon), jamais publié
+     * automatiquement à l'extérieur — cohérent avec le cycle de vie canonique
+     * draft→review→approved→final (src/lib/pierre/v1/documents.ts).
+     *
+     * Constat vérifié (test unitaire) : cette branche n'est aujourd'hui atteinte QUE si
+     * evaluateLegacyExecuteGovernance renvoie ALLOW — ce qui n'arrive en pratique jamais
+     * pour cette route, car aucune donnée de confiance/historique réelle (company_trust_score)
+     * ne lui est transmise : CloneTrust retombe alors sur "supervised" (40/100), qui force
+     * REQUIRE_APPROVAL même pour un contenu bénin. Cette branche reste néanmoins nécessaire :
+     * elle est correcte et s'activerait si un contexte de confiance réel était un jour fourni.
      */
     if (action === "doc.generate") {
       const p = DocGenerateSchema.parse(payload) as any;
-
       const isSimple = typeof p?.html === "string" && p.html.length > 0;
 
-      const makePayload = isSimple
-        ? {
-            client_id,
-            request_id: p.request_id,
-            title: p.title ?? "Document",
-            html: p.html,
-            filename: p.filename ?? "document.pdf",
-            doc_type: p.doc_type ?? "document",
-          }
-        : {
-            client_id,
-            employee_id: p.employee_id,
-            doc_type: p.doc_type,
-            template_id: p.template_id,
-            title: p.title,
-            data: p.data ?? {},
-            request_id: p.request_id,
-          };
+      const title = p.title ?? (isSimple ? "Document" : undefined);
+      const docType = isSimple ? (p.doc_type ?? "document") : p.doc_type;
+      const employeeId = isSimple ? null : (p.employee_id ?? null);
 
-      const makeRes = await callMake(MAKE_DOC_WEBHOOK_URL, makePayload);
-      if (makeRes?.ok === false) {
-        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes } });
-        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
-      }
+      const documentId = await tryInsertDocument({
+        client_id,
+        doc_url: null,
+        title: title ?? null,
+        doc_type: docType ?? null,
+        employee_id: employeeId,
+        metadata: {
+          source: "pierre_execute_legacy",
+          governance: decision?.summary ?? null,
+          externally_published: false,
+        },
+        supabaseAdmin,
+      });
 
-      const doc_url = makeRes?.doc_url ?? makeRes?.data?.doc_url;
-      if (typeof doc_url === "string" && doc_url.startsWith("http")) {
-        await tryInsertDocument({
-          client_id,
-          doc_url,
-          title: makePayload?.title ?? null,
-          doc_type: makePayload?.doc_type ?? null,
-          employee_id: makePayload?.employee_id ?? null,
-          metadata: { make: makeRes },
-        });
-      }
+      const result = {
+        generated: true,
+        externally_published: false,
+        document_id: documentId,
+        status: "generated",
+        request_id: (p as any)?.request_id ?? null,
+      };
 
-      await auditLog({ client_id, action, payload, ok: true, result: makeRes });
-      return jsonOk(action, makeRes);
+      await auditLog({ client_id, action, payload, ok: true, result, supabaseAdmin });
+      return jsonOk(action, result);
     }
 
     /**
      * =========================
      * hris.sync
      * =========================
+     * P0 governance closure : la nouvelle règle CloneGuard "integration_sync_require"
+     * (src/lib/pierre/hr/cloneguard.ts) classe systématiquement hris.sync en
+     * require_approval — cette branche ne devrait donc jamais être atteinte avec
+     * outcome==="ALLOW". Garde de sécurité absolue : aucun appel externe direct n'est
+     * effectué depuis cette route, quelle que soit la décision.
      */
     if (action === "hris.sync") {
-      const p = HrisSyncSchema.parse(payload) as any;
-
-      // ✅ NOUVEAU: si payload_json string existe, on le parse
-      const parsedFromString = safeParseJsonString(p?.payload_json);
-      const payloadObj =
-        parsedFromString ??
-        (p?.payload && typeof p.payload === "object" ? p.payload : {}) ??
-        {};
-
-      const makePayload = {
+      await auditLog({
         client_id,
-        vendor: p.vendor,
-        mode: p.mode,
-        payload: payloadObj,
-        request_id: p.request_id,
-      };
-
-      const makeRes = await callMake(MAKE_INTEGRATIONS_WEBHOOK_URL, makePayload);
-      if (makeRes?.ok === false) {
-        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes } });
-        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
-      }
-
-      await auditLog({ client_id, action, payload, ok: true, result: makeRes });
-      return jsonOk(action, makeRes);
+        action,
+        payload,
+        ok: false,
+        result: { error: "HRIS_SYNC_REQUIRES_CANONICAL_ADAPTER" },
+        supabaseAdmin,
+      });
+      return jsonFail(
+        "GOVERNANCE_BLOCKED",
+        "La synchronisation HRIS ne peut pas être exécutée directement par cette route legacy.",
+        undefined,
+        403
+      );
     }
 
     /**
@@ -506,7 +589,7 @@ export async function POST(req: Request) {
      * Unknown action
      * =========================
      */
-    await auditLog({ client_id, action, payload, ok: false, result: { error: "UNKNOWN_ACTION" } });
+    await auditLog({ client_id, action, payload, ok: false, result: { error: "UNKNOWN_ACTION" }, supabaseAdmin });
     return jsonFail("UNKNOWN_ACTION", "Unknown action", { action }, 400);
   } catch (e: any) {
     let code: ApiErrorCode = "INTERNAL_ERROR";
@@ -540,6 +623,7 @@ export async function POST(req: Request) {
       payload: body?.payload ?? {},
       ok: false,
       result: { error: { code, message, details } },
+      supabaseAdmin,
     });
 
     return jsonFail(code, message, details, status);
