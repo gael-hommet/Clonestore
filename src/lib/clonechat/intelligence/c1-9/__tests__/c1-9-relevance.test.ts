@@ -76,9 +76,13 @@ describe("C1.9 — §6 assistance : une demande d'aide n'est jamais une occasion
     questions_detected: ["pourquoi ai-je été prélevé ?"],
   }, "on m'a prélevé alors que j'ai résilié");
 
-  it("interdit TOUS les sujets périphériques, sans exception", () => {
-    expect(forbiddenIds(support).sort()).toEqual(PERIPHERAL_TOPICS.map((t) => t.id).sort());
-    expect(support.allowedSupportingTopics).toEqual([]);
+  it("interdit toutes les OFFRES commerciales (le sujet factuel de l'incident reste permis)", () => {
+    // Les offres (tarif, réservation, démo, gain) sont interdites ; le sujet factuel de
+    // l'incident (paiement, facturation) reste permis — sinon on pénalise la discussion
+    // nécessaire de « ma carte a été débitée » ou « ma facture est fausse ».
+    const OFFERS = ["pricing", "founder_reservation", "demo", "roi"];
+    expect(OFFERS.every((t) => forbiddenIds(support).includes(t))).toBe(true);
+    expect(OFFERS.some((t) => support.allowedSupportingTopics.includes(t))).toBe(false);
   });
 
   it("interdit toute suite et tout argumentaire commercial", () => {
@@ -139,7 +143,7 @@ describe("C1.9 — §7 pays : dérivé du canon P10, jamais d'une liste écrite 
   });
 
   it("sert les DEUX pays et les DEUX devises quand deux pays sont évoqués", () => {
-    const c = contractFor({ request_nature: "country", countries_mentioned: ["FR", "CH"] }, "Paris et Genève");
+    const c = contractFor({ request_nature: "country", countries_mentioned: ["FR", "CH"] }, "Paris et Genève, ça se gère et à quel tarif ?");
     const plan = factRelevancePlan(c, U({ request_nature: "country" }));
     const truth = buildTruthContext({ retrieved: [], serverCountry: null, at: "2026-07-22", viewerIsAuthenticated: false, relevance: plan });
     const rendered = renderTruthForPrompt(truth);

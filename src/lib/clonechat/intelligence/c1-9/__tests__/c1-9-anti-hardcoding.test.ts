@@ -34,7 +34,7 @@ const BUDGET = {
    * 5 000 caractères), pas par leur nombre. Le plafond reste néanmoins bas pour que toute
    * hausse soit une décision consciente : chaque ajout doit être un détecteur nommé.
    */
-  maxRegexLiterals: 56,
+  maxRegexLiterals: 58,
   /** Aucun regex ne doit énumérer des formulations d'utilisateur. */
   maxRegexLength: 200,
   /**

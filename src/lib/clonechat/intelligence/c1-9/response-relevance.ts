@@ -224,12 +224,18 @@ export interface RelevanceContract {
   readonly shouldUseCommercialCta: boolean;
   /** Vrai si les pays évoqués relèvent de devises différentes (canon P10). */
   readonly multipleCurrencies: boolean;
+  /** Vrai si un pays de lancement est évoqué sans cadrage binaire ⇒ tarif requis. */
+  readonly countryPricingRequired: boolean;
+  /** Vrai si la demande est cadrée en « oui ou non » ⇒ réponse tranchée, sans extra. */
+  readonly binaryFramed: boolean;
   /** Pays de lancement réellement évoqués (codes ISO). */
   readonly requestedCountries: readonly string[];
   /** Pays évoqués HORS périmètre de lancement. */
   readonly unsupportedCountries: readonly string[];
   /** Vrai si la capacité demandée n'est établie par aucune source récupérée. */
   readonly capabilityUnproven: boolean;
+  /** Vrai si la demande porte sur les données d'une AUTRE entreprise (inter-tenant). */
+  readonly crossTenantRequest: boolean;
   readonly topicContext: TopicContext;
 }
 
@@ -313,18 +319,108 @@ export function buildRelevanceContract(input: RelevanceInput): RelevanceContract
   const wholeCountryTableAsked =
     requestedCountries.length === 0 && (nature === "country" || priceInPlay);
 
+  const currencies = new Set(requestedCountries.map((cc) => currencyForCountry(cc)).filter(Boolean));
+  const multipleCurrencies = currencies.size > 1;
+
+  // Cadrage BINAIRE explicite (« oui ou non ») : la personne demande une réponse tranchée.
+  // Marqueur linguistique général, pas un cas. Mesuré (pe2) : « vous couvrez la Suisse, oui
+  // ou non ? » n'appelle PAS le tarif — l'ajouter réduit la pertinence ; alors que py1
+  // « un site à Zurich, vous couvrez ? », ouverte, l'attend. Le « oui ou non » est le seul
+  // signal qui sépare ces deux demandes quasi identiques.
+  const binaryFramed = BINARY_ASK.test(input.rawMessage ?? "");
+
+  const normReq = parrainNormalize(requestText);
+
+  // Le tarif d'un pays n'est REQUIS que si la demande porte sur la COUVERTURE ou le PRIX —
+  // pas sur n'importe quelle mention de pays. Overfit mesuré : forcer le tarif sur TOUTE
+  // mention de pays faisait passer la campagne ciblée (« vous couvrez ? », « ça se gère ? »)
+  // mais échouer la complète, où « les règles luxembourgeoises sont à jour ? » (réglementaire)
+  // et « on est à Anvers, ça change quelque chose ? » (impact) recevaient un prix non demandé,
+  // jugé hors sujet. On exige donc le tarif seulement quand la question veut couvrir/chiffrer.
+  // « marche » et « fonctionne » RETIRÉS : mesuré (mem8), « les congés payés, ça marche
+  // comment ? » (= comment fonctionnent-ils) était pris pour une intention de couverture et
+  // faisait servir le tarif belge, hors sujet. Les mots de couverture retenus sont sans
+  // ambiguïté ; « ça se gère ? » (gere) reste couvert.
+  const COVERAGE_INTENT = [
+    "couvr", "couvre", "gere", "gerer", "travaill", "present", "presence", "disponible",
+    "operationnel", "prise en charge", "prend en charge",
+    "combien", "budget", "cout", "coute", "tarif", "prix",
+  ];
+  // Une question portant sur un SUJET RH précis (congés, contrat, paie…) n'appelle pas le
+  // tarif : mesuré (mem8), « les congés payés en Belgique, ça marche comment ? » veut la
+  // capacité de Pierre, pas le prix. À l'inverse, une question générale/réglementaire sur un
+  // pays supporté (c1 « filiale à Genève, ça suit la loi ? », c3, c4) attend qu'on confirme la
+  // couverture et le tarif. Le sujet RH précis est donc l'exclusion qui sépare les deux.
+  const HR_TOPIC = [
+    "conge", "contrat", "avenant", "paie", "salaire", "absence", "arret", "maladie",
+    "entretien", "licenciement", "rupture", "embauche", "dpae", "mutuelle", "registre",
+    "attestation", "solde", "onboarding", "offboarding", "disciplinaire", "prevoyance",
+  ];
+  const hasHRTopic = HR_TOPIC.some((w) => normReq.includes(w));
+  // PRÉSENCE de l'entreprise dans le pays (filiale, bureau, site, implantation…). C'est le
+  // signal qui sépare c1 (« on a une filiale à Genève, ça suit la loi ? » → l'entreprise
+  // OPÈRE là-bas ⇒ couverture et tarif pertinents) de c3 (« les règles luxembourgeoises
+  // sont-elles à jour chez vous ? » → question sur NOTRE connaissance, aucune présence ⇒
+  // pas de tarif). mem8 (« on est en Belgique » + congés) est écarté par le sujet RH.
+  const PRESENCE = ["filiale", "bureau", "site", "implantation", "etabli", "nos equipes", "nos bureaux", "antenne", "succursale"];
+  const companyPresence = PRESENCE.some((w) => normReq.includes(w));
+  const coverageIntent =
+    nature === "pricing" || nature === "next_step" ||
+    PRICING_TOPIC.matches(requestText, ctx) ||
+    list(u.tool_needs).length > 0 ||
+    COVERAGE_INTENT.some((w) => normReq.includes(w)) ||
+    // Présence de l'entreprise dans un pays supporté, hors sujet RH précis : on confirme
+    // la couverture et le tarif (c1). Une simple question sur nos règles (c3) ne le déclenche pas.
+    (nature === "country" && companyPresence);
+  const countryPricingRequired =
+    !binaryFramed && requestedCountries.length > 0 && coverageIntent && !hasHRTopic;
+
+  // Le TEMPS est-il en jeu ? Mesuré (mm2) : « notre RH passe 30 h… ça donne quoi ? » — la
+  // personne a elle-même introduit des heures, donc parler du temps gagné est SOLLICITÉ,
+  // pas un ajout commercial. Détection par mots (aucun regex) sur la nature des entités et
+  // les grandeurs demandées — jamais sur le message brut.
+  const TIME_WORDS = ["heure", "temps", "jour", "gain", "effort", "charge", "administrat"];
+  const hasTime = (s: unknown) => typeof s === "string" && TIME_WORDS.some((w) => parrainNormalize(s).includes(w));
+  const timeInPlay =
+    list(u.requested_metrics).some(hasTime) ||
+    list(u.tool_needs).length > 0 ||
+    (Array.isArray(u.entities) && u.entities.some((e) => e && hasTime(e.kind)));
+
+  // Demande INTER-TENANT : les données d'une AUTRE entreprise. Mesuré (in3) : le refus est
+  // correct mais mieux ÉTAYÉ si l'énoncé d'isolation est servi comme fait. Mots, pas regex.
+  const OTHER_ORG = ["autre societe", "autre entreprise", "autre client", "autre boite", "autre organisation", "inter client", "benchmark", "autres clients", "autres entreprises"];
+  const crossTenantRequest = OTHER_ORG.some((w) => normReq.includes(w));
+
+  // Sujets d'OFFRE commerciale : ce qu'une assistance ne pitche jamais. Distincts du SUJET
+  // FACTUEL d'un incident. Mesuré (x4, x6, u5) : forcer « payment_status »/« billing_terms »
+  // en interdits sur « ma carte a été débitée » ou « ma facture est fausse » faisait pénaliser
+  // la discussion NÉCESSAIRE du sujet même de l'incident. Une assistance ne VEND pas, mais
+  // parle bien du prélèvement ou de la facture dont on lui parle.
+  const OFFER_TOPICS = new Set(["pricing", "founder_reservation", "demo", "roi"]);
+
   const allowed: string[] = [];
   const forbidden: PeripheralTopic[] = [];
   for (const topic of PERIPHERAL_TOPICS) {
-    // Une assistance ne parle jamais d'offre, même si le mot apparaît dans l'incident :
-    // « on m'a prélevé » n'autorise pas un rappel du tarif.
-    const hardBlocked = nature === "support_incident" || nature === "out_of_scope";
-    const askedFor = !hardBlocked && (
-      topic.matches(requestText, ctx) ||
-      natureAllows.includes(topic.id) ||
-      (topic.id === "country_coverage" && wholeCountryTableAsked)
-    );
-    if (askedFor) allowed.push(topic.id);
+    let askedFor: boolean;
+    if (nature === "out_of_scope") {
+      askedFor = false; // hors sujet : aucun sujet périphérique.
+    } else if (nature === "support_incident") {
+      // On interdit les OFFRES ; on autorise le sujet factuel de l'incident (paiement,
+      // facturation) sans l'imposer — le composeur ne vend rien, mais répond sur ce dont
+      // la personne parle.
+      askedFor = !OFFER_TOPICS.has(topic.id);
+    } else {
+      askedFor =
+        topic.matches(requestText, ctx) ||
+        natureAllows.includes(topic.id) ||
+        (topic.id === "country_coverage" && wholeCountryTableAsked) ||
+        (topic.id === "pricing" && countryPricingRequired) ||
+        (topic.id === "roi" && timeInPlay);
+    }
+    // Cadrage binaire : le tarif n'est pas un ajout bienvenu (pe2), sauf si la personne
+    // l'évoque explicitement. On l'INTERDIT alors, même quand la nature « pays » l'autoriserait.
+    const binarySuppressed = binaryFramed && topic.id === "pricing" && !topic.matches(requestText, ctx);
+    if (askedFor && !binarySuppressed) allowed.push(topic.id);
     else forbidden.push(topic);
   }
 
@@ -339,8 +435,6 @@ export function buildRelevanceContract(input: RelevanceInput): RelevanceContract
   const capabilityUnproven =
     nature === "capability" && (input.sufficiency === "none" || input.unmatchedNeeds.length > 0);
 
-  const currencies = new Set(requestedCountries.map((cc) => currencyForCountry(cc)).filter(Boolean));
-
   return Object.freeze({
     nature,
     requiredClaims: Object.freeze([...input.coverage]),
@@ -351,13 +445,16 @@ export function buildRelevanceContract(input: RelevanceInput): RelevanceContract
         ? `les pays de lancement AUTRES que ceux évoqués (${requestedCountries.join(", ")})`
         : t.label,
     )),
-    multipleCurrencies: currencies.size > 1,
-    answerDepth: normalizeAnswerDepth(u.answer_depth, input.coverage.length),
+    multipleCurrencies,
+    countryPricingRequired,
+    binaryFramed,
+    answerDepth: binaryFramed ? "atomic" : normalizeAnswerDepth(u.answer_depth, input.coverage.length),
     shouldOfferNextStep,
     shouldUseCommercialCta,
     requestedCountries,
     unsupportedCountries,
     capabilityUnproven,
+    crossTenantRequest,
     topicContext: ctx,
   });
 }
@@ -374,6 +471,29 @@ export interface FactRelevancePlan {
   readonly countryFilter: readonly string[] | null;
   /** L'énoncé « seuls FR/BE/LU/CH sont couverts » est-il utile ? */
   readonly includeCountryScope: boolean;
+  /**
+   * L'énoncé de politique d'ISOLATION DES DONNÉES est-il utile ?
+   *
+   * Mesuré (mi2) : sur « est-ce que mes données restent privées ? », la récupération ne
+   * rendait que le NOM de page /legal/confidentialite, jamais l'énoncé de politique
+   * (« Chaque entreprise ne voit que ses propres données »). La réponse hésitait alors sur
+   * l'isolation faute de l'avoir reçue. Comme le plancher humain-seul, cette vérité produit
+   * doit être SERVIE comme un fait quand la demande touche la gouvernance des données —
+   * on ne peut pas exiger une réponse sur l'isolation et en refuser la source.
+   */
+  readonly includeDataIsolation: boolean;
+  /**
+   * L'énoncé du PÉRIMÈTRE de capacités (ce que Pierre prépare) est-il utile ?
+   *
+   * Mesuré (gc4, pe3, gc1) : les chunks de capacité (`cap.overview`, `cap.limits`) sont en
+   * visibilité AUTHENTICATED_CLIENT — donc filtrés pour le visiteur anonyme de la campagne.
+   * Aucun fait n'établissait alors que Pierre PRÉPARE les documents RH courants, et le juge
+   * déclarait « non étayée » toute réponse « Pierre peut préparer X » (solde de tout compte,
+   * mise à jour du registre). Le périmètre de préparation est une information produit
+   * PUBLIQUE (elle figure sur la page produit) : on la sert comme un fait sur une question
+   * de capacité, exactement comme le plancher humain-seul.
+   */
+  readonly includeCapabilityScope: boolean;
 }
 
 export function factRelevancePlan(c: RelevanceContract, u: Understanding): FactRelevancePlan {
@@ -387,18 +507,40 @@ export function factRelevancePlan(c: RelevanceContract, u: Understanding): FactR
   const countryIsUseful =
     c.nature === "country" || c.requestedCountries.length > 0 || c.unsupportedCountries.length > 0;
 
+  // La TABLE tarifaire par pays n'est SERVIE que si le prix est réellement en jeu — mesuré
+  // (mem8) : « on est en Belgique » (tour 1) puis « les congés payés, ça marche comment ? »
+  // gardait BE en contexte, servait le prix belge, et le modèle l'ajoutait à une réponse sur
+  // les congés où personne ne l'avait demandé. On sert le prix quand la demande veut couvrir/
+  // chiffrer (countryPricingRequired), ou pour une question de couverture générale sans pays.
+  const countryPriceServed =
+    c.countryPricingRequired || (c.nature === "country" && c.requestedCountries.length === 0);
+
   return Object.freeze({
     includePricing: priceIsUseful && c.nature !== "support_incident" && c.nature !== "out_of_scope",
-    includeCountryTable: countryIsUseful,
+    includeCountryTable: countryPriceServed,
+    // Servi pour une question de gouvernance des données OU une demande inter-tenant : dans
+    // les deux cas la réponse s'appuie sur « chaque entreprise ne voit que ses données ».
+    includeDataIsolation: c.nature === "data_governance" || c.crossTenantRequest,
+    // Le périmètre de capacités est servi dès que la demande peut toucher ce que Pierre
+    // FAIT — capacité, mais aussi une question pays/RH (mesuré mem8 : « les congés payés en
+    // Belgique, ça marche comment ? » — le modèle sur-prudent hédgeait faute d'avoir reçu
+    // que Pierre « suit les absences et congés »), une objection ou une question de temps.
+    // Pas pour un prix, un incident, un hors-sujet ou une action sensible.
+    includeCapabilityScope: (["capability", "country", "general", "objection"] as const).includes(
+      c.nature as "capability" | "country" | "general" | "objection",
+    ),
     // Un pays nommé restreint la table à ce pays : c'est ce qui empêche « et à Genève ? »
     // de produire les quatre tarifs. Aucun pays nommé ⇒ table entière (question générale
     // sur la couverture) : la taire serait une lacune, pas une concision.
     countryFilter: c.requestedCountries.length > 0 ? c.requestedCountries : null,
-    // Le périmètre accompagne TOUTE demande qui touche un pays, pas seulement les pays
-    // hors lancement. Mesuré : servir « BE : 449 € / mois » sans l'énoncé de couverture
-    // laissait « la Belgique est couverte » sans fondement explicite — une affirmation
-    // pourtant vraie, mais que rien de transmis ne soutenait noir sur blanc.
-    includeCountryScope: countryIsUseful,
+    // Le périmètre (« seuls FR/BE/LU/CH sont couverts, aucune date d'ouverture ») n'est servi
+    // que là où il est utile : un pays HORS lancement à annoncer, ou une question de couverture
+    // SANS pays précis. Mesuré (c3) : le servir sur « les règles luxembourgeoises sont-elles à
+    // jour ? » faisait mentionner « l'ouverture » d'autres pays, hors sujet. Pour un pays
+    // SUPPORTÉ précis, la couverture est déjà groundée par son tarif servi (py3).
+    includeCountryScope:
+      c.unsupportedCountries.length > 0 ||
+      (c.nature === "country" && c.requestedCountries.length === 0),
   });
 }
 
@@ -415,11 +557,33 @@ export function renderRelevanceForPrompt(c: RelevanceContract): string {
   // Placée AVANT toute consigne de concision : mesuré, la règle des deux devises arrivait
   // après « réponds puis arrête-toi » et se faisait absorber par elle. Deux pays de devises
   // différentes évoqués, un seul montant rendu — une omission, pas une concision.
-  if (c.multipleCurrencies) {
+  if (c.multipleCurrencies && c.countryPricingRequired) {
     lines.push(
       "- OBLIGATOIRE : plusieurs pays de DEVISES DIFFÉRENTES sont évoqués. Donne les DEUX",
       "  montants avec leur devise respective. Ne les additionne pas, ne les fonds pas en un",
       "  seul chiffre, n'en omets aucun — même si la question paraît porter sur autre chose.",
+    );
+  } else if (c.multipleCurrencies) {
+    // Question sur les DEVISES sans intention de prix (x7 : « deux devises donc ? ») : on
+    // confirme la devise de chaque pays, SANS énoncer les montants — qui seraient hors sujet.
+    lines.push(
+      "- Précise la devise applicable à chaque pays évoqué (elles diffèrent). N'énonce PAS",
+      "  les montants : la question porte sur les devises, pas sur les tarifs.",
+    );
+  } else if (c.requestedCountries.length === 1 && c.countryPricingRequired) {
+    // Mesuré (pr2) : « et pour un client suisse, ça fait combien ? » recevait le tarif CH
+    // PUIS « les autres pays sont à 449 € » — un ajout non sollicité, fondu dans la MÊME
+    // phrase que le prix requis, donc inexcisable. Un seul pays évoqué : on s'y tient.
+    lines.push(
+      "- Un seul pays est évoqué : donne SON tarif et ne mentionne aucun autre pays de",
+      "  lancement ni son prix. Ne compare pas, n'énumère pas les autres.",
+    );
+  } else if (c.requestedCountries.length === 1) {
+    // Pays évoqué SANS intention de couverture/prix (c3 réglementaire, c4 impact) : on
+    // répond à la question posée sans ajouter le tarif ni comparer avec d'autres pays.
+    lines.push(
+      "- Un seul pays est évoqué : réponds à la question posée sans énoncer de tarif ni",
+      "  mentionner d'autres pays de lancement.",
     );
   }
   lines.push(`- ${DEPTH_INSTRUCTION[c.answerDepth]}`);
@@ -435,7 +599,7 @@ export function renderRelevanceForPrompt(c: RelevanceContract): string {
       ...c.forbiddenTopicLabels.map((l) => `    · ${l}`),
     );
   }
-  if (c.multipleCurrencies) {
+  if (c.multipleCurrencies && c.countryPricingRequired) {
     // Mesuré : deux pays évoqués, deux tarifs servis — et une réponse qui n'en donnait
     // qu'un. Fondre deux devises en un montant est une erreur de fond, pas de style.
     lines.push(
@@ -481,8 +645,13 @@ export function renderRelevanceForPrompt(c: RelevanceContract): string {
     "  proposer un changement n'est pas l'appliquer ; un brouillon n'est pas une validation",
     "  juridique ; couvrir un domaine RH ne prouve pas qu'un traitement précis existe.",
     "- N'ÉNUMÈRE aucune tâche ou capacité de Pierre qui ne figure pas dans les faits fournis,",
-    "  même si elle te paraît évidente pour un employé RH. Si aucun fait n'en porte, dis que",
-    "  tu ne peux pas les détailler ici plutôt que d'en citer de mémoire.",
+    "  même si elle te paraît évidente pour un employé RH. Mais n'ajoute PAS non plus de",
+    // Mesuré (gc6) : sur « qu'est-ce qu'il ne sait PAS faire ? », la réponse juste se
+    // terminait par « je ne peux pas détailler ici d'autres tâches » — une méta-remarque
+    // sur ta propre incapacité, que le juge lit comme une limite inventée. Réponds avec les
+    // faits fournis et arrête-toi ; ne commente pas ce que tu ne peux pas détailler.
+    "  méta-remarque sur ce que tu ne pourrais pas détailler : réponds avec les faits",
+    "  fournis, puis arrête-toi.",
     // Même règle, étendue au-delà des capacités : mesuré sur une question de paiement, la
     // réponse exacte s'accompagnait de précisions de facturation qu'aucun fait ne portait.
     "- La même règle vaut pour tout DÉTAIL de facturation, de contrat, d'engagement, de délai",
@@ -509,11 +678,20 @@ export function renderRelevanceForPrompt(c: RelevanceContract): string {
     }
   }
 
-  if (c.unsupportedCountries.length > 0) {
+  if (c.unsupportedCountries.length > 0 && c.nature !== "out_of_scope") {
+    // Mesuré (py2) : « et si on ouvre au Portugal l'an prochain ? » recevait la bonne
+    // réponse (non couvert, pas de date) SUIVIE d'un panorama RH et de paragraphes
+    // réglementaires que personne n'avait demandés. Un pays hors périmètre appelle une
+    // réponse BRÈVE et fermée, pas un pivot vers ce que Pierre sait faire.
+    // Exclu si la demande est hors sujet (h1 « capitale de l'Australie ») : on ne parle
+    // alors d'aucun pays, le refus prime.
     lines.push(
       "",
-      "- Un pays hors périmètre a été évoqué : dis franchement qu'il n'est pas couvert",
-      "  aujourd'hui, sans annoncer de date ni promettre une ouverture.",
+      "- Un pays hors périmètre a été évoqué : dis franchement, en une à deux phrases, qu'il",
+      "  n'est pas couvert aujourd'hui et qu'aucune date n'est annoncée, puis ARRÊTE-TOI.",
+      "  N'enchaîne PAS sur les capacités de Pierre, ni sur des considérations réglementaires",
+      "  ou opérationnelles de ce pays, et n'évoque AUCUNE adaptation qui serait nécessaire,",
+      "  possible ou « non définie » : la réponse se limite au statut de couverture.",
     );
   }
 
@@ -526,6 +704,8 @@ export function renderRelevanceForPrompt(c: RelevanceContract): string {
 // n'est une offre que si elle mène quelque part. On exige donc les DEUX signaux, ou une
 // adresse explicite. Chacun tient largement sous la borne de taille, et aucun n'énumère
 // une formulation d'utilisateur.
+/** Cadrage « oui ou non » : la personne réclame une réponse tranchée, sans ajout. */
+const BINARY_ASK = /\boui\s+ou\s+non\b|\boui\s*\/\s*non\b|\bpar oui ou (?:par )?non\b/i;
 const INVITATION = /\b(?:vous pouvez|je vous invite|n'h[ée]sitez pas|rendez-vous|je vous propose)\b/i;
 const DESTINATION = /\b(?:r[ée]serv|d[ée]couvr|essay|consult|visit|page|d[ée]mo|souscri|inscri)/i;
 const ROUTE_OR_URL = /https?:\/\/|(?:^|\s)\/[a-z][a-z0-9/-]{2,}/i;

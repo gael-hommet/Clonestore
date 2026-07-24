@@ -48,8 +48,20 @@ export const EMPTY_MEMORY: ConversationMemory = Object.freeze({
  */
 const NEVER_REMEMBER = /\b(mot\s*de\s*passe|password|carte\s+bancaire|iban|num[ée]ro\s+de\s+s[ée]curit[ée]|nir|token|secret|api[_\s-]?key)\b/i;
 
+/**
+ * Un fait dont la NATURE indique une valeur HISTORIQUE (« effectif_précédent », « ancien_
+ * effectif », « effectif_initial »…). La mémoire tient l'état COURANT ; ces faits font
+ * resurgir la valeur corrigée. Mesuré (mem3) : après « on est deux » puis « finalement
+ * trois », le modèle émettait au tour suivant `effectif_RH_précédent = 2`, servi au
+ * rédacteur, qui répondait « l'estimation fondée sur 2 doit être recalculée avec 3 » — la
+ * valeur 2 reparaissait alors que la correction devait l'effacer. La purge par supersession
+ * ne les attrape pas quand ils naissent à un tour ULTÉRIEUR à la correction ; on les refuse
+ * donc à la source, par leur kind.
+ */
+const HISTORICAL_KIND = /pr[ée]c[ée]dent|pr[ée]c[ée]demment|ancien|ancienne|initial|ant[ée]rieur|avant[_\s-]correction|d[ée]part|au[_\s-]d[ée]but/i;
+
 function isRemembrable(f: SessionFact): boolean {
-  return !NEVER_REMEMBER.test(f.kind) && !NEVER_REMEMBER.test(f.value);
+  return !NEVER_REMEMBER.test(f.kind) && !NEVER_REMEMBER.test(f.value) && !HISTORICAL_KIND.test(f.kind);
 }
 
 /**

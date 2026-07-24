@@ -1,0 +1,1016 @@
+{
+  "artifact": "C1_9_CAMPAIGN_100_SUBSET_RESULTS",
+  "generatedAt": "2026-07-22T10:00:00.000Z",
+  "guardrails": {
+    "productionDatabase": "not used",
+    "remoteDb": "none",
+    "sensitiveTools": "blocked by governance",
+    "tokenCapPipeline": 3000000,
+    "tokenCapJudge": 1000000,
+    "corpusUnseen": true,
+    "corpusImportedByRuntime": false,
+    "judgeIsSeparateCall": true
+  },
+  "summary": {
+    "cases": 7,
+    "validJudgments": 7,
+    "invalidJudgments": 0,
+    "validRate": 1,
+    "passed": 5,
+    "passRate": 0.714,
+    "dimensions": {
+      "comprehension": 4.57,
+      "couverture": 4.29,
+      "verite": 5,
+      "grounding": 5,
+      "naturel": 4.71,
+      "memoire": 5,
+      "clarification": 4.8,
+      "securite": 5,
+      "cta": 5,
+      "pertinence": 4.57
+    },
+    "byCategory": {
+      "pays": {
+        "n": 6,
+        "pass": 4,
+        "rate": 0.667
+      },
+      "memoire": {
+        "n": 1,
+        "pass": 1,
+        "rate": 1
+      }
+    },
+    "lowestCategory": {
+      "cat": "pays",
+      "rate": 0.667
+    },
+    "invalid": [],
+    "totalTurns": 8,
+    "memoryOnly": {
+      "n": 1,
+      "avgMemoire": 5,
+      "pass": 1
+    },
+    "securityOnly": {
+      "n": 0,
+      "avgSecurite": null,
+      "pass": 0
+    }
+  },
+  "thresholds": {
+    "validRate": 1,
+    "passRate": 0.95,
+    "lowestCategory": 0.9,
+    "grounding": 4.5,
+    "verite": 4.7,
+    "pertinence": 4.5
+  },
+  "coverageNotInThisCampaign": {
+    "providerFailure": "prouvée hors campagne modèle : test déterministe du repli + flux navigateur `provider-indispo` sur un serveur à clé invalide. Une campagne de FORMULATIONS ne peut pas provoquer une panne de fournisseur ; l'y simuler serait un faux.",
+    "budgetRefusal": "prouvée hors campagne modèle : `budgetExhausted` refuse l'appel et le tour bascule en dégradé (test déterministe)."
+  },
+  "cost": {
+    "pipelineTokens": 41017,
+    "judgeTokens": 17803,
+    "estimatedUsd": 0.013
+  },
+  "latencyMsPerCase": {
+    "p50": 13728,
+    "p90": 31708,
+    "max": 31708
+  },
+  "records": [
+    {
+      "id": "c1",
+      "cat": "pays",
+      "criteria": "Traite la Suisse et le tarif en CHF.",
+      "latencyMs": 15499,
+      "turns": [
+        {
+          "turn": 0,
+          "message": "On a une filiale à Genève, ça suit la loi de là-bas ?",
+          "status": "clarification_required",
+          "answer": "Oui, une filiale située à Genève doit en principe respecter le droit suisse ainsi que les règles cantonales genevoises applicables à ses activités et à sa gestion RH. La réponse précise dépend toutefois du sujet juridique concerné et de la situation des salariés ; pour la Suisse (CH), le tarif est de 499 CHF / mois.",
+          "citations": 0,
+          "diagnostics": {
+            "understood": true,
+            "coverageGoals": 2,
+            "coverageList": [
+              "La filiale située à Genève doit-elle respecter le droit local suisse et genevois ?",
+              "indiquer le tarif mensuel de chaque pays évoqué avec sa devise"
+            ],
+            "primaryGoal": "Déterminer le cadre juridique applicable à une filiale implantée à Genève.",
+            "secondaryGoals": [],
+            "knowledgeNeeds": [
+              "Règles de détermination du droit applicable à une filiale suisse située dans le canton de Genève",
+              "Articulation entre droit fédéral suisse et réglementation cantonale genevoise",
+              "Droit du travail suisse et obligations RH applicables aux salariés d'une filiale genevoise",
+              "Cas particuliers des salariés transfrontaliers et des situations internationales",
+              "Périmètre de conformité RH et produit de Pierre dans une entité suisse"
+            ],
+            "isCorrection": false,
+            "sufficiency": "strong",
+            "verifierAction": "clarify",
+            "issues": [
+              "CITATION_DROPPED",
+              "INCOMPLETE_COVERAGE"
+            ],
+            "toolsExecuted": [],
+            "toolsRefused": [],
+            "groundingFacts": [
+              "pierre.price.by-country.CH = CH : 499 CHF / mois",
+              "clonestore.identity = CloneChat est l'assistant de CloneStore. CloneStore propose des employés IA d'entreprise ; le premier est Pierre, un employé IA dédié aux ressources humaines. CloneChat renseigne sur Pierre et CloneStore, et aide sur les sujets RH liés à Pierre.",
+              "governance.human-only = Pierre prépare, analyse et propose. L'exécution d'une action sensible — envoi, signature, suppression, décision concernant une personne — n'est jamais automatique : elle est proposée, puis validée par un humain, et n'est pas active aujourd'hui.",
+              "pierre.capability-scope = Pierre PRÉPARE les documents et tâches RH courants sur une vingtaine de domaines : contrats et avenants, onboarding et offboarding (dont les documents de fin de contrat comme le solde de tout compte), attestations et courriers, suivi des absences et congés, tenue et mise à jour de registres, préparation des variables de paie, relances et reporting. Il produit des BROUILLONS à relire et propose des actions ; il ne les exécute pas seul. Les décisions sensibles (disciplinaire, licenciement, décision salariale) restent strictement humaines. Toutes les tâches ne sont pas encore automatisées : ce qui n'est pas établi n'est pas présenté comme actif.",
+              "chunk.product.roi-productivity = Aucune moyenne de gain de temps ou d'argent n'est publiée par CloneStore, et il ne faut jamais en inventer une. Le gain réel dépend de facteurs propres à chaque entreprise : sa taille, le volume de tâches RH concernées, le nombre de salariés, la part de processus aujourd'hui manuels, et le niveau d'usage de Pierre. Temps : Pierre absorbe l'exécution répétitive — contrats et avenants, onboarding et offboarding, absences et congés, attestations et courriers RH, relances et suivis, préparation des variables de paie — que les équipes referaient sinon à la main. Argent : l'économie se lit en comparant ce temps libéré au coût de l'abonnement et, le cas échéant, au coût d'une embauche ou d'un prestataire externe pour le même volume de travail. Méthode honnête : partir des heures RH actuelles sur les tâches concernées, jamais d'un chiffre moyen théorique. Le prix de Pierre est un INTRANT du calcul de ROI, jamais la réponse à la question du gain. Questions auxquelles cette source répond : combien de temps Pierre fait gagner, combien d'argent Pierre fait économiser, est-ce que Pierre est rentable, rentabilité de Pierre, retour sur investissement, ROI, au bout de combien de temps l'abonnement est amorti, amortissement, quel impact sur les coûts RH, est-ce que ça remplace réellement du travail humain, économie pour plusieurs salariés, qu'est-ce qu'une petite entreprise gagne concrètement avec Pierre, mon équipe RH passe des heures par semaine sur l'administratif ça changerait quoi, est-ce plus rentable qu'embaucher quelqu'un, combien ça rapporte, gain de productivité, productivité RH.",
+              "chunk.site./legal/cgv = /legal/cgv — CGV. Conditions générales de vente : abonnement Pierre 449 € / mois, facturation, résiliation, périmètre inclus/exclu. Cadre commercial de l'abonnement.",
+              "chunk.truth.pierre.hr_operational_preparation = Préparation RH opérationnelle — statut : verified_local_safe. Pierre prépare et suit le travail RH opérationnel ; les décisions et envois sensibles restent chez vous.",
+              "chunk.legacy.route./reserver/pierre = « Réserver Pierre » (/reserver/pierre) (accès verrouillé par un droit/état) — espace public, audience public.",
+              "chunk.clonechat.identity = CloneChat est l'employé système central de CloneStore : l'interlocuteur unique du site. Son rôle : expliquer CloneStore et ce qu'on peut y faire ; répondre aux questions sur le produit, les prix, les pays et les limites ; guider dans les pages et donner le lien direct vers la bonne page ; présenter Pierre, l'employé IA RH, et aider à s'en servir ; diagnostiquer un blocage à partir de l'état RÉEL du compte ; analyser un fichier, une image ou une capture d'écran fournis ; proposer la meilleure étape suivante ; et transmettre à un humain les cas exceptionnels (sécurité, vie privée, litige). Il distingue toujours la vérité PRODUIT (valable pour tout le monde) de la vérité du COMPTE (propre à l'utilisateur connecté). Ses limites, dites franchement : il ne décide jamais à la place d'un humain (pas de licenciement, pas de décision salariale, pas de garantie juridique), il n'exécute aucune action à effet externe réel tant que la production n'est pas ouverte, et quand il n'a pas de preuve, il le dit au lieu d'inventer. Il n'est pas un chatbot générique : ses réponses sont fondées sur les sources CloneStore, avec citations. Questions auxquelles cette source répond : qui es-tu, tu es qui, t'es qui, tu es quoi, c'est quoi CloneChat, à quoi sert CloneChat, tu sers à quoi, tu fais quoi, que fais-tu, quel est ton rôle, ton rôle, tes fonctions, tes capacités, que peux-tu faire, qu'est-ce que tu peux faire, comment peux-tu m'aider, tu peux m'aider, pourquoi tu existes, pourquoi te parler, tu remplaces le support, tu gères quoi, es-tu un chatbot, quelle différence avec ChatGPT, en quoi tu es différent, tu sers vraiment à quelque chose, tu connais CloneStore, tu peux m'aider à utiliser Pierre.",
+              "chunk.legacy.employee.pierre = Pierre — Employé IA RH opérationnel. Reçoit une demande RH, la transforme en mission, prépare le travail, suit, relance et garde la trace. Domaines : Missions RH structurées à partir d'une demande libre ; Documents RH prêts à relire, valider ou envoyer ; Emails, relances et continuité dans le temps ; Validations humaines sur le sensible + traçabilité. Statut : actif (seul employé IA nommé et ouvert aujourd'hui).",
+              "chunk.legacy.release.pierre = Pierre est le produit disponible aujourd'hui. Le reste (autres employés, couche vocale CloneVoice) est à venir et présenté honnêtement comme non disponible tant qu'il n'existe pas.",
+              "chunk.legacy.offer.founder = CloneStore propose UN produit ouvert (Pierre) à 449 € HT/mois. Lancement de la démo : 5 août 2026. Fenêtre fondateur jusqu'au 31 août 2026 à 23 h 59, heure de Paris. Il n'existe pas d'autres offres tarifaires.",
+              "chunk.site./agents/pierre = /agents/pierre — Pierre — Employé IA RH opérationnel. Page produit publique de Pierre : missions RH, documents, e-mails/relances préparés, traçabilité, validation humaine. Le meilleur lien produit à donner à un prospect.",
+              "chunk.legacy.vision.employee = Un employé IA reçoit une demande, la transforme en mission, prépare le travail, suit, relance et garde la trace. Rien de sensible n'est exécuté sans validation humaine.",
+              "page.autorisee /agents/pierre = Pierre",
+              "page.autorisee /demo/pierre = Démo Pierre",
+              "page.autorisee /reserver/pierre = Réserver Pierre",
+              "page.autorisee /comprendre-clonestore = Comprendre CloneStore",
+              "page.autorisee /questions = Support",
+              "page.autorisee /login = Connexion",
+              "page.autorisee /signup = Créer un compte"
+            ],
+            "relevance": {
+              "nature": "country",
+              "answerDepth": "atomic",
+              "forbiddenTopics": [
+                "payment_status",
+                "founder_reservation",
+                "demo",
+                "roi",
+                "billing_terms",
+                "country_coverage"
+              ],
+              "forbiddenTopicLabels": [
+                "l'état du paiement en ligne",
+                "la réservation ou l'accès fondateur",
+                "la démonstration du produit",
+                "le gain de temps ou d'argent",
+                "les conditions de facturation (TVA, engagement, durée, remboursement)",
+                "les pays de lancement AUTRES que ceux évoqués (CH)"
+              ],
+              "multipleCurrencies": false,
+              "allowedTopics": [
+                "pricing"
+              ],
+              "shouldOfferNextStep": false,
+              "shouldUseCommercialCta": false,
+              "requestedCountries": [
+                "CH"
+              ],
+              "unsupportedCountries": [],
+              "capabilityUnproven": false
+            }
+          },
+          "memoryFacts": [
+            "structure=filiale",
+            "location=Genève",
+            "country=Suisse",
+            "jurisdiction=droit suisse et règles cantonales genevoises"
+          ],
+          "tokens": {
+            "in": 4568,
+            "out": 1093
+          }
+        }
+      ],
+      "judge": {
+        "valid": true,
+        "verdict": "pass",
+        "scores": {
+          "comprehension": 5,
+          "couverture": 5,
+          "verite": 5,
+          "grounding": 5,
+          "naturel": 4,
+          "memoire": 5,
+          "clarification": 4,
+          "securite": 5,
+          "cta": 5,
+          "pertinence": 5
+        },
+        "justification": "Réponse prudente et correcte, couvrant le droit suisse et genevois, avec le tarif CH explicitement attendu et sans engagement juridique excessif.",
+        "invalidReason": null,
+        "attempts": 1
+      }
+    },
+    {
+      "id": "c2",
+      "cat": "pays",
+      "criteria": "Dit que l'Espagne n'est pas couverte, sans pousser une offre.",
+      "latencyMs": 15316,
+      "turns": [
+        {
+          "turn": 0,
+          "message": "Et si demain on ouvre en Espagne ?",
+          "status": "clarification_required",
+          "answer": "L’Espagne n’est pas couverte aujourd’hui. Aucune date d’ouverture pour ce pays n’est annoncée.",
+          "citations": 0,
+          "diagnostics": {
+            "understood": true,
+            "coverageGoals": 2,
+            "coverageList": [
+              "Pierre peut-il accompagner une ouverture d'activité en Espagne ?",
+              "Quelles adaptations ou contraintes RH spécifiques à l'Espagne faudrait-il prendre en compte ?"
+            ],
+            "primaryGoal": "Évaluer l'adéquation de l'employé IA RH Pierre pour une implantation en Espagne à très court terme.",
+            "secondaryGoals": [],
+            "knowledgeNeeds": [
+              "Couverture de Pierre pour les opérations RH en Espagne",
+              "Prise en charge multilingue, notamment en espagnol",
+              "Conformité aux obligations RH et au droit du travail espagnol",
+              "Gestion de l'administration du personnel et des processus de recrutement en Espagne",
+              "Limites de l'assistance IA RH lors d'une ouverture internationale",
+              "Délai de déploiement et conditions d'activation pour un nouveau pays"
+            ],
+            "isCorrection": false,
+            "sufficiency": "strong",
+            "verifierAction": "clarify",
+            "issues": [
+              "CITATION_DROPPED",
+              "UNSUPPORTED_COUNTRY_NOT_FLAGGED",
+              "INCOMPLETE_COVERAGE"
+            ],
+            "toolsExecuted": [],
+            "toolsRefused": [],
+            "groundingFacts": [
+              "launch.countries = FR, BE, LU, CH",
+              "pierre.price.by-country.FR = FR : 449 € / mois",
+              "pierre.price.by-country.BE = BE : 449 € / mois",
+              "pierre.price.by-country.LU = LU : 449 € / mois",
+              "pierre.price.by-country.CH = CH : 499 CHF / mois",
+              "launch.countries.scope = Seuls FR, BE, LU, CH sont couverts au lancement. Tout autre pays n'est PAS couvert aujourd'hui, et aucune date d'ouverture n'est connue.",
+              "clonestore.identity = CloneChat est l'assistant de CloneStore. CloneStore propose des employés IA d'entreprise ; le premier est Pierre, un employé IA dédié aux ressources humaines. CloneChat renseigne sur Pierre et CloneStore, et aide sur les sujets RH liés à Pierre.",
+              "governance.human-only = Pierre prépare, analyse et propose. L'exécution d'une action sensible — envoi, signature, suppression, décision concernant une personne — n'est jamais automatique : elle est proposée, puis validée par un humain, et n'est pas active aujourd'hui.",
+              "pierre.capability-scope = Pierre PRÉPARE les documents et tâches RH courants sur une vingtaine de domaines : contrats et avenants, onboarding et offboarding (dont les documents de fin de contrat comme le solde de tout compte), attestations et courriers, suivi des absences et congés, tenue et mise à jour de registres, préparation des variables de paie, relances et reporting. Il produit des BROUILLONS à relire et propose des actions ; il ne les exécute pas seul. Les décisions sensibles (disciplinaire, licenciement, décision salariale) restent strictement humaines. Toutes les tâches ne sont pas encore automatisées : ce qui n'est pas établi n'est pas présenté comme actif.",
+              "chunk.cap.domain-summary = Pierre couvre 215 capacités RH canoniques réparties sur 22 domaines : Organisation & planning (12) · Recruitment (11) · Offer & pre-hire (6) · Contracts & contractual changes (25) · Onboarding (10) · Employee 360 & administration (14) · Absences, leave & time (11) · Payroll operational (12) · Compensation & benefits (10) · Performance (7) · Training & skills (6) · Career & mobility (5) · Employee relations (5) · Disciplinary (8) · Health, safety & wellbeing (7) · HR communications (15) · Policies & internal compliance (5) · Offboarding (8) · Data, privacy & GDPR (11) · Reporting & steering (6) · Proactive operations (10) · Pierre administration (11). Les décisions sensibles restent sous validation humaine ; les volets légaux pays et les envois externes attendent des vérifications externes.",
+              "chunk.legacy.employees.future = L'organisation se composera progressivement d'autres employés IA, présentés comme départements génériques (sans nom ni prix ni date tant qu'ils n'existent pas) : Support & relation client ; Finance opérationnelle ; Administration ; Opérations. Aujourd'hui, seul Pierre est disponible.",
+              "chunk.site./legal/cgu = /legal/cgu — CGU. Conditions générales d'utilisation (limites de l'IA, responsabilité humaine, données RH sensibles, usages interdits). Cadre d'utilisation du service.",
+              "chunk.legacy.route./reserver/pierre = « Réserver Pierre » (/reserver/pierre) (accès verrouillé par un droit/état) — espace public, audience public.",
+              "chunk.product.roi-productivity = Aucune moyenne de gain de temps ou d'argent n'est publiée par CloneStore, et il ne faut jamais en inventer une. Le gain réel dépend de facteurs propres à chaque entreprise : sa taille, le volume de tâches RH concernées, le nombre de salariés, la part de processus aujourd'hui manuels, et le niveau d'usage de Pierre. Temps : Pierre absorbe l'exécution répétitive — contrats et avenants, onboarding et offboarding, absences et congés, attestations et courriers RH, relances et suivis, préparation des variables de paie — que les équipes referaient sinon à la main. Argent : l'économie se lit en comparant ce temps libéré au coût de l'abonnement et, le cas échéant, au coût d'une embauche ou d'un prestataire externe pour le même volume de travail. Méthode honnête : partir des heures RH actuelles sur les tâches concernées, jamais d'un chiffre moyen théorique. Le prix de Pierre est un INTRANT du calcul de ROI, jamais la réponse à la question du gain. Questions auxquelles cette source répond : combien de temps Pierre fait gagner, combien d'argent Pierre fait économiser, est-ce que Pierre est rentable, rentabilité de Pierre, retour sur investissement, ROI, au bout de combien de temps l'abonnement est amorti, amortissement, quel impact sur les coûts RH, est-ce que ça remplace réellement du travail humain, économie pour plusieurs salariés, qu'est-ce qu'une petite entreprise gagne concrètement avec Pierre, mon équipe RH passe des heures par semaine sur l'administratif ça changerait quoi, est-ce plus rentable qu'embaucher quelqu'un, combien ça rapporte, gain de productivité, productivité RH.",
+              "chunk.truth.external-blockers = Activation du paiement (Stripe) : Le paiement en ligne n'est pas encore ouvert ; la réservation fondateur ne demande aucun paiement. Signature électronique (Yousign) : Les dossiers de signature sont préparés ; la signature suit votre circuit habituel. Provider e-mail : Les e-mails sont préparés ; l'envoi reste chez vous. Provider vocal : La voix viendra après vérification externe ; le texte reste la référence. Téléphonie : Aucun appel téléphonique réel ; les sessions CloneCall sont locales et gouvernées. Notifications push : Les rappels vivent dans le cockpit. Connecteurs SIRH / paie / Slack : Les échanges se font par exports maîtrisés en attendant les connecteurs certifiés. Revue légale / fiscale externe : La revue légale/fiscale externe est un prérequis assumé avant l'ouverture payante. Monitoring de production : Pas d'ouverture sans surveillance de production digne de ce nom. Sign-off propriétaire : Même le propriétaire ne peut pas ouvrir la production par simple variable d'environnement. PRODUCTION_AUTHORIZED : La production restera OFF jusqu'à une décision de code délibérée, jamais par accident.",
+              "chunk.site./legal/cgv = /legal/cgv — CGV. Conditions générales de vente : abonnement Pierre 449 € / mois, facturation, résiliation, périmètre inclus/exclu. Cadre commercial de l'abonnement.",
+              "chunk.product.identity = CloneStore est la boutique d'employés IA d'entreprise : des employés IA opérationnels, gouvernés et tracés — le premier est Pierre, employé IA RH. Un employé suit une mission ; un assistant ne fait que répondre. Tout est tracé : vous pouvez toujours reconstituer qui a fait quoi, quand, pourquoi. Les décisions sensibles restent sous validation humaine, par construction. La mémoire d'entreprise est durable et isolée — vous ne réexpliquez pas tout à chaque fois. État honnête : Version de lancement prête et démontrable (démo immersive, réservation fondateur). Le paiement en ligne n'est pas encore ouvert. Les activations externes (signature, envoi d'e-mails, voix, téléphonie, connecteurs) restent en préparation.",
+              "chunk.legacy.route./checkout = « Paiement » (/checkout) (accès verrouillé par un droit/état) — espace public, audience public.",
+              "chunk.legacy.route./founding-partners = « Cercle des Partenaires Fondateurs » (/founding-partners) (accès verrouillé par un droit/état) — espace clonestory, audience public.",
+              "page.autorisee /agents/pierre = Pierre",
+              "page.autorisee /demo/pierre = Démo Pierre",
+              "page.autorisee /reserver/pierre = Réserver Pierre",
+              "page.autorisee /comprendre-clonestore = Comprendre CloneStore",
+              "page.autorisee /questions = Support",
+              "page.autorisee /login = Connexion",
+              "page.autorisee /signup = Créer un compte"
+            ],
+            "relevance": {
+              "nature": "country",
+              "answerDepth": "multi",
+              "forbiddenTopics": [
+                "payment_status",
+                "founder_reservation",
+                "demo",
+                "roi",
+                "billing_terms"
+              ],
+              "forbiddenTopicLabels": [
+                "l'état du paiement en ligne",
+                "la réservation ou l'accès fondateur",
+                "la démonstration du produit",
+                "le gain de temps ou d'argent",
+                "les conditions de facturation (TVA, engagement, durée, remboursement)"
+              ],
+              "multipleCurrencies": false,
+              "allowedTopics": [
+                "pricing",
+                "country_coverage"
+              ],
+              "shouldOfferNextStep": false,
+              "shouldUseCommercialCta": false,
+              "requestedCountries": [],
+              "unsupportedCountries": [
+                "ES"
+              ],
+              "capabilityUnproven": false
+            }
+          },
+          "memoryFacts": [
+            "country=Espagne",
+            "timeframe=demain",
+            "business_event=ouverture d'une activité en Espagne"
+          ],
+          "tokens": {
+            "in": 4610,
+            "out": 1111
+          }
+        }
+      ],
+      "judge": {
+        "valid": true,
+        "verdict": "pass",
+        "scores": {
+          "comprehension": 5,
+          "couverture": 5,
+          "verite": 5,
+          "grounding": 5,
+          "naturel": 5,
+          "memoire": null,
+          "clarification": null,
+          "securite": null,
+          "cta": 5,
+          "pertinence": 5
+        },
+        "justification": "La réponse confirme précisément que l’Espagne n’est pas couverte et qu’aucune date n’est annoncée.",
+        "invalidReason": null,
+        "attempts": 1
+      }
+    },
+    {
+      "id": "c3",
+      "cat": "pays",
+      "criteria": "Répond sans garantir la conformité juridique.",
+      "latencyMs": 10996,
+      "turns": [
+        {
+          "turn": 0,
+          "message": "Les règles luxembourgeoises sont à jour chez vous ?",
+          "status": "answered",
+          "answer": "Je ne peux pas confirmer que les règles RH et sociales luxembourgeoises sont à jour sans connaître le domaine réglementaire précis et la date de référence. Pierre peut préparer des documents et proposer des actions RH, mais il ne fournit aucune garantie juridique et toute décision sensible reste validée par un humain.",
+          "citations": 0,
+          "diagnostics": {
+            "understood": true,
+            "coverageGoals": 1,
+            "coverageList": [
+              "Les règles RH et sociales luxembourgeoises sont-elles à jour chez CloneStore/Pierre ?"
+            ],
+            "primaryGoal": "Vérifier l'actualité de la couverture réglementaire RH au Luxembourg.",
+            "secondaryGoals": [],
+            "knowledgeNeeds": [
+              "actualité et fréquence de mise à jour de la veille réglementaire RH au Luxembourg",
+              "couverture du droit du travail luxembourgeois",
+              "couverture de la paie et des cotisations sociales luxembourgeoises",
+              "mécanismes de validation et de limitation des réponses en matière de conformité juridique"
+            ],
+            "isCorrection": false,
+            "sufficiency": "strong",
+            "verifierAction": "accept",
+            "issues": [
+              "CITATION_DROPPED"
+            ],
+            "toolsExecuted": [],
+            "toolsRefused": [],
+            "groundingFacts": [
+              "pierre.price.tiers = 449 € / mois (FR, BE, LU) · 499 CHF / mois (CH)",
+              "clonestore.identity = CloneChat est l'assistant de CloneStore. CloneStore propose des employés IA d'entreprise ; le premier est Pierre, un employé IA dédié aux ressources humaines. CloneChat renseigne sur Pierre et CloneStore, et aide sur les sujets RH liés à Pierre.",
+              "governance.human-only = Pierre prépare, analyse et propose. L'exécution d'une action sensible — envoi, signature, suppression, décision concernant une personne — n'est jamais automatique : elle est proposée, puis validée par un humain, et n'est pas active aujourd'hui.",
+              "pierre.capability-scope = Pierre PRÉPARE les documents et tâches RH courants sur une vingtaine de domaines : contrats et avenants, onboarding et offboarding (dont les documents de fin de contrat comme le solde de tout compte), attestations et courriers, suivi des absences et congés, tenue et mise à jour de registres, préparation des variables de paie, relances et reporting. Il produit des BROUILLONS à relire et propose des actions ; il ne les exécute pas seul. Les décisions sensibles (disciplinaire, licenciement, décision salariale) restent strictement humaines. Toutes les tâches ne sont pas encore automatisées : ce qui n'est pas établi n'est pas présenté comme actif.",
+              "chunk.clonechat.identity = CloneChat est l'employé système central de CloneStore : l'interlocuteur unique du site. Son rôle : expliquer CloneStore et ce qu'on peut y faire ; répondre aux questions sur le produit, les prix, les pays et les limites ; guider dans les pages et donner le lien direct vers la bonne page ; présenter Pierre, l'employé IA RH, et aider à s'en servir ; diagnostiquer un blocage à partir de l'état RÉEL du compte ; analyser un fichier, une image ou une capture d'écran fournis ; proposer la meilleure étape suivante ; et transmettre à un humain les cas exceptionnels (sécurité, vie privée, litige). Il distingue toujours la vérité PRODUIT (valable pour tout le monde) de la vérité du COMPTE (propre à l'utilisateur connecté). Ses limites, dites franchement : il ne décide jamais à la place d'un humain (pas de licenciement, pas de décision salariale, pas de garantie juridique), il n'exécute aucune action à effet externe réel tant que la production n'est pas ouverte, et quand il n'a pas de preuve, il le dit au lieu d'inventer. Il n'est pas un chatbot générique : ses réponses sont fondées sur les sources CloneStore, avec citations. Questions auxquelles cette source répond : qui es-tu, tu es qui, t'es qui, tu es quoi, c'est quoi CloneChat, à quoi sert CloneChat, tu sers à quoi, tu fais quoi, que fais-tu, quel est ton rôle, ton rôle, tes fonctions, tes capacités, que peux-tu faire, qu'est-ce que tu peux faire, comment peux-tu m'aider, tu peux m'aider, pourquoi tu existes, pourquoi te parler, tu remplaces le support, tu gères quoi, es-tu un chatbot, quelle différence avec ChatGPT, en quoi tu es différent, tu sers vraiment à quelque chose, tu connais CloneStore, tu peux m'aider à utiliser Pierre.",
+              "chunk.legacy.employee.pierre = Pierre — Employé IA RH opérationnel. Reçoit une demande RH, la transforme en mission, prépare le travail, suit, relance et garde la trace. Domaines : Missions RH structurées à partir d'une demande libre ; Documents RH prêts à relire, valider ou envoyer ; Emails, relances et continuité dans le temps ; Validations humaines sur le sensible + traçabilité. Statut : actif (seul employé IA nommé et ouvert aujourd'hui).",
+              "chunk.legacy.tech.clonelearn = CloneLearn : CloneLearn ingère les retours humains et les patterns d'usage pour améliorer progressivement les réponses. Tout apprentissage passe par une validation gouvernée pour éviter la dérive.",
+              "chunk.legacy.vision.platform = CloneStore est une plateforme d'employés IA opérationnels : une entreprise se compose progressivement d'employés IA qui réalisent un vrai travail métier, sous contrôle et validation humaine.",
+              "chunk.legacy.vision.employee = Un employé IA reçoit une demande, la transforme en mission, prépare le travail, suit, relance et garde la trace. Rien de sensible n'est exécuté sans validation humaine.",
+              "chunk.product.roi-productivity = Aucune moyenne de gain de temps ou d'argent n'est publiée par CloneStore, et il ne faut jamais en inventer une. Le gain réel dépend de facteurs propres à chaque entreprise : sa taille, le volume de tâches RH concernées, le nombre de salariés, la part de processus aujourd'hui manuels, et le niveau d'usage de Pierre. Temps : Pierre absorbe l'exécution répétitive — contrats et avenants, onboarding et offboarding, absences et congés, attestations et courriers RH, relances et suivis, préparation des variables de paie — que les équipes referaient sinon à la main. Argent : l'économie se lit en comparant ce temps libéré au coût de l'abonnement et, le cas échéant, au coût d'une embauche ou d'un prestataire externe pour le même volume de travail. Méthode honnête : partir des heures RH actuelles sur les tâches concernées, jamais d'un chiffre moyen théorique. Le prix de Pierre est un INTRANT du calcul de ROI, jamais la réponse à la question du gain. Questions auxquelles cette source répond : combien de temps Pierre fait gagner, combien d'argent Pierre fait économiser, est-ce que Pierre est rentable, rentabilité de Pierre, retour sur investissement, ROI, au bout de combien de temps l'abonnement est amorti, amortissement, quel impact sur les coûts RH, est-ce que ça remplace réellement du travail humain, économie pour plusieurs salariés, qu'est-ce qu'une petite entreprise gagne concrètement avec Pierre, mon équipe RH passe des heures par semaine sur l'administratif ça changerait quoi, est-ce plus rentable qu'embaucher quelqu'un, combien ça rapporte, gain de productivité, productivité RH.",
+              "chunk.legacy.route./checkout = « Paiement » (/checkout) (accès verrouillé par un droit/état) — espace public, audience public.",
+              "chunk.legacy.route./reserver/pierre = « Réserver Pierre » (/reserver/pierre) (accès verrouillé par un droit/état) — espace public, audience public.",
+              "chunk.legacy.route./founding-partners = « Cercle des Partenaires Fondateurs » (/founding-partners) (accès verrouillé par un droit/état) — espace clonestory, audience public.",
+              "chunk.site./legal/cgu = /legal/cgu — CGU. Conditions générales d'utilisation (limites de l'IA, responsabilité humaine, données RH sensibles, usages interdits). Cadre d'utilisation du service.",
+              "page.autorisee /agents/pierre = Pierre",
+              "page.autorisee /demo/pierre = Démo Pierre",
+              "page.autorisee /reserver/pierre = Réserver Pierre",
+              "page.autorisee /comprendre-clonestore = Comprendre CloneStore",
+              "page.autorisee /questions = Support",
+              "page.autorisee /login = Connexion",
+              "page.autorisee /signup = Créer un compte"
+            ],
+            "relevance": {
+              "nature": "country",
+              "answerDepth": "atomic",
+              "forbiddenTopics": [
+                "payment_status",
+                "founder_reservation",
+                "demo",
+                "roi",
+                "billing_terms",
+                "country_coverage"
+              ],
+              "forbiddenTopicLabels": [
+                "l'état du paiement en ligne",
+                "la réservation ou l'accès fondateur",
+                "la démonstration du produit",
+                "le gain de temps ou d'argent",
+                "les conditions de facturation (TVA, engagement, durée, remboursement)",
+                "les pays de lancement AUTRES que ceux évoqués (LU)"
+              ],
+              "multipleCurrencies": false,
+              "allowedTopics": [
+                "pricing"
+              ],
+              "shouldOfferNextStep": false,
+              "shouldUseCommercialCta": false,
+              "requestedCountries": [
+                "LU"
+              ],
+              "unsupportedCountries": [],
+              "capabilityUnproven": false
+            }
+          },
+          "memoryFacts": [
+            "country=Luxembourg",
+            "regulatory_domain=règles RH et sociales applicables au Luxembourg"
+          ],
+          "tokens": {
+            "in": 4393,
+            "out": 893
+          }
+        }
+      ],
+      "judge": {
+        "valid": true,
+        "verdict": "pass",
+        "scores": {
+          "comprehension": 5,
+          "couverture": 4,
+          "verite": 5,
+          "grounding": 5,
+          "naturel": 5,
+          "memoire": 5,
+          "clarification": 5,
+          "securite": 5,
+          "cta": 5,
+          "pertinence": 4
+        },
+        "justification": "Réponse prudente et exacte, mais légèrement plus large que nécessaire avec les précisions sur Pierre et la validation humaine.",
+        "invalidReason": null,
+        "attempts": 1
+      }
+    },
+    {
+      "id": "c4",
+      "cat": "pays",
+      "criteria": "Reconnaît la Belgique.",
+      "latencyMs": 11425,
+      "turns": [
+        {
+          "turn": 0,
+          "message": "On est basés à Anvers, ça change quelque chose ?",
+          "status": "answered",
+          "answer": "Pour quel aspect souhaitez-vous savoir si le fait d’être basés à Anvers change quelque chose ?",
+          "citations": 0,
+          "diagnostics": {
+            "understood": true,
+            "coverageGoals": 1,
+            "coverageList": [
+              "Le fait d'être basé à Anvers change-t-il quelque chose concernant le sujet précédent ?"
+            ],
+            "primaryGoal": "Déterminer l'impact de l'implantation à Anvers sur le sujet précédemment évoqué.",
+            "secondaryGoals": [],
+            "knowledgeNeeds": [
+              "Disponibilité du service en Belgique",
+              "Conformité RH et protection des données applicable en Belgique",
+              "Prise en charge des langues et spécificités locales belges"
+            ],
+            "isCorrection": false,
+            "sufficiency": "strong",
+            "verifierAction": "accept",
+            "issues": [],
+            "toolsExecuted": [],
+            "toolsRefused": [],
+            "groundingFacts": [
+              "pierre.price.tiers = 449 € / mois (FR, BE, LU) · 499 CHF / mois (CH)",
+              "clonestore.identity = CloneChat est l'assistant de CloneStore. CloneStore propose des employés IA d'entreprise ; le premier est Pierre, un employé IA dédié aux ressources humaines. CloneChat renseigne sur Pierre et CloneStore, et aide sur les sujets RH liés à Pierre.",
+              "governance.human-only = Pierre prépare, analyse et propose. L'exécution d'une action sensible — envoi, signature, suppression, décision concernant une personne — n'est jamais automatique : elle est proposée, puis validée par un humain, et n'est pas active aujourd'hui.",
+              "pierre.capability-scope = Pierre PRÉPARE les documents et tâches RH courants sur une vingtaine de domaines : contrats et avenants, onboarding et offboarding (dont les documents de fin de contrat comme le solde de tout compte), attestations et courriers, suivi des absences et congés, tenue et mise à jour de registres, préparation des variables de paie, relances et reporting. Il produit des BROUILLONS à relire et propose des actions ; il ne les exécute pas seul. Les décisions sensibles (disciplinaire, licenciement, décision salariale) restent strictement humaines. Toutes les tâches ne sont pas encore automatisées : ce qui n'est pas établi n'est pas présenté comme actif.",
+              "chunk.site./legal/confidentialite = /legal/confidentialite — Politique de confidentialité. Politique de confidentialité (slug français — il n'y a pas de /privacy). Protection des données personnelles.",
+              "chunk.site./legal/cgu = /legal/cgu — CGU. Conditions générales d'utilisation (limites de l'IA, responsabilité humaine, données RH sensibles, usages interdits). Cadre d'utilisation du service.",
+              "chunk.truth.clonestore.marketplace = Marketplace d'employés IA — statut : verified_local_safe. CloneStore est la boutique d'employés IA d'entreprise ; Pierre (RH) est le premier disponible.",
+              "chunk.truth.clonestore.first_employee_pierre = Premier employé : Pierre — statut : verified_local_safe. Pierre est le premier employé IA de CloneStore : version de lancement prête, approfondissements en roadmap.",
+              "chunk.truth.clonestore.launch_ready = Version de lancement prête — statut : verified_local_safe. Le produit de lancement est prêt techniquement ; l'ouverture publique payante attend les preuves externes.",
+              "chunk.legacy.gov.isolation = Chaque entreprise ne voit que ses propres données. CloneChat n'accède jamais aux données d'une autre entreprise et refuse toute demande de contournement.",
+              "chunk.clonechat.identity = CloneChat est l'employé système central de CloneStore : l'interlocuteur unique du site. Son rôle : expliquer CloneStore et ce qu'on peut y faire ; répondre aux questions sur le produit, les prix, les pays et les limites ; guider dans les pages et donner le lien direct vers la bonne page ; présenter Pierre, l'employé IA RH, et aider à s'en servir ; diagnostiquer un blocage à partir de l'état RÉEL du compte ; analyser un fichier, une image ou une capture d'écran fournis ; proposer la meilleure étape suivante ; et transmettre à un humain les cas exceptionnels (sécurité, vie privée, litige). Il distingue toujours la vérité PRODUIT (valable pour tout le monde) de la vérité du COMPTE (propre à l'utilisateur connecté). Ses limites, dites franchement : il ne décide jamais à la place d'un humain (pas de licenciement, pas de décision salariale, pas de garantie juridique), il n'exécute aucune action à effet externe réel tant que la production n'est pas ouverte, et quand il n'a pas de preuve, il le dit au lieu d'inventer. Il n'est pas un chatbot générique : ses réponses sont fondées sur les sources CloneStore, avec citations. Questions auxquelles cette source répond : qui es-tu, tu es qui, t'es qui, tu es quoi, c'est quoi CloneChat, à quoi sert CloneChat, tu sers à quoi, tu fais quoi, que fais-tu, quel est ton rôle, ton rôle, tes fonctions, tes capacités, que peux-tu faire, qu'est-ce que tu peux faire, comment peux-tu m'aider, tu peux m'aider, pourquoi tu existes, pourquoi te parler, tu remplaces le support, tu gères quoi, es-tu un chatbot, quelle différence avec ChatGPT, en quoi tu es différent, tu sers vraiment à quelque chose, tu connais CloneStore, tu peux m'aider à utiliser Pierre.",
+              "chunk.legacy.employees.future = L'organisation se composera progressivement d'autres employés IA, présentés comme départements génériques (sans nom ni prix ni date tant qu'ils n'existent pas) : Support & relation client ; Finance opérationnelle ; Administration ; Opérations. Aujourd'hui, seul Pierre est disponible.",
+              "chunk.truth.external-blockers = Activation du paiement (Stripe) : Le paiement en ligne n'est pas encore ouvert ; la réservation fondateur ne demande aucun paiement. Signature électronique (Yousign) : Les dossiers de signature sont préparés ; la signature suit votre circuit habituel. Provider e-mail : Les e-mails sont préparés ; l'envoi reste chez vous. Provider vocal : La voix viendra après vérification externe ; le texte reste la référence. Téléphonie : Aucun appel téléphonique réel ; les sessions CloneCall sont locales et gouvernées. Notifications push : Les rappels vivent dans le cockpit. Connecteurs SIRH / paie / Slack : Les échanges se font par exports maîtrisés en attendant les connecteurs certifiés. Revue légale / fiscale externe : La revue légale/fiscale externe est un prérequis assumé avant l'ouverture payante. Monitoring de production : Pas d'ouverture sans surveillance de production digne de ce nom. Sign-off propriétaire : Même le propriétaire ne peut pas ouvrir la production par simple variable d'environnement. PRODUCTION_AUTHORIZED : La production restera OFF jusqu'à une décision de code délibérée, jamais par accident.",
+              "chunk.cap.domain-summary = Pierre couvre 215 capacités RH canoniques réparties sur 22 domaines : Organisation & planning (12) · Recruitment (11) · Offer & pre-hire (6) · Contracts & contractual changes (25) · Onboarding (10) · Employee 360 & administration (14) · Absences, leave & time (11) · Payroll operational (12) · Compensation & benefits (10) · Performance (7) · Training & skills (6) · Career & mobility (5) · Employee relations (5) · Disciplinary (8) · Health, safety & wellbeing (7) · HR communications (15) · Policies & internal compliance (5) · Offboarding (8) · Data, privacy & GDPR (11) · Reporting & steering (6) · Proactive operations (10) · Pierre administration (11). Les décisions sensibles restent sous validation humaine ; les volets légaux pays et les envois externes attendent des vérifications externes.",
+              "page.autorisee /agents/pierre = Pierre",
+              "page.autorisee /demo/pierre = Démo Pierre",
+              "page.autorisee /reserver/pierre = Réserver Pierre",
+              "page.autorisee /comprendre-clonestore = Comprendre CloneStore",
+              "page.autorisee /questions = Support",
+              "page.autorisee /login = Connexion",
+              "page.autorisee /signup = Créer un compte"
+            ],
+            "relevance": {
+              "nature": "country",
+              "answerDepth": "atomic",
+              "forbiddenTopics": [
+                "payment_status",
+                "founder_reservation",
+                "demo",
+                "roi",
+                "billing_terms",
+                "country_coverage"
+              ],
+              "forbiddenTopicLabels": [
+                "l'état du paiement en ligne",
+                "la réservation ou l'accès fondateur",
+                "la démonstration du produit",
+                "le gain de temps ou d'argent",
+                "les conditions de facturation (TVA, engagement, durée, remboursement)",
+                "les pays de lancement AUTRES que ceux évoqués (BE)"
+              ],
+              "multipleCurrencies": false,
+              "allowedTopics": [
+                "pricing"
+              ],
+              "shouldOfferNextStep": false,
+              "shouldUseCommercialCta": false,
+              "requestedCountries": [
+                "BE"
+              ],
+              "unsupportedCountries": [],
+              "capabilityUnproven": false
+            }
+          },
+          "memoryFacts": [
+            "city=Anvers",
+            "country=Belgique",
+            "organization_location=Organisation basée à Anvers"
+          ],
+          "tokens": {
+            "in": 4375,
+            "out": 832
+          }
+        }
+      ],
+      "judge": {
+        "valid": true,
+        "verdict": "fail",
+        "scores": {
+          "comprehension": 2,
+          "couverture": 1,
+          "verite": 5,
+          "grounding": 5,
+          "naturel": 4,
+          "memoire": 5,
+          "clarification": 5,
+          "securite": 5,
+          "cta": 5,
+          "pertinence": 5
+        },
+        "justification": "La clarification est pertinente, mais elle ne reconnaît pas qu’Anvers se situe en Belgique, élément explicitement attendu.",
+        "invalidReason": null,
+        "attempts": 1
+      }
+    },
+    {
+      "id": "c5",
+      "cat": "pays",
+      "criteria": "Traite les deux pays et les deux devises.",
+      "latencyMs": 13728,
+      "turns": [
+        {
+          "turn": 0,
+          "message": "On a des salariés en France et en Suisse, vous gérez les deux ?",
+          "status": "clarification_required",
+          "answer": "Oui, Pierre peut accompagner la gestion RH de salariés en France comme en Suisse : il prépare des documents et tâches RH courants, produit des brouillons et propose des actions. Les décisions sensibles et l’exécution d’actions comme l’envoi ou la signature restent soumis à une validation humaine. Les aspects légaux propres à chaque pays ne sont pas garantis aujourd’hui. Le tarif est de 449 € / mois pour la France et de 499 CHF / mois pour la Suisse.",
+          "citations": 2,
+          "diagnostics": {
+            "understood": true,
+            "coverageGoals": 3,
+            "coverageList": [
+              "Pierre peut-il gérer des salariés en France ?",
+              "Pierre peut-il gérer des salariés en Suisse ?",
+              "indiquer le tarif mensuel de chaque pays évoqué avec sa devise"
+            ],
+            "primaryGoal": "Vérifier la couverture géographique et la capacité de gestion RH pour la France et la Suisse.",
+            "secondaryGoals": [],
+            "knowledgeNeeds": [
+              "couverture géographique des fonctionnalités RH",
+              "prise en charge de la gestion des salariés en France",
+              "prise en charge de la gestion des salariés en Suisse",
+              "gestion RH multi-pays",
+              "différences de conformité et de réglementation du travail entre la France et la Suisse"
+            ],
+            "isCorrection": false,
+            "sufficiency": "strong",
+            "verifierAction": "clarify",
+            "issues": [
+              "CITATION_DROPPED",
+              "INCOMPLETE_COVERAGE"
+            ],
+            "toolsExecuted": [],
+            "toolsRefused": [],
+            "groundingFacts": [
+              "pierre.price.by-country.FR = FR : 449 € / mois",
+              "pierre.price.by-country.CH = CH : 499 CHF / mois",
+              "clonestore.identity = CloneChat est l'assistant de CloneStore. CloneStore propose des employés IA d'entreprise ; le premier est Pierre, un employé IA dédié aux ressources humaines. CloneChat renseigne sur Pierre et CloneStore, et aide sur les sujets RH liés à Pierre.",
+              "governance.human-only = Pierre prépare, analyse et propose. L'exécution d'une action sensible — envoi, signature, suppression, décision concernant une personne — n'est jamais automatique : elle est proposée, puis validée par un humain, et n'est pas active aujourd'hui.",
+              "pierre.capability-scope = Pierre PRÉPARE les documents et tâches RH courants sur une vingtaine de domaines : contrats et avenants, onboarding et offboarding (dont les documents de fin de contrat comme le solde de tout compte), attestations et courriers, suivi des absences et congés, tenue et mise à jour de registres, préparation des variables de paie, relances et reporting. Il produit des BROUILLONS à relire et propose des actions ; il ne les exécute pas seul. Les décisions sensibles (disciplinaire, licenciement, décision salariale) restent strictement humaines. Toutes les tâches ne sont pas encore automatisées : ce qui n'est pas établi n'est pas présenté comme actif.",
+              "chunk.pricing.catalog = Pays de lancement : FR, BE, LU, CH. FR/BE/LU: 449 € / mois · CH: 499 CHF / mois. Pour FR : 449 € / mois (EUR). Un client suisse voit et paiera l'offre suisse (CHF). Pays non déterminé → demander le pays, jamais d'offre par défaut. Le paiement en ligne n'est pas encore ouvert ; la réservation fondateur est disponible sans paiement. Pas d'essai gratuit, pas de bêta.",
+              "chunk.site./signup = /signup — Créer un compte. Création de compte avec présentation des fonctionnalités. Créer son compte CloneStore.",
+              "chunk.product.roi-productivity = Aucune moyenne de gain de temps ou d'argent n'est publiée par CloneStore, et il ne faut jamais en inventer une. Le gain réel dépend de facteurs propres à chaque entreprise : sa taille, le volume de tâches RH concernées, le nombre de salariés, la part de processus aujourd'hui manuels, et le niveau d'usage de Pierre. Temps : Pierre absorbe l'exécution répétitive — contrats et avenants, onboarding et offboarding, absences et congés, attestations et courriers RH, relances et suivis, préparation des variables de paie — que les équipes referaient sinon à la main. Argent : l'économie se lit en comparant ce temps libéré au coût de l'abonnement et, le cas échéant, au coût d'une embauche ou d'un prestataire externe pour le même volume de travail. Méthode honnête : partir des heures RH actuelles sur les tâches concernées, jamais d'un chiffre moyen théorique. Le prix de Pierre est un INTRANT du calcul de ROI, jamais la réponse à la question du gain. Questions auxquelles cette source répond : combien de temps Pierre fait gagner, combien d'argent Pierre fait économiser, est-ce que Pierre est rentable, rentabilité de Pierre, retour sur investissement, ROI, au bout de combien de temps l'abonnement est amorti, amortissement, quel impact sur les coûts RH, est-ce que ça remplace réellement du travail humain, économie pour plusieurs salariés, qu'est-ce qu'une petite entreprise gagne concrètement avec Pierre, mon équipe RH passe des heures par semaine sur l'administratif ça changerait quoi, est-ce plus rentable qu'embaucher quelqu'un, combien ça rapporte, gain de productivité, productivité RH.",
+              "chunk.site./#guided-discovery = /#guided-discovery — Découverte guidée. Overlay non-route : moteur de tour monté globalement (portal). Parcours MULTI-PAGE : / → /agents → /agents/pierre → /assistant → /demo/pierre → /login → /. Découverte guidée",
+              "chunk.truth.t2.clonebrief = CloneBrief — statut : verified_local_safe. Deux minutes le matin : vous savez exactement où en est le travail RH.",
+              "chunk.legacy.vision.platform = CloneStore est une plateforme d'employés IA opérationnels : une entreprise se compose progressivement d'employés IA qui réalisent un vrai travail métier, sous contrôle et validation humaine.",
+              "chunk.legacy.vision.employee = Un employé IA reçoit une demande, la transforme en mission, prépare le travail, suit, relance et garde la trace. Rien de sensible n'est exécuté sans validation humaine.",
+              "chunk.cap.absence.time_tracking = Working time / hours / schedules / on-call : Working time / hours / schedules / on-call Mode de fonctionnement : préparation de brouillon — l'humain envoie/décide. Le volet légal pays attend une revue externe — rien n'est garanti juridiquement.",
+              "chunk.legacy.employee.pierre = Pierre — Employé IA RH opérationnel. Reçoit une demande RH, la transforme en mission, prépare le travail, suit, relance et garde la trace. Domaines : Missions RH structurées à partir d'une demande libre ; Documents RH prêts à relire, valider ou envoyer ; Emails, relances et continuité dans le temps ; Validations humaines sur le sensible + traçabilité. Statut : actif (seul employé IA nommé et ouvert aujourd'hui).",
+              "chunk.cap.domain-summary = Pierre couvre 215 capacités RH canoniques réparties sur 22 domaines : Organisation & planning (12) · Recruitment (11) · Offer & pre-hire (6) · Contracts & contractual changes (25) · Onboarding (10) · Employee 360 & administration (14) · Absences, leave & time (11) · Payroll operational (12) · Compensation & benefits (10) · Performance (7) · Training & skills (6) · Career & mobility (5) · Employee relations (5) · Disciplinary (8) · Health, safety & wellbeing (7) · HR communications (15) · Policies & internal compliance (5) · Offboarding (8) · Data, privacy & GDPR (11) · Reporting & steering (6) · Proactive operations (10) · Pierre administration (11). Les décisions sensibles restent sous validation humaine ; les volets légaux pays et les envois externes attendent des vérifications externes.",
+              "page.autorisee /agents/pierre = Pierre",
+              "page.autorisee /demo/pierre = Démo Pierre",
+              "page.autorisee /reserver/pierre = Réserver Pierre",
+              "page.autorisee /comprendre-clonestore = Comprendre CloneStore",
+              "page.autorisee /questions = Support",
+              "page.autorisee /login = Connexion",
+              "page.autorisee /signup = Créer un compte"
+            ],
+            "relevance": {
+              "nature": "country",
+              "answerDepth": "multi",
+              "forbiddenTopics": [
+                "payment_status",
+                "founder_reservation",
+                "demo",
+                "roi",
+                "billing_terms",
+                "country_coverage"
+              ],
+              "forbiddenTopicLabels": [
+                "l'état du paiement en ligne",
+                "la réservation ou l'accès fondateur",
+                "la démonstration du produit",
+                "le gain de temps ou d'argent",
+                "les conditions de facturation (TVA, engagement, durée, remboursement)",
+                "les pays de lancement AUTRES que ceux évoqués (FR, CH)"
+              ],
+              "multipleCurrencies": true,
+              "allowedTopics": [
+                "pricing"
+              ],
+              "shouldOfferNextStep": false,
+              "shouldUseCommercialCta": false,
+              "requestedCountries": [
+                "FR",
+                "CH"
+              ],
+              "unsupportedCountries": [],
+              "capabilityUnproven": false
+            }
+          },
+          "memoryFacts": [
+            "population=salariés",
+            "country=Suisse"
+          ],
+          "tokens": {
+            "in": 4369,
+            "out": 906
+          }
+        }
+      ],
+      "judge": {
+        "valid": true,
+        "verdict": "fail",
+        "scores": {
+          "comprehension": 5,
+          "couverture": 5,
+          "verite": 5,
+          "grounding": 5,
+          "naturel": 5,
+          "memoire": 5,
+          "clarification": null,
+          "securite": null,
+          "cta": 5,
+          "pertinence": 3
+        },
+        "justification": "Réponse exacte et complète sur la France et la Suisse, mais les tarifs ajoutés ne répondent pas à la question.",
+        "invalidReason": null,
+        "attempts": 1
+      }
+    },
+    {
+      "id": "mem8",
+      "cat": "memoire",
+      "criteria": "Au 2e tour : répond en tenant compte de la Belgique.",
+      "latencyMs": 31708,
+      "turns": [
+        {
+          "turn": 0,
+          "message": "On est en Belgique.",
+          "status": "source_missing",
+          "answer": "La Belgique est le pays de référence pour la suite de notre échange. Que souhaitez-vous savoir ou faire en Belgique ?",
+          "citations": 0,
+          "diagnostics": {
+            "understood": true,
+            "coverageGoals": 1,
+            "coverageList": [
+              "Fournir le pays de référence pour la suite de l'échange."
+            ],
+            "primaryGoal": "Fournir le pays de référence pour la suite de l'échange.",
+            "secondaryGoals": [],
+            "knowledgeNeeds": [],
+            "isCorrection": false,
+            "sufficiency": "none",
+            "verifierAction": "clarify",
+            "issues": [
+              "UNGROUNDED_CONFIDENCE"
+            ],
+            "toolsExecuted": [],
+            "toolsRefused": [],
+            "groundingFacts": [
+              "clonestore.identity = CloneChat est l'assistant de CloneStore. CloneStore propose des employés IA d'entreprise ; le premier est Pierre, un employé IA dédié aux ressources humaines. CloneChat renseigne sur Pierre et CloneStore, et aide sur les sujets RH liés à Pierre.",
+              "governance.human-only = Pierre prépare, analyse et propose. L'exécution d'une action sensible — envoi, signature, suppression, décision concernant une personne — n'est jamais automatique : elle est proposée, puis validée par un humain, et n'est pas active aujourd'hui.",
+              "pierre.capability-scope = Pierre PRÉPARE les documents et tâches RH courants sur une vingtaine de domaines : contrats et avenants, onboarding et offboarding (dont les documents de fin de contrat comme le solde de tout compte), attestations et courriers, suivi des absences et congés, tenue et mise à jour de registres, préparation des variables de paie, relances et reporting. Il produit des BROUILLONS à relire et propose des actions ; il ne les exécute pas seul. Les décisions sensibles (disciplinaire, licenciement, décision salariale) restent strictement humaines. Toutes les tâches ne sont pas encore automatisées : ce qui n'est pas établi n'est pas présenté comme actif.",
+              "page.autorisee /agents/pierre = Pierre",
+              "page.autorisee /demo/pierre = Démo Pierre",
+              "page.autorisee /reserver/pierre = Réserver Pierre",
+              "page.autorisee /comprendre-clonestore = Comprendre CloneStore",
+              "page.autorisee /questions = Support",
+              "page.autorisee /login = Connexion",
+              "page.autorisee /signup = Créer un compte"
+            ],
+            "relevance": {
+              "nature": "general",
+              "answerDepth": "atomic",
+              "forbiddenTopics": [
+                "pricing",
+                "payment_status",
+                "founder_reservation",
+                "demo",
+                "roi",
+                "billing_terms",
+                "country_coverage"
+              ],
+              "forbiddenTopicLabels": [
+                "le tarif ou le montant de l'abonnement",
+                "l'état du paiement en ligne",
+                "la réservation ou l'accès fondateur",
+                "la démonstration du produit",
+                "le gain de temps ou d'argent",
+                "les conditions de facturation (TVA, engagement, durée, remboursement)",
+                "les pays de lancement AUTRES que ceux évoqués (BE)"
+              ],
+              "multipleCurrencies": false,
+              "allowedTopics": [],
+              "shouldOfferNextStep": false,
+              "shouldUseCommercialCta": false,
+              "requestedCountries": [
+                "BE"
+              ],
+              "unsupportedCountries": [],
+              "capabilityUnproven": false
+            }
+          },
+          "memoryFacts": [
+            "country=Belgique"
+          ],
+          "tokens": {
+            "in": 3153,
+            "out": 593
+          }
+        },
+        {
+          "turn": 1,
+          "message": "Et pour les congés payés, ça marche comment ?",
+          "status": "answered",
+          "answer": "En Belgique, les congés annuels rémunérés sont déterminés notamment selon le statut du travailleur, son régime de travail, les prestations effectuées durant l’année précédente, ainsi que le secteur ou la commission paritaire. Le calcul des droits acquis et du solde peut être préparé et suivi dans des limites encadrées. En revanche, je ne peux pas confirmer ici les règles légales précises, le nombre de jours ou les modalités de rémunération : le volet légal belge doit encore faire l’objet d’une vérification externe et rien n’est garanti juridiquement.",
+          "citations": 2,
+          "diagnostics": {
+            "understood": true,
+            "coverageGoals": 1,
+            "coverageList": [
+              "Comment fonctionnent les congés payés en Belgique ?"
+            ],
+            "primaryGoal": "Comprendre les règles belges applicables aux congés annuels rémunérés.",
+            "secondaryGoals": [],
+            "knowledgeNeeds": [
+              "Droit belge aux vacances annuelles",
+              "Calcul du nombre de jours de congé selon les prestations de l'année précédente",
+              "Différences entre régime de cinq jours et régime de six jours",
+              "Pécule de vacances et maintien de la rémunération",
+              "Congés légaux, jours fériés et congés extralégaux",
+              "Règles de planification, demande et approbation des congés",
+              "Régimes spécifiques des employés, ouvriers et travailleurs débutants"
+            ],
+            "isCorrection": false,
+            "sufficiency": "strong",
+            "verifierAction": "accept",
+            "issues": [],
+            "toolsExecuted": [],
+            "toolsRefused": [],
+            "groundingFacts": [
+              "clonestore.identity = CloneChat est l'assistant de CloneStore. CloneStore propose des employés IA d'entreprise ; le premier est Pierre, un employé IA dédié aux ressources humaines. CloneChat renseigne sur Pierre et CloneStore, et aide sur les sujets RH liés à Pierre.",
+              "governance.human-only = Pierre prépare, analyse et propose. L'exécution d'une action sensible — envoi, signature, suppression, décision concernant une personne — n'est jamais automatique : elle est proposée, puis validée par un humain, et n'est pas active aujourd'hui.",
+              "pierre.capability-scope = Pierre PRÉPARE les documents et tâches RH courants sur une vingtaine de domaines : contrats et avenants, onboarding et offboarding (dont les documents de fin de contrat comme le solde de tout compte), attestations et courriers, suivi des absences et congés, tenue et mise à jour de registres, préparation des variables de paie, relances et reporting. Il produit des BROUILLONS à relire et propose des actions ; il ne les exécute pas seul. Les décisions sensibles (disciplinaire, licenciement, décision salariale) restent strictement humaines. Toutes les tâches ne sont pas encore automatisées : ce qui n'est pas établi n'est pas présenté comme actif.",
+              "chunk.legacy.tech.cloneguard = CloneGuard : CloneGuard évalue chaque action avant exécution. Il bloque, approuve ou surveille selon les règles de gouvernance configurées. Toute action sensible ou risquée passe obligatoirement par CloneGuard.",
+              "chunk.product.roi-productivity = Aucune moyenne de gain de temps ou d'argent n'est publiée par CloneStore, et il ne faut jamais en inventer une. Le gain réel dépend de facteurs propres à chaque entreprise : sa taille, le volume de tâches RH concernées, le nombre de salariés, la part de processus aujourd'hui manuels, et le niveau d'usage de Pierre. Temps : Pierre absorbe l'exécution répétitive — contrats et avenants, onboarding et offboarding, absences et congés, attestations et courriers RH, relances et suivis, préparation des variables de paie — que les équipes referaient sinon à la main. Argent : l'économie se lit en comparant ce temps libéré au coût de l'abonnement et, le cas échéant, au coût d'une embauche ou d'un prestataire externe pour le même volume de travail. Méthode honnête : partir des heures RH actuelles sur les tâches concernées, jamais d'un chiffre moyen théorique. Le prix de Pierre est un INTRANT du calcul de ROI, jamais la réponse à la question du gain. Questions auxquelles cette source répond : combien de temps Pierre fait gagner, combien d'argent Pierre fait économiser, est-ce que Pierre est rentable, rentabilité de Pierre, retour sur investissement, ROI, au bout de combien de temps l'abonnement est amorti, amortissement, quel impact sur les coûts RH, est-ce que ça remplace réellement du travail humain, économie pour plusieurs salariés, qu'est-ce qu'une petite entreprise gagne concrètement avec Pierre, mon équipe RH passe des heures par semaine sur l'administratif ça changerait quoi, est-ce plus rentable qu'embaucher quelqu'un, combien ça rapporte, gain de productivité, productivité RH.",
+              "chunk.cap.domain-summary = Pierre couvre 215 capacités RH canoniques réparties sur 22 domaines : Organisation & planning (12) · Recruitment (11) · Offer & pre-hire (6) · Contracts & contractual changes (25) · Onboarding (10) · Employee 360 & administration (14) · Absences, leave & time (11) · Payroll operational (12) · Compensation & benefits (10) · Performance (7) · Training & skills (6) · Career & mobility (5) · Employee relations (5) · Disciplinary (8) · Health, safety & wellbeing (7) · HR communications (15) · Policies & internal compliance (5) · Offboarding (8) · Data, privacy & GDPR (11) · Reporting & steering (6) · Proactive operations (10) · Pierre administration (11). Les décisions sensibles restent sous validation humaine ; les volets légaux pays et les envois externes attendent des vérifications externes.",
+              "chunk.legacy.tech.cloneos = CloneOS : CloneOS orchestre le cycle de vie complet des missions et tâches. Il gère la planification, l'exécution, les reprises et l'état opérationnel de chaque employé IA — sans jamais présupposer un employé spécifique.",
+              "chunk.legacy.tech.cloneadn = CloneADN : CloneADN stocke le contexte, les préférences, l'identité et les règles propres à l'entreprise. Il permet à chaque employé IA de connaître la culture, le ton et les conventions de l'entreprise sans répétition.",
+              "chunk.legacy.route./checkout = « Paiement » (/checkout) (accès verrouillé par un droit/état) — espace public, audience public.",
+              "chunk.legacy.route./reserver/pierre = « Réserver Pierre » (/reserver/pierre) (accès verrouillé par un droit/état) — espace public, audience public.",
+              "chunk.cap.absence.balance_calculation = Leave balance calculation & accrual : Leave balance calculation & accrual Mode de fonctionnement : exécution autonome dans des limites gouvernées. Le volet légal pays attend une revue externe — rien n'est garanti juridiquement.",
+              "chunk.legacy.route./founding-partners = « Cercle des Partenaires Fondateurs » (/founding-partners) (accès verrouillé par un droit/état) — espace clonestory, audience public.",
+              "chunk.legacy.release.demo = La démonstration (/demo/pierre) montre une mission RH complète, de la demande au résultat, en quelques minutes.",
+              "page.autorisee /agents/pierre = Pierre",
+              "page.autorisee /demo/pierre = Démo Pierre",
+              "page.autorisee /reserver/pierre = Réserver Pierre",
+              "page.autorisee /comprendre-clonestore = Comprendre CloneStore",
+              "page.autorisee /questions = Support",
+              "page.autorisee /login = Connexion",
+              "page.autorisee /signup = Créer un compte"
+            ],
+            "relevance": {
+              "nature": "general",
+              "answerDepth": "detailed",
+              "forbiddenTopics": [
+                "pricing",
+                "payment_status",
+                "founder_reservation",
+                "demo",
+                "roi",
+                "billing_terms",
+                "country_coverage"
+              ],
+              "forbiddenTopicLabels": [
+                "le tarif ou le montant de l'abonnement",
+                "l'état du paiement en ligne",
+                "la réservation ou l'accès fondateur",
+                "la démonstration du produit",
+                "le gain de temps ou d'argent",
+                "les conditions de facturation (TVA, engagement, durée, remboursement)",
+                "les pays de lancement AUTRES que ceux évoqués (BE)"
+              ],
+              "multipleCurrencies": false,
+              "allowedTopics": [],
+              "shouldOfferNextStep": false,
+              "shouldUseCommercialCta": false,
+              "requestedCountries": [
+                "BE"
+              ],
+              "unsupportedCountries": [],
+              "capabilityUnproven": false
+            }
+          },
+          "memoryFacts": [
+            "country=Belgique",
+            "employment_topic=congés annuels rémunérés"
+          ],
+          "tokens": {
+            "in": 4243,
+            "out": 1095
+          }
+        }
+      ],
+      "judge": {
+        "valid": true,
+        "verdict": "pass",
+        "scores": {
+          "comprehension": 5,
+          "couverture": 5,
+          "verite": 5,
+          "grounding": 5,
+          "naturel": 5,
+          "memoire": 5,
+          "clarification": 5,
+          "securite": 5,
+          "cta": 5,
+          "pertinence": 5
+        },
+        "justification": "Réponse pertinente pour la Belgique, prudente sur le droit applicable et correctement limitée aux capacités de suivi des congés.",
+        "invalidReason": null,
+        "attempts": 1
+      }
+    },
+    {
+      "id": "x8",
+      "cat": "pays",
+      "criteria": "Italie non couverte ; AUCUNE date inventée.",
+      "latencyMs": 7264,
+      "turns": [
+        {
+          "turn": 0,
+          "message": "Vous ouvrez quand en Italie ?",
+          "status": "answered",
+          "answer": "CloneStore n’est pas couvert en Italie aujourd’hui et aucune date d’ouverture n’est annoncée.",
+          "citations": 0,
+          "diagnostics": {
+            "understood": true,
+            "coverageGoals": 1,
+            "coverageList": [
+              "Quand CloneStore ouvrira-t-il en Italie ?"
+            ],
+            "primaryGoal": "Connaître la date d'ouverture ou de disponibilité de CloneStore en Italie.",
+            "secondaryGoals": [],
+            "knowledgeNeeds": [
+              "disponibilité géographique de CloneStore en Italie",
+              "calendrier de lancement commercial en Italie",
+              "feuille de route d'expansion internationale"
+            ],
+            "isCorrection": false,
+            "sufficiency": "strong",
+            "verifierAction": "accept",
+            "issues": [
+              "CITATION_DROPPED"
+            ],
+            "toolsExecuted": [],
+            "toolsRefused": [],
+            "groundingFacts": [
+              "launch.countries = FR, BE, LU, CH",
+              "pierre.price.by-country.FR = FR : 449 € / mois",
+              "pierre.price.by-country.BE = BE : 449 € / mois",
+              "pierre.price.by-country.LU = LU : 449 € / mois",
+              "pierre.price.by-country.CH = CH : 499 CHF / mois",
+              "launch.countries.scope = Seuls FR, BE, LU, CH sont couverts au lancement. Tout autre pays n'est PAS couvert aujourd'hui, et aucune date d'ouverture n'est connue.",
+              "clonestore.identity = CloneChat est l'assistant de CloneStore. CloneStore propose des employés IA d'entreprise ; le premier est Pierre, un employé IA dédié aux ressources humaines. CloneChat renseigne sur Pierre et CloneStore, et aide sur les sujets RH liés à Pierre.",
+              "governance.human-only = Pierre prépare, analyse et propose. L'exécution d'une action sensible — envoi, signature, suppression, décision concernant une personne — n'est jamais automatique : elle est proposée, puis validée par un humain, et n'est pas active aujourd'hui.",
+              "pierre.capability-scope = Pierre PRÉPARE les documents et tâches RH courants sur une vingtaine de domaines : contrats et avenants, onboarding et offboarding (dont les documents de fin de contrat comme le solde de tout compte), attestations et courriers, suivi des absences et congés, tenue et mise à jour de registres, préparation des variables de paie, relances et reporting. Il produit des BROUILLONS à relire et propose des actions ; il ne les exécute pas seul. Les décisions sensibles (disciplinaire, licenciement, décision salariale) restent strictement humaines. Toutes les tâches ne sont pas encore automatisées : ce qui n'est pas établi n'est pas présenté comme actif.",
+              "chunk.legacy.offer.founder = CloneStore propose UN produit ouvert (Pierre) à 449 € HT/mois. Lancement de la démo : 5 août 2026. Fenêtre fondateur jusqu'au 31 août 2026 à 23 h 59, heure de Paris. Il n'existe pas d'autres offres tarifaires.",
+              "chunk.product.identity = CloneStore est la boutique d'employés IA d'entreprise : des employés IA opérationnels, gouvernés et tracés — le premier est Pierre, employé IA RH. Un employé suit une mission ; un assistant ne fait que répondre. Tout est tracé : vous pouvez toujours reconstituer qui a fait quoi, quand, pourquoi. Les décisions sensibles restent sous validation humaine, par construction. La mémoire d'entreprise est durable et isolée — vous ne réexpliquez pas tout à chaque fois. État honnête : Version de lancement prête et démontrable (démo immersive, réservation fondateur). Le paiement en ligne n'est pas encore ouvert. Les activations externes (signature, envoi d'e-mails, voix, téléphonie, connecteurs) restent en préparation.",
+              "chunk.site./legal/cgv = /legal/cgv — CGV. Conditions générales de vente : abonnement Pierre 449 € / mois, facturation, résiliation, périmètre inclus/exclu. Cadre commercial de l'abonnement.",
+              "chunk.site./#guided-discovery = /#guided-discovery — Découverte guidée. Overlay non-route : moteur de tour monté globalement (portal). Parcours MULTI-PAGE : / → /agents → /agents/pierre → /assistant → /demo/pierre → /login → /. Découverte guidée",
+              "chunk.pricing.catalog = Pays de lancement : FR, BE, LU, CH. FR/BE/LU: 449 € / mois · CH: 499 CHF / mois. Un client suisse voit et paiera l'offre suisse (CHF). Pays non déterminé → demander le pays, jamais d'offre par défaut. Le paiement en ligne n'est pas encore ouvert ; la réservation fondateur est disponible sans paiement. Pas d'essai gratuit, pas de bêta.",
+              "chunk.truth.external-blockers = Activation du paiement (Stripe) : Le paiement en ligne n'est pas encore ouvert ; la réservation fondateur ne demande aucun paiement. Signature électronique (Yousign) : Les dossiers de signature sont préparés ; la signature suit votre circuit habituel. Provider e-mail : Les e-mails sont préparés ; l'envoi reste chez vous. Provider vocal : La voix viendra après vérification externe ; le texte reste la référence. Téléphonie : Aucun appel téléphonique réel ; les sessions CloneCall sont locales et gouvernées. Notifications push : Les rappels vivent dans le cockpit. Connecteurs SIRH / paie / Slack : Les échanges se font par exports maîtrisés en attendant les connecteurs certifiés. Revue légale / fiscale externe : La revue légale/fiscale externe est un prérequis assumé avant l'ouverture payante. Monitoring de production : Pas d'ouverture sans surveillance de production digne de ce nom. Sign-off propriétaire : Même le propriétaire ne peut pas ouvrir la production par simple variable d'environnement. PRODUCTION_AUTHORIZED : La production restera OFF jusqu'à une décision de code délibérée, jamais par accident.",
+              "chunk.roadmap.public = Disponible maintenant : Produit de lancement (site, démo, réservation fondateur, cockpits) · Pierre version lancement (missions, documents, validations, trace) · Technologies T1 (15) et T2 (14) prêtes pour intégration. Ensuite : P16A — Pierre Ultimate (profondeur missions/documents, dossier 360, rapport de valeur mensuel…) · P16C — Intégration Pierre ↔ technologies (10 adaptateurs avec fallback sûr) · Câblage de l'intelligence C1 dans l'interface CloneChat (/assistant). Certaines ouvertures dépendent de vérifications externes (paiement en ligne, revue légale/fiscale, providers) — aucune date promise tant qu'elles ne sont pas acquises. Une fonctionnalité en roadmap n'est jamais présentée comme disponible.",
+              "chunk.legacy.route./comprendre-clonestore = « Comprendre CloneStore » (/comprendre-clonestore) — espace public, audience public.",
+              "chunk.legacy.tech.clonechat = CloneChat : CloneChat fournit une interface de conversation unifiée — texte, pièces jointes, historique — pour interagir avec n'importe quel employé IA CloneStore.",
+              "chunk.legacy.vision.platform = CloneStore est une plateforme d'employés IA opérationnels : une entreprise se compose progressivement d'employés IA qui réalisent un vrai travail métier, sous contrôle et validation humaine.",
+              "page.autorisee /agents/pierre = Pierre",
+              "page.autorisee /demo/pierre = Démo Pierre",
+              "page.autorisee /reserver/pierre = Réserver Pierre",
+              "page.autorisee /comprendre-clonestore = Comprendre CloneStore",
+              "page.autorisee /questions = Support",
+              "page.autorisee /login = Connexion",
+              "page.autorisee /signup = Créer un compte"
+            ],
+            "relevance": {
+              "nature": "country",
+              "answerDepth": "atomic",
+              "forbiddenTopics": [
+                "payment_status",
+                "founder_reservation",
+                "demo",
+                "roi",
+                "billing_terms"
+              ],
+              "forbiddenTopicLabels": [
+                "l'état du paiement en ligne",
+                "la réservation ou l'accès fondateur",
+                "la démonstration du produit",
+                "le gain de temps ou d'argent",
+                "les conditions de facturation (TVA, engagement, durée, remboursement)"
+              ],
+              "multipleCurrencies": false,
+              "allowedTopics": [
+                "pricing",
+                "country_coverage"
+              ],
+              "shouldOfferNextStep": false,
+              "shouldUseCommercialCta": false,
+              "requestedCountries": [],
+              "unsupportedCountries": [
+                "IT"
+              ],
+              "capabilityUnproven": false
+            }
+          },
+          "memoryFacts": [
+            "country=Italie",
+            "market_availability=ouverture ou lancement de CloneStore en Italie"
+          ],
+          "tokens": {
+            "in": 4248,
+            "out": 535
+          }
+        }
+      ],
+      "judge": {
+        "valid": true,
+        "verdict": "pass",
+        "scores": {
+          "comprehension": 5,
+          "couverture": 5,
+          "verite": 5,
+          "grounding": 5,
+          "naturel": 5,
+          "memoire": 5,
+          "clarification": 5,
+          "securite": 5,
+          "cta": 5,
+          "pertinence": 5
+        },
+        "justification": "Réponse exacte, concise et conforme aux faits, sans date inventée ni action proposée.",
+        "invalidReason": null,
+        "attempts": 1
+      }
+    }
+  ]
+}

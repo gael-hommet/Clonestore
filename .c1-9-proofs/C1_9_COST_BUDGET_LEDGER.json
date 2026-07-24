@@ -1,0 +1,86 @@
+{
+  "artifact": "C1_9_COST_BUDGET_LEDGER",
+  "generatedAt": "2026-07-23",
+  "budgetPolicy": {
+    "totalApiBudgetUsd": 20,
+    "cloneChatCeilingUsd": 4,
+    "pierreReservedUsd": 14,
+    "finalReserveUsd": 2,
+    "rule": "Ne jamais consommer tout le solde. Estimer AVANT toute grande campagne, à partir d'un échantillon réel."
+  },
+  "pricingBasis": "gpt-5.6-luna n'a pas de tarif public connu. Estimation au tarif du modèle économique configuré (gpt-4o-mini : 0,15 $/M entrée, 0,60 $/M sortie). Les TOKENS bruts sont reportés pour permettre un recalcul exact au tarif réel.",
+  "calibration": {
+    "method": "§ budget — 8 cas représentatifs rejoués d'abord, tokens et coût relevés, coût moyen par cas calculé, campagnes projetées avant lancement.",
+    "sampleCases": 8,
+    "sampleInputTokens": 59908,
+    "sampleOutputTokens": 16082,
+    "sampleEstUsd": 0.0186,
+    "perCaseUsd": 0.0023
+  },
+  "actualRuns": [
+    { "run": "sous-ensemble 8 cas (diagnostic + calibration)", "cases": 8, "estUsd": 0.0186 },
+    { "run": "sous-ensemble 3 cas (gc6, py4, mi2)", "cases": 3, "estUsd": 0.0055 },
+    { "run": "py4 seul (×2)", "cases": 2, "estUsd": 0.0038 },
+    { "run": "campagne ciblée complète n°1", "cases": 47, "estUsd": 0.0829 },
+    { "run": "sous-ensemble 4 cas (py1, pe2, pr1, in3)", "cases": 4, "estUsd": 0.0057 },
+    { "run": "campagne ciblée complète n°2", "cases": 47, "estUsd": 0.0829 },
+    { "run": "sous-ensemble 5 cas (gc1, gc4, py2, vg1, mi3)", "cases": 5, "estUsd": 0.0085 },
+    { "run": "py2 seul", "cases": 1, "estUsd": 0.0019 },
+    { "run": "campagne ciblée complète n°3", "cases": 47, "estUsd": 0.0833 },
+    { "run": "sous-ensemble 3 cas (mm2, in3, py4)", "cases": 3, "estUsd": 0.0076 },
+    { "run": "campagne ciblée complète n°4", "cases": 47, "estUsd": 0.0819 },
+    { "run": "sous-ensemble 5 cas (gc1, gc4, gc5, pe3, pr4)", "cases": 5, "estUsd": 0.0076 },
+    { "run": "campagne ciblée complète n°5", "cases": 47, "estUsd": 0.0837 },
+    { "run": "sous-ensemble 6 cas (pr2, vg1, py3, py2, mi3, pr1)", "cases": 6, "estUsd": 0.0098 },
+    { "run": "sous-ensemble 4 cas (pr2, py3, py1, pe2)", "cases": 4, "estUsd": 0.0053 },
+    { "run": "campagne ciblée complète n°6 — VERTE 47/47", "cases": 47, "estUsd": 0.0823 }
+  ],
+  "spentBeforeFullCampaignUsd": 0.5693,
+  "projection": {
+    "fullCampaignCases": 131,
+    "perCaseUsd": 0.00175,
+    "projectedFullCampaignUsd": 0.23,
+    "conservativeUpperUsd": 0.35,
+    "projectedCumulativeUsd": 0.92,
+    "underCloneChatCeiling": true,
+    "decision": "AUTORISÉ — la projection maintient CloneChat très en deçà de 4 USD et préserve intégralement les 14 USD réservés à Pierre."
+  },
+  "economyMeasures": [
+    "Sous-ensembles par ID (C19_CAMPAIGN_ONLY_IDS) : seuls les cas échoués sont rejoués, jamais les 47 pour un seul défaut.",
+    "Assertions déterministes AVANT tout appel modèle : chaque correction est d'abord prouvée hors ligne (95 tests), ce qui évite des campagnes de vérification.",
+    "Un seul jugement modèle par cas ; aucune évaluation dupliquée.",
+    "Sortie du juge bornée et justification limitée.",
+    "Reprise bornée sur 429 : évite de rejouer une campagne entière perdue par limitation de débit.",
+    "Résultats conservés par cas dans les artefacts (aucun rappel du modèle pour rejuger un cas déjà mesuré)."
+  ],
+  "callsAvoided": {
+    "byDeterministicFirst": "Chaque correction validée par test déterministe (jusqu'à 99 tests) avant toute dépense modèle.",
+    "bySubsetReplay": "≈ 15 sous-ensembles ciblés au lieu de campagnes complètes — plusieurs centaines de cas d'appels évités."
+  },
+  "fullCampaignRuns": [
+    { "run": "131 v1", "estUsd": 0.2019, "passed": "87/111" },
+    { "run": "131 v2", "estUsd": 0.2013, "passed": "96/111" },
+    { "run": "131 v3", "estUsd": 0.207, "passed": "103/111" },
+    { "run": "131 v4", "estUsd": 0.2059, "passed": "104/111 = 93,7 %" }
+  ],
+  "browserModeOnCampaign": {
+    "when": "2026-07-24 (après build vert)",
+    "runs": [
+      { "run": "sonde 1 flux (capacite) — validation mode-on + OpenAI réel", "flows": 1 },
+      { "run": "sonde 1 flux (capacite) — revérification après correctif de harnais", "flows": 1 },
+      { "run": "campagne navigateur mode-on complète (rapide)", "flows": 23 },
+      { "run": "re-run ESPACÉ (pacing 60 s) des flux rate-limités/transitoires", "flows": 11 }
+    ],
+    "totalFlowExecutions": 36,
+    "estUsd": 0.15,
+    "note": "Chaque tour de pipeline C1.9 déclenche plusieurs appels modèle ; une partie des appels du run rapide a été REFUSÉE par le rate-limit OpenAI (donc peu ou pas facturée). Estimation prudente ≈ 0,15 USD. Aucune campagne de JUGEMENT (47/111) n'a été rejouée."
+  },
+  "finalCostAccounting": {
+    "totalCloneChatEstUsd": "≈ 2,35 (ciblée ×2 pleine + 4 campagnes complètes + ~15 sous-ensembles + sondes + campagne navigateur mode-on ≈ 0,15)",
+    "cloneChatCeilingUsd": 4,
+    "underCeiling": true,
+    "pierreReservePreservedUsd": "≥ 14 (intacte — CloneChat n'a consommé que ~2,2 USD)",
+    "estimatedRemainingForPierreUsd": "≈ 17,8 sur les 20 (14 réservés + marge)",
+    "note": "Estimation au tarif gpt-4o-mini faute de tarif public gpt-5.6-luna. Tokens bruts reportés dans chaque artefact de campagne pour recalcul exact."
+  }
+}

@@ -166,7 +166,12 @@ export function verifyResponse(input: VerifyInput): Verdict {
     const drop = new Set(unsolicited.map((h) => h.sentence));
     const kept = splitSentences(text).filter((s) => !drop.has(s));
     const rebuilt = kept.join(" ").replace(/\s+/g, " ").trim();
-    if (rebuilt.length >= 40) {
+    // Seuil abaissé de 40 à 24 : mesuré (pr1), « En France, Pierre coûte 449 € par mois. »
+    // (~38 car., mais après excision d'une SEULE phrase le reste peut être plus court) était
+    // au-dessus de l'ancien plancher tantôt, en dessous tantôt — et la caution TVA interdite
+    // survivait. Une réponse valide courte (« Oui, la Suisse est couverte. » ~28 car.) doit
+    // pouvoir subsister à l'excision d'un ajout. En deçà de 24, l'excision viderait vraiment.
+    if (rebuilt.length >= 24) {
       text = rebuilt;
       issues.push({
         code: "UNSOLICITED_TOPIC_REMOVED",

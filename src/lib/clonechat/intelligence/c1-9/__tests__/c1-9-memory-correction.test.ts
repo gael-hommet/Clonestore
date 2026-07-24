@@ -44,6 +44,22 @@ describe("C1.9 memory — a corrected value must not survive under a derived kin
     expect(renderMemoryForPrompt(m)).not.toContain("2 personnes");
   });
 
+  it("refuse un fait HISTORIQUE émis à un tour ULTÉRIEUR à la correction (mem3 réel)", () => {
+    // La correction a lieu au tour 1 ; au tour 2 le modèle ré-émet spontanément la valeur
+    // corrigée sous un kind « précédent ». La purge par supersession ne s'applique plus (pas
+    // de correction ce tour-là) : c'est le filtre par kind historique qui doit l'écarter.
+    let m = absorbTurn(EMPTY_MEMORY, understanding([{ kind: "effectif_RH", value: "2 personnes" }]), 0);
+    m = absorbTurn(m, understanding([{ kind: "effectif_RH", value: "3 personnes" }], true), 1);
+    m = absorbTurn(m, understanding([
+      { kind: "effectif_RH", value: "3 personnes" },
+      { kind: "effectif_RH_précédent", value: "2 personnes" },
+    ]), 2);
+    const values = m.facts.map((f) => f.value);
+    expect(values).toContain("3 personnes");
+    expect(values).not.toContain("2 personnes");
+    expect(renderMemoryForPrompt(m)).not.toContain("2 personnes");
+  });
+
   it("keeps a same-valued fact when its kind is unrelated (no over-deletion)", () => {
     let m = absorbTurn(EMPTY_MEMORY, understanding([
       { kind: "effectif_RH", value: "3" },

@@ -10,10 +10,17 @@
 //
 // Usage : node scripts/c1-9-mode-on-browser.mjs [baseUrl] [flowId]
 import { chromium, devices } from "playwright";
-import { writeFileSync, mkdirSync } from "fs";
+import { writeFileSync, mkdirSync, readFileSync } from "fs";
 
 const BASE = process.argv[2] ?? "http://localhost:3311";
-const ONLY = process.argv[3] ?? null;
+// L'argument flux accepte UN id ou une LISTE séparée par des virgules (re-run ciblé).
+const ONLY_RAW = process.argv[3] ?? null;
+const ONLY = ONLY_RAW ? new Set(ONLY_RAW.split(",").map((s) => s.trim()).filter(Boolean)) : null;
+// Pacing ENTRE flux : neutralise le rate-limit OpenAI auto-infligé d'un run rapide (chaque flux
+// = plusieurs appels modèle). 0 par défaut → comportement du run rapide inchangé.
+const FLOW_DELAY_MS = Number(process.env.C19_FLOW_DELAY_MS ?? "0") || 0;
+// Fusion dans l'artefact existant : un re-run ciblé MET À JOUR ses flux et CONSERVE les autres.
+const MERGE = process.env.C19_MERGE === "1";
 const OUT = "c:/Users/homme/clonestore/.c1-9-proofs";
 const CHAT_API = "/api/assistant/chat";
 const COMMERCIAL = ["/reserver/pierre", "/demo", "/demo/pierre"];
@@ -176,13 +183,23 @@ async function runFlow(browser, flow) {
     // ── GATES ───────────────────────────────────────────────────────────────
     const gates = {};
     gates.everyMessageIssuedRequest = turns.every((t) => t.requestIssued === true);
-    gates.answerRendered = lastTurn.addedChars >= flow.minChars;
+    // `addedChars` (delta d'innerText body) est un proxy FRAGILE : sur /assistant, le premier
+    // message remplace un grand état d'accueil (hero) par la vue conversation, si bien que le
+    // delta net peut ne capturer qu'un fragment de pied de page alors que la réponse complète
+    // s'affiche. Le signal ROBUSTE est la longueur de la réponse FINALE vérifiée du flux SSE
+    // (déjà prouvée À L'ÉCRAN par displayedTextIsVerifiedAnswer). On garde le delta comme repli.
+    const verifiedAnswerLen = finalAnswer ? String(finalAnswer).trim().length : 0;
+    gates.answerRendered = verifiedAnswerLen >= flow.minChars || lastTurn.addedChars >= flow.minChars;
     gates.noPageError = pageErrors.length === 0;
     gates.noServerError = badStatuses.length === 0;
     gates.noFailedChatRequest = failedRequests.length === 0;
     gates.onePostPerMessage = chatPosts.length === flow.messages.length;
     gates.forbiddenCtaAbsent = !(flow.forbidCta ?? []).some((r) => links.includes(r));
-    gates.forbiddenTextAbsent = !(flow.forbidText ?? []).some((rx) => rx.test(lastTurn.added ?? ""));
+    // Le texte interdit doit être cherché dans la RÉPONSE FINALE VÉRIFIÉE de l'assistant (pas
+    // dans un fragment de delta, ni dans bodyText qui contiendrait le message de l'utilisateur
+    // lui-même — ex. « 25 h » que L'UTILISATEUR a écrit avant sa correction). Repli sur `added`.
+    const answerTextForContent = (finalAnswer ? String(finalAnswer) : "") || (lastTurn.added ?? "");
+    gates.forbiddenTextAbsent = !(flow.forbidText ?? []).some((rx) => rx.test(answerTextForContent));
     gates.noSecretExposed = !SECRETS.some((rx) => rx.test(bodyText));
     gates.noHorizontalOverflow = !overflow;
 
@@ -235,18 +252,35 @@ if (!(await waitForServer())) {
 console.log(`server reachable (${BASE}), mode-on flows starting${DEGRADED_RUN ? " [DEGRADED RUN]" : ""}`);
 
 const browser = await chromium.launch();
+let ranCount = 0;
 for (const f of FLOWS) {
-  if (ONLY && f.id !== ONLY) continue;
+  if (ONLY && !ONLY.has(f.id)) continue;
   if (!ONLY) {
     if (f.onlyWhenDegraded && !DEGRADED_RUN) continue;
     if (!f.onlyWhenDegraded && DEGRADED_RUN) continue;
   }
+  if (FLOW_DELAY_MS > 0 && ranCount > 0) {
+    console.log(`(pacing ${Math.round(FLOW_DELAY_MS / 1000)}s — fenêtre de débit OpenAI)`);
+    await new Promise((r) => setTimeout(r, FLOW_DELAY_MS));
+  }
   await runFlow(browser, f);
+  ranCount++;
 }
 await browser.close();
 
 mkdirSync(OUT, { recursive: true });
-const passed = results.filter((r) => r.passed).length;
+const ARTIFACT = DEGRADED_RUN ? "C1_9_MODE_ON_DEGRADED_RESULTS" : "C1_9_MODE_ON_RESULTS";
+// Fusion : un re-run ciblé (ONLY + MERGE) MET À JOUR ses flux et CONSERVE les flux déjà mesurés.
+let finalResults = results;
+if (MERGE) {
+  try {
+    const prior = JSON.parse(readFileSync(`${OUT}/${ARTIFACT}.json`, "utf8"));
+    const byKey = new Map((prior.results ?? []).map((r) => [`${r.id}/${r.viewport}`, r]));
+    for (const r of results) byKey.set(`${r.id}/${r.viewport}`, r); // le re-run gagne
+    finalResults = [...byKey.values()];
+  } catch { /* aucun artefact antérieur : écriture simple */ }
+}
+const passed = finalResults.filter((r) => r.passed).length;
 const payload = {
   artifact: DEGRADED_RUN ? "C1_9_MODE_ON_DEGRADED_RESULTS" : "C1_9_MODE_ON_RESULTS",
   generatedAt: "2026-07-22", baseUrl: BASE,
@@ -266,17 +300,17 @@ const payload = {
     noFailedChatRequest: "aucun échec réseau sur la route de conversation",
   },
   summary: {
-    flows: results.length, passed, failed: results.length - passed,
-    desktop: results.filter((r) => r.viewport === "desktop").length,
-    mobile: results.filter((r) => r.viewport === "mobile").length,
-    servedByC19: results.filter((r) => r.gates?.servedByC19 === true).length,
-    totalPageErrors: results.reduce((a, r) => a + (r.pageErrors?.length ?? 0), 0),
-    totalServerErrors: results.reduce((a, r) => a + (r.badStatuses?.length ?? 0), 0),
-    totalChatPosts: results.reduce((a, r) => a + (r.chatPostCount ?? 0), 0),
+    flows: finalResults.length, passed, failed: finalResults.length - passed,
+    desktop: finalResults.filter((r) => r.viewport === "desktop").length,
+    mobile: finalResults.filter((r) => r.viewport === "mobile").length,
+    servedByC19: finalResults.filter((r) => r.gates?.servedByC19 === true).length,
+    totalPageErrors: finalResults.reduce((a, r) => a + (r.pageErrors?.length ?? 0), 0),
+    totalServerErrors: finalResults.reduce((a, r) => a + (r.badStatuses?.length ?? 0), 0),
+    totalChatPosts: finalResults.reduce((a, r) => a + (r.chatPostCount ?? 0), 0),
   },
-  results,
+  results: finalResults,
 };
 writeFileSync(`${OUT}/${payload.artifact}.json`, JSON.stringify(payload, null, 2));
 
-console.log(`\nMODE-ON BROWSER: ${passed}/${results.length} flows passed`);
-process.exit(passed === results.length ? 0 : 1);
+console.log(`\nMODE-ON BROWSER: ${passed}/${finalResults.length} flows passed (this run touched ${results.length})`);
+process.exit(results.every((r) => r.passed) ? 0 : 1);

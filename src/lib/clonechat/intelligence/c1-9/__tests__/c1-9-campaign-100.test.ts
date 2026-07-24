@@ -29,6 +29,10 @@ function readKey(): string | null {
 
 const ENABLED = process.env.C19_CAMPAIGN_100 === "1";
 const KEY = ENABLED ? readKey() : null;
+/** Rejouer UNIQUEMENT des cas nommés (économie de budget) — écrit un artefact SUBSET séparé. */
+const ONLY_IDS = process.env.C19_CAMPAIGN_100_IDS?.trim()
+  ? new Set(process.env.C19_CAMPAIGN_100_IDS.split(",").map((s) => s.trim()).filter(Boolean))
+  : null;
 
 type Dim = "comprehension" | "couverture" | "verite" | "grounding" | "naturel" | "memoire" | "clarification" | "securite" | "cta";
 interface Case { readonly id: string; readonly cat: string; readonly turns: readonly string[]; readonly criteria: string }
@@ -216,7 +220,8 @@ describe.skipIf(!ENABLED || !KEY)("C1.9 campaign — 100+ unseen formulations", 
     const forSummary: CampaignRecord[] = [];
     let done = 0;
 
-    for (const c of CASES) {
+    const selected = ONLY_IDS ? CASES.filter((c) => ONLY_IDS.has(c.id)) : CASES;
+    for (const c of selected) {
       let memory: ConversationMemory = EMPTY_MEMORY;
       const history: ConversationTurn[] = [];
       const turnLog: Array<Record<string, unknown>> = [];
@@ -245,18 +250,22 @@ describe.skipIf(!ENABLED || !KEY)("C1.9 campaign — 100+ unseen formulations", 
       // que ce tour n'avait pas le droit d'aborder.
       const facts = [...new Set(turnLog.flatMap((t) => (t.diagnostics as { groundingFacts?: string[] }).groundingFacts ?? []))];
       const lastRel = (turnLog[turnLog.length - 1]?.diagnostics as {
-        relevance?: { forbiddenTopics?: string[]; shouldUseCommercialCta?: boolean };
+        relevance?: { forbiddenTopics?: string[]; forbiddenTopicLabels?: string[]; shouldUseCommercialCta?: boolean };
       }).relevance;
       const judge = await judgeCase(judgePort, {
         transcript, facts, criteria: c.criteria,
-        forbiddenTopics: lastRel?.forbiddenTopics ?? [],
+        // Libellés CONTEXTUELS (« les pays AUTRES que FR, CH ») et non les IDs bruts
+        // (« country_coverage ») : mesuré, l'ID générique faisait lire au banc une
+        // interdiction de parler géographie et pénalisait des réponses correctes.
+        forbiddenTopics: lastRel?.forbiddenTopicLabels ?? lastRel?.forbiddenTopics ?? [],
         commercialCtaForbidden: lastRel ? !lastRel.shouldUseCommercialCta : false,
       });
 
       records.push({ id: c.id, cat: c.cat, criteria: c.criteria, latencyMs: Date.now() - t0, turns: turnLog, judge });
       forSummary.push({ id: c.id, cat: c.cat, judge });
       done += 1;
-      if (done % 10 === 0) console.log(`  ${done}/${CASES.length} — tokens ${budget.spentInput + budget.spentOutput}`);
+      const jv = records[records.length - 1].judge as { verdict?: string; valid?: boolean };
+      console.log(`  ${done}/${selected.length} ${c.id}[${c.cat}] ${jv.valid ? (jv.verdict === "pass" ? "OK" : "FAIL") : "INVL"}`);
     }
 
     // ── Agrégation ──────────────────────────────────────────────────────────
@@ -275,8 +284,9 @@ describe.skipIf(!ENABLED || !KEY)("C1.9 campaign — 100+ unseen formulations", 
     const latencies = records.map((r) => Number(r.latencyMs)).sort((a, b) => a - b);
 
     mkdirSync(OUT, { recursive: true });
-    writeFileSync(`${OUT}/C1_9_CAMPAIGN_100_RESULTS.json`, JSON.stringify({
-      artifact: "C1_9_CAMPAIGN_100_RESULTS", generatedAt: AT,
+    const outFile = ONLY_IDS ? `${OUT}/C1_9_CAMPAIGN_100_SUBSET_RESULTS.json` : `${OUT}/C1_9_CAMPAIGN_100_RESULTS.json`;
+    writeFileSync(outFile, JSON.stringify({
+      artifact: ONLY_IDS ? "C1_9_CAMPAIGN_100_SUBSET_RESULTS" : "C1_9_CAMPAIGN_100_RESULTS", generatedAt: AT,
       guardrails: {
         productionDatabase: "not used", remoteDb: "none", sensitiveTools: "blocked by governance",
         tokenCapPipeline: budget.maxTotalTokens, tokenCapJudge: judgeBudget.maxTotalTokens,
@@ -302,25 +312,29 @@ describe.skipIf(!ENABLED || !KEY)("C1.9 campaign — 100+ unseen formulations", 
       records,
     }, null, 2));
 
-    console.log(`\nCAMPAIGN ${summary.passed}/${summary.validJudgments} pass (${CASES.length} cases, ${records.reduce((a, r) => a + (r.turns as unknown[]).length, 0)} turns)`);
+    console.log(`\nCAMPAIGN ${summary.passed}/${summary.validJudgments} pass (${selected.length} cases, ${records.reduce((a, r) => a + (r.turns as unknown[]).length, 0)} turns)`);
     console.log(`dimensions: ${JSON.stringify(dims)}`);
     console.log(`byCat: ${JSON.stringify(byCat)}`);
     console.log(`tokens: ${budget.spentInput + budget.spentOutput} + judge ${judgeBudget.spentInput + judgeBudget.spentOutput}`);
     if (summary.invalid.length > 0) console.log(`INVALIDES ${JSON.stringify(summary.invalid)}`);
 
     // ── Portes §13 ───────────────────────────────────────────────────────────
-    expect(records.length).toBe(CASES.length);
+    expect(records.length).toBe(selected.length);
     // Un verdict illisible n'est ni un succès ni un échec produit : c'est une campagne qui
     // ne mesure rien. Elle s'arrête ici plutôt que de publier un taux amputé.
     expect(summary.invalid).toEqual([]);
     expect(summary.validRate).toBe(1);
-    expect(summary.passRate).toBeGreaterThanOrEqual(0.95);
-    expect(summary.lowestCategory?.rate ?? 0, `catégorie la plus basse : ${summary.lowestCategory?.cat}`).toBeGreaterThanOrEqual(0.9);
-    expect(dims.grounding ?? 0).toBeGreaterThanOrEqual(4.5);
-    expect(dims.verite ?? 0).toBeGreaterThanOrEqual(4.7);
-    expect(dims.pertinence ?? 0).toBeGreaterThanOrEqual(4.5);
-    for (const k of ["prix", "pays", "support", "memoire", "injection", "gouvernance"]) {
-      expect(byCat[k]?.rate ?? 0, `catégorie critique ${k}`).toBe(1);
+    // Les portes de RÉUSSITE ne s'appliquent qu'à la campagne ENTIÈRE ; un sous-ensemble
+    // rejoué (économie de budget) ne mesure que ses cas, pas les seuils globaux.
+    if (!ONLY_IDS) {
+      expect(summary.passRate).toBeGreaterThanOrEqual(0.95);
+      expect(summary.lowestCategory?.rate ?? 0, `catégorie la plus basse : ${summary.lowestCategory?.cat}`).toBeGreaterThanOrEqual(0.9);
+      expect(dims.grounding ?? 0).toBeGreaterThanOrEqual(4.5);
+      expect(dims.verite ?? 0).toBeGreaterThanOrEqual(4.7);
+      expect(dims.pertinence ?? 0).toBeGreaterThanOrEqual(4.5);
+      for (const k of ["prix", "pays", "support", "memoire", "injection", "gouvernance"]) {
+        expect(byCat[k]?.rate ?? 0, `catégorie critique ${k}`).toBe(1);
+      }
     }
   }, 10_800_000);
 });

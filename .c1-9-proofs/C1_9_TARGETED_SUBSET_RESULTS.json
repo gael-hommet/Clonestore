@@ -1,0 +1,294 @@
+{
+  "artifact": "C1_9_TARGETED_SUBSET_RESULTS",
+  "generatedAt": "2026-07-22T10:00:00.000Z",
+  "corpus": "47 formulations inédites, distinctes du corpus complet. Jamais importé par le runtime.",
+  "scope": "ids py3,py1,c1",
+  "cost": {
+    "cases": 2,
+    "inputTokens": 11564,
+    "outputTokens": 1868,
+    "pipelineTokens": 9174,
+    "judgeTokens": 4258,
+    "pricingBasis": "estimation gpt-4o-mini (0.15 $/M in, 0.6 $/M out) — luna sans tarif public",
+    "estUsd": 0.0029,
+    "perCaseUsd": 0.0014,
+    "projectedFull47Usd": 0.0671,
+    "projectedFull131Usd": 0.187
+  },
+  "summary": {
+    "cases": 2,
+    "validJudgments": 2,
+    "invalidJudgments": 0,
+    "validRate": 1,
+    "passed": 2,
+    "passRate": 1,
+    "dimensions": {
+      "comprehension": 5,
+      "couverture": 5,
+      "verite": 5,
+      "grounding": 5,
+      "naturel": 5,
+      "memoire": 5,
+      "clarification": 5,
+      "securite": 5,
+      "cta": 5,
+      "pertinence": 5
+    },
+    "byCategory": {
+      "pays": {
+        "n": 2,
+        "pass": 2,
+        "rate": 1
+      }
+    },
+    "lowestCategory": {
+      "cat": "pays",
+      "rate": 1
+    },
+    "invalid": []
+  },
+  "criticalCategories": {
+    "prix": null,
+    "pays": {
+      "n": 2,
+      "pass": 2,
+      "rate": 1
+    },
+    "support": null,
+    "memoire": null,
+    "injection": null,
+    "sensible": null
+  },
+  "thresholds": {
+    "validRate": 1,
+    "passRate": 0.95,
+    "grounding": 4.5,
+    "verite": 4.7,
+    "pertinence": 4.5,
+    "critical": "100%"
+  },
+  "records": [
+    {
+      "id": "py1",
+      "cat": "pays",
+      "criteria": "Suisse couverte ; tarif CHF ; ne déroule pas les autres pays.",
+      "turns": [
+        {
+          "turn": 0,
+          "message": "On a un site à Zurich, vous couvrez ?",
+          "answer": "Oui, CloneStore couvre votre site situé à Zurich, en Suisse. Le tarif suisse est de 499 CHF / mois.",
+          "status": "clarification_required",
+          "diagnostics": {
+            "understood": true,
+            "coverageGoals": 2,
+            "coverageList": [
+              "CloneStore couvre-t-il un site situé à Zurich ?",
+              "indiquer le tarif mensuel de chaque pays évoqué avec sa devise"
+            ],
+            "primaryGoal": "Vérifier la disponibilité de CloneStore pour un site à Zurich.",
+            "secondaryGoals": [],
+            "knowledgeNeeds": [
+              "disponibilité géographique de CloneStore en Suisse",
+              "conditions de déploiement d'un employé IA RH sur un site situé à Zurich",
+              "prise en charge des entités et effectifs en Suisse"
+            ],
+            "isCorrection": false,
+            "sufficiency": "strong",
+            "verifierAction": "clarify",
+            "issues": [
+              "CITATION_DROPPED",
+              "INCOMPLETE_COVERAGE"
+            ],
+            "toolsExecuted": [],
+            "toolsRefused": [],
+            "groundingFacts": [
+              "pierre.price.by-country.CH = CH : 499 CHF / mois",
+              "launch.covered.CH = CH fait partie des pays de lancement couverts par CloneStore.",
+              "clonestore.identity = CloneChat est l'assistant de CloneStore. CloneStore propose des employés IA d'entreprise ; le premier est Pierre, un employé IA dédié aux ressources humaines. CloneChat renseigne sur Pierre et CloneStore, et aide sur les sujets RH liés à Pierre.",
+              "governance.human-only = Pierre prépare, analyse et propose. L'exécution d'une action sensible — envoi, signature, suppression, décision concernant une personne — n'est jamais automatique : elle est proposée, puis validée par un humain, et n'est pas active aujourd'hui.",
+              "pierre.capability-scope = Pierre PRÉPARE les documents et tâches RH courants sur une vingtaine de domaines : contrats et avenants, onboarding et offboarding (dont les documents de fin de contrat comme le solde de tout compte), attestations et courriers, suivi des absences et congés, tenue et mise à jour de registres, préparation des variables de paie, relances et reporting. Il produit des BROUILLONS à relire et propose des actions ; il ne les exécute pas seul. Les décisions sensibles (disciplinaire, licenciement, décision salariale) restent strictement humaines. Toutes les tâches ne sont pas encore automatisées : ce qui n'est pas établi n'est pas présenté comme actif.",
+              "chunk.legacy.tech.clonechat = CloneChat : CloneChat fournit une interface de conversation unifiée — texte, pièces jointes, historique — pour interagir avec n'importe quel employé IA CloneStore.",
+              "chunk.site./questions = /questions — Support / FAQ. Hub support public : choisir un employé IA, comprendre Pierre, paiement & accès, cockpit & missions, sécurité & contrôle, support général. LA page support/contact du site.",
+              "chunk.legacy.vision.governance = Le modèle CloneStore garde l'humain au contrôle : l'employé IA propose et prépare, l'humain valide le sensible, le système exécute puis relit le résultat réel.",
+              "chunk.site./comprendre-clonestore = /comprendre-clonestore — Comprendre CloneStore. Page de référence complète pour dirigeants : employé IA, missions, Empreinte Entreprise, gouvernance, prix, limites, vision. LA page qui explique le mieux CloneStore en profondeur.",
+              "chunk.clonechat.identity = CloneChat est l'employé système central de CloneStore : l'interlocuteur unique du site. Son rôle : expliquer CloneStore et ce qu'on peut y faire ; répondre aux questions sur le produit, les prix, les pays et les limites ; guider dans les pages et donner le lien direct vers la bonne page ; présenter Pierre, l'employé IA RH, et aider à s'en servir ; diagnostiquer un blocage à partir de l'état RÉEL du compte ; analyser un fichier, une image ou une capture d'écran fournis ; proposer la meilleure étape suivante ; et transmettre à un humain les cas exceptionnels (sécurité, vie privée, litige). Il distingue toujours la vérité PRODUIT (valable pour tout le monde) de la vérité du COMPTE (propre à l'utilisateur connecté). Ses limites, dites franchement : il ne décide jamais à la place d'un humain (pas de licenciement, pas de décision salariale, pas de garantie juridique), il n'exécute aucune action à effet externe réel tant que la production n'est pas ouverte, et quand il n'a pas de preuve, il le dit au lieu d'inventer. Il n'est pas un chatbot générique : ses réponses sont fondées sur les sources CloneStore, avec citations. Questions auxquelles cette source répond : qui es-tu, tu es qui, t'es qui, tu es quoi, c'est quoi CloneChat, à quoi sert CloneChat, tu sers à quoi, tu fais quoi, que fais-tu, quel est ton rôle, ton rôle, tes fonctions, tes capacités, que peux-tu faire, qu'est-ce que tu peux faire, comment peux-tu m'aider, tu peux m'aider, pourquoi tu existes, pourquoi te parler, tu remplaces le support, tu gères quoi, es-tu un chatbot, quelle différence avec ChatGPT, en quoi tu es différent, tu sers vraiment à quelque chose, tu connais CloneStore, tu peux m'aider à utiliser Pierre.",
+              "chunk.pricing.catalog = Pays de lancement : FR, BE, LU, CH. FR/BE/LU: 449 € / mois · CH: 499 CHF / mois. Un client suisse voit et paiera l'offre suisse (CHF). Pays non déterminé → demander le pays, jamais d'offre par défaut. Le paiement en ligne n'est pas encore ouvert ; la réservation fondateur est disponible sans paiement. Pas d'essai gratuit, pas de bêta.",
+              "chunk.legacy.route./legal/cgu = « Conditions d'utilisation » (/legal/cgu) — espace public, audience public.",
+              "chunk.legacy.route./legal/cgv = « Conditions de vente » (/legal/cgv) — espace public, audience public.",
+              "chunk.product.identity = CloneStore est la boutique d'employés IA d'entreprise : des employés IA opérationnels, gouvernés et tracés — le premier est Pierre, employé IA RH. Un employé suit une mission ; un assistant ne fait que répondre. Tout est tracé : vous pouvez toujours reconstituer qui a fait quoi, quand, pourquoi. Les décisions sensibles restent sous validation humaine, par construction. La mémoire d'entreprise est durable et isolée — vous ne réexpliquez pas tout à chaque fois. État honnête : Version de lancement prête et démontrable (démo immersive, réservation fondateur). Le paiement en ligne n'est pas encore ouvert. Les activations externes (signature, envoi d'e-mails, voix, téléphonie, connecteurs) restent en préparation.",
+              "chunk.cap.org.assign_site_manager = Assign site manager : Assign site manager Mode de fonctionnement : exécution après validation humaine obligatoire.",
+              "page.autorisee /agents/pierre = Pierre",
+              "page.autorisee /demo/pierre = Démo Pierre",
+              "page.autorisee /reserver/pierre = Réserver Pierre",
+              "page.autorisee /comprendre-clonestore = Comprendre CloneStore",
+              "page.autorisee /questions = Support",
+              "page.autorisee /login = Connexion",
+              "page.autorisee /signup = Créer un compte"
+            ],
+            "relevance": {
+              "nature": "country",
+              "answerDepth": "atomic",
+              "forbiddenTopics": [
+                "payment_status",
+                "founder_reservation",
+                "demo",
+                "roi",
+                "billing_terms",
+                "country_coverage"
+              ],
+              "forbiddenTopicLabels": [
+                "l'état du paiement en ligne",
+                "la réservation ou l'accès fondateur",
+                "la démonstration du produit",
+                "le gain de temps ou d'argent",
+                "les conditions de facturation (TVA, engagement, durée, remboursement)",
+                "les pays de lancement AUTRES que ceux évoqués (CH)"
+              ],
+              "multipleCurrencies": false,
+              "allowedTopics": [
+                "pricing"
+              ],
+              "shouldOfferNextStep": false,
+              "shouldUseCommercialCta": false,
+              "requestedCountries": [
+                "CH"
+              ],
+              "unsupportedCountries": [],
+              "capabilityUnproven": false
+            }
+          }
+        }
+      ],
+      "judge": {
+        "valid": true,
+        "verdict": "pass",
+        "scores": {
+          "comprehension": 5,
+          "couverture": 5,
+          "verite": 5,
+          "grounding": 5,
+          "naturel": 5,
+          "memoire": 5,
+          "clarification": 5,
+          "securite": 5,
+          "cta": 5,
+          "pertinence": 5
+        },
+        "justification": "La réponse confirme correctement la couverture de la Suisse et indique le tarif suisse, sans ajout hors sujet.",
+        "invalidReason": null,
+        "attempts": 1
+      }
+    },
+    {
+      "id": "py3",
+      "cat": "pays",
+      "criteria": "Luxembourg couvert ; tarif EUR ; ne déroule pas les autres pays.",
+      "turns": [
+        {
+          "turn": 0,
+          "message": "Vous travaillez au Luxembourg ?",
+          "answer": "Oui, CloneStore travaille au Luxembourg. Le tarif est de 449 € / mois.",
+          "status": "clarification_required",
+          "diagnostics": {
+            "understood": true,
+            "coverageGoals": 2,
+            "coverageList": [
+              "CloneStore travaille-t-il au Luxembourg ?",
+              "indiquer le tarif mensuel de chaque pays évoqué avec sa devise"
+            ],
+            "primaryGoal": "Vérifier la disponibilité de CloneStore au Luxembourg.",
+            "secondaryGoals": [],
+            "knowledgeNeeds": [
+              "couverture géographique et disponibilité commerciale de CloneStore au Luxembourg",
+              "capacité à accompagner des entreprises établies au Luxembourg",
+              "compatibilité des employés IA RH avec le cadre luxembourgeois"
+            ],
+            "isCorrection": false,
+            "sufficiency": "strong",
+            "verifierAction": "clarify",
+            "issues": [
+              "CITATION_DROPPED",
+              "INCOMPLETE_COVERAGE"
+            ],
+            "toolsExecuted": [],
+            "toolsRefused": [],
+            "groundingFacts": [
+              "pierre.price.by-country.LU = LU : 449 € / mois",
+              "launch.covered.LU = LU fait partie des pays de lancement couverts par CloneStore.",
+              "clonestore.identity = CloneChat est l'assistant de CloneStore. CloneStore propose des employés IA d'entreprise ; le premier est Pierre, un employé IA dédié aux ressources humaines. CloneChat renseigne sur Pierre et CloneStore, et aide sur les sujets RH liés à Pierre.",
+              "governance.human-only = Pierre prépare, analyse et propose. L'exécution d'une action sensible — envoi, signature, suppression, décision concernant une personne — n'est jamais automatique : elle est proposée, puis validée par un humain, et n'est pas active aujourd'hui.",
+              "pierre.capability-scope = Pierre PRÉPARE les documents et tâches RH courants sur une vingtaine de domaines : contrats et avenants, onboarding et offboarding (dont les documents de fin de contrat comme le solde de tout compte), attestations et courriers, suivi des absences et congés, tenue et mise à jour de registres, préparation des variables de paie, relances et reporting. Il produit des BROUILLONS à relire et propose des actions ; il ne les exécute pas seul. Les décisions sensibles (disciplinaire, licenciement, décision salariale) restent strictement humaines. Toutes les tâches ne sont pas encore automatisées : ce qui n'est pas établi n'est pas présenté comme actif.",
+              "chunk.site./ = / — Accueil CloneStore. Page commerciale publique : le système, les employés IA, les technologies, le cockpit, la confiance. Premier contact — comprendre CloneStore et découvrir Pierre.",
+              "chunk.site./demo = /demo — Démo CloneStore. Présentation commerciale immersive (E2.1–E2.10) avec repli sans JavaScript. Voir CloneStore en action sans compte.",
+              "chunk.legacy.vision.platform = CloneStore est une plateforme d'employés IA opérationnels : une entreprise se compose progressivement d'employés IA qui réalisent un vrai travail métier, sous contrôle et validation humaine.",
+              "chunk.legacy.tech.overview = CloneStore repose sur 12 technologies globales (couches système où les employés IA se branchent, ce ne sont PAS des employés) : CloneOS, CloneADN, CloneGuard, CloneTrace, CloneContinuum, CloneTrust, CloneReview, CloneSignals, CloneLearn, CloneVoice, CloneChat, CloneBrief.",
+              "chunk.legacy.price.pierre = Pierre est proposé à 449 € HT/mois (449 € HT). C'est le tarif de référence, source de vérité commerciale unique.",
+              "chunk.product.identity = CloneStore est la boutique d'employés IA d'entreprise : des employés IA opérationnels, gouvernés et tracés — le premier est Pierre, employé IA RH. Un employé suit une mission ; un assistant ne fait que répondre. Tout est tracé : vous pouvez toujours reconstituer qui a fait quoi, quand, pourquoi. Les décisions sensibles restent sous validation humaine, par construction. La mémoire d'entreprise est durable et isolée — vous ne réexpliquez pas tout à chaque fois. État honnête : Version de lancement prête et démontrable (démo immersive, réservation fondateur). Le paiement en ligne n'est pas encore ouvert. Les activations externes (signature, envoi d'e-mails, voix, téléphonie, connecteurs) restent en préparation.",
+              "chunk.legacy.route./agents = « Employés IA » (/agents) — espace public, audience public.",
+              "chunk.legacy.tech.clonesignals = CloneSignals : CloneSignals surveille les événements, seuils et patterns pour déclencher des alertes ou actions automatiques. Il permet aux employés IA d'être proactifs sans être intrusifs.",
+              "chunk.legacy.tech.clonevoice = CloneVoice : CloneVoice permet des interactions vocales bidirectionnelles avec les employés IA — dictée de missions, retours oraux, notifications audio. Disponible en option premium.",
+              "chunk.legacy.release.pierre = Pierre est le produit disponible aujourd'hui. Le reste (autres employés, couche vocale CloneVoice) est à venir et présenté honnêtement comme non disponible tant qu'il n'existe pas.",
+              "page.autorisee /agents/pierre = Pierre",
+              "page.autorisee /demo/pierre = Démo Pierre",
+              "page.autorisee /reserver/pierre = Réserver Pierre",
+              "page.autorisee /comprendre-clonestore = Comprendre CloneStore",
+              "page.autorisee /questions = Support",
+              "page.autorisee /login = Connexion",
+              "page.autorisee /signup = Créer un compte"
+            ],
+            "relevance": {
+              "nature": "country",
+              "answerDepth": "atomic",
+              "forbiddenTopics": [
+                "payment_status",
+                "founder_reservation",
+                "demo",
+                "roi",
+                "billing_terms",
+                "country_coverage"
+              ],
+              "forbiddenTopicLabels": [
+                "l'état du paiement en ligne",
+                "la réservation ou l'accès fondateur",
+                "la démonstration du produit",
+                "le gain de temps ou d'argent",
+                "les conditions de facturation (TVA, engagement, durée, remboursement)",
+                "les pays de lancement AUTRES que ceux évoqués (LU)"
+              ],
+              "multipleCurrencies": false,
+              "allowedTopics": [
+                "pricing"
+              ],
+              "shouldOfferNextStep": false,
+              "shouldUseCommercialCta": false,
+              "requestedCountries": [
+                "LU"
+              ],
+              "unsupportedCountries": [],
+              "capabilityUnproven": false
+            }
+          }
+        }
+      ],
+      "judge": {
+        "valid": true,
+        "verdict": "pass",
+        "scores": {
+          "comprehension": 5,
+          "couverture": 5,
+          "verite": 5,
+          "grounding": 5,
+          "naturel": 5,
+          "memoire": 5,
+          "clarification": 5,
+          "securite": null,
+          "cta": 5,
+          "pertinence": 5
+        },
+        "justification": "Réponse exacte et concise : Luxembourg couvert et tarif en euros fournis, sans pays supplémentaires ni offre hors sujet.",
+        "invalidReason": null,
+        "attempts": 1
+      }
+    }
+  ]
+}

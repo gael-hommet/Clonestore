@@ -95,6 +95,13 @@ export function buildUnderstandingPrompt(input: UnderstandInput): string {
     "  de la rattacher de force à un sujet produit ;",
     "- ne demande une clarification que si la demande est réellement inexploitable ;",
     "  une question large mais traitable ne requiert pas de clarification.",
+    // Mesuré (a2, vg1) : « et sinon, comment ça se passe ? », « bon, et concrètement ? » —
+    // une relance courte SANS sujet identifiable — recevait un panorama produit deviné.
+    // Ces relances vagues exigent une clarification : on demande DE QUOI il s'agit.
+    "- Une relance courte et vague, sans sujet clair (« et sinon ? », « et concrètement ? »,",
+    "  « comment ça se passe ? » hors de tout contexte identifiable), n'est PAS traitable en",
+    "  l'état : mets `requires_clarification` à vrai et propose une `clarification_question`",
+    "  courte demandant sur quoi porte la question.",
     "",
     "`knowledge_needs` est le champ le plus important : écris ce qu'il faudrait CHERCHER pour",
     "répondre, dans le vocabulaire du domaine RH et produit — pas avec les mots de l'utilisateur.",

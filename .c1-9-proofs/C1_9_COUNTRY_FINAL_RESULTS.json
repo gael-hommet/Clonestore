@@ -10,7 +10,7 @@
       "expectedDisplay": "449 € / mois",
       "served": true,
       "othersWithheld": true,
-      "scopeServed": true,
+      "scopeServed": false,
       "currency": "EUR"
     },
     {
@@ -18,7 +18,7 @@
       "expectedDisplay": "449 € / mois",
       "served": true,
       "othersWithheld": true,
-      "scopeServed": true,
+      "scopeServed": false,
       "currency": "EUR"
     },
     {
@@ -26,7 +26,7 @@
       "expectedDisplay": "449 € / mois",
       "served": true,
       "othersWithheld": true,
-      "scopeServed": true,
+      "scopeServed": false,
       "currency": "EUR"
     },
     {
@@ -34,7 +34,7 @@
       "expectedDisplay": "499 CHF / mois",
       "served": true,
       "othersWithheld": true,
-      "scopeServed": true,
+      "scopeServed": false,
       "currency": "CHF"
     }
   ],

@@ -22,7 +22,7 @@
     "legacyBetterCoverage": 0,
     "totalTokens": 180,
     "totalCostUsd": 0.000063,
-    "avgLatencyMs": 10,
+    "avgLatencyMs": 12,
     "toolsExecutedInShadow": 0
   }
 }

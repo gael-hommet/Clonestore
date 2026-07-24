@@ -1,0 +1,31 @@
+{
+  "artifact": "C1_9_MODE_ON_RESULTS",
+  "generatedAt": "2026-07-22",
+  "method": "Route RÉELLE, dépendances lourdes mockées, aucun réseau. Le texte hérité porte un marqueur pour prouver qu'il ne sort pas.",
+  "proven": {
+    "displayedAnswerComesFromC19": true,
+    "legacyTextNeverRenderedInModeOn": true,
+    "singleHistoryWrite": true,
+    "noShadowInModeOn": true,
+    "degradedPipelineFallsBackNeverBlank": true,
+    "modeOffUnchanged": true
+  },
+  "streamingStrategy": "Option B (§13) : la pipeline compose et VÉRIFIE entièrement, puis le texte validé part dans le flux SSE. Aucune prétention de diffusion jeton par jeton.",
+  "proof": {
+    "nonStreaming": {
+      "source": "c1-9_openai",
+      "answer": "Réponse composée et vérifiée par la pipeline C1.9."
+    },
+    "streaming": {
+      "containedC19": true,
+      "shadowComparisons": 0
+    },
+    "degradedFallback": {
+      "source": "openai_public",
+      "nonEmpty": true
+    },
+    "modeOff": {
+      "c19Calls": 0
+    }
+  }
+}

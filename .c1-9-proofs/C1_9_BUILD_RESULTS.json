@@ -1,46 +1,64 @@
 {
   "artifact": "C1_9_BUILD_RESULTS",
-  "generatedAt": "2026-07-23",
+  "generatedAt": "2026-07-24",
   "status": "BUILD_GREEN",
   "honest": true,
-  "command": "DATABASE_URL=\"\" CLONECHAT_DB_URL=\"\" NEXT_DIST_DIR=.next-c19-final NODE_OPTIONS=--max-old-space-size=4096 npx next build",
+  "command": "DATABASE_URL=\"\" CLONECHAT_DB_URL=\"\" NEXT_DIST_DIR=.next-c19-final-postquota NODE_OPTIONS=--max-old-space-size=6144 npx next build",
   "env": {
     "DATABASE_URL": "\"\" (production DÉBRANCHÉE)",
-    "CLONECHAT_DB_URL": "\"\" (durable DÉBRANCHÉE)"
+    "CLONECHAT_DB_URL": "\"\" (durable DÉBRANCHÉE)",
+    "NEXT_DIST_DIR": ".next-c19-final-postquota"
   },
   "result": {
     "exitCode": 0,
-    "buildId": "W-w3Ug0WoZ1pS1_mBMbXi",
-    "compiled": "Compiled successfully in 19.7min",
+    "buildId": "Oy8VdBVWY7Xysdf1PiOF3",
+    "compiled": "Compiled successfully in 38.7min",
     "staticPages": "196/196 générées",
     "finalize": "Finalizing page optimization — OK",
     "routeTablePrinted": true,
-    "warnings": "2 avertissements pré-existants et connus (Edge Runtime @supabase/realtime-js + @supabase/supabase-js — process.version(s) non supporté en Edge). Identiques au build P20 ; sans rapport avec cette passe.",
+    "htmlFiles": 38,
+    "distMB": 1328,
+    "middlewareKB": 80.3,
+    "start": "23:28:59",
+    "end": "00:18:09",
+    "fatalOrOom": 0,
+    "failedOrErrorLines": 0,
+    "warnings": "Avertissements pré-existants connus (Edge Runtime @supabase — process.version) sans rapport avec cette passe ; 0 erreur bloquante.",
     "errors": []
   },
-  "timeline": {
-    "attempt1_cap6144": {
-      "start": "00:54:33",
-      "outcome": "AVORTÉE (moi) après diagnostic",
-      "note": "A compilé et fait 5 494 CPU-sec de travail RÉEL en 18 min (~5 cœurs) AVANT que la machine ne commence à se METTRE EN VEILLE la nuit. Le ralentissement observé (~0,78 cœur puis quasi-nul pendant ~8 h) était la mise en veille du poste, PAS un blocage RAM ni le hang pg. Arrêtée pour relancer proprement à l'éveil.",
-      "buildId": null
+  "postQuotaTimeline": {
+    "note": "Reprise post-quota du build isolé pour certifier le code CloneChat COURANT (incluant le correctif py3 launch.covered et toutes les corrections de cette passe).",
+    "attempt_A_cap4096": {
+      "task": "bqr8zg11s",
+      "log": "build-postquota.log",
+      "start": "22:44 (approx)",
+      "compiled": "Compiled successfully in 38.0min",
+      "outcome": "ÉCHEC — OOM à la phase « Collecting page data »",
+      "fatal": "FATAL ERROR: Ineffective mark-compacts near heap limit — JavaScript heap out of memory (Mark-Compact ~4037 MB, au plafond 4096)",
+      "exitCode": 134,
+      "buildId": "ABSENT",
+      "diagnosis": "Le plafond de tas 4096 est MARGINAL pour la phase page-data de cette app (le worker meurt pile au plafond). Un build antérieur (11:43, .next-c19-final) avait réussi de justesse à 4096 ; cette fois il a basculé au-dessus. Cause ENVIRONNEMENTALE (pression mémoire), pas un défaut de code : la COMPILATION réussit (38 min)."
     },
-    "attempt2_cap4096": {
-      "start": "11:20:01",
-      "end": "11:43:37",
-      "durationMin": 23.5,
-      "outcome": "BUILD_GREEN",
-      "note": "Relancée à l'éveil de la machine avec un plafond de tas réduit (4096) pour tenir dans la RAM disponible. Compilation à ~6 cœurs soutenus, puis vérification des types, collecte des données de page, 196/196 pages statiques, finalisation. Exit 0, BUILD_ID réel.",
-      "buildId": "W-w3Ug0WoZ1pS1_mBMbXi"
+    "attempt_B_cap6144": {
+      "task": "b7qfo3pd8",
+      "log": "build-postquota-6144.log",
+      "start": "23:28:59",
+      "end": "00:18:09",
+      "compiled": "Compiled successfully in 38.7min",
+      "staticPages": "Generating static pages (196/196)",
+      "outcome": "SUCCÈS COMPLET",
+      "exitCode": 0,
+      "buildId": "Oy8VdBVWY7Xysdf1PiOF3",
+      "diagnosis": "Relance UNIQUE avec 2 Go de tas supplémentaires (6144 — la valeur spécifiée par la directive). La phase page-data qui avait OOM à 4096 passe avec la marge ; 196/196 pages statiques générées ; exit 0 + BUILD_ID réel. Cache webpack réutilisé (recompilation)."
     }
   },
-  "b1_verification": {
-    "claim": "Le blocage de compilation de 4 heures était une ATTENTE INFINIE sur le pool pg (connectionTimeoutMillis = 0).",
-    "proof": "Avec DATABASE_URL et CLONECHAT_DB_URL DÉBRANCHÉES, la compilation TRAVERSE désormais la collecte des données de page et génère 196/196 pages statiques jusqu'à exit 0 + BUILD_ID. L'ancien hang laissait le processus à 44 Mo, 0 CPU, quatre heures, sans BUILD_ID. Le nouveau build fait un travail CPU RÉEL et soutenu (jusqu'à ~6 cœurs) et TERMINE. La borne d'attente (connexion 8 s, requête 15 s) transforme une base injoignable en repli in-memory au lieu d'une suspension.",
-    "verified": true
+  "priorGreenBuildForReference": {
+    "distDir": ".next-c19-final",
+    "buildId": "W-w3Ug0WoZ1pS1_mBMbXi",
+    "note": "Build vert antérieur (11:43, heap 4096) conservé sur disque — corrobore la buildabilité du code. Le build post-quota 6144 certifie en plus les correctifs de cette passe."
   },
   "monitoring": {
-    "method": "Surveillance par TAUX de CPU du worker (le vrai signal de progression) plutôt que par croissance du log, qui reste muet pendant la collecte des données de page. Garde d'arrêt sur stagnation réelle. Un premier build a été arrêté après diagnostic (mise en veille du poste, non un hang) ; le second, à l'éveil, a terminé sans intervention.",
-    "noFourHourWait": true
+    "method": "Surveillance par phase + taux CPU du worker (le log reste muet pendant page-data à cause du spinner ora redirigé vers un fichier). Watcher dédié fermant sur BUILD_EXIT_CODE / FATAL / fin de process — couvre tous les états terminaux.",
+    "noFalseSuccess": "Un BUILD_ID écrit tôt par Next n'a JAMAIS été pris pour une réussite : la réussite exige exit 0 + 196/196 + BUILD_END."
   }
 }

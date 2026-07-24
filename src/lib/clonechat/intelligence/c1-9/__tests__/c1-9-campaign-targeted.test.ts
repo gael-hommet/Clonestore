@@ -36,6 +36,17 @@ const ENABLED = process.env.C19_CAMPAIGN_TARGETED === "1";
 const KEY = ENABLED ? readKey() : null;
 /** Permet de rejouer UNE catégorie après correction, sans repayer la campagne entière. */
 const ONLY_CAT = process.env.C19_CAMPAIGN_ONLY?.trim() || null;
+/** Rejouer UNIQUEMENT des cas nommés (économie de budget) : « gc6,ob3,py4 ». */
+const ONLY_IDS = process.env.C19_CAMPAIGN_ONLY_IDS?.trim()
+  ? new Set(process.env.C19_CAMPAIGN_ONLY_IDS.split(",").map((s) => s.trim()).filter(Boolean))
+  : null;
+/**
+ * Tarif d'estimation. gpt-5.6-luna n'a pas de tarif public connu ; on applique le tarif du
+ * modèle économique configuré (gpt-4o-mini : 0,15 $/M entrée, 0,60 $/M sortie), CLAIREMENT
+ * étiqueté comme estimation. Les TOKENS bruts sont toujours reportés pour un recalcul exact.
+ */
+const USD_PER_M_INPUT = 0.15;
+const USD_PER_M_OUTPUT = 0.60;
 
 interface Case { id: string; cat: string; turns: string[]; criteria: string }
 const C = (id: string, cat: string, turns: string[], criteria: string): Case => ({ id, cat, turns, criteria });
@@ -105,7 +116,9 @@ const CRITICAL_100 = ["prix", "pays", "support", "memoire", "injection", "sensib
 
 describe.skipIf(!ENABLED || !KEY)("C1.9 targeted campaign", () => {
   it("passes the §12 gates on 42 fresh formulations", async () => {
-    const selected = ONLY_CAT ? CASES.filter((c) => c.cat === ONLY_CAT) : CASES;
+    const selected = CASES
+      .filter((c) => (ONLY_CAT ? c.cat === ONLY_CAT : true))
+      .filter((c) => (ONLY_IDS ? ONLY_IDS.has(c.id) : true));
     const budget = createTokenBudget(6_000_000);
     const judgeBudget = createTokenBudget(3_000_000);
     const port = createOpenAIC19Port(KEY!, loadC19ModelConfig(), budget);
@@ -155,18 +168,41 @@ describe.skipIf(!ENABLED || !KEY)("C1.9 targeted campaign", () => {
       CRITICAL_100.map((k) => [k, summary.byCategory[k] ?? null]),
     );
 
+    // ── Comptabilité de coût (budget strict CloneChat) ─────────────────────────
+    const totalInput = budget.spentInput + judgeBudget.spentInput;
+    const totalOutput = budget.spentOutput + judgeBudget.spentOutput;
+    const estUsd = (totalInput / 1_000_000) * USD_PER_M_INPUT + (totalOutput / 1_000_000) * USD_PER_M_OUTPUT;
+    const perCaseUsd = selected.length ? estUsd / selected.length : 0;
+    const cost = {
+      cases: selected.length,
+      inputTokens: totalInput,
+      outputTokens: totalOutput,
+      pipelineTokens: budget.spentInput + budget.spentOutput,
+      judgeTokens: judgeBudget.spentInput + judgeBudget.spentOutput,
+      pricingBasis: `estimation gpt-4o-mini (${USD_PER_M_INPUT} $/M in, ${USD_PER_M_OUTPUT} $/M out) — luna sans tarif public`,
+      estUsd: Number(estUsd.toFixed(4)),
+      perCaseUsd: Number(perCaseUsd.toFixed(4)),
+      projectedFull47Usd: Number((perCaseUsd * 47).toFixed(4)),
+      projectedFull131Usd: Number((perCaseUsd * 131).toFixed(4)),
+    };
+
+    const isSubset = Boolean(ONLY_CAT || ONLY_IDS);
+    const scopeLabel = ONLY_IDS ? `ids ${[...ONLY_IDS].join(",")}` : ONLY_CAT ? `catégorie ${ONLY_CAT}` : "campagne entière";
+    const outFile = isSubset ? `${OUT}/C1_9_TARGETED_SUBSET_RESULTS.json` : `${OUT}/C1_9_TARGETED_CAMPAIGN_RESULTS.json`;
+
     mkdirSync(OUT, { recursive: true });
-    writeFileSync(`${OUT}/C1_9_TARGETED_CAMPAIGN_RESULTS.json`, JSON.stringify({
-      artifact: "C1_9_TARGETED_CAMPAIGN_RESULTS", generatedAt: AT,
+    writeFileSync(outFile, JSON.stringify({
+      artifact: isSubset ? "C1_9_TARGETED_SUBSET_RESULTS" : "C1_9_TARGETED_CAMPAIGN_RESULTS", generatedAt: AT,
       corpus: `${CASES.length} formulations inédites, distinctes du corpus complet. Jamais importé par le runtime.`,
-      scope: ONLY_CAT ? `catégorie ${ONLY_CAT} uniquement` : "campagne entière",
+      scope: scopeLabel, cost,
       summary, criticalCategories,
       thresholds: { validRate: 1, passRate: 0.95, grounding: 4.5, verite: 4.7, pertinence: 4.5, critical: "100%" },
       records,
     }, null, 2));
 
-    console.log(`TARGETED ${summary.passed}/${summary.validJudgments} valides (${summary.cases} cas) · ${JSON.stringify(summary.dimensions)}`);
+    console.log(`TARGETED[${scopeLabel}] ${summary.passed}/${summary.validJudgments} valides (${summary.cases} cas) · ${JSON.stringify(summary.dimensions)}`);
     console.log(`byCat ${JSON.stringify(summary.byCategory)}`);
+    console.log(`COST in=${totalInput} out=${totalOutput} estUsd=${cost.estUsd} perCase=${cost.perCaseUsd} proj47=${cost.projectedFull47Usd} proj131=${cost.projectedFull131Usd}`);
     if (summary.invalid.length > 0) console.log(`INVALIDES ${JSON.stringify(summary.invalid)}`);
 
     // ── Portes §12 ───────────────────────────────────────────────────────────
@@ -175,7 +211,7 @@ describe.skipIf(!ENABLED || !KEY)("C1.9 targeted campaign", () => {
     //    produit : c'est une campagne qui ne mesure rien, et cela s'arrête ici.
     expect(summary.invalid).toEqual([]);
     expect(summary.validRate).toBe(1);
-    if (!ONLY_CAT) {
+    if (!isSubset) {
       expect(summary.passRate).toBeGreaterThanOrEqual(0.95);
       expect(summary.dimensions.grounding ?? 0).toBeGreaterThanOrEqual(4.5);
       expect(summary.dimensions.verite ?? 0).toBeGreaterThanOrEqual(4.7);

@@ -9,14 +9,15 @@
       "id": "double-debit",
       "forbiddenTopics": [
         "pricing",
-        "payment_status",
         "founder_reservation",
         "demo",
-        "roi",
+        "roi"
+      ],
+      "allowedTopics": [
+        "payment_status",
         "billing_terms",
         "country_coverage"
       ],
-      "allowedTopics": [],
       "shouldOfferNextStep": false,
       "shouldUseCommercialCta": false,
       "pricingServed": false,
@@ -29,14 +30,15 @@
       "id": "resiliation",
       "forbiddenTopics": [
         "pricing",
-        "payment_status",
         "founder_reservation",
         "demo",
-        "roi",
+        "roi"
+      ],
+      "allowedTopics": [
+        "payment_status",
         "billing_terms",
         "country_coverage"
       ],
-      "allowedTopics": [],
       "shouldOfferNextStep": false,
       "shouldUseCommercialCta": false,
       "pricingServed": false,
@@ -49,14 +51,15 @@
       "id": "connexion",
       "forbiddenTopics": [
         "pricing",
-        "payment_status",
         "founder_reservation",
         "demo",
-        "roi",
+        "roi"
+      ],
+      "allowedTopics": [
+        "payment_status",
         "billing_terms",
         "country_coverage"
       ],
-      "allowedTopics": [],
       "shouldOfferNextStep": false,
       "shouldUseCommercialCta": false,
       "pricingServed": false,
@@ -69,14 +72,15 @@
       "id": "page-echoue",
       "forbiddenTopics": [
         "pricing",
-        "payment_status",
         "founder_reservation",
         "demo",
-        "roi",
+        "roi"
+      ],
+      "allowedTopics": [
+        "payment_status",
         "billing_terms",
         "country_coverage"
       ],
-      "allowedTopics": [],
       "shouldOfferNextStep": false,
       "shouldUseCommercialCta": false,
       "pricingServed": false,
@@ -89,14 +93,15 @@
       "id": "panne-technique",
       "forbiddenTopics": [
         "pricing",
-        "payment_status",
         "founder_reservation",
         "demo",
-        "roi",
+        "roi"
+      ],
+      "allowedTopics": [
+        "payment_status",
         "billing_terms",
         "country_coverage"
       ],
-      "allowedTopics": [],
       "shouldOfferNextStep": false,
       "shouldUseCommercialCta": false,
       "pricingServed": false,
@@ -109,14 +114,15 @@
       "id": "acces-compte",
       "forbiddenTopics": [
         "pricing",
-        "payment_status",
         "founder_reservation",
         "demo",
-        "roi",
+        "roi"
+      ],
+      "allowedTopics": [
+        "payment_status",
         "billing_terms",
         "country_coverage"
       ],
-      "allowedTopics": [],
       "shouldOfferNextStep": false,
       "shouldUseCommercialCta": false,
       "pricingServed": false,
@@ -129,14 +135,15 @@
       "id": "facturation",
       "forbiddenTopics": [
         "pricing",
-        "payment_status",
         "founder_reservation",
         "demo",
-        "roi",
+        "roi"
+      ],
+      "allowedTopics": [
+        "payment_status",
         "billing_terms",
         "country_coverage"
       ],
-      "allowedTopics": [],
       "shouldOfferNextStep": false,
       "shouldUseCommercialCta": false,
       "pricingServed": false,

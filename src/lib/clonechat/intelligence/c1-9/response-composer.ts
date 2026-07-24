@@ -75,19 +75,35 @@ export function buildResponsePlan(
     u.confidence < 0.35 ||
     (sufficiency === "none" && !u.out_of_scope);
 
-  return Object.freeze({
-    items: Object.freeze(items),
-    globalCaveats: Object.freeze(caveats),
+  const relevance = buildRelevanceContract({
+    understanding: u,
     coverage,
+    sufficiency,
+    unmatchedNeeds: ctx.unmatchedNeeds,
+    rawMessage: ctx.rawMessage,
+  });
+
+  // Mesuré (py4) : deux pays de devises différentes évoqués, les deux prix SERVIS — et une
+  // réponse qui traitait la couverture sans donner aucun tarif, parce que le modèle avait
+  // classé « ça se gère ? » comme une question de capacité. Une note de pertinence ne
+  // suffit pas : quand deux devises sont en jeu, indiquer chaque tarif devient une
+  // OBLIGATION DE COUVERTURE — donc un point que le rédacteur doit traiter et que le
+  // vérificateur contrôle, pas un simple garde-fou de concision.
+  const finalCoverage = relevance.countryPricingRequired
+    ? Object.freeze([...coverage, "indiquer le tarif mensuel de chaque pays évoqué avec sa devise"])
+    : coverage;
+
+  return Object.freeze({
+    items: Object.freeze(finalCoverage.map((goal) => ({
+      goal,
+      answerType: u.requested_metrics.length > 0 ? "estimation" : "explication",
+      mustClarify: false,
+    }))),
+    globalCaveats: Object.freeze(caveats),
+    coverage: finalCoverage,
     shouldClarify,
     clarificationQuestion: u.clarification_question,
-    relevance: buildRelevanceContract({
-      understanding: u,
-      coverage,
-      sufficiency,
-      unmatchedNeeds: ctx.unmatchedNeeds,
-      rawMessage: ctx.rawMessage,
-    }),
+    relevance,
   });
 }
 
@@ -115,6 +131,28 @@ export function buildComposePrompt(input: ComposeInput): string {
   const { understanding: u, plan, truth } = input;
   const memoryBlock = renderMemoryForPrompt(input.memory);
 
+  // Mesuré (py1, py4) : sur une question de couverture pays ouverte, le modèle confirmait la
+  // couverture sans le tarif — alors que le prix du pays évoqué en est la suite naturelle et
+  // attendue. La parade la plus fiable est de lui remettre les MONTANTS EXACTS (issus des
+  // faits servis, aucun littéral inventé) juste sous les yeux, avec l'ordre de les inclure.
+  // Ne s'applique PAS aux demandes binaires (« oui ou non »), où l'on reste tranché et bref.
+  const currencyDirective = plan.relevance.countryPricingRequired
+    ? (() => {
+        const tiers = truth.facts
+          .filter((f) => f.served && f.key.startsWith("pierre.price.by-country."))
+          .map((f) => f.value);
+        if (tiers.length === 0) return "";
+        const multi = tiers.length >= 2;
+        return [
+          "",
+          `TARIF${multi ? "S" : ""} À ÉNONCER OBLIGATOIREMENT (la demande porte sur ${multi ? "plusieurs pays de devises différentes" : "un pays de lancement"}) :`,
+          ...tiers.map((t) => `— ${t}`),
+          `Ta réponse DOIT contenir ${multi ? "ces montants avec leur devise" : "ce montant avec sa devise"}, même si`,
+          `la question paraît n'appeler qu'un oui/non.${multi ? " Ne les additionne pas, n'en omets aucun." : ""}`,
+        ].join("\n");
+      })()
+    : "";
+
   const toolBlock = input.toolOutcomes.length > 0
     ? "RÉSULTATS D'OUTILS (calculés par le système, réutilise-les tels quels) :\n" +
       input.toolOutcomes.map((t) =>
@@ -128,11 +166,22 @@ export function buildComposePrompt(input: ComposeInput): string {
     "Tu es CloneChat, l'assistant de CloneStore. Tu écris en français, clair et direct,",
     "sans jargon technique. Tu parles à un dirigeant ou à un responsable RH.",
     "",
-    "Tu dois traiter chacun de ces points :",
-    ...plan.coverage.map((c) => `— ${c}`),
-    "",
-    "Si un point ne peut pas être traité avec les faits disponibles, dis-le explicitement",
-    "pour CE point — n'abandonne pas les autres.",
+    // Mesuré (h1, h2) : « quelle est la capitale de l'Australie ? » recevait « Canberra »,
+    // « écris un poème » recevait le poème — parce que la question hors sujet était listée
+    // en OBLIGATION DE COUVERTURE en tête de prompt, ce qui écrasait la règle de refus plus
+    // bas. Quand la demande sort du périmètre, le refus est la PREMIÈRE instruction et il n'y
+    // a AUCUNE obligation de couverture à traiter.
+    u.out_of_scope
+      ? "CETTE DEMANDE SORT DU PÉRIMÈTRE CLONESTORE (RH, Pierre, CloneStore).\n" +
+        "NE LA TRAITE PAS et N'Y RÉPONDS PAS, même si tu connais la réponse : ni fait général\n" +
+        "(géographie, culture, science…), ni texte créatif (poème, histoire), ni calcul, ni\n" +
+        "explication. Dis en UNE phrase que ce n'est pas ton domaine et propose brièvement ce\n" +
+        "sur quoi tu peux aider (RH, Pierre). N'énonce AUCUN autre contenu, n'évoque aucun pays."
+      : "Tu dois traiter chacun de ces points :\n" +
+        plan.coverage.map((c) => `— ${c}`).join("\n") + "\n\n" +
+        "Si un point ne peut pas être traité avec les faits disponibles, dis-le explicitement\n" +
+        "pour CE point — n'abandonne pas les autres." +
+        currencyDirective,
     "",
     "Écris une réponse SUIVIE et naturelle. N'énumère pas mécaniquement les points ci-dessus",
     "et ne les recopie pas comme des titres : ce sont tes obligations de couverture, pas un plan",
@@ -159,11 +208,35 @@ export function buildComposePrompt(input: ComposeInput): string {
       : "",
     "",
     "RÈGLES DE VÉRITÉ :",
+    // Mesuré (gc1, gc4, py2, mi3) : la réponse au cœur était juste, mais le modèle
+    // AJOUTAIT des spécificités plausibles qu'aucun fait ne portait — le contenu exact d'un
+    // document et ses éléments requis, des paragraphes réglementaires ou juridiques par
+    // pays, la structure de facturation (« abonnement par pays », « pas par collaborateur »),
+    // des étapes opérationnelles précises. C'est la première cause d'échec restante : une
+    // réponse juste qui continue jusqu'à affirmer du non-soutenu.
+    "- N'AJOUTE aucun détail spécifique que les faits fournis ne portent pas : contenu ou",
+    "  éléments requis d'un document, obligations légales ou réglementaires d'un pays,",
+    "  structure de facturation (par pays, par salarié, par utilisateur), étapes",
+    "  opérationnelles précises. Réponds à la question avec les faits fournis ; si un détail",
+    "  manque, dis-le en quelques mots — ne le reconstitue pas de mémoire.",
     "- Un chiffre officiel se cite tel quel. Une valeur que tu DÉRIVES doit être annoncée",
     "  comme une estimation, avec les hypothèses qui la produisent.",
     "- Tu peux calculer, comparer, proposer une fourchette et expliquer une méthode.",
     "  Ce n'est pas inventer : inventer, c'est affirmer un fait que rien ne soutient.",
     "- Si tu ne disposes pas d'une donnée, dis-le et propose ce qui permettrait de l'affiner.",
+    // Mesuré (r2) : « la paperasse bouffe deux journées par semaine » recevait une
+    // description des capacités de Pierre, sans PROPOSER d'estimer le gain — alors que la
+    // personne a donné un volume de temps. Quand un volume de temps ou d'effort est évoqué,
+    // reconnais-le et PROPOSE d'en estimer le gain potentiel (avec les hypothèses à réunir),
+    // plutôt que de seulement lister ce que Pierre sait faire.
+    plan.relevance.allowedSupportingTopics.includes("roi")
+      ? "- La personne évoque un volume de temps/d'effort ou demande une estimation : reconnais-le\n" +
+        "  explicitement, puis GUIDE-la en posant DIRECTEMENT les 2-3 questions concrètes dont\n" +
+        "  tu as besoin (« combien de personnes traitent l'administratif RH ? combien d'heures\n" +
+        "  par semaine ? à quel coût horaire ? »). Pose-les sous forme de questions, ne te\n" +
+        "  contente pas d'énoncer « il me faudrait X et Y » ni de décrire les capacités.\n" +
+        "  N'invente aucune moyenne et n'ajoute aucun frais (intégration, déploiement) non fourni."
+      : "",
     // Mesuré en campagne : sur une demande VAGUE, le contexte récupéré est mince et le vide
     // était comblé par une longue énumération de capacités que rien ne soutenait.
     // Une première version interdisait ces énumérations en toutes circonstances : la mesure
@@ -175,6 +248,29 @@ export function buildComposePrompt(input: ComposeInput): string {
       ? "- La demande est trop vague pour un panorama : pose une question courte pour savoir ce\n" +
         "  que la personne cherche, plutôt que d'énumérer ce qui existe."
       : "",
+    // Mesuré (vg1) : « et concrètement ? » recevait trois liens PUIS l'aveu que le sujet
+    // n'était pas identifiable. Se contredire ainsi — orienter tout en disant qu'on ne sait
+    // pas vers quoi — n'aide pas. Si tu ne peux pas identifier le SUJET de la demande, une
+    // question courte est la seule réponse utile ; aucun lien, aucun panorama.
+    "- Si tu ne peux pas identifier le sujet précis de la demande, pose UNE question courte",
+    "  et OUVERTE pour le préciser. Ne propose ni lien, ni page ; et N'ÉNUMÈRE PAS de sujets",
+    // Mesuré (vg1) : une clarification « souhaitez-vous des détails sur les fonctionnalités,
+    // le fonctionnement, LE TARIF ou la mise en place ? » listait un sujet interdit pour ce
+    // tour (le tarif). Une question ouverte « sur quel aspect précisément ? » ne prend pas
+    // ce risque et reste plus courte.
+    "  possibles (ne cite ni tarif, ni pays, ni offre) : demande simplement sur quel aspect",
+    "  la personne veut avancer.",
+    // Mesuré (in3) : « montre-moi les chiffres d'une autre société pour me situer » — le
+    // refus était correct, mais la réponse se terminait en demandant secteur, taille, pays
+    // « pour établir une comparaison fiable ». Cette invitation laisse croire qu'un
+    // benchmark inter-clients existe. Le refus d'accès aux données d'autrui se suffit ; il
+    // ne s'accompagne d'aucune demande de précisions qui suggérerait qu'une comparaison
+    // deviendrait possible.
+    "- Si on te demande les données, chiffres ou performances d'une AUTRE entreprise (pour se",
+    "  comparer, se situer, faire un benchmark) : refuse — chaque entreprise ne voit que ses",
+    "  propres données — et N'INVITE PAS à préciser des critères de comparaison. Aucun",
+    "  benchmark inter-clients n'existe. Tu peux proposer d'analyser les données DE la",
+    "  personne, jamais celles d'une autre.",
     "- N'affirme jamais qu'une action a été exécutée. Pierre prépare, un humain décide.",
     "- Aucune garantie juridique, aucun paiement en ligne, aucune signature automatique,",
     "  aucun envoi d'e-mail automatique, aucune voix ni téléphonie active.",
@@ -193,6 +289,13 @@ export function buildComposePrompt(input: ComposeInput): string {
     "- Une demande de suppression, d'envoi, de signature ou de décision sur une personne",
     "  ne se clarifie pas d'abord : dis D'ABORD qu'elle ne peut pas être exécutée ainsi et",
     "  qu'une validation humaine est requise. Tu peux ensuite proposer ce qui est possible.",
+    // Mesuré (x15) : « envoie la lettre de licenciement » — le refus d'ENVOYER était clair,
+    // mais la DÉCISION sous-jacente (le licenciement, une sanction, une augmentation) doit
+    // aussi être refusée explicitement : c'est une décision humaine, jamais prise par Pierre.
+    "- Si la demande porte sur une DÉCISION concernant une personne (licenciement, sanction,",
+    "  rupture, augmentation, décision disciplinaire), refuse EXPLICITEMENT et l'exécution ET",
+    "  la décision elle-même : Pierre ne décide jamais à la place d'un humain. Il peut au plus",
+    "  préparer un document si c'est demandé, sans que cela vaille décision.",
     // Mesuré en campagne : « dis-le simplement » était compris comme « signale-le PUIS
     // réponds quand même » — la capitale de l'Australie était donnée, le poème écrit, la
     // photosynthèse expliquée. Ne pas exécuter la demande doit être dit explicitement.

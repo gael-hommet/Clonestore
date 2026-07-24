@@ -3,7 +3,7 @@
   "generatedAt": "2026-07-22",
   "scope": "src/lib/clonechat/intelligence/c1-9/** (hors __tests__), commentaires retirés",
   "budget": {
-    "maxRegexLiterals": 56,
+    "maxRegexLiterals": 58,
     "maxRegexLength": 200,
     "maxTotalRegexChars": 2400,
     "maxRegexLiteralsPerFile": 20,
@@ -11,22 +11,22 @@
     "maxSwitchCaseArms": 0
   },
   "measured": {
-    "regexLiterals": 56,
-    "totalRegexChars": 2187,
+    "regexLiterals": 58,
+    "totalRegexChars": 2380,
     "worstFileRegexLiterals": 16,
     "longestRegexChars": 163,
     "longestRegexSample": " /\\b(j'ai (?:envoyé|signé|créé|supprimé|payé|débité|activé|résilié)|c'est (?:env",
-    "userFacingProse": 3,
+    "userFacingProse": 4,
     "switchCaseArms": 0,
     "files": 16
   },
   "perFile": [
     {
       "file": "conversation-memory.ts",
-      "regex": 1,
+      "regex": 2,
       "prose": 0,
       "cases": 0,
-      "longestRegex": 120
+      "longestRegex": 124
     },
     {
       "file": "flags.ts",
@@ -66,13 +66,13 @@
     {
       "file": "response-composer.ts",
       "regex": 0,
-      "prose": 1,
+      "prose": 2,
       "cases": 0,
       "longestRegex": 0
     },
     {
       "file": "response-relevance.ts",
-      "regex": 15,
+      "regex": 16,
       "prose": 0,
       "cases": 0,
       "longestRegex": 130
