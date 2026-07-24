@@ -3,8 +3,23 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import crypto from "crypto";
 import { createClient, PostgrestError } from "@supabase/supabase-js";
+import { evaluateLegacyExecuteGovernance } from "@/lib/pierre/legacy-execute-governance";
 
 export const runtime = "nodejs";
+
+// P0.1 EXECUTE ROUTE GOVERNANCE RE-CLOSURE (2026-07-24) — cette route appelait
+// auparavant Make.com directement pour email.send/doc.generate/hris.sync dès que
+// l'auth HMAC + l'entitlement passaient, sans aucune évaluation CloneGuard/gouvernance
+// (le câblage de gouvernance écrit le 2026-07-23 n'a jamais été commité et a été
+// écrasé sur disque par un chantier externe concurrent le 2026-07-24 — voir
+// audit-20260723-full/P0_1_GIT_FORENSIC_TIMELINE.md). Correctif : réutilise TEL QUEL
+// evaluateLegacyExecuteGovernance (src/lib/pierre/legacy-execute-governance.ts, même
+// module que /api/pierre/action en P0.2) avant toute action. Aucune règle canonique
+// actuelle ne permet à email.send/doc.generate/hris.sync d'atteindre ALLOW sur cette
+// route (email.send bloqué en dur ; doc.generate et hris.sync exigent une approbation
+// humaine tant qu'aucun contexte CloneTrust réel n'est câblé ici) : le connecteur Make
+// direct (callMake, 3 URLs MAKE_*) a donc été retiré entièrement plutôt que laissé
+// comme code mort inatteignable — voir audit-20260723-full/P0_1_EXECUTE_ROUTE_GOVERNANCE_RECLOSURE_REPORT.md.
 
 /**
  * =========================================
@@ -34,9 +49,6 @@ type SupabaseAdminClient = ReturnType<typeof instantiateSupabaseAdmin>;
 type PierreExecuteRuntime = {
   supabaseAdmin: SupabaseAdminClient;
   routerHmacSecret: string;
-  makeEmailWebhookUrl: string;
-  makeDocWebhookUrl: string;
-  makeIntegrationsWebhookUrl: string;
 };
 
 let cachedRuntime: PierreExecuteRuntime | null = null;
@@ -47,27 +59,18 @@ function getRuntime(): PierreExecuteRuntime {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const routerHmacSecret = process.env.ROUTER_HMAC_SECRET;
-  const makeEmailWebhookUrl = process.env.MAKE_EMAIL_WEBHOOK_URL;
-  const makeDocWebhookUrl = process.env.MAKE_DOC_WEBHOOK_URL;
-  const makeIntegrationsWebhookUrl = process.env.MAKE_INTEGRATIONS_WEBHOOK_URL;
 
   const missing: string[] = [];
   if (!supabaseUrl) missing.push("NEXT_PUBLIC_SUPABASE_URL");
   if (!supabaseServiceKey) missing.push("SUPABASE_SERVICE_ROLE_KEY");
   if (!routerHmacSecret) missing.push("ROUTER_HMAC_SECRET");
-  if (!makeEmailWebhookUrl) missing.push("MAKE_EMAIL_WEBHOOK_URL");
-  if (!makeDocWebhookUrl) missing.push("MAKE_DOC_WEBHOOK_URL");
-  if (!makeIntegrationsWebhookUrl) missing.push("MAKE_INTEGRATIONS_WEBHOOK_URL");
   if (missing.length) throw new RuntimeConfigError(missing);
 
-  // Non-null : la présence des six valeurs vient d'être prouvée ci-dessus (aucune
+  // Non-null : la présence des trois valeurs vient d'être prouvée ci-dessus (aucune
   // affirmation au niveau module — uniquement ici, après le garde runtime réel).
   cachedRuntime = {
     supabaseAdmin: instantiateSupabaseAdmin(supabaseUrl!, supabaseServiceKey!),
     routerHmacSecret: routerHmacSecret!,
-    makeEmailWebhookUrl: makeEmailWebhookUrl!,
-    makeDocWebhookUrl: makeDocWebhookUrl!,
-    makeIntegrationsWebhookUrl: makeIntegrationsWebhookUrl!,
   };
   return cachedRuntime;
 }
@@ -83,7 +86,9 @@ type ApiErrorCode =
   | "BAD_REQUEST"
   | "UNKNOWN_ACTION"
   | "FORBIDDEN"
-  | "MAKE_ERROR"
+  | "GOVERNANCE_BLOCKED"
+  | "HUMAN_APPROVAL_REQUIRED"
+  | "EXECUTION_NOT_AVAILABLE"
   | "DB_ERROR"
   | "INTERNAL_ERROR";
 
@@ -217,40 +222,7 @@ async function assertPierreAccess(client_id: string, supabaseAdmin: SupabaseAdmi
 
 /**
  * =========================================
- * 6) Make call (ROBUST)
- * =========================================
- */
-async function callMake(url: string, payload: any) {
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const text = await res.text();
-
-    let parsed: any = null;
-    try {
-      parsed = text ? JSON.parse(text) : null;
-    } catch {
-      parsed = text;
-    }
-
-    if (!res.ok) {
-      return { ok: false, error: "MAKE_HTTP_ERROR", status: res.status, body: parsed };
-    }
-
-    if (parsed && typeof parsed === "object") return parsed;
-    return { ok: true, data: parsed };
-  } catch (e: any) {
-    return { ok: false, error: "MAKE_FETCH_ERROR", message: e?.message ?? "unknown" };
-  }
-}
-
-/**
- * =========================================
- * 7) Schemas
+ * 6) Schemas
  * =========================================
  */
 const ExecuteSchema = z.object({
@@ -259,105 +231,9 @@ const ExecuteSchema = z.object({
   payload: z.object({}).passthrough().default({}),
 });
 
-function withRequestId<T extends z.ZodTypeAny>(schema: T) {
-  return schema.and(z.object({ request_id: z.string().min(6).optional() }));
-}
-
-/**
- * email.send
- */
-const EmailSendSchema = withRequestId(
-  z.object({
-    to: z.array(z.string().min(3)).min(1),
-    subject: z.string().min(1),
-    body_html: z.string().min(1),
-    reply_to: z.string().email().optional(),
-  })
-);
-
-/**
- * doc.generate
- * - Format A (pro) : doc_type/template_id/data
- * - Format B (simple) : html/filename direct
- */
-const DocGenerateSchema = withRequestId(
-  z.union([
-    z.object({
-      employee_id: z.string().uuid().optional(),
-      doc_type: z.string().min(2),
-      template_id: z.string().min(2),
-      title: z.string().optional(),
-      data: z.object({}).passthrough().default({}),
-    }),
-    z.object({
-      title: z.string().optional(),
-      html: z.string().min(1),
-      filename: z.string().optional(),
-      doc_type: z.string().optional(),
-    }),
-  ])
-);
-
-/**
- * hris.sync
- * ✅ On supporte 2 formats :
- * - ancien : payload objet
- * - nouveau (depuis generate strict) : payload_json string (JSON.stringify)
- */
-const HrisSyncSchema = withRequestId(
-  z.object({
-    vendor: z.string().optional(),
-    mode: z.enum(["import", "api", "both"]).optional(),
-    payload: z.object({}).passthrough().optional(),
-    payload_json: z.string().optional(),
-  })
-);
-
-/**
- * Best-effort : enregistrer doc_url dans documents si la table existe
- */
-async function tryInsertDocument(params: {
-  client_id: string;
-  doc_url: string;
-  title?: string | null;
-  doc_type?: string | null;
-  employee_id?: string | null;
-  metadata?: any;
-  supabaseAdmin: SupabaseAdminClient;
-}) {
-  try {
-    await params.supabaseAdmin.from("documents").insert({
-      client_id: params.client_id,
-      doc_url: params.doc_url,
-      title: params.title ?? null,
-      doc_type: params.doc_type ?? null,
-      employee_id: params.employee_id ?? null,
-      status: "final",
-      version: 1,
-      metadata: params.metadata ?? {},
-    });
-  } catch {
-    // ignore
-  }
-}
-
-/**
- * Helper: parse payload_json safely
- */
-function safeParseJsonString(s: any) {
-  if (typeof s !== "string") return null;
-  try {
-    const parsed = JSON.parse(s);
-    if (parsed && typeof parsed === "object") return parsed;
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 /**
  * =========================================
- * 8) Handler
+ * 7) Handler
  * =========================================
  */
 export async function POST(req: Request) {
@@ -370,13 +246,7 @@ export async function POST(req: Request) {
     }
     throw e;
   }
-  const {
-    supabaseAdmin,
-    routerHmacSecret,
-    makeEmailWebhookUrl,
-    makeDocWebhookUrl,
-    makeIntegrationsWebhookUrl,
-  } = runtime;
+  const { supabaseAdmin, routerHmacSecret } = runtime;
 
   const raw = await req.text();
 
@@ -435,133 +305,76 @@ export async function POST(req: Request) {
     // ignore
   }
 
-  // 7) Execute
+  // 7) Governance (CloneGuard + Governance canonique) puis exécution
+  const KNOWN_ACTIONS = ["email.send", "doc.generate", "hris.sync"] as const;
+
   try {
-    /**
-     * =========================
-     * email.send
-     * =========================
-     */
-    if (action === "email.send") {
-      const p = EmailSendSchema.parse(payload);
+    if ((KNOWN_ACTIONS as readonly string[]).includes(action)) {
+      const governanceDecision = evaluateLegacyExecuteGovernance({
+        action,
+        payload: payload ?? null,
+        now: new Date().toISOString(),
+      });
 
-      const { data: cfg, error: cfgErr } = await supabaseAdmin
-        .from("agent_configs")
-        .select("sender_email,sender_name,email_signature,legal_footer,email_provider")
-        .eq("client_id", client_id)
-        .eq("agent_key", "pierre")
-        .maybeSingle();
+      // Hard route floor : hris.sync ne peut jamais dispatcher depuis cette route,
+      // même si le moteur canonique retournait un jour ALLOW par erreur — ce plancher
+      // est délibérément indépendant du moteur lui-même (défense en profondeur exigée
+      // par le bloc de re-clôture P0.1).
+      const outcome =
+        action === "hris.sync" && governanceDecision.outcome === "ALLOW"
+          ? "REQUIRE_APPROVAL"
+          : governanceDecision.outcome;
 
-      if (cfgErr) throw cfgErr;
+      if (outcome !== "ALLOW") {
+        const code: ApiErrorCode = outcome === "DENY" ? "GOVERNANCE_BLOCKED" : "HUMAN_APPROVAL_REQUIRED";
+        const status = outcome === "DENY" ? 403 : 202;
 
-      const signature = cfg?.email_signature ? `<br><br>${cfg.email_signature}` : "";
-      const footer = cfg?.legal_footer ? `<br><br><small>${cfg.legal_footer}</small>` : "";
-
-      const makePayload = {
-        client_id,
-        from: cfg?.sender_email,
-        from_name: cfg?.sender_name ?? "Pierre",
-        to: p.to,
-        subject: p.subject,
-        body_html: p.body_html + signature + footer,
-        reply_to: p.reply_to,
-        request_id: (p as any).request_id,
-      };
-
-      const makeRes = await callMake(makeEmailWebhookUrl, makePayload);
-
-      if (makeRes?.ok === false) {
-        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes }, supabaseAdmin });
-        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
-      }
-
-      await auditLog({ client_id, action, payload, ok: true, result: makeRes, supabaseAdmin });
-      return jsonOk(action, makeRes);
-    }
-
-    /**
-     * =========================
-     * doc.generate
-     * =========================
-     */
-    if (action === "doc.generate") {
-      const p = DocGenerateSchema.parse(payload) as any;
-
-      const isSimple = typeof p?.html === "string" && p.html.length > 0;
-
-      const makePayload = isSimple
-        ? {
-            client_id,
-            request_id: p.request_id,
-            title: p.title ?? "Document",
-            html: p.html,
-            filename: p.filename ?? "document.pdf",
-            doc_type: p.doc_type ?? "document",
-          }
-        : {
-            client_id,
-            employee_id: p.employee_id,
-            doc_type: p.doc_type,
-            template_id: p.template_id,
-            title: p.title,
-            data: p.data ?? {},
-            request_id: p.request_id,
-          };
-
-      const makeRes = await callMake(makeDocWebhookUrl, makePayload);
-      if (makeRes?.ok === false) {
-        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes }, supabaseAdmin });
-        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
-      }
-
-      const doc_url = makeRes?.doc_url ?? makeRes?.data?.doc_url;
-      if (typeof doc_url === "string" && doc_url.startsWith("http")) {
-        await tryInsertDocument({
+        await auditLog({
           client_id,
-          doc_url,
-          title: makePayload?.title ?? null,
-          doc_type: makePayload?.doc_type ?? null,
-          employee_id: makePayload?.employee_id ?? null,
-          metadata: { make: makeRes },
+          action,
+          payload,
+          ok: false,
+          result: { decision: outcome, governance: governanceDecision.summary },
           supabaseAdmin,
         });
+
+        return NextResponse.json(
+          {
+            ok: false,
+            action,
+            decision: outcome,
+            error: {
+              code,
+              message: governanceDecision.explanation,
+              governance: governanceDecision.summary,
+            },
+          },
+          { status }
+        );
       }
 
-      await auditLog({ client_id, action, payload, ok: true, result: makeRes, supabaseAdmin });
-      return jsonOk(action, makeRes);
-    }
-
-    /**
-     * =========================
-     * hris.sync
-     * =========================
-     */
-    if (action === "hris.sync") {
-      const p = HrisSyncSchema.parse(payload) as any;
-
-      // ✅ NOUVEAU: si payload_json string existe, on le parse
-      const parsedFromString = safeParseJsonString(p?.payload_json);
-      const payloadObj =
-        parsedFromString ??
-        (p?.payload && typeof p.payload === "object" ? p.payload : {}) ??
-        {};
-
-      const makePayload = {
+      // outcome === "ALLOW" : aucune règle canonique actuelle ne produit ce résultat
+      // pour email.send/doc.generate/hris.sync sur cette route (voir
+      // audit-20260723-full/P0_1_GOVERNANCE_DECISION_MATRIX.md). Le connecteur Make
+      // direct a été retiré entièrement de ce fichier (Phase 6 de la re-clôture) plutôt
+      // que laissé comme code mort inatteignable : il n'existe donc physiquement plus
+      // aucun chemin de dispatch ici. Si ce résultat survenait malgré tout (évolution
+      // future du moteur canonique), on refuse explicitement plutôt que de laisser un
+      // chemin non testé s'exécuter.
+      await auditLog({
         client_id,
-        vendor: p.vendor,
-        mode: p.mode,
-        payload: payloadObj,
-        request_id: p.request_id,
-      };
-
-      const makeRes = await callMake(makeIntegrationsWebhookUrl, makePayload);
-      if (makeRes?.ok === false) {
-        await auditLog({ client_id, action, payload, ok: false, result: { make: makeRes }, supabaseAdmin });
-        return jsonFail("MAKE_ERROR", "Make execution failed", makeRes, 502);
-      }
-
-      await auditLog({ client_id, action, payload, ok: true, result: makeRes, supabaseAdmin });
-      return jsonOk(action, makeRes);
+        action,
+        payload,
+        ok: false,
+        result: { decision: "ALLOW", governance: governanceDecision.summary },
+        supabaseAdmin,
+      });
+      return jsonFail(
+        "EXECUTION_NOT_AVAILABLE",
+        "Direct dispatch has been removed from this route; a reviewed connector reintroduction is required before any ALLOW outcome can execute.",
+        { action },
+        501
+      );
     }
 
     /**

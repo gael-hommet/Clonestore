@@ -56,6 +56,7 @@ export const CLONEGUARD_ACTION_KINDS = [
   "dismissal_action",
   "payroll_action",
   "absence_action",
+  "integration_sync",
   "unknown_action",
 ] as const;
 
@@ -337,6 +338,12 @@ export function normalizeCloneGuardActionKind(
   if (t === "absence_sensible" || t === "sujet_medical" || t === "offboarding_sensible") {
     return "absence_action";
   }
+  // P0 governance closure — intégrations/HRIS externes (ex. legacy /api/pierre/execute) :
+  // aucune règle ne couvrait ce type d'action avant ce correctif, ce qui la faisait retomber
+  // sur "unknown_action" (donc "allow" par défaut, faute de règle correspondante).
+  if (t === "hris.sync" || t === "integration.sync" || t === "hris_sync") {
+    return "integration_sync";
+  }
   return "unknown_action";
 }
 
@@ -507,6 +514,17 @@ export function getPierreCloneGuardPolicyRules(): PierreCloneGuardPolicyRule[] {
       can_override: false,
       matches: (ctx, _text) =>
         normalizeCloneGuardActionKind(ctx.task_type) === "payroll_action",
+    },
+    {
+      id: "integration_sync_require",
+      description: "Synchronisation HRIS / intégration externe",
+      decision: "require_approval",
+      risk_level: "red",
+      reason:
+        "Toute synchronisation vers un système RH externe (HRIS/intégration) nécessite une validation humaine avant exécution — aucun appel direct sans approbation.",
+      can_override: false,
+      matches: (ctx, _text) =>
+        normalizeCloneGuardActionKind(ctx.task_type) === "integration_sync",
     },
     {
       id: "licenciement_text_require",
@@ -742,7 +760,8 @@ export function detectCloneGuardSignals(
     kind === "contract_action" ||
     kind === "disciplinary_prep" ||
     kind === "absence_action" ||
-    kind === "payroll_action"
+    kind === "payroll_action" ||
+    kind === "integration_sync"
   ) {
     signals.push({
       code: `${kind}_red`,
@@ -1056,6 +1075,7 @@ export function isCloneGuardAutoExecutable(
     "dismissal_action",
     "payroll_action",
     "absence_action",
+    "integration_sync",
   ]);
   if (nonAutoKinds.has(kind)) return false;
 

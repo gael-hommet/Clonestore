@@ -4,6 +4,17 @@ import {
   buildPierreEmailMetadata,
   getResolvedPierreEmailIdentity,
 } from "@/lib/pierre-email-identity";
+import { evaluateLegacyExecuteGovernance } from "@/lib/pierre/legacy-execute-governance";
+
+// P0.2 SIBLING SURFACES CLOSURE (2026-07-23) — cette route appelait auparavant Make.com
+// directement pour email.send/doc.generate dès que l'auth+entitlement passaient, SANS
+// AUCUNE évaluation CloneGuard/gouvernance (même défaut que /api/pierre/execute, fermé en
+// P0.1). Correctif : réutilise TEL QUEL evaluateLegacyExecuteGovernance (P0.1,
+// src/lib/pierre/legacy-execute-governance.ts) avant tout appel Make. email.send est
+// désormais refusé (floor CloneGuard non-contournable) ; doc.generate exige une
+// validation humaine par défaut (aucune publication externe automatique, cf. Phase 9 du
+// bloc de fermeture) tant qu'aucun contexte de confiance réel n'est câblé. Voir
+// audit-20260723-full/P0_2_SIBLING_SURFACES_CLOSURE_REPORT.md.
 
 type AllowedActionType = "email.send" | "doc.generate";
 
@@ -15,6 +26,10 @@ type ActionAttachmentInput = {
 
 type PierreActionBody = {
   action_type?: AllowedActionType;
+
+  // P0.2 idempotence : clé optionnelle fournie par l'appelant pour éviter une double
+  // exécution (double-clic, retry réseau) — voir checkIdempotentAction ci-dessous.
+  request_id?: string;
 
   // email
   to?: string;
@@ -142,6 +157,7 @@ type LogPierreActionAttemptInput = {
   payload: Record<string, unknown>;
   response?: Record<string, unknown> | null;
   requestId: string;
+  idempotencyKey?: string | null;
   durationMs?: number;
 };
 
@@ -660,6 +676,7 @@ async function logPierreActionAttempt(
       input: toJsonSafe({
         kind: "action",
         request_id: input.requestId,
+        idempotency_key: input.idempotencyKey ?? null,
         action_type: input.actionType,
         duration_ms: input.durationMs ?? null,
         payload: payloadForLog,
@@ -686,6 +703,50 @@ async function logPierreActionAttempt(
     });
   } catch {
     // best effort
+  }
+}
+
+/**
+ * P0.2 — idempotence best-effort : si l'appelant fournit un request_id déjà associé à une
+ * exécution réussie (ok=true) pour ce user+action_type, on renvoie le résultat en cache
+ * plutôt que de ré-exécuter (double-clic, retry réseau). Même esprit que
+ * maybeReturnIdempotentResult dans /api/pierre/execute (P0.1), adapté au schéma réel de
+ * cette route (agent_history.input est une chaîne JSON, pas une colonne jsonb interrogeable
+ * par containment — on la parse donc côté application plutôt que de supposer un opérateur
+ * .contains() qui pourrait ne pas s'appliquer ici).
+ */
+async function checkIdempotentAction(
+  supabase: SupabaseClient,
+  userId: string,
+  actionType: AllowedActionType,
+  idempotencyKey: string
+): Promise<Record<string, unknown> | null> {
+  if (!idempotencyKey) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from("agent_history")
+      .select("input,response,ok")
+      .eq("user_id", userId)
+      .eq("agent_slug", "pierre")
+      .eq("doc_type", actionType)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (error || !Array.isArray(data)) return null;
+
+    for (const row of data as Array<Record<string, unknown>>) {
+      if (row.ok !== true) continue;
+      const input = parseUnknownJsonString(row.input);
+      const inputRecord = safeRecord(input);
+      if (inputRecord?.idempotency_key === idempotencyKey) {
+        const response = parseUnknownJsonString(row.response);
+        return safeRecord(response) ?? {};
+      }
+    }
+    return null;
+  } catch {
+    return null;
   }
 }
 
@@ -822,6 +883,54 @@ export async function POST(req: NextRequest) {
   }
 
   const action = validated.value;
+
+  // P0.2 — idempotence : un request_id déjà exécuté avec succès renvoie le résultat en
+  // cache, jamais une seconde exécution réelle.
+  if (typeof body.request_id === "string" && body.request_id.trim()) {
+    const cached = await checkIdempotentAction(
+      supabase,
+      user.id,
+      action.action_type,
+      body.request_id.trim()
+    );
+    if (cached) {
+      return json(200, { ok: true, idempotent: true, request_id: requestId, ...cached });
+    }
+  }
+
+  // P0.2 — gouvernance canonique (réutilise TEL QUEL le module de P0.1, aucune nouvelle
+  // architecture) : évaluée AVANT toute résolution de webhook ou appel Make. email.send est
+  // refusé (floor CloneGuard non-contournable) ; doc.generate exige une validation humaine
+  // par défaut (aucun contexte de confiance réel disponible ici) — aucune publication
+  // externe automatique dans les deux cas.
+  const governanceDecision = evaluateLegacyExecuteGovernance({
+    action: action.action_type,
+    payload: action as unknown as Record<string, unknown>,
+    now: new Date().toISOString(),
+  });
+
+  if (governanceDecision.outcome !== "ALLOW") {
+    await logPierreActionAttempt(supabase, {
+      userId: user.id,
+      actionType: action.action_type,
+      ok: false,
+      error: governanceDecision.explanation,
+      payload: { ...action, request_id: body.request_id ?? null } as unknown as Record<string, unknown>,
+      response: { governance: governanceDecision.summary },
+      requestId,
+      idempotencyKey: body.request_id ?? null,
+    });
+
+    return json(governanceDecision.outcome === "DENY" ? 403 : 202, {
+      ok: false,
+      request_id: requestId,
+      action_type: action.action_type,
+      decision: governanceDecision.outcome,
+      error: governanceDecision.explanation,
+      governance: governanceDecision.summary,
+    });
+  }
+
   const webhook = resolveWebhook(action.action_type);
 
   if (!webhook?.url) {
@@ -945,6 +1054,7 @@ export async function POST(req: NextRequest) {
           message: normalizedMake.message || null,
         },
         requestId,
+        idempotencyKey: body.request_id ?? null,
         durationMs,
       });
 
@@ -988,6 +1098,7 @@ export async function POST(req: NextRequest) {
         message: normalizedMake.message || null,
       },
       requestId,
+      idempotencyKey: body.request_id ?? null,
       durationMs,
     });
 
@@ -1021,6 +1132,7 @@ export async function POST(req: NextRequest) {
       payload,
       response: null,
       requestId,
+      idempotencyKey: body.request_id ?? null,
       durationMs,
     });
 

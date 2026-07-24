@@ -1,205 +1,46 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+// src/app/api/router/route.ts
+//
+// P0.2 SIBLING SURFACES CLOSURE (2026-07-23) — NEUTRALISÉE (Option A).
+//
+// Cette route forwardait auparavant N'IMPORTE QUEL payload pour N'IMPORTE QUEL "agent" vers
+// un webhook Make.com CODÉ EN DUR dans le fichier, sans aucune classification d'action, sans
+// CloneGuard, sans gouvernance — la seule barrière était un token opaque comparé en clair
+// contre une table `api_tokens` absente de toute migration suivie du dépôt (confirmé :
+// `grep -r "api_tokens" supabase/migrations` = 0 résultat), et un contrôle d'entitlement
+// (`agents_owned`, clé `client_id`+`agent_name`) incohérent avec le schéma utilisé ailleurs
+// (`orders`, clé `user_id`+`agent_slug`).
+//
+// Preuve de neutralisation sûre : recherche exhaustive de "/api/router" dans tout le dépôt
+// (src/, scripts/, docs/) — SEUL ce fichier s'y référence. Aucun appelant interne, aucun
+// script, aucun test ne dépend de ce endpoint.
+//
+// Décision : ni suppression du fichier (au cas où une intégration externe historique pointe
+// encore vers cette URL — improbable mais non prouvable depuis le code seul), ni tolérance
+// silencieuse de l'ancien comportement. La route répond désormais 410 Gone de façon
+// explicite et systématique, SANS AUCUN appel réseau, sans lecture de la table de tokens
+// dépréciée, et sans référence à l'URL Make (retirée du code — elle ne doit plus jamais
+// apparaître dans ce fichier ni dans aucun log).
+//
+// Voir audit-20260723-full/P0_2_SIBLING_SURFACES_CLOSURE_REPORT.md pour la cartographie
+// complète des appelants et la preuve d'absence d'effet externe.
+import { NextResponse } from "next/server";
 
-function createAnonDbClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) throw new Error("Supabase not configured");
-  return createClient(url, anon, { auth: { persistSession: false } });
+export async function POST() {
+  return NextResponse.json(
+    {
+      status: "GONE",
+      agent: null,
+      data: null,
+      error:
+        "Cette route est retirée (P0.2 governance closure, 2026-07-23) : aucun appelant interne identifié, gouvernance absente. Utiliser /api/pierre/action ou /api/pierre/execute, tous deux gouvernés par CloneGuard.",
+    },
+    { status: 410 }
+  );
 }
 
-// âš ️ Mets ici l'URL EXACTE de ton webhook Make
-const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/u8nkxlkauyxlygy1r6p59rhmdk35ta4r";
-
-// =============================
-// TYPES
-// =============================
-type RouterRequestBody = {
-  client_id?: string; // ignoré côté front, on utilise le token
-  token?: string;
-  agent?: string;
-  payload?: any;
-};
-
-type RouterStatus = "OK" | "UNAUTHORIZED" | "FORBIDDEN" | "ERROR";
-
-type RouterResponse = {
-  status: RouterStatus;
-  agent: string | null;
-  data: any | null;
-  error: string | null;
-};
-
-// =============================
-// RÉPONSE STANDARD
-// =============================
-function buildResponse(
-  status: RouterStatus,
-  agent: string | null,
-  data: any = null,
-  error: string | null = null
-) {
-  const body: RouterResponse = { status, agent, data, error };
-  return NextResponse.json(body);
+export async function GET() {
+  return NextResponse.json(
+    { status: "GONE", agent: null, data: null, error: "Route retirée (410)." },
+    { status: 410 }
+  );
 }
-
-// =============================
-// HANDLER PRINCIPAL : POST /api/router
-// =============================
-export async function POST(req: NextRequest) {
-  try {
-    const body = (await req.json()) as RouterRequestBody;
-    const { token, agent, payload } = body;
-
-    // 1) Vérif des champs obligatoires (token + agent)
-    if (!token || !agent) {
-      return buildResponse(
-        "ERROR",
-        agent ?? null,
-        null,
-        "Missing token or agent"
-      );
-    }
-
-    const supabase = createAnonDbClient();
-
-    // 2) Récupérer le client_id à partir du token
-    const clientId = await getClientIdFromToken(supabase, token);
-    if (!clientId) {
-      return buildResponse("UNAUTHORIZED", agent, null, "Invalid credentials");
-    }
-
-    // 3) Vérifier que ce client possède bien cet agent
-    const allowed = await checkAgentPermission(supabase, clientId, agent);
-    if (!allowed) {
-      return buildResponse(
-        "FORBIDDEN",
-        agent,
-        null,
-        "Agent not owned by this client"
-      );
-    }
-
-    // 4) Appel à Make : on envoie agent + payload
-    try {
-      const makeResponse = await fetch(MAKE_WEBHOOK_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          agent: agent,
-          payload: payload,
-        }),
-      });
-
-      const rawText = await makeResponse.text();
-      let parsed: any = null;
-
-      if (rawText && rawText.trim().length > 0) {
-        // On essaie de récupérer tout ce qu'il y a entre le 1er { et le dernier }
-        const match = rawText.match(/{[\s\S]*}/);
-        if (match) {
-          const jsonSlice = match[0];
-          try {
-            parsed = JSON.parse(jsonSlice);
-          } catch (e) {
-            console.error("JSON.parse failed on slice, keeping rawText:", e);
-            parsed = rawText;
-          }
-        } else {
-          // pas de {} trouvés, on garde le texte brut
-          parsed = rawText;
-        }
-      } else {
-        parsed = null;
-      }
-
-      return buildResponse("OK", agent, parsed, null);
-    } catch (err) {
-      console.error("Make call error:", err);
-      return buildResponse("ERROR", agent, null, "Make error");
-    }
-  } catch (err) {
-    console.error("Router error:", err);
-    return buildResponse("ERROR", null, null, "Unexpected server error");
-  }
-}
-
-// =============================
-// Récupérer le client_id à partir du token
-// =============================
-async function getClientIdFromToken(
-  supabase: any,
-  token: string
-): Promise<string | null> {
-  try {
-    const { data, error } = await supabase
-      .from("api_tokens")
-      .select("client_id, active")
-      .eq("token", token)
-      .eq("active", true)
-      .maybeSingle();
-
-    console.log("getClientIdFromToken result:", { data, error });
-
-    if (error) {
-      console.error("getClientIdFromToken error:", error);
-      return null;
-    }
-
-    if (!data) {
-      return null;
-    }
-
-    return data.client_id as string;
-  } catch (err) {
-    console.error("getClientIdFromToken exception:", err);
-    return null;
-  }
-}
-
-// =============================
-// Vérifier si ce client possède cet agent
-// =============================
-async function checkAgentPermission(
-  supabase: any,
-  clientId: string,
-  agent: string
-): Promise<boolean> {
-  try {
-    const { data, error } = await supabase
-      .from("agents_owned")
-      .select("id")
-      .eq("client_id", clientId)
-      .eq("agent_name", agent)
-      .maybeSingle();
-
-    console.log("checkAgentPermission result:", { data, error });
-
-    if (error) {
-      console.error("checkAgentPermission error:", error);
-      return false;
-    }
-
-    if (!data) {
-      return false;
-    }
-
-    return true;
-  } catch (err) {
-    console.error("checkAgentPermission exception:", err);
-    return false;
-  }
-}
-
-
-
-
-
-
-
-
-
-  
-
