@@ -17,6 +17,14 @@
 /.next/
 /out/
 
+# isolated production-build distDirs used for per-block verification
+# (NEXT_DIST_DIR=.next-<block-name>) — reconstructible via `next build`, never
+# meant to be committed. Added 2026-07-24 (Validated Worktree Preservation and
+# Commit Closure) after finding .next-p10/.next-p11/.next-p12/.next-p13/.next-p96
+# already committed by mistake in older history — not removed retroactively
+# (out of scope for this block), but no further one should ever be added again.
+.next-*/
+
 # production
 /build
 
@@ -115,3 +123,19 @@ tmp-clonestory-*.mjs
 .ppbuild.log
 .next-ppbuild/
 .partner-proofs/
+
+# graphify — carte de code (installé le 17/07/2026). Seules les 2 entrées
+# recommandées officiellement sont ignorées ; graph.json et GRAPH_REPORT.md
+# restent committables (c'est leur usage prévu : carte partagée entre clones).
+#
+# cost.json : suivi de dépense LLM strictement local (« local only » en doc
+# officielle). Absent tant qu'aucun backend LLM n'est utilisé — notre graphe
+# est 100 % AST local, donc 0 coût.
+graphify-out/cost.json
+# cache/ : cache d'extraction AST, volumineux et entièrement reconstructible.
+# Doc officielle : « optional — commit for speed, skip to keep repo small ».
+# Ignoré ici pour garder le dépôt léger ; `graphify update .` le reconstruit.
+graphify-out/cache/
+
+# Claude Code local session/tool state — never commit (2026-07-24)
+.claude/
