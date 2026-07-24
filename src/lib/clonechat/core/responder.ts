@@ -31,9 +31,27 @@ export function loadResponderConfig(env: NodeJS.ProcessEnv = process.env): Respo
   };
 }
 
-/** Lecture paresseuse de la clé — jamais lue/validée au niveau module. */
+/**
+ * Lecture paresseuse de la clé — jamais lue/validée au niveau module (import-time), pour ne
+ * jamais faire échouer le build. `OPENAI_API_KEY` est REQUISE en production pour que la voie
+ * publique de CloneChat fonctionne : son absence en production a déjà causé une panne réelle
+ * (2026-07-24) — silencieuse, car repliée sans log sur l'ancienne voie commerciale. Ce cas est
+ * désormais journalisé bruyamment (voir logUnifiedFailure) au lieu d'être invisible.
+ */
 export function readOpenAIKeyLazy(env: NodeJS.ProcessEnv = process.env): string | null {
   const k = (env.OPENAI_API_KEY ?? "").trim();
+  if (k.length === 0 && env.NODE_ENV === "production") {
+    // eslint-disable-next-line no-console
+    console.error(JSON.stringify({
+      event: "clonechat_unified_failure",
+      at: new Date().toISOString(),
+      errorCode: "no_api_key",
+      httpStatus: null,
+      requestedModel: null,
+      production: true,
+      message: "OPENAI_API_KEY absente en production — CloneChat ne peut pas utiliser le cœur unifié.",
+    }));
+  }
   return k.length > 0 ? k : null;
 }
 
@@ -73,6 +91,28 @@ const EMPTY_RESULT = (error: string): UnifiedResult => ({
 });
 
 /**
+ * Journalisation STRUCTURÉE d'un échec du cœur unifié — jamais de secret (pas de clé, pas de
+ * message utilisateur, pas de réponse). Défaut réel trouvé en production (2026-07-24) : les
+ * échecs étaient avalés silencieusement (aucun log), donc invisibles — un `OPENAI_API_KEY`
+ * absent en production basculait chaque tour vers l'ancienne voie commerciale sans que rien ne
+ * le signale. Ce log est la seule preuve exploitable pour diagnostiquer une panne réelle.
+ */
+function logUnifiedFailure(params: {
+  readonly errorCode: string;
+  readonly httpStatus?: number | null;
+  readonly requestedModel: string;
+}): void {
+  // eslint-disable-next-line no-console
+  console.error(JSON.stringify({
+    event: "clonechat_unified_failure",
+    at: new Date().toISOString(),
+    errorCode: params.errorCode,
+    httpStatus: params.httpStatus ?? null,
+    requestedModel: params.requestedModel,
+  }));
+}
+
+/**
  * Un seul appel principal OpenAI pour une conversation normale. web_search est un outil
  * HÉBERGÉ : s'il est utilisé, l'exécution a lieu côté OpenAI, dans ce même appel — nous ne
  * faisons pas de second aller-retour réseau pour cela. open_page (function-calling classique)
@@ -81,8 +121,11 @@ const EMPTY_RESULT = (error: string): UnifiedResult => ({
  */
 export async function respondUnified(req: UnifiedRequest): Promise<UnifiedResult> {
   const { apiKey, config, message, history, signal } = req;
-  if (!apiKey) return EMPTY_RESULT("no_api_key");
-  if (!message.trim()) return EMPTY_RESULT("empty_message");
+  if (!apiKey) {
+    logUnifiedFailure({ errorCode: "no_api_key", requestedModel: config.model });
+    return EMPTY_RESULT("no_api_key");
+  }
+  if (!message.trim()) return EMPTY_RESULT("empty_message"); // pas une panne : rien à journaliser
 
   const retrieved = retrieve(message, 6);
   const instructions = buildInstructions(formatRetrievedContext(retrieved));
@@ -120,11 +163,22 @@ export async function respondUnified(req: UnifiedRequest): Promise<UnifiedResult
       { signal: combinedSignal },
     );
 
-    return extractResult(res, config.model);
+    const result = extractResult(res, config.model);
+    if (!result.ok) {
+      // Réponse renvoyée sans texte exploitable (ex. filtrage de contenu, sortie vide) — pas
+      // une exception réseau, mais tout aussi silencieux sans ce log.
+      logUnifiedFailure({ errorCode: "empty_or_unusable_response", requestedModel: config.model });
+    }
+    return result;
   } catch (e) {
-    if (combinedSignal.aborted) return EMPTY_RESULT("timeout");
-    const status = (e as { status?: number } | null)?.status;
-    return EMPTY_RESULT(status ? `openai_http_${status}` : "openai_error");
+    if (combinedSignal.aborted) {
+      logUnifiedFailure({ errorCode: "timeout", requestedModel: config.model });
+      return EMPTY_RESULT("timeout");
+    }
+    const status = (e as { status?: number } | null)?.status ?? null;
+    const errorCode = status ? `openai_http_${status}` : "openai_error";
+    logUnifiedFailure({ errorCode, httpStatus: status, requestedModel: config.model });
+    return EMPTY_RESULT(errorCode);
   } finally {
     clearTimeout(timer);
   }

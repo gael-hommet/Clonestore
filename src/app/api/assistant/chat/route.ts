@@ -347,14 +347,20 @@ export async function POST(req: Request) {
     }
   };
 
-  // ── CloneChat Unified Intelligence — PRIMAIRE sur la voie publique ──────────
-  // Essayé AVANT C1.9 et avant la voie legacy (analyzeSalesTurn/answerPublicQuestion).
-  // Un seul appel OpenAI ; aucun routage par mots-clés ; le modèle décide lui-même. Une
-  // réponse vide/en échec ne s'affiche JAMAIS : repli sur la chaîne existante, inchangée.
+  // ── CloneChat Unified Intelligence — PRIMAIRE et SEULE voie sur le public ───
+  // Un seul appel OpenAI ; aucun routage par mots-clés ; le modèle décide lui-même.
+  //
+  // Défaut réel trouvé en production (2026-07-24) : un échec du moteur unifié (clé absente,
+  // erreur OpenAI, timeout, réponse vide) était avalé SILENCIEUSEMENT (aucun log, `return null`
+  // nu), et la route retombait alors sur l'ancienne voie commerciale (analyzeSalesTurn +
+  // pricingChunk) — exactement le défaut que ce moteur devait corriger, invisible car non
+  // journalisé. Corrigé : chaque échec est désormais journalisé (structuré, sans secret), et
+  // la voie publique NE RETOMBE PLUS JAMAIS sur l'ancien pipeline commercial (voir call sites) —
+  // un échec produit un message d'indisponibilité honnête, jamais une fiche prix.
   const runUnifiedPrimary = async (): Promise<{
     answer: string; citations: readonly string[]; suggestCard: boolean; usedWebSearch: boolean;
   } | null> => {
-    const unifiedKey = readOpenAIKeyLazy();
+    const unifiedKey = readOpenAIKeyLazy(); // journalise déjà elle-même l'absence en production
     if (!unifiedKey) return null;
     try {
       const r = await respondUnified({
@@ -364,13 +370,27 @@ export async function POST(req: Request) {
         history: (body?.history ?? []).slice(-6).map((h) => ({ role: h.role, text: h.text })),
         signal: req.signal,
       });
-      if (!r.ok || r.answer.trim().length === 0) return null;
+      if (!r.ok || r.answer.trim().length === 0) {
+        // eslint-disable-next-line no-console
+        console.error(JSON.stringify({
+          event: "clonechat_unified_primary_failure",
+          at: now(),
+          errorCode: r.error ?? "empty_answer",
+        }));
+        return null;
+      }
       const citations = r.webSources.map((s) => s.url);
       return { answer: r.answer, citations, suggestCard: r.suggestCard, usedWebSearch: r.usedWebSearch };
-    } catch {
-      return null; // repli sur la chaîne existante, jamais d'échec de tour
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(JSON.stringify({ event: "clonechat_unified_primary_failure", at: now(), errorCode: "exception", message: e instanceof Error ? e.message : "unknown" }));
+      return null;
     }
   };
+
+  // Message d'indisponibilité HONNÊTE quand le moteur unifié échoue sur la voie publique —
+  // jamais de prix, jamais de CTA. Remplace le repli vers l'ancien pipeline commercial.
+  const UNIFIED_UNAVAILABLE_MESSAGE = "CloneChat rencontre momentanément un problème de connexion à son modèle. Réessayez dans quelques instants.";
 
   // Limitation d'abus de la voie anonyme (jamais une porte : un message honnête + réessai).
   if (viewer.kind === "anonymous") {
@@ -519,6 +539,8 @@ export async function POST(req: Request) {
               try { await stores.budget.commit(pubReservation, 0); } catch { /* comptabilité best-effort */ }
               send({ type: "done", payload: {
                 ok: true, source: "clonechat_unified", public: true,
+                anonymous: viewer.kind === "anonymous", requestClass,
+                ...(prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {}),
                 structured: { answer: unified.answer, honesty: "answered", tool_call: null, citations: unified.citations },
                 ...(unified.suggestCard ? { suggestedCTA: true } : {}),
                 runtime: { provider: "openai", engine: "unified", usedWebSearch: unified.usedWebSearch, streamed: true },
@@ -526,99 +548,23 @@ export async function POST(req: Request) {
               return;
             }
 
-            // C1.9 mode `on` — la pipeline compose et VÉRIFIE avant d'écrire quoi que ce
-            // soit dans le flux : rien de non vérifié n'atteint l'écran. Une seule requête,
-            // une seule réponse, une seule écriture d'historique, puis fermeture immédiate.
-            const primary = await runC19Primary();
-            if (primary) {
-              for (const sentence of gate.push(primary.answer)) send({ type: "delta", text: sentence });
-              for (const rest of gate.flush()) send({ type: "delta", text: rest });
-              settled = true;
-              await persistPublicTurn(primary.answer);
-              try { await stores.budget.commit(pubReservation, 0); } catch { /* comptabilité best-effort */ }
-              send({ type: "done", payload: {
-                ok: true, source: "c1-9_openai", public: true,
-                structured: { answer: primary.answer, honesty: primary.clarifying ? "clarify" : "answered", tool_call: null, citations: primary.citations },
-                runtime: { provider: "openai", engine: "c1-9", streamed: true },
-              } });
-              return; // le `finally` ferme le flux ; aucun shadow en mode `on`
-            }
-
-            const responder = createStreamingOpenAIResponder(
-              key!,
-              (delta) => { for (const sentence of gate.push(delta)) send({ type: "delta", text: sentence }); },
-              req.signal,
-              sink,
-            );
-            const pub = await answerPublicQuestion({
-              question: message,
-              history: (body?.history ?? []).slice(-6),
-              responder,
-              model: model0,
-              maxOutputTokens: ceiling0,
-              attachments: ephemeral, // ÉPHÉMÈRES — jamais un tenant
-              imageDataUrls: pubImageUrls,
-        imageDetail: pubImageDetail,
-        at,
-            });
+            // Le moteur unifié a échoué (journalisé plus haut dans runUnifiedPrimary). Sur la
+            // voie publique, on NE RETOMBE PLUS sur l'ancien pipeline commercial (C1.9 +
+            // analyzeSalesTurn/answerPublicQuestion) : c'est exactement ce fallback qui affichait
+            // une fiche prix hors sujet. Un échec de modèle produit un message d'indisponibilité
+            // honnête, jamais un CTA. La réservation de budget n'a servi à aucun appel : elle est
+            // relâchée par le `finally` (settled reste false). `requestClass`/prérequis restent
+            // présents : ce sont des champs de GOUVERNANCE, pas du commercial — inchangés.
+            for (const sentence of gate.push(UNIFIED_UNAVAILABLE_MESSAGE)) send({ type: "delta", text: sentence });
             for (const rest of gate.flush()) send({ type: "delta", text: rest });
-
-            const tokens = pub.usageTokens ?? 0;
-            settled = true;
-            // C1.8 — enregistre le tour pour un utilisateur authentifié (voie publique streamée).
-            await persistPublicTurn(pub.answer);
-            try { await stores.budget.commit(pubReservation, tokens); } catch { /* comptabilité best-effort */ }
-            if (sink.usage && tokens > 0) {
-              try { await stores.budget.recordUsage(buildUsageRecord({ usage: sink.usage, userId, companyId: null as unknown as string, at: now() })); } catch { /* optionnel */ }
-            }
-
-            // `done` porte la VÉRITÉ FINALE : réponse validée (citations + garde), jamais le brut.
             send({ type: "done", payload: {
-              ok: true,
-              source: sink.providerCalled ? "openai_public" : "public_fallback",
-              public: true, anonymous: viewer.kind === "anonymous", requestClass,
+              ok: true, source: "clonechat_unified_unavailable", public: true,
+              anonymous: viewer.kind === "anonymous", requestClass,
               ...(prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {}),
-              structured: { answer: pub.answer, honesty: publicHonesty(pub.honesty), tool_call: null, citations: [...pub.citations] },
-              // C1.7 §4 — ÉTATS VÉRIDIQUES. « analysed » UNIQUEMENT si le fichier a produit des
-              // extraits réellement fournis au modèle. Sinon on le dit — jamais un faux « analysé ».
-              attachments: [
-                ...ephemeral.map((e) => ({
-                  // P17 — clé CANONIQUE `filename` (le client lit `filename`, pas `name`) : sans elle
-                  // il rendait « undefined — … » sur la voie publique. `name` conservé (compat).
-                  name: e.attachment.filename, filename: e.attachment.filename,
-                  state: e.chunks.length > 0 ? "analysed" : "unsupported_analysis",
-                  supportStatus: e.attachment.supportStatus,
-                  detail: e.honestSummary,
-                })),
-                ...serverRejected.map((r) => ({ name: r.name, filename: r.name, state: "rejected", supportStatus: "unsupported", detail: r.reason })),
-              ],
-              imagesSentToProvider: pubImageUrls.length,
-              citationLabels: [...pub.citationLabels],
-              relevantLinks: pub.relevantLinks,
-              usageTokens: tokens,
-              runtime: {
-                provider: sink.providerCalled ? "openai" : "deterministic",
-                model: sink.usage?.model ?? null,
-                requestedModel: model0,
-                routing: { escalated: routing0.escalated, reasons: routing0.reasons },
-                inputTokens: sink.usage?.inputTokens ?? 0,
-                outputTokens: sink.usage?.outputTokens ?? 0,
-                cachedInputTokens: sink.usage?.cachedInputTokens ?? 0,
-                streamed: true,
-              },
+              structured: { answer: UNIFIED_UNAVAILABLE_MESSAGE, honesty: "unknown", tool_call: null, citations: [] },
+              runtime: { provider: "openai", engine: "unified", streamed: true, unavailable: true },
             } });
-
-            // C1.9 — le shadow ne s'exécute qu'APRÈS la fermeture du flux (voir `finally`).
-            // Émettre `done` ne suffit pas : le client boucle sur `reader.read()` jusqu'à la
-            // FIN du flux et n'applique la réponse finale qu'ensuite. Observer avant de
-            // fermer retardait donc la fin du tour de la durée du shadow — jusqu'à son
-            // délai maximum. On se contente ici de retenir de quoi comparer.
-            shadowPayload = {
-              answer: pub.answer,
-              source: sink.providerCalled ? "openai_public" : "public_fallback",
-              honesty: publicHonesty(pub.honesty),
-              hasCta: Boolean(pub.suggestedCTA),
-            };
+            return;
           } catch (e) {
             // Une annulation reste une ANNULATION : jamais un faux « terminé ».
             if (req.signal?.aborted) {
@@ -672,163 +618,35 @@ export async function POST(req: Request) {
       // ── CloneChat Unified Intelligence — PRIMAIRE (voie NON streamée) ──────────
       // Essayé AVANT tout appel du responder legacy ci-dessous : en cas de succès, la voie
       // legacy n'est jamais invoquée (un seul appel OpenAI pour ce tour, pas deux).
-      const unifiedNonStream = await runUnifiedPrimary();
+      // INVARIANT (voie streamée : déjà garanti par le `if (... && pubReservation.granted ...)`
+      // qui entoure son propre appel) : AUCUN appel modèle sans réservation de budget accordée.
+      // `runUnifiedPrimary` ne connaît pas `pubReservation` (défini hors de sa fermeture) — le
+      // garde-fou est donc explicite ici, au point d'appel.
+      const unifiedNonStream = pubReservation.granted ? await runUnifiedPrimary() : null;
       if (unifiedNonStream) {
         await persistPublicTurn(unifiedNonStream.answer);
         return reply({
           ok: true, source: "clonechat_unified", public: true,
+          anonymous: viewer.kind === "anonymous", requestClass,
+          ...(prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {}),
           structured: { answer: unifiedNonStream.answer, honesty: "answered", tool_call: null, citations: unifiedNonStream.citations },
           ...(unifiedNonStream.suggestCard ? { suggestedCTA: true } : {}),
           runtime: { provider: "openai", engine: "unified", usedWebSearch: unifiedNonStream.usedWebSearch, streamed: false },
         });
       }
 
-      // Adaptateur PUBLIC C1.1 réel (PUBLIC_VIEWER : aucun port compte, aucune délégation).
-      // C1.7 — ROUTAGE DÉTERMINISTE. Le routeur ne voit QUE des signaux de tâche (longueur,
-      // documents, images, contradictions). Il ne peut pas savoir qui parle : un anonyme et un
-      // client Pierre obtiennent le MÊME modèle pour la MÊME question.
-      const routerCfg = loadModelRouterConfig();
-      const routing = routeModel({
-        message,
-        requestClass,
-        documentCount: rawAttachments.length,
-        imageCount: body?.images?.length ?? 0,
-      }, routerCfg);
-      // Fail-closed : un modèle inconnu retombe sur le défaut sûr, jamais sur l'inconnu.
-      const chosenModel = isAllowedModel(routing.model, routerCfg) ? routing.model : routerCfg.defaultModel;
-      // La borne de sortie est le MINIMUM entre le budget accordé et le plafond de la classe.
-      const outputCeiling = Math.min(
-        pubReservation.granted ? pubReservation.maxOutputTokens : 500,
-        routing.maxOutputTokens,
-      );
-
-      const pub = await answerPublicQuestion({
-        question: message,
-        history: (body?.history ?? []).slice(-6),
-        responder: providerResponder,
-        model: chosenModel,
-        maxOutputTokens: outputCeiling,
-        attachments: ephemeral, // ÉPHÉMÈRES — jamais un tenant
-        imageDataUrls: pubImageUrls,
-        imageDetail: pubImageDetail,
-        at,
-      });
-      // Le tour public valide DÉJÀ les citations serveur + applique la garde de claims C1.
-      const pubTokens = pub.usageTokens ?? 0;
-      const viaProvider = pub.source === "openai_parrain";
-      if (pubReservation.granted) {
-        pubSettled = true;
-        try { await stores.budget.commit(pubReservation, pubTokens); } catch { /* comptabilité best-effort : n'échoue jamais la réponse */ }
-      }
-      // Comptabilité d'usage (best-effort) — scope utilisateur, aucune entreprise inventée.
-      const usage = providerUsage as ProviderUsage | null;
-      if (viaProvider && pubTokens > 0 && usage) {
-        try {
-          await stores.budget.recordUsage(buildUsageRecord({ usage, userId, companyId: null as unknown as string, at: now() }));
-        } catch { /* l'événement d'usage est optionnel : ne fait jamais échouer la réponse */ }
-      }
-      // ── C1.8 BLOC C — CLONEINSPECTOR SUR LA VOIE PUBLIQUE ──────────────────────
-      // L'analyse STRUCTURÉE (`analysis`) n'était produite que sur la voie ENTREPRISE : sur la
-      // voie publique — de très loin la plus fréquente — l'image était comprise mais AUCUN
-      // diagnostic n'était calculé, donc CloneInspector ne tournait jamais. On réutilise le
-      // MÊME analyseur canonique (`analyzeScreenshotReal`), jamais un second système.
-      let publicAnalysis: Awaited<ReturnType<typeof analyzeScreenshotReal>>["analysis"] | null = null;
-      if (pubImageUrls.length > 0 && !!key && cfg.enabled && pubReservation.granted) {
-        try {
-          const shot = await analyzeScreenshotReal(key, {
-            model: chosenModel, userText: message, imageDataUrls: pubImageUrls,
-            maxOutputTokens: Math.min(500, outputCeiling),
-          });
-          if (shot.ok && shot.analysis) publicAnalysis = shot.analysis;
-        } catch { /* une capture non diagnosticable n'échoue JAMAIS le tour */ }
-      }
-
-      // C1.9 mode `on` (voie NON streamée) : la réponse affichée vient de la pipeline
-      // OpenAI vérifiée. Une seule persistance, aucun recours au dictionnaire hérité.
-      const primaryNonStream = await runC19Primary();
-      if (primaryNonStream) {
-        await persistPublicTurn(primaryNonStream.answer);
-        return reply({
-          ok: true, source: "c1-9_openai", public: true,
-          structured: {
-            answer: primaryNonStream.answer,
-            honesty: primaryNonStream.clarifying ? "clarify" : "answered",
-            tool_call: null,
-            citations: primaryNonStream.citations,
-          },
-          runtime: { provider: "openai", engine: "c1-9", streamed: false },
-        });
-      }
-
-      // C1.8 — enregistre le tour pour un utilisateur authentifié (voie publique NON streamée).
-      await persistPublicTurn(pub.answer);
-
-      // C1.9 — observation shadow : la persistance a déjà eu lieu (une seule écriture),
-      // et l'objet renvoyé ci-dessous n'est construit qu'ensuite, à partir de `pub` seul.
-      await runShadow({
-        answer: pub.answer,
-        source: viaProvider ? "openai_public" : "public_fallback",
-        honesty: publicHonesty(pub.honesty),
-        hasCta: Boolean(pub.suggestedCTA),
-      });
-
+      // Le moteur unifié a échoué (journalisé plus haut dans runUnifiedPrimary). Sur la voie
+      // publique, on NE RETOMBE PLUS sur l'ancien pipeline commercial (routage legacy +
+      // analyzeSalesTurn/answerPublicQuestion, ni C1.9) : c'est exactement ce fallback qui
+      // affichait une fiche prix hors sujet. La réservation de budget n'a servi à aucun appel :
+      // `pubSettled` reste false, le `finally` plus bas la relâche normalement. `requestClass`/
+      // prérequis restent présents : ce sont des champs de GOUVERNANCE, pas du commercial.
       return reply({
-        ok: true,
-        source: viaProvider ? "openai_public" : "public_fallback",
-        ...(publicAnalysis ? { analysis: publicAnalysis } : {}),
-        // C1.6 — `public: true` remplace `discovery` : ce n'est PAS un mode dégradé, c'est LA
-        // conversation CloneChat sur sources publiques. `discovery` reste émis pour la
-        // compatibilité des clients existants.
-        public: true,
-        discovery: true,
-        anonymous: viewer.kind === "anonymous",
-        requestClass,
-        // Prérequis attachés à la DEMANDE (jamais au droit de parler) — vide si rien ne manque.
+        ok: true, source: "clonechat_unified_unavailable", public: true,
+        anonymous: viewer.kind === "anonymous", requestClass,
         ...(prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {}),
-        structured: {
-          answer: pub.answer,
-          honesty: publicHonesty(pub.honesty),
-          tool_call: null, // aucune action exécutable sans prérequis vérifiés
-          citations: [...pub.citations],
-        },
-        // C1.7 §4 — ÉTATS VÉRIDIQUES. « analysed » UNIQUEMENT si le fichier a produit des
-        // extraits réellement fournis au modèle. Sinon on le dit — jamais un faux « analysé ».
-        attachments: [
-          ...ephemeral.map((e) => ({
-            // P17 — clé CANONIQUE `filename` (le client lit `filename`, pas `name`) : sans elle il
-            // rendait « undefined — … » sur la voie publique JSON. `name` conservé (compat).
-            name: e.attachment.filename, filename: e.attachment.filename,
-            state: e.chunks.length > 0 ? "analysed" : "unsupported_analysis",
-            supportStatus: e.attachment.supportStatus,
-            detail: e.honestSummary,
-          })),
-          ...serverRejected.map((r) => ({ name: r.name, filename: r.name, state: "rejected", supportStatus: "unsupported", detail: r.reason })),
-        ],
-        imagesSentToProvider: pubImageUrls.length,
-        citationLabels: [...pub.citationLabels],
-        relevantLinks: pub.relevantLinks,
-        suggestedCTA: pub.suggestedCTA,
-        usageTokens: pubTokens,
-        durable: false, // aucune persistance durable sans entreprise (jamais de faux tenant)
-        // ── Preuve runtime (métadonnées NON secrètes ; jamais la clé) ──
-        runtime: {
-          provider: viaProvider ? "openai" : "deterministic",
-          // Modèle RAPPORTÉ PAR LE PROVIDER (pas le modèle configuré) ; null sans appel.
-          model: viaProvider ? (usage?.model ?? null) : null,
-          requestedModel: chosenModel,
-          routing: { escalated: routing.escalated, reasons: routing.reasons, reasoning: routing.reasoning, maxOutputTokens: outputCeiling },
-          reservationGranted: pubReservation.granted,
-          providerCalled: providerSeq > 0,
-          // MESURÉ : null si aucun appel provider ; sinon vrai ssi la réservation a été
-          // accordée STRICTEMENT AVANT le franchissement du provider.
-          reservedBeforeProvider: providerSeq === 0 ? null : reservedSeq > 0 && reservedSeq < providerSeq,
-          inputTokens: viaProvider ? (usage?.inputTokens ?? 0) : 0,
-          outputTokens: viaProvider ? (usage?.outputTokens ?? 0) : 0,
-          committedTokens: pubReservation.granted ? pubTokens : 0,
-          budgetHealth: budgetHealth(),
-          budgetDegraded: budgetHealth() !== "healthy" ? budgetDegradationReason() : null,
-          entitlementKnown: viewer.kind === "user" && !plan.entitlementLookupFailed,
-        },
+        structured: { answer: UNIFIED_UNAVAILABLE_MESSAGE, honesty: "unknown", tool_call: null, citations: [] },
+        runtime: { provider: "openai", engine: "unified", streamed: false, unavailable: true },
       });
     } catch {
       // Échec modèle → repli PUBLIC déterministe honnête, réservation libérée (0 token).
