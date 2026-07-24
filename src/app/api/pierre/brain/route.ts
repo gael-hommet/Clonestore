@@ -13,14 +13,6 @@ import {
 import { PierreBrainResponseSchema } from "@/lib/pierre/schema";
 
 /* ============================== */
-/* OPENAI CLIENT                  */
-/* ============================== */
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
-
-/* ============================== */
 /* INPUT VALIDATION               */
 /* ============================== */
 
@@ -37,7 +29,8 @@ const BrainInputSchema = z.object({
 
 function checkWorkerAuth(req: Request): boolean {
   const workerSecret = process.env.PIERRE_QUEUE_WORKER_SECRET;
-  if (!workerSecret) return true;
+  // P17 — fail-CLOSED en production (convention « ouverte sans secret » tolérée en dev/test seulement).
+  if (!workerSecret) return process.env.NODE_ENV !== "production";
   const provided = (req as Request & { headers: Headers }).headers.get("x-pierre-worker-secret");
   return provided === workerSecret;
 }
@@ -46,6 +39,17 @@ export async function POST(req: Request) {
   if (!checkWorkerAuth(req)) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
+
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    return NextResponse.json(
+      { ok: false, error: "OPENAI_API_KEY is not configured." },
+      { status: 503 }
+    );
+  }
+
+  const openai = new OpenAI({ apiKey });
 
   try {
     const body = await req.json();
