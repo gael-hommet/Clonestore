@@ -1,0 +1,17 @@
+START_HEAD=b3159c34546f3555869ffe2cfcc6a4d6069086e3
+FILE_COUNT=126
+staged 126 files
+  sample status audit-20260723-full/AI_ACT_AND_HR_RISK_MATRIX.md: added
+  sample status audit-20260723-full/CLONESTORE_AUDIT_EVIDENCE/agents-pierre-desktop-1440-abovefold.png: added
+  sample status audit-20260723-full/CLONESTORE_AUDIT_EVIDENCE/build-and-dev-perf-log.txt: added
+  sample status audit-20260723-full/VALIDATED_WORKTREE_PRESERVATION_REPORT.md: added
+  sample status audit-20260723-full/VALIDATED_WORKTREE_REMAINING_RISKS.md: added
+  sample status audit-20260723-full/WORKTREE_FULL_STATUS_MATRIX.md: added
+COMMIT_OID[5]=ed3e4528c18b264ec155e4570f2be2ba2e13a89c
+blob-check complete: 126/126 match, 0 mismatches
+HEAD now: ed3e4528c18b264ec155e4570f2be2ba2e13a89c
+postcheck-forbidden .env.local => ignored
+postcheck-forbidden node_modules => ignored
+postcheck-forbidden .next => *added
+postcheck-forbidden .claude => *added
+postcheck-forbidden package.json => *modified
