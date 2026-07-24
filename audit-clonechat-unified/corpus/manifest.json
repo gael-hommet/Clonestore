@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-07-24T17:20:53.648Z",
+  "unitCount": 56,
+  "categories": {
+    "identity": 1,
+    "clonechat_identity": 2,
+    "employees": 2,
+    "pierre_capabilities": 1,
+    "limits": 1,
+    "faq": 1,
+    "pricing": 2,
+    "pages": 24,
+    "demo": 2,
+    "reservation": 1,
+    "checkout": 1,
+    "cockpit": 1,
+    "technologies": 13,
+    "security_governance": 1,
+    "data_privacy": 1,
+    "missions": 1,
+    "support": 1
+  },
+  "contentHash": "fe5828fc0e5ceae0",
+  "requiredCategoriesPresent": [
+    "identity",
+    "employees",
+    "pierre_capabilities",
+    "pricing",
+    "faq",
+    "technologies",
+    "security_governance",
+    "data_privacy",
+    "support",
+    "missions"
+  ]
+}

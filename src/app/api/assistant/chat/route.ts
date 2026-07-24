@@ -89,6 +89,12 @@ import { buildAccountContextSnapshot, accountSnapshotChunks } from "@/lib/clonec
 import { resolveReferencedIds } from "@/lib/clonechat/intelligence/c1-1/parrain-document-retrieval";
 import type { AttachmentIngestionResult } from "@/lib/clonechat/intelligence/c1-1/parrain-attachment-types";
 import type { ParrainKnowledgeChunk } from "@/lib/clonechat/intelligence/c1-1/parrain-types";
+// ── CloneChat Unified Intelligence — cœur conversationnel UNIQUE (voie publique) ────────────
+// Remplace le routage rigide par mots-clés (analyzeSalesTurn/pricingChunk inconditionnel) par
+// UN SEUL appel OpenAI Responses API qui décide lui-même s'il répond, utilise le contexte
+// CloneStore, lance web_search ou ouvre une page. Essayé EN PREMIER sur la voie publique ; en
+// cas d'échec/absence de clé, repli sur la chaîne C1.9 puis legacy EXISTANTE, inchangée.
+import { respondUnified, loadResponderConfig, readOpenAIKeyLazy } from "@/lib/clonechat/core/responder";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -341,6 +347,31 @@ export async function POST(req: Request) {
     }
   };
 
+  // ── CloneChat Unified Intelligence — PRIMAIRE sur la voie publique ──────────
+  // Essayé AVANT C1.9 et avant la voie legacy (analyzeSalesTurn/answerPublicQuestion).
+  // Un seul appel OpenAI ; aucun routage par mots-clés ; le modèle décide lui-même. Une
+  // réponse vide/en échec ne s'affiche JAMAIS : repli sur la chaîne existante, inchangée.
+  const runUnifiedPrimary = async (): Promise<{
+    answer: string; citations: readonly string[]; suggestCard: boolean; usedWebSearch: boolean;
+  } | null> => {
+    const unifiedKey = readOpenAIKeyLazy();
+    if (!unifiedKey) return null;
+    try {
+      const r = await respondUnified({
+        apiKey: unifiedKey,
+        config: loadResponderConfig(),
+        message,
+        history: (body?.history ?? []).slice(-6).map((h) => ({ role: h.role, text: h.text })),
+        signal: req.signal,
+      });
+      if (!r.ok || r.answer.trim().length === 0) return null;
+      const citations = r.webSources.map((s) => s.url);
+      return { answer: r.answer, citations, suggestCard: r.suggestCard, usedWebSearch: r.usedWebSearch };
+    } catch {
+      return null; // repli sur la chaîne existante, jamais d'échec de tour
+    }
+  };
+
   // Limitation d'abus de la voie anonyme (jamais une porte : un message honnête + réessai).
   if (viewer.kind === "anonymous") {
     const rl = checkAnonymousRateLimit(anonymousFingerprint(req.headers));
@@ -477,6 +508,24 @@ export async function POST(req: Request) {
           const gate = createSentenceGate((t) => finalizeAnswerText(t).safeText);
 
           try {
+            // CloneChat Unified Intelligence — PRIMAIRE : un seul appel, le modèle décide.
+            // Essayé avant C1.9 et avant la voie legacy ; repli silencieux si absent/en échec.
+            const unified = await runUnifiedPrimary();
+            if (unified) {
+              for (const sentence of gate.push(unified.answer)) send({ type: "delta", text: sentence });
+              for (const rest of gate.flush()) send({ type: "delta", text: rest });
+              settled = true;
+              await persistPublicTurn(unified.answer);
+              try { await stores.budget.commit(pubReservation, 0); } catch { /* comptabilité best-effort */ }
+              send({ type: "done", payload: {
+                ok: true, source: "clonechat_unified", public: true,
+                structured: { answer: unified.answer, honesty: "answered", tool_call: null, citations: unified.citations },
+                ...(unified.suggestCard ? { suggestedCTA: true } : {}),
+                runtime: { provider: "openai", engine: "unified", usedWebSearch: unified.usedWebSearch, streamed: true },
+              } });
+              return;
+            }
+
             // C1.9 mode `on` — la pipeline compose et VÉRIFIE avant d'écrire quoi que ce
             // soit dans le flux : rien de non vérifié n'atteint l'écran. Une seule requête,
             // une seule réponse, une seule écriture d'historique, puis fermeture immédiate.
@@ -620,6 +669,20 @@ export async function POST(req: Request) {
       };
     }
     try {
+      // ── CloneChat Unified Intelligence — PRIMAIRE (voie NON streamée) ──────────
+      // Essayé AVANT tout appel du responder legacy ci-dessous : en cas de succès, la voie
+      // legacy n'est jamais invoquée (un seul appel OpenAI pour ce tour, pas deux).
+      const unifiedNonStream = await runUnifiedPrimary();
+      if (unifiedNonStream) {
+        await persistPublicTurn(unifiedNonStream.answer);
+        return reply({
+          ok: true, source: "clonechat_unified", public: true,
+          structured: { answer: unifiedNonStream.answer, honesty: "answered", tool_call: null, citations: unifiedNonStream.citations },
+          ...(unifiedNonStream.suggestCard ? { suggestedCTA: true } : {}),
+          runtime: { provider: "openai", engine: "unified", usedWebSearch: unifiedNonStream.usedWebSearch, streamed: false },
+        });
+      }
+
       // Adaptateur PUBLIC C1.1 réel (PUBLIC_VIEWER : aucun port compte, aucune délégation).
       // C1.7 — ROUTAGE DÉTERMINISTE. Le routeur ne voit QUE des signaux de tâche (longueur,
       // documents, images, contradictions). Il ne peut pas savoir qui parle : un anonyme et un

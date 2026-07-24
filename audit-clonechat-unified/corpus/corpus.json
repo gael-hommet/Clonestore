@@ -1,0 +1,540 @@
+[
+  {
+    "id": "identity.clonestore",
+    "title": "CloneStore",
+    "category": "identity",
+    "priority": 4,
+    "source": "public-catalog.ts + commercial-state.ts",
+    "text": "CloneStore est une plateforme d'employés IA opérationnels. Une entreprise se compose progressivement d'employés IA qui réalisent un vrai travail métier, sous contrôle et validation humaine. Le modèle garde l'humain au contrôle : l'employé IA propose et prépare, l'humain valide le sensible, le système exécute puis relit le résultat réel."
+  },
+  {
+    "id": "identity.clonechat",
+    "title": "CloneChat",
+    "category": "clonechat_identity",
+    "priority": 4,
+    "source": "product knowledge (dérivé du rôle réel de la route /api/assistant/chat)",
+    "text": "CloneChat est l'assistant conversationnel officiel de CloneStore. Il répond aux questions générales comme un assistant moderne, et connaît en priorité et en profondeur CloneStore : Pierre, les employés IA, les prix, les pays, la démo, le cockpit, les missions, les validations, la sécurité, le support et les technologies publiques. Il n'est pas un chatbot générique : il fonde ses réponses CloneStore sur des sources officielles, et recherche sur le web pour l'actualité externe."
+  },
+  {
+    "id": "identity.pierre_vs_clonechat",
+    "title": "Différence entre Pierre et CloneChat",
+    "category": "clonechat_identity",
+    "priority": 4,
+    "source": "product knowledge",
+    "text": "Pierre est l'employé IA RH opérationnel : il exécute des missions RH réelles (documents, onboarding, relances, préparation de paie) sous gouvernance et validation humaine, dans le cockpit de l'entreprise qui l'a activé. CloneChat est l'assistant conversationnel du site : il oriente, explique, répond aux questions et peut discuter de sujets généraux ; il n'exécute pas lui-même les missions RH de Pierre."
+  },
+  {
+    "id": "employee.pierre",
+    "title": "Pierre",
+    "category": "employees",
+    "priority": 1,
+    "source": "public-catalog.ts",
+    "routes": [
+      "/agents/pierre"
+    ],
+    "text": "Pierre — Employé IA RH opérationnel. Reçoit une demande RH, la transforme en mission, prépare le travail, suit, relance et garde la trace. Domaines : Missions RH structurées à partir d'une demande libre ; Documents RH prêts à relire, valider ou envoyer ; Emails, relances et continuité dans le temps ; Validations humaines sur le sensible + traçabilité. Statut : actif, seul employé IA nommé et ouvert aujourd'hui."
+  },
+  {
+    "id": "employees.future",
+    "title": "Départements à venir",
+    "category": "employees",
+    "priority": 1,
+    "source": "public-catalog.ts",
+    "text": "D'autres employés IA arriveront progressivement, présentés comme départements génériques (sans nom, sans prix, sans date tant qu'ils n'existent pas) : Support & relation client ; Finance opérationnelle ; Administration ; Opérations. Aujourd'hui, seul Pierre est disponible à l'achat."
+  },
+  {
+    "id": "pierre.capabilities",
+    "title": "Ce que Pierre peut faire aujourd'hui",
+    "category": "pierre_capabilities",
+    "priority": 1,
+    "source": "hr-canon/capability-registry.ts",
+    "text": "Pierre couvre des capacités RH sur 22 domaines (organisation, recrutement, contrats, onboarding, paie-préparation, congés, disciplinaire, offboarding, reporting…). 68 s'exécutent en autonomie, 59 avec validation humaine, 71 en préparation de brouillon à relire. Pierre ne remplace pas totalement un DRH : les décisions sensibles (licenciement, décision salariale, alerte éthique, qualification disciplinaire) restent strictement humaines — Pierre ne les exécute jamais."
+  },
+  {
+    "id": "pierre.limits",
+    "title": "Limites actuelles de Pierre",
+    "category": "limits",
+    "priority": 1,
+    "source": "hr-canon/capability-registry.ts",
+    "text": "Toutes les capacités RH ne sont pas encore automatisées ; certaines sont en cours de construction. Pierre ne décide jamais à la place d'un humain pour le licenciement, une décision salariale ou une alerte éthique. Aucune action à effet externe réel (email envoyé, document publié, synchronisation externe) n'est exécutée sans les validations prévues par le produit."
+  },
+  {
+    "id": "pierre.roi",
+    "title": "Gains de temps et d'argent — méthode honnête",
+    "category": "faq",
+    "priority": 4,
+    "source": "product knowledge (aucune moyenne publiée par CloneStore)",
+    "text": "Aucune moyenne officielle de gain de temps ou d'argent n'est publiée par CloneStore, et il ne faut jamais en inventer une. Le gain réel dépend de l'entreprise : sa taille, le volume de tâches RH concernées, le nombre de salariés, la part de processus aujourd'hui manuels. Ce que Pierre absorbe concrètement : contrats et avenants, onboarding et offboarding, absences et congés, attestations et courriers RH, relances et suivis, préparation des variables de paie — tâches que l'équipe referait sinon à la main. Méthode pour estimer : partir des heures RH actuelles réellement passées sur ces tâches, comparer ce temps libéré au coût de l'abonnement et, le cas échéant, au coût d'une embauche ou d'un prestataire pour le même volume. Le prix de Pierre est un INTRANT du calcul de ROI, jamais la réponse à la question du gain."
+  },
+  {
+    "id": "pricing.catalog",
+    "title": "Tarif de Pierre par pays",
+    "category": "pricing",
+    "priority": 1,
+    "source": "country-pricing.ts (résolveur canonique P10)",
+    "text": "Pays de lancement : FR, BE, LU, CH. FR/BE/LU : 449 € / mois · CH : 499 CHF / mois. Détail : FR : 449 € / mois · BE : 449 € / mois · LU : 449 € / mois · CH : 499 CHF / mois. Un client suisse voit et paie l'offre suisse (CHF) ; un client France/Belgique/Luxembourg voit et paie l'offre euro. Pays non déterminé → il faut demander le pays, jamais proposer une offre par défaut. Prix HT, hors taxes applicables."
+  },
+  {
+    "id": "pricing.founder_offer",
+    "title": "Offre de lancement",
+    "category": "pricing",
+    "priority": 1,
+    "source": "commercial-state.ts",
+    "text": "CloneStore propose aujourd'hui un seul produit ouvert (Pierre), à 449 € HT/mois en France/Belgique/Luxembourg. Lancement de la démo : 5 août 2026. Abonnement mensuel. Le paiement en ligne n'est pas encore ouvert partout ; la réservation fondateur reste possible sans paiement. Il n'existe ni essai gratuit ni bêta."
+  },
+  {
+    "id": "route./",
+    "title": "Accueil",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/"
+    ],
+    "text": "« Accueil » (/) — audience public."
+  },
+  {
+    "id": "route./agents",
+    "title": "Employés IA",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/agents"
+    ],
+    "text": "« Employés IA » (/agents) — audience public."
+  },
+  {
+    "id": "route./agents/pierre",
+    "title": "Pierre",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/agents/pierre"
+    ],
+    "text": "« Pierre » (/agents/pierre) — audience public."
+  },
+  {
+    "id": "route./demo",
+    "title": "Démo",
+    "category": "demo",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/demo"
+    ],
+    "text": "« Démo » (/demo) — audience public."
+  },
+  {
+    "id": "route./demo/pierre",
+    "title": "Démo Pierre",
+    "category": "demo",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/demo/pierre"
+    ],
+    "text": "« Démo Pierre » (/demo/pierre) — audience public."
+  },
+  {
+    "id": "route./reserver/pierre",
+    "title": "Réserver Pierre",
+    "category": "reservation",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/reserver/pierre"
+    ],
+    "text": "« Réserver Pierre » (/reserver/pierre) — audience public, accès verrouillé par un droit/état."
+  },
+  {
+    "id": "route./checkout",
+    "title": "Paiement",
+    "category": "checkout",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/checkout"
+    ],
+    "text": "« Paiement » (/checkout) — audience public, accès verrouillé par un droit/état."
+  },
+  {
+    "id": "route./login",
+    "title": "Connexion",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/login"
+    ],
+    "text": "« Connexion » (/login) — audience public."
+  },
+  {
+    "id": "route./signup",
+    "title": "Créer un compte",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/signup"
+    ],
+    "text": "« Créer un compte » (/signup) — audience public."
+  },
+  {
+    "id": "route./questions",
+    "title": "Support",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/questions"
+    ],
+    "text": "« Support » (/questions) — audience public."
+  },
+  {
+    "id": "route./comprendre-clonestore",
+    "title": "Comprendre CloneStore",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/comprendre-clonestore"
+    ],
+    "text": "« Comprendre CloneStore » (/comprendre-clonestore) — audience public."
+  },
+  {
+    "id": "route./legal/cgv",
+    "title": "Conditions de vente",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/legal/cgv"
+    ],
+    "text": "« Conditions de vente » (/legal/cgv) — audience public."
+  },
+  {
+    "id": "route./legal/cgu",
+    "title": "Conditions d'utilisation",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/legal/cgu"
+    ],
+    "text": "« Conditions d'utilisation » (/legal/cgu) — audience public."
+  },
+  {
+    "id": "route./legal/confidentialite",
+    "title": "Confidentialité",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/legal/confidentialite"
+    ],
+    "text": "« Confidentialité » (/legal/confidentialite) — audience public."
+  },
+  {
+    "id": "route./legal/dpa",
+    "title": "DPA",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/legal/dpa"
+    ],
+    "text": "« DPA » (/legal/dpa) — audience public."
+  },
+  {
+    "id": "route./legal/mentions",
+    "title": "Mentions légales",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/legal/mentions"
+    ],
+    "text": "« Mentions légales » (/legal/mentions) — audience public."
+  },
+  {
+    "id": "route./#guided-discovery",
+    "title": "Découverte guidée",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/#guided-discovery"
+    ],
+    "text": "« Découverte guidée » (/#guided-discovery) — audience public."
+  },
+  {
+    "id": "route./assistant",
+    "title": "CloneChat",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/assistant"
+    ],
+    "text": "« CloneChat » (/assistant) — audience public."
+  },
+  {
+    "id": "route./profile",
+    "title": "Mon CloneStore",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/profile"
+    ],
+    "text": "« Mon CloneStore » (/profile) — audience authenticated, accès verrouillé par un droit/état."
+  },
+  {
+    "id": "route./profile/agents",
+    "title": "Mes employés",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/profile/agents"
+    ],
+    "text": "« Mes employés » (/profile/agents) — audience authenticated, accès verrouillé par un droit/état."
+  },
+  {
+    "id": "route./profile/messages",
+    "title": "Messagerie",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/profile/messages"
+    ],
+    "text": "« Messagerie » (/profile/messages) — audience authenticated, accès verrouillé par un droit/état."
+  },
+  {
+    "id": "route./profile/onboarding",
+    "title": "Empreinte Entreprise",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/profile/onboarding"
+    ],
+    "text": "« Empreinte Entreprise » (/profile/onboarding) — audience authenticated, accès verrouillé par un droit/état."
+  },
+  {
+    "id": "route./profile/technologies",
+    "title": "Technologies",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/profile/technologies"
+    ],
+    "text": "« Technologies » (/profile/technologies) — audience authenticated, accès verrouillé par un droit/état."
+  },
+  {
+    "id": "route./agents/pierre/use",
+    "title": "Cockpit Pierre",
+    "category": "cockpit",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/agents/pierre/use"
+    ],
+    "text": "« Cockpit Pierre » (/agents/pierre/use) — audience authenticated, accès verrouillé par un droit/état."
+  },
+  {
+    "id": "route./agents/pierre/setup",
+    "title": "Configuration Pierre",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/agents/pierre/setup"
+    ],
+    "text": "« Configuration Pierre » (/agents/pierre/setup) — audience authenticated, accès verrouillé par un droit/état."
+  },
+  {
+    "id": "route./agents/pierre/employees",
+    "title": "Employé 360",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/agents/pierre/employees"
+    ],
+    "text": "« Employé 360 » (/agents/pierre/employees) — audience authenticated, accès verrouillé par un droit/état."
+  },
+  {
+    "id": "route./founder",
+    "title": "Command Center",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/founder"
+    ],
+    "text": "« Command Center » (/founder) — audience internal."
+  },
+  {
+    "id": "route./internal/[slug]/command-center",
+    "title": "Command Center (interne)",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/internal/[slug]/command-center"
+    ],
+    "text": "« Command Center (interne) » (/internal/[slug]/command-center) — audience internal."
+  },
+  {
+    "id": "route./founding-partners",
+    "title": "Cercle des Partenaires Fondateurs",
+    "category": "pages",
+    "priority": 1,
+    "source": "route-registry.ts",
+    "routes": [
+      "/founding-partners"
+    ],
+    "text": "« Cercle des Partenaires Fondateurs » (/founding-partners) — audience public, accès verrouillé par un droit/état."
+  },
+  {
+    "id": "tech.overview",
+    "title": "Technologies CloneStore",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneStore repose sur 12 technologies globales — des couches système où les employés IA se branchent ; ce ne sont pas des employés : CloneOS, CloneADN, CloneGuard, CloneTrace, CloneContinuum, CloneTrust, CloneReview, CloneSignals, CloneLearn, CloneVoice, CloneChat, CloneBrief."
+  },
+  {
+    "id": "tech.cloneos",
+    "title": "CloneOS",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneOS : CloneOS orchestre le cycle de vie complet des missions et tâches. Il gère la planification, l'exécution, les reprises et l'état opérationnel de chaque employé IA — sans jamais présupposer un employé spécifique."
+  },
+  {
+    "id": "tech.cloneadn",
+    "title": "CloneADN",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneADN : CloneADN stocke le contexte, les préférences, l'identité et les règles propres à l'entreprise. Il permet à chaque employé IA de connaître la culture, le ton et les conventions de l'entreprise sans répétition."
+  },
+  {
+    "id": "tech.cloneguard",
+    "title": "CloneGuard",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneGuard : CloneGuard évalue chaque action avant exécution. Il bloque, approuve ou surveille selon les règles de gouvernance configurées. Toute action sensible ou risquée passe obligatoirement par CloneGuard."
+  },
+  {
+    "id": "tech.clonetrace",
+    "title": "CloneTrace",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneTrace : CloneTrace enregistre chaque événement significatif — création, exécution, blocage, validation — pour garantir une traçabilité complète et un audit forensique disponible à tout moment."
+  },
+  {
+    "id": "tech.clonecontinuum",
+    "title": "CloneContinuum",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneContinuum : CloneContinuum gère la persistance des missions, détecte les états bloqués, lance les reprises et garantit qu'aucune tâche planifiée n'est oubliée, quelle que soit la session."
+  },
+  {
+    "id": "tech.clonetrust",
+    "title": "CloneTrust",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneTrust : CloneTrust calcule un score de confiance dynamique pour chaque action et calibre le niveau d'autonomie autorisé. Plus l'historique est fiable, plus l'autonomie peut être étendue — de façon gouvernée."
+  },
+  {
+    "id": "tech.clonereview",
+    "title": "CloneReview",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneReview : CloneReview soumet les documents, emails et communications à une validation qualité avant livraison. Il peut être activé par type de livrable, par employé ou par domaine."
+  },
+  {
+    "id": "tech.clonesignals",
+    "title": "CloneSignals",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneSignals : CloneSignals surveille les événements, seuils et patterns pour déclencher des alertes ou actions automatiques. Il permet aux employés IA d'être proactifs sans être intrusifs."
+  },
+  {
+    "id": "tech.clonelearn",
+    "title": "CloneLearn",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneLearn : CloneLearn ingère les retours humains et les patterns d'usage pour améliorer progressivement les réponses. Tout apprentissage passe par une validation gouvernée pour éviter la dérive."
+  },
+  {
+    "id": "tech.clonevoice",
+    "title": "CloneVoice",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneVoice : CloneVoice permet des interactions vocales bidirectionnelles avec les employés IA — dictée de missions, retours oraux, notifications audio. Disponible en option premium."
+  },
+  {
+    "id": "tech.clonechat",
+    "title": "CloneChat",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneChat : CloneChat fournit une interface de conversation unifiée — texte, pièces jointes, historique — pour interagir avec n'importe quel employé IA CloneStore."
+  },
+  {
+    "id": "tech.clonebrief",
+    "title": "CloneBrief",
+    "category": "technologies",
+    "priority": 1,
+    "source": "technologies/registry.ts",
+    "text": "CloneBrief : CloneBrief génère des briefings automatiques — quotidiens, hebdomadaires, à la demande — résumant l'activité, les alertes et les actions recommandées pour chaque employé IA."
+  },
+  {
+    "id": "gov.validation",
+    "title": "Validation humaine",
+    "category": "security_governance",
+    "priority": 4,
+    "source": "governance policy (dérivé du moteur v1/hr)",
+    "text": "Pierre ne fait rien de sensible sans validation humaine. Les actions à risque (envoi, document sensible, décision) exigent une confirmation explicite avant exécution. Le cycle est : proposer → confirmer → exécuter → relire le résultat réel."
+  },
+  {
+    "id": "gov.isolation",
+    "title": "Isolation des données entre entreprises",
+    "category": "data_privacy",
+    "priority": 4,
+    "source": "governance policy",
+    "text": "Chaque entreprise ne voit que ses propres données. CloneChat n'accède jamais aux données d'une autre entreprise et refuse toute demande de comparaison ou de contournement."
+  },
+  {
+    "id": "gov.mission_vs_conversation",
+    "title": "Mission vs conversation",
+    "category": "missions",
+    "priority": 4,
+    "source": "product knowledge",
+    "text": "Une conversation est un échange libre avec CloneChat ou Pierre. Une mission est une demande RH transformée en travail suivi (avec étapes, documents et validations) confiée à Pierre depuis le cockpit ou depuis CloneChat."
+  },
+  {
+    "id": "support.contact",
+    "title": "Contacter le support",
+    "category": "support",
+    "priority": 4,
+    "source": "support procedure",
+    "text": "Pour un problème, décrivez-le (une capture d'écran aide). CloneChat reconnaît les problèmes déjà connus et vérifiés, propose un contournement quand il existe, et transmet à un humain les cas exceptionnels (sécurité, vie privée, litige)."
+  }
+]
