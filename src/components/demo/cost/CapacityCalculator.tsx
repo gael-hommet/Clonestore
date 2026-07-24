@@ -103,6 +103,17 @@ function FieldRow({
             value={value}
             aria-describedby={hintId}
             onChange={(event) => onChange(field.id, sanitizeField(field.id, event.target.value))}
+            // DEMO AND MOBILE CONVERSION CLOSURE (2026-07-24) — ISSUE-04 root cause: this app
+            // renders no caret-color anywhere (confirmed by a full-repo search across every
+            // component and stylesheet), yet a prior real-browser capture showed React flagging
+            // a server/client mismatch on `style={{caret-color:"transparent"}}` for EVERY
+            // range/number input uniformly, regardless of field/value. That "applies to all
+            // matching inputs identically, independent of content" signature is the documented
+            // fingerprint of a third-party extension (password manager / dark-mode / a11y tool)
+            // injecting the style into form fields before hydration — not app code. Suppressing
+            // only for that externally-injected, non-deterministic attribute; this input's own
+            // value/attributes stay fully controlled and asserted deterministic by tests below.
+            suppressHydrationWarning
           />
           <span className="demo-cost-field__unit" aria-hidden="true">
             {field.unit === "money" ? (currency === "CHF" ? "CHF" : "€") : field.unit === "percent" ? "%" : ""}
@@ -124,6 +135,8 @@ function FieldRow({
         aria-label={field.label}
         aria-valuetext={valueText(field, value, currency)}
         onChange={(event) => onChange(field.id, sanitizeField(field.id, event.target.value))}
+        // Same ISSUE-04 justification as the sibling number input above.
+        suppressHydrationWarning
       />
 
       <div className="demo-cost-slider__scale" aria-hidden="true">

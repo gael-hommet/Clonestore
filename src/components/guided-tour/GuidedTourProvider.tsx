@@ -76,6 +76,8 @@ import {
   type Viewport,
 } from "@/lib/guided-tour";
 
+import { isDemoContextualPromptEnabled } from "@/lib/demo/contextual-prompt/contextual-prompt-flags";
+import { shouldSuppressHomepageAutoWelcome } from "@/lib/demo/contextual-prompt/detect";
 import { GuidedTourContext, type GuidedTourApi } from "./guided-tour-context";
 import { GuidedTourPortal } from "./GuidedTourPortal";
 import { GuidedTourOverlay } from "./GuidedTourOverlay";
@@ -376,9 +378,23 @@ export function GuidedTourProvider({ children }: { children: ReactNode }) {
   //   `/profile`), 1ʳᵉ visite, non intrusive, hors snooze. Sur `/profile`, un
   //   visiteur anonyme est redirigé vers /login avant le délai → seule une
   //   session authentifiée voit l'invitation.
+  //
+  // DEMO AND MOBILE CONVERSION CLOSURE (2026-07-24) — arbitrage anti-collision : il
+  // ne doit jamais exister deux invitations flottantes automatiques simultanées sur
+  // la homepage. Quand le nouveau prompt contextuel démo est activé
+  // (NEXT_PUBLIC_DEMO_CONTEXTUAL_PROMPT_ENABLED=true), l'accueil AUTOMATIQUE du tour
+  // public sur `/` est supprimé — mais uniquement l'auto-affichage sur cette route
+  // précise : le lancement manuel du tour (startTour/acceptWelcome), les tours des
+  // autres routes (/profile, /agents/pierre/use, /assistant), le stockage
+  // (shouldOfferTour/writeSnooze/readProgress) et l'accessibilité restent
+  // intégralement inchangés. Voir DEMO_CONTEXTUAL_PROMPT_SPEC.md.
   useEffect(() => {
     if (!hydrated) return;
     if (running) {
+      setWelcome(null);
+      return;
+    }
+    if (shouldSuppressHomepageAutoWelcome(pathname ?? "", isDemoContextualPromptEnabled())) {
       setWelcome(null);
       return;
     }

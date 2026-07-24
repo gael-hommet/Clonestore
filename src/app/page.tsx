@@ -28,6 +28,7 @@ import {
 
 import { LiquidGlass } from "@/components/ui/LiquidGlass";
 import { PresencePing } from "@/components/founder/PresencePing";
+import { DemoContextualPrompt } from "@/components/home/DemoContextualPrompt";
 import { FUTURE_DEPARTMENTS } from "@/lib/catalog/public-catalog";
 import { cn } from "@/lib/utils";
 
@@ -479,6 +480,7 @@ export default function HomePage() {
   return (
     <main className="cs-page clone-home-page">
       <PresencePing event="site_viewed" />
+      <DemoContextualPrompt />
       <div className="cs-page-shell clone-home-shell">
         <div className="clone-home-layout">
           <aside className={cn("clone-home-rail-wrap", railOpen && "clone-home-rail-wrap--open")}>

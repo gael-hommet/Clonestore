@@ -9,42 +9,35 @@
 // <PierreDemoExperience/>; this page also carries the SEO / legal / price frame.
 
 import Link from "next/link";
-import { ShieldCheck, FileText, Clock, Activity, ArrowRight } from "lucide-react";
+import { ShieldCheck, ArrowRight, ArrowLeft } from "lucide-react";
 import { PierreDemoExperience } from "@/components/pierre/demo/PierreDemoExperience";
+import { PierreModes } from "@/components/pierre/PierreModes";
 import "./pierre-demo.css";
 
 const SAFETY = [
   "Démonstration sécurisée — aucune action réelle envoyée",
-  "Données fictives — aucune personne ni entreprise réelle",
-  "Aucun appel IA réel, aucun email envoyé, aucune donnée modifiée",
+  "Données fictives — aucun email, aucun appel IA, aucune donnée modifiée",
   "Validation humaine obligatoire pour toute action sensible",
-];
-
-const CAPABILITY_FRAME = [
-  { Icon: Activity, label: "Comprendre la mission", text: "Une demande libre devient un plan : objectifs, tâches, échéances." },
-  { Icon: FileText, label: "Produire les livrables", text: "Documents, messages et avenants préparés — jamais envoyés seuls." },
-  { Icon: ShieldCheck, label: "Sécuriser — CloneGuard", text: "Garde-fous, validations humaines, refus hors rôle." },
-  { Icon: Clock, label: "Suivre et tracer — CloneTrace", text: "Relances planifiées et historique de chaque action." },
 ];
 
 export default function PierreDemoPage() {
   return (
     <div className="pd-root">
       <main id="demo-pierre-cockpit" data-tour-id="demo-entry" className="pd-shell">
+        {/* DEMO AND MOBILE CONVERSION CLOSURE (2026-07-24) — Phase 10 explicitly requires
+            a way back to the general demo; none existed (cartography confirmed zero link
+            from /demo/pierre back to /demo). Placed above the experience, not inside it,
+            so it never competes with the in-cockpit controls. */}
+        <Link href="/demo" className="pd-link mb-3 inline-flex items-center gap-1.5 text-[0.82rem]" style={{ color: "var(--pd-ink-3)" }}>
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+          Retour à la démo générale
+        </Link>
+
         <PierreDemoExperience />
 
-        {/* ── Capability frame (SEO + context, responsive) ────────────────── */}
-        <section className="mt-10" aria-label="Ce que Pierre fait vraiment">
-          <h2 className="pd-h2" style={{ marginBottom: 14 }}>Ce que Pierre fait vraiment</h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
-            {CAPABILITY_FRAME.map(({ Icon, label, text }) => (
-              <div key={label} className="pd-card" style={{ padding: 14, display: "grid", gap: 8 }}>
-                <span className="pd-tech__badge" aria-hidden><Icon className="h-4 w-4" aria-hidden /></span>
-                <span style={{ fontWeight: 700, color: "var(--pd-ink-1)", fontSize: "0.9rem" }}>{label}</span>
-                <span style={{ fontSize: "0.78rem", color: "var(--pd-ink-3)", lineHeight: 1.5 }}>{text}</span>
-              </div>
-            ))}
-          </div>
+        {/* ── Modes d'autonomie — vous choisissez ce que Pierre fait seul ──── */}
+        <section className="mt-10" aria-label="Modes d'autonomie de Pierre">
+          <PierreModes headingLevel="h2" />
         </section>
 
         {/* ── Footer: safety, price, legal ────────────────────────────────── */}
@@ -71,8 +64,9 @@ export default function PierreDemoPage() {
           </div>
 
           <p style={{ marginTop: 12, fontSize: "0.72rem", color: "var(--pd-ink-4)", lineHeight: 1.6 }}>
-            Démonstration illustrative. Pierre est un poste RH opérationnel : il prépare missions, documents, messages,
-            relances et trace chaque action. Il n&apos;est pas avocat, n&apos;est pas un logiciel de paie certifié, ne
+            Démonstration illustrative. Pierre est un poste RH opérationnel : il prépare missions, tâches, documents,
+            messages et relances, garde chaque action tracée par CloneTrace et gouvernée par CloneGuard. Il n&apos;est pas
+            avocat, n&apos;est pas un logiciel de paie certifié, ne
             prend aucune décision disciplinaire autonome et ne garantit pas la conformité juridique. Toute action sensible
             exige une validation humaine. Voir les{" "}
             <Link href="/legal/cgu" className="pd-link" style={{ textDecoration: "underline" }}>CGU</Link>,{" "}

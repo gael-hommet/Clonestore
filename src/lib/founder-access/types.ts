@@ -61,6 +61,11 @@ export const CLIENT_ANALYTICS_EVENTS = [
   "demo_started",
   "demo_scene_viewed",
   "demo_completed",
+  // Passage démo générale → Pierre (révélation en fin de /demo, puis fiche produit).
+  "demo_pierre_reveal_viewed", // la séquence de révélation Pierre est affichée
+  "discover_pierre_clicked", // clic « Découvrir Pierre » (démo → fiche)
+  "product_page_viewed", // affichage de la fiche produit /agents/pierre
+  "product_demo_clicked", // clic « Voir Pierre travailler » (fiche → cockpit)
   "pierre_demo_started",
   "pierre_demo_completed",
   "founder_cta_viewed",
@@ -75,6 +80,13 @@ export const CLIENT_ANALYTICS_EVENTS = [
   "founder_activation_started",
   "founder_checkout_started",
   "founder_checkout_failed",
+  // DEMO AND MOBILE CONVERSION CLOSURE (2026-07-24) — homepage contextual demo-invitation
+  // prompt (src/components/home/DemoContextualPrompt.tsx). "seen" fires on real visibility
+  // (IntersectionObserver, once), never on mount; "clicked"/"dismissed" fire on explicit
+  // interaction only. No existing event name in this enum already covers this prompt.
+  "homepage_demo_prompt_seen",
+  "homepage_demo_prompt_clicked",
+  "homepage_demo_prompt_dismissed",
 ] as const;
 export type ClientAnalyticsEvent = (typeof CLIENT_ANALYTICS_EVENTS)[number];
 

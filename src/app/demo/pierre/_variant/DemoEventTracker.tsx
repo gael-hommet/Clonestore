@@ -19,6 +19,7 @@
 
 import { useEffect, useRef } from "react";
 import { emitConversionEvent, stableEventKey } from "@/lib/clonestore/conversion/client-emitter";
+import { emitFounderEvent } from "@/lib/founder-access/funnel-events";
 
 const STEP_CAP = 12;
 const DEMO_COMPLETED_AFTER_STEPS = 5;
@@ -47,6 +48,8 @@ export function DemoEventTracker() {
         metadata: { stage: "demo" },
         sourcePage: "/demo/pierre",
       });
+      // Funnel commercial (dashboard) : début réel du cockpit Pierre.
+      emitFounderEvent("pierre_demo_started", { landingPath: "/demo/pierre" });
     }
 
     function markCompleted(reason: string) {
@@ -57,6 +60,8 @@ export function DemoEventTracker() {
         metadata: { stage: "demo", reason },
         sourcePage: "/demo/pierre",
       });
+      // Funnel commercial (dashboard) : fin réelle du cockpit Pierre.
+      emitFounderEvent("pierre_demo_completed", { landingPath: "/demo/pierre" });
     }
 
     function emitStep(label: string) {
@@ -85,6 +90,8 @@ export function DemoEventTracker() {
             metadata: { cta: cta.getAttribute("data-cta-name") ?? "" },
             sourcePage: "/demo/pierre",
           });
+          // Funnel commercial (dashboard) : clic « Réserver Pierre » depuis le cockpit.
+          emitFounderEvent("founder_cta_clicked", { source: "demo_pierre", ctaVariant: cta.getAttribute("data-cta-name") ?? "" });
         } else if (kind === "assistance") {
           emitConversionEvent("assistance_cta_clicked", {
             idempotencyKey: `assistance_cta:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 10)}`,
@@ -99,7 +106,12 @@ export function DemoEventTracker() {
       if (btn) {
         const inDemo = btn.closest(".cs-panel") || btn.closest("[data-conversion-demo-cockpit]");
         if (inDemo) {
-          const label = btn.getAttribute("data-step-id") ?? (btn.textContent ?? "").trim().slice(0, 60);
+          // DEMO AND MOBILE CONVERSION CLOSURE (2026-07-24) — closed identifier only, never
+          // free text: a button without an explicit data-step-id is simply not tracked,
+          // rather than falling back to raw textContent (which could capture arbitrary UI
+          // copy as analytics metadata). Buttons meant to be tracked already carry
+          // data-step-id (PierreDemoExperience.tsx: scenario picker, hero actions, phase rail).
+          const label = btn.getAttribute("data-step-id");
           if (label) emitStep(label);
         }
       }
