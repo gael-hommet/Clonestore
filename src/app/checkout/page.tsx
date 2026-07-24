@@ -165,6 +165,12 @@ function CheckoutFallback() {
   );
 }
 
+// LEGAL AND COMMERCIAL TRUST CLOSURE (2026-07-24) — versions of the two documents the checkout
+// acceptance checkbox below refers to; sent to the server so an acceptance record is traceable
+// to the exact contract text version, not just "the CGV" in the abstract.
+const CGV_ACCEPTANCE_VERSION = "Draft 1.0";
+const PRIVACY_ACCEPTANCE_VERSION = "Draft 1.0";
+
 function CheckoutContent() {
   const searchParams = useSearchParams();
 
@@ -174,6 +180,13 @@ function CheckoutContent() {
     searchParams.get("agent_slug")?.toLowerCase() ??
     "pierre";
   const agent = useMemo(() => AGENTS[rawSlug] ?? AGENTS.pierre, [rawSlug]);
+
+  // PAYMENT PATH CLOSURE (2026-07-24) — pays choisi sur /agents/pierre (CountryPricingCard),
+  // transmis en intention seulement : le serveur (resolvePierreCheckoutPricing) revalide
+  // toujours ce pays (entreprise vérifiée > sélection client) avant de résoudre le prix — voir
+  // /api/checkout POST. Une valeur absente/invalide laisse simplement le serveur redemander une
+  // sélection (COUNTRY_REQUIRED), jamais un repli silencieux vers un pays différent.
+  const rawCountry = searchParams.get("country")?.toUpperCase() ?? null;
 
   // ── Session state ────────────────────────────────────────────
   const [sessionChecked, setSessionChecked] = useState(false);
@@ -186,6 +199,7 @@ function CheckoutContent() {
   // ── Checkout state ───────────────────────────────────────────
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cgvAccepted, setCgvAccepted] = useState(false);
 
   // ── On mount: check session then proactively check access ────
   useEffect(() => {
@@ -233,6 +247,11 @@ function CheckoutContent() {
       return;
     }
 
+    if (!cgvAccepted) {
+      setError("Merci d'accepter les CGV et la politique de confidentialité avant de continuer.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -247,7 +266,15 @@ function CheckoutContent() {
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers,
-        body: JSON.stringify({ agent_slug: agent.slug }),
+        body: JSON.stringify({
+          agent_slug: agent.slug,
+          ...(rawCountry ? { country: rawCountry } : {}),
+          legal_acceptance: {
+            cgv_version: CGV_ACCEPTANCE_VERSION,
+            privacy_version: PRIVACY_ACCEPTANCE_VERSION,
+            accepted_at: new Date().toISOString(),
+          },
+        }),
       });
 
       const data = (await response.json().catch(() => null)) as Record<
@@ -262,7 +289,12 @@ function CheckoutContent() {
         return;
       }
 
-      if (!response.ok) {
+      // La garde pays (resolvePierreCheckoutPricing) répond parfois 200 avec ok:false (ex.
+      // COUNTRY_REQUIRED, CH_REQUIRES_CHF_PRICE, *_COUNTRY_CONFLICT) — un statut HTTP "ok" ne
+      // suffit donc pas à conclure au succès ; il faut aussi vérifier data.ok explicitement,
+      // sinon le message de garde (ex. "Votre pays de facturation indique la Suisse…") est
+      // perdu au profit d'un "Aucune URL de paiement n'a été renvoyée" générique et trompeur.
+      if (!response.ok || data?.ok === false) {
         const code = typeof data?.code === "string" ? data.code : null;
         const rawError = typeof data?.error === "string" ? data.error : null;
 
@@ -392,10 +424,11 @@ function CheckoutContent() {
       <button
         type="button"
         onClick={() => { void handleCheckout(); }}
-        disabled={isLoading}
+        disabled={isLoading || !cgvAccepted}
+        aria-disabled={isLoading || !cgvAccepted}
         className={cn(
           "clone-liquid-button clone-liquid-button--dark min-h-12 w-full",
-          isLoading && "pointer-events-none opacity-75",
+          (isLoading || !cgvAccepted) && "pointer-events-none opacity-75",
         )}
       >
         {isLoading ? (
@@ -567,19 +600,38 @@ function CheckoutContent() {
                     </LiquidGlass>
                   ) : null}
 
-                  {renderAction()}
+                  {sessionChecked && !statusLoading && sessionToken && agent.available && !alreadyActive ? (
+                    <label className="flex items-start gap-2.5 text-xs leading-5 text-[var(--cs-ink-4)]">
+                      <input
+                        type="checkbox"
+                        checked={cgvAccepted}
+                        onChange={(event) => setCgvAccepted(event.target.checked)}
+                        className="mt-0.5 h-4 w-4 shrink-0 accent-[#6f83ff]"
+                        data-testid="checkout-legal-accept"
+                      />
+                      <span>
+                        J&apos;accepte les{" "}
+                        <Link
+                          href="/legal/cgv"
+                          target="_blank"
+                          className="underline hover:text-[var(--cs-ink-2)]"
+                        >
+                          CGV
+                        </Link>{" "}
+                        et la{" "}
+                        <Link
+                          href="/legal/confidentialite"
+                          target="_blank"
+                          className="underline hover:text-[var(--cs-ink-2)]"
+                        >
+                          politique de confidentialité
+                        </Link>
+                        .
+                      </span>
+                    </label>
+                  ) : null}
 
-                  <p className="text-center text-xs leading-5 text-[var(--cs-ink-4)]">
-                    En continuant, vous acceptez les{" "}
-                    <Link href="/legal/cgv" className="underline hover:text-[var(--cs-ink-2)]">
-                      CGV
-                    </Link>{" "}
-                    et la{" "}
-                    <Link href="/legal/confidentialite" className="underline hover:text-[var(--cs-ink-2)]">
-                      politique de confidentialité
-                    </Link>
-                    .
-                  </p>
+                  {renderAction()}
                 </div>
               </LiquidGlass>
             </div>

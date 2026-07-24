@@ -36,7 +36,7 @@ import { bridgePartnerCommercial } from "@/lib/partner-program/server/stripe-bri
 // P15 §4 — billing-country reconciliation gate (ADDITIVE, flag-gated STRIPE_COUNTRY_RECONCILIATION_ENABLED).
 // Flag OFF (default) → zero behavior change (activation identical, audit logged). Flag ON → a hard country
 // conflict does NOT activate paid access (order written with a review status instead of active).
-import { extractCountrySignalsFromSession, evaluateCheckoutReconciliationGate } from "@/lib/clonestore/production/p15-checkout-reconciliation-gate";
+import { extractCountrySignalsFromSession, evaluateCheckoutReconciliationGate, isCheckoutReconciliationEnabled } from "@/lib/clonestore/production/p15-checkout-reconciliation-gate";
 // Extracteurs tolérants à la version d'API Stripe. Depuis « Basil », Invoice.subscription et
 // Subscription.current_period_end n'existent plus : lus en brut, ils renvoyaient toujours null.
 import { extractInvoiceSubscriptionId, extractSubscriptionCurrentPeriodEnd } from "@/lib/billing/stripe-event-fields";
@@ -91,9 +91,9 @@ async function fetchCustomerBillingCountry(stripe: Stripe, customerId: string | 
 // P15 — Réconcilie l'activation d'un event subscription.* : renvoie le statut à écrire (grantedStatus si
 // autorisé, sinon un statut de revue). Flag OFF → grantedStatus (comportement inchangé) + audit loggé.
 async function reconcileSubscriptionStatus(stripe: Stripe, obj: Record<string, unknown>, customerId: string | null, grantedStatus: string): Promise<string> {
-  // Flag OFF (défaut) → court-circuit : aucun appel Stripe supplémentaire, aucun log, statut inchangé.
-  const f = (process.env.STRIPE_COUNTRY_RECONCILIATION_ENABLED ?? "").trim().toLowerCase();
-  if (!["true", "1", "on", "enabled"].includes(f)) return grantedStatus;
+  // Révélé par défaut (isCheckoutReconciliationEnabled, même source que le gate checkout.session.completed
+  // ci-dessous) — seul un arrêt d'urgence explicite court-circuite ici sans appel Stripe supplémentaire.
+  if (!isCheckoutReconciliationEnabled()) return grantedStatus;
   const meta = getMetadata(obj) ?? {};
   const billing = await fetchCustomerBillingCountry(stripe, customerId);
   const currency = getString(obj, "currency") ?? (typeof meta["expected_currency"] === "string" ? meta["expected_currency"] : null);

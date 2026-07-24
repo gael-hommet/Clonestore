@@ -1,11 +1,19 @@
 // src/lib/clonestore/pricing/pricing-flags.ts
-// P10 — flags de la tarification par pays. Le comportement country-aware du checkout est
-// OPT-IN (désactivé par défaut) pour ne PAS casser le chemin de prix unique existant
-// (STRIPE_PRICE_PIERRE) ni les tests founder/go-live. Activé via STRIPE_COUNTRY_PRICING_ENABLED.
+// P10 → PAYMENT PATH CLOSURE (2026-07-24) — la tarification par pays est désormais RÉVÉLÉE PAR
+// DÉFAUT, même pattern que CloneChat (C1.2, isCloneChatEnabled) : une variable absente ou vide
+// active la fonctionnalité ; seul un arrêt d'urgence EXPLICITE (STRIPE_COUNTRY_PRICING_ENABLED=
+// false|0|off|disabled|no) la coupe. Justification : « aucune autre combinaison n'est valide »
+// (FR/BE/LU=449€, CH=499CHF) est désormais le contrat canonique du paiement Pierre, pas une
+// fonctionnalité optionnelle — le chemin prix unique (STRIPE_PRICE_PIERRE, EUR uniquement, aucune
+// validation pays) ne doit plus être le comportement par défaut. Le guard reste fail-closed
+// (checkout-country-guard.ts) : rien n'est jamais activé sans country_pricing_config réel.
 
-import { readEnvFlag } from "@/lib/features/product-availability";
+const EMERGENCY_OFF_VALUES = new Set(["false", "0", "off", "disabled", "no"]);
 
-/** La tarification par pays (résolution + guard checkout country-aware) est-elle active ? */
+/** La tarification par pays (résolution + guard checkout country-aware) est-elle active ?
+ *  Révélée par défaut — seul un arrêt d'urgence explicite la désactive. */
 export function isCountryPricingEnabled(): boolean {
-  return readEnvFlag("STRIPE_COUNTRY_PRICING_ENABLED");
+  const raw = process.env.STRIPE_COUNTRY_PRICING_ENABLED;
+  if (typeof raw !== "string" || raw.trim() === "") return true;
+  return !EMERGENCY_OFF_VALUES.has(raw.trim().toLowerCase());
 }

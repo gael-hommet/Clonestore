@@ -63,6 +63,10 @@ function makeDeps(): StripeWebhookDeps {
 beforeAll(() => {
   process.env.STRIPE_SECRET_KEY = "sk_test_orders_ledger";
   process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+  // Ce fichier teste l'anti-replay/l'ordre monotone du ledger, pas la réconciliation pays
+  // (révélée par défaut depuis PAYMENT PATH CLOSURE) — désactivation explicite pour isoler le
+  // comportement testé (ces fixtures n'ont pas de signal de facturation).
+  process.env.STRIPE_COUNTRY_RECONCILIATION_ENABLED = "false";
 });
 afterAll(() => { __setStripeWebhookDepsForTests(null); });
 

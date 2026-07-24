@@ -11,7 +11,21 @@
 import { reconcileStripeCountry, type ReconciliationDecision, type ReconciliationInput } from "./p11-stripe-country-reconciliation";
 import { normalizeCountry, isSupportedLaunchCountry, currencyForCountry } from "@/lib/clonestore/pricing/country-pricing";
 
-const flagOn = (v: string | undefined): boolean => { const s = (v ?? "").trim().toLowerCase(); return s === "true" || s === "1" || s === "on" || s === "enabled"; };
+// PAYMENT PATH CLOSURE (2026-07-24) — révélé par défaut (même pattern que
+// isCountryPricingEnabled) : une variable absente/vide active la réconciliation ; seul un arrêt
+// d'urgence explicite la coupe. Un conflit pays/devise fort ne doit plus pouvoir activer un accès
+// payant silencieusement par défaut.
+const EMERGENCY_OFF_VALUES = new Set(["false", "0", "off", "disabled", "no"]);
+const flagOn = (v: string | undefined): boolean => {
+  if (typeof v !== "string" || v.trim() === "") return true;
+  return !EMERGENCY_OFF_VALUES.has(v.trim().toLowerCase());
+};
+
+/** Source unique du flag STRIPE_COUNTRY_RECONCILIATION_ENABLED — réutilisée par le webhook
+ *  Stripe (reconcileSubscriptionStatus) pour éviter une seconde logique de flag divergente. */
+export function isCheckoutReconciliationEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  return flagOn(env.STRIPE_COUNTRY_RECONCILIATION_ENABLED);
+}
 
 /** Extrait les signaux pays d'un objet checkout.session.completed (best-effort, sans throw). */
 export function extractCountrySignalsFromSession(session: Record<string, unknown>): {

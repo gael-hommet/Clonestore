@@ -6,6 +6,7 @@
 // entier », aucune promesse fiscale/TVA. Mobile-safe (pas de débordement horizontal).
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface PublicPricing {
@@ -21,9 +22,17 @@ interface PublicPricing {
 }
 
 export function CountryPricingCard({ className }: { className?: string }) {
+  const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
   const [data, setData] = useState<PublicPricing | null>(null);
   const [loading, setLoading] = useState(true);
+  // PAYMENT PATH CLOSURE (2026-07-24) — CTA_SUISSE_MORT (audit ISSUE-02) : ce bouton n'avait
+  // aucun gestionnaire de clic. Un visiteur suisse sélectionnant CH voyait un CTA actif « 499
+  // CHF/mois » sans aucun effet au clic. `navigating` protège contre le double-clic pendant la
+  // navigation vers /checkout (le pays exact reste porté dans l'URL — jamais de bascule EUR
+  // silencieuse : le serveur revalide toujours ce pays dans /api/checkout).
+  const [navigating, setNavigating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async (country: string | null) => {
     setLoading(true);
@@ -44,6 +53,26 @@ export function CountryPricingCard({ className }: { className?: string }) {
   const needsSelection = data?.requiresCountrySelection ?? true;
   const price = data?.price ?? null;
   const canCheckout = !!price && !needsSelection && (data?.supported ?? false);
+
+  const handleChoosePierre = useCallback(() => {
+    if (navigating) return; // anti double-clic
+    if (!canCheckout || !data?.resolvedCountry) {
+      setError("Sélectionnez votre pays de facturation avant de continuer.");
+      return;
+    }
+    setError(null);
+    setNavigating(true);
+    try {
+      // Le pays choisi voyage dans l'URL vers /checkout, qui le transmet à /api/checkout — le
+      // serveur reste seul autoritatif (re-résolution + garde pays/devise, jamais de confiance
+      // au client). CH ne peut jamais atterrir silencieusement sur l'offre EUR : si la
+      // re-résolution serveur diverge, /checkout affiche l'erreur retournée, il ne bascule jamais.
+      router.push(`/checkout?agent=pierre&country=${encodeURIComponent(data.resolvedCountry)}`);
+    } catch {
+      setNavigating(false);
+      setError("Impossible de continuer vers le paiement pour le moment. Réessayez.");
+    }
+  }, [canCheckout, navigating, data?.resolvedCountry, router]);
 
   return (
     <section
@@ -119,12 +148,22 @@ export function CountryPricingCard({ className }: { className?: string }) {
         <div className="flex flex-col gap-2">
           <button
             type="button"
-            disabled={!canCheckout}
+            onClick={handleChoosePierre}
+            disabled={!canCheckout || navigating}
+            aria-busy={navigating}
             data-testid="pricing-cta"
-            className={cn("cs-liquid-button cs-liquid-button--primary w-full justify-center", !canCheckout && "pointer-events-none opacity-50")}
+            className={cn(
+              "cs-liquid-button cs-liquid-button--primary w-full justify-center",
+              (!canCheckout || navigating) && "pointer-events-none opacity-50",
+            )}
           >
-            {canCheckout ? `Choisir Pierre — ${price?.display}` : "Sélectionnez votre pays"}
+            {navigating ? "Redirection…" : canCheckout ? `Choisir Pierre — ${price?.display}` : "Sélectionnez votre pays"}
           </button>
+          {error ? (
+            <p className="text-[0.78rem] text-[var(--cs-danger)]" data-testid="pricing-cta-error" role="alert">
+              {error}
+            </p>
+          ) : null}
           <p className="text-[0.72rem] leading-5 text-[var(--cs-ink-4)]">
             Prix HT, hors taxes applicables. Le pays de facturation est revérifié au paiement.
           </p>

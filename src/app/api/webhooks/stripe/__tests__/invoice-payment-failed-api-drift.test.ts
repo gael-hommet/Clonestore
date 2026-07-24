@@ -28,6 +28,10 @@ const deps: StripeWebhookDeps = {
 beforeAll(() => {
   process.env.STRIPE_SECRET_KEY = "sk_test_api_drift";
   process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+  // Ce fichier teste l'extraction current_period_end (drift API Stripe), pas la réconciliation
+  // pays (révélée par défaut depuis PAYMENT PATH CLOSURE) — désactivation explicite pour isoler
+  // le comportement testé (ces fixtures n'ont pas de signal de facturation).
+  process.env.STRIPE_COUNTRY_RECONCILIATION_ENABLED = "false";
   __setStripeWebhookDepsForTests(deps);
 });
 
