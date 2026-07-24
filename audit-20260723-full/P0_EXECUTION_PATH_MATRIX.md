@@ -1,0 +1,28 @@
+# P0 — Matrice des chemins d'exécution Pierre (avant / après)
+
+Cartographie exhaustive des chemins capables de déclencher une action réelle de Pierre (email, document, HRIS, mission/tâche), établie par lecture directe du code (pas de graphify pour les chemins de route — le graphe de symboles n'indexe pas les chemins de dossier ; confirmé sur les deux audits successifs). Colonnes : gouvernance canonique appliquée, validation humaine (`allowed_to_auto_execute`), isolation tenant, traçabilité (audit/CloneTrace), idempotence, provider externe atteignable.
+
+## AVANT ce correctif
+
+| Chemin | Action | Moteur | CloneGuard | Approval | Tenant | Trace | Idempotence | Provider externe | Statut |
+|---|---|---|---|---|---|---|---|---|---|
+| `/api/pierre/execute` (POST) | `email.send` | Aucun — Make direct | ❌ Absent (0 occurrence) | ❌ Aucune | ⚠️ HMAC + `client_id` externe, pas de scope tenant Supabase | ⚠️ `audit_log` best-effort seulement | ⚠️ best-effort (`request_id`) | ✅ `MAKE_EMAIL_WEBHOOK_URL` — **atteignable directement** | **P0 confirmé** |
+| `/api/pierre/execute` (POST) | `doc.generate` | Aucun — Make direct | ❌ Absent | ❌ Aucune | ⚠️ idem | ⚠️ idem | ⚠️ idem | ✅ `MAKE_DOC_WEBHOOK_URL` — **atteignable directement** | **P0 confirmé** |
+| `/api/pierre/execute` (POST) | `hris.sync` | Aucun — Make direct | ❌ Absent | ❌ Aucune | ⚠️ idem | ⚠️ idem | ⚠️ idem | ✅ `MAKE_INTEGRATIONS_WEBHOOK_URL` — **atteignable directement** | **P0 confirmé** |
+| `/api/pierre/tick` (GET, cron) | relaie vers `/api/pierre/execute` | — | hérite du chemin ci-dessus | hérite | HMAC signé par tick lui-même | `pierre_queue` (attempts/dead) | oui (verrouillage `lock_token`) | hérite | Réel mais **inerte** : aucun producteur n'alimente `pierre_queue` (voir preuve ci-dessous) |
+| `src/lib/pierre/tasks/execute-task.ts` (`executePierreTaskWithPersistence`) | mission/tâche canonique | v1/hr | ✅ `evaluatePierreCloneGuard` | ✅ `evaluateGovernance` + gate `allowed_to_auto_execute` | ✅ `user_id`+`agent_slug` scoping avant tout insert | ✅ `pierre_task_logs` | ✅ (statuts `NON_EXECUTABLE_STATUSES`) | Aucun — persistance locale uniquement | **Référence canonique — non modifiée** |
+
+## APRÈS ce correctif
+
+| Chemin | Action | Moteur | CloneGuard | Approval | Tenant | Trace | Idempotence | Provider externe | Statut |
+|---|---|---|---|---|---|---|---|---|---|
+| `/api/pierre/execute` (POST) | `email.send` | `evaluateLegacyExecuteGovernance` → mêmes évaluateurs purs que le moteur v1/hr | ✅ `evaluatePierreCloneGuard` (règle `email_send_block`, `can_override:false`, forçage non-contournable) | ✅ `evaluateGovernance` — **DENY garanti**, jamais atteint en exécution | inchangé (HMAC + `assertPierreAccess`) | ✅ `audit_log` enrichi (decision + guard_decision + governance_decision + risk_level) | inchangé | ❌ **Aucun** — le code d'appel Make a été retiré du fichier | **Fermé — DENY prouvé par test** |
+| `/api/pierre/execute` (POST) | `doc.generate` | idem | ✅ règle `doc_generate_warn` (allow_with_warning) | ✅ `evaluateGovernance` — **REQUIRE_APPROVAL en pratique** (CloneTrust retombe sur "supervised", 40/100, faute de score de confiance réel — prouvé par test) | inchangé | ✅ idem | inchangé + branche ALLOW conserve l'idempotence existante | ❌ **Aucun** — publication externe retirée ; branche ALLOW (si jamais atteinte) persiste un brouillon **local** uniquement (`documents`, `doc_url:null`) | **Fermé — REQUIRE_APPROVAL prouvé par test, aucun appel réseau possible dans aucun cas** |
+| `/api/pierre/execute` (POST) | `hris.sync` | idem | ✅ **nouvelle règle** `integration_sync_require` (additive, `hr/cloneguard.ts`) | ✅ **REQUIRE_APPROVAL garanti** (aucune règle ne couvrait ce type avant ce correctif — il retombait sur `unknown_action` → `allow` par défaut) | inchangé | ✅ idem | inchangé | ❌ **Aucun** — le code d'appel Make a été retiré | **Fermé — gap de couverture CloneGuard comblé, REQUIRE_APPROVAL prouvé par test** |
+| `/api/pierre/tick` (GET, cron) | relaie vers `/api/pierre/execute` | — | hérite du chemin ci-dessus (désormais gouverné) | hérite | inchangé | inchangé | inchangé | hérite (donc plus aucun effet externe non plus, transitivement) | **Fermé transitivement, non modifié directement** |
+| `/api/pierre/action`, `/api/router` | actions similaires (email/doc/HRIS via d'autres webhooks Make) | Aucun — confirmé 0 référence CloneGuard/gouvernance dans les deux fichiers | ❌ Absent | ❌ Aucune | Non vérifié en détail (hors périmètre) | Non vérifié | Non vérifié | ✅ Potentiellement atteignable | **HORS PÉRIMÈTRE de ce bloc — voir P0_REMAINING_GOVERNANCE_RISKS.md** |
+| `src/lib/pierre/tasks/execute-task.ts` | mission/tâche canonique | v1/hr | ✅ inchangé | ✅ inchangé | ✅ inchangé | ✅ inchangé | ✅ inchangé | Aucun | **Non modifié — non-régression prouvée (5389 tests verts sous `src/lib/pierre/`)** |
+
+## Preuve : `/api/pierre/tick` n'a aucun producteur réel
+
+`grep -r "pierre_queue" src/` (hors tests) ne retourne que 2 fichiers : `src/app/api/pierre/tick/route.ts` (consommateur) et un test RLS. **Aucun fichier n'insère dans `pierre_queue`.** L'endpoint `/api/pierre/enqueue`, documenté dans `src/app/api/pierre/route.ts` (page d'index), **n'existe pas** sur le disque (`ls src/app/api/pierre/` ne contient aucun dossier `enqueue`). Conséquence : `tick` ne traite aujourd'hui jamais aucune tâche réelle en pratique — mais la route `/api/pierre/execute` elle-même reste un point d'entrée HTTP valide et signable indépendamment de `tick` (scripts `scripts/pierre-send.mjs`, `scripts/pierre_test_hmac.mjs`, ou tout appelant externe disposant du secret HMAC), d'où la décision de ne PAS la supprimer (Option B, adaptateur fin) plutôt que de la neutraliser (Option A).

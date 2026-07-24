@@ -1,0 +1,33 @@
+P0.1 — Recherche exhaustive des appelants et des références Make (src/ uniquement, .next-*/exports exclus)
+=============================================================================================================
+
+Motif : /api/pierre/execute|/api/pierre/action|/api/pierre/run|/api/router (src/ uniquement)
+Fichiers source réels (hors tests, hors docs) :
+  src/app/api/pierre/run/route.ts           <- appelant interne réel (boucle generate->execute)
+  src/app/api/pierre/execute/route.ts       <- cible de ce bloc
+  src/app/api/router/route.ts               <- P0.2, neutralisée 410
+  src/app/api/pierre/action/route.ts        <- P0.2, gouvernée
+  src/lib/pierre/legacy-execute-governance.ts
+  src/lib/pierre/hr/cloneguard.ts
+  src/lib/clonestore/runtime-integration/__tests__/controlled-mission-safe-apply-phase5-1.test.ts (référence indirecte)
+  src/lib/clonestore/runtime-integration/__tests__/controlled-mission-local-review-phase5-2.test.ts (référence indirecte)
+  src/lib/pierre/security/pierre-route-policy.ts (politique déclarative d'accès, PAS un mécanisme de gouvernance)
+  src/app/api/pierre/route.ts
+  src/app/api/pierre/tick/route.ts          <- appelant interne réel (déclencheur cron -> execute)
+
+docs/OPS_AUTONOMIE_PIERRE.md (ligne 5) :
+  "tick -> prend les tâches queued arrivées à échéance, lock, appelle /api/pierre/execute"
+
+Motif : MAKE_EMAIL_WEBHOOK_URL|MAKE_DOC_WEBHOOK_URL|MAKE_INTEGRATIONS_WEBHOOK_URL (src/ uniquement)
+AVANT correctif : src/app/api/pierre/execute/route.ts (seul fichier source vivant)
+APRÈS correctif : AUCUN fichier source vivant (grep global re-exécuté après édition — 0 résultat
+  hors rapports d'audit qui citent ces noms de variables à titre historique/documentaire)
+
+Motif : callMake|tryInsertDocument|safeParseJsonString|EmailSendSchema|DocGenerateSchema|HrisSyncSchema|withRequestId (src/ entier)
+AVANT correctif : uniquement src/app/api/pierre/execute/route.ts
+APRÈS correctif : 0 résultat dans tout src/ — confirmé supprimé sans laisser de référence orpheline
+  ailleurs (aucun autre fichier n'importait ces symboles).
+
+CONCLUSION : /api/pierre/execute a 2 appelants internes réels (tick, run) — pas seulement un
+appelant hypothétique externe. La gouvernance restaurée protège donc un trafic réellement généré
+par le système de file d'attente Pierre lui-même, pas seulement un scénario théorique.

@@ -1,0 +1,35 @@
+PAYMENT PATH CLOSURE — preuve Stripe TEST reelle (2026-07-24)
+================================================================
+Script exécuté via le SDK Stripe officiel, clé sk_test_ (mode test confirmé, refus
+programmatique si la clé n'est pas sk_test_). Crée un vrai Customer + une vraie Checkout
+Session en mode test pour FR (EUR) et CH (CHF), vérifie le prix réel via l'API, puis
+expire la session et archive le customer (réversible, aucune trace active laissée).
+
+=== France — EUR 449 ===
+customer: cus_UwXr8G0bnpRpzL (livemode=false)
+session: cs_test_a1rPN9S15nk403EzNouZb6O6ICpCWnRiFIdIxBtYo1HGtUg6RXERxNH9Av (livemode=false, status=open)
+session currency: eur
+session mode: subscription
+price verified: id=price_1TaFzx... amount=44900 currency=eur -> OK
+metadata.selected_country: FR
+checkout url present: true
+
+=== Suisse — CHF 499 ===
+customer: cus_UwXrvTii1rSbWf (livemode=false)
+session: cs_test_a1SZzu3C0wsV5CTxYxq1pScCj6ZWsd8I6jXXZn0UKfRMFzNZMJT36AE9Qs (livemode=false, status=open)
+session currency: chf
+session mode: subscription
+price verified: id=price_1TwVJo... amount=49900 currency=chf -> OK
+metadata.selected_country: CH
+checkout url present: true
+
+=== VERDICT ===
+FR session created + price verified: PASS
+CH session created + price verified: PASS
+Both test customers archived, both sessions expired (test mode, reversible, no real charge).
+
+Note : ce script a appelé Stripe directement (mêmes appels que /api/checkout) pour éviter
+toute écriture dans la base Supabase PARTAGÉE avec l'environnement public (cf. contrainte de
+sécurité du bloc). La preuve du webhook -> activation -> idempotence est apportée séparément
+par des tests d'intégration avec Supabase mocké (payment-path-country-reconciliation.test.ts),
+exactement comme en P0.1/P0.2.

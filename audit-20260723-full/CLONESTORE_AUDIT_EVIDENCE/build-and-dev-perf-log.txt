@@ -1,0 +1,90 @@
+PREUVE — next build (OOM) et temps de compilation next dev
+=============================================================
+
+1) next build — CRASH OOM (première tentative, sous charge concurrente élevée :
+   11 agents d'audit + ESLint + dev server tournaient simultanément)
+
+Commande : NEXT_DIST_DIR=.next-audit NODE_OPTIONS=--max-old-space-size=8192 npx next build
+
+   ▲ Next.js 15.5.9
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings in 67s
+memory allocation of 736763735 bytes failed
+Next.js build worker exited with code: 3221226505 and signal: null
+
+NOTE : ce crash a eu lieu sous une charge concurrente créée par l'audit lui-même
+(pas représentatif d'un environnement de build normal isolé). À re-tester en
+isolation avant certification finale — non refait dans le temps imparti de cette
+session.
+
+2) next dev — temps de première compilation observés (mode développement, PAS
+   représentatif de la production qui sert des bundles pré-construits) :
+
+ ○ Compiling / ...
+ ✓ Compiled / in 1908.2s (1601 modules)          <- ~32 minutes, sous charge lourde
+ GET / 200 in 15778ms
+ GET / 200 in 1138452ms
+ ...
+ ✓ Compiled /paiement in 86.3s (2039 modules)
+ GET /paiement 200 in 52048ms
+ ⨯ SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>) {
+  page: '/paiement'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 72s (2359 modules)
+ GET /paiement 500 in 37712ms          <- 500 REPRODUIT EN DIRECT
+ GET /paiement 200 in 2663ms            <- résolu au rechargement suivant
+
+Pré-chauffage via curl direct (contourne le timeout 60s de l'outil navigateur) :
+  /            : 2849.18s total (47m31s) au premier accès
+  /demo        : 195.17s
+  /agents/pierre: 174.11s
+  /paiement    : 167.48s
+
+CONCLUSION (initiale) : l'environnement de dev local est extrêmement sensible à la
+charge concurrente. Les temps ci-dessus documentent la fragilité du mode
+développement sous charge, PAS l'expérience utilisateur de production.
+
+================================================================================
+3) next build — 2e TENTATIVE EN ISOLATION (après fin du workflow/lint) : SUCCÈS
+================================================================================
+
+Commande : NEXT_DIST_DIR=.next-audit-clean NODE_OPTIONS=--max-old-space-size=8192 npx next build
+
+ ⚠ Compiled with warnings in 3.5s     <- contre 67s->crash la 1ère fois : preuve
+                                          directe que la contention était la cause
+ Checking validity of types ...
+ Collecting page data ...
+ Generating static pages (0/196) ...
+ Generating static pages (49/196)
+ Generating static pages (98/196)
+ Generating static pages (147/196)
+ ✓ Generating static pages (196/196)
+ Finalizing page optimization ...
+ Collecting build traces ...
+[manifeste complet de routes produit : 71 pages + 319 API confirmées, dont
+ /agents/pierre, /checkout, /demo (59.4kB/246kB First Load JS), /paiement,
+ /partenaires, /legal/*, /test-pierre (noindex), /healt (noindex) — tous présents]
+
+ ✓ Compiled successfully in 177.0min   <- durée non fiable : une interruption de
+                                           session (redémarrage du processus hôte,
+                                           hors contrôle de cet audit) a eu lieu
+                                           pendant la mesure. Le FAIT fiable est
+                                           le succès sans erreur, pas la durée.
+
+CONCLUSION RÉVISÉE : l'OOM de la tentative #1 était un artefact de la charge
+concurrente créée par l'audit (11 agents + lint + dev server simultanés), PAS un
+défaut structurel du build. En isolation, le build réussit intégralement.
+
+================================================================================
+4) Vérification HTTP complémentaire (Playwright MCP déconnecté en cours de
+   session — plus d'automatisation navigateur disponible pour la suite)
+================================================================================
+
+curl -D - sur 6 routes + 1 route 404 aléatoire (voir CLONESTORE_TECHNICAL_AUDIT.md
+§9bis pour le tableau complet) : les 6 routes retournent 200 avec un corps HTML
+substantiel (33-142 Ko) ; la route inconnue retourne un vrai **404 personnalisé**
+("Page introuvable — CloneStore"), pas un crash. Rendu visuel réel, console JS,
+et interactions (clic, resize mobile) NON TESTÉS au-delà de ce point faute
+d'outillage navigateur disponible.

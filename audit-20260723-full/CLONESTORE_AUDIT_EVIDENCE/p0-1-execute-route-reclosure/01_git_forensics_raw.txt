@@ -1,0 +1,55 @@
+P0.1 — Preuve forensique brute (isomorphic-git, git.exe bloqué au niveau OS)
+==============================================================================
+
+MÉTHODE A — hash de contenu (SHA-256, tronqué à 16 car.) par commit, log 61 commits profondeur
+(8b0b5c5f7 2026-05-24 -> 0b3d79e61 2026-07-24), n'affiche que les changements (marche
+oldest->newest) :
+
+--- src/app/api/pierre/execute/route.ts ---
+  8b0b5c5f7 content-hash=29de4b8129612181  (B34 files and document intake layer)
+  bea7a7dd1 content-hash=f91739f154dbfdc7  (fix(build): defer API runtime environment initialization)
+  0b3d79e61 content-hash=e4496b84c019736e  (fix(build): isolate lazy API runtime initialization)
+
+--- src/lib/pierre/legacy-execute-governance.ts ---
+  8b0b5c5f7 content-hash=<absent>  (B34 files and document intake layer)
+  [<absent> à tous les 61 commits vérifiés — jamais commité]
+
+--- src/app/api/pierre/execute/__tests__/p0-governance-closure.test.ts ---
+  8b0b5c5f7 content-hash=<absent>  (B34 files and document intake layer)
+  [<absent> à tous les 61 commits vérifiés — jamais commité]
+
+CONCLUSION MÉTHODE A : le contenu committé de execute/route.ts n'a JAMAIS contenu de
+gouvernance, à aucun des 61 commits vérifiés (2026-05-24 -> 2026-07-24) — seul le refactor
+lazy-init externe (bea7a7dd1, 0b3d79e61) a changé son contenu committé, deux fois, sans
+jamais y introduire de gouvernance.
+
+MÉTHODE B — git.status par fichier + mtime réelle sur disque (2026-07-24, avant correctif de
+ce bloc) :
+
+src/lib/pierre/hr/cloneguard.ts
+  git status: *modified  |  mtime: 23/07/2026 19:19:25  |  on disk: true
+src/lib/pierre/legacy-execute-governance.ts
+  git status: *added  |  mtime: 23/07/2026 19:25:59  |  on disk: true
+src/lib/pierre/__tests__/legacy-execute-governance.test.ts
+  git status: *added  |  mtime: 23/07/2026 19:30:51  |  on disk: true
+src/app/api/pierre/execute/__tests__/p0-governance-closure.test.ts
+  git status: *added  |  mtime: 23/07/2026 19:34:27  |  on disk: true
+src/app/api/pierre/action/route.ts (P0.2)
+  git status: *modified  |  mtime: 23/07/2026 22:00:19  |  on disk: true
+src/app/api/router/route.ts (P0.2)
+  git status: *modified  |  mtime: 23/07/2026 22:01:44  |  on disk: true
+src/app/api/pierre/execute/route.ts (P0.1 — L'ANOMALIE)
+  git status: unmodified  |  mtime: 24/07/2026 16:44:32  |  on disk: true
+
+CONCLUSION MÉTHODE B : les 6 autres artefacts de la session du 23/07 (19h19-22h02) sont
+restés intacts, non commités, jamais modifiés depuis (mtime inchangée). Seul execute/route.ts
+a une mtime qui saute au lendemain (24/07 16:44:32), précisément dans la fenêtre déjà
+attribuée aux commits externes concurrents de refactor lazy-init dans
+demo-mobile-conversion-closure/phase-b-external-commit-review.md et 00_BASELINE.md de ce bloc.
+
+git status "unmodified" signifie : le contenu sur disque est actuellement IDENTIQUE au dernier
+commit réel (0b3d79e61) — c'est-à-dire qu'au début de ce bloc, route.ts ne contenait AUCUNE
+trace de gouvernance, malgré une mtime du lendemain de la clôture historique annoncée.
+
+CLASSIFICATION RETENUE : GOVERNED_VERSION_EXISTED_AND_WAS_OVERWRITTEN
+(détail du raisonnement complet dans P0_1_GIT_FORENSIC_TIMELINE.md)

@@ -1,0 +1,54 @@
+BUILD FINAL VERIFICATION — Demo and Mobile Conversion Closure
+Recorded 2026-07-24
+
+Attempt 1 (task bpiafvmny): FAILED. Compiled successfully in 4.5s, then the Next.js build
+worker exited with code 4294967295 (0xFFFFFFFF) and signal null, before "Checking validity
+of types" ever printed — no TypeScript error, no applicative stack trace, no explicit OOM
+message this time. REAL_EXIT_CODE=127 (shell-reported, from the background wrapper, not the
+worker's own code). Post-failure check: HEAD unchanged, ~8.7GB free memory, no orphaned heavy
+node process — clean environment, no obvious cause. Classified at the time as an
+unexplained, opaque worker crash.
+
+Attempt 2 (task b936wejbv), single retry per the "no automatic third attempt" rule:
+NEXT_DIST_DIR=.next-demo-mobile-closure NODE_OPTIONS="--max-old-space-size=6144" npx next build
+
+RESULT: SUCCESS.
+- Compiled successfully in 11.5s (compile phase, fast, consistent across all 3 attempts today)
+- Full build completed in 36.7min (slow but a genuine completed pass, not a crash)
+- REAL_EXIT_CODE=0
+- BUILD_ID: k8CJnDblN6dLdp3lKOy4r
+- Static generation: 196/196 pages ("✓ Generating static pages (196/196)")
+
+Routes verified present in the build manifest (all 12 required):
+  /                                    ✓ (○ static, 12.7 kB)
+  /demo                                ✓ (○ static, 59.4 kB)
+  /demo/pierre                         ✓ (ƒ dynamic, 23.8 kB)
+  /agents/pierre                       ✓ (○ static, 3.46 kB)
+  /reserver/pierre                     ✓ (ƒ dynamic, 6.33 kB)
+  /checkout                            ✓ (○ static, 7.41 kB)
+  /api/founder-access/funnel           ✓ (ƒ dynamic)
+  /api/founder-access/presence         ✓ (ƒ dynamic)
+  /api/conversion/events               ✓ (ƒ dynamic)
+  /api/pierre/execute                  ✓ (ƒ dynamic — compiles; does NOT imply governance is
+                                          present, see P0_1_EXECUTE_ROUTE_GOVERNANCE_GAP_PREEXISTING)
+  /api/pierre/action                   ✓ (ƒ dynamic)
+  /api/router                          ✓ (ƒ dynamic)
+
+Secret scan: grep for sk_test_/sk_live_/service_role patterns across the full build log —
+zero matches.
+
+HEAD check: .git/refs/heads/main = 0b3d79e61581cb7a8eec8f4a4ccaaf43b6e823be — IDENTICAL to
+the baseline adopted at the start of Phase A. No drift during either build attempt.
+
+PRODUCTION_AUTHORIZED check: src/lib/clonestore/production/p10-production-gate.ts:15 =
+"export const PRODUCTION_AUTHORIZED = false as const;" — unchanged.
+
+Warnings present (pre-existing, not introduced by this block, identical across every build
+in this entire multi-day session): 2x "A Node.js API is used ... which is not supported in
+the Edge Runtime" for @supabase/realtime-js and @supabase/supabase-js — cosmetic, non-blocking,
+unrelated to Demo/Mobile changes.
+
+CONCLUSION: Build isolé Demo/Mobile réussi avec code de sortie 0, BUILD_ID présent et routes
+concernées compilées. This does NOT mean all global gates are green — P0.1's own test suite
+(9/10 failing, see phase-b-external-commit-review.md) remains red, unrelated to build success
+and not resolved by a successful compile.

@@ -1,0 +1,31 @@
+CONCURRENT HEAD BASELINE — Demo and Mobile Conversion Closure
+Recorded 2026-07-24
+
+OLD HEAD (at start of this block): 7e37d715f0690e119ac8f0b5cfe2902621aced78
+NEW HEAD (baseline adopted for the rest of this block): 0b3d79e61581cb7a8eec8f4a4ccaaf43b6e823be
+
+Four external commits landed during this block's active work window:
+  6191914d3 fix(build): include complete geo runtime dependencies
+  0bdf66a18 fix(build): defer Pierre OpenAI client initialization
+  bea7a7dd1 fix(build): defer API runtime environment initialization
+  0b3d79e61 fix(build): isolate lazy API runtime initialization
+
+External files identified (touched by these commits, not by this block):
+  src/app/api/pierre/execute/route.ts
+  src/app/api/pierre/run/route.ts
+  (see Phase B diff review for the complete file list per commit)
+
+Timeline of checks:
+  17:21:52 — Check 1: HEAD = 0b3d79e6..., .git/refs/heads/main mtime = 16:52:27
+  17:22:25 — Check 2 (after ~20s wait): HEAD unchanged = 0b3d79e6..., mtime unchanged = 16:52:27
+  Node process scan at both checks: no process resembling `next build`, a Vitest worker, or a commit
+  script — all processes under ~87MB RSS, consistent with idle/background tooling only.
+
+Stability verdict: HEAD is STABLE. No further concurrent write observed across the ~35s window
+between the two checks. Adopted as this block's external baseline per the controlled-resume
+instruction — the four commits are treated as already-integrated external work, not attributed to
+this block, and were not reverted, reset, or checked out over.
+
+Decision: proceed with Phase B (read-only diff review of the four commits) without any destructive
+git operation. This block's own file inventory (Phase C onward) is drawn from files explicitly
+written by this session, not from timestamp inference alone, per the corrected inventory rule.

@@ -1,0 +1,200 @@
+START_HEAD=0b3d79e61581cb7a8eec8f4a4ccaaf43b6e823be
+PRECHECK .env.local => ignored
+PRECHECK node_modules => ignored
+PRECHECK .next => *added
+PRECHECK .claude => *added
+PRECHECK package.json => *modified
+PRECHECK tsconfig.json => *modified
+
+=== Commit 0: chore(git): ignore isolated build distDirs and local Claude state ===
+staged: .gitignore
+  post-add status .gitignore: modified
+COMMIT_OID[0]=422e99a08f844fb4d2d9a7237cd4eca255ab18c2
+  blob-check .gitignore: committed=b634e4e20a33c11b disk=b634e4e20a33c11b match=true
+  HEAD now: 422e99a08f844fb4d2d9a7237cd4eca255ab18c2
+  postcheck-forbidden .env.local => ignored
+  postcheck-forbidden node_modules => ignored
+  postcheck-forbidden .next => *added
+  postcheck-forbidden .claude => *added
+  postcheck-forbidden package.json => *modified
+  postcheck-forbidden tsconfig.json => *modified
+
+=== Commit 1: fix(governance): close Pierre legacy execution surfaces ===
+staged: src/app/api/pierre/execute/route.ts
+staged: src/lib/pierre/legacy-execute-governance.ts
+staged: src/lib/pierre/hr/cloneguard.ts
+staged: src/lib/pierre/__tests__/legacy-execute-governance.test.ts
+staged: src/app/api/pierre/execute/__tests__/p0-governance-closure.test.ts
+staged: src/lib/pierre/__tests__/p0-transversal-consistency.test.ts
+staged: src/app/api/pierre/action/route.ts
+staged: src/app/api/router/route.ts
+staged: src/app/api/pierre/action/__tests__/p0-2-governance-closure.test.ts
+staged: src/app/api/router/__tests__/p0-2-router-neutralized.test.ts
+  post-add status src/app/api/pierre/execute/route.ts: modified
+  post-add status src/lib/pierre/legacy-execute-governance.ts: added
+  post-add status src/lib/pierre/hr/cloneguard.ts: modified
+  post-add status src/lib/pierre/__tests__/legacy-execute-governance.test.ts: added
+  post-add status src/app/api/pierre/execute/__tests__/p0-governance-closure.test.ts: added
+  post-add status src/lib/pierre/__tests__/p0-transversal-consistency.test.ts: added
+  post-add status src/app/api/pierre/action/route.ts: modified
+  post-add status src/app/api/router/route.ts: modified
+  post-add status src/app/api/pierre/action/__tests__/p0-2-governance-closure.test.ts: added
+  post-add status src/app/api/router/__tests__/p0-2-router-neutralized.test.ts: added
+COMMIT_OID[1]=aa17973a65450ee725d6c4b8b61edaf5a5af30d6
+  blob-check src/app/api/pierre/execute/route.ts: committed=046b888e0ea46e70 disk=046b888e0ea46e70 match=true
+  blob-check src/lib/pierre/legacy-execute-governance.ts: committed=8d6d63c1a9eebb38 disk=8d6d63c1a9eebb38 match=true
+  blob-check src/lib/pierre/hr/cloneguard.ts: committed=f965cca67cd27b8e disk=f965cca67cd27b8e match=true
+  blob-check src/lib/pierre/__tests__/legacy-execute-governance.test.ts: committed=7db9ecd1e1dc508a disk=7db9ecd1e1dc508a match=true
+  blob-check src/app/api/pierre/execute/__tests__/p0-governance-closure.test.ts: committed=06bed58f1aa8849a disk=06bed58f1aa8849a match=true
+  blob-check src/lib/pierre/__tests__/p0-transversal-consistency.test.ts: committed=3266359ce9ffb59a disk=3266359ce9ffb59a match=true
+  blob-check src/app/api/pierre/action/route.ts: committed=406b7dc8c22c3fa9 disk=406b7dc8c22c3fa9 match=true
+  blob-check src/app/api/router/route.ts: committed=0e86021c8bddb873 disk=0e86021c8bddb873 match=true
+  blob-check src/app/api/pierre/action/__tests__/p0-2-governance-closure.test.ts: committed=7894d0caca270c45 disk=7894d0caca270c45 match=true
+  blob-check src/app/api/router/__tests__/p0-2-router-neutralized.test.ts: committed=221cb0c2f2ded538 disk=221cb0c2f2ded538 match=true
+  HEAD now: aa17973a65450ee725d6c4b8b61edaf5a5af30d6
+  postcheck-forbidden .env.local => ignored
+  postcheck-forbidden node_modules => ignored
+  postcheck-forbidden .next => *added
+  postcheck-forbidden .claude => *added
+  postcheck-forbidden package.json => *modified
+  postcheck-forbidden tsconfig.json => *modified
+
+=== Commit 2: fix(payment): close country-aware checkout path ===
+staged: src/lib/clonestore/pricing/pricing-flags.ts
+staged: src/lib/clonestore/production/p15-checkout-reconciliation-gate.ts
+staged: src/app/api/webhooks/stripe/route.ts
+staged: src/components/pricing/CountryPricingCard.tsx
+staged: src/app/checkout/page.tsx
+staged: src/app/api/webhooks/stripe/__tests__/founder-stripe-webhook-er2.test.ts
+staged: src/app/api/webhooks/stripe/__tests__/invoice-payment-failed-api-drift.test.ts
+staged: src/app/api/webhooks/stripe/__tests__/orders-ledger-replay.test.ts
+staged: src/lib/clonestore/pricing/__tests__/pricing-flags-revealed-default.test.ts
+staged: src/lib/clonestore/production/__tests__/p15-reconciliation-revealed-default.test.ts
+staged: src/app/api/checkout/__tests__/payment-path-country-checkout.test.ts
+staged: src/app/api/webhooks/stripe/__tests__/payment-path-country-reconciliation.test.ts
+  post-add status src/lib/clonestore/pricing/pricing-flags.ts: modified
+  post-add status src/lib/clonestore/production/p15-checkout-reconciliation-gate.ts: modified
+  post-add status src/app/api/webhooks/stripe/route.ts: modified
+  post-add status src/components/pricing/CountryPricingCard.tsx: modified
+  post-add status src/app/checkout/page.tsx: modified
+  post-add status src/app/api/webhooks/stripe/__tests__/founder-stripe-webhook-er2.test.ts: modified
+  post-add status src/app/api/webhooks/stripe/__tests__/invoice-payment-failed-api-drift.test.ts: modified
+  post-add status src/app/api/webhooks/stripe/__tests__/orders-ledger-replay.test.ts: modified
+  post-add status src/lib/clonestore/pricing/__tests__/pricing-flags-revealed-default.test.ts: added
+  post-add status src/lib/clonestore/production/__tests__/p15-reconciliation-revealed-default.test.ts: added
+  post-add status src/app/api/checkout/__tests__/payment-path-country-checkout.test.ts: added
+  post-add status src/app/api/webhooks/stripe/__tests__/payment-path-country-reconciliation.test.ts: added
+COMMIT_OID[2]=a64d12c303595a38d142cc6482e467582ed5c6f8
+  blob-check src/lib/clonestore/pricing/pricing-flags.ts: committed=e8d487b0b99a893f disk=e8d487b0b99a893f match=true
+  blob-check src/lib/clonestore/production/p15-checkout-reconciliation-gate.ts: committed=4516154f670fc118 disk=4516154f670fc118 match=true
+  blob-check src/app/api/webhooks/stripe/route.ts: committed=b5d2e53986121b7b disk=b5d2e53986121b7b match=true
+  blob-check src/components/pricing/CountryPricingCard.tsx: committed=06cc7414dcea3d84 disk=06cc7414dcea3d84 match=true
+  blob-check src/app/checkout/page.tsx: committed=a0851109845a7c8e disk=a0851109845a7c8e match=true
+  blob-check src/app/api/webhooks/stripe/__tests__/founder-stripe-webhook-er2.test.ts: committed=cfc594145664057b disk=cfc594145664057b match=true
+  blob-check src/app/api/webhooks/stripe/__tests__/invoice-payment-failed-api-drift.test.ts: committed=5b81fb2dc399f7c6 disk=5b81fb2dc399f7c6 match=true
+  blob-check src/app/api/webhooks/stripe/__tests__/orders-ledger-replay.test.ts: committed=1325c8e876d03187 disk=1325c8e876d03187 match=true
+  blob-check src/lib/clonestore/pricing/__tests__/pricing-flags-revealed-default.test.ts: committed=5d2de96209b1e36f disk=5d2de96209b1e36f match=true
+  blob-check src/lib/clonestore/production/__tests__/p15-reconciliation-revealed-default.test.ts: committed=bdc2e078bbb65d93 disk=bdc2e078bbb65d93 match=true
+  blob-check src/app/api/checkout/__tests__/payment-path-country-checkout.test.ts: committed=138c1691c2533120 disk=138c1691c2533120 match=true
+  blob-check src/app/api/webhooks/stripe/__tests__/payment-path-country-reconciliation.test.ts: committed=fd683033350cb5cb disk=fd683033350cb5cb match=true
+  HEAD now: a64d12c303595a38d142cc6482e467582ed5c6f8
+  postcheck-forbidden .env.local => ignored
+  postcheck-forbidden node_modules => ignored
+  postcheck-forbidden .next => *added
+  postcheck-forbidden .claude => *added
+  postcheck-forbidden package.json => *modified
+  postcheck-forbidden tsconfig.json => *modified
+
+=== Commit 3: fix(legal): close commercial trust implementation ===
+staged: src/components/site/site-footer.tsx
+staged: src/app/legal/confidentialite/page.tsx
+staged: src/app/api/checkout/route.ts
+staged: src/app/signup/page.tsx
+staged: src/app/questions/page.tsx
+staged: src/app/partenaires/page.tsx
+staged: src/app/api/checkout/__tests__/customer-mapping-route.test.ts
+  post-add status src/components/site/site-footer.tsx: modified
+  post-add status src/app/legal/confidentialite/page.tsx: modified
+  post-add status src/app/api/checkout/route.ts: modified
+  post-add status src/app/signup/page.tsx: modified
+  post-add status src/app/questions/page.tsx: modified
+  post-add status src/app/partenaires/page.tsx: modified
+  post-add status src/app/api/checkout/__tests__/customer-mapping-route.test.ts: modified
+COMMIT_OID[3]=b43191eafa56cf628e45e540d5e8307de46abbe3
+  blob-check src/components/site/site-footer.tsx: committed=1839aabf31dcb992 disk=1839aabf31dcb992 match=true
+  blob-check src/app/legal/confidentialite/page.tsx: committed=6f10d1d570a52b3e disk=6f10d1d570a52b3e match=true
+  blob-check src/app/api/checkout/route.ts: committed=3c770390b921896b disk=3c770390b921896b match=true
+  blob-check src/app/signup/page.tsx: committed=01f4e6db43f475a0 disk=01f4e6db43f475a0 match=true
+  blob-check src/app/questions/page.tsx: committed=537023c8ee3d4c48 disk=537023c8ee3d4c48 match=true
+  blob-check src/app/partenaires/page.tsx: committed=d963cf702fd34996 disk=d963cf702fd34996 match=true
+  blob-check src/app/api/checkout/__tests__/customer-mapping-route.test.ts: committed=b06d844b8b8a1e17 disk=b06d844b8b8a1e17 match=true
+  HEAD now: b43191eafa56cf628e45e540d5e8307de46abbe3
+  postcheck-forbidden .env.local => ignored
+  postcheck-forbidden node_modules => ignored
+  postcheck-forbidden .next => *added
+  postcheck-forbidden .claude => *added
+  postcheck-forbidden package.json => *modified
+  postcheck-forbidden tsconfig.json => *modified
+
+=== Commit 4: fix(demo): close hydration and contextual conversion path ===
+staged: src/components/demo/cost/CapacityCalculator.tsx
+staged: src/components/demo/acts/ValueChapter.tsx
+staged: src/lib/founder-access/types.ts
+staged: src/app/page.tsx
+staged: src/app/demo/pierre/page.tsx
+staged: vitest.config.ts
+staged: src/lib/demo/contextual-prompt/constants.ts
+staged: src/lib/demo/contextual-prompt/contextual-prompt-flags.ts
+staged: src/lib/demo/contextual-prompt/detect.ts
+staged: src/components/home/DemoContextualPromptCard.tsx
+staged: src/components/home/DemoContextualPrompt.tsx
+staged: src/components/demo/cost/__tests__/capacity-calculator-hydration.test.ts
+staged: src/lib/demo/contextual-prompt/__tests__/detect.test.ts
+staged: src/lib/demo/contextual-prompt/__tests__/contextual-prompt-flags.test.ts
+staged: src/components/home/__tests__/demo-contextual-prompt-card.test.ts
+staged: src/components/guided-tour/GuidedTourProvider.tsx
+staged: src/app/demo/pierre/_variant/DemoEventTracker.tsx
+  post-add status src/components/demo/cost/CapacityCalculator.tsx: modified
+  post-add status src/components/demo/acts/ValueChapter.tsx: added
+  post-add status src/lib/founder-access/types.ts: modified
+  post-add status src/app/page.tsx: modified
+  post-add status src/app/demo/pierre/page.tsx: modified
+  post-add status vitest.config.ts: modified
+  post-add status src/lib/demo/contextual-prompt/constants.ts: added
+  post-add status src/lib/demo/contextual-prompt/contextual-prompt-flags.ts: added
+  post-add status src/lib/demo/contextual-prompt/detect.ts: added
+  post-add status src/components/home/DemoContextualPromptCard.tsx: added
+  post-add status src/components/home/DemoContextualPrompt.tsx: added
+  post-add status src/components/demo/cost/__tests__/capacity-calculator-hydration.test.ts: added
+  post-add status src/lib/demo/contextual-prompt/__tests__/detect.test.ts: added
+  post-add status src/lib/demo/contextual-prompt/__tests__/contextual-prompt-flags.test.ts: added
+  post-add status src/components/home/__tests__/demo-contextual-prompt-card.test.ts: added
+  post-add status src/components/guided-tour/GuidedTourProvider.tsx: modified
+  post-add status src/app/demo/pierre/_variant/DemoEventTracker.tsx: modified
+COMMIT_OID[4]=b3159c34546f3555869ffe2cfcc6a4d6069086e3
+  blob-check src/components/demo/cost/CapacityCalculator.tsx: committed=d3101788dca77b9b disk=d3101788dca77b9b match=true
+  blob-check src/components/demo/acts/ValueChapter.tsx: committed=b4ca0d56a3bae9ba disk=b4ca0d56a3bae9ba match=true
+  blob-check src/lib/founder-access/types.ts: committed=e0e775e7b23cae1e disk=e0e775e7b23cae1e match=true
+  blob-check src/app/page.tsx: committed=f2d04f43bdf51f76 disk=f2d04f43bdf51f76 match=true
+  blob-check src/app/demo/pierre/page.tsx: committed=f09f5f5454ab5911 disk=f09f5f5454ab5911 match=true
+  blob-check vitest.config.ts: committed=3ec49abd080b730e disk=3ec49abd080b730e match=true
+  blob-check src/lib/demo/contextual-prompt/constants.ts: committed=a29340be5fe13de0 disk=a29340be5fe13de0 match=true
+  blob-check src/lib/demo/contextual-prompt/contextual-prompt-flags.ts: committed=c29c5e43acaccb4e disk=c29c5e43acaccb4e match=true
+  blob-check src/lib/demo/contextual-prompt/detect.ts: committed=d962ddde9d10acb7 disk=d962ddde9d10acb7 match=true
+  blob-check src/components/home/DemoContextualPromptCard.tsx: committed=f62dd5570075d5b7 disk=f62dd5570075d5b7 match=true
+  blob-check src/components/home/DemoContextualPrompt.tsx: committed=275c0f952e707e1d disk=275c0f952e707e1d match=true
+  blob-check src/components/demo/cost/__tests__/capacity-calculator-hydration.test.ts: committed=6fea344824bceef6 disk=6fea344824bceef6 match=true
+  blob-check src/lib/demo/contextual-prompt/__tests__/detect.test.ts: committed=364d84cff5d64bf4 disk=364d84cff5d64bf4 match=true
+  blob-check src/lib/demo/contextual-prompt/__tests__/contextual-prompt-flags.test.ts: committed=9c19015225152092 disk=9c19015225152092 match=true
+  blob-check src/components/home/__tests__/demo-contextual-prompt-card.test.ts: committed=26bb5b16d2533ead disk=26bb5b16d2533ead match=true
+  blob-check src/components/guided-tour/GuidedTourProvider.tsx: committed=c1ae3c4ac5bcc606 disk=c1ae3c4ac5bcc606 match=true
+  blob-check src/app/demo/pierre/_variant/DemoEventTracker.tsx: committed=1972ac9780034681 disk=1972ac9780034681 match=true
+  HEAD now: b3159c34546f3555869ffe2cfcc6a4d6069086e3
+  postcheck-forbidden .env.local => ignored
+  postcheck-forbidden node_modules => ignored
+  postcheck-forbidden .next => *added
+  postcheck-forbidden .claude => *added
+  postcheck-forbidden package.json => *modified
+  postcheck-forbidden tsconfig.json => *modified
+
+FINAL_HEAD_AFTER_COMMITS_0_TO_4=b3159c34546f3555869ffe2cfcc6a4d6069086e3

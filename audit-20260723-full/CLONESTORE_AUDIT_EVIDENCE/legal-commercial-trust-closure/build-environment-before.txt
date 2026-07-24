@@ -1,0 +1,36 @@
+=== Build environment before final attempt â€” 2026-07-24 ===
+
+--- Root cause identified ---
+PID 4100: node.exe running node_modules/next/dist/compiled/jest-worker/processChild.js
+  Created 2026-07-24 14:37:31 â€” orphaned jest-worker child from build attempt #3 (task bmr49xw4k)
+  Was holding ~5.78 GB RSS, leaving only 137 MB free system-wide (of 16 GB total)
+PID 9488: node.exe running next/dist/bin/next build (created 14:35:16) â€” parent of above, also orphaned
+Both terminated via taskkill /F immediately before this build attempt.
+
+--- Memory after cleanup ---
+FreePhysicalMemory=6147556
+TotalVisibleMemorySize=16571196
+
+--- Disk space (C:) ---
+FreeSpace=47956447232
+Size=510298230784
+
+--- Remaining node processes (all small/idle, none build-related) ---
+
+Nom de l'image                 PID Nom de la sessio Num‚ro de s Utilisation 
+========================= ======== ================ =========== ============
+node.exe                     31764 Console                    1        16 Ko
+node.exe                     20416 Console                    1        16 Ko
+node.exe                      7160 Console                    1        16 Ko
+node.exe                     33612 Console                    1        20 Ko
+node.exe                     34344 Console                    1        20 Ko
+node.exe                     18180 Console                    1        20 Ko
+node.exe                     15892 Console                    1    74ÿ680 Ko
+node.exe                     41104 Console                    1    99ÿ924 Ko
+
+--- tsconfig.tsbuildinfo ---
+absent (already clean)
+
+--- .next-legal-closure (incomplete prior attempt) ---
+949M	.next-legal-closure
+no BUILD_ID â€” confirmed incomplete/dead, safe to remove

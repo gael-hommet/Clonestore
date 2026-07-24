@@ -1,0 +1,35 @@
+P0.1 — Résultats de tests bruts (vitest v4.1.0)
+=================================================
+
+LOT 1 — P0.1 spécifique
+$ npx vitest run src/lib/pierre/__tests__/legacy-execute-governance.test.ts src/app/api/pierre/execute/__tests__/p0-governance-closure.test.ts
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+   Duration  1.72s
+
+LOT 2 — Transversal P0.1/P0.2
+$ npx vitest run src/lib/pierre/__tests__/p0-transversal-consistency.test.ts src/app/api/pierre/action/__tests__/p0-2-governance-closure.test.ts src/app/api/router/__tests__/p0-2-router-neutralized.test.ts
+ Test Files  3 passed (3)
+      Tests  15 passed (15)
+   Duration  1.33s
+
+LOT 3 — Sweep complet zone Pierre (contient lots 1+2)
+$ npx vitest run src/lib/pierre src/app/api/pierre
+ Test Files  1 failed | 132 passed | 1 skipped (134)
+      Tests  1 failed | 5611 passed | 1 skipped (5613)
+ FAIL src/app/api/pierre/use/document/preview/__tests__/document-preview-jurisdiction-p20.test.ts
+   > 1. FR vérifiée, document non-jurisdictionnel (note) -> 200, jamais bloqué
+
+Ré-exécution isolée du fichier en échec :
+$ npx vitest run src/app/api/pierre/use/document/preview/__tests__/document-preview-jurisdiction-p20.test.ts
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+-> confirmé flake de parallélisme (134 fichiers simultanés), sans rapport avec ce bloc.
+
+LOT 4 — npm test (curated, package.json)
+$ npm test
+ [1ère invocation] Test Files  128 passed (128) | Tests  8950 passed (8950)
+ [2ème invocation] Test Files  29 passed (29)  | Tests  215 passed (215)
+ Total : 157 fichiers, 9165 tests, 0 échec
+
+RAPPEL : ne pas additionner ces 4 lots entre eux (recouvrement partiel — voir P0_1_TEST_MATRIX.md).

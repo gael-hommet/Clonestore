@@ -1,0 +1,23 @@
+PAYMENT PATH CLOSURE — Build de production isole, resultat final
+====================================================================
+Commande: NEXT_DIST_DIR=.next-payment-path-closure NODE_OPTIONS=--max-old-space-size=8192 npx next build
+Resultat: SUCCES (exit code 0)
+BUILD_ID: U7_BRdm8KyWmSOZhGzwvD
+
+Routes verifiees compilees dans le manifeste final (aucune erreur) :
+  /agents/pierre           3.46 kB  (CountryPricingCard inclus)
+  /checkout                7.19 kB  (transmission pays incluse)
+  /paiement                224 B
+  /paiement/success        5.18 kB
+  /paiement/cancel         224 B
+  /api/checkout            bundle 39720 octets (gouvernance pays incluse)
+  /api/checkout/confirm    bundle 11487 octets
+  /api/webhooks/stripe     present dans le manifeste, aucune erreur
+  /api/pierre/action       present (P0.2, inchange)
+  /api/router              present (P0.2, neutralisee)
+
+196 pages statiques + toutes les routes API presentes, aucune erreur de compilation.
+
+NOTE : le premier lancement de ce build (tache bxbu3icig) a ete interrompu par un
+redemarrage de session (aucun message d'erreur, aucun BUILD_ID, processus absent a la
+reprise) — relance propre effectuee (tache b0qc22lri), succes confirme ci-dessus.

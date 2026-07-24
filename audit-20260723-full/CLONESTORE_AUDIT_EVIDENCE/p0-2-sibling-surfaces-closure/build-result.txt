@@ -1,0 +1,8 @@
+P0.2 — Build de production isole, resultat final
+==================================================
+Commande: NEXT_DIST_DIR=.next-p0-2-closure NODE_OPTIONS=--max-old-space-size=8192 npx next build
+Resultat: SUCCES (exit code 0)
+BUILD_ID: L72Jd4dyDrvTa2LD6HAXm
+/api/pierre/action/route.js : 22039 octets (bundle compile avec succes, gouvernance incluse)
+/api/router/route.js        : 7796 octets (bundle compile avec succes, route neutralisee)
+196 pages statiques + toutes les routes API presentes dans le manifeste final, aucune erreur.

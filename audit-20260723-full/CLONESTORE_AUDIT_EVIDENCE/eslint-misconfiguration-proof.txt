@@ -1,0 +1,38 @@
+PREUVE — npm run lint (= `eslint .`) est cassé par une config d'ignore incomplète
+================================================================================
+
+COMMANDE EXÉCUTÉE : npx eslint .
+RÉSULTAT : 545 890 problèmes (545 838 erreurs, 52 avertissements)
+
+EXTRAIT DU DÉBUT DU LOG (preuve de la cause racine) :
+
+C:\Users\homme\clonestore\.c1-8-reopened-proofs\a2\remediation\c18-a2-artifacts.cjs
+    4:12  error  A `require()` style import is forbidden        @typescript-eslint/no-require-imports
+    4:12  error  'require' is not defined                       no-undef
+    ...
+  317:1   error  'console' is not defined                       no-undef
+
+C:\Users\homme\clonestore\.next-c18-a2-remediation\server\app\_not-found\page.js
+  1:29    error  Expected an assignment or function call and instead saw an expression
+  1:83    error  A `require()` style import is forbidden
+  1:83    error  'require' is not defined
+  ...
+
+^ Ceci est un BUNDLE WEBPACK MINIFIÉ issu d'un des 23 dossiers de build historiques
+`.next-*`, traité comme du code source par ESLint.
+
+CAUSE RACINE — eslint.config.mjs:8-34 :
+  ignores: [".next/**", "node_modules/**", ...]
+  → ".next/**" ne matche QUE le dossier littéral ".next", jamais ".next-c18-a2-remediation"
+  ni aucun des 22 autres dossiers ".next-*". Idem pour les ~92 dossiers "*-proofs"/"*-state"
+  (aucune règle générique dans eslint.config.mjs ni .gitignore).
+
+COMMANDE DE VÉRIFICATION (signal réel, scope src/ uniquement) :
+npx eslint "src/**/*.{ts,tsx}"
+RÉSULTAT RÉEL : 80 erreurs, 45 avertissements (125 problèmes total)
+  — essentiellement no-irregular-whitespace, quelques @typescript-eslint/no-explicit-any
+    dans des .d.mts, no-undef sur des scripts .mjs autonomes (URL/process/Buffer),
+    2 no-unused-vars. Aucun défaut structurel grave dans le vrai code source.
+
+CONCLUSION : `npm run lint` tel que configuré aujourd'hui est inutilisable. Le vrai
+signal de qualité du code source est bon (80 erreurs mineures / ~4000 fichiers).

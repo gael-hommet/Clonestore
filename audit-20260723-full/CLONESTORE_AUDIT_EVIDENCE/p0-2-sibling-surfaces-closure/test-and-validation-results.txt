@@ -1,0 +1,55 @@
+P0.2 SIBLING EXECUTION SURFACES CLOSURE — preuves de validation
+=================================================================
+
+1) TESTS NOUVEAUX (15 tests, tous verts)
+
+npx vitest run src/app/api/pierre/action/__tests__/p0-2-governance-closure.test.ts \
+  src/app/api/router/__tests__/p0-2-router-neutralized.test.ts \
+  src/lib/pierre/__tests__/p0-transversal-consistency.test.ts
+
+ Test Files  3 passed (3)
+      Tests  15 passed (15)
+
+2) NON-REGRESSION (sweep combine)
+
+npx vitest run src/lib/pierre src/app/api/pierre src/app/api/router
+
+ Test Files  134 passed | 1 skipped (135)
+      Tests  5615 passed | 1 skipped (5616)
+ Duration    76.13s
+
+3) TYPESCRIPT
+
+npx tsc --noEmit   -> 0 erreur reelle (bruit .next-* filtre, cause deja documentee en
+                       CLONESTORE_TECHNICAL_AUDIT.md, sans lien avec ce bloc)
+
+4) ESLINT CIBLE
+
+npx eslint src/app/api/pierre/action/route.ts src/app/api/router/route.ts \
+  src/app/api/pierre/action/__tests__/p0-2-governance-closure.test.ts \
+  src/app/api/router/__tests__/p0-2-router-neutralized.test.ts \
+  src/lib/pierre/__tests__/p0-transversal-consistency.test.ts
+
+  -> 0 probleme (sortie vide)
+
+5) RECHERCHE FINALE (Phase 13) — aucune autre surface Make/webhook ungoverned
+
+grep -rl "MAKE_" src/app/api --include="*.ts"
+  -> src/app/api/pierre/action/route.ts   (gouverne, ce bloc)
+  -> src/app/api/pierre/execute/route.ts  (gouverne, P0.1)
+  (router/route.ts n'apparait plus : URL codee en dur retiree)
+
+grep -rl "hook\.(eu|us)[0-9]*\.make\.com" src/ -> 0 resultat (aucune URL Make codee en dur
+  restante nulle part dans le code source)
+
+6) PREUVE D'ABSENCE D'EFFET EXTERNE
+
+Dans les 12 tests d'integration (action + router), global.fetch est stube pour LEVER UNE
+EXCEPTION s'il est appele. Chaque test verifie explicitement
+expect(fetch).not.toHaveBeenCalled(). Tous passent -> aucun appel reseau sortant declenche
+dans aucun scenario teste (auth valide/invalide, email.send, doc.generate, action inconnue,
+replay, double requete concurrente, action non-Pierre sur /api/router).
+
+7) BUILD DE PRODUCTION ISOLE
+
+Voir build-result.txt dans ce meme dossier pour le resultat final.

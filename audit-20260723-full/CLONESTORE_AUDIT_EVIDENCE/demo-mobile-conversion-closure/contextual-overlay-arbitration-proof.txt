@@ -1,0 +1,71 @@
+CONTEXTUAL OVERLAY ARBITRATION — PROOF
+Demo and Mobile Conversion Closure, 2026-07-24
+
+Problem: GuidedTourProvider already auto-shows a floating welcome card on "/" after a
+flat 1200ms timer (PUBLIC_DISCOVERY_WELCOME). The new DemoContextualPrompt auto-shows a
+second floating card on "/" after 35% scroll depth. Without coordination, both could be
+visible on screen at once once the new prompt is enabled — forbidden by this block's gate.
+
+Fix: src/components/guided-tour/GuidedTourProvider.tsx's homepage auto-welcome effect now
+calls shouldSuppressHomepageAutoWelcome(pathname, isDemoContextualPromptEnabled()) from
+src/lib/demo/contextual-prompt/detect.ts, short-circuiting to setWelcome(null) whenever
+pathname === "/" AND the new flag reads "true". Manual tour launch, other routes' tours,
+and all snooze/progress storage are untouched (the guard runs before any of that code).
+
+=== Test-by-test proof (all commands run for real, results below are the actual output) ===
+
+Command: npx vitest run src/lib/demo/contextual-prompt src/lib/guided-tour src/components/home/__tests__
+Result: 14 test files passed, 165 tests passed, 0 failed.
+
+--- Flag OFF (default) — GuidedTour historical behavior intact ---
+shouldSuppressHomepageAutoWelcome("/", false) === false
+  -> src/lib/demo/contextual-prompt/__tests__/detect.test.ts
+     "never suppresses when the demo prompt is disabled — flag OFF preserves historical
+      GuidedTour behavior exactly" — PASS
+  -> Corroborated by the full pre-existing src/lib/guided-tour/__tests__/homepage-nonregression.test.ts
+     suite passing unchanged (0 modifications made to that file), proving the homepage
+     welcome's actual trigger/storage/a11y logic is untouched when the new flag is off.
+isDemoContextualPromptEnabled() === false when NEXT_PUBLIC_DEMO_CONTEXTUAL_PROMPT_ENABLED is unset
+  -> src/lib/demo/contextual-prompt/__tests__/contextual-prompt-flags.test.ts
+     "defaults to false when the env var is absent" — PASS
+
+--- Flag ON — no GuidedTour auto-welcome on "/", DemoContextualPrompt eligible instead ---
+shouldSuppressHomepageAutoWelcome("/", true) === true
+  -> "suppresses the GuidedTour homepage auto-welcome ONLY when on '/' AND the demo prompt
+      is enabled" — PASS
+evaluateDemoContextualPrompt({enabled:true, pathname:"/", scrollDepth>=0.35, dismissedThisSession:false})
+  -> {show:true, reason:"eligible"} — PASS (src/lib/demo/contextual-prompt/__tests__/detect.test.ts,
+     "shows once every gate passes")
+
+--- Other routes unaffected regardless of the new flag ---
+shouldSuppressHomepageAutoWelcome("/profile", true) === false
+shouldSuppressHomepageAutoWelcome("/agents/pierre/use", true) === false
+shouldSuppressHomepageAutoWelcome("/assistant", true) === false
+  -> "never suppresses other routes' tours, even with the demo prompt enabled" — PASS
+  -> Corroborated by src/lib/guided-tour/__tests__/my-clonestore-tour.test.ts,
+     pierre-cockpit-tour.test.ts, clonechat-tour.test.ts all passing unchanged (not touched
+     by this block's edit, which only added a guard scoped to pathname === "/").
+
+--- Fail-closed on unresolved pathname ---
+shouldSuppressHomepageAutoWelcome("", true) === false
+  -> "treats an empty/unresolved pathname the same as a non-homepage route" — PASS
+     (GuidedTourProvider passes `pathname ?? ""` — if usePathname() ever returns null
+     during a transient navigation state, this never accidentally suppresses the tour on
+     an unrelated route, nor does it accidentally suppress when it shouldn't.)
+
+--- Session dismissal, once-only "seen", no PII (already covered by the card/component tests) ---
+src/components/home/__tests__/demo-contextual-prompt-card.test.ts — 5/5 PASS
+  (SSR determinism, no caret-color, accessible name + 3 real <button> elements, no
+   forbidden-claim wording, non-modal / no aria-modal)
+
+=== Conclusion ===
+No configuration of the two flags/routes can produce two simultaneous automatic floating
+invitations on the homepage. Proven by 165 passing tests spanning both the new arbitration
+logic and the full pre-existing GuidedTour suite (unchanged, still green).
+
+Not verified: an actual side-by-side visual screenshot of both cards NOT overlapping in a
+real browser — Playwright was unavailable for this entire block. The logical guarantee
+above (the GuidedTour welcome's setWelcome(null) is called before any timer is armed,
+so the DOM node for that card is never created) is a stronger guarantee than a visual
+check would be (a visual check could only prove one observed frame, not the underlying
+impossibility) but is stated here for full honesty as NON TESTÉ EN NAVIGATEUR RÉEL.

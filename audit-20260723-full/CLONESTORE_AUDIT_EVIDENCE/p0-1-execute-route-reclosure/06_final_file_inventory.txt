@@ -1,0 +1,55 @@
+P0.1 — Inventaire final des fichiers touchés par ce bloc
+===========================================================
+
+MODIFIÉS :
+  src/app/api/pierre/execute/route.ts
+    - Gouvernance réintégrée (evaluateLegacyExecuteGovernance), connecteur Make direct retiré
+      entièrement (callMake, 3 MAKE_*_WEBHOOK_URL, EmailSendSchema/DocGenerateSchema/
+      HrisSyncSchema, tryInsertDocument, safeParseJsonString, withRequestId).
+    - ApiErrorCode : -MAKE_ERROR, +GOVERNANCE_BLOCKED/HUMAN_APPROVAL_REQUIRED/EXECUTION_NOT_AVAILABLE.
+    - getRuntime() : 6 env vars -> 3 (Supabase x2 + ROUTER_HMAC_SECRET). Lazy-init préservé.
+    - Auth HMAC, anti-rejeu, assertPierreAccess, idempotence, audit, UNKNOWN_ACTION : inchangés.
+
+  src/app/api/pierre/execute/__tests__/p0-governance-closure.test.ts
+    - Commentaire de tête corrigé (décrivait à tort une init "eager", reflète maintenant
+      getRuntime() paresseux). Aucune assertion modifiée/affaiblie. beforeAll inchangé (déjà
+      suffisant après suppression des 3 env vars MAKE_* du besoin réel de route.ts).
+
+NON MODIFIÉS, VÉRIFIÉS INTACTS (déjà corrects avant ce bloc) :
+  src/lib/pierre/legacy-execute-governance.ts
+  src/lib/pierre/hr/cloneguard.ts
+  src/lib/pierre/hr/governance.ts
+  src/lib/pierre/__tests__/legacy-execute-governance.test.ts
+  src/app/api/pierre/action/route.ts (P0.2)
+  src/app/api/router/route.ts (P0.2)
+  src/app/api/pierre/action/__tests__/p0-2-governance-closure.test.ts
+  src/app/api/router/__tests__/p0-2-router-neutralized.test.ts
+  src/lib/pierre/__tests__/p0-transversal-consistency.test.ts
+  src/app/api/pierre/run/route.ts (hors périmètre — hérite de la protection d'execute)
+  src/app/api/pierre/tick/route.ts (hors périmètre — appelant, non modifié)
+
+CRÉÉS (documentation, audit-20260723-full/) :
+  P0_1_GIT_FORENSIC_TIMELINE.md
+  P0_1_CALLER_AND_SURFACE_MATRIX.md
+  P0_1_CURRENT_ROUTE_BEFORE_AFTER.md
+  P0_1_GOVERNANCE_DECISION_MATRIX.md
+  P0_1_TEST_MATRIX.md
+  P0_1_BUILD_EVIDENCE.md
+  P0_1_REMAINING_RISKS.md
+  P0_1_PREVIOUS_REPORT_RECONCILIATION.md
+  P0_1_EXECUTE_ROUTE_GOVERNANCE_RECLOSURE_REPORT.md
+  P0_1_EXECUTE_ROUTE_GOVERNANCE_RECLOSURE_VERDICT.md
+  CLONESTORE_AUDIT_EVIDENCE/p0-1-execute-route-reclosure/ (00-06 + build)
+
+MIS À JOUR (bannière de supersession ou reconciliation, contenu historique conservé) :
+  P0_GOVERNANCE_CLOSURE_REPORT.md (bannière de supersession ajoutée en tête)
+  CLONESTORE_FULL_AUDIT.md
+  CLONESTORE_TECHNICAL_AUDIT.md (nouvelle section 8sexies)
+  CLONESTORE_LAUNCH_READINESS.md
+  CLONESTORE_ISSUE_REGISTER.md (ISSUE-01, ISSUE-40)
+  CLONESTORE_OPTIMIZATION_BACKLOG.md (items 1, 1quater)
+  DEMO_REMAINING_RISKS.md (RISQUE-1)
+
+AUCUN fichier touché en dehors de ce périmètre : homepage/hero/slogan/schémas/illustrations/
+animations/Demo-Mobile/pricing/Stripe Price IDs/checkout/webhook/légal/PRODUCTION_AUTHORIZED/
+moteur v1-hr (hors lecture) — confirmé par la liste ci-dessus, exhaustive.

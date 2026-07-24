@@ -1,0 +1,15 @@
+P0.1 — TypeScript et ESLint, sortie brute
+===========================================
+
+$ node node_modules/typescript/bin/tsc --noEmit
+(sortie vide — 0 ligne)
+Exit code : 0
+-> 0 erreur TypeScript sur l'ensemble du dépôt.
+
+Note : `npx tsc` reste cassé dans cet environnement (.bin/tsc.cmd, gotcha connu) — invoqué
+directement via node comme dans les blocs précédents de cette session.
+
+$ npx eslint src/app/api/pierre/execute/route.ts src/app/api/pierre/execute/__tests__/p0-governance-closure.test.ts
+(sortie vide — 0 ligne)
+Exit code : 0
+-> 0 finding sur les 2 fichiers modifiés par ce bloc.

@@ -1,0 +1,25 @@
+P0.1 — Résultat de build isolé (tentative 2, réussie)
+========================================================
+
+Commande : NEXT_DIST_DIR=.next-p0-1-reclosure NODE_OPTIONS="--max-old-space-size=6144" npx next build
+
+BUILD_ID=q9cJcei7BiG1AL_u47dDK
+
+Routes cibles confirmées présentes dans la table finale :
+├ ƒ /api/pierre/action                                               869 B         103 kB
+├ ƒ /api/pierre/execute                                              869 B         103 kB
+├ ƒ /api/pierre/run                                                  869 B         103 kB
+├ ƒ /api/router                                                      869 B         103 kB
+
+Artefact généré confirmé sur disque :
+.next-p0-1-reclosure/server/app/api/pierre/execute/route.js
+.next-p0-1-reclosure/server/app/api/pierre/execute/route.js.nft.json
+.next-p0-1-reclosure/server/app/api/pierre/execute/route_client-reference-manifest.js
+
+0 occurrence de "error"/"Error" dans toute la sortie capturée (300 dernières lignes).
+288 lignes de routes dans la table finale.
+
+Tentative 1 (référence, échec environnemental, non retenue) :
+  "memory allocation of 719549483 bytes failed"
+  "Next.js build worker exited with code: 3221226505 and signal: null"
+  -> aucune table de routes atteinte, contrairement à la tentative 2 ci-dessus.
