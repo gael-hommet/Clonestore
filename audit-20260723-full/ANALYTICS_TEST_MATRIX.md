@@ -37,6 +37,18 @@ un run 100% vert, puis re-confirmé dans le passage de non-régression ci-dessou
 
 `TSC_EXIT=0`, aucune erreur (repo entier, y compris tout le nouveau code analytics).
 
+## Checkout propre final (Phase 32-34)
+
+Matérialisation stricte depuis les blobs Git (8133 blobs, 0 mismatch, `C:\Users\homme\clonestore-clean-analytics-final`), `npm ci` propre (531 paquets), `.env.local` entièrement fictif.
+
+- `tsc --noEmit` : **1 seul résidu, `embedded-postgres`** — déjà documenté comme
+  `UNRELATED_PREEXISTING` par le bloc Clean Head Reproducibility, confirmé encore présent et
+  toujours hors périmètre.
+- Tests (analytics + PWA + non-régression P0.1/Partner/Payment Path) : **247/248 verts** — le
+  seul échec est `.env.example` absent (fichier gitignore, jamais tracké, préexistant,
+  indépendant de ce bloc — vérifié via `git status` = `ignored`).
+- Voir `ANALYTICS_CLEAN_CHECKOUT_BUILD_PROOF.md` pour le résultat du build final.
+
 ## Non exécuté dans ce bloc
 
 Suite Vitest complète du dépôt (des dizaines de milliers de tests, plusieurs blocs non liés) —

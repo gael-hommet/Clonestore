@@ -2,6 +2,19 @@
 
 Audit du 2026-07-23. Périmètre : accueil → démo → Pierre → réservation → checkout → paiement → activation, et les systèmes d'événements qui le mesurent.
 
+**Mise à jour 2026-07-25 (ANALYTICS, FUNNEL AND LAUNCH MEASUREMENT CLOSURE)** : le contrat
+canonique annoncé ci-dessous comme « prévu pour le prochain bloc » est désormais construit —
+31 événements fermés, 4 identités distinctes (`visitor_id`/`session_id`/`page_view_id`/
+`demo_run_id`), table append-only `clonestore_analytics_events_v1`, endpoint unique
+`POST /api/analytics/events`, tracker de navigation App Router actif, 84 tests réels contre
+PGlite. **Non résolu dans ce bloc** : le branchement effectif de founder-access/BLOC3/démo/
+GuidedTour/webhook Stripe vers ce nouveau contrat reste délibérément différé (voir
+`ANALYTICS_LEGACY_MIGRATION_MATRIX.md`) — les trois architectures ci-dessous continuent de
+fonctionner exactement comme décrites tant que ce câblage n'est pas fait. Statut retenu :
+`PARTIALLY_CLOSED`. Détail complet :
+`ANALYTICS_FUNNEL_LAUNCH_MEASUREMENT_CLOSURE_REPORT.md`,
+`ANALYTICS_FUNNEL_LAUNCH_MEASUREMENT_VERDICT.md`.
+
 ## Constat central : TROIS architectures d'analytics/funnel indépendantes, partiellement redondantes
 
 | Système | Rôle | Backend réel | Statut |
