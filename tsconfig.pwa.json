@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "composite": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "global.d.ts",
+    "src/app/manifest.ts",
+    "src/app/installer/page.tsx",
+    "src/app/installer/InstallerClient.tsx",
+    "src/components/pwa/use-pwa.ts",
+    "src/components/pwa/pwa-context.tsx",
+    "src/components/pwa/PwaProvider.tsx",
+    "src/components/pwa/InstallPrompt.tsx",
+    "src/components/pwa/IosInstallSheet.tsx",
+    "src/components/pwa/UpdateToast.tsx",
+    "src/components/pwa/index.ts",
+    "src/lib/pwa/constants.ts",
+    "src/lib/pwa/detect.ts",
+    "src/lib/pwa/index.ts"
+  ],
+  "exclude": ["node_modules"]
+}

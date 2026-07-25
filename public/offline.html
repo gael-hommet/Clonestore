@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f8f4ec" />
+    <title>Hors connexion — CloneStore</title>
+    <style>
+      :root {
+        --cs-bg: #f8f4ec;
+        --cs-ink-1: #151922;
+        --cs-ink-3: #5c6675;
+        --cs-line: rgba(21, 25, 34, 0.14);
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        min-height: 100dvh;
+        background: radial-gradient(120% 120% at 50% 0%, #fdfbf6 0%, var(--cs-bg) 60%, #f2eadc 100%);
+        color: var(--cs-ink-1);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+        text-align: center;
+      }
+      main { max-width: 30rem; }
+      .mark {
+        width: 64px; height: 64px; margin: 0 auto 22px;
+        display: grid; place-items: center;
+        border-radius: 20px;
+        background: #fff;
+        border: 1px solid var(--cs-line);
+        box-shadow: 0 16px 36px rgba(21, 25, 34, 0.08);
+      }
+      .mark span {
+        display: block; width: 18px; height: 40px;
+        border: 3.5px solid var(--cs-ink-1); border-radius: 999px;
+      }
+      h1 { font-size: 1.4rem; line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 10px; }
+      p { color: var(--cs-ink-3); font-size: 0.98rem; line-height: 1.55; margin: 0 auto 22px; max-width: 24rem; }
+      button {
+        appearance: none; border: 0; cursor: pointer;
+        font: inherit; font-weight: 600; letter-spacing: -0.01em;
+        color: #fff; padding: 12px 22px; border-radius: 999px;
+        background: linear-gradient(135deg, #151922 0%, #52647c 48%, #6f83a6 100%);
+        box-shadow: 0 16px 34px rgba(21, 25, 34, 0.22);
+        transition: transform 0.16s ease, box-shadow 0.16s ease;
+      }
+      button:hover { transform: translateY(-1px); box-shadow: 0 22px 44px rgba(21, 25, 34, 0.26); }
+      button:focus-visible { outline: 3px solid rgba(82, 100, 124, 0.5); outline-offset: 3px; }
+      .hint { margin-top: 18px; font-size: 0.8rem; color: var(--cs-ink-3); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true"><span></span></div>
+      <h1>Vous êtes hors connexion</h1>
+      <p>Connexion requise pour accéder à votre espace CloneStore.</p>
+      <button type="button" onclick="location.reload()">Réessayer</button>
+      <p class="hint">Vos missions et données restent en sécurité sur nos serveurs — rien n'est stocké hors connexion.</p>
+    </main>
+  </body>
+</html>
