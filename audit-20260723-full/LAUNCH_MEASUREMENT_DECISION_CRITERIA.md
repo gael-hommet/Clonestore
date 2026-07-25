@@ -11,13 +11,15 @@
 | Trafic interne exclu par défaut | ✅ prouvé (`countFunnelStages` filtre `traffic_class='external'`) |
 | Page view non doublée | ✅ garanti par construction (garde Strict Mode + `page_view_id` unique par navigation) — pas de test E2E navigateur réel dans ce bloc |
 | Event ID idempotent | ✅ prouvé (contrainte DB unique + tests) |
-| Checkout et paiement réconciliés | ⚠️ contrat prêt (event_id déterministe), câblage réel différé (voir migration matrix) |
+| Checkout et paiement réconciliés | ✅ **branché (2026-07-25, RUNTIME WIRING CLOSURE)** : `checkout_session_created` (serveur) + `payment_succeeded/failed/refunded` (webhook signé), prouvés au funnel synthétique |
 | Dashboard propriétaire protégé | ✅ prouvé (`dashboard-guard.test.ts`) |
-| Persistance vérifiée | ✅ prouvé (23 tests PGlite réels) |
-| Build propre vert | à confirmer en Phase 29 de ce même bloc |
+| Persistance vérifiée | ✅ prouvé (PGlite réel) |
+| Build propre vert | ✅ (bloc RUNTIME WIRING : voir `ANALYTICS_RUNTIME_CLEAN_CHECKOUT_PROOF.md`) |
 
-**Ce gate A n'est pas encore GO à 100%** — 1 ligne `⚠️` (réconciliation checkout/paiement
-dépend d'un câblage différé documenté). Le reste est vert.
+**Mise à jour 2026-07-25 (RUNTIME WIRING CLOSURE)** : le gate A de fiabilité de mesure est
+désormais **complet** — la dernière ligne `⚠️` (réconciliation checkout/paiement) est branchée et
+prouvée. Le blocage restant vers un GO n'est plus la mesure elle-même mais l'absence de trafic
+réel + les gates produit/commerciaux B (`OWNER_APPROVAL_REQUIRED`) + la validation externe.
 
 ## B. Gates produit/commerciaux — aucun seuil fabriqué
 
