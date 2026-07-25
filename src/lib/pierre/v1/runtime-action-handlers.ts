@@ -9,6 +9,7 @@
 
 import type { SqlExecutor } from "./sql";
 import { newUuid } from "./sql";
+import { Errors } from "./errors";
 import { sha256 } from "./renderers";
 import type { TenantContext } from "./tenant-context";
 import type { CommunicationDeps } from "./communications";
@@ -33,11 +34,17 @@ import {
 } from "./pre-payroll";
 import {
   createPerformanceCampaign, buildCampaignPopulation, createPerformanceInterview, recordPerformanceResponse,
-  buildPerformanceSummary, validatePerformanceSummary, completePerformanceInterview, type PerfMode,
+  buildPerformanceSummary, submitPerformanceSummaryForValidation, applyPerformanceSummaryValidation,
+  completePerformanceInterview, createPerformanceActionPlan, validatePerformanceActionPlan,
+  createPerformanceActionItem, createPerformanceObjective, detectOverduePerformanceItems,
+  addPerformanceTemplateSection, addPerformanceTemplateQuestion, generatePerformanceReport, sendPerformanceReminders,
+  validateInterviewResponseCompleteness, type PerfMode,
 } from "./performance";
 import {
-  createTrainingRequirement, createTrainingSession, createTrainingEnrollment, recordTrainingAttendance,
-  attachTrainingProof, issueTrainingCertification, detectExpiringCertifications, type TrainingMode,
+  createTrainingRequirement, validateTrainingRequirementSource, createTrainingSession, createTrainingEnrollment,
+  recordTrainingAttendance, attachTrainingProof, verifyTrainingProof, issueTrainingCertification,
+  detectExpiringCertifications, completeTrainingEnrollment, createTrainingPlan, addTrainingPlanItem,
+  completeTrainingPlan, generateTrainingReport, sendTrainingInvitations, type TrainingMode,
 } from "./training";
 
 export type RuntimeDeps = {
@@ -684,14 +691,75 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
     const s = await buildPerformanceSummary(tx, ctx.tenant, String(ctx.payload.interview_id ?? ""));
     return { kind: "performance_summary", summary_id: s.id, status: s.status };
   }, "performance_summary_refused"),
-  "performance.summary.validate": domainAction(async (tx, ctx) => {
-    await validatePerformanceSummary(tx, ctx.tenant, String(ctx.payload.interview_id ?? ""));
-    return { kind: "performance_summary_validated", interview_id: ctx.payload.interview_id };
-  }, "performance_summary_validate_refused"),
+  "performance.summary.submit_for_validation": domainAction(async (tx, ctx) => {
+    const r = await submitPerformanceSummaryForValidation(tx, ctx.tenant, String(ctx.payload.interview_id ?? ""), ctx.missionId);
+    return { kind: "performance_summary_submitted", interview_id: ctx.payload.interview_id, validation_id: r.validation_id };
+  }, "performance_summary_submit_refused"),
+  "performance.summary.apply_validation": domainAction(async (tx, ctx) => {
+    const r = await applyPerformanceSummaryValidation(tx, ctx.tenant, String(ctx.payload.interview_id ?? ""));
+    return { kind: "performance_summary_applied", interview_id: ctx.payload.interview_id, status: r.status };
+  }, "performance_summary_apply_refused"),
   "performance.interview.complete": domainAction(async (tx, ctx) => {
     const r = await completePerformanceInterview(tx, ctx.tenant, String(ctx.payload.interview_id ?? ""));
     return { kind: "performance_interview_completed", interview_id: ctx.payload.interview_id, completed: r.completed };
   }, "performance_interview_complete_refused"),
+  "performance.action_plan.create": domainAction(async (tx, ctx) => {
+    const p = await createPerformanceActionPlan(tx, ctx.tenant, {
+      title: String(ctx.payload.title ?? ""), employee_id: (ctx.payload.employee_id as string) ?? null, interview_id: (ctx.payload.interview_id as string) ?? null,
+      campaign_id: (ctx.payload.campaign_id as string) ?? null, owner: (ctx.payload.owner as string) ?? null,
+    });
+    return { kind: "performance_action_plan", plan_id: p.id, status: p.status };
+  }, "performance_action_plan_refused"),
+  "performance.action_plan.validate": domainAction(async (tx, ctx) => {
+    const r = await validatePerformanceActionPlan(tx, ctx.tenant, String(ctx.payload.plan_id ?? ""));
+    return { kind: "performance_action_plan_validated", plan_id: ctx.payload.plan_id, status: r.status };
+  }, "performance_action_plan_validate_refused"),
+  "performance.action_item.create": domainAction(async (tx, ctx) => {
+    const a = await createPerformanceActionItem(tx, ctx.tenant, {
+      action: String(ctx.payload.action ?? ""), employee_id: (ctx.payload.employee_id as string) ?? null, interview_id: (ctx.payload.interview_id as string) ?? null,
+      campaign_id: (ctx.payload.campaign_id as string) ?? null, owner: (ctx.payload.owner as string) ?? null, due_on: (ctx.payload.due_on as string) ?? null,
+      plan_id: (ctx.payload.plan_id as string) ?? null, plan_key: (ctx.payload.plan_key as string) ?? null,
+    });
+    return { kind: "performance_action_item", action_item_id: a.id };
+  }, "performance_action_item_refused"),
+  "performance.objective.create": domainAction(async (tx, ctx) => {
+    const o = await createPerformanceObjective(tx, ctx.tenant, {
+      employee_id: String(ctx.payload.employee_id ?? ""), title: String(ctx.payload.title ?? ""), interview_id: (ctx.payload.interview_id as string) ?? null,
+      campaign_id: (ctx.payload.campaign_id as string) ?? null, success_criteria: (ctx.payload.success_criteria as string) ?? null, due_on: (ctx.payload.due_on as string) ?? null,
+    });
+    return { kind: "performance_objective", objective_id: o.id };
+  }, "performance_objective_refused"),
+  "performance.overdue.detect": domainAction(async (tx, ctx) => {
+    const r = await detectOverduePerformanceItems(tx, ctx.tenant, String(ctx.payload.as_of ?? ""));
+    return { kind: "performance_overdue", overdue: r.overdue };
+  }, "performance_overdue_refused"),
+  "performance.template.section.add": domainAction(async (tx, ctx) => {
+    const s = await addPerformanceTemplateSection(tx, ctx.tenant, {
+      template_id: String(ctx.payload.template_id ?? ""), section_key: String(ctx.payload.section_key ?? ""), title: String(ctx.payload.title ?? ""),
+      ordinal: typeof ctx.payload.ordinal === "number" ? ctx.payload.ordinal : 0, audience: (ctx.payload.audience as string) ?? "both", required: ctx.payload.required !== false,
+    });
+    return { kind: "performance_template_section", section_id: s.id };
+  }, "performance_template_section_refused"),
+  "performance.template.question.add": domainAction(async (tx, ctx) => {
+    const q = await addPerformanceTemplateQuestion(tx, ctx.tenant, {
+      section_id: String(ctx.payload.section_id ?? ""), question_key: String(ctx.payload.question_key ?? ""), label: String(ctx.payload.label ?? ""),
+      response_type: (ctx.payload.response_type as string) ?? "text", required: ctx.payload.required !== false, visibility: (ctx.payload.visibility as string) ?? "restricted",
+      ordinal: typeof ctx.payload.ordinal === "number" ? ctx.payload.ordinal : 0,
+    });
+    return { kind: "performance_template_question", question_id: q.id };
+  }, "performance_template_question_refused"),
+  "performance.response.completeness.validate": domainAction(async (tx, ctx) => {
+    const r = await validateInterviewResponseCompleteness(tx, ctx.tenant, String(ctx.payload.interview_id ?? ""));
+    return { kind: "performance_response_completeness", interview_id: ctx.payload.interview_id, complete: r.complete, missing: r.missing, total_required: r.total_required };
+  }, "performance_response_completeness_refused"),
+  "performance.report.generate": domainAction(async (tx, ctx) => {
+    const r = await generatePerformanceReport(tx, ctx.tenant, String(ctx.payload.campaign_id ?? ""));
+    return { kind: "performance_report", ...r };
+  }, "performance_report_refused"),
+  "performance.reminders.send": domainAction(async (tx, ctx) => {
+    const r = await sendPerformanceReminders(tx, ctx.tenant, String(ctx.payload.campaign_id ?? ""));
+    return { kind: "performance_reminders", recipients: r.recipients, delivered: r.delivered, status: r.status };
+  }, "performance_reminders_refused"),
 
   // ── TRAINING handlers ───────────────────────────────────────────────────────────────
   "training.requirement.create": domainAction(async (tx, ctx) => {
@@ -699,6 +767,7 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
       requirement_key: String(ctx.payload.requirement_key ?? ""), title: String(ctx.payload.title ?? ""), source_type: (ctx.payload.source_type as string) ?? "unsourced",
       source_ref: (ctx.payload.source_ref as string) ?? null, mandatory: ctx.payload.mandatory === true, recurrence_rule: (ctx.payload.recurrence_rule as string) ?? null,
       validity_months: typeof ctx.payload.validity_months === "number" ? ctx.payload.validity_months : null, applies_to: (ctx.payload.applies_to as string) ?? "all", mission_id: ctx.missionId,
+      proof_required: ctx.payload.proof_required === true,
     });
     return { kind: "training_requirement", requirement_id: r.id, status: r.status };
   }, "training_requirement_refused"),
@@ -723,6 +792,14 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
     const p = await attachTrainingProof(tx, ctx.tenant, String(ctx.payload.enrollment_id ?? ""), { proof_type: (ctx.payload.proof_type as string) ?? "attestation", file_id: (ctx.payload.file_id as string) ?? null, issued_on: (ctx.payload.issued_on as string) ?? null });
     return { kind: "training_proof", proof_id: p.id };
   }, "training_proof_refused"),
+  "training.proof.verify": domainAction(async (tx, ctx) => {
+    const r = await verifyTrainingProof(tx, ctx.tenant, String(ctx.payload.proof_id ?? ""), String(ctx.payload.verified_on ?? ""));
+    return { kind: "training_proof_verified", proof_id: ctx.payload.proof_id, status: r.status };
+  }, "training_proof_verify_refused"),
+  "training.requirement.validate_source": domainAction(async (tx, ctx) => {
+    const r = await validateTrainingRequirementSource(tx, ctx.tenant, String(ctx.payload.requirement_key ?? ""));
+    return { kind: "training_requirement_source", requirement_key: ctx.payload.requirement_key, status: r.status, reason: r.reason };
+  }, "training_requirement_source_refused"),
   "training.certification.issue": domainAction(async (tx, ctx) => {
     const c = await issueTrainingCertification(tx, ctx.tenant, {
       employee_id: String(ctx.payload.employee_id ?? ""), certification_key: String(ctx.payload.certification_key ?? ""), proof_id: String(ctx.payload.proof_id ?? ""),
@@ -734,6 +811,38 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
     const r = await detectExpiringCertifications(tx, ctx.tenant, String(ctx.payload.as_of ?? ""), typeof ctx.payload.expiring_within_days === "number" ? ctx.payload.expiring_within_days : 60);
     return { kind: "training_expiry", expiring: r.expiring, expired: r.expired, renewals: r.renewals };
   }, "training_expiry_refused"),
+  "training.enrollment.complete": domainAction(async (tx, ctx) => {
+    const r = await completeTrainingEnrollment(tx, ctx.tenant, String(ctx.payload.enrollment_id ?? ""));
+    // An honest, non-completing outcome (proof required/unverified) is a governed BLOCK, not a fake success.
+    if (!r.completed) throw Errors.conflict(r.blocker ?? "Enrollment not completable");
+    return { kind: "training_enrollment_completed", enrollment_id: ctx.payload.enrollment_id, completed: true };
+  }, "training_enrollment_complete_refused"),
+  "training.plan.create": domainAction(async (tx, ctx) => {
+    const p = await createTrainingPlan(tx, ctx.tenant, {
+      plan_key: String(ctx.payload.plan_key ?? ""), title: String(ctx.payload.title ?? ""), mode: (ctx.payload.mode as TrainingMode) ?? "copilote",
+      mission_id: ctx.missionId, idempotency_key: (ctx.payload.idempotency_key as string) ?? null,
+    });
+    return { kind: "training_plan", plan_id: p.id, status: p.status };
+  }, "training_plan_refused"),
+  "training.plan.item.add": domainAction(async (tx, ctx) => {
+    const it = await addTrainingPlanItem(tx, ctx.tenant, String(ctx.payload.plan_id ?? ""), {
+      requirement_id: (ctx.payload.requirement_id as string) ?? null, source_type: (ctx.payload.source_type as string) ?? "company_policy",
+      source_ref: (ctx.payload.source_ref as string) ?? null, priority: (ctx.payload.priority as string) ?? "normal", session_id: (ctx.payload.session_id as string) ?? null,
+    });
+    return { kind: "training_plan_item", plan_item_id: it.id };
+  }, "training_plan_item_refused"),
+  "training.plan.complete": domainAction(async (tx, ctx) => {
+    const r = await completeTrainingPlan(tx, ctx.tenant, String(ctx.payload.plan_id ?? ""));
+    return { kind: "training_plan_completed", plan_id: ctx.payload.plan_id, completed: r.completed, open_items: r.open_items };
+  }, "training_plan_complete_refused"),
+  "training.report.generate": domainAction(async (tx, ctx) => {
+    const r = await generateTrainingReport(tx, ctx.tenant);
+    return { kind: "training_report", ...r };
+  }, "training_report_refused"),
+  "training.invitations.send": domainAction(async (tx, ctx) => {
+    const r = await sendTrainingInvitations(tx, ctx.tenant, String(ctx.payload.session_id ?? ""));
+    return { kind: "training_invitations", recipients: r.recipients, delivered: r.delivered, status: r.status };
+  }, "training_invitations_refused"),
   "mission.complete": complete,
   "mission.block": block,
   "employee.read": readObject("pierre_rt_employees", "employee_id"),
