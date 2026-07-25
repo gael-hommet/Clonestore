@@ -1,13 +1,21 @@
 import "./globals.css";
 import "@/styles/liquid-glass.css";
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import SiteHeader from "../components/site/site-header";
 import SiteFooter from "../components/site/site-footer";
 import { LiquidGlassFilters } from "@/components/ui/LiquidGlassFilters";
 import { GuidedTourProvider } from "@/components/guided-tour/GuidedTourProvider";
+// Bloc PWA isolé (aucune dépendance P19). `app/manifest.ts` injecte automatiquement le
+// <link rel="manifest">. PwaProvider enregistre le service worker et rend les surfaces
+// d'installation / mise à jour (fixed, ne modifie pas le flux de la page).
+import { PwaProvider } from "@/components/pwa";
+// Analytics, Funnel and Launch Measurement Closure — tracker de navigation canonique, additif.
+// Ne remplace aucun tracker existant (PresencePing, BLOC3, etc.), ne rend rien (return null).
+import { AnalyticsPageViewTracker } from "@/components/analytics/AnalyticsPageViewTracker";
 
 export const metadata: Metadata = {
+  applicationName: "CloneStore",
   title: "CloneStore",
   description:
     "CloneStore — gagnez du temps et de l’argent avec des employés IA premium pour entreprises.",
@@ -15,6 +23,18 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "CloneStore",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#f8f4ec",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 const ORG_JSON_LD = {
@@ -57,9 +77,12 @@ export default function RootLayout({
         <div className="cs-vignette" aria-hidden="true" />
 
         <SiteHeader />
+        <AnalyticsPageViewTracker />
 
         <div className="cs-main">
-          <GuidedTourProvider>{children}</GuidedTourProvider>
+          <PwaProvider>
+            <GuidedTourProvider>{children}</GuidedTourProvider>
+          </PwaProvider>
         </div>
 
         <SiteFooter />
