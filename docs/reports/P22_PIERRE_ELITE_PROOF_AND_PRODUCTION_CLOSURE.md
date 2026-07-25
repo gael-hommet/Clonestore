@@ -10,6 +10,51 @@
 
 ---
 
+## REPRISE 9-CORRECTION (P22 — 2026-07-25, appended: prior "DEPTH VERIFIED" REJECTED)
+
+**The Reprise 9 verdict below over-claimed and is corrected here.** The commit `cd5bc811` is a real,
+useful SQL foundation (migrations v33/v34, campaigns/participants/interviews/responses/summaries/
+objectives/actions; requirements/sessions/enrollments/attendance/proofs/certifications/renewals;
+coverage; tenant isolation; 41/41 SQL tests). But **"PERFORMANCE DEPTH VERIFIED" and "TRAINING DEPTH
+VERIFIED" are REJECTED** because these gate criteria were not met:
+1. No full Next build. 2. No process-restart continuity. 3. Summary "validation" was a status flip, not
+a real `pierre_rt_validations` decision. 4. Bridge used `source_type=company_policy` instead of the
+contractually-required `performance_action`. 5. Training plans/plan_items absent. 6. Training completion
+under-conditioned on proofs. 7. Domain reports incomplete. 8. Reminders/alerts/tech-intents incomplete.
+9. Three modes only differed on initial status. 10. Several required authoritative actions absent.
+
+**Honest corrected verdict for Reprise 9:**
+`PERFORMANCE + TRAINING — REAL SQL FOUNDATION VERIFIED; FULL OPERATING DEPTH — STILL WITHHELD.`
+No prior evidence deleted; see Reprise 10 below for the closure work.
+
+---
+
+## REPRISE 10 (P22 — performance/training TRUE-CLOSURE remediation — 2026-07-26, appended)
+
+Acting on the correction above. Gap inventory + final statuses in `P22_PERFORMANCE_TRAINING_REMAINING_GAPS.json`.
+
+**What landed (additive migration `pierre_v35`, governed runtime actions, real-SQL itests):**
+
+1. **Real human summary validation.** The bare status-flip `performance.summary.validate` was removed. Validation is now a real `pierre_rt_validations` row: `performance.summary.submit_for_validation` inserts a `pending` decision (interview → `awaiting_validation`); `performance.summary.apply_validation` reads the human decision (`approved` → summary `validated`; `rejected`/`changes_requested` → back to draft/under_review). `performance.interview.complete` refuses unless a summary reached `status='validated'` **and** at least one response exists — it never auto-confirms/terminates probation.
+2. **Bridge corrected to the contract.** Requirements sourced from performance now store `source_type='performance_action'` + `source_ref=action_item.id`. `training.requirement.validate_source` activates the (mandatory) requirement **only** when the action item exists **and** its `performance_action_plan.status='validated'`. Unvalidated plan / ghost action → stays `configuration_required`. New tables: `pierre_rt_performance_action_plans` (+ `action_items.plan_id`).
+3. **Separate proof verification.** `training.certification.issue` no longer self-verifies. `training.proof.verify` is a distinct, permissioned action; issuance is **BLOCKED** while a proof is only `received`.
+4. **`proof_required` completion gating.** Added to requirement + session. `training.enrollment.complete`: missing proof → `NEEDS_INFORMATION` + enrollment `status='blocked'`; received-but-unverified → `under_review`; verified → `completed`. Never a fake completion.
+5. **Latent regression fixed.** `pierre_rt_training_enrollments` was missing `created_at`/`updated_at`, so `attendance.record` + `enrollment.complete` had been **silently rolling back** — and the old depth test never asserted attendance persisted. Columns added (v35); the depth test now hard-asserts attendance + real completion.
+6. **Templates made functional.** `pierre_rt_performance_template_sections` + `_questions` (v35) + `performance.template.section.add` / `question.add`; `performance.response.completeness.validate` enforces every REQUIRED template question is answered (structural only — never scores content).
+7. **Training plans.** `pierre_rt_training_plans` + `_plan_items` (v35) + `training.plan.create` (idempotent) / `plan.item.add` / `plan.complete` (blocked while an item is open).
+8. **SQL-computed reports + honest channels.** `performance.report.generate` / `training.report.generate` compute metrics `from sql` with `document_status='RENDERER_ACTIVATION_PENDING'` (rendering not wired — not faked). `performance.reminders.send` / `training.invitations.send` compute recipients for real but return `INTEGRATION_UNAVAILABLE` / `delivered=0` (no fake "sent").
+9. **Process-restart continuity.** New `p22-performance-continuity` + `p22-training-continuity` itests: durable await/blocked state re-read straight from SQL, resume only after the human decision / verified proof, and no double effect (single completion, single certification via upsert).
+
+**Verification (real-SQL, PGlite + migrations pierre_v29..v35):** `tsc --noEmit` → **0 errors**. New/updated itests all green — performance-depth, training-depth, performance-training-bridge, performance-continuity, training-continuity, perf-training-closure-actions (**16 tests**). Regression on the affected surface: 6 other P22 depth itests (**31 tests**) + 4 runtime-action unit tests (**11 tests**) all green. Isolated Next production build: see the "Isolated Next build" line appended below.
+
+**Regression scope (honest):** the affected V1 runtime surface + type-check were fully re-run; the full 270-file integration corpus was **not** exhaustively re-run this turn (time/RAM). No changed file is outside the Pierre V1 runtime + its migrations.
+
+**Isolated Next build (item 18 — tsc does NOT substitute):** `NODE_OPTIONS=--max-old-space-size=8192 next build` → **exit 0**. Compiled successfully in **8.1 min**; whole-app type validity check passed; page data collected; **196/196 static pages generated**; middleware 80.3 kB; shared First Load JS 102 kB. The documented RAM wall was cleared by raising the heap to 8 GB. This is the real production compile — it does NOT authorize production (const `PRODUCTION_AUTHORIZED=false` + the P10–P15 gates + browser/value proofs still stand).
+
+**Reprise 10 verdict:** performance + training now have a **real SQL operating foundation with honest floors** (human-validated summaries, verified-proof certification, source-validated training, proof-gated completion, durable resume). Still **WITHHELD**: no browser/E2E proof, no value/time benchmark, delivery/rendering not wired (reported honestly), deeper three-mode autonomy deferred. **Global verdict unchanged: P22 — OPERATIONAL CLOSURE STILL WITHHELD.**
+
+---
+
 ## REPRISE 9 (P22 — PERFORMANCE + TRAINING depth (one block) + bridge — 2026-07-25, appended)
 
 Fourth block: **performance/interviews** and **training/certifications** as one unit, plus the real

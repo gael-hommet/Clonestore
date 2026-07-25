@@ -12,5 +12,11 @@
     "autonomie_still_stops_at_mandatory_human_validation": true,
     "difference_is_persisted_sql_not_only_text": true
   },
-  "coverage_note": "This proves three-mode DIFFERENTIATION on the onboarding domain at the runtime/SQL layer. It is NOT the 18-mission x 3-mode browser E2E across all domains (that remains not done)."
+  "coverage_note": "This proves three-mode DIFFERENTIATION on the onboarding domain at the runtime/SQL layer. It is NOT the 18-mission x 3-mode browser E2E across all domains (that remains not done).",
+  "reprise10_performance_training_modes": {
+    "as_of": "2026-07-26",
+    "performance_interview_initial_status": { "brouillon": "draft", "copilote": "prepared", "autonomie": "scheduled" },
+    "training_enrollment_initial_status": { "brouillon": "draft", "copilote": "invited", "autonomie": "confirmed" },
+    "honest_limit": "For performance + training, the proven three-mode difference is the INITIAL persisted status (real SQL, not text). Deeper mode-specific autonomy semantics (e.g. how far autonomie advances before the mandatory human floor) are only partially differentiated and are marked PARTIAL in P22_PERFORMANCE_TRAINING_REMAINING_GAPS.json. No mode auto-decides a sensitive human decision or auto-sends/auto-certifies."
+  }
 }

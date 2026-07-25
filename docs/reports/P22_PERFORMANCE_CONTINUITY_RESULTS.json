@@ -1,0 +1,10 @@
+{
+  "generated_for": "P22_PERFORMANCE_CONTINUITY",
+  "note": "Proven by src/lib/pierre/v1/__integration__/p22-performance-continuity.itest.ts (1/1 green, PGlite). Durable await/resume with no double effect. PGlite is in-process, so a literal OS multi-process restart is not modeled here (true worker-restart is proven separately by the runtime-scheduler); what IS proven is that the awaiting-validation state is DURABLE in SQL and resumes correctly after the human decision.",
+  "as_of": "2026-07-26 (Reprise 10)",
+  "scenario": "campaign -> interview -> response -> summary.generate -> summary.submit_for_validation (pierre_rt_validations pending) -> [drop all JS refs] -> re-read durable state from SQL -> human decision persisted (approved) -> summary.apply_validation -> interview.complete",
+  "durable_state": { "interview_status_after_submit": "awaiting_validation", "validation_id_persisted": true, "re_read_straight_from_sql": true },
+  "resume_after_human_decision": { "applies_only_after_pierre_rt_validations_status_approved": true, "interview_completes": true },
+  "no_double_effect": { "second_complete_is_noop": true, "completed_interviews": 1, "total_interviews": 1 },
+  "NOT_PROVEN_THIS_TURN": ["literal OS process kill mid-flight (covered by runtime-scheduler separately)","browser"]
+}

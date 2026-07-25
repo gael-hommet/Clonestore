@@ -1,19 +1,30 @@
 {
   "generated_for": "P22_TRAINING_DEPTH",
-  "note": "Proven by src/lib/pierre/v1/__integration__/p22-training-depth.itest.ts (5/5 green, PGlite + real migrations incl. pierre_v34). Real-SQL runtime proof. Pierre NEVER invents a legal obligation/duration/periodicity/certification; no certification without a verified proof.",
-  "migration": "2026-07-25__pierre_v34_training_depth.sql",
-  "tables": ["pierre_rt_training_requirements","pierre_rt_training_sessions","pierre_rt_training_enrollments","pierre_rt_training_attendance","pierre_rt_training_proofs","pierre_rt_training_certifications","pierre_rt_training_renewals"],
+  "note": "Proven by p22-training-depth.itest.ts + p22-training-continuity.itest.ts + p22-perf-training-closure-actions.itest.ts (all green, PGlite + real migrations pierre_v29..v35). Real-SQL runtime proof. Pierre NEVER invents a legal obligation/duration/periodicity/certification; no certification without a VERIFIED proof; no completion without attendance + (when required) a verified proof.",
+  "as_of": "2026-07-26 (Reprise 10)",
+  "migrations": ["2026-07-25__pierre_v34_training_depth.sql","2026-07-25__pierre_v35_perf_training_closure.sql"],
+  "reprise10_corrections": [
+    "enrollments table was missing created_at/updated_at ⇒ attendance.record + enrollment.complete were SILENTLY rolling back; the old depth test never asserted attendance persisted. Added columns (v35) + hard assertions.",
+    "certification.issue previously self-verified the proof ⇒ separated into training.proof.verify; issue now BLOCKED while proof only 'received'.",
+    "proof_required gating added (requirement OR session); completion returns NEEDS_INFORMATION (missing) / under_review (received-unverified) / completed (verified) — never a fake completion.",
+    "training.requirement.validate_source now does a REAL per-source_type existence/status check (performance_action ⇒ action item + validated plan).",
+    "training plans + plan_items + plan.complete gate added and proven."
+  ],
+  "tables": ["pierre_rt_training_requirements","pierre_rt_training_sessions","pierre_rt_training_enrollments","pierre_rt_training_attendance","pierre_rt_training_proofs","pierre_rt_training_certifications","pierre_rt_training_renewals","pierre_rt_training_plans","pierre_rt_training_plan_items"],
   "service": "src/lib/pierre/v1/training.ts",
-  "authoritative_actions": ["training.requirement.create","training.session.create","training.enrollment.create","training.attendance.record","training.proof.attach","training.certification.issue","training.expiry.detect"],
-  "service_functions_also_proven": ["computeTrainingCoverage","buildTrainingBrief"],
+  "authoritative_actions": ["training.requirement.create","training.requirement.validate_source","training.session.create","training.enrollment.create","training.attendance.record","training.proof.attach","training.proof.verify","training.enrollment.complete","training.certification.issue","training.expiry.detect","training.plan.create","training.plan.item.add","training.plan.complete","training.report.generate","training.invitations.send"],
+  "service_functions_also_proven": ["computeTrainingCoverage","buildTrainingBrief","generateTrainingReport"],
   "scenario_120_employees": { "population": ">=120" },
-  "sourcing_floor": { "sourced_mandatory_requirement": "active", "unsourced_mandatory_requirement": "configuration_required", "no_invented_legal_obligation": true },
-  "completion_floors": { "completion_requires_attendance_present": true, "certification_requires_verified_proof": true, "missing_proof_certification": "blocked" },
+  "sourcing_floor": { "sourced_mandatory_requirement": "configuration_required_until_validate_source_then_active", "unsourced_mandatory_requirement": "configuration_required", "no_invented_legal_obligation": true },
+  "completion_floors": { "completion_requires_attendance_present": true, "completion_requires_verified_proof_when_required": true, "missing_proof": "NEEDS_INFORMATION + enrollment status='blocked'", "received_unverified_proof": "under_review", "certification_requires_verified_proof": true, "certification_never_self_verifies": true, "missing_proof_certification": "blocked" },
   "enrollment_idempotence": { "duplicate_enrollment": "deduped" },
+  "plans": { "plan.create_idempotent_by_key": true, "plan.complete_blocked_while_item_open": true },
   "expiry": { "expiring_detected": ">=1", "renewals_created": ">=1", "expiring_window_days": 60, "window_is_operational_alert_not_legal_periodicity": true, "validity_months_applied_expires_2027": true },
   "coverage": { "computed_from_sql": true, "certified_counted": ">=1" },
+  "report": { "computed_from": "sql", "document_status": "RENDERER_ACTIVATION_PENDING" },
+  "invitations": { "recipients_computed_from_sql": true, "delivery": "INTEGRATION_UNAVAILABLE", "delivered": 0, "no_fake_sent": true },
   "three_mode_enrollment_status": { "brouillon": "draft", "copilote": "invited", "autonomie": "confirmed" },
   "tenant_isolation": { "leak_into_tenant_B": 0 },
   "governed_refusals": { "invariant": "SUCCESS_WITHOUT_EXPECTED_TRAINING_OBJECT = FAIL" },
-  "NOT_PROVEN_THIS_TURN": ["usable rendered documents/matrices (RENDERER_ACTIVATION_PENDING)","browser cockpit","measured human-touch/value","real calendar/mail provider convocations (intents only)"]
+  "NOT_PROVEN_THIS_TURN": ["usable rendered documents/matrices (RENDERER_ACTIVATION_PENDING)","browser cockpit","measured human-touch/value","real calendar/mail provider convocations (INTEGRATION_UNAVAILABLE)","deeper three-mode autonomy beyond initial status"]
 }

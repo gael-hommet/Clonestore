@@ -1,16 +1,26 @@
 {
   "generated_for": "P22_PERFORMANCE_DEPTH",
-  "note": "Proven by src/lib/pierre/v1/__integration__/p22-performance-depth.itest.ts (4/4 green, PGlite Postgres 16 + real migrations incl. pierre_v33). Real-SQL runtime proof, NOT browser/human-time. Pierre never auto-decides a score/promotion/sanction/ranking.",
-  "migration": "2026-07-25__pierre_v33_performance_depth.sql",
-  "tables": ["pierre_rt_performance_campaigns","pierre_rt_performance_campaign_participants","pierre_rt_performance_templates","pierre_rt_performance_interviews","pierre_rt_performance_responses","pierre_rt_performance_summaries","pierre_rt_performance_objectives","pierre_rt_performance_action_items"],
+  "note": "Proven by p22-performance-depth.itest.ts + p22-performance-continuity.itest.ts + p22-perf-training-closure-actions.itest.ts (all green, PGlite Postgres 16 + real migrations pierre_v29..v35). Real-SQL runtime proof, NOT browser/human-time. Pierre never auto-decides a score/promotion/sanction/ranking, and never completes an interview without a HUMAN-validated summary.",
+  "as_of": "2026-07-26 (Reprise 10)",
+  "migrations": ["2026-07-25__pierre_v33_performance_depth.sql","2026-07-25__pierre_v35_perf_training_closure.sql"],
+  "reprise10_corrections": [
+    "human summary validation was a bare status flip ⇒ now a REAL pierre_rt_validations decision: performance.summary.submit_for_validation inserts a pending row; interview.complete refuses unless a summary reached status='validated' via performance.summary.apply_validation reading the human decision (approved/rejected/changes_requested).",
+    "performance action_plans added (v35) + action_items.plan_id; a plan must be status='validated' before it may source sensitive training (bridge).",
+    "template sections + questions tables added (v35) and made functional: performance.response.completeness.validate enforces every REQUIRED template question is answered (structural only, never scores content).",
+    "SQL-computed performance.report.generate + honest performance.reminders.send (INTEGRATION_UNAVAILABLE)."
+  ],
+  "tables": ["pierre_rt_performance_campaigns","pierre_rt_performance_campaign_participants","pierre_rt_performance_templates","pierre_rt_performance_template_sections","pierre_rt_performance_template_questions","pierre_rt_performance_interviews","pierre_rt_performance_responses","pierre_rt_performance_summaries","pierre_rt_performance_objectives","pierre_rt_performance_action_plans","pierre_rt_performance_action_items"],
   "service": "src/lib/pierre/v1/performance.ts",
-  "authoritative_actions": ["performance.campaign.create","performance.campaign.population.build","performance.interview.create","performance.response.record","performance.summary.generate","performance.summary.validate","performance.interview.complete"],
-  "service_functions_also_proven": ["createPerformanceObjective","createPerformanceActionItem","detectOverduePerformanceItems","computePerformanceCampaignProgress","buildPerformanceBrief"],
-  "scenario_80_employees": { "population": ">=80", "campaign": "annual_review", "full_interview_flow": "campaign -> population -> interview -> responses(manager+employee) -> summary -> validate -> complete" },
-  "human_decision_floor": { "complete_before_validated_summary": "blocked", "no_auto_score_promotion_sanction_ranking": true },
-  "objectives_actions": { "objectives_created": true, "action_items_created": true, "overdue_detected_deterministically": true },
+  "authoritative_actions": ["performance.campaign.create","performance.campaign.population.build","performance.interview.create","performance.response.record","performance.response.completeness.validate","performance.summary.generate","performance.summary.submit_for_validation","performance.summary.apply_validation","performance.interview.complete","performance.action_plan.create","performance.action_plan.validate","performance.action_item.create","performance.objective.create","performance.overdue.detect","performance.template.section.add","performance.template.question.add","performance.report.generate","performance.reminders.send"],
+  "service_functions_also_proven": ["computePerformanceCampaignProgress","buildPerformanceBrief","generatePerformanceReport","validateInterviewResponseCompleteness"],
+  "scenario_multi_employee": { "population": ">=2", "campaign": "annual_review", "full_interview_flow": "campaign -> population -> interview -> responses -> summary -> submit_for_validation -> (human decision in pierre_rt_validations) -> apply_validation -> complete" },
+  "human_decision_floor": { "summary_validation_is_real_pierre_rt_validations_row": true, "complete_before_validated_summary": "blocked", "complete_with_pending_validation": "blocked", "no_auto_score_promotion_sanction_ranking": true, "never_auto_confirms_or_terminates_probation": true },
+  "response_completeness": { "enforced_against_required_template_questions": true, "missing_keys_reported": true, "structural_only_never_scores": true },
+  "objectives_actions": { "objectives_created": true, "action_items_created": true, "action_plans_created_and_validated": true, "overdue_detected_deterministically": true },
+  "report": { "computed_from": "sql", "document_status": "RENDERER_ACTIVATION_PENDING" },
+  "reminders": { "recipients_computed_from_sql": true, "delivery": "INTEGRATION_UNAVAILABLE", "delivered": 0, "no_fake_sent": true },
   "three_mode_interview_status": { "brouillon": "draft", "copilote": "prepared", "autonomie": "scheduled" },
   "tenant_isolation": { "leak_into_tenant_B": 0 },
   "governed_refusals": { "interview_on_missing_participant": "blocked", "invariant": "SUCCESS_WITHOUT_EXPECTED_PERFORMANCE_OBJECT = FAIL" },
-  "NOT_PROVEN_THIS_TURN": ["usable rendered documents (RENDERER_ACTIVATION_PENDING)","browser cockpit","measured human-touch/value","real calendar/mail provider sends (intents only)"]
+  "NOT_PROVEN_THIS_TURN": ["usable rendered documents (RENDERER_ACTIVATION_PENDING)","browser cockpit","measured human-touch/value","real calendar/mail provider sends (INTEGRATION_UNAVAILABLE)","deeper three-mode autonomy beyond initial status"]
 }

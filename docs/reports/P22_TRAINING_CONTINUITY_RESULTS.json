@@ -1,0 +1,11 @@
+{
+  "generated_for": "P22_TRAINING_CONTINUITY",
+  "note": "Proven by src/lib/pierre/v1/__integration__/p22-training-continuity.itest.ts (1/1 green, PGlite). Durable NEEDS_INFORMATION (proof required + missing) with resume after the proof is received AND verified, then a single certification. PGlite is in-process; durable state + resume is what is modeled here (true worker-restart proven separately by the runtime-scheduler).",
+  "as_of": "2026-07-26 (Reprise 10)",
+  "scenario": "requirement(proof_required) + validate_source -> session -> enrollment -> attendance(present) -> enrollment.complete [NEEDS_INFORMATION, enrollment status='blocked'] -> [re-read durable 'blocked' from SQL] -> proof.attach [received] -> enrollment.complete [under_review] -> proof.verify -> enrollment.complete [completed] -> certification.issue -> re-issue (upsert) -> exactly one certification",
+  "durable_state": { "status_after_missing_proof": "blocked", "re_read_straight_from_sql": true, "blocker_missing": "NEEDS_INFORMATION", "blocker_received_unverified": "under_review" },
+  "resume_after_proof_verified": { "completes_only_after_proof_status_verified": true },
+  "no_double_effect": { "certification_upsert_on_conflict": true, "certifications_for_key": 1 },
+  "regression_fixed_this_reprise": "enrollments table was missing created_at/updated_at, which had been silently rolling back attendance.record + enrollment.complete; added columns in pierre_v35 and this test now exercises the real completion path.",
+  "NOT_PROVEN_THIS_TURN": ["literal OS process kill mid-flight (covered by runtime-scheduler separately)","browser"]
+}

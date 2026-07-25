@@ -5,15 +5,23 @@
   "packs_measured": 43,
   "total_runtime_action_steps": 272,
   "mission_noop_remaining": 0,
-  "persisting_actions_executed": 193,
-  "persisting_effect_rows": 193,
+  "persisting_actions_executed": 177,
+  "persisting_effect_rows": 177,
   "trace_or_record_persistence_rate": 100,
   "governed_autoexec_actions": 25,
   "needs_information_pauses": 0,
   "wait_human_external_steps": 10,
   "terminal_steps": 43,
   "false_success": 0,
-  "auto_executable_steps": 218,
+  "auto_executable_steps": 202,
   "action_binding_completion_rate": 100,
-  "business_effect_completion_rate_note": "NOT computed here — see P22_ACTION_SEMANTIC_GAP_MATRIX.json (72.9% at persistence level; only absence.record.create proven on real SQL)."
+  "business_effect_completion_rate_note": "NOT computed here — see P22_ACTION_SEMANTIC_GAP_MATRIX.json (72.9% at persistence level; only absence.record.create proven on real SQL).",
+  "reprise10_registry_growth": {
+    "as_of": "2026-07-26",
+    "note": "This file's counts are over mission-pack STEPS, unchanged this reprise. The authoritative action REGISTRY grew with governed performance/training closure actions, each with a real handler + a passing real-SQL itest (see P22_PERFORMANCE_DEPTH_RESULTS.json / P22_TRAINING_DEPTH_RESULTS.json).",
+    "performance_actions_added": ["performance.summary.submit_for_validation","performance.summary.apply_validation","performance.action_plan.create","performance.action_plan.validate","performance.action_item.create","performance.objective.create","performance.overdue.detect","performance.template.section.add","performance.template.question.add","performance.response.completeness.validate","performance.report.generate","performance.reminders.send"],
+    "training_actions_added": ["training.requirement.validate_source","training.proof.verify","training.enrollment.complete","training.plan.create","training.plan.item.add","training.plan.complete","training.report.generate","training.invitations.send"],
+    "removed": ["performance.summary.validate (bare status-flip; replaced by submit_for_validation + apply_validation via pierre_rt_validations)"],
+    "honest_classification": "report.generate = read (metrics from SQL, document RENDERER_ACTIVATION_PENDING); reminders.send / invitations.send = communication (recipients from SQL, delivery INTEGRATION_UNAVAILABLE — NOT a business 'sent')."
+  }
 }

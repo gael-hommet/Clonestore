@@ -1,9 +1,13 @@
 {
   "generated_for": "P22_PERFORMANCE_TRAINING_BRIDGE",
-  "note": "Proven by src/lib/pierre/v1/__integration__/p22-performance-training-bridge.itest.ts (1/1 green, PGlite). A performance development action becomes a SOURCE-LINKED training need — never an invented obligation, never a duplicate.",
-  "chain": "performance_action_item -> training_requirement(source_ref=action.id) -> training_session -> training_enrollment(employee)",
-  "source_link": { "source_type": "company_policy", "source_ref": "performance_action_item.id", "explicit_not_duplicated": true },
+  "note": "Proven by src/lib/pierre/v1/__integration__/p22-performance-training-bridge.itest.ts (3/3 green, PGlite). A performance development action becomes a SOURCE-LINKED training need with the CONTRACTUAL source_type — never an invented obligation, never activated from an unvalidated/ghost source, never a duplicate.",
+  "as_of": "2026-07-26 (Reprise 10)",
+  "reprise10_correction": "The earlier bridge used source_type='company_policy' with source_ref=action.id — this was rejected as INVALID_IMPLEMENTATION. The contract is source_type='performance_action' + source_ref=action_item.id, and the requirement only activates after training.requirement.validate_source proves the action item exists AND its performance action plan is status='validated'.",
+  "chain": "performance.action_plan.create -> action_plan.validate -> performance.action_item.create(plan_id) -> training_requirement(source_type='performance_action', source_ref=action.id) [configuration_required] -> training.requirement.validate_source [active] -> training_session -> training_enrollment(employee)",
+  "source_link": { "source_type": "performance_action", "source_ref": "performance_action_item.id", "stored_columns_asserted": true, "explicit_not_duplicated": true },
+  "activation_gate": { "mandatory_requirement_starts": "configuration_required", "activates_only_when": "action item exists AND its action plan status='validated'", "unvalidated_plan": "configuration_required", "ghost_action": "configuration_required" },
+  "enrollment_dedup": { "duplicate_enrollment": "deduped" },
   "end_to_end_queryable": true,
-  "no_training_need_without_source": true,
+  "no_training_need_without_validated_source": true,
   "NOT_PROVEN_THIS_TURN": ["auto-creation of sensitive training without validation (deliberately not enabled)","browser","rendered documents"]
 }
