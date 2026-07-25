@@ -44,6 +44,8 @@ function defaultActionInput(actionKey: string): Record<string, unknown> {
     case "signature.prepare": return { contract_id: NIL_UUID };
     case "analytics.compute": return { metric: "executive_report" }; // default; packs override with the capability-appropriate metric
     case "document.generate": return { document_type: "generic_hr_document", title: "Document RH" }; // packs override with the concrete type/title
+    case "hr.record.append": return { record_type: "hr.step" }; // packs override with the concrete record_type
+    case "hr.data.collect": return {}; // packs override with required_fields/provided
     default: return {};
   }
 }

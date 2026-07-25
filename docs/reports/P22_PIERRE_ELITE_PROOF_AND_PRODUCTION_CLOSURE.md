@@ -10,6 +10,63 @@
 
 ---
 
+## REPRISE 2 (P22 — eliminate ALL noops, generic HR primitives — 2026-07-25, appended, prior evidence preserved)
+
+**Bigger truth than "23 noops":** a full inventory across the whole pack registry found **172
+`mission.noop` runtime steps across 43 packs** — most were the shared skeleton (`intake` / `collect`
+/ `validate` from `intakeSkeleton()`, present in every pack).
+
+**What changed (real, tested, committed):**
+- **Two GENERIC reusable authoritative actions** (registry + handlers, both persist to
+  `pierre_rt_events`, tenant-scoped + traced, never invent data):
+  - `hr.record.append` — persists one structured typed HR record/observation (classification,
+    tracking, detection, reconciliation) as a canonical event. Success ⇒ a real row.
+  - `hr.data.collect` — collects declared-required fields, returns a governed **`NEEDS_INFORMATION`**
+    blocker (with the exact missing list) when one is absent — never a fake success.
+- **Skeleton rebound** (`intakeSkeleton()`): `intake→hr.record.append`, `collect→hr.data.collect`,
+  `validate→hr.record.append` — this single change made **129** noops real across **all 43 packs**.
+- **By-kind sweep** of the remaining 43 domain noops: `prepare_document→document.generate` (10),
+  `collect→hr.data.collect` (8), `mutate_record/reconcile/validate/decide→hr.record.append` (25).
+- **Non-regression guard** (`hr-mission-packs-no-noop.test.ts`): asserts **0** `mission.noop`
+  remain and every bound action is registered **and** handled.
+
+**Measured (all 43 packs, `P22_REAL_TECHNOLOGY_EXECUTION_RESULTS.json`):** 271 runtime-action steps,
+**`mission.noop` remaining = 0** (was 172), **193 persisting actions executed → 193 effect rows
+(artifact/record persistence 100%, 0 false-success)**, 25 governed auto-exec (communication /
+follow-up), 10 legitimate wait/human/external pauses, 43 terminal. Action-layer
+`operational_completion_rate = 100%` (every auto-executable step now binds to and executes a real
+persisting/governed action). `SUCCESS_WITHOUT_EFFECT = FAIL` is asserted per persisting action.
+
+**P16C unification decision (§6, option B chosen, honestly):** the authoritative runtime consumes
+the **governed service as the single primitive directly** (`document.generate` → P8.3
+`DocumentService`; `hr.record.append`/`hr.data.collect` → canonical `pierre_rt_events`). P16C's
+adapters wrap those same governed services, and the HR runtime never invoked P16C — so **no double
+execution / double artifact / double trace exists to remove**; the benchmark's
+`SUCCESS_WITHOUT_EFFECT=FAIL` enforces exactly-one-effect per action. Routing the runtime through
+the P16C *bus object* (vs. the shared service it wraps) was **not** done and is not required for
+single-source-of-truth; it stays an optional refactor, not a correctness gap.
+
+**Honest limits of this reprise (NOT claimed):** the benchmark executes the persisting handlers'
+real logic against an **in-memory `SqlExecutor`**, not embedded Postgres with migrations; it proves
+the action layer produces exactly-one-effect with 0 noops, **not** full E2E missions, **not** rich
+usable document *content* (`document.generate` persists a governed draft + content hash, not a
+rendered PDF), **not** the 18-mission × 3-mode E2E against a real DB, **not** a browser pass, **not**
+real-provider sends. Those remain in the External-Activation Gate (§4).
+
+**Verification:** `tsc` exit 0 (full repo), scoped ESLint 0 on all changed files (registry, handlers,
+runtime-map, schema, 20 domain packs, 3 tests), **429** v1-unit/pack/canon/cognitive-runtime tests
+green. **0 OpenAI calls** in this reprise.
+
+**Reprise verdict: P22 — OPERATIONAL CLOSURE STILL WITHHELD.** The authoritative runtime now has
+**zero `mission.noop`** and every HR mission step executes a real, governed, persisting action
+(0→193 effect rows, 0 false-success) — a decisive advance on the operational spine. It still does
+not reach a full E2E / usable-content / browser / real-DB / human-time proof, so no elite/closed
+claim is made. Remaining to reach ELITE OPERATIONAL PROOF: embedded-PG E2E of ≥18 missions × 3
+modes with real persisted differential effects; rich document content rendering (usable-deliverable
+≥95%); browser desktop/mobile; live providers; production authorization (`PRODUCTION_AUTHORIZED`).
+
+---
+
 ## CONTINUATION (P22 real technology execution — 2026-07-25, appended, prior evidence preserved)
 
 **Root-cause found by mapping the authoritative path, not re-auditing:** P16C (the 10 tech

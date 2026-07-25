@@ -33,10 +33,14 @@ export function sig(signalKey: string, label: string): HrMissionProactiveSignal 
 // A default governed skeleton every pack shares: intake → resolve → collect → validate.
 export function intakeSkeleton(): HrMissionPackStep[] {
   return [
-    rt("intake", "intake", "Understand the request & classify the process", "mission.noop", { autonomy: "execute_autonomous" }),
+    // Intake/collect/validate are now REAL persisted steps (were mission.noop across every pack):
+    //  - intake   → records the request classification as a canonical event;
+    //  - collect  → collects declared-required fields, returns NEEDS_INFORMATION when one is missing;
+    //  - validate → records that permissions/preconditions were checked.
+    rt("intake", "intake", "Understand the request & classify the process", "hr.record.append", { autonomy: "execute_autonomous", input: { record_type: "intake.classified" } }),
     svc("resolve_subject", "resolve_subject", "Resolve the subject (employee/candidate/contract/file)", "employee360.view_360", { autonomy: "execute_autonomous" }),
-    rt("collect", "collect", "Collect missing information (ask, fail-closed on critical)", "mission.noop", { autonomy: "execute_autonomous" }),
-    rt("validate", "validate", "Validate permissions & preconditions", "mission.noop", { autonomy: "execute_autonomous" }),
+    rt("collect", "collect", "Collect missing information (ask, fail-closed on critical)", "hr.data.collect", { autonomy: "execute_autonomous" }),
+    rt("validate", "validate", "Validate permissions & preconditions", "hr.record.append", { autonomy: "execute_autonomous", input: { record_type: "preconditions.validated" } }),
   ];
 }
 // A default close: audit + complete.

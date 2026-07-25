@@ -12,7 +12,7 @@ export const HEALTH_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["health.incident_reporting", "health.risk_assessment", "health.safety_clearances"], subjectTypes: ["company", "employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("record_incident", "collect", "Record incident/accident facts", "mission.noop", { dependsOn: ["validate"] }),
+      rt("record_incident", "collect", "Record incident/accident facts", "hr.data.collect", { dependsOn: ["validate"] }),
       rt("prepare_assessment", "collect", "Prepare risk assessment (surface risks/gaps)", "analytics.compute", { dependsOn: ["record_incident"], input: { metric: "anomaly_surfacing" } }),
       human("safety_owner", "Route to safety owner / decision", "hr_manager", { dependsOn: ["prepare_assessment"] }),
       ...closeSkeleton("safety_owner"),

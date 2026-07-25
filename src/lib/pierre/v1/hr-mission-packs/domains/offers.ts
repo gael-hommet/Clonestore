@@ -13,7 +13,7 @@ export const OFFER_PACKS: HrMissionPackDefinition[] = [
       svc("prepare_offer", "prepare_document", "Prepare/adjust the offer document", "offer.render_offer_premium", { dependsOn: ["validate"] }),
       rt("approve_offer", "request_approval", "Approve the offer terms", "approval.request", { dependsOn: ["prepare_offer"], autonomy: "execute_with_validation" }),
       ext("collect_signature", "signature", "Collect signature via e-signature provider", "signature_provider", { dependsOn: ["approve_offer"], requiresApproval: true }),
-      rt("reconcile_sig", "reconcile", "Reconcile signature return", "mission.noop", { dependsOn: ["collect_signature"] }),
+      rt("reconcile_sig", "reconcile", "Reconcile signature return", "hr.record.append", { dependsOn: ["collect_signature"] }),
       ...closeSkeleton("reconcile_sig"),
     ],
     approvals: [{ when: "always", approver: "hr_manager", reason: "an offer is a binding pre-contractual commitment" }],

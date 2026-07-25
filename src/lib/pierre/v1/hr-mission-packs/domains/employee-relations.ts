@@ -10,7 +10,7 @@ export const RELATIONS_PACKS: HrMissionPackDefinition[] = [
     id: "relations.hr_requests", domain: "relations", title: "HR request / question ticketing",
     description: "Intake HR questions/requests, route to the right HR owner, track resolution.",
     capabilityIds: ["relations.hr_requests"], subjectTypes: ["employee"],
-    steps: [...intakeSkeleton(), rt("route", "mutate_record", "Route to the HR owner", "mission.noop", { dependsOn: ["validate"] }), rt("track", "schedule", "Track resolution SLA", "follow_up.schedule", { dependsOn: ["route"], emitsSignal: "relations.request_sla" }), ...closeSkeleton("track")],
+    steps: [...intakeSkeleton(), rt("route", "mutate_record", "Route to the HR owner", "hr.record.append", { dependsOn: ["validate"] }), rt("track", "schedule", "Track resolution SLA", "follow_up.schedule", { dependsOn: ["route"], emitsSignal: "relations.request_sla" }), ...closeSkeleton("track")],
     permissions: [{ permission: "employee.read", scope: "company" }],
     proactiveSignals: [sig("relations.request_sla", "HR request SLA breach")],
     completionCriteria: [cc("relations.routed", "Request routed & tracked.", "mutation"), cc("relations.closed", "Terminal state.", "state")],
@@ -22,7 +22,7 @@ export const RELATIONS_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["relations.complaints", "relations.mediation", "relations.harassment_alert"], subjectTypes: ["employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("record_confidential", "collect", "Record facts confidentially (restricted access)", "mission.noop", { dependsOn: ["validate"], autonomy: "observe_only" }),
+      rt("record_confidential", "collect", "Record facts confidentially (restricted access)", "hr.data.collect", { dependsOn: ["validate"], autonomy: "observe_only" }),
       human("route_to_qualified", "Route to qualified human (HR/legal/referent)", "hr_manager", { dependsOn: ["record_confidential"] }),
       ...closeSkeleton("route_to_qualified"),
     ],

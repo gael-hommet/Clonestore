@@ -11,10 +11,10 @@ export const POLICY_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["policy.define", "policy.version_publish", "policy.acceptance", "policy.impact_diffusion"], subjectTypes: ["policy", "company"],
     steps: [
       ...intakeSkeleton(),
-      rt("draft", "prepare_document", "Draft/version the policy", "mission.noop", { dependsOn: ["validate"] }),
+      rt("draft", "prepare_document", "Draft/version the policy", "document.generate", { dependsOn: ["validate"] }),
       rt("approve", "request_approval", "Approve & publish", "approval.request", { dependsOn: ["draft"], autonomy: "execute_with_validation" }),
       rt("diffuse", "communicate", "Diffuse to employees", "communication.create_intent", { dependsOn: ["approve"] }),
-      rt("collect_acceptance", "collect", "Collect acceptance proof", "mission.noop", { dependsOn: ["diffuse"], emitsSignal: "policy.acceptance_pending" }),
+      rt("collect_acceptance", "collect", "Collect acceptance proof", "hr.data.collect", { dependsOn: ["diffuse"], emitsSignal: "policy.acceptance_pending" }),
       ...closeSkeleton("collect_acceptance"),
     ],
     approvals: [{ when: "always", approver: "hr_manager", reason: "policy publication is governed" }],

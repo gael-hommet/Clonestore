@@ -321,10 +321,62 @@ const documentGenerate: RuntimeActionHandler = async (ctx) => {
   }
 };
 
+// ── hr.record.append — persist ONE structured HR record/observation as a canonical event ───────────
+// Reusable primitive behind intake/validate/track/classify/detect/reconcile skeleton + domain steps.
+// Writes a real pierre_rt_events row (tenant-scoped, mission-linked, traced). Never invents data — it
+// records exactly the typed fields the plan supplied. SUCCESS ⇒ a row exists (no success-without-effect).
+const hrRecordAppend: RuntimeActionHandler = async (ctx) => {
+  const recordType = String(ctx.payload.record_type ?? "hr.record");
+  const eventId = newUuid();
+  const metadata: Record<string, unknown> = {
+    step_run_id: ctx.stepRunId,
+    record_type: recordType,
+    ...(ctx.payload.data && typeof ctx.payload.data === "object" ? { data: ctx.payload.data } : {}),
+    ...(ctx.payload.subject_id ? { subject_id: ctx.payload.subject_id } : {}),
+    ...(ctx.payload.note ? { note: String(ctx.payload.note) } : {}),
+  };
+  await ctx.appDb.transaction(async (tx) => {
+    await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.companyId]);
+    await tx.query(
+      `insert into pierre_rt_events (id, company_id, mission_id, type, actor_type, actor_id, new_state, metadata)
+       values ($1,$2,$3,$4,'runtime',$5,'recorded',$6::jsonb)`,
+      [eventId, ctx.companyId, ctx.missionId, `hr.record.${recordType}`, ctx.tenant.user_id, JSON.stringify(metadata)]);
+  });
+  return ok({ kind: "record", record_id: eventId, record_type: recordType });
+};
+
+// ── hr.data.collect — collect declared-required fields; NEEDS_INFORMATION when a required one is absent ─
+// input.required_fields: string[]  input.provided: Record<string, unknown>. Empty required => nothing
+// missing. On missing => a governed blocker (needs_information) with the exact missing list — never a fake
+// success, never invented data. On complete => persists a collection record and succeeds.
+const hrDataCollect: RuntimeActionHandler = async (ctx) => {
+  const required = Array.isArray(ctx.payload.required_fields)
+    ? ctx.payload.required_fields.filter((f): f is string => typeof f === "string")
+    : [];
+  const provided = ctx.payload.provided && typeof ctx.payload.provided === "object"
+    ? (ctx.payload.provided as Record<string, unknown>)
+    : {};
+  const missing = required.filter((f) => provided[f] === undefined || provided[f] === null || provided[f] === "");
+  if (missing.length > 0) {
+    return { status: "blocked", blockerCode: "needs_information", output: { missing_fields: missing } };
+  }
+  const eventId = newUuid();
+  await ctx.appDb.transaction(async (tx) => {
+    await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.companyId]);
+    await tx.query(
+      `insert into pierre_rt_events (id, company_id, mission_id, type, actor_type, actor_id, new_state, metadata)
+       values ($1,$2,$3,'hr.data.collected','runtime',$4,'recorded',$5::jsonb)`,
+      [eventId, ctx.companyId, ctx.missionId, ctx.tenant.user_id, JSON.stringify({ step_run_id: ctx.stepRunId, required, collected: Object.keys(provided) })]);
+  });
+  return ok({ kind: "collection", record_id: eventId, collected_fields: Object.keys(provided), required });
+};
+
 export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
   "mission.noop": noop,
   "analytics.compute": analyticsCompute,
   "document.generate": documentGenerate,
+  "hr.record.append": hrRecordAppend,
+  "hr.data.collect": hrDataCollect,
   "mission.complete": complete,
   "mission.block": block,
   "employee.read": readObject("pierre_rt_employees", "employee_id"),

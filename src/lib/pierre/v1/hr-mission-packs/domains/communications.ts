@@ -11,10 +11,10 @@ export const COMMUNICATION_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["communications.templates", "communications.scheduling", "communications.read_receipt"], subjectTypes: ["employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("select_template", "prepare_document", "Select/prepare the template", "mission.noop", { dependsOn: ["validate"] }),
+      rt("select_template", "prepare_document", "Select/prepare the template", "document.generate", { dependsOn: ["validate"] }),
       rt("schedule", "schedule", "Schedule within quiet hours", "follow_up.schedule", { dependsOn: ["select_template"] }),
       rt("send", "communicate", "Send via the verified delivery runtime", "communication.create_intent", { dependsOn: ["schedule"] }),
-      rt("track_receipt", "reconcile", "Track read receipt / engagement", "mission.noop", { dependsOn: ["send"] }),
+      rt("track_receipt", "reconcile", "Track read receipt / engagement", "hr.record.append", { dependsOn: ["send"] }),
       ...closeSkeleton("track_receipt"),
     ],
     expectedCommunications: [{ channel: "email", audience: "employee", templateFamily: "hr.generic", proofOfSend: true }],
@@ -27,7 +27,7 @@ export const COMMUNICATION_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["communications.legal_review"], subjectTypes: ["document"],
     steps: [
       ...intakeSkeleton(),
-      rt("screen", "validate", "Screen content for legal/compliance risk", "mission.noop", { dependsOn: ["validate"], autonomy: "suggest" }),
+      rt("screen", "validate", "Screen content for legal/compliance risk", "hr.record.append", { dependsOn: ["validate"], autonomy: "suggest" }),
       human("legal_reviewer", "Human legal/compliance review", "hr_manager", { dependsOn: ["screen"] }),
       ...closeSkeleton("legal_reviewer"),
     ],

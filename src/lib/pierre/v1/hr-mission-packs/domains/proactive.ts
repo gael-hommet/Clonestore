@@ -12,7 +12,7 @@ export const PROACTIVE_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["proactive.contract_expiry", "proactive.expiring_training", "proactive.missing_document"], subjectTypes: ["employee", "contract"],
     steps: [
       ...intakeSkeleton(),
-      rt("detect", "validate", "Detect due/expiring/missing items", "mission.noop", { dependsOn: ["validate"], emitsSignal: "proactive.deadline" }),
+      rt("detect", "validate", "Detect due/expiring/missing items", "hr.record.append", { dependsOn: ["validate"], emitsSignal: "proactive.deadline" }),
       rt("chase", "schedule", "Create governed follow-up + chase", "follow_up.schedule", { dependsOn: ["detect"] }),
       ...closeSkeleton("chase"),
     ],
@@ -26,7 +26,7 @@ export const PROACTIVE_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["proactive.blocked_signature", "proactive.payroll_anomaly", "proactive.sla_breach"], subjectTypes: ["company"],
     steps: [
       ...intakeSkeleton(),
-      rt("detect", "validate", "Detect operational risk signals", "mission.noop", { dependsOn: ["validate"], emitsSignal: "proactive.operational_risk" }),
+      rt("detect", "validate", "Detect operational risk signals", "hr.record.append", { dependsOn: ["validate"], emitsSignal: "proactive.operational_risk" }),
       rt("escalate", "communicate", "Escalate to the responsible owner", "communication.create_intent", { dependsOn: ["detect"] }),
       ...closeSkeleton("escalate"),
     ],

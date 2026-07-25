@@ -15,7 +15,7 @@ export const REPORTING_PACKS: HrMissionPackDefinition[] = [
       rt("compute_absence", "collect", "Compute absenteeism", "analytics.compute", { dependsOn: ["compute_headcount"], input: { metric: "absenteeism" } }),
       rt("compute_funnel", "collect", "Compute recruitment funnel", "analytics.compute", { dependsOn: ["compute_absence"], input: { metric: "recruitment_funnel" } }),
       rt("compute_completeness", "collect", "Compute completeness/deadlines", "analytics.compute", { dependsOn: ["compute_funnel"], input: { metric: "completeness_deadlines" } }),
-      rt("render", "prepare_document", "Render the dashboard/report", "mission.noop", { dependsOn: ["compute_completeness"] }),
+      rt("render", "prepare_document", "Render the dashboard/report", "document.generate", { dependsOn: ["compute_completeness"] }),
       ...closeSkeleton("render")],
     permissions: [{ permission: "audit.read", scope: "company" }],
     expectedArtifacts: [{ kind: "report", format: "json", label: "HR dashboard", retention: "hot_90d" }],

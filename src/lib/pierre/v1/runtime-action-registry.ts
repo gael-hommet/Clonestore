@@ -110,6 +110,20 @@ const REGISTRY: Record<string, RuntimeActionDefinition> = {
       if (!isStr(p.title)) errs.push("title required");
       return errs;
     } }),
+
+  // P22 reprise — two GENERIC, reusable HR primitives that replace the bulk of mission.noop skeleton
+  // steps (intake/collect/validate + track/classify/detect/reconcile) with REAL persisted effects.
+  // Neither invents data. Both are tenant-scoped and traced (they write to pierre_rt_events).
+  //
+  // hr.record.append — persists ONE structured, typed HR record/observation (classification, tracking,
+  // detection, reconciliation) as a canonical event linked to the mission. Success => a real row exists.
+  "hr.record.append": def({ actionKey: "hr.record.append", category: "prepare", risk: "low", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isStr(p.record_type) ? [] : ["record_type required"]) }),
+  // hr.data.collect — collects the declared-required fields from the typed input, persists what is present
+  // as a record, and returns a governed NEEDS_INFORMATION blocker when a required field is missing (never
+  // a fake success, never invented values). required_fields/provided are optional (empty => nothing missing).
+  "hr.data.collect": def({ actionKey: "hr.data.collect", category: "read", risk: "low", idempotencyStrategy: "step_run_id",
+    validateInput: () => [] }),
 };
 
 // The whitelisted HR metrics analytics.compute may compute (no free-form computation).

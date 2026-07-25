@@ -15,7 +15,7 @@ export const ABSENCE_PACKS: HrMissionPackDefinition[] = [
     steps: [
       ...intakeSkeleton(),
       svc("create_request", "mutate_record", "Create the absence request", "absence.create_request", { dependsOn: ["validate"] }),
-      rt("detect_conflicts", "validate", "Detect overlapping absences / team coverage conflicts", "mission.noop", { dependsOn: ["create_request"] }),
+      rt("detect_conflicts", "validate", "Detect overlapping absences / team coverage conflicts", "hr.record.append", { dependsOn: ["create_request"] }),
       rt("request_approval", "request_approval", "Route to manager/HR for approval", "approval.request", { dependsOn: ["detect_conflicts"], autonomy: "execute_with_validation" }),
       rt("notify", "communicate", "Notify requester + manager of the decision", "communication.create_intent", { dependsOn: ["request_approval"], emitsSignal: "absence.payroll_transmission_due" }),
       ...closeSkeleton("notify"),
@@ -37,10 +37,10 @@ export const ABSENCE_PACKS: HrMissionPackDefinition[] = [
     subjectTypes: ["company", "payroll_run"],
     steps: [
       ...intakeSkeleton(),
-      rt("collect_period", "collect", "Collect approved absences for the payroll period", "mission.noop", { dependsOn: ["validate"] }),
-      rt("prepare_recap", "prepare_document", "Prepare the absence recap for payroll", "mission.noop", { dependsOn: ["collect_period"] }),
+      rt("collect_period", "collect", "Collect approved absences for the payroll period", "hr.data.collect", { dependsOn: ["validate"] }),
+      rt("prepare_recap", "prepare_document", "Prepare the absence recap for payroll", "document.generate", { dependsOn: ["collect_period"] }),
       ext("handoff_payroll", "await_external", "Hand off recap to the payroll pipeline", "payroll_provider", { dependsOn: ["prepare_recap"], autonomy: "execute_with_validation" }),
-      rt("reconcile", "reconcile", "Reconcile provider return", "mission.noop", { dependsOn: ["handoff_payroll"] }),
+      rt("reconcile", "reconcile", "Reconcile provider return", "hr.record.append", { dependsOn: ["handoff_payroll"] }),
       ...closeSkeleton("reconcile"),
     ],
     integrationRequirements: [{ system: "payroll_provider", status: "not_integrated", notes: "real payroll integration is P8.12" }],
@@ -57,7 +57,7 @@ export const ABSENCE_PACKS: HrMissionPackDefinition[] = [
     steps: [
       ...intakeSkeleton(),
       ext("ingest_attendance", "await_external", "Ingest attendance from the time system", "time_attendance", { dependsOn: ["validate"], autonomy: "execute_with_validation" }),
-      rt("normalize", "validate", "Normalize + flag anomalies", "mission.noop", { dependsOn: ["ingest_attendance"] }),
+      rt("normalize", "validate", "Normalize + flag anomalies", "hr.record.append", { dependsOn: ["ingest_attendance"] }),
       ...closeSkeleton("normalize"),
     ],
     integrationRequirements: [{ system: "time_attendance", status: "not_integrated", notes: "time & attendance provider integration is P8.12" }],

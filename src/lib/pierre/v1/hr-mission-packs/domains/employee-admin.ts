@@ -12,7 +12,7 @@ export const EMPLOYEE_ADMIN_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["data_gdpr.right_to_object"], subjectTypes: ["employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("record_objection", "mutate_record", "Record the objection + scope", "mission.noop", { dependsOn: ["validate"] }),
+      rt("record_objection", "mutate_record", "Record the objection + scope", "hr.record.append", { dependsOn: ["validate"] }),
       svc("apply_restriction", "mutate_record", "Apply the processing restriction (comms preferences/consent)", "communications.preferences", { dependsOn: ["record_objection"] }),
       rt("confirm", "communicate", "Confirm the restriction to the employee", "communication.create_intent", { dependsOn: ["apply_restriction"] }),
       ...closeSkeleton("confirm"),

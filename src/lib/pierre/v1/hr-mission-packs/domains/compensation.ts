@@ -12,7 +12,7 @@ export const COMPENSATION_PACKS: HrMissionPackDefinition[] = [
     subjectTypes: ["employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("prepare_change", "prepare_document", "Prepare the compensation change against the grid", "mission.noop", { dependsOn: ["validate"] }),
+      rt("prepare_change", "prepare_document", "Prepare the compensation change against the grid", "document.generate", { dependsOn: ["validate"] }),
       human("comp_decision", "Human compensation decision", "hr_manager", { dependsOn: ["prepare_change"] }),
       rt("feed_amendment", "schedule", "Feed the contract amendment", "follow_up.schedule", { dependsOn: ["comp_decision"], emitsSignal: "contract.amendment_due" }),
       ...closeSkeleton("feed_amendment"),
@@ -27,10 +27,10 @@ export const COMPENSATION_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["compensation.benefits", "compensation.vouchers", "compensation.expenses"], subjectTypes: ["employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("prepare", "prepare_document", "Prepare benefit/voucher/expense record", "mission.noop", { dependsOn: ["validate"] }),
+      rt("prepare", "prepare_document", "Prepare benefit/voucher/expense record", "document.generate", { dependsOn: ["validate"] }),
       rt("approve", "request_approval", "Approve reimbursement/enrollment", "approval.request", { dependsOn: ["prepare"], autonomy: "execute_with_validation" }),
       ext("provider", "await_external", "Hand off to benefits provider", "benefits_provider", { dependsOn: ["approve"] }),
-      rt("reconcile", "reconcile", "Reconcile provider return", "mission.noop", { dependsOn: ["provider"] }),
+      rt("reconcile", "reconcile", "Reconcile provider return", "hr.record.append", { dependsOn: ["provider"] }),
       ...closeSkeleton("reconcile"),
     ],
     approvals: [{ when: "above_threshold", approver: "hr_manager", reason: "reimbursements above threshold need approval" }],

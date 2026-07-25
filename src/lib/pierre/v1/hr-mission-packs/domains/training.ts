@@ -12,11 +12,11 @@ export const TRAINING_PACKS: HrMissionPackDefinition[] = [
     subjectTypes: ["employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("map_skills", "validate", "Map required vs held skills (gap)", "mission.noop", { dependsOn: ["validate"] }),
-      rt("build_plan", "prepare_document", "Build the training plan", "mission.noop", { dependsOn: ["map_skills"] }),
+      rt("map_skills", "validate", "Map required vs held skills (gap)", "hr.record.append", { dependsOn: ["validate"] }),
+      rt("build_plan", "prepare_document", "Build the training plan", "document.generate", { dependsOn: ["map_skills"] }),
       rt("convocation", "communicate", "Send enrollment convocations", "communication.create_intent", { dependsOn: ["build_plan"] }),
       ext("enroll", "await_external", "Enroll via training provider", "training_provider", { dependsOn: ["convocation"], optional: true }),
-      rt("evaluate", "collect", "Capture post-training evaluation", "mission.noop", { dependsOn: ["convocation"] }),
+      rt("evaluate", "collect", "Capture post-training evaluation", "hr.data.collect", { dependsOn: ["convocation"] }),
       ...closeSkeleton("evaluate"),
     ],
     integrationRequirements: [{ system: "training_provider", status: "not_integrated", notes: "LMS/training provider integration is P8.12" }],
@@ -29,7 +29,7 @@ export const TRAINING_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["training.certification_tracking"], subjectTypes: ["employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("scan_expiry", "validate", "Scan certifications for upcoming expiry", "mission.noop", { dependsOn: ["validate"], emitsSignal: "training.certification_expiring" }),
+      rt("scan_expiry", "validate", "Scan certifications for upcoming expiry", "hr.record.append", { dependsOn: ["validate"], emitsSignal: "training.certification_expiring" }),
       rt("chase", "schedule", "Chase renewal", "follow_up.schedule", { dependsOn: ["scan_expiry"] }),
       ...closeSkeleton("chase"),
     ],

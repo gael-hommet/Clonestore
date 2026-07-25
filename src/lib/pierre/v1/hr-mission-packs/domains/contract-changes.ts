@@ -30,7 +30,7 @@ export const CONTRACT_CHANGE_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["contract.suspension", "contract.expiration"], subjectTypes: ["employee", "contract"],
     steps: [
       ...intakeSkeleton(),
-      rt("prepare_change", "prepare_document", "Prepare suspension/expiration paperwork", "mission.noop", { dependsOn: ["validate"] }),
+      rt("prepare_change", "prepare_document", "Prepare suspension/expiration paperwork", "document.generate", { dependsOn: ["validate"] }),
       rt("approve", "request_approval", "Approve the change", "approval.request", { dependsOn: ["prepare_change"], autonomy: "execute_with_validation" }),
       svc("apply_status", "mutate_record", "Apply the contract status change", "contract.archive", { dependsOn: ["approve"] }),
       rt("notify", "communicate", "Notify the employee", "communication.create_intent", { dependsOn: ["apply_status"], emitsSignal: "contract.expiry_watch" }),
@@ -51,7 +51,7 @@ export const CONTRACT_CHANGE_PACKS: HrMissionPackDefinition[] = [
       rt("approve", "request_approval", "Approve signature submission", "approval.request", { dependsOn: ["validate"], autonomy: "execute_with_validation" }),
       rt("prepare_signature", "signature", "Prepare the signature request (governed)", "signature.prepare", { dependsOn: ["approve"], requiresApproval: true }),
       ext("submit", "await_external", "Submit to e-signature provider", "signature_provider", { dependsOn: ["prepare_signature"] }),
-      rt("reconcile", "reconcile", "Reconcile signature webhook", "mission.noop", { dependsOn: ["submit"] }),
+      rt("reconcile", "reconcile", "Reconcile signature webhook", "hr.record.append", { dependsOn: ["submit"] }),
       ...closeSkeleton("reconcile"),
     ],
     approvals: [{ when: "always", approver: "hr_manager", reason: "signature submission is sensitive" }],
