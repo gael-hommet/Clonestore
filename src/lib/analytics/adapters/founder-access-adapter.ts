@@ -11,7 +11,7 @@
 
 import { createHash } from "node:crypto";
 import type { SqlExecutor } from "@/lib/pierre/v1/sql";
-import type { CanonicalAnalyticsEventName, AnalyticsEnvironment } from "../schema";
+import type { CanonicalAnalyticsEventName, AnalyticsTrustLevel, AnalyticsEnvironment } from "../schema";
 import { insertAnalyticsEvent } from "../store";
 
 const FOUNDER_TO_CANONICAL: Partial<Record<string, CanonicalAnalyticsEventName>> = {
@@ -19,6 +19,16 @@ const FOUNDER_TO_CANONICAL: Partial<Record<string, CanonicalAnalyticsEventName>>
   founder_email_verified: "reservation_email_confirmed",
   founder_payment_completed: "payment_succeeded",
   founder_subscription_active: "activation_completed",
+};
+
+// Niveau de confiance canonique par événement founder (aligné sur CANONICAL_FUNNEL_DEFINITION) :
+// une réservation écrite en base = SERVER_PERSISTED ; un email confirmé = SERVER_CONFIRMED ;
+// paiement/activation confirmés par Stripe = PAYMENT_PROVIDER_CONFIRMED.
+const FOUNDER_TRUST: Record<string, AnalyticsTrustLevel> = {
+  founder_reservation_created: "SERVER_PERSISTED",
+  founder_email_verified: "SERVER_CONFIRMED",
+  founder_payment_completed: "PAYMENT_PROVIDER_CONFIRMED",
+  founder_subscription_active: "PAYMENT_PROVIDER_CONFIRMED",
 };
 
 export interface FounderServerEventInput {
@@ -42,7 +52,10 @@ export async function bridgeFounderServerEvent(
   const canonicalName = FOUNDER_TO_CANONICAL[input.founderEventName];
   if (!canonicalName) return { ok: false, reason: "NOT_MAPPED" };
 
-  const trustLevel = input.stripeEventId ? "PAYMENT_PROVIDER_CONFIRMED" : "SERVER_CONFIRMED";
+  // Confiance par événement (contrat) ; un stripeEventId force PAYMENT_PROVIDER_CONFIRMED.
+  const trustLevel: AnalyticsTrustLevel = input.stripeEventId
+    ? "PAYMENT_PROVIDER_CONFIRMED"
+    : (FOUNDER_TRUST[input.founderEventName] ?? "SERVER_CONFIRMED");
 
   try {
     const outcome = await insertAnalyticsEvent(db, {

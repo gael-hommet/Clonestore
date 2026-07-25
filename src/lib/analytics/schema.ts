@@ -13,6 +13,7 @@ export const CANONICAL_EVENT_NAMES = [
   "homepage_demo_prompt_clicked",
   "homepage_demo_prompt_dismissed",
   "demo_started",
+  "demo_step_completed",
   "demo_completed",
   "demo_pierre_reveal_viewed",
   "discover_pierre_clicked",
