@@ -30,6 +30,37 @@ function noStore(json: unknown, status = 200) {
   return NextResponse.json(json, { status, headers: { "Cache-Control": "no-store" } });
 }
 
+const TRANSCRIBE_TIMEOUT_MS = 20_000;
+
+// Défaut RÉEL trouvé en test réel (round-trip TTS→transcription) : le nom de fichier envoyé au
+// provider était figé à "dictation.webm" quel que soit le format RÉEL de l'enregistrement. Le
+// provider détermine le décodeur via l'EXTENSION du nom de fichier ; un iPhone enregistre en
+// `audio/mp4` (préférence C1.7 §compat iPhone ci-dessous) — envoyer ces octets mp4 sous une
+// extension .webm produit un rejet direct du provider ("Audio file might be corrupted or
+// unsupported"), remonté comme un échec générique de transcription. L'extension doit donc
+// suivre le MIME réellement validé, jamais une valeur figée.
+const EXT_BY_MIME: Record<string, string> = {
+  "audio/webm": "webm", "audio/ogg": "ogg",
+  "audio/mp4": "mp4", "audio/m4a": "m4a", "audio/x-m4a": "m4a",
+  "audio/mpeg": "mp3", "audio/mpga": "mp3",
+  "audio/wav": "wav", "audio/x-wav": "wav",
+  "audio/flac": "flac",
+};
+function filenameForMime(mime: string): string {
+  return `dictation.${EXT_BY_MIME[mime] ?? "webm"}`;
+}
+
+/** Journalisation STRUCTURÉE d'un échec de transcription — jamais l'audio, jamais le transcript. */
+function logTranscribeFailure(params: { readonly errorCode: string; readonly httpStatus?: number | null; readonly requestedModel: string }): void {
+  console.error(JSON.stringify({
+    event: "clonechat_transcribe_failure",
+    at: new Date().toISOString(),
+    errorCode: params.errorCode,
+    httpStatus: params.httpStatus ?? null,
+    requestedModel: params.requestedModel,
+  }));
+}
+
 /** Appelle la transcription OpenAI. Ne journalise NI l'audio, NI le transcript. */
 async function transcribe(key: string, model: string, audio: Blob, filename: string): Promise<TranscriptionAttempt & { ok: boolean; error: string | null }> {
   const form = new FormData();
@@ -39,14 +70,31 @@ async function transcribe(key: string, model: string, audio: Blob, filename: str
   form.append("prompt", transcriptionVocabularyPrompt()); // vocabulaire du domaine, jamais « invente »
   form.append("response_format", "json");
 
-  const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}` }, // la clé ne quitte JAMAIS le serveur
-    body: form,
-  });
+  const timeoutController = new AbortController();
+  const timer = setTimeout(() => timeoutController.abort(), TRANSCRIBE_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}` }, // la clé ne quitte JAMAIS le serveur
+      body: form,
+      signal: timeoutController.signal,
+    });
+  } catch (e) {
+    if (timeoutController.signal.aborted) {
+      logTranscribeFailure({ errorCode: "timeout", requestedModel: model });
+      return { ok: false, text: "", confidence: null, durationSeconds: null, error: "timeout" };
+    }
+    logTranscribeFailure({ errorCode: "network_error", requestedModel: model });
+    return { ok: false, text: "", confidence: null, durationSeconds: null, error: "network_error" };
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok) {
     // On ne remonte que le CODE du provider — jamais son corps, qui pourrait contenir l'audio.
+    logTranscribeFailure({ errorCode: `openai_http_${res.status}`, httpStatus: res.status, requestedModel: model });
     return { ok: false, text: "", confidence: null, durationSeconds: null, error: `provider_${res.status}` };
   }
   const j = (await res.json().catch(() => null)) as { text?: string; duration?: number; logprobs?: Array<{ logprob: number }> } | null;
@@ -98,21 +146,25 @@ export async function POST(req: Request) {
 
   const userRequestedRetry = String(form.get("retry") ?? "") === "true";
   const models = loadTranscriptionModels();
+  const filename = filenameForMime(verdict.mime);
 
   // 6) Transcription — modèle ÉCONOMIQUE d'abord. On ne double-transcrit PAS tout le monde.
   const started = Date.now();
-  const primary = await transcribe(key, models.primary, file, "dictation.webm");
+  const primary = await transcribe(key, models.primary, file, filename);
   let used = models.primary;
   let result = primary;
   let fallbackReason: string | null = null;
 
   if (!primary.ok) {
+    if (primary.error === "timeout") {
+      return noStore({ ok: false, code: "TRANSCRIPTION_TIMEOUT", error: "La dictée a pris trop de temps. Réessayez." }, 504);
+    }
     return noStore({ ok: false, code: "TRANSCRIPTION_FAILED", error: "La transcription n'a pas abouti. Réessayez la dictée." }, 502);
   }
 
   const fb = shouldFallback(primary, { userRequestedRetry });
   if (fb.useFallback) {
-    const second = await transcribe(key, models.fallback, file, "dictation.webm");
+    const second = await transcribe(key, models.fallback, file, filename);
     if (second.ok && second.text.trim().length >= primary.text.trim().length) {
       used = models.fallback;
       result = second;
