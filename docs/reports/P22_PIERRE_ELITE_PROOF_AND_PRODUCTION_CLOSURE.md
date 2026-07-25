@@ -10,6 +10,59 @@
 
 ---
 
+## REPRISE 9 (P22 — PERFORMANCE + TRAINING depth (one block) + bridge — 2026-07-25, appended)
+
+Fourth block: **performance/interviews** and **training/certifications** as one unit, plus the real
+performance→training bridge. Pierre prepares/organizes/tracks; final performance/promotion/sanction
+decisions stay human, and no legal training obligation or certification is ever invented.
+
+**Performance — complete model, real SQL.** Migration `pierre_v33_performance_depth.sql` = 8 tables
+(campaigns, participants, templates, interviews, responses, summaries, objectives, action_items; RLS).
+Service `performance.ts` + 7 authoritative actions. **Proven E2E** (`p22-performance-depth.itest.ts`,
+4/4): an **80-employee annual campaign** runs campaign → population → interview → responses
+(manager+employee) → summary → **human validation** → complete. **Human-decision floor:** completing an
+interview **before** its summary is validated is **blocked**; no auto score/promotion/sanction. Objectives
++ action items created; **overdue** items detected deterministically. **Three modes** persist a different
+interview status (draft / prepared / scheduled). Tenant-isolated, governed refusals.
+
+**Training — complete model, real SQL.** Migration `pierre_v34_training_depth.sql` = 7 tables
+(requirements, sessions, enrollments, attendance, proofs, certifications, renewals; RLS). Service
+`training.ts` + 7 authoritative actions. **Proven E2E** (`p22-training-depth.itest.ts`, 5/5) on a
+**120-employee** population: a **sourced** mandatory requirement is `active`; an **unsourced** mandatory
+requirement is **`CONFIGURATION_REQUIRED`** (never a fabricated legal obligation). **Completion floors:**
+completion requires recorded `present` attendance; a **certification requires a verified proof**
+(missing-proof issuance is **blocked**). Enrollments **dedup**; `validity_months` applied (expires 2027);
+**expiry detection** sets expiring/expired + creates **renewals** (60-day window is an operational alert,
+not a legal periodicity). **Coverage** computed from SQL; **three modes** persist a different enrollment
+status (draft / invited / confirmed). Tenant-isolated.
+
+**Bridge — real performance→training chain** (`p22-performance-training-bridge.itest.ts`, 1/1): a
+performance development action becomes a **source-linked** training requirement
+(`source_ref = performance_action_item.id`) → session → enrollment, **queryable end to end**, never an
+invented obligation, never a duplicate.
+
+**Full P22 real-SQL suite now 41/41** (absence 3, domain 5, gap-closure 6, recruitment 4, onboarding 6,
+pre-payroll 7, performance 4, training 5, bridge 1).
+
+**Honest limits — verdict stays WITHHELD.** Not done this block (and not claimed):
+- **Usable rendered documents** (trames / comptes-rendus / plans / convocations / matrices / rapports) —
+  structured objects exist, rendering is `RENDERER_ACTIVATION_PENDING` (the future premium-documents
+  block); no PDF/DOCX claimed.
+- **Browser cockpit**, real **calendar/mail provider sends** (intents only), **continuity re-proof** on
+  real SQL, and the **measured human-touch/value** benchmark — none done.
+- **Remaining domains** — offboarding depth; helpdesk/workforce full models; global reporting; then
+  premium documents, final 3-mode missions, global browser/continuity, and the time/value benchmark.
+
+**Reprise 9 verdict: P22 — PERFORMANCE DEPTH VERIFIED + TRAINING DEPTH VERIFIED (real-SQL runtime), but
+OPERATIONAL CLOSURE STILL WITHHELD.** Five domains (recruitment, employee onboarding, pre-payroll,
+performance, training) are now genuine full workflows proven on real SQL with three-mode differentiation
+and human/source floors. Next in the plan: offboarding.
+
+Verification: `tsc` exit 0, scoped ESLint 0, 327 v1-unit/pack/canon tests + 41 real-SQL integration
+tests green. 0 OpenAI calls.
+
+---
+
 ## REPRISE 8 (P22 — PRE-PAYROLL depth — 2026-07-25, appended)
 
 Third domain to full depth: **pre-payroll** (collect / verify / reconcile / structure / export). Pierre

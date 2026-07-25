@@ -1,0 +1,9 @@
+{
+  "generated_for": "P22_PERFORMANCE_TRAINING_BRIDGE",
+  "note": "Proven by src/lib/pierre/v1/__integration__/p22-performance-training-bridge.itest.ts (1/1 green, PGlite). A performance development action becomes a SOURCE-LINKED training need — never an invented obligation, never a duplicate.",
+  "chain": "performance_action_item -> training_requirement(source_ref=action.id) -> training_session -> training_enrollment(employee)",
+  "source_link": { "source_type": "company_policy", "source_ref": "performance_action_item.id", "explicit_not_duplicated": true },
+  "end_to_end_queryable": true,
+  "no_training_need_without_source": true,
+  "NOT_PROVEN_THIS_TURN": ["auto-creation of sensitive training without validation (deliberately not enabled)","browser","rendered documents"]
+}

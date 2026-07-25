@@ -31,6 +31,14 @@ import {
   validatePayrollVariable, detectPayrollAnomalies, computePayrollReadiness, generatePayrollExport,
   reconcilePayrollProviderReturn, buildPayrollBrief, type PayrollMode,
 } from "./pre-payroll";
+import {
+  createPerformanceCampaign, buildCampaignPopulation, createPerformanceInterview, recordPerformanceResponse,
+  buildPerformanceSummary, validatePerformanceSummary, completePerformanceInterview, type PerfMode,
+} from "./performance";
+import {
+  createTrainingRequirement, createTrainingSession, createTrainingEnrollment, recordTrainingAttendance,
+  attachTrainingProof, issueTrainingCertification, detectExpiringCertifications, type TrainingMode,
+} from "./training";
 
 export type RuntimeDeps = {
   /** app-role, tenant-bound executor for governed business services (defaults to the job executor). */
@@ -649,6 +657,83 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
     const brief = await buildPayrollBrief(tx, ctx.tenant, String(ctx.payload.period_id ?? ""));
     return { kind: "payroll_brief", period_id: ctx.payload.period_id, brief };
   }, "payroll_brief_refused"),
+
+  // ── PERFORMANCE handlers ────────────────────────────────────────────────────────────
+  "performance.campaign.create": domainAction(async (tx, ctx) => {
+    const c = await createPerformanceCampaign(tx, ctx.tenant, {
+      campaign_key: String(ctx.payload.campaign_key ?? ""), title: String(ctx.payload.title ?? ""), campaign_type: (ctx.payload.campaign_type as string) ?? "annual_review",
+      starts_on: (ctx.payload.starts_on as string) ?? null, ends_on: (ctx.payload.ends_on as string) ?? null, mode: (ctx.payload.mode as PerfMode) ?? "copilote", mission_id: ctx.missionId, idempotency_key: (ctx.payload.idempotency_key as string) ?? null,
+    });
+    return { kind: "performance_campaign", campaign_id: c.id, status: c.status, mode: c.mode };
+  }, "performance_campaign_refused"),
+  "performance.campaign.population.build": domainAction(async (tx, ctx) => {
+    const r = await buildCampaignPopulation(tx, ctx.tenant, String(ctx.payload.campaign_id ?? ""));
+    return { kind: "performance_population", campaign_id: ctx.payload.campaign_id, added: r.added, population: r.population };
+  }, "performance_population_refused"),
+  "performance.interview.create": domainAction(async (tx, ctx) => {
+    const iv = await createPerformanceInterview(tx, ctx.tenant, String(ctx.payload.campaign_id ?? ""), String(ctx.payload.participant_id ?? ""));
+    return { kind: "performance_interview", interview_id: iv.id, status: iv.status };
+  }, "performance_interview_refused"),
+  "performance.response.record": domainAction(async (tx, ctx) => {
+    await recordPerformanceResponse(tx, ctx.tenant, String(ctx.payload.interview_id ?? ""), {
+      respondent_type: (ctx.payload.respondent_type as "employee" | "manager" | "hr") ?? "manager", question_key: String(ctx.payload.question_key ?? ""), response: String(ctx.payload.response ?? ""), visibility: (ctx.payload.visibility as "restricted" | "shared") ?? "restricted",
+    });
+    return { kind: "performance_response", interview_id: ctx.payload.interview_id };
+  }, "performance_response_refused"),
+  "performance.summary.generate": domainAction(async (tx, ctx) => {
+    const s = await buildPerformanceSummary(tx, ctx.tenant, String(ctx.payload.interview_id ?? ""));
+    return { kind: "performance_summary", summary_id: s.id, status: s.status };
+  }, "performance_summary_refused"),
+  "performance.summary.validate": domainAction(async (tx, ctx) => {
+    await validatePerformanceSummary(tx, ctx.tenant, String(ctx.payload.interview_id ?? ""));
+    return { kind: "performance_summary_validated", interview_id: ctx.payload.interview_id };
+  }, "performance_summary_validate_refused"),
+  "performance.interview.complete": domainAction(async (tx, ctx) => {
+    const r = await completePerformanceInterview(tx, ctx.tenant, String(ctx.payload.interview_id ?? ""));
+    return { kind: "performance_interview_completed", interview_id: ctx.payload.interview_id, completed: r.completed };
+  }, "performance_interview_complete_refused"),
+
+  // ── TRAINING handlers ───────────────────────────────────────────────────────────────
+  "training.requirement.create": domainAction(async (tx, ctx) => {
+    const r = await createTrainingRequirement(tx, ctx.tenant, {
+      requirement_key: String(ctx.payload.requirement_key ?? ""), title: String(ctx.payload.title ?? ""), source_type: (ctx.payload.source_type as string) ?? "unsourced",
+      source_ref: (ctx.payload.source_ref as string) ?? null, mandatory: ctx.payload.mandatory === true, recurrence_rule: (ctx.payload.recurrence_rule as string) ?? null,
+      validity_months: typeof ctx.payload.validity_months === "number" ? ctx.payload.validity_months : null, applies_to: (ctx.payload.applies_to as string) ?? "all", mission_id: ctx.missionId,
+    });
+    return { kind: "training_requirement", requirement_id: r.id, status: r.status };
+  }, "training_requirement_refused"),
+  "training.session.create": domainAction(async (tx, ctx) => {
+    const s = await createTrainingSession(tx, ctx.tenant, {
+      title: String(ctx.payload.title ?? ""), requirement_id: (ctx.payload.requirement_id as string) ?? null, provider: (ctx.payload.provider as string) ?? null,
+      delivery_mode: (ctx.payload.delivery_mode as string) ?? "onsite", starts_at: (ctx.payload.starts_at as string) ?? null, ends_at: (ctx.payload.ends_at as string) ?? null, capacity: typeof ctx.payload.capacity === "number" ? ctx.payload.capacity : null,
+    });
+    return { kind: "training_session", session_id: s.id, status: s.status };
+  }, "training_session_refused"),
+  "training.enrollment.create": domainAction(async (tx, ctx) => {
+    const e = await createTrainingEnrollment(tx, ctx.tenant, {
+      session_id: String(ctx.payload.session_id ?? ""), employee_id: String(ctx.payload.employee_id ?? ""), requirement_id: (ctx.payload.requirement_id as string) ?? null, mode: (ctx.payload.mode as TrainingMode) ?? "copilote",
+    });
+    return { kind: "training_enrollment", enrollment_id: e.id, status: e.status, deduped: e.deduped };
+  }, "training_enrollment_refused"),
+  "training.attendance.record": domainAction(async (tx, ctx) => {
+    await recordTrainingAttendance(tx, ctx.tenant, String(ctx.payload.enrollment_id ?? ""), (ctx.payload.attendance_status as "present" | "absent" | "partial" | "excused") ?? "present");
+    return { kind: "training_attendance", enrollment_id: ctx.payload.enrollment_id };
+  }, "training_attendance_refused"),
+  "training.proof.attach": domainAction(async (tx, ctx) => {
+    const p = await attachTrainingProof(tx, ctx.tenant, String(ctx.payload.enrollment_id ?? ""), { proof_type: (ctx.payload.proof_type as string) ?? "attestation", file_id: (ctx.payload.file_id as string) ?? null, issued_on: (ctx.payload.issued_on as string) ?? null });
+    return { kind: "training_proof", proof_id: p.id };
+  }, "training_proof_refused"),
+  "training.certification.issue": domainAction(async (tx, ctx) => {
+    const c = await issueTrainingCertification(tx, ctx.tenant, {
+      employee_id: String(ctx.payload.employee_id ?? ""), certification_key: String(ctx.payload.certification_key ?? ""), proof_id: String(ctx.payload.proof_id ?? ""),
+      requirement_id: (ctx.payload.requirement_id as string) ?? null, issued_on: String(ctx.payload.issued_on ?? ""), validity_months: typeof ctx.payload.validity_months === "number" ? ctx.payload.validity_months : null,
+    });
+    return { kind: "training_certification", certification_id: c.id, status: c.status, expires_on: c.expires_on };
+  }, "training_certification_refused"),
+  "training.expiry.detect": domainAction(async (tx, ctx) => {
+    const r = await detectExpiringCertifications(tx, ctx.tenant, String(ctx.payload.as_of ?? ""), typeof ctx.payload.expiring_within_days === "number" ? ctx.payload.expiring_within_days : 60);
+    return { kind: "training_expiry", expiring: r.expiring, expired: r.expired, renewals: r.renewals };
+  }, "training_expiry_refused"),
   "mission.complete": complete,
   "mission.block": block,
   "employee.read": readObject("pierre_rt_employees", "employee_id"),

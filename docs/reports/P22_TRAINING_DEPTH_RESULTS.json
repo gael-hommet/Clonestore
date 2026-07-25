@@ -1,0 +1,19 @@
+{
+  "generated_for": "P22_TRAINING_DEPTH",
+  "note": "Proven by src/lib/pierre/v1/__integration__/p22-training-depth.itest.ts (5/5 green, PGlite + real migrations incl. pierre_v34). Real-SQL runtime proof. Pierre NEVER invents a legal obligation/duration/periodicity/certification; no certification without a verified proof.",
+  "migration": "2026-07-25__pierre_v34_training_depth.sql",
+  "tables": ["pierre_rt_training_requirements","pierre_rt_training_sessions","pierre_rt_training_enrollments","pierre_rt_training_attendance","pierre_rt_training_proofs","pierre_rt_training_certifications","pierre_rt_training_renewals"],
+  "service": "src/lib/pierre/v1/training.ts",
+  "authoritative_actions": ["training.requirement.create","training.session.create","training.enrollment.create","training.attendance.record","training.proof.attach","training.certification.issue","training.expiry.detect"],
+  "service_functions_also_proven": ["computeTrainingCoverage","buildTrainingBrief"],
+  "scenario_120_employees": { "population": ">=120" },
+  "sourcing_floor": { "sourced_mandatory_requirement": "active", "unsourced_mandatory_requirement": "configuration_required", "no_invented_legal_obligation": true },
+  "completion_floors": { "completion_requires_attendance_present": true, "certification_requires_verified_proof": true, "missing_proof_certification": "blocked" },
+  "enrollment_idempotence": { "duplicate_enrollment": "deduped" },
+  "expiry": { "expiring_detected": ">=1", "renewals_created": ">=1", "expiring_window_days": 60, "window_is_operational_alert_not_legal_periodicity": true, "validity_months_applied_expires_2027": true },
+  "coverage": { "computed_from_sql": true, "certified_counted": ">=1" },
+  "three_mode_enrollment_status": { "brouillon": "draft", "copilote": "invited", "autonomie": "confirmed" },
+  "tenant_isolation": { "leak_into_tenant_B": 0 },
+  "governed_refusals": { "invariant": "SUCCESS_WITHOUT_EXPECTED_TRAINING_OBJECT = FAIL" },
+  "NOT_PROVEN_THIS_TURN": ["usable rendered documents/matrices (RENDERER_ACTIVATION_PENDING)","browser cockpit","measured human-touch/value","real calendar/mail provider convocations (intents only)"]
+}

@@ -280,6 +280,38 @@ const REGISTRY: Record<string, RuntimeActionDefinition> = {
   "payroll.brief.generate": def({ actionKey: "payroll.brief.generate", category: "read", risk: "read_only",
     requiredPermission: "payroll_prep.read", idempotencyStrategy: "step_run_id",
     validateInput: (p) => (isUuid(p.period_id) ? [] : ["period_id (uuid) required"]) }),
+
+  // P22 depth — PERFORMANCE (prepares/tracks; never auto-decides a score/promotion/sanction).
+  "performance.campaign.create": def({ actionKey: "performance.campaign.create", category: "state_transition", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => { const e: string[] = []; if (!isStr(p.campaign_key)) e.push("campaign_key required"); if (!isStr(p.title)) e.push("title required"); return e; } }),
+  "performance.campaign.population.build": def({ actionKey: "performance.campaign.population.build", category: "state_transition", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.campaign_id) ? [] : ["campaign_id (uuid) required"]) }),
+  "performance.interview.create": def({ actionKey: "performance.interview.create", category: "state_transition", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => { const e: string[] = []; if (!isUuid(p.campaign_id)) e.push("campaign_id (uuid) required"); if (!isUuid(p.participant_id)) e.push("participant_id (uuid) required"); return e; } }),
+  "performance.response.record": def({ actionKey: "performance.response.record", category: "state_transition", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => { const e: string[] = []; if (!isUuid(p.interview_id)) e.push("interview_id (uuid) required"); if (!isStr(p.question_key)) e.push("question_key required"); return e; } }),
+  "performance.summary.generate": def({ actionKey: "performance.summary.generate", category: "document", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.interview_id) ? [] : ["interview_id (uuid) required"]) }),
+  "performance.summary.validate": def({ actionKey: "performance.summary.validate", category: "approval", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.interview_id) ? [] : ["interview_id (uuid) required"]) }),
+  "performance.interview.complete": def({ actionKey: "performance.interview.complete", category: "state_transition", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.interview_id) ? [] : ["interview_id (uuid) required"]) }),
+
+  // P22 depth — TRAINING (no invented obligation; no certification without proof).
+  "training.requirement.create": def({ actionKey: "training.requirement.create", category: "state_transition", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => { const e: string[] = []; if (!isStr(p.requirement_key)) e.push("requirement_key required"); if (!isStr(p.title)) e.push("title required"); return e; } }),
+  "training.session.create": def({ actionKey: "training.session.create", category: "state_transition", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isStr(p.title) ? [] : ["title required"]) }),
+  "training.enrollment.create": def({ actionKey: "training.enrollment.create", category: "state_transition", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => { const e: string[] = []; if (!isUuid(p.session_id)) e.push("session_id (uuid) required"); if (!isUuid(p.employee_id)) e.push("employee_id (uuid) required"); return e; } }),
+  "training.attendance.record": def({ actionKey: "training.attendance.record", category: "state_transition", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.enrollment_id) ? [] : ["enrollment_id (uuid) required"]) }),
+  "training.proof.attach": def({ actionKey: "training.proof.attach", category: "state_transition", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.enrollment_id) ? [] : ["enrollment_id (uuid) required"]) }),
+  "training.certification.issue": def({ actionKey: "training.certification.issue", category: "state_transition", risk: "controlled", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => { const e: string[] = []; if (!isUuid(p.employee_id)) e.push("employee_id (uuid) required"); if (!isUuid(p.proof_id)) e.push("proof_id (uuid) required"); if (!isStr(p.certification_key)) e.push("certification_key required"); if (!isStr(p.issued_on)) e.push("issued_on required"); return e; } }),
+  "training.expiry.detect": def({ actionKey: "training.expiry.detect", category: "read", risk: "low", requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isStr(p.as_of) ? [] : ["as_of required"]) }),
 };
 
 // The whitelisted HR metrics analytics.compute may compute (no free-form computation).

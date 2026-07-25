@@ -1,0 +1,16 @@
+{
+  "generated_for": "P22_PERFORMANCE_DEPTH",
+  "note": "Proven by src/lib/pierre/v1/__integration__/p22-performance-depth.itest.ts (4/4 green, PGlite Postgres 16 + real migrations incl. pierre_v33). Real-SQL runtime proof, NOT browser/human-time. Pierre never auto-decides a score/promotion/sanction/ranking.",
+  "migration": "2026-07-25__pierre_v33_performance_depth.sql",
+  "tables": ["pierre_rt_performance_campaigns","pierre_rt_performance_campaign_participants","pierre_rt_performance_templates","pierre_rt_performance_interviews","pierre_rt_performance_responses","pierre_rt_performance_summaries","pierre_rt_performance_objectives","pierre_rt_performance_action_items"],
+  "service": "src/lib/pierre/v1/performance.ts",
+  "authoritative_actions": ["performance.campaign.create","performance.campaign.population.build","performance.interview.create","performance.response.record","performance.summary.generate","performance.summary.validate","performance.interview.complete"],
+  "service_functions_also_proven": ["createPerformanceObjective","createPerformanceActionItem","detectOverduePerformanceItems","computePerformanceCampaignProgress","buildPerformanceBrief"],
+  "scenario_80_employees": { "population": ">=80", "campaign": "annual_review", "full_interview_flow": "campaign -> population -> interview -> responses(manager+employee) -> summary -> validate -> complete" },
+  "human_decision_floor": { "complete_before_validated_summary": "blocked", "no_auto_score_promotion_sanction_ranking": true },
+  "objectives_actions": { "objectives_created": true, "action_items_created": true, "overdue_detected_deterministically": true },
+  "three_mode_interview_status": { "brouillon": "draft", "copilote": "prepared", "autonomie": "scheduled" },
+  "tenant_isolation": { "leak_into_tenant_B": 0 },
+  "governed_refusals": { "interview_on_missing_participant": "blocked", "invariant": "SUCCESS_WITHOUT_EXPECTED_PERFORMANCE_OBJECT = FAIL" },
+  "NOT_PROVEN_THIS_TURN": ["usable rendered documents (RENDERER_ACTIVATION_PENDING)","browser cockpit","measured human-touch/value","real calendar/mail provider sends (intents only)"]
+}
