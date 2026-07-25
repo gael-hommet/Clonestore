@@ -19,7 +19,7 @@ export const RECRUITMENT_PACKS: HrMissionPackDefinition[] = [
     description: "Manage candidate intake/pipeline (GDPR-scoped), schedule interviews, capture evaluations & references.",
     capabilityIds: ["recruitment.sourcing", "recruitment.pipeline", "recruitment.interview_scheduling", "recruitment.reference_checks"],
     subjectTypes: ["candidate"],
-    steps: [...intakeSkeleton(), rt("track", "mutate_record", "Track candidate through pipeline", "hr.record.append", { dependsOn: ["validate"] }), rt("schedule_interview", "schedule", "Schedule interviews", "follow_up.schedule", { dependsOn: ["track"] }), rt("capture_eval", "collect", "Capture evaluations & references", "hr.data.collect", { dependsOn: ["schedule_interview"] }), ...closeSkeleton("capture_eval")],
+    steps: [...intakeSkeleton(), rt("track", "mutate_record", "Track candidate through pipeline", "recruitment.candidate.ingest", { dependsOn: ["validate"] }), rt("schedule_interview", "schedule", "Schedule interviews", "follow_up.schedule", { dependsOn: ["track"] }), rt("capture_eval", "collect", "Capture evaluations & references", "hr.data.collect", { dependsOn: ["schedule_interview"] }), ...closeSkeleton("capture_eval")],
     permissions: [{ permission: "employee.read", scope: "company" }],
     countryRuleRequirements: [{ ruleFamily: "data_protection", required: true, notes: "candidate data retention/consent = P8.12" }],
     completionCriteria: [cc("pipeline.tracked", "Candidate progressed in pipeline.", "mutation"), cc("pipeline.closed", "Terminal state.", "state")],

@@ -49,6 +49,10 @@ function defaultActionInput(actionKey: string): Record<string, unknown> {
     case "absence.record.create": return { employee_id: NIL_UUID, absence_type: "unspecified", start_date: "2026-01-01", end_date: "2026-01-01" }; // runtime binds real values
     case "employee.timeline.append": return { employee_id: NIL_UUID, entry_type: "record" }; // runtime binds real values
     case "hr.reconcile.apply": return { reconcile_kind: "external_return" }; // runtime supplies external_return when present
+    case "workforce.plan.create": return { period: "unspecified" }; // runtime binds real period/headcounts
+    case "recruitment.candidate.ingest": return { full_name: "unspecified" }; // runtime binds the real candidate
+    case "hr.request.create": return { subject: "HR request" }; // runtime binds the real subject/body
+    case "country.pack.bind": return { country_code: "FR", pack_key: "unspecified" }; // runtime binds the real pack
     default: return {};
   }
 }

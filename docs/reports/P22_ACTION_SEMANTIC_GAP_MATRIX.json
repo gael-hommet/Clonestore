@@ -3,33 +3,36 @@
   "note": "Honest semantic classification. TRACE_ONLY / GENERIC_COLLECTION_ONLY are NOT business completion. business_effect_completion_rate = real BUSINESS_EFFECT steps / steps whose kind implies a business object.",
   "total_runtime_action_steps": 272,
   "classification_counts": {
-    "TRACE_ONLY": 99,
+    "TRACE_ONLY": 95,
     "GENERIC_COLLECTION_ONLY": 51,
     "GOVERNED_EXTERNAL_INTENT": 22,
     "STRUCTURAL": 43,
-    "BUSINESS_EFFECT": 48,
+    "BUSINESS_EFFECT": 52,
     "HUMAN_DECISION_BOUNDARY": 9
   },
-  "semantic_gaps": 4,
-  "business_effect_steps": 48,
+  "semantic_gaps": 0,
+  "business_effect_steps": 52,
   "authorizable_business_steps": 52,
-  "business_effect_completion_rate": 92.3,
+  "business_effect_completion_rate": 100,
   "proven_real_sql_business_actions": [
     "absence.record.create",
     "employee.timeline.append",
-    "hr.reconcile.apply (apply-or-await)"
+    "hr.reconcile.apply (apply-or-await)",
+    "workforce.plan.create",
+    "recruitment.candidate.ingest",
+    "hr.request.create",
+    "country.pack.bind"
   ],
   "real_sql_proven_domains": [
     "absence",
     "employee-360 (timeline)",
-    "reconciliation (external apply/await)"
+    "reconciliation (external apply/await)",
+    "workforce planning",
+    "recruitment (candidate/requisition)",
+    "HR helpdesk (tickets)",
+    "country config"
   ],
-  "remaining_semantic_gaps_need_new_table": [
-    "org.workforce_planning:record",
-    "recruitment.pipeline_management:track",
-    "relations.hr_requests:route",
-    "pierre_admin.country_config:bind_pack"
-  ],
+  "remaining_semantic_gaps_need_new_table": [],
   "rows": [
     {
       "pack": "org.structure_management",
@@ -144,11 +147,11 @@
       "domain": "org",
       "step": "record",
       "kind": "mutate_record",
-      "action_key": "hr.record.append",
-      "classification": "TRACE_ONLY",
+      "action_key": "workforce.plan.create",
+      "classification": "BUSINESS_EFFECT",
       "expected_business_object": "org domain record created/updated",
-      "semantic_gap": true,
-      "remediation": "NEW_TABLE_REQUIRED: add a dedicated pierre_rt_* table + governed service for org, then bind 'record' to it (mirroring absence.record.create)",
+      "semantic_gap": false,
+      "remediation": null,
       "in_runtime_plan": true
     },
     {
@@ -360,11 +363,11 @@
       "domain": "recruitment",
       "step": "track",
       "kind": "mutate_record",
-      "action_key": "hr.record.append",
-      "classification": "TRACE_ONLY",
+      "action_key": "recruitment.candidate.ingest",
+      "classification": "BUSINESS_EFFECT",
       "expected_business_object": "recruitment domain record created/updated",
-      "semantic_gap": true,
-      "remediation": "NEW_TABLE_REQUIRED: add a dedicated pierre_rt_* table + governed service for recruitment, then bind 'track' to it (mirroring absence.record.create)",
+      "semantic_gap": false,
+      "remediation": null,
       "in_runtime_plan": true
     },
     {
@@ -2184,11 +2187,11 @@
       "domain": "relations",
       "step": "route",
       "kind": "mutate_record",
-      "action_key": "hr.record.append",
-      "classification": "TRACE_ONLY",
+      "action_key": "hr.request.create",
+      "classification": "BUSINESS_EFFECT",
       "expected_business_object": "relations domain record created/updated",
-      "semantic_gap": true,
-      "remediation": "NEW_TABLE_REQUIRED: add a dedicated pierre_rt_* table + governed service for relations, then bind 'route' to it (mirroring absence.record.create)",
+      "semantic_gap": false,
+      "remediation": null,
       "in_runtime_plan": true
     },
     {
@@ -3264,11 +3267,11 @@
       "domain": "pierre_admin",
       "step": "bind_pack",
       "kind": "mutate_record",
-      "action_key": "hr.record.append",
-      "classification": "TRACE_ONLY",
+      "action_key": "country.pack.bind",
+      "classification": "BUSINESS_EFFECT",
       "expected_business_object": "pierre_admin domain record created/updated",
-      "semantic_gap": true,
-      "remediation": "NEW_TABLE_REQUIRED: add a dedicated pierre_rt_* table + governed service for pierre_admin, then bind 'bind_pack' to it (mirroring absence.record.create)",
+      "semantic_gap": false,
+      "remediation": null,
       "in_runtime_plan": true
     },
     {

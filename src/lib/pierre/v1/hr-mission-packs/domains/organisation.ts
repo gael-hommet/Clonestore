@@ -19,7 +19,7 @@ export const ORGANISATION_PACKS: HrMissionPackDefinition[] = [
     id: "org.workforce_planning", domain: "org", title: "Workforce planning & headcount analysis",
     description: "Analyze current headcount vs future needs, propose a plan; a human approves budget/hiring decisions.",
     capabilityIds: ["org.workforce_planning", "org.position_budget"], subjectTypes: ["company"],
-    steps: [...intakeSkeleton(), rt("analyze", "collect", "Analyze headcount & needs (workforce planning)", "analytics.compute", { dependsOn: ["validate"], input: { metric: "workforce_planning" }, autonomy: "suggest" }), human("approve_budget", "Approve budget / hiring plan", "hr_manager", { dependsOn: ["analyze"] }), rt("record", "mutate_record", "Record the approved plan", "hr.record.append", { dependsOn: ["approve_budget"] }), ...closeSkeleton("record")],
+    steps: [...intakeSkeleton(), rt("analyze", "collect", "Analyze headcount & needs (workforce planning)", "analytics.compute", { dependsOn: ["validate"], input: { metric: "workforce_planning" }, autonomy: "suggest" }), human("approve_budget", "Approve budget / hiring plan", "hr_manager", { dependsOn: ["analyze"] }), rt("record", "mutate_record", "Record the approved plan", "workforce.plan.create", { dependsOn: ["approve_budget"] }), ...closeSkeleton("record")],
     approvals: [{ when: "always", approver: "hr_manager", reason: "budget/hiring decisions are human-owned" }],
     completionCriteria: [cc("org.plan.recorded", "Approved plan recorded.", "human_recorded"), cc("org.plan.closed", "Terminal state.", "state")],
     runtimeStatus: "HUMAN_DECISION_REQUIRED",

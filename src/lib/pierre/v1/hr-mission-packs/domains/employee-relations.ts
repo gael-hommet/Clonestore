@@ -10,7 +10,7 @@ export const RELATIONS_PACKS: HrMissionPackDefinition[] = [
     id: "relations.hr_requests", domain: "relations", title: "HR request / question ticketing",
     description: "Intake HR questions/requests, route to the right HR owner, track resolution.",
     capabilityIds: ["relations.hr_requests"], subjectTypes: ["employee"],
-    steps: [...intakeSkeleton(), rt("route", "mutate_record", "Route to the HR owner", "hr.record.append", { dependsOn: ["validate"] }), rt("track", "schedule", "Track resolution SLA", "follow_up.schedule", { dependsOn: ["route"], emitsSignal: "relations.request_sla" }), ...closeSkeleton("track")],
+    steps: [...intakeSkeleton(), rt("route", "mutate_record", "Route to the HR owner", "hr.request.create", { dependsOn: ["validate"] }), rt("track", "schedule", "Track resolution SLA", "follow_up.schedule", { dependsOn: ["route"], emitsSignal: "relations.request_sla" }), ...closeSkeleton("track")],
     permissions: [{ permission: "employee.read", scope: "company" }],
     proactiveSignals: [sig("relations.request_sla", "HR request SLA breach")],
     completionCriteria: [cc("relations.routed", "Request routed & tracked.", "mutation"), cc("relations.closed", "Terminal state.", "state")],

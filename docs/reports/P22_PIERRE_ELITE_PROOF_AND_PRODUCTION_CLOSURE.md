@@ -10,6 +10,64 @@
 
 ---
 
+## REPRISE 5 (P22 — close the LAST 4 semantic gaps with real SQL business objects — 2026-07-25, appended)
+
+The 4 gaps that Reprise 4 flagged `NEW_TABLE_REQUIRED` are now **closed with real, migrated,
+SQL-proven business objects** — not reclassified, not faked.
+
+**New canonical migration** `supabase/migrations/2026-07-25__pierre_v29_hr_domain_business_objects.sql`
+(idempotent, PGlite + Postgres 16, RLS tenant-isolation like pierre_v2, reuses existing FKs):
+`pierre_rt_workforce_plans`, `pierre_rt_recruitment_requisitions` + `_candidates`,
+`pierre_rt_hr_requests`, `pierre_rt_country_configs`.
+
+**4 governed services + 4 authoritative actions, each rebinding the exact gap step:**
+| Gap step | Action | Service → real table |
+|---|---|---|
+| `org.workforce_planning:record` | `workforce.plan.create` | `workforce-planning.ts` → `pierre_rt_workforce_plans` |
+| `recruitment.pipeline_management:track` | `recruitment.candidate.ingest` | `recruitment.ts` → `pierre_rt_recruitment_candidates` |
+| `relations.hr_requests:route` | `hr.request.create` | `hr-requests.ts` → `pierre_rt_hr_requests` |
+| `pierre_admin.country_config:bind_pack` | `country.pack.bind` | `country-config.ts` → `pierre_rt_country_configs` |
+
+Recruitment keeps the human-decision floor (no auto-hire, no protected-characteristic ranking, no
+invented experience); country binding invents no legal rule; each service is permissioned +
+tenant-scoped + transactional + returns the created object (fail-closed on invalid input).
+
+**Real-SQL proof (PGlite + real migrations):** `p22-gap-closure-business-effects.itest.ts` (6/6) —
+each action persists its real row, `country.pack.bind` is idempotent per (company, country) with a
+version bump, invalid country / empty subject are governed blockers, and **none of the 4 objects leak
+into tenant B**. Total P22 real-SQL suite now **14/14 green** (absence 3, domain 5, gap-closure 6).
+
+**Matrix recomputed (`P22_ACTION_SEMANTIC_GAP_MATRIX.json`):** BUSINESS_EFFECT 48→52,
+**semantic_gaps 4 → 0**, **`business_effect_completion_rate` 92.3% → 100%**, **7 domains now have a
+real-SQL-proven business action** (absence, employee-360, reconciliation, workforce, recruitment,
+HR-helpdesk, country-config).
+
+**READ THIS BEFORE READING 100% AS "DONE" — it is NOT.** The 100% is a **binding/persistence** metric:
+*every step whose kind implies a business object binds to an action that persists a real, SQL-proven
+row, with 0 semantic gaps.* It is **not** the miracle-grade product verdict. Deliberately NOT done this
+session (and NOT claimed):
+- **Minimal-but-real per new domain** — 1–2 tables + 1 core action each. The fuller models the brief
+  lists (recruitment: requisition/application/interview/feedback/transition/offer; helpdesk:
+  messages/escalations; workforce: plan_positions) are **not** built — one real object per domain is
+  proven, the rich workflow is not.
+- **Not built:** full onboarding case/checklist/task lifecycle, the payroll model
+  (periods/variables/anomalies/exports), the performance/training model
+  (campaigns/objectives/sessions/enrollments — these still use `employee.timeline.append`, a lighter
+  representation), the offboarding case/asset/transfer model, real reporting aggregations, and
+  **usable rich document content** (`document.generate` is still a governed draft + hash).
+- **Not proven:** the 18-mission × 3-mode E2E through the real DB, browser desktop/mobile, continuity
+  re-proof on real SQL, the economic-value benchmark, and 11h35→12min human-time.
+
+**Reprise 5 verdict: P22 — OPERATIONAL CLOSURE STILL WITHHELD.** All 4 remaining semantic gaps are
+genuinely closed with real SQL business objects (0 gaps, 7 domains proven) — a real milestone on the
+"domain gate". But the miracle-grade bar (usable docs ≥95%, 18 E2E missions, three-mode SQL diff,
+browser, continuity, value/time) is not met, so no elite/closed/miracle claim is made.
+
+Verification: `tsc` exit 0, scoped ESLint 0, 326 v1-unit/pack/canon tests + 14 real-SQL integration
+tests green. 0 OpenAI calls.
+
+---
+
 ## REPRISE 4 (P22 — close semantic gaps with real domain business effects — 2026-07-25, appended)
 
 Acting on Reprise 3's honest matrix (16 semantic gaps, 72.9% business-effect). **Two reusable domain

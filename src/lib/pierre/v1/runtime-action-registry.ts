@@ -159,6 +159,25 @@ const REGISTRY: Record<string, RuntimeActionDefinition> = {
   "hr.reconcile.apply": def({ actionKey: "hr.reconcile.apply", category: "read", risk: "controlled", idempotencyStrategy: "step_run_id",
     ambiguousFailurePolicy: "reconcile", compensationStrategy: "external_reconciliation",
     validateInput: (p) => (isStr(p.reconcile_kind) ? [] : ["reconcile_kind required"]) }),
+
+  // P22 miracle-grade — the 4 previously NEW_TABLE_REQUIRED gaps, now real business objects.
+  "workforce.plan.create": def({ actionKey: "workforce.plan.create", category: "state_transition", risk: "controlled",
+    requiredPermission: "company.admin", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isStr(p.period) ? [] : ["period required"]) }),
+  "recruitment.candidate.ingest": def({ actionKey: "recruitment.candidate.ingest", category: "state_transition", risk: "controlled",
+    requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isStr(p.full_name) ? [] : ["full_name required"]) }),
+  "hr.request.create": def({ actionKey: "hr.request.create", category: "state_transition", risk: "low",
+    requiredPermission: "employee.read", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isStr(p.subject) ? [] : ["subject required"]) }),
+  "country.pack.bind": def({ actionKey: "country.pack.bind", category: "state_transition", risk: "controlled",
+    requiredPermission: "company.admin", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => {
+      const e: string[] = [];
+      if (!isStr(p.country_code)) e.push("country_code required");
+      if (!isStr(p.pack_key)) e.push("pack_key required");
+      return e;
+    } }),
 };
 
 // The whitelisted HR metrics analytics.compute may compute (no free-form computation).

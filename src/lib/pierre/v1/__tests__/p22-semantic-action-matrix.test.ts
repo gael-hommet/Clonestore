@@ -26,6 +26,10 @@ const CLASS: Record<string, Cls> = {
   "document.generate": "BUSINESS_EFFECT",
   "absence.record.create": "BUSINESS_EFFECT",
   "employee.timeline.append": "BUSINESS_EFFECT",
+  "workforce.plan.create": "BUSINESS_EFFECT",
+  "recruitment.candidate.ingest": "BUSINESS_EFFECT",
+  "hr.request.create": "BUSINESS_EFFECT",
+  "country.pack.bind": "BUSINESS_EFFECT",
   "analytics.compute": "BUSINESS_EFFECT",
   "follow_up.schedule": "BUSINESS_EFFECT",
   "approval.request": "HUMAN_DECISION_BOUNDARY",
@@ -44,13 +48,10 @@ const CLASS: Record<string, Cls> = {
   "document.read": "STRUCTURAL",
 };
 
-// The 4 remaining semantic gaps genuinely require a NEW domain table (no existing pierre_rt_* fits).
-const NEW_TABLE_REQUIRED = new Set([
-  "org.workforce_planning:record",
-  "recruitment.pipeline_management:track",
-  "relations.hr_requests:route",
-  "pierre_admin.country_config:bind_pack",
-]);
+// The 4 previously NEW_TABLE_REQUIRED gaps are now closed with real business-object tables
+// (pierre_rt_workforce_plans / _recruitment_* / _hr_requests / _country_configs). Set kept empty
+// so any regression re-introducing a table-less gap is flagged with the NEW_TABLE remediation.
+const NEW_TABLE_REQUIRED = new Set<string>([]);
 
 // Kinds that IMPLY the step should produce/modify a real domain business object.
 const BUSINESS_KINDS = new Set(["mutate_record", "prepare_document", "reconcile"]);
@@ -120,12 +121,15 @@ describe("P22 semantic action matrix", () => {
       business_effect_steps: businessEffect,
       authorizable_business_steps: authorizableBusiness,
       business_effect_completion_rate: businessEffectCompletionRate,
-      proven_real_sql_business_actions: ["absence.record.create", "employee.timeline.append", "hr.reconcile.apply (apply-or-await)"],
-      real_sql_proven_domains: ["absence", "employee-360 (timeline)", "reconciliation (external apply/await)"],
-      remaining_semantic_gaps_need_new_table: [
-        "org.workforce_planning:record", "recruitment.pipeline_management:track",
-        "relations.hr_requests:route", "pierre_admin.country_config:bind_pack",
+      proven_real_sql_business_actions: [
+        "absence.record.create", "employee.timeline.append", "hr.reconcile.apply (apply-or-await)",
+        "workforce.plan.create", "recruitment.candidate.ingest", "hr.request.create", "country.pack.bind",
       ],
+      real_sql_proven_domains: [
+        "absence", "employee-360 (timeline)", "reconciliation (external apply/await)",
+        "workforce planning", "recruitment (candidate/requisition)", "HR helpdesk (tickets)", "country config",
+      ],
+      remaining_semantic_gaps_need_new_table: [],
       rows,
     };
     fs.writeFileSync(

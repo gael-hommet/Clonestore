@@ -18,6 +18,10 @@ import { prepareContractSignature } from "./contracts";
 import { submitContractToSignatureProvider, type SignatureDeps } from "./signatures";
 import { createDocument, createVersion } from "./documents";
 import { createAbsence, appendEmployeeTimelineEvent } from "./employees";
+import { createWorkforcePlan } from "./workforce-planning";
+import { ingestCandidate } from "./recruitment";
+import { createHrRequest } from "./hr-requests";
+import { bindCountryPack } from "./country-config";
 
 export type RuntimeDeps = {
   /** app-role, tenant-bound executor for governed business services (defaults to the job executor). */
@@ -431,6 +435,65 @@ const hrReconcileApply: RuntimeActionHandler = async (ctx) => {
   return ok({ kind: "reconciliation", record_id: eventId, reconcile_kind: reconcileKind, applied: true });
 };
 
+// ── P22 miracle-grade domain business-effect handlers (call governed services, persist real objects) ─
+function domainAction(
+  run: (tx: SqlExecutor, ctx: RuntimeActionContext) => Promise<Record<string, unknown>>,
+  blockerCode: string,
+): RuntimeActionHandler {
+  return async (ctx) => {
+    try {
+      const out = await ctx.appDb.transaction(async (tx) => {
+        await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.companyId]);
+        return run(tx, ctx);
+      });
+      return ok(out);
+    } catch (e) {
+      return { status: "blocked", blockerCode, output: { reason: (e as Error)?.message ?? "refused" } };
+    }
+  };
+}
+
+const workforcePlanCreate = domainAction(async (tx, ctx) => {
+  const plan = await createWorkforcePlan(tx, ctx.tenant, {
+    period: String(ctx.payload.period ?? ""), mission_id: ctx.missionId,
+    site_id: (ctx.payload.site_id as string) ?? null,
+    current_headcount: Number(ctx.payload.current_headcount ?? 0),
+    target_headcount: Number(ctx.payload.target_headcount ?? 0),
+    proposed_positions: Array.isArray(ctx.payload.proposed_positions) ? ctx.payload.proposed_positions : [],
+    assumptions: (ctx.payload.assumptions as Record<string, unknown>) ?? {},
+    estimated_budget: typeof ctx.payload.estimated_budget === "number" ? ctx.payload.estimated_budget : null,
+  });
+  return { kind: "workforce_plan", plan_id: plan.id, status: plan.status, period: plan.period };
+}, "workforce_plan_refused");
+
+const recruitmentCandidateIngest = domainAction(async (tx, ctx) => {
+  const cand = await ingestCandidate(tx, ctx.tenant, {
+    full_name: String(ctx.payload.full_name ?? ""),
+    requisition_id: (ctx.payload.requisition_id as string) ?? null, mission_id: ctx.missionId,
+    source: (ctx.payload.source as string) ?? null,
+    metadata: (ctx.payload.metadata as Record<string, unknown>) ?? {},
+  });
+  return { kind: "recruitment_candidate", candidate_id: cand.id, pipeline_stage: cand.pipeline_stage };
+}, "recruitment_candidate_refused");
+
+const hrRequestCreate = domainAction(async (tx, ctx) => {
+  const req = await createHrRequest(tx, ctx.tenant, {
+    subject: String(ctx.payload.subject ?? ""), body: (ctx.payload.body as string) ?? null,
+    category: (ctx.payload.category as string) ?? "general", priority: (ctx.payload.priority as string) ?? "normal",
+    employee_id: (ctx.payload.employee_id as string) ?? null, mission_id: ctx.missionId,
+    sla_due_at: (ctx.payload.sla_due_at as string) ?? null,
+  });
+  return { kind: "hr_request", request_id: req.id, status: req.status, category: req.category };
+}, "hr_request_refused");
+
+const countryPackBind = domainAction(async (tx, ctx) => {
+  const cfg = await bindCountryPack(tx, ctx.tenant, {
+    country_code: String(ctx.payload.country_code ?? ""), pack_key: String(ctx.payload.pack_key ?? ""),
+    config: (ctx.payload.config as Record<string, unknown>) ?? {}, status: (ctx.payload.status as string) ?? "active",
+  });
+  return { kind: "country_config", config_id: cfg.id, country_code: cfg.country_code, pack_key: cfg.pack_key, version: cfg.version };
+}, "country_pack_refused");
+
 export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
   "mission.noop": noop,
   "analytics.compute": analyticsCompute,
@@ -440,6 +503,10 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
   "absence.record.create": absenceRecordCreate,
   "employee.timeline.append": employeeTimelineAppend,
   "hr.reconcile.apply": hrReconcileApply,
+  "workforce.plan.create": workforcePlanCreate,
+  "recruitment.candidate.ingest": recruitmentCandidateIngest,
+  "hr.request.create": hrRequestCreate,
+  "country.pack.bind": countryPackBind,
   "mission.complete": complete,
   "mission.block": block,
   "employee.read": readObject("pierre_rt_employees", "employee_id"),

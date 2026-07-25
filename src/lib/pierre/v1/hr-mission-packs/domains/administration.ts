@@ -12,7 +12,7 @@ export const ADMINISTRATION_PACKS: HrMissionPackDefinition[] = [
     steps: [
       ...intakeSkeleton(),
       svc("resolve_country", "validate", "Resolve jurisdiction (site>company, fail-closed)", "pierre_admin.country_config", { dependsOn: ["validate"] }),
-      rt("bind_pack", "mutate_record", "Bind the country pack (scaffold; values are P8.12)", "hr.record.append", { dependsOn: ["resolve_country"] }),
+      rt("bind_pack", "mutate_record", "Bind the country pack (scaffold; values are P8.12)", "country.pack.bind", { dependsOn: ["resolve_country"] }),
       rt("approve", "request_approval", "Confirm the country configuration", "approval.request", { dependsOn: ["bind_pack"], autonomy: "execute_with_validation" }),
       ...closeSkeleton("approve"),
     ],
