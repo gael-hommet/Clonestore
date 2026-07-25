@@ -10,6 +10,67 @@
 
 ---
 
+## REPRISE 3 (P22 — SEMANTIC correction: trace ≠ business effect — 2026-07-25, appended, prior evidence preserved)
+
+**Correction of the previous verdict (mandatory, accepted):** Reprise 2 reported
+`operational_completion_rate: 100%`. That was **misleading and is REJECTED.** Eliminating literal
+`mission.noop` and making every step *bind to a real action* is real, but binding many different
+business steps to `hr.record.append` (which persists a `pierre_rt_events` row) is a **TRACE**, not a
+**BUSINESS EFFECT** — it does not prove Pierre created/modified the actual HR record (absence,
+candidate, requisition, checklist, payroll variable, …). The benchmark JSON field is renamed
+`action_binding_completion_rate` with an explicit `CORRECTION` note; prior evidence is preserved.
+
+**TRACE_PERSISTED vs BUSINESS_EFFECT_COMPLETED — honest semantic matrix**
+(`docs/reports/P22_ACTION_SEMANTIC_GAP_MATRIX.json`, 272 runtime-action steps):
+
+| Classification | Count | Counts as business completion? |
+|---|---|---|
+| BUSINESS_EFFECT (document.generate, absence.record.create, analytics.compute, follow_up.schedule) | 43 | yes (persistence-level) |
+| TRACE_ONLY (hr.record.append) | 111 | **no** |
+| GENERIC_COLLECTION_ONLY (hr.data.collect) | 51 | **no** |
+| GOVERNED_EXTERNAL_INTENT (communication/signature/wait) | 15 | governed intent |
+| HUMAN_DECISION_BOUNDARY (approval.request) | 9 | legitimate human wait |
+| STRUCTURAL (mission.complete + reads) | 43 | n/a |
+
+- **`business_effect_completion_rate = 72.9%`** (43 real business-effect steps / 59 steps whose
+  *kind* implies a business object) — **below the ≥90% target**, and this is the *persistence-level*
+  rate; **usable-deliverable** rate is far lower (see limits below).
+- **16 semantic gaps remain**: `mutate_record`/`reconcile` domain steps still bound to
+  `hr.record.append` (trace-only) that should persist a real domain object.
+
+**Real business effect delivered + PROVEN ON A REAL SQL DB (the concrete new work):**
+- New authoritative action **`absence.record.create`** — calls the governed P8.3 absence service
+  (`createAbsence` → real `pierre_rt_employee_absences` row + employee event), FK-linked, tenant-scoped,
+  `absence.write`-gated. It **fails closed** (governed blocker) on an invalid type (DB CHECK
+  `conges_payes|rtt|maladie|sans_solde|autre`) or a missing employee — never a fake success.
+- The absence pack's create step was rebound from a **non-executed `svc` governed_service** (a
+  capability with no runtime handler, so it never ran) to this **runtime_action** — so it now
+  actually executes in the compiled runtime plan.
+- **Proven on real Postgres 16 (PGlite + real migrations)**, not in-memory:
+  `p22-absence-business-effect.itest.ts` (3/3 green) — creates a real employee, runs the action,
+  asserts a real absence row with correct FK + fields, asserts **tenant isolation** (tenant B sees
+  0), and asserts a **governed blocker** for a non-existent employee.
+
+**Honest limits (NOT claimed) — verdict stays WITHHELD:**
+- Only **1 of ~10 domains** has a real, real-SQL-proven business action (absence). The other 16
+  semantic-gap steps + 111 trace + 51 collection steps are **not** business completion.
+- `document.generate` persists a governed draft row + content hash — **not rich usable content**
+  (usable-deliverable rate unproven).
+- **No 18-mission × 3-mode E2E** through the real DB, **no browser pass**, **no 11h35→12min**
+  human-time measurement, **no live-provider sends**, `PRODUCTION_AUTHORIZED` still `false`.
+
+**Reprise 3 verdict: P22 — OPERATIONAL CLOSURE STILL WITHHELD.** Correction applied (trace ≠
+business effect); one real domain business action proven end-to-end on real SQL; honest
+`business_effect_completion_rate = 72.9%` (< 90%). Still missing for ELITE OPERATIONAL PROOF:
+real domain actions for the remaining 16 semantic gaps + other domains (recruitment/onboarding/
+payroll/performance/training/offboarding/helpdesk), rich usable document content, 18-mission ×
+3-mode real-DB E2E, browser proof, human-time proof.
+
+Verification: `tsc` exit 0, scoped ESLint 0, 287 v1-unit/pack tests + the 3-test real-SQL
+integration suite green. 0 OpenAI calls.
+
+---
+
 ## REPRISE 2 (P22 — eliminate ALL noops, generic HR primitives — 2026-07-25, appended, prior evidence preserved)
 
 **Bigger truth than "23 noops":** a full inventory across the whole pack registry found **172

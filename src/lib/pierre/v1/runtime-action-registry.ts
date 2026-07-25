@@ -124,6 +124,22 @@ const REGISTRY: Record<string, RuntimeActionDefinition> = {
   // a fake success, never invented values). required_fields/provided are optional (empty => nothing missing).
   "hr.data.collect": def({ actionKey: "hr.data.collect", category: "read", risk: "low", idempotencyStrategy: "step_run_id",
     validateInput: () => [] }),
+
+  // P22 semantic continuation — a REAL domain BUSINESS-EFFECT action (not a trace). Creates a real
+  // absence row in pierre_rt_employee_absences (via the governed P8.3 absence service), FK-linked to the
+  // employee, tenant-scoped, permissioned (absence.write). SUCCESS ⇒ a real business object exists — a
+  // trace event is a side effect, never the deliverable. This is the pattern for replacing trace-only
+  // domain steps with genuine persistence.
+  "absence.record.create": def({ actionKey: "absence.record.create", category: "state_transition", risk: "controlled",
+    requiredPermission: "absence.write", requiredObjectTypes: ["employee"], idempotencyStrategy: "step_run_id", compensationStrategy: "local_rollback",
+    validateInput: (p) => {
+      const e: string[] = [];
+      if (!isUuid(p.employee_id)) e.push("employee_id (uuid) required");
+      if (!isStr(p.absence_type)) e.push("absence_type required");
+      if (!isStr(p.start_date)) e.push("start_date required");
+      if (!isStr(p.end_date)) e.push("end_date required");
+      return e;
+    } }),
 };
 
 // The whitelisted HR metrics analytics.compute may compute (no free-form computation).

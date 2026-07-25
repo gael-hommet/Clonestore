@@ -17,6 +17,7 @@ import { buildScheduleRule, nextScheduleRunAt } from "./runtime-schedule-rules";
 import { prepareContractSignature } from "./contracts";
 import { submitContractToSignatureProvider, type SignatureDeps } from "./signatures";
 import { createDocument, createVersion } from "./documents";
+import { createAbsence } from "./employees";
 
 export type RuntimeDeps = {
   /** app-role, tenant-bound executor for governed business services (defaults to the job executor). */
@@ -371,12 +372,34 @@ const hrDataCollect: RuntimeActionHandler = async (ctx) => {
   return ok({ kind: "collection", record_id: eventId, collected_fields: Object.keys(provided), required });
 };
 
+// ── absence.record.create — a REAL domain BUSINESS-EFFECT (creates an absence row, not a trace) ──────
+// Calls the governed P8.3 absence service (createAbsence → pierre_rt_employee_absences + event), so the
+// authoritative runtime genuinely persists the business object FK-linked to the employee. A refusal
+// (missing employee / permission / bad dates) is a governed blocker, never a fake success.
+const absenceRecordCreate: RuntimeActionHandler = async (ctx) => {
+  const employeeId = String(ctx.payload.employee_id);
+  const type = String(ctx.payload.absence_type);
+  const startDate = String(ctx.payload.start_date);
+  const endDate = String(ctx.payload.end_date);
+  const status = typeof ctx.payload.status === "string" && ctx.payload.status ? String(ctx.payload.status) : "requested";
+  try {
+    await ctx.appDb.transaction(async (tx) => {
+      await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.companyId]);
+      await createAbsence(tx, ctx.tenant, employeeId, { type, start_date: startDate, end_date: endDate, status });
+    });
+  } catch (e) {
+    return { status: "blocked", blockerCode: "absence_create_refused", output: { reason: (e as Error)?.message ?? "refused" } };
+  }
+  return ok({ kind: "absence", employee_id: employeeId, absence_type: type, start_date: startDate, end_date: endDate, status });
+};
+
 export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
   "mission.noop": noop,
   "analytics.compute": analyticsCompute,
   "document.generate": documentGenerate,
   "hr.record.append": hrRecordAppend,
   "hr.data.collect": hrDataCollect,
+  "absence.record.create": absenceRecordCreate,
   "mission.complete": complete,
   "mission.block": block,
   "employee.read": readObject("pierre_rt_employees", "employee_id"),

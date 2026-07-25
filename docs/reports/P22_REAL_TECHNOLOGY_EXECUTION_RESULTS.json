@@ -1,17 +1,19 @@
 {
   "generated_for": "P22_REAL_TECHNOLOGY_EXECUTION",
   "note": "Authoritative runtime action layer over ALL mission packs after eliminating every mission.noop. Persisting handlers executed for real vs in-memory SqlExecutor; governed wait/human/external steps classified. Not a full embedded-PG/browser proof.",
+  "CORRECTION": "The earlier 'operational_completion_rate: 100%' was MISLEADING and is REJECTED. Persisting an event via hr.record.append is a TRACE, not a business effect. This field is renamed 'action_binding_completion_rate' (every step binds to a real registered action) and is NOT business completion. See P22_ACTION_SEMANTIC_GAP_MATRIX.json for BUSINESS_EFFECT_COMPLETION_RATE (the honest metric).",
   "packs_measured": 43,
-  "total_runtime_action_steps": 271,
+  "total_runtime_action_steps": 272,
   "mission_noop_remaining": 0,
   "persisting_actions_executed": 193,
   "persisting_effect_rows": 193,
-  "artifact_persistence_rate": 100,
+  "trace_or_record_persistence_rate": 100,
   "governed_autoexec_actions": 25,
   "needs_information_pauses": 0,
   "wait_human_external_steps": 10,
   "terminal_steps": 43,
   "false_success": 0,
   "auto_executable_steps": 218,
-  "operational_completion_rate": 100
+  "action_binding_completion_rate": 100,
+  "business_effect_completion_rate_note": "NOT computed here — see P22_ACTION_SEMANTIC_GAP_MATRIX.json (72.9% at persistence level; only absence.record.create proven on real SQL)."
 }

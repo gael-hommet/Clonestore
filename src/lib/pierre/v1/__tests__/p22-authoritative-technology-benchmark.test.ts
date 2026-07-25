@@ -128,19 +128,22 @@ describe("P22 authoritative technology-execution benchmark (all packs, 0 noop)",
     const summary = {
       generated_for: "P22_REAL_TECHNOLOGY_EXECUTION",
       note: "Authoritative runtime action layer over ALL mission packs after eliminating every mission.noop. Persisting handlers executed for real vs in-memory SqlExecutor; governed wait/human/external steps classified. Not a full embedded-PG/browser proof.",
+      CORRECTION:
+        "The earlier 'operational_completion_rate: 100%' was MISLEADING and is REJECTED. Persisting an event via hr.record.append is a TRACE, not a business effect. This field is renamed 'action_binding_completion_rate' (every step binds to a real registered action) and is NOT business completion. See P22_ACTION_SEMANTIC_GAP_MATRIX.json for BUSINESS_EFFECT_COMPLETION_RATE (the honest metric).",
       packs_measured: HR_MISSION_PACKS.length,
       total_runtime_action_steps: totalSteps,
       mission_noop_remaining: noopRemaining,
       persisting_actions_executed: persistingExecuted,
       persisting_effect_rows: effectRows,
-      artifact_persistence_rate: artifactPersistenceRate,
+      trace_or_record_persistence_rate: artifactPersistenceRate,
       governed_autoexec_actions: governedAutoexec,
       needs_information_pauses: needsInfo,
       wait_human_external_steps: waitHumanExternal,
       terminal_steps: terminal,
       false_success: falseSuccess,
       auto_executable_steps: autoExecutable,
-      operational_completion_rate: operationalCompletion,
+      action_binding_completion_rate: operationalCompletion,
+      business_effect_completion_rate_note: "NOT computed here — see P22_ACTION_SEMANTIC_GAP_MATRIX.json (72.9% at persistence level; only absence.record.create proven on real SQL).",
     };
     const outDir = path.join(process.cwd(), "docs", "reports");
     fs.mkdirSync(outDir, { recursive: true });

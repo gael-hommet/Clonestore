@@ -2,7 +2,7 @@
 // PHASE 8.11 — Absences, leave & time mission packs (canon domain G). Covers the P8.11 gaps:
 // approval_workflow, conflict_detection, timeclock_integration, payroll_transmission.
 import type { HrMissionPackDefinition } from "../types";
-import { defineMissionPack, intakeSkeleton, closeSkeleton, rt, svc, ext, cc, sig } from "../schema";
+import { defineMissionPack, intakeSkeleton, closeSkeleton, rt, ext, cc, sig } from "../schema";
 
 export const ABSENCE_PACKS: HrMissionPackDefinition[] = [
   defineMissionPack({
@@ -14,7 +14,7 @@ export const ABSENCE_PACKS: HrMissionPackDefinition[] = [
     supportedIntents: ["request_absence", "approve_absence", "reject_absence"],
     steps: [
       ...intakeSkeleton(),
-      svc("create_request", "mutate_record", "Create the absence request", "absence.create_request", { dependsOn: ["validate"] }),
+      rt("create_request", "mutate_record", "Create the absence request", "absence.record.create", { dependsOn: ["validate"] }),
       rt("detect_conflicts", "validate", "Detect overlapping absences / team coverage conflicts", "hr.record.append", { dependsOn: ["create_request"] }),
       rt("request_approval", "request_approval", "Route to manager/HR for approval", "approval.request", { dependsOn: ["detect_conflicts"], autonomy: "execute_with_validation" }),
       rt("notify", "communicate", "Notify requester + manager of the decision", "communication.create_intent", { dependsOn: ["request_approval"], emitsSignal: "absence.payroll_transmission_due" }),
