@@ -56,7 +56,7 @@ function track(page: Page) {
     if (r.status() < 400) return;
     try {
       if (new URL(url).origin === new URL(BASE).origin && ANALYTICS_BACKEND_TOLERATED.test(url)) return;
-    } catch {}
+    } catch { /* URL invalide — ignorée */ }
     if (FORBIDDEN_HOSTS.some((re) => re.test(url))) return;
     badResponses.push(`${r.status()} ${url}`);
   });

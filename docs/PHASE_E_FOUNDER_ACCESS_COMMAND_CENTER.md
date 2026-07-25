@@ -21,7 +21,7 @@ Système commercial réel de CloneStore pour Pierre : réservation → confirmat
 
 | Élément | Valeur |
 |---|---|
-| Lancement (ouverture activations) | 5 août 2026 |
+| Lancement (ouverture activations) | 12 août 2026 (reporté depuis le 5 août 2026 initial) |
 | Fermeture accès fondateur | 31 août 2026 23:59 Europe/Paris |
 | Prix Pierre | 449 € HT / mois (44900 centimes, EUR) |
 | Conservation tarif | tant que l'abonnement reste continuellement actif |

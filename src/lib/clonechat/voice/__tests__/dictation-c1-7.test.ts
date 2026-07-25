@@ -3,6 +3,7 @@
 // LA VOIX NE CONTOURNE AUCUNE GOUVERNANCE.
 
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
 import {
   validateAudio, shouldFallback, transcriptionVocabularyPrompt, loadTranscriptionModels,
   TRANSCRIBE_MODEL_DEFAULT, TRANSCRIBE_MODEL_FALLBACK, LOW_CONFIDENCE_THRESHOLD,
@@ -125,20 +126,20 @@ describe("C1.7 §8E — LA VOIX NE CONTOURNE AUCUNE GOUVERNANCE", () => {
   it("la dictée ne déclare JAMAIS un envoi automatique", () => {
     // Le contrat serveur renvoie `autoSend: false` ; le hook INSÈRE, il n'envoie pas.
     // Preuve de source : la route ne contient aucun appel de chat/mission.
-    const route = require("node:fs").readFileSync("src/app/api/assistant/transcribe/route.ts", "utf8") as string;
+    const route = readFileSync("src/app/api/assistant/transcribe/route.ts", "utf8");
     expect(route).toMatch(/autoSend: false/);
     expect(route).not.toMatch(/buildAndPersistProposal|assistant\/chat|createMission/);
   });
 
   it("aucun audio ni transcript n'est journalisé (télémétrie SANS contenu)", () => {
-    const route = require("node:fs").readFileSync("src/app/api/assistant/transcribe/route.ts", "utf8") as string;
+    const route = readFileSync("src/app/api/assistant/transcribe/route.ts", "utf8");
     expect(route).toMatch(/transcriptChars: result\.text\.length/); // une LONGUEUR
     expect(route).not.toMatch(/console\.log\((?:.*)(transcript|audio|text)/i);
     expect(route).toMatch(/transcript revient au composer/i);
   });
 
   it("la dictée n'exige NI compte, NI entreprise, NI droit Pierre (doctrine C1.6)", () => {
-    const route = require("node:fs").readFileSync("src/app/api/assistant/transcribe/route.ts", "utf8") as string;
+    const route = readFileSync("src/app/api/assistant/transcribe/route.ts", "utf8");
     expect(route).not.toMatch(/AUTH_REQUIRED/);
     expect(route).not.toMatch(/resolveCloneChatCompany|hasPierreAccess/);
     expect(route).toMatch(/checkAnonymousRateLimit/); // mais l'abus reste borné

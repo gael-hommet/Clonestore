@@ -37,7 +37,7 @@ export type EvalMetrics = {
   scores: Record<string, number>;  // ratios
 };
 
-const hasDatePhrase = (s: string) => /\b(lundi|mardi|mercredi|jeudi|vendredi|demain|hier|prochain|dans\s+\d|\d{4}-\d{2}-\d{2}|\d{1,2}[\/.-]\d{1,2})/i.test(s);
+const hasDatePhrase = (s: string) => /\b(lundi|mardi|mercredi|jeudi|vendredi|demain|hier|prochain|dans\s+\d|\d{4}-\d{2}-\d{2}|\d{1,2}[/.-]\d{1,2})/i.test(s);
 
 export async function runEvaluation(
   corpus: readonly EvalItem[],

@@ -77,11 +77,11 @@ function degrade(err: unknown, at: string): void {
  * marteler à chaque tour.
  */
 export function createResilientBudget(durable: DurableBudget, memory: DurableBudget): DurableBudget {
-  const useMemory = () => state().health === "degraded_in_memory";
+  const isMemoryFallbackActive = () => state().health === "degraded_in_memory";
 
   return {
     async reserve(cfg, scope, estimatedInputTokens, at) {
-      if (useMemory()) return memory.reserve(cfg, scope, estimatedInputTokens, at);
+      if (isMemoryFallbackActive()) return memory.reserve(cfg, scope, estimatedInputTokens, at);
       try {
         return await durable.reserve(cfg, scope, estimatedInputTokens, at);
       } catch (e) {
@@ -92,25 +92,25 @@ export function createResilientBudget(durable: DurableBudget, memory: DurableBud
     },
 
     async commit(reservation, actualTokens) {
-      if (useMemory()) return memory.commit(reservation, actualTokens);
+      if (isMemoryFallbackActive()) return memory.commit(reservation, actualTokens);
       try { return await durable.commit(reservation, actualTokens); }
       catch (e) { degrade(e, new Date().toISOString()); return memory.commit(reservation, actualTokens); }
     },
 
     async release(reservation) {
-      if (useMemory()) return memory.release(reservation);
+      if (isMemoryFallbackActive()) return memory.release(reservation);
       try { return await durable.release(reservation); }
       catch (e) { degrade(e, new Date().toISOString()); return memory.release(reservation); }
     },
 
     async recordUsage(record) {
-      if (useMemory()) return memory.recordUsage(record);
+      if (isMemoryFallbackActive()) return memory.recordUsage(record);
       try { return await durable.recordUsage(record); }
       catch (e) { degrade(e, new Date().toISOString()); return memory.recordUsage(record); }
     },
 
     async snapshot(scope, at) {
-      if (useMemory()) return memory.snapshot(scope, at);
+      if (isMemoryFallbackActive()) return memory.snapshot(scope, at);
       try { return await durable.snapshot(scope, at); }
       catch (e) { degrade(e, new Date().toISOString()); return memory.snapshot(scope, at); }
     },

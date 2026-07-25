@@ -9,7 +9,7 @@ export type InspectorConfidence = CloneChatConfidence;
 
 type ScreenshotAnalysisContract = NonNullable<ScreenshotResult["analysis"]>;
 
-export interface ScreenshotAnalysis extends ScreenshotAnalysisContract {}
+export type ScreenshotAnalysis = ScreenshotAnalysisContract;
 
 export interface InspectorInput {
   /** L'analyse produite par le fournisseur. `null` = aucune image n'a atteint le modele. */

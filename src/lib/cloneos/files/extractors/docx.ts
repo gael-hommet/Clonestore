@@ -4,8 +4,8 @@
 
 import type { FileExtractionResult } from "../types";
 
-const DATE_PATTERN = /\b(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}|\d{4}[\/\-\.]\d{2}[\/\-\.]\d{2})\b/g;
-const AMOUNT_PATTERN = /\d[\d\s]*[,\.]\d{2}\s*(?:€|EUR|euros?)|(?:€|EUR)\s*\d[\d\s]*[,\.]\d{2}/gi;
+const DATE_PATTERN = /\b(\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|\d{4}[/.-]\d{2}[/.-]\d{2})\b/g;
+const AMOUNT_PATTERN = /\d[\d\s]*[,.]\d{2}\s*(?:€|EUR|euros?)|(?:€|EUR)\s*\d[\d\s]*[,.]\d{2}/gi;
 
 function extractDates(text: string): string[] {
   return [...new Set(text.match(DATE_PATTERN) ?? [])].slice(0, 20);

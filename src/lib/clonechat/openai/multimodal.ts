@@ -24,7 +24,7 @@ export interface ImageValidation {
   readonly reason: string | null;
 }
 
-const DATA_URL_RE = /^data:([a-z0-9.+\/-]+);base64,([A-Za-z0-9+\/=]+)$/i;
+const DATA_URL_RE = /^data:([a-z0-9.+/-]+);base64,([A-Za-z0-9+/=]+)$/i;
 
 /** Estime la taille décodée d'un base64 sans l'allouer. */
 function base64Bytes(b64: string): number {

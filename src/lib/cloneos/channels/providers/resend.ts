@@ -124,11 +124,11 @@ export function mapResendError(error: unknown): string {
     const e = error as Record<string, unknown>;
     // Never expose actual API key values, even in error messages
     const msg = typeof e.message === "string" ? e.message : JSON.stringify(e);
-    const cleaned = msg.replace(/re_[A-Za-z0-9_\-]{20,}/g, "re_[REDACTED]");
+    const cleaned = msg.replace(/re_[A-Za-z0-9_-]{20,}/g, "re_[REDACTED]");
     return `Resend error: ${cleaned}`;
   }
   const raw = String(error);
-  return `Resend error: ${raw.replace(/re_[A-Za-z0-9_\-]{20,}/g, "re_[REDACTED]")}`;
+  return `Resend error: ${raw.replace(/re_[A-Za-z0-9_-]{20,}/g, "re_[REDACTED]")}`;
 }
 
 // ── Provider adapter ──────────────────────────────────────────────────────────

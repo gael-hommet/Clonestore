@@ -5,20 +5,20 @@
 // SSR comme en client. Aucune donnée personnelle, aucun appel réseau.
 //
 // Dates verrouillées par le master prompt :
-//   • Ouverture des accès : 5 août 2026
+//   • Ouverture des accès : 12 août 2026 (reporté depuis le 5 août 2026 initial)
 //   • Fermeture accès fondateur : 31 août 2026 à 23 h 59 (heure de Paris)
 //   • Tarif fondateur : 449 € HT / mois, conservé sans limite tant que
 //     l'abonnement reste actif.
 
 export type CommercialPhase = "before_launch" | "launched";
 
-/** 5 août 2026 — ouverture des activations (heure de Paris, UTC+2 en été). */
-export const DEMO_LAUNCH_ISO = "2026-08-05T00:00:00+02:00";
+/** 12 août 2026 — ouverture des activations (heure de Paris, UTC+2 en été). Pré-lancement initialement prévu le 5 août 2026, officiellement reporté au 12 août 2026. */
+export const DEMO_LAUNCH_ISO = "2026-08-12T00:00:00+02:00";
 
 /** 31 août 2026 à 23 h 59 — fermeture de la fenêtre fondateur (heure de Paris). */
 export const FOUNDER_CLOSE_ISO = "2026-08-31T23:59:00+02:00";
 
-export const DEMO_LAUNCH_LABEL = "5 août 2026";
+export const DEMO_LAUNCH_LABEL = "12 août 2026";
 export const FOUNDER_CLOSE_LABEL = "31 août 2026 à 23 h 59, heure de Paris";
 
 export const FOUNDER_PRICE = "449 € HT";
@@ -70,7 +70,7 @@ export function getFounderCommercialCopy(
 
   return {
     phase,
-    availability: "Pierre ouvre ses accès le 5 août 2026.",
+    availability: "Pierre ouvre ses accès le 12 août 2026.",
     secondaryCta: "Déjà convaincu ? Réserver Pierre à 449 € HT/mois",
     accessNote: [
       "Accès fondateur : 449 € HT/mois",

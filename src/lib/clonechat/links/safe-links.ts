@@ -27,6 +27,7 @@ const EXTERNAL_ALLOWLIST: ReadonlySet<string> = new Set([
  * et leurs déguisements (espaces, tabulations, retours ligne, casse).
  */
 export function isDangerousHref(raw: string): boolean {
+  // eslint-disable-next-line no-control-regex -- volontaire : neutralise les deguisements de schema dangereux via caracteres de controle (espaces, tabulations, retours ligne).
   const s = raw.replace(/[\s\u0000-\u001f\u007f-]/g, "").toLowerCase();
   return s.startsWith("javascript:") || s.startsWith("data:") || s.startsWith("vbscript:") || s.startsWith("file:");
 }

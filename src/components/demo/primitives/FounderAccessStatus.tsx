@@ -12,7 +12,7 @@ import { DemoCTALink } from "./DemoCTA";
 const RESERVATION_ROUTE = "/reserver/pierre";
 
 /**
- * État commercial dynamique (avant / après le 5 août 2026).
+ * État commercial dynamique (avant / après le 12 août 2026, reporté depuis le 5 août 2026 initial).
  * Variantes "compact" (hero E2.1) et "full" (clôture E2.10).
  * Le CTA secondaire reste visuellement inférieur.
  */
@@ -57,7 +57,7 @@ export function FounderAccessStatus({
             </p>
           ))}
         </div>
-        <p className="mt-3 border-t border-[var(--cs-line-soft)] pt-3 text-[0.74rem] text-[var(--cs-ink-4)]">
+        <p className="mt-3 border-t border-[var(--cs-line-soft)] pt-3 text-[0.76rem] text-[var(--cs-ink-3)]">
           {copy.priceRule}
         </p>
       </div>

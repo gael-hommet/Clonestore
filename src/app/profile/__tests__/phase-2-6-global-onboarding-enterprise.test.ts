@@ -253,8 +253,9 @@ describe("T08 — Documentation PHASE 2.6", () => {
   });
 
   it("T08.5 — doc mentionne pas de persistance DB", () => {
-    expect(docLower).toContain("pas de persistance db") ||
-      expect(docLower).toContain("local state");
+    expect(
+      docLower.includes("pas de persistance db") || docLower.includes("local state"),
+    ).toBe(true);
   });
 
   it("T08.6 — doc mentionne PHASE 2.7", () => {

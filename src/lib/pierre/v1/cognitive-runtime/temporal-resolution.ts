@@ -48,7 +48,7 @@ export function resolveTemporal(original: string, nowIso: string): ResolvedTempo
     if (!Number.isNaN(d.getTime())) return { status: "resolved", original: raw, iso: iso(d), kind: "absolute", reason: "iso" };
   }
   // 2) dd/mm/yyyy or dd-mm-yyyy
-  const dmy = t.match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})\b/);
+  const dmy = t.match(/\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})\b/);
   if (dmy) {
     const yr = dmy[3].length === 2 ? 2000 + +dmy[3] : +dmy[3];
     const d = new Date(Date.UTC(yr, +dmy[2] - 1, +dmy[1]));

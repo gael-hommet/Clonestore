@@ -46,110 +46,110 @@ function readScript(filename: string): string {
 
 describe("PHASE 3.15 — Module Manual Activation QA", () => {
   const modulePath = "lib/clonestore/enterprise-footprint/enterprise-footprint-manual-activation-qa.ts";
-  const module = readSrc(modulePath);
+  const mod = readSrc(modulePath);
 
   it("1. enterprise-footprint-manual-activation-qa.ts existe", () => {
     expect(existsSync(resolve(ROOT, "src", modulePath))).toBe(true);
   });
 
   it("2. module contient buildEnterpriseFootprintManualActivationChecklist", () => {
-    expect(module).toContain("buildEnterpriseFootprintManualActivationChecklist");
+    expect(mod).toContain("buildEnterpriseFootprintManualActivationChecklist");
   });
 
   it("3. module contient buildEnterpriseFootprintManualActivationVerdict", () => {
-    expect(module).toContain("buildEnterpriseFootprintManualActivationVerdict");
+    expect(mod).toContain("buildEnterpriseFootprintManualActivationVerdict");
   });
 
   it("4. module contient buildEnterpriseFootprintManualActivationEvidenceTemplate", () => {
-    expect(module).toContain("buildEnterpriseFootprintManualActivationEvidenceTemplate");
+    expect(mod).toContain("buildEnterpriseFootprintManualActivationEvidenceTemplate");
   });
 
   it("5. module contient validateEnterpriseFootprintManualActivationEvidencePack", () => {
-    expect(module).toContain("validateEnterpriseFootprintManualActivationEvidencePack");
+    expect(mod).toContain("validateEnterpriseFootprintManualActivationEvidencePack");
   });
 
   it("6. checklist contient sql_file_reviewed", () => {
-    expect(module).toContain("sql_file_reviewed");
+    expect(mod).toContain("sql_file_reviewed");
   });
 
   it("7. checklist contient sql_applied_manually", () => {
-    expect(module).toContain("sql_applied_manually");
+    expect(mod).toContain("sql_applied_manually");
   });
 
   it("8. checklist contient table_exists", () => {
-    expect(module).toContain("table_exists");
+    expect(mod).toContain("table_exists");
   });
 
   it("9. checklist contient rls_enabled", () => {
-    expect(module).toContain("rls_enabled");
+    expect(mod).toContain("rls_enabled");
   });
 
   it("10. checklist contient select_policy_exists", () => {
-    expect(module).toContain("select_policy_exists");
+    expect(mod).toContain("select_policy_exists");
   });
 
   it("11. checklist contient insert_policy_exists", () => {
-    expect(module).toContain("insert_policy_exists");
+    expect(mod).toContain("insert_policy_exists");
   });
 
   it("12. checklist contient update_policy_exists", () => {
-    expect(module).toContain("update_policy_exists");
+    expect(mod).toContain("update_policy_exists");
   });
 
   it("13. checklist contient no_delete_policy", () => {
-    expect(module).toContain("no_delete_policy");
+    expect(mod).toContain("no_delete_policy");
   });
 
   it("14. checklist contient constraints_verified", () => {
-    expect(module).toContain("constraints_verified");
+    expect(mod).toContain("constraints_verified");
   });
 
   it("15. checklist contient flag_disabled_before_test", () => {
-    expect(module).toContain("flag_disabled_before_test");
+    expect(mod).toContain("flag_disabled_before_test");
   });
 
   it("16. checklist contient flag_enabled_for_local_test", () => {
-    expect(module).toContain("flag_enabled_for_local_test");
+    expect(mod).toContain("flag_enabled_for_local_test");
   });
 
   it("17. checklist contient onboarding_server_sync_works", () => {
-    expect(module).toContain("onboarding_server_sync_works");
+    expect(mod).toContain("onboarding_server_sync_works");
   });
 
   it("18. checklist contient api_get_returns_server_snapshot", () => {
-    expect(module).toContain("api_get_returns_server_snapshot");
+    expect(mod).toContain("api_get_returns_server_snapshot");
   });
 
   it("19. checklist contient refresh_restores_latest_snapshot", () => {
-    expect(module).toContain("refresh_restores_latest_snapshot");
+    expect(mod).toContain("refresh_restores_latest_snapshot");
   });
 
   it("20. checklist contient rollback_flag_disabled", () => {
-    expect(module).toContain("rollback_flag_disabled");
+    expect(mod).toContain("rollback_flag_disabled");
   });
 
   it("21. checklist contient localstorage_still_works_after_rollback", () => {
-    expect(module).toContain("localstorage_still_works_after_rollback");
+    expect(mod).toContain("localstorage_still_works_after_rollback");
   });
 
   it("22. checklist contient public_launch_external_not_validated", () => {
-    expect(module).toContain("public_launch_external_not_validated");
+    expect(mod).toContain("public_launch_external_not_validated");
   });
 
   it("23. module ne contient pas Supabase createClient (réel)", () => {
-    expect(module).not.toMatch(/^import\s+.*createClient.*from\s+["']@supabase/m);
-    expect(module).not.toMatch(/^import\s+.*from\s+["']@supabase\/supabase-js["']/m);
+    expect(mod).not.toMatch(/^import\s+.*createClient.*from\s+["']@supabase/m);
+    expect(mod).not.toMatch(/^import\s+.*from\s+["']@supabase\/supabase-js["']/m);
   });
 
   it("24. module ne contient pas insert/update/delete/upsert", () => {
-    expect(module).not.toMatch(/\.insert\s*\(/);
-    expect(module).not.toMatch(/\.update\s*\(/);
-    expect(module).not.toMatch(/\.delete\s*\(/);
-    expect(module).not.toMatch(/\.upsert\s*\(/);
+    expect(mod).not.toMatch(/\.insert\s*\(/);
+    expect(mod).not.toMatch(/\.update\s*\(/);
+    expect(mod).not.toMatch(/\.delete\s*\(/);
+    expect(mod).not.toMatch(/\.upsert\s*\(/);
   });
 
   it("25. module ne contient pas import src/lib/pierre (réel)", () => {
-    expect(module).not.toMatch(/^import\s+.*from\s+["']@\/lib\/pierre/m);
+    expect(mod).not.toMatch(/^import\s+.*from\s+["']@\/lib\/pierre/m);
   });
 });
 

@@ -17,7 +17,7 @@ import type {
 } from "./types";
 
 // Candidate date/amount substrings worth resolving (bounded, deterministic).
-const DATE_RE = /\b(aujourd'?hui|demain|apr[eè]s-demain|hier|(?:la\s+)?semaine\s+prochaine|(?:le\s+)?mois\s+prochain|(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)(?:\s+prochain)?|dans\s+\d{1,3}\s+(?:jours?|semaines?|mois)|in\s+\d{1,3}\s+(?:days?|weeks?|months?)|\d{1,2}(?:er)?\s+(?:janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)|\d{4}-\d{2}-\d{2}|\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})\b/gi;
+const DATE_RE = /\b(aujourd'?hui|demain|apr[eè]s-demain|hier|(?:la\s+)?semaine\s+prochaine|(?:le\s+)?mois\s+prochain|(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)(?:\s+prochain)?|dans\s+\d{1,3}\s+(?:jours?|semaines?|mois)|in\s+\d{1,3}\s+(?:days?|weeks?|months?)|\d{1,2}(?:er)?\s+(?:janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)|\d{4}-\d{2}-\d{2}|\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4})\b/gi;
 const AMOUNT_RE = /(?:€|chf\s*)?\d[\d\s.,]*\d\s*(?:€|eur(?:os?)?|chf)?/gi;
 
 function extractDates(text: string, nowIso: string): ResolvedTemporalReference[] {

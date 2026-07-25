@@ -88,7 +88,7 @@ export function sanitizeTraceSummary(summary: string): string {
   // Redacter les tokens-like patterns (sk_live_, whsec_, Bearer, etc.)
   sanitized = sanitized.replace(/sk_live_[a-zA-Z0-9_]+/g, "[REDACTED_TOKEN]");
   sanitized = sanitized.replace(/whsec_[a-zA-Z0-9_]+/g, "[REDACTED_SECRET]");
-  sanitized = sanitized.replace(/Bearer\s+[a-zA-Z0-9._\-]+/gi, "[REDACTED_BEARER]");
+  sanitized = sanitized.replace(/Bearer\s+[a-zA-Z0-9._-]+/gi, "[REDACTED_BEARER]");
   // Supprimer les adresses email dans le summary (pas de données perso brutes)
   // On conserve les domaines uniquement pour les traces légitimes
   sanitized = sanitized.trim();

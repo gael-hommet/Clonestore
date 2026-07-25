@@ -39,6 +39,10 @@ function checkoutEvent(rid: string, over: Record<string, unknown> = {}, created 
     id: `evt_${Math.random().toString(36).slice(2)}`, object: "event", api_version: "2024-01-01", created, livemode: false,
     type: "checkout.session.completed",
     data: { object: { mode: "subscription", subscription: "sub_1", customer: "cus_1", payment_status: "paid",
+      // P15 §4 — signaux de réconciliation pays/devise réels (pays de facturation Stripe FR + devise
+      // EUR concordante) : sans eux le gate fail-closed (PAYMENT PATH CLOSURE 2026-07-24) bloque
+      // toute activation faute de pays de facturation déterminé, quelle que soit la preuve fournie.
+      currency: "eur", customer_details: { address: { country: "FR" } },
       metadata: { user_id: "11111111-1111-4111-8111-111111111111", agent_slug: "pierre", founder_reservation_id: rid, ...((over.metadata as object) ?? {}) }, ...over } },
   });
 }

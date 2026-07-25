@@ -168,7 +168,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // 6. Load data — non-blocking: partial failures produce degraded state
   let hasError = false;
   let currentMission = null;
-  let missions: ReturnType<typeof normalizeMissionResponse>[] = [];
+  const missions: ReturnType<typeof normalizeMissionResponse>[] = [];
   let tasks: ReturnType<typeof normalizeTaskList> = [];
   let deliverables: ReturnType<typeof normalizeDocumentList> = [];
   let memorySummary = normalizeCloneADNProfile(null);

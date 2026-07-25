@@ -59,7 +59,7 @@ export function stableEventKey(scope: string): string {
     v = `${scope}:${Math.random().toString(36).slice(2, 14)}`;
     try {
       sessionStorage.setItem(k, v);
-    } catch {}
+    } catch { /* stockage indisponible — id volatile conservé en mémoire uniquement */ }
   }
   return v;
 }

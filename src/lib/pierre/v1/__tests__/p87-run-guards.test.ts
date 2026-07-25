@@ -121,7 +121,7 @@ describe("ÉTAPE 6 — single real-email budget", () => {
 
 describe("ÉTAPE 7 — global deadline / hard stop", () => {
   it("caps the budget at 30 minutes and reports remaining", () => {
-    let t = 1_000_000;
+    const t = 1_000_000;
     const d = makeGlobalDeadline(60 * 60 * 1000, { nowFn: () => t }); // ask for 60 min
     expect(d.budgetMs).toBe(MAX_JOURNEY_MS); // capped to 30 min
     expect(d.expired()).toBe(false);

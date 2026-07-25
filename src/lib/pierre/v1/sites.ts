@@ -48,7 +48,7 @@ export const SiteRepo = {
 };
 
 function validateAddress(input: { postal_code?: string | null; country?: string | null }): void {
-  if (input.postal_code != null && input.postal_code !== "" && !/^[A-Za-z0-9 \-]{2,12}$/.test(input.postal_code)) throw Errors.validation("Invalid postal_code");
+  if (input.postal_code != null && input.postal_code !== "" && !/^[A-Za-z0-9 -]{2,12}$/.test(input.postal_code)) throw Errors.validation("Invalid postal_code");
   if (input.country != null && input.country !== "" && !/^[A-Za-z]{2,3}$/.test(input.country)) throw Errors.validation("country must be an ISO code");
 }
 

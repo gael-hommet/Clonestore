@@ -27,11 +27,11 @@ export interface ScheduledEmail {
 // Offset été Paris = +02:00 (toutes ces dates sont en heure d'été).
 export const FOUNDER_EMAIL_SCHEDULE: ScheduledEmail[] = [
   { kind: "verification", sendAtIso: null, subject: "Confirmez votre réservation de Pierre", requiresConfirmed: false, skipIfActiveClient: false },
-  { kind: "j5_before_launch", sendAtIso: "2026-07-31T09:00:00+02:00", subject: "Pierre ouvre ses accès dans 5 jours", requiresConfirmed: true, skipIfActiveClient: true },
-  { kind: "j2_before_launch", sendAtIso: "2026-08-03T09:00:00+02:00", subject: "J-2 avant l'ouverture de Pierre", requiresConfirmed: true, skipIfActiveClient: true },
-  { kind: "j1_before_launch", sendAtIso: "2026-08-04T09:00:00+02:00", subject: "Demain : ouverture des activations de Pierre", requiresConfirmed: true, skipIfActiveClient: true },
-  { kind: "launch_open", sendAtIso: "2026-08-05T08:00:00+02:00", subject: "Pierre est disponible : activez votre accès fondateur", requiresConfirmed: true, skipIfActiveClient: true },
-  { kind: "post_launch_followup", sendAtIso: "2026-08-07T09:00:00+02:00", subject: "Votre accès fondateur Pierre vous attend", requiresConfirmed: true, skipIfActiveClient: true },
+  { kind: "j5_before_launch", sendAtIso: "2026-08-07T09:00:00+02:00", subject: "Pierre ouvre ses accès dans 5 jours", requiresConfirmed: true, skipIfActiveClient: true },
+  { kind: "j2_before_launch", sendAtIso: "2026-08-10T09:00:00+02:00", subject: "J-2 avant l'ouverture de Pierre", requiresConfirmed: true, skipIfActiveClient: true },
+  { kind: "j1_before_launch", sendAtIso: "2026-08-11T09:00:00+02:00", subject: "Demain : ouverture des activations de Pierre", requiresConfirmed: true, skipIfActiveClient: true },
+  { kind: "launch_open", sendAtIso: "2026-08-12T08:00:00+02:00", subject: "Pierre est disponible : activez votre accès fondateur", requiresConfirmed: true, skipIfActiveClient: true },
+  { kind: "post_launch_followup", sendAtIso: "2026-08-14T09:00:00+02:00", subject: "Votre accès fondateur Pierre vous attend", requiresConfirmed: true, skipIfActiveClient: true },
   { kind: "j14_before_close", sendAtIso: "2026-08-17T09:00:00+02:00", subject: "Accès fondateur : 14 jours avant la fermeture", requiresConfirmed: true, skipIfActiveClient: true },
   { kind: "j5_before_close", sendAtIso: "2026-08-26T09:00:00+02:00", subject: "J-5 avant la fermeture de l'accès fondateur", requiresConfirmed: true, skipIfActiveClient: true },
   { kind: "j1_before_close", sendAtIso: "2026-08-30T09:00:00+02:00", subject: "Demain : fermeture de l'accès fondateur", requiresConfirmed: true, skipIfActiveClient: true },
