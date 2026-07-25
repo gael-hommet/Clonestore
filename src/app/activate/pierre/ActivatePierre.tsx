@@ -12,6 +12,10 @@ import { getSessionClient } from "@/lib/auth/session-client";
 import { buildCheckoutAuthHeaders, sanitizeCheckoutError } from "@/lib/checkout/checkout-helpers";
 import { FOUNDER_PRICE_MONTHLY, FOUNDER_CLOSE_LABEL } from "@/lib/founder-access/commercial";
 import { emitFounderEvent } from "@/lib/founder-access/funnel-events";
+// Canonical Analytics Runtime Wiring — signaux d'INTENTION client (activation_started,
+// checkout_started). La VÉRITÉ (checkout_session_created, activation_completed, payment_succeeded)
+// vient exclusivement du serveur. Aucun montant/Price ID/URL Stripe côté client.
+import { track, currentPageViewId } from "@/lib/analytics/client/track";
 
 const violetStyle: React.CSSProperties = {
   background: "linear-gradient(180deg,#7b73f0 0%,#6b63e8 52%,#4f48b8 100%)",
@@ -39,9 +43,20 @@ export function ActivatePierre({ reservationId, companyName }: { reservationId: 
     if (!token || loading) return;
     setLoading(true); setError(null);
     emitFounderEvent("founder_activation_started", { reservationId: reservationId ?? undefined });
+    // Canonique : intention client de démarrer l'activation.
+    track("activation_started", {
+      pageViewId: currentPageViewId() ?? undefined,
+      dedupeKey: "activation_started:/activate/pierre",
+    });
     try {
       const headers = buildCheckoutAuthHeaders(token);
       if (!headers) { setError("Connexion requise pour continuer."); setLoading(false); return; }
+      // Canonique : intention client de déclencher réellement le checkout (avant l'appel serveur).
+      // La création RÉELLE de la session (checkout_session_created) est émise par /api/checkout.
+      track("checkout_started", {
+        pageViewId: currentPageViewId() ?? undefined,
+        dedupeKey: "checkout_started:/activate/pierre",
+      });
       const res = await fetch("/api/checkout", {
         method: "POST", headers,
         body: JSON.stringify({ agent_slug: "pierre", founder_reservation_id: reservationId ?? undefined }),

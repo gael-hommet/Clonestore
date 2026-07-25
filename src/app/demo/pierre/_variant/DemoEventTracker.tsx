@@ -20,15 +20,29 @@
 import { useEffect, useRef } from "react";
 import { emitConversionEvent, stableEventKey } from "@/lib/clonestore/conversion/client-emitter";
 import { emitFounderEvent } from "@/lib/founder-access/funnel-events";
+// Canonical Analytics Runtime Wiring — émissions canoniques ADDITIVES (le sink canonique ne lit
+// jamais les tables legacy, donc aucun double comptage possible).
+import { track, newDemoRunId, currentDemoRunId, currentPageViewId } from "@/lib/analytics/client/track";
 
 const STEP_CAP = 12;
 const DEMO_COMPLETED_AFTER_STEPS = 5;
+
+// stepId canonique fermé : jamais textContent, jamais texte libre — on borne au charset autorisé.
+function toCanonicalStepId(label: string): string {
+  return label.replace(/[^a-zA-Z0-9_:.-]/g, "").slice(0, 64) || "step";
+}
 
 export function DemoEventTracker() {
   const startedRef = useRef(false);
   const completedRef = useRef(false);
   const landingEmittedRef = useRef(false);
   const stepsSeenRef = useRef<Set<string>>(new Set());
+  // demo_run_id propre au run Pierre. Réutilise le run existant de la session si présent (un
+  // rechargement de /demo/pierre conserve le run), sinon en crée un. Insensible au double-montage.
+  const runIdRef = useRef<string | null>(null);
+  if (runIdRef.current === null && typeof window !== "undefined") {
+    runIdRef.current = currentDemoRunId("demo_pierre") ?? newDemoRunId("demo_pierre");
+  }
 
   useEffect(() => {
     if (!landingEmittedRef.current) {
@@ -50,6 +64,15 @@ export function DemoEventTracker() {
       });
       // Funnel commercial (dashboard) : début réel du cockpit Pierre.
       emitFounderEvent("pierre_demo_started", { landingPath: "/demo/pierre" });
+      const runId = runIdRef.current;
+      if (runId) {
+        track("pierre_demo_started", {
+          demoRunId: runId,
+          pageViewId: currentPageViewId() ?? undefined,
+          properties: { demoType: "demo_pierre" },
+          dedupeKey: `pierre_demo_started:${runId}`,
+        });
+      }
     }
 
     function markCompleted(reason: string) {
@@ -62,6 +85,15 @@ export function DemoEventTracker() {
       });
       // Funnel commercial (dashboard) : fin réelle du cockpit Pierre.
       emitFounderEvent("pierre_demo_completed", { landingPath: "/demo/pierre" });
+      const runId = runIdRef.current;
+      if (runId) {
+        track("pierre_demo_completed", {
+          demoRunId: runId,
+          pageViewId: currentPageViewId() ?? undefined,
+          properties: { demoType: "demo_pierre" },
+          dedupeKey: `pierre_demo_completed:${runId}`,
+        });
+      }
     }
 
     function emitStep(label: string) {
@@ -73,6 +105,16 @@ export function DemoEventTracker() {
         metadata: { step, demo_step: label.slice(0, 60) },
         sourcePage: "/demo/pierre",
       });
+      const runId = runIdRef.current;
+      if (runId) {
+        // Une étape comptée une seule fois par run (stepsSeenRef garde l'unicité + dedupeKey).
+        track("pierre_demo_step_completed", {
+          demoRunId: runId,
+          stepId: toCanonicalStepId(label),
+          properties: { demoType: "demo_pierre" },
+          dedupeKey: `pierre_demo_step_completed:${runId}:${label}`,
+        });
+      }
       if (stepsSeenRef.current.size >= DEMO_COMPLETED_AFTER_STEPS) markCompleted("threshold_reached");
     }
 

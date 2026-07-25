@@ -78,6 +78,9 @@ import {
 
 import { isDemoContextualPromptEnabled } from "@/lib/demo/contextual-prompt/contextual-prompt-flags";
 import { shouldSuppressHomepageAutoWelcome } from "@/lib/demo/contextual-prompt/detect";
+// Canonical Analytics Runtime Wiring — instrumentation ADDITIVE, pure observation de la machine
+// à états du tour. Ne modifie AUCUN comportement visuel, aucune règle de collision de prompt.
+import { track, currentPageViewId } from "@/lib/analytics/client/track";
 import { GuidedTourContext, type GuidedTourApi } from "./guided-tour-context";
 import { GuidedTourPortal } from "./GuidedTourPortal";
 import { GuidedTourOverlay } from "./GuidedTourOverlay";
@@ -160,11 +163,16 @@ export function GuidedTourProvider({ children }: { children: ReactNode }) {
   const ready = running && !!currentStep && isResolutionReady(resolution?.key, currentKey);
   const targetRect: Rect | null = ready ? (resolution?.rect ?? null) : null;
 
+  // Source de lancement du prochain tour (analytics uniquement) : "manual" si déclenché par une
+  // action utilisateur (startTour / acceptWelcome), "automatic" pour une reprise au montage.
+  const tourLaunchSourceRef = useRef<"automatic" | "manual">("automatic");
+
   // — Actions —
   const startTour = useCallback((tourId: string, options?: { atStep?: number }) => {
     const tour = getTour(tourId);
     if (!tour) return;
     activeTourRef.current = tour;
+    tourLaunchSourceRef.current = "manual";
     setWelcome(null);
     dispatch({ type: "START", tour, atStep: options?.atStep });
   }, []);
@@ -220,6 +228,57 @@ export function GuidedTourProvider({ children }: { children: ReactNode }) {
     const timer = setTimeout(() => dispatch({ type: "STOP" }), reduced ? 0 : CLOSE_FADE);
     return () => clearTimeout(timer);
   }, [state.status, reduced]);
+
+  // — Analytics canonique (additif, pure observation) : émet started/step_completed/completed/
+  //   skipped à partir des transitions de la machine à états. Aucune influence sur l'UI.
+  const tourAnalyticsRef = useRef<{ tourId: string | null; startedFor: string | null; lastStepIndex: number; endedFor: string | null }>({
+    tourId: null, startedFor: null, lastStepIndex: -1, endedFor: null,
+  });
+  useEffect(() => {
+    const a = tourAnalyticsRef.current;
+    const tourId = state.tourId ?? null;
+    if (!tourId) return;
+    const pv = currentPageViewId() ?? undefined;
+
+    if (state.status === "running") {
+      if (a.startedFor !== tourId) {
+        a.startedFor = tourId;
+        a.tourId = tourId;
+        a.lastStepIndex = -1;
+        a.endedFor = null;
+        track("guided_tour_started", {
+          pageViewId: pv,
+          properties: { tourId: tourId.slice(0, 64), ctaKey: tourLaunchSourceRef.current },
+          dedupeKey: `guided_tour_started:${tourId}`,
+        });
+      }
+      if (state.stepIndex !== a.lastStepIndex) {
+        a.lastStepIndex = state.stepIndex;
+        track("guided_tour_step_completed", {
+          pageViewId: pv,
+          stepId: `${tourId.slice(0, 40)}:${state.stepIndex}`,
+          properties: { tourId: tourId.slice(0, 64) },
+          dedupeKey: `guided_tour_step:${tourId}:${state.stepIndex}`,
+        });
+      }
+    } else if (state.status === "completed" && a.endedFor !== tourId) {
+      a.endedFor = tourId;
+      track("guided_tour_completed", {
+        pageViewId: pv,
+        properties: { tourId: tourId.slice(0, 64) },
+        dedupeKey: `guided_tour_completed:${tourId}`,
+      });
+    } else if (state.status === "skipped" && a.endedFor !== tourId) {
+      a.endedFor = tourId;
+      track("guided_tour_skipped", {
+        pageViewId: pv,
+        properties: { tourId: tourId.slice(0, 64) },
+        dedupeKey: `guided_tour_skipped:${tourId}`,
+      });
+    }
+    // Reset launch source once consumed (next automatic resume defaults to "automatic").
+    if (state.status === "idle") tourLaunchSourceRef.current = "automatic";
+  }, [state.status, state.tourId, state.stepIndex]);
 
   // — Résolution de la cible de l'étape courante, ESTAMPILLÉE par sa clé :
   //   route change (push + attente), attente d'apparition (polling + timeout),

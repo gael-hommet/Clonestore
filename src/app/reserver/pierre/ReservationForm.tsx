@@ -9,6 +9,10 @@ import { Check, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { COMPANY_SIZES, type CompanySize } from "@/lib/founder-access/types";
 import { FOUNDER_REASSURANCE, FOUNDER_RESERVATION_RULE, getFounderCtaCopy } from "@/lib/founder-access/commercial";
 import { emitFounderEvent } from "@/lib/founder-access/funnel-events";
+// Canonical Analytics Runtime Wiring — signaux d'INTENTION client uniquement (jamais une vérité
+// serveur). Aucun champ de formulaire (email/nom/téléphone/entreprise) n'entre jamais dans un
+// événement analytique.
+import { track, currentPageViewId } from "@/lib/analytics/client/track";
 
 type Phase = "step1" | "step2" | "success";
 
@@ -80,12 +84,26 @@ export function ReservationForm({ confirmState }: { confirmState?: string }) {
   React.useEffect(() => { emitFounderEvent("founder_form_viewed", { landingPath: "/reserver/pierre" }); }, []);
 
   function markStarted() {
-    if (!startedRef.current) { startedRef.current = true; emitFounderEvent("founder_form_step1_started"); }
+    if (!startedRef.current) {
+      startedRef.current = true;
+      emitFounderEvent("founder_form_step1_started");
+      // Canonique : intention client de démarrer le formulaire (jamais une vérité serveur).
+      track("reservation_form_started", {
+        pageViewId: currentPageViewId() ?? undefined,
+        dedupeKey: "reservation_form_started:/reserver/pierre",
+      });
+    }
   }
 
   async function submitStep1(e: React.FormEvent) {
     e.preventDefault();
     setErrors({}); setServerError(null); setSubmitting(true);
+    // Canonique : le NAVIGATEUR soumet le formulaire. Ne signifie PAS que la réservation existe
+    // (reservation_created est une vérité serveur émise par l'API). Aucun champ de formulaire.
+    track("reservation_submitted", {
+      pageViewId: currentPageViewId() ?? undefined,
+      dedupeKey: "reservation_submitted:/reserver/pierre",
+    });
     try {
       const res = await fetch("/api/founder-access/reservations", {
         method: "POST",
