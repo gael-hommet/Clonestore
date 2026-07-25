@@ -1,0 +1,235 @@
+HEAD=64e12d4b3fa8b741d546c557fe81ba9a0fda2c96
+Total files scanned: 225
+
+=== UNMODIFIED (already committed, disk matches) === 72
+  U docs/clonestory/visual-proof/bloc2/csy-b2-01-join.png
+  U docs/clonestory/visual-proof/bloc2/csy-b2-02-registre-empty.png
+  U docs/clonestory/visual-proof/bloc2/csy-b2-03-merci.png
+  U docs/clonestory/visual-proof/bloc2/csy-b2-04-registre-confirmed.png
+  U docs/clonestory/visual-proof/bloc2/csy-b2-05-registre-mobile.png
+  U docs/clonestory/visual-proof/csy-01-intro-desktop.png
+  U docs/clonestory/visual-proof/csy-02-intro-covers-header.png
+  U docs/clonestory/visual-proof/csy-03-intro-fullcover.png
+  U docs/clonestory/visual-proof/csy-04-main-desktop-full.png
+  U docs/clonestory/visual-proof/csy-05-laptop-hero.png
+  U docs/clonestory/visual-proof/csy-06-mobile-full.png
+  U docs/clonestory/visual-proof/csy-07-font-fallback.png
+  U docs/clonestory/visual-proof/final/csy-fin-01-main-noheader.png
+  U docs/clonestory/visual-proof/final/csy-fin-02-home-header-restored.png
+  U docs/clonestory/visual-proof/final/csy-fin-03-registre-stable-link.png
+  U docs/clonestory/visual-proof/final/csy-fin-04-registre-mobile.png
+  U docs/clonestory/visual-proof/flag/csy-flag-01-main-closed.png
+  U docs/clonestory/visual-proof/flag/csy-flag-02-join-closed.png
+  U docs/clonestory/visual-proof/nobility/csy-nob-01-main-desktop.png
+  U docs/clonestory/visual-proof/nobility/csy-nob-02-main-mobile.png
+  U docs/clonestory/visual-proof/nobility/csy-nob-03-join.png
+  U docs/clonestory/visual-proof/nobility/csy-nob-04-registre-empty.png
+  U docs/clonestory/visual-proof/nobility/csy-nob-05-merci.png
+  U docs/clonestory/visual-proof/nobility/csy-nob-06-registre-confirmed.png
+  U docs/clonestory/visual-proof/nobility/csy-nob-07-admin.png
+  U docs/clonestory/visual-proof/rehearsal/journey-01-main-1440.png
+  U docs/clonestory/visual-proof/rehearsal/journey-02-registry-empty-1440.png
+  U docs/clonestory/visual-proof/rehearsal/journey-03-registry-populated-1440.png
+  U docs/clonestory/visual-proof/rehearsal/matrix-join-375x667.jpeg
+  U docs/clonestory/visual-proof/rehearsal/matrix-main-1920x1080.jpeg
+  U docs/clonestory/visual-proof/rehearsal/matrix-main-375x667.jpeg
+  U docs/clonestory/visual-proof/rehearsal/matrix-main-768x1024.jpeg
+  U docs/clonestory/visual-proof/rehearsal/matrix-registry-390x844.jpeg
+  U scripts/apply-partner-program-production.mjs
+  U scripts/partner-program-postcheck.mjs
+  U scripts/partner-program-preflight.mjs
+  U scripts/validate-partner-migration-scripts.mjs
+  U src/app/api/founding-partners/registration-status/route.ts
+  U src/app/api/founding-partners/verify/route.ts
+  U src/app/api/partners/admin/__tests__/admin-gate.test.ts
+  U src/app/api/partners/admin/overview/route.ts
+  U src/app/api/partners/click/route.ts
+  U src/app/api/partners/connect/onboard/route.ts
+  U src/app/founding-partners/join/JoinForm.tsx
+  U src/app/partenaires/admin/admin-console.module.css
+  U src/app/partenaires/admin/page.tsx
+  U src/app/partenaires/espace/layout.tsx
+  U src/app/partenaires/espace/page.tsx
+  U src/app/partenaires/layout.tsx
+  U src/app/partenaires/page.tsx
+  U src/app/partenaires/partenaires.css
+  U src/components/partenaires/PartenairesBodyFlag.tsx
+  U src/lib/clonestory/founding-partners/__integration__/seamless-onboarding.itest.ts
+  U src/lib/clonestory/founding-partners/server/__tests__/auth-onboarding.test.ts
+  U src/lib/clonestory/founding-partners/server/auth-onboarding-supabase.ts
+  U src/lib/clonestory/founding-partners/server/auth-onboarding.ts
+  U src/lib/partner-program/__integration__/migrations-rls.itest.ts
+  U src/lib/partner-program/__tests__/attribution-rules.test.ts
+  U src/lib/partner-program/__tests__/money.test.ts
+  U src/lib/partner-program/__tests__/payout-rules.test.ts
+  U src/lib/partner-program/attribution-rules.ts
+  U src/lib/partner-program/calculator.ts
+  U src/lib/partner-program/flags.ts
+  U src/lib/partner-program/money.ts
+  U src/lib/partner-program/server/audit.ts
+  U src/lib/partner-program/server/commission.ts
+  U src/lib/partner-program/server/partner-auth.ts
+  U src/lib/partner-program/server/referral-cookie.ts
+  U src/lib/partner-program/server/runtime.ts
+  U src/lib/partner-program/server/settings.ts
+  U src/lib/partner-program/server/summary.ts
+  U supabase/sql/partner_program_supabase_cron.sql
+
+=== MODIFIED (committed base exists, disk differs) === 153
+  M docs/CLONESTORY_ADMIN_GUIDE.md  [*modified]
+  M docs/CLONESTORY_DATA_RETENTION.md  [*modified]
+  M docs/CLONESTORY_INCIDENT_RUNBOOK.md  [*modified]
+  M docs/CLONESTORY_MULTI_ACCOUNT_LAUNCH_GATE.md  [*modified]
+  M docs/CLONESTORY_OPERATIONS_RUNBOOK.md  [*modified]
+  M docs/CLONESTORY_PRODUCTION_SMOKE.md  [*modified]
+  M docs/clonestory/BLOC_1_FONDATIONS.md  [*modified]
+  M docs/clonestory/BLOC_2_INSCRIPTIONS.md  [*modified]
+  M docs/operator/CLONESTORY_PRODUCTION_ACTIVATION.md  [*modified]
+  M scripts/backfill-partner-applications.mjs  [*modified]
+  M scripts/check-clonestory-cs4-preflight.mjs  [*modified]
+  M scripts/check-clonestory-production-readiness.mjs  [*modified]
+  M scripts/check-clonestory-rls.mjs  [*modified]
+  M scripts/clonestory-post-migration-verify.mjs  [*modified]
+  M scripts/clonestory-pre-migration-snapshot.mjs  [*modified]
+  M src/app/api/cron/clonestory-commercial-outbox/route.ts  [*modified]
+  M src/app/api/cron/clonestory-notifications/route.ts  [*modified]
+  M src/app/api/cron/clonestory-outbox/route.ts  [*modified]
+  M src/app/api/cron/partner-payouts/route.ts  [*modified]
+  M src/app/api/founding-partners/admin/action/route.ts  [*modified]
+  M src/app/api/founding-partners/attribution/capture/route.ts  [*modified]
+  M src/app/api/founding-partners/attribution/visit/route.ts  [*modified]
+  M src/app/api/founding-partners/cockpit/route.ts  [*modified]
+  M src/app/api/founding-partners/confirm/route.ts  [*modified]
+  M src/app/api/founding-partners/introduce/route.ts  [*modified]
+  M src/app/api/founding-partners/refuse/route.ts  [*modified]
+  M src/app/api/founding-partners/register/route.ts  [*modified]
+  M src/app/api/founding-partners/registry-session/route.ts  [*modified]
+  M src/app/api/founding-partners/rotate-link/route.ts  [*modified]
+  M src/app/api/founding-partners/withdraw/route.ts  [*modified]
+  M src/app/api/internal/clonestory/health/route.ts  [*modified]
+  M src/app/api/partners/admin/action/route.ts  [*modified]
+  M src/app/api/partners/admin/partners/[id]/route.ts  [*modified]
+  M src/app/api/partners/admin/partners/route.ts  [*modified]
+  M src/app/api/partners/apply/route.ts  [*modified]
+  M src/app/api/partners/code/route.ts  [*modified]
+  M src/app/api/partners/contract/accept/route.ts  [*modified]
+  M src/app/api/partners/introductions/route.ts  [*modified]
+  M src/app/api/partners/me/route.ts  [*modified]
+  M src/app/founding-partners/__tests__/partner-link-alias.test.ts  [*modified]
+  M src/app/founding-partners/_ui/EmailActionInterstitial.tsx  [*modified]
+  M src/app/founding-partners/admin/AdminConsole.tsx  [*modified]
+  M src/app/founding-partners/admin/page.tsx  [*modified]
+  M src/app/founding-partners/clonestory.css  [*modified]
+  M src/app/founding-partners/conditions/page.tsx  [*modified]
+  M src/app/founding-partners/confirm/page.tsx  [*modified]
+  M src/app/founding-partners/join/page.tsx  [*modified]
+  M src/app/founding-partners/layout.tsx  [*modified]
+  M src/app/founding-partners/merci/page.tsx  [*modified]
+  M src/app/founding-partners/my-registry/RegistryActions.tsx  [*modified]
+  M src/app/founding-partners/my-registry/page.tsx  [*modified]
+  M src/app/founding-partners/page.tsx  [*modified]
+  M src/app/founding-partners/r/[token]/page.tsx  [*modified]
+  M src/app/founding-partners/refuse/page.tsx  [*modified]
+  M src/app/founding-partners/verify/page.tsx  [*modified]
+  M src/app/partenaires/admin/AdminConsole.tsx  [*modified]
+  M src/app/partenaires/espace/PartnerSpace.tsx  [*modified]
+  M src/app/partenaires/r/[slug]/route.ts  [*modified]
+  M src/app/profile/__tests__/cs-final-1-clonestory-cockpit.test.ts  [*modified]
+  M src/app/profile/_ui/CloneStoryCockpitCard.tsx  [*modified]
+  M src/components/clonestory/AttributionBeacon.tsx  [*modified]
+  M src/components/clonestory/ClonestoryBodyFlag.tsx  [*modified]
+  M src/components/clonestory/ClonestoryRoot.tsx  [*modified]
+  M src/components/clonestory/FoundingIntro.tsx  [*modified]
+  M src/components/clonestory/primitives.tsx  [*modified]
+  M src/components/partenaires/PartenairesLanding.tsx  [*modified]
+  M src/lib/clonestory/founding-partners/__integration__/attribution.itest.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__integration__/clonestory-harness.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__integration__/clonestory-outbox.itest.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__integration__/cockpit.itest.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__integration__/commercial-webhook.itest.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__integration__/commercial.itest.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__integration__/founding-partners-flow.itest.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__integration__/hardening-cs4.itest.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__integration__/multi-account.itest.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__integration__/registration-atomicity.itest.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__integration__/registration-flag.itest.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__tests__/attribution-cookie.test.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__tests__/distinctions.test.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__tests__/founding-partners-bloc1.test.ts  [*modified]
+  M src/lib/clonestory/founding-partners/__tests__/production-role-set-grant.test.ts  [*modified]
+  M src/lib/clonestory/founding-partners/anti-fraud.ts  [*modified]
+  M src/lib/clonestory/founding-partners/attribution.ts  [*modified]
+  M src/lib/clonestory/founding-partners/contribution.ts  [*modified]
+  M src/lib/clonestory/founding-partners/distinctions.ts  [*modified]
+  M src/lib/clonestory/founding-partners/index.ts  [*modified]
+  M src/lib/clonestory/founding-partners/normalize.ts  [*modified]
+  M src/lib/clonestory/founding-partners/partner-status.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/__tests__/action-token.test.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/__tests__/config.test.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/__tests__/session.test.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/__tests__/verification-token.test.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/action-token.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/admin-store.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/attribution-cookie.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/attribution.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/cockpit.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/commercial-emails.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/commercial.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/compliance.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/config.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/dev-db.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/emails.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/notifications.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/observability.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/runtime.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/session.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/store.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/stripe-commercial-bridge.ts  [*modified]
+  M src/lib/clonestory/founding-partners/server/verification-token.ts  [*modified]
+  M src/lib/clonestory/founding-partners/token.ts  [*modified]
+  M src/lib/clonestory/founding-partners/types.ts  [*modified]
+  M src/lib/clonestory/founding-partners/vocabulary.ts  [*modified]
+  M src/lib/partner-program/__integration__/acceptance-e2e.itest.ts  [*modified]
+  M src/lib/partner-program/__integration__/admin-analytics.itest.ts  [*modified]
+  M src/lib/partner-program/__integration__/auto-onboarding.itest.ts  [*modified]
+  M src/lib/partner-program/__integration__/backfill.itest.ts  [*modified]
+  M src/lib/partner-program/__integration__/commission-flow.itest.ts  [*modified]
+  M src/lib/partner-program/__integration__/emails-rls-connect.itest.ts  [*modified]
+  M src/lib/partner-program/__integration__/idor-space.itest.ts  [*modified]
+  M src/lib/partner-program/__integration__/partner-harness.ts  [*modified]
+  M src/lib/partner-program/__integration__/payout-automation.itest.ts  [*modified]
+  M src/lib/partner-program/__integration__/routes.itest.ts  [*modified]
+  M src/lib/partner-program/__tests__/live-authorization.test.ts  [*modified]
+  M src/lib/partner-program/__tests__/payout-p10-floor.test.ts  [*modified]
+  M src/lib/partner-program/contract.ts  [*modified]
+  M src/lib/partner-program/live-authorization.ts  [*modified]
+  M src/lib/partner-program/onboarding-rules.ts  [*modified]
+  M src/lib/partner-program/payout-rules.ts  [*modified]
+  M src/lib/partner-program/server/admin-analytics.ts  [*modified]
+  M src/lib/partner-program/server/applications.ts  [*modified]
+  M src/lib/partner-program/server/attribution.ts  [*modified]
+  M src/lib/partner-program/server/backfill.ts  [*modified]
+  M src/lib/partner-program/server/connect.ts  [*modified]
+  M src/lib/partner-program/server/emails.ts  [*modified]
+  M src/lib/partner-program/server/identity.ts  [*modified]
+  M src/lib/partner-program/server/introductions.ts  [*modified]
+  M src/lib/partner-program/server/partners.ts  [*modified]
+  M src/lib/partner-program/server/payouts.ts  [*modified]
+  M src/lib/partner-program/server/stripe-bridge.ts  [*modified]
+  M supabase/migrations/2026-06-24_01__clonestory_fp_founding_partners.sql  [*modified]
+  M supabase/migrations/2026-06-24_02__clonestory_fp_token_hash.sql  [*modified]
+  M supabase/migrations/2026-06-24_03__clonestory_fp_email_outbox.sql  [*modified]
+  M supabase/migrations/2026-06-24_04__clonestory_fp_outbox_delivery.sql  [*modified]
+  M supabase/migrations/2026-06-25_05__clonestory_fp_partner_account_and_distinctions.sql  [*modified]
+  M supabase/migrations/2026-06-26_06__clonestory_fp_attribution_engine.sql  [*modified]
+  M supabase/migrations/2026-06-26_07__clonestory_fp_commercial_contributions.sql  [*modified]
+  M supabase/migrations/2026-06-26_08__clonestory_fp_hardening_admin_compliance.sql  [*modified]
+  M supabase/migrations/2026-06-26_09__clonestory_fp_scale_indexes.sql  [*modified]
+  M supabase/migrations/2026-07-11_05__clonestore_pp_payout_automation.sql  [*modified]
+  M supabase/sql/clonestory_commercial_outbox_supabase_cron.sql  [*modified]
+  M supabase/sql/clonestory_notifications_supabase_cron.sql  [*modified]
+  M supabase/sql/clonestory_outbox_supabase_cron.sql  [*modified]
+
+=== UNTRACKED/NEW (never committed at all) === 0
+
+=== IN HEAD BUT MISSING FROM DISK === 0

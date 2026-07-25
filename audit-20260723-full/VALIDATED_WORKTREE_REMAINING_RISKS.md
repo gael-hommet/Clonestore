@@ -51,3 +51,20 @@ un jour nécessaire.
 
 Les 6 commits de ce bloc existent uniquement en local. Le remote `origin` reste à son état
 d'avant ce bloc. Voir la section Phase 12 de `VALIDATED_WORKTREE_PRESERVATION_REPORT.md`.
+
+## Mise à jour 2026-07-25 (bloc Clean Head Reproducibility and Legacy Worktree Triage Closure)
+
+**R2 confirmé et corrigé** : le bloc suivant a prouvé, par matérialisation stricte depuis les
+blobs Git, que le HEAD de ce bloc (`da6d80226562...`) ne compilait en réalité PAS seul — 3
+dépendances requises par des fichiers déjà committés (Demo/Mobile, Legal Trust) n'existaient que
+sur disque. Corrigé par un commit minimal dédié (`64e12d4b...`, voir
+`MISSING_HEAD_DEPENDENCY_FORENSIC_MATRIX.md`). Le HEAD est désormais prouvé reproductible de
+façon autonome (`CLEAN_HEAD_FINAL_BUILD_PROOF.md`). **R1 (1768 fichiers UNRELATED_PREEXISTING)
+reste ouvert et a été affiné** : reclassé en 1783 fichiers (le nombre a légèrement crû avec la
+poursuite de la session) répartis en 20 familles et 5 niveaux de priorité, avec un plan de
+préservation par famille — voir `LEGACY_WORKTREE_PRESERVATION_PRIORITY.md` et
+`LEGACY_WORKTREE_FUTURE_COMMIT_PLAN.md`. ~~**Découverte critique** : la famille `PARTNER_PROGRAM`
+(122 fichiers) est classée P0 LOSS_CRITICAL — code déployé en production réelle
+(clonestore.pro) sans aucune sauvegarde Git.~~ **CORRIGÉ 2026-07-25** : faux positif — les 225
+fichiers Partner Program + CloneStory sont déjà dans le HEAD committé, vérifié blob-par-blob ;
+voir `PARTNER_PROGRAM_PRESERVATION_VERDICT.md`.
