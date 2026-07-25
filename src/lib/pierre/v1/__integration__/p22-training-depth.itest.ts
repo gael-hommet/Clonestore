@@ -30,8 +30,11 @@ describe("P22 training depth — 120 employees on real SQL", () => {
     for (let i = 0; i < 120; i++) { const e = await createEmployee(h.db, h.ctx("A"), { first_name: `T${i}`, last_name: `N${i}` }); ids.push(e.id); }
     emp0 = ids[0]; emp1 = ids[1];
 
-    const sourced = await run(h, "training.requirement.create", { requirement_key: "safety_2026", title: "Sécurité au travail", source_type: "company_policy", source_ref: "policy-42", mandatory: true, validity_months: 12 });
-    expect(sourced.output!.status).toBe("active");
+    const sourced = await run(h, "training.requirement.create", { requirement_key: "safety_2026", title: "Sécurité au travail", source_type: "company_policy", source_ref: "policy-42", mandatory: true, validity_months: 12, proof_required: true });
+    // A mandatory requirement is NOT active on declaration — a bare source_ref never suffices.
+    expect(sourced.output!.status).toBe("configuration_required");
+    const vs = await run(h, "training.requirement.validate_source", { requirement_key: "safety_2026" });
+    expect(vs.output!.status).toBe("active"); // becomes active only after source validation
     const unsourced = await run(h, "training.requirement.create", { requirement_key: "mystery_mandatory", title: "Obligation non sourcée", mandatory: true });
     expect(unsourced.output!.status).toBe("configuration_required"); // never fabricated as a legal obligation
   });
@@ -48,11 +51,25 @@ describe("P22 training depth — 120 employees on real SQL", () => {
     expect(e0b.output!.deduped).toBe(true); // no duplicate enrollment
     const enrollmentId = String(e0.output!.enrollment_id);
 
-    // Cannot certify without a proof.
-    // (attendance first)
-    await run(h, "training.attendance.record", { enrollment_id: enrollmentId, attendance_status: "present" });
+    const attRes = await run(h, "training.attendance.record", { enrollment_id: enrollmentId, attendance_status: "present" });
+    expect(attRes.status).toBe("succeeded"); // attendance must actually persist (regression: enrollments lacked updated_at)
+    const attRow = (await h.db.query<{ attendance_status: string }>(`select attendance_status from pierre_rt_training_attendance where company_id=$1 and enrollment_id=$2`, [h.companyA, enrollmentId])).rows[0];
+    expect(attRow?.attendance_status).toBe("present");
+    // Completion is refused while proof is required + missing, then succeeds only once the proof is verified.
+    const beforeProof = await run(h, "training.enrollment.complete", { enrollment_id: enrollmentId });
+    expect(beforeProof.status).toBe("blocked"); // proof_required + no proof yet
     const proof = await run(h, "training.proof.attach", { enrollment_id: enrollmentId, proof_type: "attestation", issued_on: "2026-07-20" });
     const proofId = String(proof.output!.proof_id);
+    // Certification is BLOCKED while the proof is merely received (not yet verified).
+    const beforeVerify = await run(h, "training.certification.issue", { employee_id: emp0, certification_key: "safety", proof_id: proofId, requirement_id: reqId, issued_on: "2026-07-20", validity_months: 12 });
+    expect(beforeVerify.status).toBe("blocked");
+    // A SEPARATE verify action (never implicit during issuance).
+    await run(h, "training.proof.verify", { proof_id: proofId, verified_on: "2026-07-20" });
+    // Now completion succeeds (attendance present + proof verified) and is durable.
+    const completed = await run(h, "training.enrollment.complete", { enrollment_id: enrollmentId });
+    expect(completed.status).toBe("succeeded");
+    const enrStatus = (await h.db.query<{ status: string }>(`select status from pierre_rt_training_enrollments where company_id=$1 and id=$2`, [h.companyA, enrollmentId])).rows[0].status;
+    expect(enrStatus).toBe("completed");
     const cert = await run(h, "training.certification.issue", { employee_id: emp0, certification_key: "safety", proof_id: proofId, requirement_id: reqId, issued_on: "2026-07-20", validity_months: 12 });
     expect(cert.status).toBe("succeeded");
     expect(cert.output!.status).toBe("valid");
@@ -73,6 +90,7 @@ describe("P22 training depth — 120 employees on real SQL", () => {
     const e1 = await run(h, "training.enrollment.create", { session_id: String(s2.output!.session_id), employee_id: emp1, requirement_id: reqId, mode: "autonomie" });
     await run(h, "training.attendance.record", { enrollment_id: String(e1.output!.enrollment_id), attendance_status: "present" });
     const p1 = await run(h, "training.proof.attach", { enrollment_id: String(e1.output!.enrollment_id), proof_type: "attestation", issued_on: "2025-08-01" });
+    await run(h, "training.proof.verify", { proof_id: String(p1.output!.proof_id), verified_on: "2025-08-01" });
     // issued 2025-08-01, validity 12 months → expires 2026-08-01 (expiring soon as of 2026-07-20)
     await run(h, "training.certification.issue", { employee_id: emp1, certification_key: "safety", proof_id: String(p1.output!.proof_id), requirement_id: reqId, issued_on: "2025-08-01", validity_months: 12 });
 

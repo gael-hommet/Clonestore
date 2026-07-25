@@ -46,7 +46,18 @@ describe("P22 performance depth — 80-employee annual campaign on real SQL", ()
     await run(h, "performance.response.record", { interview_id: firstInterview, respondent_type: "employee", question_key: "q1", response: "d'accord" });
     const sum = await run(h, "performance.summary.generate", { interview_id: firstInterview });
     expect(sum.status).toBe("succeeded");
-    await run(h, "performance.summary.validate", { interview_id: firstInterview });
+    // Real human validation via pierre_rt_validations — not a status flip.
+    const submit = await run(h, "performance.summary.submit_for_validation", { interview_id: firstInterview });
+    const validationId = String(submit.output!.validation_id);
+    // Cannot complete while the validation is pending, and cannot apply an undecided validation.
+    const pendingComplete = await run(h, "performance.interview.complete", { interview_id: firstInterview });
+    expect(pendingComplete.status).toBe("blocked");
+    const undecided = await run(h, "performance.summary.apply_validation", { interview_id: firstInterview });
+    expect(undecided.status).toBe("blocked");
+    // A persisted human decision (approved), then apply.
+    await h.db.query(`update pierre_rt_validations set status='approved', decided_at=now() where company_id=$1 and id=$2`, [h.companyA, validationId]);
+    const applied = await run(h, "performance.summary.apply_validation", { interview_id: firstInterview });
+    expect(applied.output!.status).toBe("validated");
     const done = await run(h, "performance.interview.complete", { interview_id: firstInterview });
     expect(done.status).toBe("succeeded");
     const ivStatus = (await h.db.query<{ status: string }>(`select status from pierre_rt_performance_interviews where company_id=$1 and id=$2`, [h.companyA, firstInterview])).rows[0].status;
