@@ -167,6 +167,33 @@ const REGISTRY: Record<string, RuntimeActionDefinition> = {
   "recruitment.candidate.ingest": def({ actionKey: "recruitment.candidate.ingest", category: "state_transition", risk: "controlled",
     requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
     validateInput: (p) => (isStr(p.full_name) ? [] : ["full_name required"]) }),
+  // P22 depth — full recruitment workflow (requisition → application → interview → feedback → offer).
+  "recruitment.requisition.create": def({ actionKey: "recruitment.requisition.create", category: "state_transition", risk: "controlled",
+    requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isStr(p.role_title) ? [] : ["role_title required"]) }),
+  "recruitment.application.create": def({ actionKey: "recruitment.application.create", category: "state_transition", risk: "controlled",
+    requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.candidate_id) ? [] : ["candidate_id (uuid) required"]) }),
+  "recruitment.interview.prepare": def({ actionKey: "recruitment.interview.prepare", category: "state_transition", risk: "controlled",
+    requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.candidate_id) ? [] : ["candidate_id (uuid) required"]) }),
+  "recruitment.feedback.record": def({ actionKey: "recruitment.feedback.record", category: "state_transition", risk: "controlled",
+    requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => {
+      const e: string[] = [];
+      if (!isUuid(p.interview_id)) e.push("interview_id (uuid) required");
+      if (!isUuid(p.candidate_id)) e.push("candidate_id (uuid) required");
+      return e;
+    } }),
+  // Offers are prepared as DRAFT and never auto-sent (human validation gates the send).
+  "recruitment.offer.prepare": def({ actionKey: "recruitment.offer.prepare", category: "document", risk: "sensitive", executionMode: "human_approval_required",
+    requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => {
+      const e: string[] = [];
+      if (!isUuid(p.candidate_id)) e.push("candidate_id (uuid) required");
+      if (!isStr(p.role_title)) e.push("role_title required");
+      return e;
+    } }),
   "hr.request.create": def({ actionKey: "hr.request.create", category: "state_transition", risk: "low",
     requiredPermission: "employee.read", idempotencyStrategy: "step_run_id",
     validateInput: (p) => (isStr(p.subject) ? [] : ["subject required"]) }),

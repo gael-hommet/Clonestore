@@ -19,7 +19,7 @@ import { submitContractToSignatureProvider, type SignatureDeps } from "./signatu
 import { createDocument, createVersion } from "./documents";
 import { createAbsence, appendEmployeeTimelineEvent } from "./employees";
 import { createWorkforcePlan } from "./workforce-planning";
-import { ingestCandidate } from "./recruitment";
+import { ingestCandidate, createRequisition, createApplication, prepareInterview, recordFeedback, prepareOffer } from "./recruitment";
 import { createHrRequest } from "./hr-requests";
 import { bindCountryPack } from "./country-config";
 
@@ -476,6 +476,53 @@ const recruitmentCandidateIngest = domainAction(async (tx, ctx) => {
   return { kind: "recruitment_candidate", candidate_id: cand.id, pipeline_stage: cand.pipeline_stage };
 }, "recruitment_candidate_refused");
 
+const recruitmentRequisitionCreate = domainAction(async (tx, ctx) => {
+  const req = await createRequisition(tx, ctx.tenant, {
+    role_title: String(ctx.payload.role_title ?? ""), headcount: Number(ctx.payload.headcount ?? 1),
+    mission_id: ctx.missionId, site_id: (ctx.payload.site_id as string) ?? null, contract_type: (ctx.payload.contract_type as string) ?? null,
+  });
+  return { kind: "recruitment_requisition", requisition_id: req.id, status: req.status };
+}, "recruitment_requisition_refused");
+
+const recruitmentApplicationCreate = domainAction(async (tx, ctx) => {
+  const app = await createApplication(tx, ctx.tenant, {
+    candidate_id: String(ctx.payload.candidate_id ?? ""), requisition_id: (ctx.payload.requisition_id as string) ?? null,
+    mission_id: ctx.missionId, source: (ctx.payload.source as string) ?? null, consent: ctx.payload.consent === true,
+  });
+  return { kind: "recruitment_application", application_id: app.id, status: app.status };
+}, "recruitment_application_refused");
+
+const recruitmentInterviewPrepare = domainAction(async (tx, ctx) => {
+  const iv = await prepareInterview(tx, ctx.tenant, {
+    candidate_id: String(ctx.payload.candidate_id ?? ""), requisition_id: (ctx.payload.requisition_id as string) ?? null,
+    mission_id: ctx.missionId, interview_type: (ctx.payload.interview_type as string) ?? "phone",
+    scheduled_at: (ctx.payload.scheduled_at as string) ?? null,
+    participants: Array.isArray(ctx.payload.participants) ? ctx.payload.participants : [],
+    guide_ref: (ctx.payload.guide_ref as string) ?? null,
+  });
+  return { kind: "recruitment_interview", interview_id: iv.id, status: iv.status };
+}, "recruitment_interview_refused");
+
+const recruitmentFeedbackRecord = domainAction(async (tx, ctx) => {
+  const fb = await recordFeedback(tx, ctx.tenant, {
+    interview_id: String(ctx.payload.interview_id ?? ""), candidate_id: String(ctx.payload.candidate_id ?? ""),
+    recommendation: (ctx.payload.recommendation as string) ?? "no_decision",
+    criteria: (ctx.payload.criteria as Record<string, unknown>) ?? {}, reservations: (ctx.payload.reservations as string) ?? null,
+  });
+  return { kind: "recruitment_feedback", feedback_id: fb.id, recommendation: fb.recommendation };
+}, "recruitment_feedback_refused");
+
+const recruitmentOfferPrepare = domainAction(async (tx, ctx) => {
+  const offer = await prepareOffer(tx, ctx.tenant, {
+    candidate_id: String(ctx.payload.candidate_id ?? ""), role_title: String(ctx.payload.role_title ?? ""),
+    requisition_id: (ctx.payload.requisition_id as string) ?? null, mission_id: ctx.missionId,
+    proposed_comp: (ctx.payload.proposed_comp as Record<string, unknown>) ?? {}, contract_type: (ctx.payload.contract_type as string) ?? null,
+    document_id: (ctx.payload.document_id as string) ?? null,
+  });
+  // status stays 'draft' — the offer is NEVER auto-sent; a human validation gates the send.
+  return { kind: "recruitment_offer", offer_id: offer.id, status: offer.status };
+}, "recruitment_offer_refused");
+
 const hrRequestCreate = domainAction(async (tx, ctx) => {
   const req = await createHrRequest(tx, ctx.tenant, {
     subject: String(ctx.payload.subject ?? ""), body: (ctx.payload.body as string) ?? null,
@@ -505,6 +552,11 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
   "hr.reconcile.apply": hrReconcileApply,
   "workforce.plan.create": workforcePlanCreate,
   "recruitment.candidate.ingest": recruitmentCandidateIngest,
+  "recruitment.requisition.create": recruitmentRequisitionCreate,
+  "recruitment.application.create": recruitmentApplicationCreate,
+  "recruitment.interview.prepare": recruitmentInterviewPrepare,
+  "recruitment.feedback.record": recruitmentFeedbackRecord,
+  "recruitment.offer.prepare": recruitmentOfferPrepare,
   "hr.request.create": hrRequestCreate,
   "country.pack.bind": countryPackBind,
   "mission.complete": complete,

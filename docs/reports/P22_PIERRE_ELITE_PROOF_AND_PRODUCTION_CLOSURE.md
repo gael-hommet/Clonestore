@@ -10,6 +10,53 @@
 
 ---
 
+## REPRISE 6 (P22 — recruitment DEPTH + trace/collection justification — 2026-07-25, appended)
+
+Moving from minimal-but-real to a **complete workflow** for one domain (recruitment), and proving no
+trace masks a business result.
+
+**Recruitment depth — full workflow, real SQL.** New migration `pierre_v30_recruitment_depth.sql` adds
+`pierre_rt_recruitment_applications`, `_interviews`, `_feedback`, `_offers` (RLS tenant-iso, on top of
+v29's requisitions + candidates). `recruitment.ts` gains `createApplication` / `prepareInterview` /
+`recordFeedback` / `prepareOffer` / `submitOfferForValidation`, and 5 new authoritative actions
+(`recruitment.requisition.create`, `.application.create`, `.interview.prepare`, `.feedback.record`,
+`.offer.prepare`). **Proven E2E on real SQL** (`p22-recruitment-depth.itest.ts`, 4/4): a single run
+drives requisition → candidate → application → interview → feedback → offer with **all 6 business
+objects persisted**, tenant isolation, and governed refusals. **Human-decision floor enforced:** the
+feedback recommendation is advisory; the offer is created `draft` and **never auto-sent** — it only
+advances to `awaiting_validation` via an explicit human step (`submitOfferForValidation`), never to
+`sent` automatically. Full P22 real-SQL suite now **18/18 green** (absence 3, domain 5, gap-closure 6,
+recruitment-depth 4).
+
+**Trace/collection justification (§14, `P22_TRACE_COLLECTION_JUSTIFICATION_MATRIX.json`):** all **146**
+`hr.record.append` / `hr.data.collect` steps are classified — **146 justified, 0 remediation**. Every
+one is a genuine skeleton **intake / validate / collect / classify** step (audit/intake/generic-
+collection/classification record), where the record *is* the deliverable and no business object is
+expected; the one `decide` step ("classify recruitment intent") records a classification whose binding
+decision is a separate `human()` step. **No trace masks a missing business result.**
+
+**Honest limits — verdict stays WITHHELD.** This turn deepened **one** domain (recruitment) to a full
+workflow. Explicitly **not** done (and not claimed):
+- **Onboarding depth** — the existing `pierre_rt_onboarding_sessions` is *product* onboarding (company
+  → Pierre), **not** employee onboarding; employee onboarding needs new tables (case/checklist/task/
+  requirement) — not built this turn.
+- **Payroll / performance / training / offboarding depth** — no dedicated models yet (performance/career
+  still use `employee.timeline.append`); **helpdesk / workforce / country** remain minimal (1 core action
+  each, not the full message/escalation/position/version models).
+- **Reporting** from real tables, **usable rich document content** (`document.generate` still draft+hash),
+  the **per-domain workflow benchmarks**, the **18-mission × 3-mode** E2E, **browser**, **continuity**
+  re-proof, **11h35→12min**, and the **economic-value** benchmark — none done.
+
+**Reprise 6 verdict: P22 — OPERATIONAL CLOSURE STILL WITHHELD.** Recruitment is now a genuine full
+workflow proven on real SQL, and the trace/collection matrix confirms no masked results — real progress.
+But the miracle-grade bar (all domains deep, usable docs, 18 E2E missions, browser, value/time) is not
+met, so no elite/closed/miracle claim is made.
+
+Verification: `tsc` exit 0, scoped ESLint 0, 327 v1-unit/pack/canon tests + 18 real-SQL integration
+tests green. 0 OpenAI calls.
+
+---
+
 ## REPRISE 5 (P22 — close the LAST 4 semantic gaps with real SQL business objects — 2026-07-25, appended)
 
 The 4 gaps that Reprise 4 flagged `NEW_TABLE_REQUIRED` are now **closed with real, migrated,
