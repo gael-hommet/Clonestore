@@ -2,12 +2,20 @@
 
 Toutes les suites contre PGlite réel (Postgres 16 en process), aucun réseau/Stripe/webhook réel.
 
+## Mise à jour 2026-07-25 (CORRELATION RE-CLOSURE) — nouvelles suites vertes
+
+| Fichier | Tests | Objet |
+|---|---:|---|
+| `correlation.test.ts` | 7 | table de liaison, hachage des refs, coalesce, isolation env, résolution par order_ref |
+| `bounded-write.test.ts` | 8 | écriture bornée : inserted/duplicate/unavailable/timeout/rejected, **timeout prouvé temporellement** |
+| `correlated-funnel-e2e.test.ts` | 9 | **parcours 1 visiteur corrélé de la démo au paiement**, vérités serveur corrélées sans cookie |
+
 ## Analytics (bloc courant + précédent) — verts
 
 | Fichier | Tests | Objet |
 |---|---:|---|
 | `server-events.test.ts` | 12 | API serveur unique, idempotence, source separation, buckets, no-PII |
-| `synthetic-funnel-e2e.test.ts` | 12 | funnel synthétique complet + 4 scénarios d'échec |
+| `synthetic-funnel-e2e.test.ts` | 12 | funnel synthétique (présence/idempotence) — **superséde par la preuve corrélée** |
 | `schema.test.ts` | 20 | contrat, rejet server-only côté client |
 | `identity.test.ts` | 9 | visitor/session signés |
 | `traffic.test.ts` | 12 | classification fermée |

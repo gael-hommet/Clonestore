@@ -24,3 +24,14 @@ ce bloc — la priorité de ce bloc était le **branchement des vérités**, pas
 tableau de santé. Le funnel synthétique complet (`ANALYTICS_SYNTHETIC_END_TO_END_PROOF.md`)
 démontre que les données sous-jacentes sont présentes et correctes. Les refus restent agrégés
 sans payload ni PII.
+
+## Mise à jour 2026-07-25 (CORRELATION RE-CLOSURE) — statut retenu : `PARTIALLY_COMPLETE`
+
+Le bloc de re-fermeture n'a **pas** ajouté toutes les vues de santé manquantes. La corrélation
+ajoutée rend désormais réellement **calculables et significatives** plusieurs métriques qui ne
+l'étaient pas (`conversions serveur sans attribution`, `checkout sans paiement`, `paiement sans
+checkout canonique`, `événements sans session`) car `visitor_id`/`session_id`/`partner_
+attribution_id` et la table de liaison existent maintenant. Mais le verdict **ne déclare pas la
+santé « complète »** : ces vues ne sont pas encore surfacées au dashboard. Statut honnête :
+**santé de mesure partiellement complète** — les données existent, plusieurs graphiques restent à
+construire dans un bloc ultérieur (non bloquant pour la corrélation ni la non-blocabilité).

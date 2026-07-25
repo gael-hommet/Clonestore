@@ -1,5 +1,13 @@
 # Analytics Synthetic End-to-End Proof
 
+> **Note (2026-07-25, CORRELATION RE-CLOSURE) :** cette première version prouvait la **présence**
+> et l'**idempotence** des événements dans la table canonique, mais ne prouvait pas encore leur
+> **corrélation** sous un même parcours visiteur (les vérités serveur y étaient stockées avec
+> `visitor_id: null`). La preuve **corrélée** — `ANALYTICS_CORRELATED_SYNTHETIC_END_TO_END_PROOF.md`
+> (`correlated-funnel-e2e.test.ts`) — la **supersède** : elle démontre que réservation, email,
+> activation, checkout et paiement appartiennent tous au même `visitor_id` d'origine, y compris
+> pour les vérités serveur émises sans cookie.
+
 Test : `src/lib/analytics/__tests__/synthetic-funnel-e2e.test.ts`, **12/12 verts** contre PGlite
 réel (Postgres 16 en process), environnement 100% fictif, aucun réseau/Stripe/webhook/email réel.
 
