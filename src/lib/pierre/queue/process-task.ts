@@ -1,4 +1,6 @@
 import { executePierreTask, type PierreExecutorTask } from "../tasks/executors";
+import { evaluatePierreCloneGuard } from "../hr/cloneguard";
+import { evaluateGovernance } from "../hr/governance";
 
 export type PierreQueueTaskRecord = {
   id: string;
@@ -319,6 +321,77 @@ export async function processPierreTask(
         reason,
         errorCode: "NOT_DUE_YET",
       };
+    }
+
+    // Governance re-evaluation gate — parity with tasks/execute-task.ts.
+    // The queue worker previously called executePierreTask directly, trusting only the
+    // governance flags baked into payload_json at task-creation time (executors.ts checkHrGate).
+    // A task created by a path that never classified it (or whose flags were stripped) could
+    // therefore auto-execute an absolute-refusal / black-level action (sanction, licenciement,
+    // harcèlement…). We re-run CloneGuard + governance on the live task content here and hard-block
+    // on any refuse/block decision, so a sensitive action can never complete on this path.
+    {
+      const govPayload = resolvePayload(task);
+      const guardEval = evaluatePierreCloneGuard({
+        task_type: asString(task.type),
+        task_title: asString(task.title),
+        payload_json: isRecord(govPayload) ? govPayload : null,
+        approval_required: task.approval_required === true,
+        now: now.toISOString(),
+      });
+      const govEval = evaluateGovernance({
+        task_type: asString(task.type),
+        task_title: asString(task.title),
+        payload_json: isRecord(govPayload) ? govPayload : null,
+        approval_required: task.approval_required === true,
+        guard_evaluation: guardEval,
+        now: now.toISOString(),
+      });
+
+      const hardBlocked =
+        guardEval.decision === "refuse" ||
+        guardEval.decision === "block" ||
+        govEval.decision === "refuse" ||
+        govEval.decision === "block";
+
+      if (hardBlocked) {
+        const reason =
+          govEval.explanation ||
+          guardEval.explanation ||
+          "Action bloquée par la gouvernance : décision humaine requise.";
+
+        await input.persistence.updateTask(taskId, {
+          status: "blocked",
+          last_error: reason,
+          blocked_reason: reason,
+          locked_by: null,
+          locked_at: null,
+          updated_at: now.toISOString(),
+        });
+
+        await safeInsertLog(input.persistence, {
+          mission_id: missionId,
+          task_id: taskId,
+          level: "warning",
+          event: "task_governance_blocked",
+          message: reason,
+          payload: {
+            guard_decision: guardEval.decision,
+            governance_decision: govEval.decision,
+            risk_level: govEval.risk_level,
+          },
+        });
+
+        return {
+          ok: false,
+          phase: "released",
+          taskId,
+          missionId,
+          finalStatus: "blocked",
+          reason,
+          errorCode: "GOVERNANCE_BLOCKED",
+        };
+      }
     }
 
     await input.persistence.updateTask(taskId, {

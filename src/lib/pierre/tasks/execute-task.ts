@@ -23,6 +23,11 @@ import {
   classifyEmployeeActionRisk,
   resolveEmployeeActionGovernance,
 } from "../hr/employee-actions";
+import {
+  toCanonicalTaskStatus,
+  integrationStatusForTask,
+  type CanonicalPierreTaskStatus,
+} from "./canonical-status";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -40,6 +45,12 @@ export type PierreExecutionPersistenceResult = {
     email_id: string | null;
   } | null;
   execution_result: PierreTaskExecutionResult;
+  canonical_status: CanonicalPierreTaskStatus;
+  integration_status?: {
+    kind: string;
+    canonical: string;
+    missing: string[];
+  } | null;
   error?: string;
   error_code?: string;
 };
@@ -111,6 +122,61 @@ async function loadCompanyMemory(
     .maybeSingle();
 
   return (data ?? null) as DbRow | null;
+}
+
+// Trust aggregates derived from the tenant's REAL task history. CloneTrust was previously fed no
+// history in the execution path, so it always defaulted to 50/"supervised" regardless of a tenant's
+// track record. This computes the real success rate + task count so a proven tenant earns higher
+// autonomy — while a fresh tenant (or any query failure) falls back to the safe default unchanged.
+// Fully defensive: never throws, returns nulls on any problem so governance behaves exactly as before.
+type PierreTrustAggregates = {
+  historical_success_rate: number | null;
+  historical_task_count: number | null;
+};
+
+const EMPTY_TRUST_AGGREGATES: PierreTrustAggregates = {
+  historical_success_rate: null,
+  historical_task_count: null,
+};
+
+async function loadTrustAggregates(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<PierreTrustAggregates> {
+  try {
+    const { data, error } = await supabase
+      .from("pierre_tasks")
+      .select("status")
+      .eq("user_id", userId)
+      .eq("agent_slug", "pierre")
+      .in("status", ["done", "completed", "error", "failed"])
+      .limit(2000);
+
+    if (error || !Array.isArray(data) || data.length === 0) {
+      return EMPTY_TRUST_AGGREGATES;
+    }
+
+    let succeeded = 0;
+    let terminal = 0;
+    for (const row of data) {
+      const status = asString((row as DbRow).status);
+      if (status === "done" || status === "completed") {
+        succeeded += 1;
+        terminal += 1;
+      } else if (status === "error" || status === "failed") {
+        terminal += 1;
+      }
+    }
+
+    if (terminal === 0) return EMPTY_TRUST_AGGREGATES;
+
+    return {
+      historical_success_rate: succeeded / terminal,
+      historical_task_count: terminal,
+    };
+  } catch {
+    return EMPTY_TRUST_AGGREGATES;
+  }
 }
 
 async function setTaskRunning(
@@ -303,6 +369,8 @@ export async function executePierreTaskWithPersistence(params: {
         },
         now,
       }),
+      canonical_status:
+        currentStatus === "awaiting_approval" ? "NEEDS_HUMAN_VALIDATION" : "BLOCKED",
       error: `La tâche ne peut pas être exécutée depuis le statut "${currentStatus}".`,
       error_code: "TASK_NOT_EXECUTABLE",
     };
@@ -310,6 +378,9 @@ export async function executePierreTaskWithPersistence(params: {
 
   // 3. Load company memory (for tone/language in artifact builders)
   const companyMemory = await loadCompanyMemory(supabaseAdmin, userId);
+
+  // 3.5. Load real trust aggregates from task history (feeds CloneTrust; safe default if none).
+  const trustAggregates = await loadTrustAggregates(supabaseAdmin, userId);
 
   // 4. Resolve employee context from payload_json
   const employeeContext = isObject(payloadJson.employee_context)
@@ -374,6 +445,7 @@ export async function executePierreTaskWithPersistence(params: {
         },
         now,
       }),
+      canonical_status: "BLOCKED",
       error: cgEval.explanation,
       error_code: "CLONEGUARD_BLOCKED",
     };
@@ -387,6 +459,8 @@ export async function executePierreTaskWithPersistence(params: {
     approval_required:
       taskRow.approval_required === true || taskRow.approval_required === "true",
     guard_evaluation: cgEval,
+    historical_success_rate: trustAggregates.historical_success_rate,
+    historical_task_count: trustAggregates.historical_task_count,
     now: now.toISOString(),
   });
 
@@ -420,6 +494,7 @@ export async function executePierreTaskWithPersistence(params: {
         },
         now,
       }),
+      canonical_status: "BLOCKED",
       error: govEval.explanation,
       error_code: "GOVERNANCE_BLOCKED",
     };
@@ -460,6 +535,7 @@ export async function executePierreTaskWithPersistence(params: {
         },
         now,
       }),
+      canonical_status: "NEEDS_HUMAN_VALIDATION",
       error: govEval.explanation,
       error_code: "HUMAN_APPROVAL_REQUIRED",
     };
@@ -557,12 +633,35 @@ export async function executePierreTaskWithPersistence(params: {
   const dbStatus = outcomeToDbStatus(executorOutcome);
   const outcomeLabel = outcomeToLabel(executorOutcome);
 
+  // Canonical taxonomy + truthful integration signal. A send/sync task that "succeeded" but whose
+  // external provider is not configured is surfaced as INTEGRATION_UNAVAILABLE — never as a false
+  // "completed" that implies an effect that did not happen. Draft-producing tasks need no provider.
+  const integrationSignal = executorOutcome.ok
+    ? integrationStatusForTask(asString(taskRow.type))
+    : null;
+  const canonicalStatus: CanonicalPierreTaskStatus = toCanonicalTaskStatus({
+    ok: executorOutcome.ok,
+    status: executorOutcome.ok ? "completed" : executorOutcome.status,
+    error_code: executorOutcome.ok ? null : executorOutcome.error_code,
+    integration: integrationSignal?.canonical ?? null,
+  });
+
   const fileSnap = isObject(payloadJson.employee_file_snapshot)
     ? payloadJson.employee_file_snapshot
     : null;
 
   const resultJson: Record<string, unknown> = {
     outcome: outcomeLabel,
+    canonical_status: canonicalStatus,
+    ...(integrationSignal
+      ? {
+          integration_status: {
+            kind: integrationSignal.kind,
+            canonical: integrationSignal.canonical ?? "INTEGRATION_UNAVAILABLE",
+            missing: integrationSignal.missing,
+          },
+        }
+      : {}),
     executor_ok: executorOutcome.ok,
     artifact_kind: executionResult.artifact_kind,
     artifact_status: executionResult.artifact_status,
@@ -641,6 +740,14 @@ export async function executePierreTaskWithPersistence(params: {
           }
         : null,
     execution_result: executionResult,
+    canonical_status: canonicalStatus,
+    integration_status: integrationSignal
+      ? {
+          kind: integrationSignal.kind,
+          canonical: integrationSignal.canonical ?? "INTEGRATION_UNAVAILABLE",
+          missing: integrationSignal.missing,
+        }
+      : null,
     ...(!executorOutcome.ok && {
       error: executorOutcome.message,
       error_code: executorOutcome.error_code,
