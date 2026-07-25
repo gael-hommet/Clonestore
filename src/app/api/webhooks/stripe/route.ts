@@ -52,6 +52,10 @@ import {
   OrdersLedgerUnavailableError,
 } from "@/lib/billing/orders-event-ledger";
 import type { StripeWebhookDeps as WebhookDeps } from "@/lib/founder-access/stripe-webhook-deps";
+// Canonical Analytics Runtime Wiring — pont additif best-effort (auto-avalant) vers le sink
+// canonique pour payment_succeeded/failed/refunded. Le webhook reste la seule source de vérité
+// du paiement ; l'analytics est émise APRÈS le métier et ne peut jamais faire échouer le webhook.
+import { emitCanonicalPaymentEvent } from "@/lib/analytics/adapters/stripe-webhook-analytics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -425,6 +429,20 @@ export async function POST(req: Request) {
         }
       }
 
+      // ── Analytics canonique : payment_succeeded (PAYMENT_PROVIDER_CONFIRMED) ──
+      // Après signature vérifiée + métier écrit. Auto-avalant : ne peut jamais faire échouer le
+      // webhook. Idempotent par stripe_event_id. Attribution Partner résolue serveur (jamais client).
+      // Uniquement si l'accès est réellement octroyé (paiement/essai confirmé), jamais sur un skip.
+      if (isAccessGranted(activationStatus)) {
+        await emitCanonicalPaymentEvent({
+          eventName: "payment_succeeded",
+          stripeEventId: event.id,
+          subjectUserId: validation.user_id,
+          amountMinor: getNumber(obj, "amount_total"),
+          currency: getString(obj, "currency"),
+        });
+      }
+
       return json(200, {
         received: true,
         type: event.type,
@@ -561,7 +579,36 @@ export async function POST(req: Request) {
         });
       }
 
+      // ── Analytics canonique : payment_failed (PAYMENT_PROVIDER_CONFIRMED) ──
+      // Après métier écrit. Auto-avalant, idempotent par stripe_event_id.
+      await emitCanonicalPaymentEvent({
+        eventName: "payment_failed",
+        stripeEventId: event.id,
+        subjectUserId: meta?.["user_id"] ?? null,
+        amountMinor: getNumber(obj, "amount_due"),
+        currency: getString(obj, "currency"),
+      });
+
       return json(200, { received: true, type: event.type, subId });
+    }
+
+    // ── charge.refunded ────────────────────────────────────────
+    // Non traité par le flux orders (aucune écriture métier ici) — le remboursement métier est
+    // géré par les ponts commerciaux (Partner/CloneStory) invoqués plus haut. On ajoute
+    // UNIQUEMENT l'événement analytique canonique, auto-avalant, idempotent par stripe_event_id.
+    if (event.type === "charge.refunded") {
+      const obj: unknown = event.data.object;
+      if (isRecord(obj)) {
+        const meta = getMetadata(obj);
+        await emitCanonicalPaymentEvent({
+          eventName: "payment_refunded",
+          stripeEventId: event.id,
+          subjectUserId: meta?.["user_id"] ?? null,
+          amountMinor: getNumber(obj, "amount_refunded"),
+          currency: getString(obj, "currency"),
+        });
+      }
+      return json(200, { received: true, type: event.type });
     }
 
     return json(200, { received: true, type: event.type });

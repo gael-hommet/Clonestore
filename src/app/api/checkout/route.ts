@@ -38,6 +38,10 @@ import { getReservationForActivation } from "@/lib/founder-access/store";
 import { getFounderPhase } from "@/lib/founder-access/commercial";
 import { normalizeEmail } from "@/lib/founder-access/validation";
 import { evaluateFounderCheckout, type CheckoutEligibility } from "@/lib/founder-access/checkout-eligibility";
+// Canonical Analytics Runtime Wiring — checkout_session_created (SERVER_CONFIRMED), additif,
+// best-effort, uniquement après création RÉELLE de la session Stripe. Ne bloque jamais le paiement.
+import { getAnalyticsDbForIngestion } from "@/lib/analytics/runtime";
+import { recordCanonicalServerEvent } from "@/lib/analytics/server-events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -461,6 +465,26 @@ export async function POST(request: NextRequest) {
 
     if (!session.url) {
       return jsonError(500, "Impossible de créer la session de paiement.", "STRIPE_SESSION_ERROR");
+    }
+
+    // Canonique (additif, best-effort) : checkout_session_created, après création RÉELLE de la
+    // session Stripe. Jamais l'URL Stripe, ni le Price ID, ni le customer, ni le client secret —
+    // seulement pays/devise résolus SERVEUR + tranche de montant. N'échoue jamais le checkout.
+    try {
+      const analyticsDb = await getAnalyticsDbForIngestion();
+      if (analyticsDb) {
+        await recordCanonicalServerEvent(analyticsDb, {
+          eventName: "checkout_session_created",
+          stableKey: `checkout-session-created:${session.id}`,
+          trustLevel: "SERVER_CONFIRMED",
+          countryCode: resolvedCountry,
+          currency: expectedCurrency,
+          amountMinor: expectedAmount,
+          authenticatedUserId: userId,
+        });
+      }
+    } catch {
+      /* l'analytics ne bloque jamais le checkout */
     }
 
     return json(200, { ok: true, url: session.url });

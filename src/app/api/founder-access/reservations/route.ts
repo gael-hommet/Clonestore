@@ -11,6 +11,11 @@ import { distributedRateLimit, hashIp, getClientIp, readJsonBounded, extractTrac
 import { resolveFounderEmailProvider, renderVerificationEmail, isFounderEmailConfigured } from "@/lib/founder-access/email-provider";
 import { buildReservationCookie } from "@/lib/founder-access/signed-cookie";
 import { resolveAnalyticsSession } from "@/lib/founder-access/analytics-session";
+// Canonical Analytics Runtime Wiring — pont additif best-effort vers le sink canonique.
+// N'est appelé qu'APRÈS la persistance métier réussie ; ne jette jamais (l'adaptateur avale
+// toute erreur) ; ne modifie jamais le calcul métier de la réservation.
+import { bridgeFounderServerEvent, founderEventIdFor } from "@/lib/analytics/adapters/founder-access-adapter";
+import { resolveAnalyticsEnvironment } from "@/lib/analytics/server-events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,6 +66,16 @@ export async function POST(req: Request) {
     });
     reservationId = res.id;
     alreadyConfirmed = res.already_confirmed;
+
+    // Canonique (additif, après persistance métier réussie) : reservation_created.
+    // event_id déterministe ⇒ un ré-appel idempotent de la réservation ne double jamais.
+    await bridgeFounderServerEvent(db, {
+      eventId: founderEventIdFor(reservationId, "founder_reservation_created"),
+      founderEventName: "founder_reservation_created",
+      occurredAtIso: new Date().toISOString(),
+      reservationId,
+      environment: resolveAnalyticsEnvironment(),
+    });
 
     // Envoi immédiat best-effort de la vérification (le worker E.3 reste le filet).
     if (!alreadyConfirmed && isFounderEmailConfigured()) {

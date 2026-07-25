@@ -6,6 +6,12 @@ import type { SqlExecutor } from "@/lib/pierre/v1/sql";
 import { applyFounderStripeEvent, type StripeApplyResult } from "./store";
 import { FOUNDER_SUBSCRIPTION_AMOUNT_CENTS, FOUNDER_CURRENCY } from "./commercial";
 import { mapStripeSubscriptionStatusStrict, stripeStatusGrants, validateFounderStripeCommercialProof } from "./stripe-proof";
+// Canonical Analytics Runtime Wiring — pont additif best-effort vers le sink canonique pour
+// activation_completed. UNIQUEMENT après une activation réelle (granted + applied + non-doublon).
+// N'émet JAMAIS payment_succeeded ici (produit une seule fois par la route webhook, clé =
+// stripe_event_id) — un seul producteur canonique par événement.
+import { bridgeFounderServerEvent, founderEventIdFor } from "@/lib/analytics/adapters/founder-access-adapter";
+import { resolveAnalyticsEnvironment } from "@/lib/analytics/server-events";
 
 export interface FounderWebhookEvent {
   eventId: string;
@@ -95,5 +101,20 @@ export async function applyFounderStripeWebhook(
   const result = await applyFounderStripeEvent(db, {
     ...base, subscription_status: mapped.status, amount_cents: grants ? FOUNDER_SUBSCRIPTION_AMOUNT_CENTS : null,
   });
+
+  // Canonique (additif) : activation_completed UNIQUEMENT sur une activation réelle nouvellement
+  // appliquée (statut octroyant + appliqué + non-doublon). Reuse le même db (transaction métier
+  // déjà committée). stripeEventId ⇒ trust PAYMENT_PROVIDER_CONFIRMED. Idempotent par réservation.
+  if (grants && result.applied && !result.duplicate) {
+    await bridgeFounderServerEvent(db, {
+      eventId: founderEventIdFor(rid, "founder_subscription_active"),
+      founderEventName: "founder_subscription_active",
+      occurredAtIso: new Date().toISOString(),
+      reservationId: rid,
+      environment: resolveAnalyticsEnvironment(),
+      stripeEventId: ev.eventId,
+    });
+  }
+
   return { handled: true, result, decision: "applied" };
 }
