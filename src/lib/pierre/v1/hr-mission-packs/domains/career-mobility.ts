@@ -9,7 +9,7 @@ export const CAREER_PACKS: HrMissionPackDefinition[] = [
     id: "career.wishes_and_mentoring", domain: "career", title: "Career wishes & mentoring",
     description: "Capture career wishes/evolution paths and manage mentoring relationships & retention signals.",
     capabilityIds: ["career.wishes", "career.mentoring"], subjectTypes: ["employee"],
-    steps: [...intakeSkeleton(), rt("capture", "mutate_record", "Capture career wishes / mentoring links", "hr.record.append", { dependsOn: ["validate"] }), rt("followup", "schedule", "Schedule follow-up", "follow_up.schedule", { dependsOn: ["capture"] }), ...closeSkeleton("followup")],
+    steps: [...intakeSkeleton(), rt("capture", "mutate_record", "Capture career wishes / mentoring links", "employee.timeline.append", { dependsOn: ["validate"], input: { entry_type: "career_wishes" } }), rt("followup", "schedule", "Schedule follow-up", "follow_up.schedule", { dependsOn: ["capture"] }), ...closeSkeleton("followup")],
     completionCriteria: [cc("career.captured", "Wishes/mentoring captured.", "mutation"), cc("career.closed", "Terminal state.", "state")],
     runtimeStatus: "IMPLEMENTED",
   }),

@@ -40,7 +40,7 @@ export const ABSENCE_PACKS: HrMissionPackDefinition[] = [
       rt("collect_period", "collect", "Collect approved absences for the payroll period", "hr.data.collect", { dependsOn: ["validate"] }),
       rt("prepare_recap", "prepare_document", "Prepare the absence recap for payroll", "document.generate", { dependsOn: ["collect_period"] }),
       ext("handoff_payroll", "await_external", "Hand off recap to the payroll pipeline", "payroll_provider", { dependsOn: ["prepare_recap"], autonomy: "execute_with_validation" }),
-      rt("reconcile", "reconcile", "Reconcile provider return", "hr.record.append", { dependsOn: ["handoff_payroll"] }),
+      rt("reconcile", "reconcile", "Reconcile provider return", "hr.reconcile.apply", { dependsOn: ["handoff_payroll"] }),
       ...closeSkeleton("reconcile"),
     ],
     integrationRequirements: [{ system: "payroll_provider", status: "not_integrated", notes: "real payroll integration is P8.12" }],

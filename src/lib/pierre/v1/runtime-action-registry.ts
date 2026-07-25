@@ -140,6 +140,25 @@ const REGISTRY: Record<string, RuntimeActionDefinition> = {
       if (!isStr(p.end_date)) e.push("end_date required");
       return e;
     } }),
+
+  // P22 domain closure — a REAL Employee-360 business object: a typed timeline entry FK-linked to the
+  // employee (pierre_rt_employee_events). Reuses the governed appendEmployeeTimelineEvent service. Used
+  // for record/capture domain steps (objectives, calibration, career wishes, GDPR objection, appeal).
+  "employee.timeline.append": def({ actionKey: "employee.timeline.append", category: "state_transition", risk: "controlled",
+    requiredPermission: "employee.write", requiredObjectTypes: ["employee"], idempotencyStrategy: "step_run_id",
+    validateInput: (p) => {
+      const e: string[] = [];
+      if (!isUuid(p.employee_id)) e.push("employee_id (uuid) required");
+      if (!isStr(p.entry_type)) e.push("entry_type required");
+      return e;
+    } }),
+
+  // P22 domain closure — reconcile an EXTERNAL provider/event return. If the return is present it is
+  // applied and recorded as a reconciliation event; if not, it returns a governed awaiting-external
+  // outcome (never a fake reconciliation). This is inherently external-dependent (a provider return).
+  "hr.reconcile.apply": def({ actionKey: "hr.reconcile.apply", category: "read", risk: "controlled", idempotencyStrategy: "step_run_id",
+    ambiguousFailurePolicy: "reconcile", compensationStrategy: "external_reconciliation",
+    validateInput: (p) => (isStr(p.reconcile_kind) ? [] : ["reconcile_kind required"]) }),
 };
 
 // The whitelisted HR metrics analytics.compute may compute (no free-form computation).

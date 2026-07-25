@@ -51,7 +51,7 @@ export const CONTRACT_CHANGE_PACKS: HrMissionPackDefinition[] = [
       rt("approve", "request_approval", "Approve signature submission", "approval.request", { dependsOn: ["validate"], autonomy: "execute_with_validation" }),
       rt("prepare_signature", "signature", "Prepare the signature request (governed)", "signature.prepare", { dependsOn: ["approve"], requiresApproval: true }),
       ext("submit", "await_external", "Submit to e-signature provider", "signature_provider", { dependsOn: ["prepare_signature"] }),
-      rt("reconcile", "reconcile", "Reconcile signature webhook", "hr.record.append", { dependsOn: ["submit"] }),
+      rt("reconcile", "reconcile", "Reconcile signature webhook", "hr.reconcile.apply", { dependsOn: ["submit"] }),
       ...closeSkeleton("reconcile"),
     ],
     approvals: [{ when: "always", approver: "hr_manager", reason: "signature submission is sensitive" }],

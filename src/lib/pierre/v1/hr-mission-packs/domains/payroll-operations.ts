@@ -34,7 +34,7 @@ export const PAYROLL_PACKS: HrMissionPackDefinition[] = [
       ...intakeSkeleton(),
       ext("transmit", "await_external", "Transmit variables to payroll provider", "payroll_provider", { dependsOn: ["validate"], autonomy: "execute_with_validation" }),
       rt("distribute_payslips", "communicate", "Securely distribute returned payslips", "communication.create_intent", { dependsOn: ["transmit"] }),
-      rt("reconcile", "reconcile", "Reconcile provider return", "hr.record.append", { dependsOn: ["distribute_payslips"] }),
+      rt("reconcile", "reconcile", "Reconcile provider return", "hr.reconcile.apply", { dependsOn: ["distribute_payslips"] }),
       ...closeSkeleton("reconcile"),
     ],
     integrationRequirements: [{ system: "payroll_provider", status: "not_integrated", notes: "certified payroll engine + declarations = P8.12" }],

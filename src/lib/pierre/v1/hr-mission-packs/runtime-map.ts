@@ -47,6 +47,8 @@ function defaultActionInput(actionKey: string): Record<string, unknown> {
     case "hr.record.append": return { record_type: "hr.step" }; // packs override with the concrete record_type
     case "hr.data.collect": return {}; // packs override with required_fields/provided
     case "absence.record.create": return { employee_id: NIL_UUID, absence_type: "unspecified", start_date: "2026-01-01", end_date: "2026-01-01" }; // runtime binds real values
+    case "employee.timeline.append": return { employee_id: NIL_UUID, entry_type: "record" }; // runtime binds real values
+    case "hr.reconcile.apply": return { reconcile_kind: "external_return" }; // runtime supplies external_return when present
     default: return {};
   }
 }

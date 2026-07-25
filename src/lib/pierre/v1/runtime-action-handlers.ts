@@ -17,7 +17,7 @@ import { buildScheduleRule, nextScheduleRunAt } from "./runtime-schedule-rules";
 import { prepareContractSignature } from "./contracts";
 import { submitContractToSignatureProvider, type SignatureDeps } from "./signatures";
 import { createDocument, createVersion } from "./documents";
-import { createAbsence } from "./employees";
+import { createAbsence, appendEmployeeTimelineEvent } from "./employees";
 
 export type RuntimeDeps = {
   /** app-role, tenant-bound executor for governed business services (defaults to the job executor). */
@@ -393,6 +393,44 @@ const absenceRecordCreate: RuntimeActionHandler = async (ctx) => {
   return ok({ kind: "absence", employee_id: employeeId, absence_type: type, start_date: startDate, end_date: endDate, status });
 };
 
+// ── employee.timeline.append — a REAL Employee-360 business object (typed timeline entry) ────────────
+const employeeTimelineAppend: RuntimeActionHandler = async (ctx) => {
+  const employeeId = String(ctx.payload.employee_id);
+  const entryType = String(ctx.payload.entry_type);
+  const metadata = ctx.payload.data && typeof ctx.payload.data === "object" ? (ctx.payload.data as Record<string, unknown>) : {};
+  try {
+    await ctx.appDb.transaction(async (tx) => {
+      await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.companyId]);
+      await appendEmployeeTimelineEvent(tx, ctx.tenant, employeeId, { type: `hr.${entryType}`, metadata: { ...metadata, step_run_id: ctx.stepRunId } });
+    });
+  } catch (e) {
+    return { status: "blocked", blockerCode: "employee_timeline_refused", output: { reason: (e as Error)?.message ?? "refused" } };
+  }
+  return ok({ kind: "employee_timeline_entry", employee_id: employeeId, entry_type: entryType });
+};
+
+// ── hr.reconcile.apply — apply an external return, or await it (never fake a reconciliation) ─────────
+const hrReconcileApply: RuntimeActionHandler = async (ctx) => {
+  const reconcileKind = String(ctx.payload.reconcile_kind);
+  const externalReturn = ctx.payload.external_return;
+  if (externalReturn === undefined || externalReturn === null) {
+    // Inherently external-dependent: without a provider return there is nothing to reconcile yet.
+    return {
+      status: "waiting",
+      wait: { wait_kind: "external_event", event_kind: `reconcile.${reconcileKind}`, object_type: "reconcile", object_id: (ctx.payload.object_id as string) ?? null },
+    };
+  }
+  const eventId = newUuid();
+  await ctx.appDb.transaction(async (tx) => {
+    await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.companyId]);
+    await tx.query(
+      `insert into pierre_rt_events (id, company_id, mission_id, type, actor_type, actor_id, new_state, metadata)
+       values ($1,$2,$3,$4,'runtime',$5,'reconciled',$6::jsonb)`,
+      [eventId, ctx.companyId, ctx.missionId, `hr.reconcile.${reconcileKind}`, ctx.tenant.user_id, JSON.stringify({ step_run_id: ctx.stepRunId, external_return: externalReturn })]);
+  });
+  return ok({ kind: "reconciliation", record_id: eventId, reconcile_kind: reconcileKind, applied: true });
+};
+
 export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
   "mission.noop": noop,
   "analytics.compute": analyticsCompute,
@@ -400,6 +438,8 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
   "hr.record.append": hrRecordAppend,
   "hr.data.collect": hrDataCollect,
   "absence.record.create": absenceRecordCreate,
+  "employee.timeline.append": employeeTimelineAppend,
+  "hr.reconcile.apply": hrReconcileApply,
   "mission.complete": complete,
   "mission.block": block,
   "employee.read": readObject("pierre_rt_employees", "employee_id"),

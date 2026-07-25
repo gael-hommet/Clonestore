@@ -14,7 +14,7 @@ export const COMMUNICATION_PACKS: HrMissionPackDefinition[] = [
       rt("select_template", "prepare_document", "Select/prepare the template", "document.generate", { dependsOn: ["validate"] }),
       rt("schedule", "schedule", "Schedule within quiet hours", "follow_up.schedule", { dependsOn: ["select_template"] }),
       rt("send", "communicate", "Send via the verified delivery runtime", "communication.create_intent", { dependsOn: ["schedule"] }),
-      rt("track_receipt", "reconcile", "Track read receipt / engagement", "hr.record.append", { dependsOn: ["send"] }),
+      rt("track_receipt", "reconcile", "Track read receipt / engagement", "hr.reconcile.apply", { dependsOn: ["send"] }),
       ...closeSkeleton("track_receipt"),
     ],
     expectedCommunications: [{ channel: "email", audience: "employee", templateFamily: "hr.generic", proofOfSend: true }],

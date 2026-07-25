@@ -30,7 +30,7 @@ export const COMPENSATION_PACKS: HrMissionPackDefinition[] = [
       rt("prepare", "prepare_document", "Prepare benefit/voucher/expense record", "document.generate", { dependsOn: ["validate"] }),
       rt("approve", "request_approval", "Approve reimbursement/enrollment", "approval.request", { dependsOn: ["prepare"], autonomy: "execute_with_validation" }),
       ext("provider", "await_external", "Hand off to benefits provider", "benefits_provider", { dependsOn: ["approve"] }),
-      rt("reconcile", "reconcile", "Reconcile provider return", "hr.record.append", { dependsOn: ["provider"] }),
+      rt("reconcile", "reconcile", "Reconcile provider return", "hr.reconcile.apply", { dependsOn: ["provider"] }),
       ...closeSkeleton("reconcile"),
     ],
     approvals: [{ when: "above_threshold", approver: "hr_manager", reason: "reimbursements above threshold need approval" }],

@@ -26,7 +26,7 @@ export const ONBOARDING_PACKS: HrMissionPackDefinition[] = [
     id: "onboarding.access_provisioning", domain: "onboarding", title: "Account & access provisioning (orchestration)",
     description: "Request accounts/access from the identity provider (not integrated), track completion, revoke on offboarding.",
     capabilityIds: ["onboarding.access_provisioning"], subjectTypes: ["employee"],
-    steps: [...intakeSkeleton(), ext("provision", "await_external", "Provision accounts/access", "identity_provider", { dependsOn: ["validate"], autonomy: "execute_with_validation" }), rt("track", "reconcile", "Track provisioning completion", "hr.record.append", { dependsOn: ["provision"] }), ...closeSkeleton("track")],
+    steps: [...intakeSkeleton(), ext("provision", "await_external", "Provision accounts/access", "identity_provider", { dependsOn: ["validate"], autonomy: "execute_with_validation" }), rt("track", "reconcile", "Track provisioning completion", "hr.reconcile.apply", { dependsOn: ["provision"] }), ...closeSkeleton("track")],
     integrationRequirements: [{ system: "identity_provider", status: "not_integrated", notes: "IdP integration is P8.12" }],
     completionCriteria: [cc("access.reconciled", "Access provisioning reconciled.", "external_reconciled")],
     runtimeStatus: "RUNTIME_READY_EXTERNAL_BLOCKED",

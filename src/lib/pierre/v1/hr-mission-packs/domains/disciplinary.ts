@@ -18,7 +18,7 @@ export const DISCIPLINARY_PACKS: HrMissionPackDefinition[] = [
       rt("chain_of_custody", "prepare_document", "Preserve evidence chain of custody (immutable)", "document.generate", { dependsOn: ["file_report"] }),
       rt("watch_deadlines", "schedule", "Watch statutory disciplinary deadlines", "follow_up.schedule", { dependsOn: ["chain_of_custody"], emitsSignal: "disciplinary.deadline" }),
       human("record_decision", "Record the HUMAN disciplinary decision", "hr_manager", { dependsOn: ["watch_deadlines"] }),
-      rt("handle_appeal", "mutate_record", "Record any appeal", "hr.record.append", { dependsOn: ["record_decision"], optional: true }),
+      rt("handle_appeal", "mutate_record", "Record any appeal", "employee.timeline.append", { dependsOn: ["record_decision"], optional: true, input: { entry_type: "disciplinary_appeal" } }),
       rt("archive", "archive", "Close & archive the case (retention)", "mission.complete", { dependsOn: ["record_decision"] }),
     ],
     approvals: [{ when: "always", approver: "hr_manager", reason: "disciplinary decisions are legally reserved to humans" }],

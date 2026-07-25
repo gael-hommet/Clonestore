@@ -25,11 +25,13 @@ type Cls =
 const CLASS: Record<string, Cls> = {
   "document.generate": "BUSINESS_EFFECT",
   "absence.record.create": "BUSINESS_EFFECT",
+  "employee.timeline.append": "BUSINESS_EFFECT",
   "analytics.compute": "BUSINESS_EFFECT",
   "follow_up.schedule": "BUSINESS_EFFECT",
   "approval.request": "HUMAN_DECISION_BOUNDARY",
   "communication.create_intent": "GOVERNED_EXTERNAL_INTENT",
   "signature.prepare": "GOVERNED_EXTERNAL_INTENT",
+  "hr.reconcile.apply": "GOVERNED_EXTERNAL_INTENT",
   "wait.until_time": "GOVERNED_EXTERNAL_INTENT",
   "wait.for_event": "GOVERNED_EXTERNAL_INTENT",
   "hr.record.append": "TRACE_ONLY",
@@ -41,6 +43,14 @@ const CLASS: Record<string, Cls> = {
   "contract.read": "STRUCTURAL",
   "document.read": "STRUCTURAL",
 };
+
+// The 4 remaining semantic gaps genuinely require a NEW domain table (no existing pierre_rt_* fits).
+const NEW_TABLE_REQUIRED = new Set([
+  "org.workforce_planning:record",
+  "recruitment.pipeline_management:track",
+  "relations.hr_requests:route",
+  "pierre_admin.country_config:bind_pack",
+]);
 
 // Kinds that IMPLY the step should produce/modify a real domain business object.
 const BUSINESS_KINDS = new Set(["mutate_record", "prepare_document", "reconcile"]);
@@ -85,7 +95,9 @@ describe("P22 semantic action matrix", () => {
           expected_business_object: isBusinessKind ? expectedObject(pack.domain, s.kind) : "n/a",
           semantic_gap: gap,
           remediation: gap
-            ? `bind '${s.key}' to a real ${pack.domain} domain action (persist the business object), mirroring absence.record.create`
+            ? (NEW_TABLE_REQUIRED.has(`${pack.id}:${s.key}`)
+                ? `NEW_TABLE_REQUIRED: add a dedicated pierre_rt_* table + governed service for ${pack.domain}, then bind '${s.key}' to it (mirroring absence.record.create)`
+                : `bind '${s.key}' to a real ${pack.domain} domain action (persist the business object), mirroring absence.record.create`)
             : null,
           in_runtime_plan: byKey.has(s.key),
         });
@@ -108,7 +120,12 @@ describe("P22 semantic action matrix", () => {
       business_effect_steps: businessEffect,
       authorizable_business_steps: authorizableBusiness,
       business_effect_completion_rate: businessEffectCompletionRate,
-      proven_real_sql_business_actions: ["absence.record.create"],
+      proven_real_sql_business_actions: ["absence.record.create", "employee.timeline.append", "hr.reconcile.apply (apply-or-await)"],
+      real_sql_proven_domains: ["absence", "employee-360 (timeline)", "reconciliation (external apply/await)"],
+      remaining_semantic_gaps_need_new_table: [
+        "org.workforce_planning:record", "recruitment.pipeline_management:track",
+        "relations.hr_requests:route", "pierre_admin.country_config:bind_pack",
+      ],
       rows,
     };
     fs.writeFileSync(

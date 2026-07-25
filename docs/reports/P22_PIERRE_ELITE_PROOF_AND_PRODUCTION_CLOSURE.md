@@ -10,6 +10,55 @@
 
 ---
 
+## REPRISE 4 (P22 — close semantic gaps with real domain business effects — 2026-07-25, appended)
+
+Acting on Reprise 3's honest matrix (16 semantic gaps, 72.9% business-effect). **Two reusable domain
+actions added, both PROVEN on real SQL (PGlite + real migrations), reusing existing governed services:**
+- **`employee.timeline.append`** → real `pierre_rt_employee_events` row (Employee-360 business object),
+  FK-scoped, `employee.write`-gated, fail-closed on a missing employee. Reuses a new governed
+  `appendEmployeeTimelineEvent` service (thin wrapper over the existing repo).
+- **`hr.reconcile.apply`** → applies an external provider return as a real reconciliation event, or
+  **AWAITS** it (`status: waiting`) when absent — never fakes a reconciliation.
+
+**12 of the 16 gaps closed** (matrix recomputed, `P22_ACTION_SEMANTIC_GAP_MATRIX.json`):
+- **7 reconcile-external** steps (offer/contract/onboarding-access/absence-payroll/payroll/
+  compensation/communications) → `hr.reconcile.apply` — correctly classified GOVERNED_EXTERNAL_INTENT
+  (they genuinely depend on a provider return; forcing a fabricated business object would be dishonest).
+- **5 employee-scoped record steps** (GDPR objection, performance objectives, performance calibration,
+  career wishes, disciplinary appeal) → `employee.timeline.append` — real Employee-360 records.
+
+**Honest recomputed metrics (272 steps):** BUSINESS_EFFECT 43→48, TRACE_ONLY 111→99,
+GOVERNED_EXTERNAL_INTENT 15→22, **semantic_gaps 16→4**,
+**`business_effect_completion_rate` 72.9% → 92.3%** (48 / 52 business-kind steps).
+
+**Real-SQL proof (8/8 integration tests green on PGlite):** `absence.record.create` (3),
+`employee.timeline.append` (3: real row + tenant isolation + governed refusal),
+`hr.reconcile.apply` (2: apply + await). Three domains now real-SQL-proven: absence, Employee-360
+timeline, reconciliation.
+
+**Honest limits — verdict stays WITHHELD (the §13 first gate is NOT fully met):**
+- **4 semantic gaps remain** — `org.workforce_planning:record`, `recruitment.pipeline_management:track`,
+  `relations.hr_requests:route`, `pierre_admin.country_config:bind_pack` — each needs a **new dedicated
+  `pierre_rt_*` table + service** (no existing table fits); creating those migrations was out of honest
+  reach this session (`NEW_TABLE_REQUIRED` in the matrix).
+- The 92.3% is a **persistence-level** rate. The 5 employee-scoped steps persist real Employee-360
+  timeline entries — a **lighter** representation than the dedicated tables the spec envisions
+  (`performance.objective.record`, `training.enrollment.create`, a ticket table, …), which do not exist.
+- Only **3** of the 7 requested domain families are real-SQL-proven (absence, employee-360,
+  reconciliation) — recruitment/onboarding/payroll/performance/training/offboarding/helpdesk still lack
+  dedicated business-object tables/actions.
+- Still not done: usable rich document content (≥95%), 18-mission × 3-mode real-DB E2E, browser proof,
+  11h35→12min human-time, live providers, `PRODUCTION_AUTHORIZED`.
+
+**Reprise 4 verdict: P22 — OPERATIONAL CLOSURE STILL WITHHELD.** Real progress —
+`business_effect_completion_rate` 72.9%→92.3%, 12/16 gaps closed, 3 domains real-SQL-proven — but the
+elite gate (0 gaps, 7 domain families, usable docs, 18 missions, browser, human-time) is not met.
+
+Verification: `tsc` exit 0, scoped ESLint 0, 326 v1-unit/pack/canon tests + 8 real-SQL integration
+tests green. 0 OpenAI calls.
+
+---
+
 ## REPRISE 3 (P22 — SEMANTIC correction: trace ≠ business effect — 2026-07-25, appended, prior evidence preserved)
 
 **Correction of the previous verdict (mandatory, accepted):** Reprise 2 reported

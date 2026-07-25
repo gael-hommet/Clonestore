@@ -274,6 +274,19 @@ export async function createAbsence(db: SqlExecutor, ctx: TenantContext, id: str
   await EmployeeRepo.addEvent(db, ctx.company_id, id, { type: "absence_requested", actor_type: "user", actor_id: ctx.user_id, metadata: { type: a.type } });
 }
 
+/** P22 — governed Employee-360 timeline entry (a real per-employee business object in
+ *  pierre_rt_employee_events, FK-scoped). Verifies the employee exists in the tenant (fail-closed)
+ *  and requires employee.write. Used by the employee.timeline.append runtime action to persist a
+ *  typed domain record (objectives, calibration, career wishes, appeal, GDPR objection, …). */
+export async function appendEmployeeTimelineEvent(
+  db: SqlExecutor, ctx: TenantContext, id: string, e: { type: string; metadata?: Record<string, unknown> },
+): Promise<void> {
+  requirePermission(ctx, "employee.write");
+  if (!e.type?.trim()) throw Errors.validation("type is required");
+  await loadEmployeeScoped(db, ctx, id);
+  await EmployeeRepo.addEvent(db, ctx.company_id, id, { type: e.type, actor_type: "user", actor_id: ctx.user_id, metadata: e.metadata });
+}
+
 export async function employeeMissions(db: SqlExecutor, ctx: TenantContext, id: string) {
   requirePermission(ctx, "employee.read");
   await loadEmployeeScoped(db, ctx, id);
