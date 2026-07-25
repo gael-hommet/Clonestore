@@ -1,0 +1,655 @@
+{
+  "generated_for": "P22_PIERRE_ELITE_PROOF_AND_PRODUCTION_CLOSURE",
+  "note": "Deterministic engine benchmark — completion (not creation). Zero OpenAI budget. Not a browser/prod proof.",
+  "missions": 12,
+  "mode_runs": 36,
+  "totals": {
+    "tasks": 53,
+    "completed": 29,
+    "needs_validation": 13,
+    "blocked": 11,
+    "needs_info": 0,
+    "artifacts_produced": 0,
+    "false_success": 0
+  },
+  "operational_completion_rate": 54.7,
+  "send_probe_canonical": "INTEGRATION_UNAVAILABLE",
+  "missions_detail": [
+    {
+      "key": "recruit_cdi_resto",
+      "family": "recruitment",
+      "sector": "restauration",
+      "sensitive": false,
+      "taskCount": 5,
+      "completed": 4,
+      "needsValidation": 0,
+      "blocked": 1,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 2,
+      "blocked_actions": 0,
+      "validation_policy": {
+        "approval_required": false,
+        "approval_reason": null,
+        "blocked": false,
+        "can_execute_low_risk_tasks": true
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "draft_deliverable",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "copilote",
+          "kind": "next_step_proposal",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "autonomie",
+          "kind": "execution_step",
+          "waitsForDecision": false,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        }
+      ]
+    },
+    {
+      "key": "hiring_cdd_retail",
+      "family": "hiring",
+      "sector": "retail",
+      "sensitive": false,
+      "taskCount": 4,
+      "completed": 1,
+      "needsValidation": 2,
+      "blocked": 1,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 2,
+      "blocked_actions": 2,
+      "validation_policy": {
+        "approval_required": true,
+        "approval_reason": "Document contractuel : validation juridique et managériale obligatoire avant toute signature.",
+        "blocked": false,
+        "can_execute_low_risk_tasks": true
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": true
+        },
+        {
+          "mode": "copilote",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": false,
+          "requiresHumanApproval": true
+        },
+        {
+          "mode": "autonomie",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": false,
+          "requiresHumanApproval": true
+        }
+      ]
+    },
+    {
+      "key": "onboarding_btp",
+      "family": "onboarding",
+      "sector": "btp",
+      "sensitive": false,
+      "taskCount": 4,
+      "completed": 4,
+      "needsValidation": 0,
+      "blocked": 0,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 2,
+      "blocked_actions": 0,
+      "validation_policy": {
+        "approval_required": false,
+        "approval_reason": null,
+        "blocked": false,
+        "can_execute_low_risk_tasks": true
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "draft_deliverable",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "copilote",
+          "kind": "next_step_proposal",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "autonomie",
+          "kind": "execution_step",
+          "waitsForDecision": false,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        }
+      ]
+    },
+    {
+      "key": "absence_justif_services",
+      "family": "absence",
+      "sector": "services",
+      "sensitive": false,
+      "taskCount": 5,
+      "completed": 4,
+      "needsValidation": 0,
+      "blocked": 1,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 2,
+      "blocked_actions": 0,
+      "validation_policy": {
+        "approval_required": false,
+        "approval_reason": null,
+        "blocked": false,
+        "can_execute_low_risk_tasks": true
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "draft_deliverable",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "copilote",
+          "kind": "next_step_proposal",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "autonomie",
+          "kind": "execution_step",
+          "waitsForDecision": false,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        }
+      ]
+    },
+    {
+      "key": "contract_avenant_pme",
+      "family": "contract",
+      "sector": "pme",
+      "sensitive": false,
+      "taskCount": 4,
+      "completed": 1,
+      "needsValidation": 2,
+      "blocked": 1,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 2,
+      "blocked_actions": 2,
+      "validation_policy": {
+        "approval_required": true,
+        "approval_reason": "Document contractuel : validation juridique et managériale obligatoire avant toute signature.",
+        "blocked": false,
+        "can_execute_low_risk_tasks": true
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": true
+        },
+        {
+          "mode": "copilote",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": false,
+          "requiresHumanApproval": true
+        },
+        {
+          "mode": "autonomie",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": false,
+          "requiresHumanApproval": true
+        }
+      ]
+    },
+    {
+      "key": "prepaie_grande_entreprise",
+      "family": "prepaie",
+      "sector": "grande_entreprise",
+      "sensitive": false,
+      "taskCount": 4,
+      "completed": 2,
+      "needsValidation": 1,
+      "blocked": 1,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 1,
+      "blocked_actions": 1,
+      "validation_policy": {
+        "approval_required": true,
+        "approval_reason": "Données de paie : validation obligatoire avant transmission au service paie.",
+        "blocked": false,
+        "can_execute_low_risk_tasks": true
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "draft_deliverable",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "copilote",
+          "kind": "next_step_proposal",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "autonomie",
+          "kind": "execution_step",
+          "waitsForDecision": false,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        }
+      ]
+    },
+    {
+      "key": "entretien_annuel_pme",
+      "family": "entretien",
+      "sector": "pme",
+      "sensitive": false,
+      "taskCount": 5,
+      "completed": 4,
+      "needsValidation": 0,
+      "blocked": 1,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 2,
+      "blocked_actions": 0,
+      "validation_policy": {
+        "approval_required": false,
+        "approval_reason": null,
+        "blocked": false,
+        "can_execute_low_risk_tasks": true
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "draft_deliverable",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "copilote",
+          "kind": "clarifying_questions",
+          "waitsForDecision": true,
+          "asksQuestion": true,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": false,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "autonomie",
+          "kind": "draft_deliverable",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        }
+      ]
+    },
+    {
+      "key": "formation_obligatoire_retail",
+      "family": "formation",
+      "sector": "retail",
+      "sensitive": false,
+      "taskCount": 5,
+      "completed": 4,
+      "needsValidation": 0,
+      "blocked": 1,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 2,
+      "blocked_actions": 0,
+      "validation_policy": {
+        "approval_required": false,
+        "approval_reason": null,
+        "blocked": false,
+        "can_execute_low_risk_tasks": true
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "draft_deliverable",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "copilote",
+          "kind": "next_step_proposal",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "autonomie",
+          "kind": "execution_step",
+          "waitsForDecision": false,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        }
+      ]
+    },
+    {
+      "key": "offboarding_demission_services",
+      "family": "offboarding",
+      "sector": "services",
+      "sensitive": false,
+      "taskCount": 5,
+      "completed": 4,
+      "needsValidation": 0,
+      "blocked": 1,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 2,
+      "blocked_actions": 0,
+      "validation_policy": {
+        "approval_required": false,
+        "approval_reason": null,
+        "blocked": false,
+        "can_execute_low_risk_tasks": true
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "draft_deliverable",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "copilote",
+          "kind": "next_step_proposal",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "autonomie",
+          "kind": "execution_step",
+          "waitsForDecision": false,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        }
+      ]
+    },
+    {
+      "key": "reporting_multisite_groupe",
+      "family": "reporting",
+      "sector": "groupe_multisite",
+      "sensitive": false,
+      "taskCount": 4,
+      "completed": 1,
+      "needsValidation": 2,
+      "blocked": 1,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 3,
+      "blocked_actions": 2,
+      "validation_policy": {
+        "approval_required": true,
+        "approval_reason": "Document contractuel : validation juridique et managériale obligatoire avant toute signature.",
+        "blocked": false,
+        "can_execute_low_risk_tasks": true
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "draft_deliverable",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "copilote",
+          "kind": "next_step_proposal",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        },
+        {
+          "mode": "autonomie",
+          "kind": "execution_step",
+          "waitsForDecision": false,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": false
+        }
+      ]
+    },
+    {
+      "key": "sensitive_harcelement_pme",
+      "family": "sensitive_case",
+      "sector": "pme",
+      "sensitive": true,
+      "taskCount": 4,
+      "completed": 0,
+      "needsValidation": 3,
+      "blocked": 1,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 1,
+      "blocked_actions": 5,
+      "validation_policy": {
+        "approval_required": true,
+        "approval_reason": "Cas sensible RH : toute action nécessite une validation humaine explicite.",
+        "blocked": true,
+        "can_execute_low_risk_tasks": false
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": true
+        },
+        {
+          "mode": "copilote",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": false,
+          "requiresHumanApproval": true
+        },
+        {
+          "mode": "autonomie",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": false,
+          "requiresHumanApproval": true
+        }
+      ]
+    },
+    {
+      "key": "sensitive_licenciement_btp",
+      "family": "sensitive_case",
+      "sector": "btp",
+      "sensitive": true,
+      "taskCount": 4,
+      "completed": 0,
+      "needsValidation": 3,
+      "blocked": 1,
+      "needsInfo": 0,
+      "artifacts": 0,
+      "falseSuccess": 0,
+      "missing_info": 2,
+      "blocked_actions": 5,
+      "validation_policy": {
+        "approval_required": true,
+        "approval_reason": "Cas sensible RH : toute action nécessite une validation humaine explicite.",
+        "blocked": true,
+        "can_execute_low_risk_tasks": false
+      },
+      "modeTurns": [
+        {
+          "mode": "brouillon",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": true,
+          "requiresHumanApproval": true
+        },
+        {
+          "mode": "copilote",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": false,
+          "requiresHumanApproval": true
+        },
+        {
+          "mode": "autonomie",
+          "kind": "escalation",
+          "waitsForDecision": true,
+          "asksQuestion": false,
+          "presentsOptions": false,
+          "executesSilently": false,
+          "producesDeliverable": false,
+          "requiresHumanApproval": true
+        }
+      ]
+    }
+  ]
+}
