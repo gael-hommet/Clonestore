@@ -96,6 +96,20 @@ const REGISTRY: Record<string, RuntimeActionDefinition> = {
   // metric it cannot compute returns a governed blocker. This is the missing analytics/computation surface.
   "analytics.compute": def({ actionKey: "analytics.compute", category: "read", risk: "read_only", requiredPermission: "audit.read", idempotencyStrategy: "step_run_id",
     validateInput: (p) => (typeof p.metric === "string" && ANALYTICS_METRICS.has(p.metric) ? [] : [`metric must be one of: ${[...ANALYTICS_METRICS].join(", ")}`]) }),
+
+  // P22-continuation — the missing DOCUMENT-PRODUCING action. Produces a governed, versioned DRAFT
+  // document artifact (via the P8.3 DocumentService), linked to the mission (+ employee when given).
+  // risk "controlled" + executionMode "automatic_after_policy": producing a DRAFT is safe and
+  // autonomous-eligible; SENDING (communication.create_intent) and SIGNING (signature.prepare) stay
+  // separately gated. Never renders a fake "signed"/"sent" — only a draft artifact + its content hash.
+  "document.generate": def({ actionKey: "document.generate", category: "document", risk: "controlled", executionMode: "automatic_after_policy",
+    requiredPermission: "document.write", idempotencyStrategy: "step_run_id", ambiguousFailurePolicy: "reconcile", compensationStrategy: "local_rollback",
+    validateInput: (p) => {
+      const errs: string[] = [];
+      if (!isStr(p.document_type)) errs.push("document_type required");
+      if (!isStr(p.title)) errs.push("title required");
+      return errs;
+    } }),
 };
 
 // The whitelisted HR metrics analytics.compute may compute (no free-form computation).

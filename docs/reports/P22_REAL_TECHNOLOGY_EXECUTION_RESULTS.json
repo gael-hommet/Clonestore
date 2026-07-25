@@ -1,0 +1,50 @@
+{
+  "generated_for": "P22_REAL_TECHNOLOGY_EXECUTION",
+  "note": "Authoritative runtime action layer benchmark. Executes document.generate + analytics.compute for real against an in-memory SqlExecutor. Not a full E2E/browser/embedded-PG proof.",
+  "packs_measured": 6,
+  "total_runtime_action_steps": 40,
+  "artifact_producing_steps": 4,
+  "artifacts_persisted": 4,
+  "artifact_persistence_rate": 100,
+  "governed_real_actions": 13,
+  "mission_noop_remaining": 23,
+  "false_success": 0,
+  "per_pack": [
+    {
+      "pack": "recruitment.open_requisition",
+      "rt_steps": 8,
+      "document_steps": 1,
+      "artifacts_persisted": 1
+    },
+    {
+      "pack": "recruitment.pipeline_management",
+      "rt_steps": 7,
+      "document_steps": 0,
+      "artifacts_persisted": 0
+    },
+    {
+      "pack": "recruitment.decision",
+      "rt_steps": 6,
+      "document_steps": 1,
+      "artifacts_persisted": 1
+    },
+    {
+      "pack": "onboarding.run_plan",
+      "rt_steps": 7,
+      "document_steps": 0,
+      "artifacts_persisted": 0
+    },
+    {
+      "pack": "onboarding.access_provisioning",
+      "rt_steps": 5,
+      "document_steps": 0,
+      "artifacts_persisted": 0
+    },
+    {
+      "pack": "offboarding.orchestrate",
+      "rt_steps": 7,
+      "document_steps": 2,
+      "artifacts_persisted": 2
+    }
+  ]
+}

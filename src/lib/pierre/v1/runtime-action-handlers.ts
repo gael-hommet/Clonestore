@@ -16,6 +16,7 @@ import { createCommunicationIntents, dispatchCommunicationDeliveries } from "./c
 import { buildScheduleRule, nextScheduleRunAt } from "./runtime-schedule-rules";
 import { prepareContractSignature } from "./contracts";
 import { submitContractToSignatureProvider, type SignatureDeps } from "./signatures";
+import { createDocument, createVersion } from "./documents";
 
 export type RuntimeDeps = {
   /** app-role, tenant-bound executor for governed business services (defaults to the job executor). */
@@ -241,9 +242,89 @@ const analyticsCompute: RuntimeActionHandler = async (ctx) => {
   return ok({ metric, artifact_id: artifactId, result, kind: "fact" });
 };
 
+// ── document.generate — produces a governed, versioned DRAFT document artifact ─────────
+// Reuses the P8.3 DocumentService (createDocument + createVersion) so the authoritative runtime —
+// not just the legacy submit path — can genuinely persist a document tied to the mission (+ employee).
+// The rendered text is returned as the step output (server-re-readable) and pinned by a content hash
+// on the version; a real PDF/DOCX file requires FileTech/storage and is left to a later step (never
+// faked here). A draft is safe to produce autonomously; send/sign remain separately gated.
+const uuidLike = (v: unknown): v is string => typeof v === "string" && /^[0-9a-fA-F-]{36}$/.test(v);
+
+/** Deterministic professional draft body. Uses caller-provided `content_text` when present (the brain /
+ *  DocumentTech renderer produces the rich content upstream); otherwise builds a neutral, non-empty
+ *  scaffold from the typed variables so the artifact is never blank. No invented facts. */
+export function buildRuntimeDocumentBody(input: {
+  document_type: string;
+  title: string;
+  content_text?: unknown;
+  variables?: Record<string, unknown> | null;
+}): string {
+  if (typeof input.content_text === "string" && input.content_text.trim().length > 0) {
+    return input.content_text.trim();
+  }
+  const vars = input.variables && typeof input.variables === "object" ? input.variables : {};
+  const lines: string[] = [];
+  lines.push(input.title.trim());
+  lines.push("");
+  lines.push(`Type de document : ${input.document_type}`);
+  for (const [k, v] of Object.entries(vars)) {
+    if (v === null || v === undefined) continue;
+    if (typeof v === "object") continue;
+    lines.push(`${k} : ${String(v)}`);
+  }
+  lines.push("");
+  lines.push("Document préparé par Pierre (brouillon) — à compléter/valider avant tout envoi ou signature.");
+  return lines.join("\n");
+}
+
+const documentGenerate: RuntimeActionHandler = async (ctx) => {
+  const documentType = String(ctx.payload.document_type ?? "generic_hr_document");
+  const title = String(ctx.payload.title ?? "Document RH");
+  const employeeId = uuidLike(ctx.payload.employee_id) ? String(ctx.payload.employee_id) : null;
+  const variables =
+    ctx.payload.variables && typeof ctx.payload.variables === "object"
+      ? (ctx.payload.variables as Record<string, unknown>)
+      : null;
+
+  const bodyText = buildRuntimeDocumentBody({ document_type: documentType, title, content_text: ctx.payload.content_text, variables });
+  const contentHash = sha256(Buffer.from(bodyText, "utf8"));
+  const contextHash = sha256(Buffer.from(JSON.stringify({ document_type: documentType, employee_id: employeeId, variables: variables ?? {} })));
+
+  try {
+    const persisted = await ctx.appDb.transaction(async (tx) => {
+      await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.companyId]);
+      const doc = await createDocument(tx, ctx.tenant, {
+        document_type: documentType,
+        title,
+        employee_id: employeeId,
+        mission_id: ctx.missionId,
+      });
+      const ver = await createVersion(tx, ctx.tenant, doc.id, {
+        content_hash: contentHash,
+        generation_context_hash: contextHash,
+        change_summary: "Généré par le runtime Pierre (brouillon)",
+      });
+      return { documentId: doc.id, versionId: ver.id };
+    });
+    return ok({
+      kind: "document",
+      document_id: persisted.documentId,
+      version_id: persisted.versionId,
+      document_type: documentType,
+      content_hash: contentHash,
+      content_text: bodyText,
+      status: "draft",
+    });
+  } catch (e) {
+    // Governance/type refusal (unknown type, missing permission/role) → a governed blocker, never a fake success.
+    return { status: "blocked", blockerCode: "document_generation_refused", output: { reason: (e as Error)?.message ?? "refused" } };
+  }
+};
+
 export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
   "mission.noop": noop,
   "analytics.compute": analyticsCompute,
+  "document.generate": documentGenerate,
   "mission.complete": complete,
   "mission.block": block,
   "employee.read": readObject("pierre_rt_employees", "employee_id"),

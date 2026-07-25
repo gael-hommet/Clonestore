@@ -11,9 +11,9 @@ export const OFFBOARDING_PACKS: HrMissionPackDefinition[] = [
     capabilityIds: ["offboarding.orchestrate", "offboarding.exit_interview"], subjectTypes: ["employee"],
     steps: [
       ...intakeSkeleton(),
-      rt("handover", "prepare_document", "Plan handover & equipment return", "mission.noop", { dependsOn: ["validate"] }),
+      rt("handover", "prepare_document", "Plan handover & equipment return", "document.generate", { dependsOn: ["validate"], input: { document_type: "generic_hr_document", title: "Plan de passation & restitution du matériel" } }),
       ext("revoke_access", "await_external", "Revoke accounts/access", "identity_provider", { dependsOn: ["handover"], autonomy: "execute_with_validation" }),
-      rt("exit_interview", "collect", "Conduct/record exit interview", "mission.noop", { dependsOn: ["handover"] }),
+      rt("exit_interview", "collect", "Conduct/record exit interview", "document.generate", { dependsOn: ["handover"], input: { document_type: "interview_report", title: "Compte-rendu d'entretien de départ" } }),
       svc("archive_file", "archive", "Close & archive the employee file (retention)", "employee360.archive", { dependsOn: ["exit_interview"] }),
       rt("notify", "communicate", "Notify stakeholders", "communication.create_intent", { dependsOn: ["archive_file"], emitsSignal: "offboarding.access_to_close" }),
       ...closeSkeleton("notify"),

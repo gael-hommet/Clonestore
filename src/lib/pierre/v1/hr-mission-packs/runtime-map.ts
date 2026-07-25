@@ -43,6 +43,7 @@ function defaultActionInput(actionKey: string): Record<string, unknown> {
     case "follow_up.schedule": return { reason: "governed mission-pack follow-up", delay_seconds: 86400 };
     case "signature.prepare": return { contract_id: NIL_UUID };
     case "analytics.compute": return { metric: "executive_report" }; // default; packs override with the capability-appropriate metric
+    case "document.generate": return { document_type: "generic_hr_document", title: "Document RH" }; // packs override with the concrete type/title
     default: return {};
   }
 }
