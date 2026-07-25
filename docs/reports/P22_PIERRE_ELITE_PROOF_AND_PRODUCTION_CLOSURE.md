@@ -10,6 +10,54 @@
 
 ---
 
+## REPRISE 8 (P22 — PRE-PAYROLL depth — 2026-07-25, appended)
+
+Third domain to full depth: **pre-payroll** (collect / verify / reconcile / structure / export). Pierre
+is **not** a legal payroll engine and **never** emits a DSN — that boundary is enforced, not just stated.
+
+**Complete model, real SQL.** New migration `pierre_v32_pre_payroll_depth.sql` = **7 tables** (periods,
+variables, variable_evidence, anomalies, exports, export_rows, reconciliations; RLS tenant-iso). New
+governed service `pre-payroll.ts` (period open, **collect variables from real absences**, evidence,
+**deterministic anomaly detection**, readiness, **export with row_count + content hash**, provider
+reconciliation, factual brief) + **10 authoritative actions**.
+
+**Proven E2E on real SQL** (`p22-pre-payroll-depth.itest.ts`, 7/7; `P22_PRE_PAYROLL_DEPTH_RESULTS.json`):
+- **58-employee July month** — 9 real absences (5 maladie, 4 congés) collect to **9 source-linked
+  variables** (`source_type='absence'`, `source_id=absence_id`); **re-collect creates 0 duplicates**
+  (idempotent).
+- **Deterministic anomalies** (no invented thresholds) — 5 `missing_evidence` detected; **re-detect
+  creates 0** (dedup_key). Rules: missing_evidence, invalid_date_range, absence_without_variable,
+  provider_rejection. `unexpected_amount`/`contract_period_mismatch` need configured thresholds →
+  `CONFIGURATION_REQUIRED`, not invented.
+- **Missing evidence** → period `awaiting_information`, **resumes** after evidence attached.
+- **Real export** — 9 rows persisted + a **sha256 content hash**; period reaches `exported`, and
+  **never `transmitted`** without a provider return (no fake transmission / DSN in any mode).
+- **Provider reconciliation** — a partial rejection is applied, **double webhooks are deduped**
+  (one reconciliation per `provider_event_id`), and a `provider_rejection` anomaly is reopened.
+- **Three modes = different persisted export status** (draft / awaiting_validation / validated) for the
+  same data — 0 transmitted in any mode. **Factual brief** (population 58, 9 variables, DSN disclaimed) —
+  numbers from SQL. Idempotent, tenant-isolated, governed refusals. Full P22 real-SQL suite now **31/31**.
+
+**Honest limits — verdict stays WITHHELD.** Not done this turn (and not claimed):
+- **Usable rich document/export CONTENT** — the export is real rows + hash, **not a rendered CSV/XLSX
+  file via FileTech**; synthesis/anomaly-report/brief are structured objects, not rendered PDFs.
+- **Browser cockpit proof**, **true process-restart continuity** (state is durable in SQL + resumable;
+  worker-restart uses the separately-proven scheduler), and the **measured human-touch/value** benchmark
+  (449/499/5000) — none done.
+- **Remaining domains** — performance, training, offboarding depth; helpdesk/workforce full models;
+  global reporting — not built.
+
+**Reprise 8 verdict: P22 — PRE-PAYROLL DEPTH VERIFIED (real-SQL runtime), but OPERATIONAL CLOSURE STILL
+WITHHELD.** Three domains (recruitment, employee onboarding, pre-payroll) are now genuine full workflows
+proven on real SQL with three-mode differentiation and hard human/DSN boundaries. The miracle-grade bar
+(all domains deep, usable rendered docs ≥95%, browser E2E, continuity re-proof, measured value/time) is
+not met.
+
+Verification: `tsc` exit 0, scoped ESLint 0, 327 v1-unit/pack/canon tests + 31 real-SQL integration
+tests green. 0 OpenAI calls.
+
+---
+
 ## REPRISE 7 (P22 — EMPLOYEE onboarding depth + three-mode SQL proof — 2026-07-25, appended)
 
 Second domain to full depth: **employee onboarding** (a salaried arrival), distinct from the existing

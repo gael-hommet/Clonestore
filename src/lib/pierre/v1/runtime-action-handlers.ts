@@ -26,6 +26,11 @@ import {
   createEmployeeOnboardingCase, createDefaultOnboardingPlan, fulfillOnboardingRequirement,
   refreshOnboardingReadiness, computeOnboardingProgress, completeOnboardingStep, type OnboardingMode,
 } from "./employee-onboarding";
+import {
+  openPayrollPeriod, collectVariablesFromAbsences, createPayrollVariable, attachPayrollEvidence,
+  validatePayrollVariable, detectPayrollAnomalies, computePayrollReadiness, generatePayrollExport,
+  reconcilePayrollProviderReturn, buildPayrollBrief, type PayrollMode,
+} from "./pre-payroll";
 
 export type RuntimeDeps = {
   /** app-role, tenant-bound executor for governed business services (defaults to the job executor). */
@@ -590,6 +595,60 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
     await completeOnboardingStep(tx, ctx.tenant, String(ctx.payload.case_id ?? ""), String(ctx.payload.step_key ?? ""));
     return { kind: "employee_onboarding_step", case_id: ctx.payload.case_id, step_key: ctx.payload.step_key };
   }, "onboarding_step_refused"),
+
+  // ── PRE-PAYROLL handlers ────────────────────────────────────────────────────────────
+  "payroll.period.open": domainAction(async (tx, ctx) => {
+    const p = await openPayrollPeriod(tx, ctx.tenant, {
+      period_key: String(ctx.payload.period_key ?? ""), starts_on: String(ctx.payload.starts_on ?? ""), ends_on: String(ctx.payload.ends_on ?? ""),
+      mission_id: ctx.missionId, mode: (ctx.payload.mode as PayrollMode) ?? "copilote", idempotency_key: (ctx.payload.idempotency_key as string) ?? null,
+    });
+    return { kind: "payroll_period", period_id: p.id, status: p.status, population: p.population_count };
+  }, "payroll_period_refused"),
+  "payroll.population.collect": domainAction(async (tx, ctx) => {
+    const r = await collectVariablesFromAbsences(tx, ctx.tenant, String(ctx.payload.period_id ?? ""));
+    return { kind: "payroll_collection", period_id: ctx.payload.period_id, variables_created: r.created };
+  }, "payroll_collect_refused"),
+  "payroll.variable.create": domainAction(async (tx, ctx) => {
+    const v = await createPayrollVariable(tx, ctx.tenant, String(ctx.payload.period_id ?? ""), {
+      employee_id: String(ctx.payload.employee_id ?? ""), variable_type: String(ctx.payload.variable_type ?? ""),
+      quantity: typeof ctx.payload.quantity === "number" ? ctx.payload.quantity : null, amount: typeof ctx.payload.amount === "number" ? ctx.payload.amount : null,
+      starts_on: (ctx.payload.starts_on as string) ?? null, ends_on: (ctx.payload.ends_on as string) ?? null,
+      validation_required: ctx.payload.validation_required === true,
+    });
+    return { kind: "payroll_variable", variable_id: v.id, status: v.status };
+  }, "payroll_variable_refused"),
+  "payroll.variable.evidence.attach": domainAction(async (tx, ctx) => {
+    await attachPayrollEvidence(tx, ctx.tenant, String(ctx.payload.variable_id ?? ""), (ctx.payload.file_id as string) ?? null);
+    return { kind: "payroll_evidence", variable_id: ctx.payload.variable_id };
+  }, "payroll_evidence_refused"),
+  "payroll.variable.validate": domainAction(async (tx, ctx) => {
+    await validatePayrollVariable(tx, ctx.tenant, String(ctx.payload.variable_id ?? ""));
+    return { kind: "payroll_variable_validated", variable_id: ctx.payload.variable_id };
+  }, "payroll_variable_validate_refused"),
+  "payroll.anomaly.detect": domainAction(async (tx, ctx) => {
+    const r = await detectPayrollAnomalies(tx, ctx.tenant, String(ctx.payload.period_id ?? ""));
+    return { kind: "payroll_anomalies", period_id: ctx.payload.period_id, anomalies_created: r.created };
+  }, "payroll_anomaly_refused"),
+  "payroll.readiness.compute": domainAction(async (tx, ctx) => {
+    const p = await computePayrollReadiness(tx, ctx.tenant, String(ctx.payload.period_id ?? ""));
+    return { kind: "payroll_readiness", period_id: p.id, status: p.status };
+  }, "payroll_readiness_refused"),
+  "payroll.export.generate": domainAction(async (tx, ctx) => {
+    const e = await generatePayrollExport(tx, ctx.tenant, String(ctx.payload.period_id ?? ""), (ctx.payload.format as "csv" | "xlsx" | "canonical_json") ?? "csv");
+    return { kind: "payroll_export", export_id: e.export_id, row_count: e.row_count, hash: e.hash, status: e.status };
+  }, "payroll_export_refused"),
+  "payroll.provider_return.reconcile": domainAction(async (tx, ctx) => {
+    const r = await reconcilePayrollProviderReturn(tx, ctx.tenant, String(ctx.payload.period_id ?? ""), {
+      export_id: (ctx.payload.export_id as string) ?? null, provider: String(ctx.payload.provider ?? "test_provider"),
+      provider_event_id: String(ctx.payload.provider_event_id ?? ""), result_status: (ctx.payload.result_status as "accepted" | "partially_rejected" | "rejected") ?? "accepted",
+      accepted_rows: Number(ctx.payload.accepted_rows ?? 0), rejected_rows: Number(ctx.payload.rejected_rows ?? 0), errors: Array.isArray(ctx.payload.errors) ? ctx.payload.errors : [],
+    });
+    return { kind: "payroll_reconciliation", reconciliation_id: r.reconciliation_id, applied: r.applied, deduped: r.deduped };
+  }, "payroll_reconcile_refused"),
+  "payroll.brief.generate": domainAction(async (tx, ctx) => {
+    const brief = await buildPayrollBrief(tx, ctx.tenant, String(ctx.payload.period_id ?? ""));
+    return { kind: "payroll_brief", period_id: ctx.payload.period_id, brief };
+  }, "payroll_brief_refused"),
   "mission.complete": complete,
   "mission.block": block,
   "employee.read": readObject("pierre_rt_employees", "employee_id"),

@@ -1,0 +1,48 @@
+{
+  "generated_for": "P22_PRE_PAYROLL_DEPTH",
+  "note": "Values proven by src/lib/pierre/v1/__integration__/p22-pre-payroll-depth.itest.ts (7/7 green on PGlite Postgres 16 + real migrations incl. pierre_v32). Real-SQL runtime proof, NOT a browser or measured human-time proof. Pierre prepares pre-payroll only — it never computes a legal payroll or emits a DSN.",
+  "migration": "2026-07-25__pierre_v32_pre_payroll_depth.sql",
+  "tables": [
+    "pierre_rt_payroll_periods",
+    "pierre_rt_payroll_variables",
+    "pierre_rt_payroll_variable_evidence",
+    "pierre_rt_payroll_anomalies",
+    "pierre_rt_payroll_exports",
+    "pierre_rt_payroll_export_rows",
+    "pierre_rt_payroll_reconciliations"
+  ],
+  "service": "src/lib/pierre/v1/pre-payroll.ts",
+  "authoritative_actions": [
+    "payroll.period.open", "payroll.population.collect", "payroll.variable.create",
+    "payroll.variable.evidence.attach", "payroll.variable.validate", "payroll.anomaly.detect",
+    "payroll.readiness.compute", "payroll.export.generate", "payroll.provider_return.reconcile",
+    "payroll.brief.generate"
+  ],
+  "scenario_58_employees": {
+    "population": 58,
+    "absences_seeded": { "maladie": 5, "conges_payes": 4 },
+    "variables_collected_source_linked": 9,
+    "recollect_idempotent_created": 0,
+    "note": "each real absence maps to exactly one payroll variable (source_type='absence', source_id=absence_id); re-collect creates 0 duplicates"
+  },
+  "anomaly_detection": {
+    "deterministic_rules": ["missing_evidence", "invalid_date_range", "absence_without_variable", "provider_rejection"],
+    "missing_evidence_detected": 5,
+    "redetect_idempotent_created": 0,
+    "no_invented_financial_thresholds": true
+  },
+  "missing_piece_handling": { "status_when_evidence_missing": "awaiting_information", "resumes_after_evidence": true },
+  "export": { "row_count": 9, "hash": "sha256 (64 hex)", "real_rows_persisted": 9, "period_status_after_export": "exported", "transmitted_without_provider_return": 0 },
+  "provider_reconciliation": { "double_webhook_deduped": true, "rejection_reopens_anomaly": true, "reconciliations_persisted": 1 },
+  "three_mode_export_status": { "brouillon": "draft", "copilote": "awaiting_validation", "autonomie": "validated", "transmitted_any_mode": 0 },
+  "brief": { "population": 58, "total_variables": 9, "export_rows": 9, "numbers_from_sql": true, "dsn_disclaimed": true },
+  "tenant_isolation": { "leak_into_tenant_B": 0 },
+  "governed_refusals": { "invalid_variable_type_or_missing_employee": "blocked", "invariant": "SUCCESS_WITHOUT_EXPECTED_PAYROLL_OBJECT = FAIL" },
+  "NOT_PROVEN_THIS_TURN": [
+    "usable rich document CONTENT for the synthesis/anomaly-report/export (export is real rows+hash, not a rendered CSV/XLSX file via FileTech)",
+    "browser cockpit proof (desktop 1440 / mobile 390)",
+    "true process-restart continuity (state is durable in SQL + resumable; worker-restart uses the existing runtime-scheduler proven separately)",
+    "measured PRE_PAYROLL_HUMAN_TOUCH_REDUCTION and 449/499/5000 value simulation (not computed)",
+    "unexpected_amount / contract_period_mismatch anomaly rules (require configured thresholds — CONFIGURATION_REQUIRED, not invented)"
+  ]
+}

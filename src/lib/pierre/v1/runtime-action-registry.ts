@@ -231,6 +231,55 @@ const REGISTRY: Record<string, RuntimeActionDefinition> = {
       if (!isStr(p.step_key)) e.push("step_key required");
       return e;
     } }),
+
+  // P22 depth — PRE-PAYROLL (collect/verify/reconcile/structure/export; NEVER a legal payroll/DSN).
+  "payroll.period.open": def({ actionKey: "payroll.period.open", category: "state_transition", risk: "controlled",
+    requiredPermission: "payroll_prep.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => {
+      const e: string[] = [];
+      if (!isStr(p.period_key)) e.push("period_key required");
+      if (!isStr(p.starts_on)) e.push("starts_on required");
+      if (!isStr(p.ends_on)) e.push("ends_on required");
+      return e;
+    } }),
+  "payroll.population.collect": def({ actionKey: "payroll.population.collect", category: "state_transition", risk: "controlled",
+    requiredPermission: "payroll_prep.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.period_id) ? [] : ["period_id (uuid) required"]) }),
+  "payroll.variable.create": def({ actionKey: "payroll.variable.create", category: "state_transition", risk: "controlled",
+    requiredPermission: "payroll_prep.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => {
+      const e: string[] = [];
+      if (!isUuid(p.period_id)) e.push("period_id (uuid) required");
+      if (!isUuid(p.employee_id)) e.push("employee_id (uuid) required");
+      if (!isStr(p.variable_type)) e.push("variable_type required");
+      return e;
+    } }),
+  "payroll.variable.evidence.attach": def({ actionKey: "payroll.variable.evidence.attach", category: "state_transition", risk: "controlled",
+    requiredPermission: "payroll_prep.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.variable_id) ? [] : ["variable_id (uuid) required"]) }),
+  "payroll.variable.validate": def({ actionKey: "payroll.variable.validate", category: "state_transition", risk: "controlled",
+    requiredPermission: "payroll_prep.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.variable_id) ? [] : ["variable_id (uuid) required"]) }),
+  "payroll.anomaly.detect": def({ actionKey: "payroll.anomaly.detect", category: "read", risk: "low",
+    requiredPermission: "payroll_prep.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.period_id) ? [] : ["period_id (uuid) required"]) }),
+  "payroll.readiness.compute": def({ actionKey: "payroll.readiness.compute", category: "read", risk: "read_only",
+    requiredPermission: "payroll_prep.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.period_id) ? [] : ["period_id (uuid) required"]) }),
+  "payroll.export.generate": def({ actionKey: "payroll.export.generate", category: "document", risk: "controlled",
+    requiredPermission: "payroll_prep.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.period_id) ? [] : ["period_id (uuid) required"]) }),
+  "payroll.provider_return.reconcile": def({ actionKey: "payroll.provider_return.reconcile", category: "read", risk: "controlled",
+    requiredPermission: "payroll_prep.write", idempotencyStrategy: "idempotency_key", ambiguousFailurePolicy: "reconcile",
+    validateInput: (p) => {
+      const e: string[] = [];
+      if (!isUuid(p.period_id)) e.push("period_id (uuid) required");
+      if (!isStr(p.provider_event_id)) e.push("provider_event_id required");
+      return e;
+    } }),
+  "payroll.brief.generate": def({ actionKey: "payroll.brief.generate", category: "read", risk: "read_only",
+    requiredPermission: "payroll_prep.read", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.period_id) ? [] : ["period_id (uuid) required"]) }),
 };
 
 // The whitelisted HR metrics analytics.compute may compute (no free-form computation).
