@@ -1,6 +1,6 @@
 # CloneStory — BLOC 2 : Ouverture réelle des inscriptions & moteur de contribution vérifiée
 
-Les inscriptions au **Cercle des Partenaires Fondateurs** sont **ouvertes immédiatement** (avant le lancement commercial de Pierre, le 5 août). À l'inscription, une personne devient **Membre du Cercle Fondateur**. Le titre **Partenaire Fondateur de CloneStore**, le numéro de registre définitif et l'apparition au registre public n'arrivent qu'**après une première contribution réelle et vérifiée**.
+Les inscriptions au **Cercle des Partenaires Fondateurs** sont **ouvertes immédiatement** (avant le lancement commercial de Pierre, le 12 août — reporté depuis le 5 août 2026 initial). À l'inscription, une personne devient **Membre du Cercle Fondateur**. Le titre **Partenaire Fondateur de CloneStore**, le numéro de registre définitif et l'apparition au registre public n'arrivent qu'**après une première contribution réelle et vérifiée**.
 
 ## 1. Parcours livré (fonctionnel, prouvé en navigateur)
 
