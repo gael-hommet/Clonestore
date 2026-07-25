@@ -1,0 +1,57 @@
+{
+  "generated_for": "P22_EMPLOYEE_ONBOARDING_DEPTH",
+  "note": "Values proven by src/lib/pierre/v1/__integration__/p22-employee-onboarding-depth.itest.ts (6/6 green on PGlite Postgres 16 + real migrations, incl. pierre_v31). This is a real-SQL runtime proof, NOT a browser or human-time proof.",
+  "migration": "2026-07-25__pierre_v31_employee_onboarding_depth.sql",
+  "tables": [
+    "pierre_rt_employee_onboarding_cases",
+    "pierre_rt_employee_onboarding_steps",
+    "pierre_rt_employee_onboarding_requirements",
+    "pierre_rt_employee_onboarding_assets",
+    "pierre_rt_employee_onboarding_access_intents",
+    "pierre_rt_employee_onboarding_communications",
+    "pierre_rt_employee_onboarding_calendar_intents",
+    "pierre_rt_employee_onboarding_followups"
+  ],
+  "service": "src/lib/pierre/v1/employee-onboarding.ts",
+  "authoritative_actions": [
+    "employee.onboarding.case.create",
+    "employee.onboarding.plan.create",
+    "employee.onboarding.requirement.fulfill",
+    "employee.onboarding.progress.compute",
+    "employee.onboarding.step.complete"
+  ],
+  "demo_mission": "une responsable commerciale arrive à Lyon lundi (generic engine, not phrase-coded)",
+  "default_plan_objects": {
+    "steps": 11,
+    "validation_required_steps": 1,
+    "requirements": 4,
+    "assets": 3,
+    "access_intents": 3,
+    "communications": 2,
+    "calendar_intents": 1,
+    "followups": 4
+  },
+  "demo_targets": { "min_tasks": 7, "min_validations": 1, "tasks_reached": 11, "validations_reached": 1 },
+  "missing_piece_handling": {
+    "blocking_requirements": 3,
+    "partial_fulfilment_status": "awaiting_information",
+    "durable": true,
+    "resume_after_all_fulfilled_status": "awaiting_validation"
+  },
+  "three_mode_persisted_differences": {
+    "brouillon": { "communication_status": "draft", "case_status": "preparing", "ready_steps": "lowest" },
+    "copilote": { "communication_status": "awaiting_validation", "case_status": "awaiting_validation" },
+    "autonomie": { "communication_status": "ready", "case_status": "awaiting_validation", "ready_steps": "highest", "note": "readies safe internal steps but STILL stops at the mandatory human validation (contract)" },
+    "auto_sent_communications_any_mode": 0
+  },
+  "idempotence": { "same_key_yields_one_case": true },
+  "tenant_isolation": { "leak_into_tenant_B": 0 },
+  "governed_refusals": { "plan_on_missing_case": "blocked", "invariant": "SUCCESS_WITHOUT_EXPECTED_ONBOARDING_OBJECT = FAIL" },
+  "NOT_PROVEN_THIS_TURN": [
+    "usable rich document CONTENT (communications/calendar are objects+status, not rendered PDFs)",
+    "browser cockpit proof (desktop 1440 / mobile 390)",
+    "true process-restart continuity (state is durable in SQL; process-restart uses the existing runtime-scheduler, proven separately)",
+    "11h35->12min human-time benchmark",
+    "provider send/calendar creation (no live provider — intents stay prepared/ready, never sent)"
+  ]
+}

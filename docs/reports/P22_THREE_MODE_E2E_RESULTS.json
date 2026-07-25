@@ -1,0 +1,16 @@
+{
+  "generated_for": "P22_THREE_MODE_E2E",
+  "note": "Real-SQL proof that the SAME employee-onboarding arrival produces GENUINELY DIFFERENT persisted effects per user mode — not just different text. Proven by p22-employee-onboarding-depth.itest.ts (three-mode test, green).",
+  "scenario": "identical employee arrival, run in brouillon / copilote / autonomie",
+  "measured_sql_differences": {
+    "communication_status": { "brouillon": "draft", "copilote": "awaiting_validation", "autonomie": "ready" },
+    "case_status": { "brouillon": "preparing", "copilote": "awaiting_validation", "autonomie": "awaiting_validation" },
+    "ready_steps": { "brouillon": "lowest (safe internal steps left pending)", "autonomie": "highest (safe internal steps readied)" }
+  },
+  "invariants_held": {
+    "no_mode_auto_sends_a_communication": true,
+    "autonomie_still_stops_at_mandatory_human_validation": true,
+    "difference_is_persisted_sql_not_only_text": true
+  },
+  "coverage_note": "This proves three-mode DIFFERENTIATION on the onboarding domain at the runtime/SQL layer. It is NOT the 18-mission x 3-mode browser E2E across all domains (that remains not done)."
+}

@@ -205,6 +205,32 @@ const REGISTRY: Record<string, RuntimeActionDefinition> = {
       if (!isStr(p.pack_key)) e.push("pack_key required");
       return e;
     } }),
+
+  // P22 depth — EMPLOYEE onboarding (salaried arrival) real domain actions.
+  "employee.onboarding.case.create": def({ actionKey: "employee.onboarding.case.create", category: "state_transition", risk: "controlled",
+    requiredPermission: "employee.write", idempotencyStrategy: "step_run_id", validateInput: () => [] }),
+  "employee.onboarding.plan.create": def({ actionKey: "employee.onboarding.plan.create", category: "state_transition", risk: "controlled",
+    requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.case_id) ? [] : ["case_id (uuid) required"]) }),
+  "employee.onboarding.requirement.fulfill": def({ actionKey: "employee.onboarding.requirement.fulfill", category: "state_transition", risk: "controlled",
+    requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => {
+      const e: string[] = [];
+      if (!isUuid(p.case_id)) e.push("case_id (uuid) required");
+      if (!isStr(p.requirement_type)) e.push("requirement_type required");
+      return e;
+    } }),
+  "employee.onboarding.progress.compute": def({ actionKey: "employee.onboarding.progress.compute", category: "read", risk: "read_only",
+    requiredPermission: "employee.read", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => (isUuid(p.case_id) ? [] : ["case_id (uuid) required"]) }),
+  "employee.onboarding.step.complete": def({ actionKey: "employee.onboarding.step.complete", category: "state_transition", risk: "controlled",
+    requiredPermission: "employee.write", idempotencyStrategy: "step_run_id",
+    validateInput: (p) => {
+      const e: string[] = [];
+      if (!isUuid(p.case_id)) e.push("case_id (uuid) required");
+      if (!isStr(p.step_key)) e.push("step_key required");
+      return e;
+    } }),
 };
 
 // The whitelisted HR metrics analytics.compute may compute (no free-form computation).

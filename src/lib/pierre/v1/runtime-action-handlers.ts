@@ -22,6 +22,10 @@ import { createWorkforcePlan } from "./workforce-planning";
 import { ingestCandidate, createRequisition, createApplication, prepareInterview, recordFeedback, prepareOffer } from "./recruitment";
 import { createHrRequest } from "./hr-requests";
 import { bindCountryPack } from "./country-config";
+import {
+  createEmployeeOnboardingCase, createDefaultOnboardingPlan, fulfillOnboardingRequirement,
+  refreshOnboardingReadiness, computeOnboardingProgress, completeOnboardingStep, type OnboardingMode,
+} from "./employee-onboarding";
 
 export type RuntimeDeps = {
   /** app-role, tenant-bound executor for governed business services (defaults to the job executor). */
@@ -559,6 +563,33 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
   "recruitment.offer.prepare": recruitmentOfferPrepare,
   "hr.request.create": hrRequestCreate,
   "country.pack.bind": countryPackBind,
+  "employee.onboarding.case.create": domainAction(async (tx, ctx) => {
+    const c = await createEmployeeOnboardingCase(tx, ctx.tenant, {
+      mission_id: ctx.missionId, employee_id: (ctx.payload.employee_id as string) ?? null,
+      site_id: (ctx.payload.site_id as string) ?? null, manager_employee_id: (ctx.payload.manager_employee_id as string) ?? null,
+      job_title: (ctx.payload.job_title as string) ?? null, start_date: (ctx.payload.start_date as string) ?? null,
+      mode: (ctx.payload.mode as OnboardingMode) ?? "copilote", idempotency_key: (ctx.payload.idempotency_key as string) ?? null,
+    });
+    return { kind: "employee_onboarding_case", case_id: c.id, status: c.status, mode: c.mode };
+  }, "onboarding_case_refused"),
+  "employee.onboarding.plan.create": domainAction(async (tx, ctx) => {
+    const counts = await createDefaultOnboardingPlan(tx, ctx.tenant, String(ctx.payload.case_id ?? ""));
+    return { kind: "employee_onboarding_plan", case_id: ctx.payload.case_id, ...counts };
+  }, "onboarding_plan_refused"),
+  "employee.onboarding.requirement.fulfill": domainAction(async (tx, ctx) => {
+    const caseId = String(ctx.payload.case_id ?? "");
+    await fulfillOnboardingRequirement(tx, ctx.tenant, caseId, String(ctx.payload.requirement_type ?? ""), (ctx.payload.file_id as string) ?? null);
+    const c = await refreshOnboardingReadiness(tx, ctx.tenant, caseId);
+    return { kind: "employee_onboarding_requirement", case_id: caseId, case_status: c.status };
+  }, "onboarding_requirement_refused"),
+  "employee.onboarding.progress.compute": domainAction(async (tx, ctx) => {
+    const pct = await computeOnboardingProgress(tx, ctx.tenant, String(ctx.payload.case_id ?? ""));
+    return { kind: "employee_onboarding_progress", case_id: ctx.payload.case_id, progress_percent: pct };
+  }, "onboarding_progress_refused"),
+  "employee.onboarding.step.complete": domainAction(async (tx, ctx) => {
+    await completeOnboardingStep(tx, ctx.tenant, String(ctx.payload.case_id ?? ""), String(ctx.payload.step_key ?? ""));
+    return { kind: "employee_onboarding_step", case_id: ctx.payload.case_id, step_key: ctx.payload.step_key };
+  }, "onboarding_step_refused"),
   "mission.complete": complete,
   "mission.block": block,
   "employee.read": readObject("pierre_rt_employees", "employee_id"),

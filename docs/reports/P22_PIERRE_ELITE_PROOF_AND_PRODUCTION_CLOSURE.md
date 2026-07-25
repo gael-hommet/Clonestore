@@ -10,6 +10,57 @@
 
 ---
 
+## REPRISE 7 (P22 — EMPLOYEE onboarding depth + three-mode SQL proof — 2026-07-25, appended)
+
+Second domain to full depth: **employee onboarding** (a salaried arrival), distinct from the existing
+*product* onboarding (`pierre_rt_onboarding_sessions` = company→Pierre).
+
+**Complete model + generic engine, real SQL.** New migration `pierre_v31_employee_onboarding_depth.sql`
+adds **8 tables** (cases, steps, requirements, assets, access_intents, communications, calendar_intents,
+followups; RLS tenant-iso). New governed service `employee-onboarding.ts` with a **generic default-plan
+generator** (the same engine for any arrival — not phrase-coded) + 5 authoritative actions
+(`employee.onboarding.case.create` / `.plan.create` / `.requirement.fulfill` / `.progress.compute` /
+`.step.complete`).
+
+**Proven E2E on real SQL** (`p22-employee-onboarding-depth.itest.ts`, 6/6;
+`P22_EMPLOYEE_ONBOARDING_DEPTH_RESULTS.json`):
+- **Full arrival** — the demo mission ("responsable commerciale arrive à Lyon lundi") yields, from the
+  generic engine, **11 real steps (≥7) with 1 mandatory human validation (≥1)**, plus 4 requirements,
+  3 assets, 3 access intents, 2 communications, 1 calendar intent, 4 followups — case gated at
+  `awaiting_validation` on the contract.
+- **Missing pieces** → `awaiting_information` with a visible blocking reason (durable — re-read from
+  SQL), then **resumes** to `awaiting_validation` once the 3 blocking requirements are fulfilled. No
+  fake completion.
+- **Three modes = genuinely different persisted effects** (`P22_THREE_MODE_E2E_RESULTS.json`): the SAME
+  arrival persists communication status `draft` (brouillon) / `awaiting_validation` (copilote) /
+  `ready` (autonomie); more safe-internal steps `ready` in autonomie; case status differs — and **no
+  mode ever auto-sends** a communication (autonomie is `ready`, never `sent`, without a provider), and
+  autonomie **still stops at the mandatory human validation**. Difference is in SQL, not just text.
+- **Idempotent** (same key → one case), **tenant-isolated** (0 leak to B), **governed refusal** (plan
+  on a missing case → blocked). Full P22 real-SQL suite now **24/24 green**.
+
+**Honest limits — verdict stays WITHHELD.** Not done this turn (and not claimed):
+- **Usable rich document CONTENT** — onboarding communications/calendar are real objects+status, **not
+  rendered PDFs**; `document.generate` is still draft+hash. `ONBOARDING_USABLE_DELIVERABLE_RATE` not
+  measured.
+- **Browser cockpit proof** (desktop 1440 / mobile 390) — not run.
+- **True process-restart continuity** — state is proven durable in SQL and resumable, but a literal
+  worker-restart uses the existing `runtime-scheduler` (proven separately), not re-demonstrated here
+  (PGlite is in-memory per harness).
+- **11h35→12min human-time** and the **economic-value** benchmark — not done.
+- **Remaining domains** — payroll / performance / training / offboarding depth, helpdesk/workforce full
+  models, reporting-from-tables — not built.
+
+**Reprise 7 verdict: P22 — EMPLOYEE ONBOARDING DEPTH VERIFIED (real-SQL runtime), but OPERATIONAL
+CLOSURE STILL WITHHELD.** Two domains (recruitment, employee onboarding) are now genuine full workflows
+proven on real SQL with three-mode differentiation; the miracle-grade bar (all domains deep, usable
+docs ≥95%, 18-mission browser E2E, continuity re-proof, value/time) is not met.
+
+Verification: `tsc` exit 0, scoped ESLint 0, 327 v1-unit/pack/canon tests + 24 real-SQL integration
+tests green. 0 OpenAI calls.
+
+---
+
 ## REPRISE 6 (P22 — recruitment DEPTH + trace/collection justification — 2026-07-25, appended)
 
 Moving from minimal-but-real to a **complete workflow** for one domain (recruitment), and proving no
