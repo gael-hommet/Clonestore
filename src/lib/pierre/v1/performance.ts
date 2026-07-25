@@ -95,20 +95,72 @@ export async function buildPerformanceSummary(db: SqlExecutor, ctx: TenantContex
   return rows[0];
 }
 
-export async function validatePerformanceSummary(db: SqlExecutor, ctx: TenantContext, interviewId: string): Promise<void> {
+/** Submit the summary for a REAL human validation — creates a pierre_rt_validations row (pending). The
+ *  summary is NOT validated by calling a handler; it awaits a persisted human decision. */
+export async function submitPerformanceSummaryForValidation(db: SqlExecutor, ctx: TenantContext, interviewId: string, missionId: string): Promise<{ validation_id: string }> {
   requirePermission(ctx, "employee.write");
-  const upd = await db.query<{ id: string }>(`update pierre_rt_performance_summaries set status='validated', version=version+1 where company_id=$1 and interview_id=$2 and status in ('draft','awaiting_validation') returning id`, [ctx.company_id, interviewId]);
-  if (upd.rows.length === 0) throw Errors.conflict("No summary to validate");
-  await db.query(`update pierre_rt_performance_interviews set status='awaiting_validation', updated_at=now(), version=version+1 where company_id=$1 and id=$2`, [ctx.company_id, interviewId]);
+  const sum = (await db.query<{ id: string; status: string }>(`select id, status from pierre_rt_performance_summaries where company_id=$1 and interview_id=$2`, [ctx.company_id, interviewId])).rows[0];
+  if (!sum) throw Errors.notFound("Summary not found");
+  if (sum.status === "validated") throw Errors.conflict("Summary already validated");
+  const vId = newUuid();
+  await db.query(
+    `insert into pierre_rt_validations (id, company_id, mission_id, validator_role, required_count, status, reason, risk_context)
+     values ($1,$2,$3,'hr_manager',1,'pending',$4,$5::jsonb)`,
+    [vId, ctx.company_id, missionId, "Validation du compte-rendu d'entretien", JSON.stringify({ kind: "performance_summary", interview_id: interviewId })]);
+  await db.query(`update pierre_rt_performance_summaries set status='awaiting_validation', validation_id=$3, version=version+1 where company_id=$1 and interview_id=$2`, [ctx.company_id, interviewId, vId]);
+  await db.query(`update pierre_rt_performance_interviews set status='awaiting_validation', validation_id=$3, updated_at=now(), version=version+1 where company_id=$1 and id=$2`, [ctx.company_id, interviewId, vId]);
+  return { validation_id: vId };
 }
 
-/** An interview completes ONLY with responses AND a validated summary — never auto-completed. */
+/** Apply the human decision from the linked pierre_rt_validations row. approved ⇒ validated; rejected ⇒
+ *  back to draft (modifiable + versioned). A pending/undecided validation is refused (never auto-passes). */
+export async function applyPerformanceSummaryValidation(db: SqlExecutor, ctx: TenantContext, interviewId: string): Promise<{ status: string }> {
+  requirePermission(ctx, "employee.write");
+  const sum = (await db.query<{ validation_id: string | null }>(`select validation_id from pierre_rt_performance_summaries where company_id=$1 and interview_id=$2`, [ctx.company_id, interviewId])).rows[0];
+  if (!sum?.validation_id) throw Errors.conflict("Summary has no pending validation");
+  const val = (await db.query<{ status: string }>(`select status from pierre_rt_validations where company_id=$1 and id=$2`, [ctx.company_id, sum.validation_id])).rows[0];
+  if (!val) throw Errors.notFound("Validation not found");
+  if (val.status === "approved") {
+    await db.query(`update pierre_rt_performance_summaries set status='validated', version=version+1 where company_id=$1 and interview_id=$2`, [ctx.company_id, interviewId]);
+    return { status: "validated" };
+  }
+  if (val.status === "rejected" || val.status === "changes_requested") {
+    await db.query(`update pierre_rt_performance_summaries set status='draft', version=version+1 where company_id=$1 and interview_id=$2`, [ctx.company_id, interviewId]);
+    await db.query(`update pierre_rt_performance_interviews set status='under_review', updated_at=now(), version=version+1 where company_id=$1 and id=$2`, [ctx.company_id, interviewId]);
+    return { status: "rejected" };
+  }
+  throw Errors.conflict(`Validation not decided (status=${val.status})`);
+}
+
+/** An interview completes ONLY with responses AND a human-validated summary (status='validated' driven
+ *  by an approved pierre_rt_validations decision) — never auto-completed, never on a mere status flip. */
 export async function completePerformanceInterview(db: SqlExecutor, ctx: TenantContext, interviewId: string): Promise<{ completed: boolean }> {
   requirePermission(ctx, "employee.write");
+  const responses = Number((await db.query<{ n: number }>(`select count(*)::int n from pierre_rt_performance_responses where company_id=$1 and interview_id=$2`, [ctx.company_id, interviewId])).rows[0].n);
+  if (responses === 0) throw Errors.conflict("Cannot complete: no responses recorded");
   const validated = (await db.query(`select 1 from pierre_rt_performance_summaries where company_id=$1 and interview_id=$2 and status='validated'`, [ctx.company_id, interviewId])).rows[0];
-  if (!validated) throw Errors.conflict("Cannot complete: summary not validated");
+  if (!validated) throw Errors.conflict("Cannot complete: summary not human-validated");
   await db.query(`update pierre_rt_performance_interviews set status='completed', completed_at=now(), updated_at=now(), version=version+1 where company_id=$1 and id=$2`, [ctx.company_id, interviewId]);
   return { completed: true };
+}
+
+/** Performance action plan (validated before it can source sensitive training). */
+export async function createPerformanceActionPlan(db: SqlExecutor, ctx: TenantContext, input: { title: string; employee_id?: string | null; interview_id?: string | null; campaign_id?: string | null; owner?: string | null }): Promise<{ id: string; status: string }> {
+  requirePermission(ctx, "employee.write");
+  if (!input.title?.trim()) throw Errors.validation("title required");
+  const { rows } = await db.query<{ id: string; status: string }>(
+    `insert into pierre_rt_performance_action_plans (id, company_id, employee_id, interview_id, campaign_id, title, owner, status, created_by)
+     values (gen_random_uuid(),$1,$2,$3,$4,$5,$6,'draft',$7) returning id, status`,
+    [ctx.company_id, input.employee_id ?? null, input.interview_id ?? null, input.campaign_id ?? null, input.title, input.owner ?? null, ctx.user_id]);
+  return rows[0];
+}
+
+/** Validate a performance action plan (the gate before it may source training). */
+export async function validatePerformanceActionPlan(db: SqlExecutor, ctx: TenantContext, planId: string): Promise<{ status: string }> {
+  requirePermission(ctx, "employee.write");
+  const upd = await db.query<{ id: string }>(`update pierre_rt_performance_action_plans set status='validated', version=version+1 where company_id=$1 and id=$2 and status in ('draft','awaiting_validation') returning id`, [ctx.company_id, planId]);
+  if (upd.rows.length === 0) throw Errors.conflict("No action plan to validate");
+  return { status: "validated" };
 }
 
 export async function createPerformanceObjective(db: SqlExecutor, ctx: TenantContext, input: { employee_id: string; title: string; interview_id?: string | null; campaign_id?: string | null; success_criteria?: string | null; due_on?: string | null }): Promise<{ id: string }> {
@@ -121,13 +173,13 @@ export async function createPerformanceObjective(db: SqlExecutor, ctx: TenantCon
   return rows[0];
 }
 
-export async function createPerformanceActionItem(db: SqlExecutor, ctx: TenantContext, input: { employee_id?: string | null; interview_id?: string | null; campaign_id?: string | null; action: string; owner?: string | null; due_on?: string | null; plan_key?: string | null }): Promise<{ id: string }> {
+export async function createPerformanceActionItem(db: SqlExecutor, ctx: TenantContext, input: { employee_id?: string | null; interview_id?: string | null; campaign_id?: string | null; action: string; owner?: string | null; due_on?: string | null; plan_key?: string | null; plan_id?: string | null }): Promise<{ id: string }> {
   requirePermission(ctx, "employee.write");
   if (!input.action?.trim()) throw Errors.validation("action required");
   const { rows } = await db.query<{ id: string }>(
-    `insert into pierre_rt_performance_action_items (id, company_id, employee_id, interview_id, campaign_id, plan_key, action, owner, due_on, status)
-     values (gen_random_uuid(),$1,$2,$3,$4,$5,$6,$7,$8,'open') returning id`,
-    [ctx.company_id, input.employee_id ?? null, input.interview_id ?? null, input.campaign_id ?? null, input.plan_key ?? null, input.action, input.owner ?? null, input.due_on ?? null]);
+    `insert into pierre_rt_performance_action_items (id, company_id, employee_id, interview_id, campaign_id, plan_id, plan_key, action, owner, due_on, status)
+     values (gen_random_uuid(),$1,$2,$3,$4,$5,$6,$7,$8,$9,'open') returning id`,
+    [ctx.company_id, input.employee_id ?? null, input.interview_id ?? null, input.campaign_id ?? null, input.plan_id ?? null, input.plan_key ?? null, input.action, input.owner ?? null, input.due_on ?? null]);
   return rows[0];
 }
 
@@ -160,4 +212,64 @@ export async function buildPerformanceBrief(db: SqlExecutor, ctx: TenantContext,
     completion_percent: c.completion_percent,
     note: "Pierre prepares and tracks; final performance/promotion/sanction decisions remain human.",
   };
+}
+
+/** Governed template sections + questions (versioned). Structure only — never a scoring rule. */
+export async function addPerformanceTemplateSection(db: SqlExecutor, ctx: TenantContext, input: { template_id: string; section_key: string; title: string; ordinal?: number; audience?: string; required?: boolean }): Promise<{ id: string }> {
+  requirePermission(ctx, "employee.write");
+  if (!input.section_key?.trim() || !input.title?.trim()) throw Errors.validation("section_key + title required");
+  const { rows } = await db.query<{ id: string }>(
+    `insert into pierre_rt_performance_template_sections (id, company_id, template_id, section_key, title, ordinal, audience, required)
+     values (gen_random_uuid(),$1,$2,$3,$4,$5,$6,$7)
+     on conflict (company_id, template_id, section_key) do update set title=excluded.title, ordinal=excluded.ordinal, audience=excluded.audience, required=excluded.required, version=pierre_rt_performance_template_sections.version+1 returning id`,
+    [ctx.company_id, input.template_id, input.section_key, input.title, input.ordinal ?? 0, input.audience ?? "both", input.required !== false]);
+  return rows[0];
+}
+
+export async function addPerformanceTemplateQuestion(db: SqlExecutor, ctx: TenantContext, input: { section_id: string; question_key: string; label: string; response_type?: string; required?: boolean; visibility?: string; ordinal?: number }): Promise<{ id: string }> {
+  requirePermission(ctx, "employee.write");
+  if (!input.question_key?.trim() || !input.label?.trim()) throw Errors.validation("question_key + label required");
+  const { rows } = await db.query<{ id: string }>(
+    `insert into pierre_rt_performance_template_questions (id, company_id, section_id, question_key, label, response_type, required, visibility, ordinal)
+     values (gen_random_uuid(),$1,$2,$3,$4,$5,$6,$7,$8)
+     on conflict (company_id, section_id, question_key) do update set label=excluded.label, response_type=excluded.response_type, required=excluded.required, visibility=excluded.visibility, ordinal=excluded.ordinal, version=pierre_rt_performance_template_questions.version+1 returning id`,
+    [ctx.company_id, input.section_id, input.question_key, input.label, input.response_type ?? "text", input.required !== false, input.visibility ?? "restricted", input.ordinal ?? 0]);
+  return rows[0];
+}
+
+/** Real response completeness: every REQUIRED question of the interview's template must have a response
+ *  (matched by question_key). No template ⇒ nothing to enforce (complete=true, total_required=0). This
+ *  is a structural check only — it never scores or judges the content of an answer. */
+export async function validateInterviewResponseCompleteness(db: SqlExecutor, ctx: TenantContext, interviewId: string): Promise<{ complete: boolean; missing: string[]; total_required: number }> {
+  requirePermission(ctx, "employee.read");
+  const iv = (await db.query<{ template_id: string | null }>(`select template_id from pierre_rt_performance_interviews where company_id=$1 and id=$2`, [ctx.company_id, interviewId])).rows[0];
+  if (!iv) throw Errors.notFound("Interview not found");
+  if (!iv.template_id) return { complete: true, missing: [], total_required: 0 };
+  const required = (await db.query<{ question_key: string }>(
+    `select q.question_key from pierre_rt_performance_template_questions q
+       join pierre_rt_performance_template_sections s on s.id=q.section_id and s.company_id=q.company_id
+      where q.company_id=$1 and s.template_id=$2 and q.required=true and q.status='active'`, [ctx.company_id, iv.template_id])).rows.map((r) => r.question_key);
+  const answered = new Set((await db.query<{ question_key: string }>(
+    `select distinct question_key from pierre_rt_performance_responses where company_id=$1 and interview_id=$2`, [ctx.company_id, interviewId])).rows.map((r) => r.question_key));
+  const missing = required.filter((k) => !answered.has(k));
+  return { complete: missing.length === 0, missing, total_required: required.length };
+}
+
+/** SQL-computed performance report. Rendering to a PDF/doc is NOT wired: reported honestly as
+ *  RENDERER_ACTIVATION_PENDING rather than pretending a document was produced. */
+export async function generatePerformanceReport(db: SqlExecutor, ctx: TenantContext, campaignId: string): Promise<Record<string, unknown>> {
+  requirePermission(ctx, "employee.read");
+  const brief = await buildPerformanceBrief(db, ctx, campaignId);
+  const byStatus = (await db.query<{ status: string; n: number }>(
+    `select status, count(*)::int n from pierre_rt_performance_interviews where company_id=$1 and campaign_id=$2 group by status`, [ctx.company_id, campaignId])).rows;
+  return { computed_from: "sql", campaign_id: campaignId, metrics: brief, interviews_by_status: byStatus, document: null, document_status: "RENDERER_ACTIVATION_PENDING" };
+}
+
+/** Honest reminder/invitation channel. There is no messaging integration wired in this runtime, so we
+ *  NEVER claim a message was sent: the recipients are computed for real but delivery is INTEGRATION_UNAVAILABLE. */
+export async function sendPerformanceReminders(db: SqlExecutor, ctx: TenantContext, campaignId: string): Promise<{ recipients: number; delivered: number; status: string }> {
+  requirePermission(ctx, "employee.write");
+  const recipients = Number((await db.query<{ n: number }>(
+    `select count(*)::int n from pierre_rt_performance_interviews where company_id=$1 and campaign_id=$2 and status not in ('completed','cancelled')`, [ctx.company_id, campaignId])).rows[0].n);
+  return { recipients, delivered: 0, status: "INTEGRATION_UNAVAILABLE" };
 }
