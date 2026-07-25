@@ -27,7 +27,7 @@ const MOCK_USER_ID = "user_b44_test";
 
 // Mock Supabase
 vi.mock("@supabase/supabase-js", () => {
-  let memoryStore: Record<string, unknown> = {};
+  const memoryStore: Record<string, unknown> = {};
 
   const mockSingle = () => ({ data: null, error: null });
   const mockMaybeSingle = () => ({

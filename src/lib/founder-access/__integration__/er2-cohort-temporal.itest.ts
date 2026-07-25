@@ -18,9 +18,11 @@ async function evAt(session: string, name: string, msAgo: number) {
 
 describe("§11 — funnel cohorté temporel, cas complets", () => {
   it("respecte l'ordre, la première occurrence, et borne les conversions à 100 %", async () => {
-    // s1 : parcours correct site→demo→demo_completed
+    // s1 : parcours correct site→demo→reveal→demo_completed (la révélation Pierre est une
+    // étape à part entière du funnel entre "demo" et "demo_done", cf. FUNNEL_DEFS).
     const s1 = sid();
-    await evAt(s1, "site_viewed", 5000); await evAt(s1, "demo_viewed", 4000); await evAt(s1, "demo_completed", 3000);
+    await evAt(s1, "site_viewed", 5000); await evAt(s1, "demo_viewed", 4000);
+    await evAt(s1, "demo_pierre_reveal_viewed", 3500); await evAt(s1, "demo_completed", 3000);
     // s2 : demo AVANT site → demo non franchi
     const s2 = sid();
     await evAt(s2, "demo_viewed", 5000); await evAt(s2, "site_viewed", 4000);

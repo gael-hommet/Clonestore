@@ -26,7 +26,7 @@ export function resolveAmount(original: string, opts?: { requireCurrency?: boole
   // Extract the numeric token (digits, spaces, dots, commas). Reject if none.
   const numMatch = raw.match(/(\d[\d\s.,]*\d|\d)/);
   if (!numMatch) return fail("not_found", "no_number");
-  let tok = numMatch[1].replace(/\s/g, ""); // group separators as spaces are safe to drop
+  const tok = numMatch[1].replace(/\s/g, ""); // group separators as spaces are safe to drop
 
   const hasDot = tok.includes(".");
   const hasComma = tok.includes(",");

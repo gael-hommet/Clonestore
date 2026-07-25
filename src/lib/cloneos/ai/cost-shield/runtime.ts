@@ -80,12 +80,7 @@ export async function withAiCostShield<T>(
   }
 
   // Allowed — execute the wrapped AI call
-  try {
-    return await fn();
-  } catch (err) {
-    // Propagate non-shield errors normally
-    throw err;
-  }
+  return await fn();
 }
 
 // ── Static demo helper ────────────────────────────────────────────────────────

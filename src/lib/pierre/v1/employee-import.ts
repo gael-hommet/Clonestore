@@ -12,7 +12,7 @@ import { normalizeSearch, buildSearchText } from "./employee-search";
 
 // ── CSV parser (RFC-4180-ish, delimiter-detecting) ───────────────────────────
 export function parseCsv(input: string): { headers: string[]; rows: string[][] } {
-  let text = input.replace(/^﻿/, ""); // strip BOM
+  const text = input.replace(/^﻿/, ""); // strip BOM
   // Delimiter detection from the first physical line.
   const firstLine = text.slice(0, text.indexOf("\n") === -1 ? text.length : text.indexOf("\n"));
   const counts: Record<string, number> = { ",": (firstLine.match(/,/g) || []).length, ";": (firstLine.match(/;/g) || []).length, "\t": (firstLine.match(/\t/g) || []).length };

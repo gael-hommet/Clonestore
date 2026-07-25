@@ -40,7 +40,7 @@ import {
 
 async function getSupabaseServer() {
   try {
-    const { supabaseServer } = require("@/lib/supabase-server") as { supabaseServer: () => Promise<import("@supabase/supabase-js").SupabaseClient> };
+    const { supabaseServer } = (await import("@/lib/supabase-server")) as { supabaseServer: () => Promise<import("@supabase/supabase-js").SupabaseClient> };
     return await supabaseServer();
   } catch {
     return null;

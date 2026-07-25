@@ -3,6 +3,7 @@
 // Returns memory ledger by default. Supabase only when explicitly configured.
 // Supabase client is created lazily using SUPABASE_SERVICE_ROLE_KEY.
 
+import { createClient } from "@supabase/supabase-js";
 import type { AiCostLedger, AiLedgerDbClient } from "./types";
 import { getAiCostLedgerConfig } from "./config";
 import { createInMemoryAiCostLedger, createNoOpAiCostLedger } from "./in-memory-ledger";
@@ -21,6 +22,28 @@ export function getAiCostLedger(): AiCostLedger {
 
 export function resetAiCostLedger(): void {
   _ledger = null;
+}
+
+/**
+ * Le ledger RÉELLEMENT construit persiste-t-il les événements ?
+ *
+ * Miroir exact de createAiCostLedger() ci-dessous — et c'est tout l'intérêt : lire la seule
+ * config induit en erreur. `AI_COST_LEDGER_PROVIDER=supabase` NE SUFFIT PAS : si `write_mode`
+ * reste « memory » (son défaut), ou si le client Supabase est indisponible, la factory retombe
+ * SILENCIEUSEMENT sur un ledger in-process. Un tableau vidé à chaque démarrage à froid
+ * n'est pas une source de coûts : tout ce qui s'appuie dessus doit dire « non instrumenté »
+ * plutôt que d'afficher 0 €.
+ */
+export function isAiCostLedgerDurable(): boolean {
+  const config = getAiCostLedgerConfig();
+  if (config.write_mode === "disabled" || config.provider === "disabled") return false;
+  if (config.write_mode === "memory" || config.provider === "memory") return false;
+  const supabasePath =
+    config.write_mode === "supabase" ||
+    config.write_mode === "dual_write" ||
+    config.provider === "supabase";
+  if (!supabasePath) return false;
+  return tryCreateSupabaseAdminClient() !== null; // sinon : repli mémoire (cf. factory)
 }
 
 // ── Factory ───────────────────────────────────────────────────────────────────
@@ -69,9 +92,8 @@ function tryCreateSupabaseAdminClient(): AiLedgerDbClient | null {
 
     if (!url || !serviceKey) return null;
 
-    // Dynamic import to avoid breaking tests without supabase keys
-    // We import @supabase/supabase-js which is already a dependency
-    const { createClient } = require("@supabase/supabase-js") as typeof import("@supabase/supabase-js");
+    // @supabase/supabase-js est déjà une dépendance statique du fichier (import en tête) ;
+    // le client n'est construit qu'ici, une fois url/serviceKey confirmés présents.
     return createClient(url, serviceKey) as unknown as AiLedgerDbClient;
   } catch {
     return null;

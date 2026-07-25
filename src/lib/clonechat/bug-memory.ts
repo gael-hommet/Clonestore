@@ -91,7 +91,7 @@ function tokens(s: string): string[] {
 export function redactSymptom(text: string): string {
   return (text ?? "")
     .replace(/\b[\w.+-]+@[\w-]+\.[\w.-]+\b/g, "[email]")
-    .replace(/\b\d[\d\s.\/-]{5,}\d\b/g, "[num]") // séquences longues (tél, réf)
+    .replace(/\b\d[\d\s./-]{5,}\d\b/g, "[num]") // séquences longues (tél, réf)
     .replace(/\b\d{3,}\b/g, "[num]")             // nombres de 3+ chiffres
     // séquences de 2+ mots capitalisés (noms/organisations) → [nom]
     .replace(/\b(?:[A-ZÀ-Ý][\wÀ-ÿ'-]+)(?:\s+[A-ZÀ-Ý][\wÀ-ÿ'-]+)+/g, "[nom]")

@@ -517,7 +517,7 @@ export async function POST(req: Request) {
       const sink: StreamingResponderResult = { usage: null, providerCalled: false };
       let settled = false;
       // Réponse stable à comparer, retenue le temps que le flux se ferme (voir `finally`).
-      let shadowPayload: { answer: string; source: string; honesty: string; hasCta: boolean } | null = null;
+      const shadowPayload: { answer: string; source: string; honesty: string; hasCta: boolean } | null = null;
 
       const stream = new ReadableStream<Uint8Array>({
         async start(controller) {

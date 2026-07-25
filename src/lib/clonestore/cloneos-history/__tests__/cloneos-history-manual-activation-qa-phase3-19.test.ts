@@ -52,26 +52,26 @@ function readRoot(filename: string): string {
 
 describe("PHASE 3.19 — Module Manual Activation QA", () => {
   const modulePath = "lib/clonestore/cloneos-history/cloneos-history-manual-activation-qa.ts";
-  const module = readSrc(modulePath);
+  const mod = readSrc(modulePath);
 
   it("1. cloneos-history-manual-activation-qa.ts existe", () => {
     expect(existsSync(resolve(ROOT, "src", modulePath))).toBe(true);
   });
 
   it("2. module contient buildCloneOSHistoryManualActivationChecklist", () => {
-    expect(module).toContain("buildCloneOSHistoryManualActivationChecklist");
+    expect(mod).toContain("buildCloneOSHistoryManualActivationChecklist");
   });
 
   it("3. module contient buildCloneOSHistoryManualActivationVerdict", () => {
-    expect(module).toContain("buildCloneOSHistoryManualActivationVerdict");
+    expect(mod).toContain("buildCloneOSHistoryManualActivationVerdict");
   });
 
   it("4. module contient buildCloneOSHistoryManualActivationEvidenceTemplate", () => {
-    expect(module).toContain("buildCloneOSHistoryManualActivationEvidenceTemplate");
+    expect(mod).toContain("buildCloneOSHistoryManualActivationEvidenceTemplate");
   });
 
   it("5. module contient validateCloneOSHistoryManualActivationEvidencePack", () => {
-    expect(module).toContain("validateCloneOSHistoryManualActivationEvidencePack");
+    expect(mod).toContain("validateCloneOSHistoryManualActivationEvidencePack");
   });
 
   const stepIds = [
@@ -96,24 +96,24 @@ describe("PHASE 3.19 — Module Manual Activation QA", () => {
 
   stepIds.forEach((id, idx) => {
     it(`${6 + idx}. checklist contient ${id}`, () => {
-      expect(module).toContain(id);
+      expect(mod).toContain(id);
     });
   });
 
   it("23. module ne contient pas Supabase createClient (réel)", () => {
-    expect(module).not.toMatch(/^import\s+.*createClient.*from\s+["']@supabase/m);
-    expect(module).not.toMatch(/^import\s+.*from\s+["']@supabase\/supabase-js["']/m);
+    expect(mod).not.toMatch(/^import\s+.*createClient.*from\s+["']@supabase/m);
+    expect(mod).not.toMatch(/^import\s+.*from\s+["']@supabase\/supabase-js["']/m);
   });
 
   it("24. module ne contient pas insert/update/delete/upsert", () => {
-    expect(module).not.toMatch(/\.insert\s*\(/);
-    expect(module).not.toMatch(/\.update\s*\(/);
-    expect(module).not.toMatch(/\.delete\s*\(/);
-    expect(module).not.toMatch(/\.upsert\s*\(/);
+    expect(mod).not.toMatch(/\.insert\s*\(/);
+    expect(mod).not.toMatch(/\.update\s*\(/);
+    expect(mod).not.toMatch(/\.delete\s*\(/);
+    expect(mod).not.toMatch(/\.upsert\s*\(/);
   });
 
   it("25. module ne contient pas import src/lib/pierre (réel)", () => {
-    expect(module).not.toMatch(/^import\s+.*from\s+["']@\/lib\/pierre/m);
+    expect(mod).not.toMatch(/^import\s+.*from\s+["']@\/lib\/pierre/m);
   });
 });
 
