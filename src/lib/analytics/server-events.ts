@@ -68,8 +68,14 @@ export interface ServerEventInput {
   /** Attribution Partner DÉJÀ résolue côté serveur — jamais un partner_id client. */
   partnerAttributionId?: string | null;
   authenticatedUserId?: string | null; // uuid uniquement ; jamais un email
+  // Corrélation : visitor/session D'ORIGINE résolus serveur (cookies signés ou table de liaison),
+  // jamais un id libre client. Permettent d'attribuer la vérité serveur au parcours visiteur.
+  visitorId?: string | null;
+  sessionId?: string | null;
   extraProperties?: CanonicalAnalyticsProperties;
 }
+
+const UUID_ANY_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface ServerEventResult {
   ok: boolean;
@@ -110,8 +116,8 @@ export async function recordCanonicalServerEvent(
       occurredAt: input.occurredAtIso ?? new Date().toISOString(),
       source: input.trustLevel === "PAYMENT_PROVIDER_CONFIRMED" ? "stripe" : "server",
       trustLevel: input.trustLevel,
-      visitorId: null,
-      sessionId: null,
+      visitorId: input.visitorId && UUID_ANY_RE.test(input.visitorId) ? input.visitorId : null,
+      sessionId: input.sessionId && UUID_ANY_RE.test(input.sessionId) ? input.sessionId : null,
       receivedAt: new Date().toISOString(),
       environment: resolveAnalyticsEnvironment(),
       trafficClass: "external",
@@ -127,4 +133,71 @@ export async function recordCanonicalServerEvent(
   } catch (err) {
     return { ok: false, reason: err instanceof Error ? err.name : "unknown" };
   }
+}
+
+// ── Écriture best-effort STRICTEMENT BORNÉE dans le temps (Phase E) ────────────
+// Garantit qu'une écriture analytics ne peut JAMAIS retarder indéfiniment le chemin métier :
+// l'opération est bornée par un timeout (défaut configurable). Ne jette jamais. En serverless,
+// on n'utilise PAS un fire-and-forget non garanti : on attend, mais avec une borne dure.
+
+export type BestEffortOutcome = "inserted" | "duplicate" | "unavailable" | "timeout" | "rejected";
+
+/** Délai maximal d'une écriture analytics avant abandon (ms), configurable. */
+export function analyticsWriteTimeoutMs(): number {
+  const raw = Number(process.env.ANALYTICS_WRITE_TIMEOUT_MS ?? 500);
+  return Number.isFinite(raw) && raw > 0 ? raw : 500;
+}
+
+/**
+ * Exécute une opération d'écriture analytics avec une durée maximale bornée. Retourne un résultat
+ * fermé et observable, jamais une exception. Un dépassement de délai rend `"timeout"` immédiatement
+ * (l'opération sous-jacente peut continuer en arrière-plan sans jamais bloquer l'appelant).
+ */
+export async function boundedAnalyticsWrite(
+  op: () => Promise<{ ok: boolean; outcome?: "inserted" | "duplicate"; reason?: string }>,
+  timeoutMs: number = analyticsWriteTimeoutMs(),
+): Promise<BestEffortOutcome> {
+  const TIMEOUT = Symbol("analytics_timeout");
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  // L'opération est toujours gérée (try/catch interne) — jamais de rejet non capturé même si le
+  // timeout gagne la course. Un throw/reject est marqué distinctement de "storage unavailable".
+  const guarded = (async () => {
+    try {
+      return await op();
+    } catch {
+      return { ok: false as const, reason: "THREW" };
+    }
+  })();
+  try {
+    const timeoutP = new Promise<typeof TIMEOUT>((resolve) => {
+      timer = setTimeout(() => resolve(TIMEOUT), timeoutMs);
+      if (typeof timer === "object" && timer && "unref" in timer) (timer as { unref: () => void }).unref();
+    });
+    const result = await Promise.race([guarded, timeoutP]);
+    if (result === TIMEOUT) return "timeout";
+    if (result.ok) return result.outcome === "duplicate" ? "duplicate" : "inserted";
+    if (result.reason === "THREW" || result.reason === "NOT_A_SERVER_EVENT") return "rejected";
+    return "unavailable";
+  } catch {
+    return "rejected";
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/**
+ * Écrit un événement de vérité serveur canonique, borné dans le temps et best-effort.
+ * Acquiert la DB analytics ET écrit, le tout sous une seule borne de temps — de sorte qu'une
+ * base injoignable ou lente ne puisse jamais retarder le métier au-delà du timeout.
+ */
+export async function recordCanonicalServerEventBestEffort(
+  getDb: () => Promise<SqlExecutor | null>,
+  input: ServerEventInput,
+  timeoutMs?: number,
+): Promise<BestEffortOutcome> {
+  return boundedAnalyticsWrite(async () => {
+    const db = await getDb();
+    if (!db) return { ok: false, reason: "STORAGE_UNAVAILABLE" };
+    return recordCanonicalServerEvent(db, input);
+  }, timeoutMs);
 }
