@@ -11,7 +11,8 @@ import { mapStripeSubscriptionStatusStrict, stripeStatusGrants, validateFounderS
 // N'émet JAMAIS payment_succeeded ici (produit une seule fois par la route webhook, clé =
 // stripe_event_id) — un seul producteur canonique par événement.
 import { bridgeFounderServerEvent, founderEventIdFor } from "@/lib/analytics/adapters/founder-access-adapter";
-import { resolveAnalyticsEnvironment } from "@/lib/analytics/server-events";
+import { resolveAnalyticsEnvironment, boundedAnalyticsWrite } from "@/lib/analytics/server-events";
+import { resolveCorrelationByReservation, hashRef, upsertConversionLink } from "@/lib/analytics/correlation";
 
 export interface FounderWebhookEvent {
   eventId: string;
@@ -102,17 +103,27 @@ export async function applyFounderStripeWebhook(
     ...base, subscription_status: mapped.status, amount_cents: grants ? FOUNDER_SUBSCRIPTION_AMOUNT_CENTS : null,
   });
 
-  // Canonique (additif) : activation_completed UNIQUEMENT sur une activation réelle nouvellement
-  // appliquée (statut octroyant + appliqué + non-doublon). Reuse le même db (transaction métier
-  // déjà committée). stripeEventId ⇒ trust PAYMENT_PROVIDER_CONFIRMED. Idempotent par réservation.
+  // Canonique (additif, borné) : activation_completed UNIQUEMENT sur une activation réelle
+  // nouvellement appliquée (octroyant + appliqué + non-doublon). Corrélation résolue par
+  // reservation_id (visiteur d'origine), SANS cookie. On enrichit aussi la liaison avec l'order_ref
+  // (abonnement haché) pour que les événements facture ultérieurs retrouvent la corrélation.
   if (grants && result.applied && !result.duplicate) {
-    await bridgeFounderServerEvent(db, {
-      eventId: founderEventIdFor(rid, "founder_subscription_active"),
-      founderEventName: "founder_subscription_active",
-      occurredAtIso: new Date().toISOString(),
-      reservationId: rid,
-      environment: resolveAnalyticsEnvironment(),
-      stripeEventId: ev.eventId,
+    const env = resolveAnalyticsEnvironment();
+    await boundedAnalyticsWrite(async () => {
+      const orderRef = hashRef(ev.subscriptionId);
+      if (orderRef) await upsertConversionLink(db, { reservationId: rid, environment: env, orderRef });
+      const corr = await resolveCorrelationByReservation(db, rid, env);
+      return bridgeFounderServerEvent(db, {
+        eventId: founderEventIdFor(rid, "founder_subscription_active"),
+        founderEventName: "founder_subscription_active",
+        occurredAtIso: new Date().toISOString(),
+        reservationId: rid,
+        environment: env,
+        stripeEventId: ev.eventId,
+        visitorId: corr?.visitorId ?? null,
+        sessionId: corr?.sessionId ?? null,
+        authenticatedUserId: corr?.authenticatedUserId ?? null,
+      });
     });
   }
 

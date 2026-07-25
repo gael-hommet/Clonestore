@@ -438,6 +438,8 @@ export async function POST(req: Request) {
           eventName: "payment_succeeded",
           stripeEventId: event.id,
           subjectUserId: validation.user_id,
+          reservationId: typeof stripeMetaRaw?.["founder_reservation_id"] === "string" ? stripeMetaRaw["founder_reservation_id"] : null,
+          subscriptionId: validation.subscription_id,
           amountMinor: getNumber(obj, "amount_total"),
           currency: getString(obj, "currency"),
         });
@@ -580,11 +582,14 @@ export async function POST(req: Request) {
       }
 
       // ── Analytics canonique : payment_failed (PAYMENT_PROVIDER_CONFIRMED) ──
-      // Après métier écrit. Auto-avalant, idempotent par stripe_event_id.
+      // Après métier écrit. Auto-avalant, borné, idempotent par stripe_event_id. Corrélation
+      // retrouvée par order_ref (abonnement haché) puis reservation_id, SANS cookie.
       await emitCanonicalPaymentEvent({
         eventName: "payment_failed",
         stripeEventId: event.id,
         subjectUserId: meta?.["user_id"] ?? null,
+        reservationId: typeof meta?.["founder_reservation_id"] === "string" ? meta["founder_reservation_id"] : null,
+        subscriptionId: subId,
         amountMinor: getNumber(obj, "amount_due"),
         currency: getString(obj, "currency"),
       });
@@ -604,6 +609,7 @@ export async function POST(req: Request) {
           eventName: "payment_refunded",
           stripeEventId: event.id,
           subjectUserId: meta?.["user_id"] ?? null,
+          reservationId: typeof meta?.["founder_reservation_id"] === "string" ? meta["founder_reservation_id"] : null,
           amountMinor: getNumber(obj, "amount_refunded"),
           currency: getString(obj, "currency"),
         });

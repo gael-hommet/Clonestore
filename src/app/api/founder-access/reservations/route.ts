@@ -12,10 +12,12 @@ import { resolveFounderEmailProvider, renderVerificationEmail, isFounderEmailCon
 import { buildReservationCookie } from "@/lib/founder-access/signed-cookie";
 import { resolveAnalyticsSession } from "@/lib/founder-access/analytics-session";
 // Canonical Analytics Runtime Wiring — pont additif best-effort vers le sink canonique.
-// N'est appelé qu'APRÈS la persistance métier réussie ; ne jette jamais (l'adaptateur avale
-// toute erreur) ; ne modifie jamais le calcul métier de la réservation.
+// N'est appelé qu'APRÈS la persistance métier réussie ; borné dans le temps ; ne jette jamais ;
+// ne modifie jamais le calcul métier de la réservation.
 import { bridgeFounderServerEvent, founderEventIdFor } from "@/lib/analytics/adapters/founder-access-adapter";
-import { resolveAnalyticsEnvironment } from "@/lib/analytics/server-events";
+import { resolveAnalyticsEnvironment, boundedAnalyticsWrite } from "@/lib/analytics/server-events";
+import { readVisitorId, readSessionId } from "@/lib/analytics/identity";
+import { upsertConversionLink } from "@/lib/analytics/correlation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,15 +69,27 @@ export async function POST(req: Request) {
     reservationId = res.id;
     alreadyConfirmed = res.already_confirmed;
 
-    // Canonique (additif, après persistance métier réussie) : reservation_created.
+    // Canonique (additif, après persistance métier réussie, BORNÉ dans le temps) :
+    // corrélation (visitor/session d'origine lus depuis les cookies signés) + reservation_created.
     // event_id déterministe ⇒ un ré-appel idempotent de la réservation ne double jamais.
-    await bridgeFounderServerEvent(db, {
-      eventId: founderEventIdFor(reservationId, "founder_reservation_created"),
-      founderEventName: "founder_reservation_created",
-      occurredAtIso: new Date().toISOString(),
-      reservationId,
-      environment: resolveAnalyticsEnvironment(),
-    });
+    {
+      const env = resolveAnalyticsEnvironment();
+      const cookieHeader = req.headers.get("cookie");
+      const visitorId = readVisitorId(cookieHeader);
+      const sessionId = readSessionId(cookieHeader);
+      await boundedAnalyticsWrite(async () => {
+        await upsertConversionLink(db, { reservationId, environment: env, visitorId, sessionId });
+        return bridgeFounderServerEvent(db, {
+          eventId: founderEventIdFor(reservationId, "founder_reservation_created"),
+          founderEventName: "founder_reservation_created",
+          occurredAtIso: new Date().toISOString(),
+          reservationId,
+          environment: env,
+          visitorId,
+          sessionId,
+        });
+      });
+    }
 
     // Envoi immédiat best-effort de la vérification (le worker E.3 reste le filet).
     if (!alreadyConfirmed && isFounderEmailConfigured()) {

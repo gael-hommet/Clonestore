@@ -38,7 +38,15 @@ export interface FounderServerEventInput {
   reservationId: string;
   environment: AnalyticsEnvironment;
   stripeEventId?: string | null; // présent pour les événements PAYMENT_PROVIDER_CONFIRMED
+  // Corrélation d'origine (résolue serveur : cookies signés ou table de liaison), jamais client.
+  visitorId?: string | null;
+  sessionId?: string | null;
+  authenticatedUserId?: string | null;
+  partnerAttributionId?: string | null;
 }
+
+const CORR_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const asCorrUuid = (v: string | null | undefined): string | null => (v && CORR_UUID_RE.test(v) ? v : null);
 
 /**
  * Traduit et persiste un événement founder-access déjà confirmé serveur vers la table
@@ -65,16 +73,16 @@ export async function bridgeFounderServerEvent(
       occurredAt: input.occurredAtIso,
       source: "server",
       trustLevel,
-      visitorId: null,
-      sessionId: null,
+      visitorId: asCorrUuid(input.visitorId),
+      sessionId: asCorrUuid(input.sessionId),
       receivedAt: new Date().toISOString(),
       environment: input.environment,
       trafficClass: "external",
-      authenticatedUserId: null,
+      authenticatedUserId: asCorrUuid(input.authenticatedUserId),
       countryCode: null,
-      sourceChannel: null,
+      sourceChannel: input.partnerAttributionId ? "partner" : null,
       campaignKey: null,
-      partnerAttributionId: null,
+      partnerAttributionId: input.partnerAttributionId ?? null,
       consentState: "unknown",
       properties: {},
     });

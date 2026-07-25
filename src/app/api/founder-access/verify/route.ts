@@ -2,10 +2,12 @@
 import { NextResponse } from "next/server";
 import { getRuntimeDb } from "@/lib/pierre/v1/db";
 import { confirmReservation } from "@/lib/founder-access/store";
-// Canonical Analytics Runtime Wiring — pont additif best-effort, uniquement après confirmation
-// réussie. Idempotent (event_id déterministe) : un ré-appel de confirmation ne double jamais.
+// Canonical Analytics Runtime Wiring — pont additif best-effort borné, uniquement après
+// confirmation réussie. Idempotent (event_id déterministe). La corrélation vient de la RÉSERVATION
+// (visiteur d'origine), jamais du navigateur qui ouvre le lien de confirmation.
 import { bridgeFounderServerEvent, founderEventIdFor } from "@/lib/analytics/adapters/founder-access-adapter";
-import { resolveAnalyticsEnvironment } from "@/lib/analytics/server-events";
+import { resolveAnalyticsEnvironment, boundedAnalyticsWrite } from "@/lib/analytics/server-events";
+import { resolveCorrelationByReservation } from "@/lib/analytics/correlation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,14 +25,20 @@ export async function GET(req: Request) {
     const db = await getRuntimeDb();
     const res = await confirmReservation(db, rid, token);
     if (res.ok) {
-      // Canonique (additif) : email confirmé. event_id déterministe ⇒ pas de doublon sur
-      // re-confirmation idempotente. N'affecte jamais la redirection métier.
-      await bridgeFounderServerEvent(db, {
-        eventId: founderEventIdFor(rid, "founder_email_verified"),
-        founderEventName: "founder_email_verified",
-        occurredAtIso: new Date().toISOString(),
-        reservationId: rid,
-        environment: resolveAnalyticsEnvironment(),
+      // Canonique (additif, borné) : email confirmé. Corrélation résolue par reservation_id
+      // (visiteur d'ORIGINE), jamais le navigateur courant. event_id déterministe ⇒ pas de doublon.
+      const env = resolveAnalyticsEnvironment();
+      await boundedAnalyticsWrite(async () => {
+        const corr = await resolveCorrelationByReservation(db, rid, env);
+        return bridgeFounderServerEvent(db, {
+          eventId: founderEventIdFor(rid, "founder_email_verified"),
+          founderEventName: "founder_email_verified",
+          occurredAtIso: new Date().toISOString(),
+          reservationId: rid,
+          environment: env,
+          visitorId: corr?.visitorId ?? null,
+          sessionId: corr?.sessionId ?? null,
+        });
       });
       return dest("ok");
     }

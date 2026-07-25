@@ -117,4 +117,18 @@ export function resolveSessionId(cookieHeader: string | null): ResolvedSession {
   return { sessionId, isNewSession, setCookie };
 }
 
+// ── Résolveurs LECTURE SEULE (corrélation serveur) ───────────────────────────
+// Retournent l'identité EXISTANTE signée dans le cookie, ou null si absente/falsifiée —
+// ne génèrent JAMAIS une nouvelle identité. Indispensable pour corréler un événement serveur
+// au visiteur/session D'ORIGINE (celui qui a fait la démo) plutôt qu'à un id fraîchement créé.
+export function readVisitorId(cookieHeader: string | null): string | null {
+  const existing = verifyIdentity(readCookie(cookieHeader, VISITOR_COOKIE), identitySecret());
+  return existing && UUID_V4_RE.test(existing) ? existing : null;
+}
+
+export function readSessionId(cookieHeader: string | null): string | null {
+  const existing = verifyIdentity(readCookie(cookieHeader, SESSION_COOKIE), identitySecret());
+  return existing && UUID_V4_RE.test(existing) ? existing : null;
+}
+
 export { UUID_V4_RE };

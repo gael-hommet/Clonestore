@@ -39,9 +39,12 @@ import { getFounderPhase } from "@/lib/founder-access/commercial";
 import { normalizeEmail } from "@/lib/founder-access/validation";
 import { evaluateFounderCheckout, type CheckoutEligibility } from "@/lib/founder-access/checkout-eligibility";
 // Canonical Analytics Runtime Wiring — checkout_session_created (SERVER_CONFIRMED), additif,
-// best-effort, uniquement après création RÉELLE de la session Stripe. Ne bloque jamais le paiement.
+// best-effort BORNÉ, uniquement après création RÉELLE de la session Stripe. Ne bloque jamais le
+// paiement. Corrélé au visiteur/session d'origine (cookies signés) et à la réservation.
 import { getAnalyticsDbForIngestion } from "@/lib/analytics/runtime";
-import { recordCanonicalServerEvent } from "@/lib/analytics/server-events";
+import { recordCanonicalServerEvent, resolveAnalyticsEnvironment, boundedAnalyticsWrite } from "@/lib/analytics/server-events";
+import { readVisitorId, readSessionId } from "@/lib/analytics/identity";
+import { upsertConversionLink, hashRef } from "@/lib/analytics/correlation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -467,13 +470,29 @@ export async function POST(request: NextRequest) {
       return jsonError(500, "Impossible de créer la session de paiement.", "STRIPE_SESSION_ERROR");
     }
 
-    // Canonique (additif, best-effort) : checkout_session_created, après création RÉELLE de la
-    // session Stripe. Jamais l'URL Stripe, ni le Price ID, ni le customer, ni le client secret —
-    // seulement pays/devise résolus SERVEUR + tranche de montant. N'échoue jamais le checkout.
-    try {
-      const analyticsDb = await getAnalyticsDbForIngestion();
-      if (analyticsDb) {
-        await recordCanonicalServerEvent(analyticsDb, {
+    // Canonique (additif, best-effort BORNÉ) : checkout_session_created, après création RÉELLE de
+    // la session Stripe. Jamais l'URL Stripe, ni le Price ID, ni le customer, ni le client secret —
+    // seulement pays/devise résolus SERVEUR + tranche de montant. Corrélé au visiteur/session
+    // d'origine (cookies signés) et à la réservation. N'échoue et ne retarde jamais le checkout.
+    {
+      const env = resolveAnalyticsEnvironment();
+      const cookieHeader = request.headers.get("cookie");
+      const visitorId = readVisitorId(cookieHeader);
+      const sessionId = readSessionId(cookieHeader);
+      const founderReservationId = typeof metadata.founder_reservation_id === "string" ? metadata.founder_reservation_id : null;
+      const checkoutRef = hashRef(session.id);
+      await boundedAnalyticsWrite(async () => {
+        const analyticsDb = await getAnalyticsDbForIngestion();
+        if (!analyticsDb) return { ok: false, reason: "STORAGE_UNAVAILABLE" };
+        // Lie la session Stripe (hachée) + user + visitor/session à la réservation, pour que le
+        // webhook (sans cookie) puisse retrouver l'origine.
+        if (founderReservationId) {
+          await upsertConversionLink(analyticsDb, {
+            reservationId: founderReservationId, environment: env,
+            visitorId, sessionId, authenticatedUserId: userId, checkoutSessionRef: checkoutRef,
+          });
+        }
+        return recordCanonicalServerEvent(analyticsDb, {
           eventName: "checkout_session_created",
           stableKey: `checkout-session-created:${session.id}`,
           trustLevel: "SERVER_CONFIRMED",
@@ -481,10 +500,10 @@ export async function POST(request: NextRequest) {
           currency: expectedCurrency,
           amountMinor: expectedAmount,
           authenticatedUserId: userId,
+          visitorId,
+          sessionId,
         });
-      }
-    } catch {
-      /* l'analytics ne bloque jamais le checkout */
+      });
     }
 
     return json(200, { ok: true, url: session.url });
