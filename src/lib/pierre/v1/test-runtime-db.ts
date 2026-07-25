@@ -13,9 +13,30 @@ import { resolve } from "path";
 import type { SqlExecutor, SqlRow } from "./sql";
 
 const MIG_DIR = resolve(process.cwd(), "supabase/migrations");
+
+/**
+ * Le schéma Founder Access (clonestore_founder_*) n'est PAS chargé par défaut : les E2E
+ * Pierre n'en ont pas besoin et l'ensemble de migrations doit rester minimal.
+ *
+ * PIERRE_E2E_FOUNDER_SCHEMA=1 l'ajoute — ce qui permet de piloter le Founder Command Center
+ * dans un VRAI navigateur sur une VRAIE base locale (PGlite), sans jamais toucher la base de
+ * production (rappel : DATABASE_URL de .env.local pointe sur la PROD). Opt-in, test-only, et
+ * inatteignable en production (getRuntimeDb ne charge ce module que si PIERRE_E2E_TEST_MODE=1
+ * ET NODE_ENV!=='production').
+ *
+ * PIERRE_E2E_ANALYTICS_SCHEMA=1 ajoute de la même façon le schéma canonique Analytics
+ * (clonestore_analytics_events_v1, Analytics Funnel and Launch Measurement Closure) — même
+ * gate opt-in/test-only/fail-closed-en-prod que le schéma Founder ci-dessus.
+ */
 function migrationSql(): string[] {
+  const withFounder = process.env.PIERRE_E2E_FOUNDER_SCHEMA === "1";
+  const withAnalytics = process.env.PIERRE_E2E_ANALYTICS_SCHEMA === "1";
   return readdirSync(MIG_DIR)
-    .filter((f) => f.endsWith(".sql") && f.includes("pierre_v"))
+    .filter((f) => f.endsWith(".sql") && (
+      f.includes("pierre_v")
+      || (withFounder && f.includes("clonestore_founder"))
+      || (withAnalytics && f.includes("clonestore_analytics"))
+    ))
     .sort()
     .map((f) => readFileSync(resolve(MIG_DIR, f), "utf-8"));
 }
