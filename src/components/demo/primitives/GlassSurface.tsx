@@ -22,7 +22,10 @@ export function GlassSurface({
   materialize = true,
   sheen = false,
   delay = 0,
-  amount = 0.3,
+  // « some » (un pixel visible suffit) et non un ratio : un ratio (ex. 0.3) n'est
+  // JAMAIS atteint par un élément plus haut que ~1/ratio viewport ⇒ whileInView ne
+  // se déclenche jamais et la surface reste invisible (opacity 0) en permanence.
+  amount = "some",
   ...rest
 }: {
   children?: React.ReactNode;
@@ -32,7 +35,7 @@ export function GlassSurface({
   materialize?: boolean;
   sheen?: boolean;
   delay?: number;
-  amount?: number;
+  amount?: number | "some" | "all";
 } & Omit<HTMLMotionProps<"div">, "children" | "ref">) {
   const dur = DURATION[weight];
   const variants = {

@@ -7,18 +7,15 @@
 // laissait deux questions sans réponse — « par quoi je commence ? » et « il se passe
 // quoi si j'avance ? ».
 //
-// Trois issues sont ici légitimes, et une seule mène à l'achat :
-//   1. il manque une preuve      → /demo/pierre
-//   2. une première mission est claire → /reserver/pierre
-//   3. un point reste flou       → /assistant (CloneChat)
-//
-// AUCUN CTA existant n'est supprimé. La sortie CloneChat existe parce qu'un
-// visiteur dont le besoin est réel mais la confiance incomplète ne doit pas avoir
-// à choisir entre « acheter » et « partir ».
+// Hiérarchie de clôture (funnel démo générale → fiche Pierre) :
+//   • ACTION PRINCIPALE dominante : « Découvrir Pierre » → /agents/pierre (la fiche).
+//   • Secondaire : « Poser une question à CloneChat » → /assistant.
+//   • Tertiaire (discret, jamais concurrent) : réserver / revoir la démonstration.
+// La démo générale vend CloneStore ; la fiche vend Pierre ; le cockpit prouve Pierre.
+// On ne dirige plus l'action principale vers /demo/pierre.
 
 import * as React from "react";
-import Link from "next/link";
-import { MessagesSquare, Eye, ArrowRight, HelpCircle } from "lucide-react";
+import { MessagesSquare } from "lucide-react";
 
 import { Reveal } from "./primitives/motion";
 import { GlassSurface } from "./primitives/GlassSurface";
@@ -31,18 +28,20 @@ import { SCENE_DECISION, PIERRE_DEMO_ROUTE } from "@/lib/demo/presentation/conte
 /** Route canonique de CloneChat (cf. SiteHeader). Aucun paramètre : la page n'en lit aucun. */
 const CLONECHAT_ROUTE = "/assistant";
 const RESERVATION_ROUTE = "/reserver/pierre";
+const FICHE_ROUTE = "/agents/pierre";
 
-const PATH_ICONS = [Eye, ArrowRight, HelpCircle] as const;
 
 export function DemoConversion({
   onReserve,
   onPierre,
   onCloneChat,
+  onDiscover,
   onFirstMission,
 }: {
   onReserve: () => void;
   onPierre: () => void;
   onCloneChat: () => void;
+  onDiscover: () => void;
   onFirstMission: () => void;
 }) {
   return (
@@ -70,33 +69,23 @@ export function DemoConversion({
             </p>
           </div>
 
-          <ul className="demo-decision__paths">
-            {SCENE_DECISION.paths.map((path, i) => {
-              const Icon = PATH_ICONS[i];
-              return (
-                <li key={path.k} className="demo-decision__path">
-                  <span className="demo-decision__path-ico" aria-hidden="true">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <span className="demo-decision__path-k">{path.k}</span>
-                  <span className="demo-decision__path-v">{path.v}</span>
-                </li>
-              );
-            })}
-          </ul>
-
+          {/* Action principale dominante : la fiche produit vend Pierre. */}
           <div className="demo-decision__cta">
-            <DemoCTALink href={RESERVATION_ROUTE} variant="primary" withArrow onClick={onReserve}>
-              Réserver Pierre
-            </DemoCTALink>
-            <DemoCTALink href={PIERRE_DEMO_ROUTE} variant="secondary" onClick={onPierre}>
-              Voir Pierre en action
+            <DemoCTALink href={FICHE_ROUTE} variant="primary" hero withArrow onClick={onDiscover}>
+              Découvrir Pierre
             </DemoCTALink>
           </div>
 
-          <Link href="/agents/pierre" className="demo-btn demo-btn-ghost demo-decision__ghost">
-            Découvrir Pierre
-          </Link>
+          {/* Chemins tertiaires, discrets : jamais concurrents de l'action principale. */}
+          <div className="demo-decision__tertiary">
+            <DemoCTALink href={RESERVATION_ROUTE} variant="ghost" onClick={onReserve}>
+              Réserver Pierre
+            </DemoCTALink>
+            <span className="demo-decision__tertiary-sep" aria-hidden="true">·</span>
+            <DemoCTALink href={PIERRE_DEMO_ROUTE} variant="ghost" onClick={onPierre}>
+              Revoir la démonstration
+            </DemoCTALink>
+          </div>
         </Reveal>
 
         {/* 4 — La sortie quand la confiance est incomplète mais le besoin réel */}

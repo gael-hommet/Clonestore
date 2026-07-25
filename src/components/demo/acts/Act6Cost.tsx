@@ -1,15 +1,15 @@
 "use client";
 
-// /demo — ACTE 6 : le coût de continuer comme avant.
+// /demo — ACTE 6 (refonte cinématographique) : le coût de continuer comme avant.
 //
-// Placement : après la confiance (Acte 5), avant le passage à Pierre (Acte 7).
-// Le visiteur sait désormais ce qu'un employé IA exécute (Actes 3 et 4) et sous
-// quel contrôle (Acte 5). C'est le seul moment où un raisonnement économique est
-// légitime : plus tôt, il chiffrerait une capacité qu'il n'a pas encore vue ;
-// plus tard, il arriverait après la décision.
+// Refonte : la PREUVE domine désormais l'écran. Le même scénario RH, exécuté de
+// deux façons, s'ouvre sur DEUX NOMBRES géants (effort humain mobilisé) — la
+// donnée écrite beaucoup plus grand que les légendes. Le détail (le comparateur
+// pas-à-pas, le calculateur, la posture) reste, mais révélé progressivement.
 //
-// Posture : on montre les deux méthodes, on ne plaide pas. Aucun CTA n'est placé
-// dans cet acte — la retenue EST l'argument. La conversion appartient à l'Acte 7.
+// Contraintes tenues : aucun CTA (la retenue EST l'argument, conversion = Acte 7),
+// aucun prix codé en dur (le moteur lit le tarif canonique), aucune donnée saisie
+// n'est jamais émise ({ scene: "cost" } seulement). Design system demo-* réutilisé.
 
 import * as React from "react";
 import { useInView } from "framer-motion";
@@ -17,6 +17,7 @@ import { useInView } from "framer-motion";
 import { Reveal } from "../primitives/motion";
 import { GlassSurface } from "../primitives/GlassSurface";
 import { useSceneView } from "../primitives/useSceneView";
+import { Disclosure } from "../primitives/cine";
 import { ScenarioComparator } from "../cost/ScenarioComparator";
 import { CapacityCalculator } from "../cost/CapacityCalculator";
 
@@ -27,7 +28,9 @@ import { HR_SCENARIOS, OPERATING_DOMAINS } from "@/lib/demo/presentation/operati
 export function Act6Cost() {
   const ref = useSceneView<HTMLElement>(DEMO_EVENTS.costSectionViewed);
   const comparatorRef = React.useRef<HTMLDivElement>(null);
-  const comparatorInView = useInView(comparatorRef, { once: true, amount: 0.25 });
+  // "some" : le comparateur détaillé est plus haut qu'un viewport mobile — un ratio
+  // (0.25) pourrait ne jamais être atteint et la révélation ne partirait jamais.
+  const comparatorInView = useInView(comparatorRef, { once: true, amount: "some" });
 
   const [activeScenario, setActiveScenario] = React.useState<string>(HR_SCENARIOS[0].id);
 
@@ -50,36 +53,36 @@ export function Act6Cost() {
       className="demo-section demo-section--breath demo-cost"
       aria-label="Le coût de continuer comme avant"
     >
-      {/* Largeur standard de la démo (1240px) : le rail de progression fixe est
-          positionné pour cette largeur — un shell élargi passerait DESSOUS lui. */}
       <div className="demo-shell">
-        {/* ── Ouverture ── */}
+        {/* ── CH.7 — l'ouverture : une idée ── */}
         <Reveal className="mx-auto max-w-3xl text-center">
           <p className="demo-kicker">{SCENE_COST.kicker}</p>
-          <h2 className="demo-title demo-title--compact-long mt-3">
+          <h2 className="demo-title cine-title mt-3">
             {SCENE_COST.title[0]}
             <br />
-            <span className="demo-accent">{SCENE_COST.title[1]}</span>
+            <span className="demo-accent cine-accent">{SCENE_COST.title[1]}</span>
           </h2>
-          <p className="demo-lede mx-auto mt-4 max-w-2xl">{SCENE_COST.lede}</p>
         </Reveal>
 
-        {/* ── Le respect dû aux équipes : la phrase centrale, mise en scène ── */}
-        <Reveal delay={0.06} className="mt-12">
-          <GlassSurface
-            kind="material"
-            weight="structure"
-            className="demo-cost-respect rounded-[1.8rem] p-6 sm:p-9"
-          >
+        {/* La preuve chiffrée « effort manuel → résidu gouverné » vit désormais dans
+            le chapitre VALEUR (juste après le hero) — ici reste la comparaison
+            détaillée des deux méthodes, le calculateur et la posture. */}
+        <Reveal delay={0.05} className="mx-auto mt-6 max-w-2xl text-center">
+          <p className="demo-lede mx-auto">{SCENE_COST.lede}</p>
+        </Reveal>
+
+        {/* ── Le respect dû aux équipes — allégé, en une carte ── */}
+        <Reveal delay={0.05} className="mx-auto mt-12 max-w-3xl">
+          <GlassSurface kind="material" weight="structure" className="demo-cost-respect rounded-[1.8rem] p-6 sm:p-8">
             <p className="demo-cost-respect__line">{SCENE_COST.respect[0]}</p>
-            <p className="demo-cost-respect__line demo-cost-respect__line--accent">
-              {SCENE_COST.respect[1]}
-            </p>
-            <p className="demo-cost-respect__detail">{SCENE_COST.respectDetail}</p>
+            <p className="demo-cost-respect__line demo-cost-respect__line--accent">{SCENE_COST.respect[1]}</p>
+            <Disclosure summary="Le travail qui empêche l’expertise" className="mt-4">
+              <p className="text-[0.95rem] leading-relaxed text-[var(--cs-ink-2)]">{SCENE_COST.respectDetail}</p>
+            </Disclosure>
           </GlassSurface>
         </Reveal>
 
-        {/* ── Le comparateur ── */}
+        {/* ── Le comparateur détaillé : le « voir le détail » de la preuve ── */}
         <div ref={comparatorRef} className="mt-14">
           <Reveal className="mx-auto max-w-2xl text-center">
             <p className="demo-kicker">{SCENE_COST.comparatorKicker}</p>
@@ -95,11 +98,10 @@ export function Act6Cost() {
             />
           </div>
 
-          {/* Le modèle n'appartient pas aux RH : il appartient à CloneStore. */}
           <Reveal delay={0.06} className="mt-8">
-            <div className="demo-cost-scope">
-              <p className="demo-cost-scope__text">{SCENE_COST.scopeNote}</p>
-              <div className="demo-cost-scope__domains">
+            <Disclosure summary="Ce modèle n’est pas propre aux RH" className="mx-auto">
+              <p className="text-[0.92rem] leading-relaxed text-[var(--cs-ink-2)]">{SCENE_COST.scopeNote}</p>
+              <div className="demo-cost-scope__domains mt-3">
                 {openDomain.map((domain) => (
                   <span key={domain.id} className="demo-chip">
                     <span className="demo-chip__dot" aria-hidden="true" />
@@ -112,28 +114,22 @@ export function Act6Cost() {
                   </span>
                 ))}
               </div>
-              <p className="demo-note demo-cost-scope__note">
-                Les périmètres suivants sont annoncés sans nom, sans prix et sans date : ils ne sont pas
-                encore ouverts.
-              </p>
-            </div>
+            </Disclosure>
           </Reveal>
         </div>
 
-        {/* ── La conclusion du comparateur, avant les chiffres ── */}
+        {/* ── La conclusion du comparateur ── */}
         <Reveal delay={0.04} className="mx-auto mt-14 max-w-2xl text-center">
           <p className="demo-statement mx-auto">{SCENE_COST.respectConclusion[0]}</p>
-          <p className="demo-statement mx-auto mt-1 text-[var(--demo-violet-deep)]">
-            {SCENE_COST.respectConclusion[1]}
-          </p>
+          <p className="demo-statement mx-auto mt-1 text-[var(--demo-violet-deep)]">{SCENE_COST.respectConclusion[1]}</p>
         </Reveal>
 
-        {/* ── Le calculateur ── */}
+        {/* ── CH.8 — le calculateur : vos données, votre verdict ── */}
         <div className="mt-14">
           <CapacityCalculator onAdjust={handleAdjust} />
         </div>
 
-        {/* ── La posture commerciale : on ne plaide pas. ── */}
+        {/* ── La posture commerciale : on ne plaide pas ── */}
         <Reveal delay={0.04} className="mx-auto mt-16 max-w-3xl">
           <div className="demo-cost-posture">
             <p className="demo-kicker text-center">{SCENE_COST.postureKicker}</p>

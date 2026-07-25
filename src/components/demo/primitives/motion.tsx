@@ -16,19 +16,22 @@ import {
 
 export const DEMO_EASE = [0.22, 1, 0.36, 1] as const;
 
-/** Apparition simple (opacité + translation), une seule fois, au scroll. */
+/** Apparition simple (opacité + translation), une seule fois, au scroll.
+ *  `amount` par défaut = "some" : un ratio proportionnel (0.3) n'est jamais atteint
+ *  par un bloc plus haut que ~3 viewports ⇒ l'animation ne partirait jamais et le
+ *  contenu resterait invisible. "some" garantit la convergence à opacité 1. */
 export function Reveal({
   children,
   delay = 0,
   y = 26,
-  amount = 0.3,
+  amount = "some",
   className,
   ...rest
 }: {
   children: React.ReactNode;
   delay?: number;
   y?: number;
-  amount?: number;
+  amount?: number | "some" | "all";
   className?: string;
 } & Omit<HTMLMotionProps<"div">, "children">) {
   const variants: Variants = {
@@ -49,18 +52,19 @@ export function Reveal({
   );
 }
 
-/** Conteneur de cascade : les enfants <StaggerItem> apparaissent en séquence. */
+/** Conteneur de cascade : les enfants <StaggerItem> apparaissent en séquence.
+ *  `amount` = "some" pour la même raison que Reveal (jamais d'invisibilité permanente). */
 export function Stagger({
   children,
   className,
   step = 0.08,
-  amount = 0.25,
+  amount = "some",
   ...rest
 }: {
   children: React.ReactNode;
   className?: string;
   step?: number;
-  amount?: number;
+  amount?: number | "some" | "all";
 } & Omit<HTMLMotionProps<"div">, "children">) {
   const variants: Variants = {
     hidden: {},

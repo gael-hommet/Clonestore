@@ -81,7 +81,6 @@ export function FirstMission({ onSelect }: { onSelect: () => void }) {
                 className={`demo-first__opt ${on ? "demo-first__opt--on" : ""}`}
               >
                 <span className="demo-first__opt-label">{s.trigger}</span>
-                <span className="demo-first__opt-note">{START_FIT[s.id].repetition}</span>
               </button>
             );
           })}

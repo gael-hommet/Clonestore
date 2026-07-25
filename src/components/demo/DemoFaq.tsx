@@ -11,8 +11,10 @@ import { DEMO_FAQ } from "@/lib/demo/presentation/content";
 export function DemoFaq() {
   const [open, setOpen] = React.useState<number | null>(0);
 
+  // content-visibility retiré : son estimation de hauteur (contain-intrinsic-size)
+  // faussait l'ancrage du scroll pendant la traversée des scènes.
   return (
-    <section className="demo-section demo-cv" aria-label="Questions fréquentes">
+    <section className="demo-section" aria-label="Questions fréquentes">
       <div className="demo-shell">
         <div className="mx-auto max-w-2xl">
           <Reveal>

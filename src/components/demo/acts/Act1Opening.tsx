@@ -1,103 +1,68 @@
 "use client";
 
-// /demo — ACTE 1 : comprendre CloneStore en moins de cinq secondes.
-// Une idée principale, une phrase de clarification, une action évidente.
-// La même demande (Clara) qui servira de fil conducteur est introduite ici.
+// /demo — ACTE 1 / CH.1 : le hero. Une idée, une phrase, une action évidente.
+// La valeur (CH.2, ValueChapter) suit immédiatement — le visiteur comprend d'abord
+// ce qu'il gagne, puis comment CloneStore le produit. Le contrat de lecture reste
+// en disclosure (aucun mur de texte). La scène « travail dispersé » vit désormais
+// dans Act2Difference (ordre : hero → valeur → problème → différence).
 
 import * as React from "react";
-import { CheckCircle2, Bot, ListChecks, ShieldCheck, ArrowRight, Sparkles } from "lucide-react";
-import { Reveal } from "../primitives/motion";
-import { GlassSurface } from "../primitives/GlassSurface";
+import { ArrowRight } from "lucide-react";
+import { Reveal, useDemoReducedMotion } from "../primitives/motion";
 import { DemoCTAButton, DemoCTALink } from "../primitives/DemoCTA";
 import { FounderAccessStatus } from "../primitives/FounderAccessStatus";
-import { useDemoReducedMotion } from "../primitives/motion";
+import { CineScene, CineEyebrow, CineTitle, CineLede, Disclosure } from "../primitives/cine";
 import { SCENE_OPENING, SCENE_CONTRACT, PIERRE_DEMO_ROUTE } from "@/lib/demo/presentation/content";
-
-const COMPREHENSION = [
-  { Icon: CheckCircle2, label: SCENE_OPENING.comprehension.understood },
-  { Icon: Bot, label: SCENE_OPENING.comprehension.mobilized },
-  { Icon: ListChecks, label: SCENE_OPENING.comprehension.organized },
-  { Icon: ShieldCheck, label: SCENE_OPENING.comprehension.validation },
-];
 
 export function Act1Opening({ onDirectPierre }: { onDirectPierre: () => void }) {
   const reduce = useDemoReducedMotion();
   const goNext = () =>
-    document.getElementById("demo-act-difference")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    document.getElementById("demo-act-value")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
 
   return (
-    <section id="demo-act-open" className="demo-section demo-section--hero demo-cv" aria-label="Ouverture — CloneStore">
-      <div className="demo-shell grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
-        <Reveal>
-          <p className="demo-kicker">{SCENE_OPENING.brandLine}</p>
-          <h1 className="demo-title demo-title--hero mt-4">
+    <section id="demo-act-open" className="demo-section demo-scene-flow" aria-label="Ouverture — CloneStore">
+      <Reveal className="w-full">
+        <CineScene className="cine-breath-none">
+          <CineEyebrow n="02">{SCENE_OPENING.brandLine}</CineEyebrow>
+          <CineTitle as="h1" className="mt-1">
             N&apos;achetez plus seulement des logiciels.
             <br />
-            <span className="demo-accent">Ouvrez des postes d&apos;employés IA.</span>
-          </h1>
-          <p className="demo-lede mt-5 max-w-xl">
-            CloneStore fournit à votre entreprise des employés IA spécialisés capables de prendre en charge un
-            périmètre de travail complet — à partir de vos règles, vos données et vos validations, sous votre contrôle.
-          </p>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <DemoCTAButton onClick={goNext} variant="primary" withArrow>
+            <span className="cine-accent">Ouvrez des postes d&apos;employés IA.</span>
+          </CineTitle>
+          <CineLede>
+            Vous confiez un objectif. CloneStore organise la mission, mobilise l&apos;employé compétent et suit chaque
+            action jusqu&apos;au résultat — selon vos règles.
+          </CineLede>
+
+          <div className="mt-2 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+            <DemoCTAButton onClick={goNext} variant="primary" hero withArrow>
               Voir un employé IA travailler
             </DemoCTAButton>
             <DemoCTALink href={PIERRE_DEMO_ROUTE} variant="ghost" onClick={onDirectPierre}>
               {SCENE_OPENING.secondaryCta}
             </DemoCTALink>
           </div>
-          {/* Contrat de lecture — la posture est posée dès la première scène :
-              on ne cherche pas à convaincre tout le monde, on donne de quoi juger. */}
-          <div className="demo-contract">
-            <p className="demo-contract__line">{SCENE_CONTRACT.line}</p>
-            <p className="demo-contract__line demo-contract__line--strong">{SCENE_CONTRACT.line2}</p>
-            <ul className="demo-contract__judge">
-              {SCENE_CONTRACT.judge.map((item) => (
-                <li key={item} className="demo-contract__item">
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          <div className="mt-6">
-            <FounderAccessStatus variant="compact" />
-          </div>
-        </Reveal>
-
-        <Reveal delay={0.12}>
-          <GlassSurface kind="material" weight="structure" sheen className="overflow-hidden rounded-[1.7rem]">
-            <div className="flex items-center gap-2 border-b border-[var(--cs-line-soft)] bg-white/45 px-5 py-3">
-              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[rgba(107,99,232,0.12)] text-[var(--demo-violet)]">
-                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              </span>
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[var(--cs-ink-4)]">
-                Vous confiez un objectif — pas une tâche
-              </p>
-            </div>
-            <div className="px-5 py-5">
-              <p className="text-[0.98rem] font-medium leading-relaxed text-[var(--cs-ink-1)]">
-                « {SCENE_OPENING.initialMission} »
-              </p>
-              <div className="mt-3 flex items-center gap-2 text-[0.74rem] font-semibold text-[var(--demo-violet)]">
-                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /> CloneStore en fait une mission prise en charge jusqu&apos;au résultat
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                {COMPREHENSION.map(({ Icon, label }) => (
-                  <div
-                    key={label}
-                    className="flex items-center gap-2 rounded-xl border border-white/65 bg-white/55 px-3 py-2"
-                  >
-                    <Icon className="h-4 w-4 shrink-0 text-[var(--demo-green)]" aria-hidden="true" />
-                    <span className="text-[0.78rem] font-medium text-[var(--cs-ink-2)]">{label}</span>
-                  </div>
+          {/* Le contrat de lecture en disclosure — plus de mur de texte.
+              (classe demo-contract conservée : le contrat reste rendu.) */}
+          <Disclosure summary="Comment juger cette démonstration" className="mt-3">
+            <div className="demo-contract" style={{ textAlign: "left" }}>
+              <p className="text-[0.95rem] leading-relaxed text-[var(--cs-ink-2)]">{SCENE_CONTRACT.line2}</p>
+              <ul className="demo-contract__judge mt-3 grid list-none gap-2 p-0 sm:grid-cols-2">
+                {SCENE_CONTRACT.judge.map((item) => (
+                  <li key={item} className="flex items-center gap-2 rounded-lg border border-[var(--cs-line)] bg-white/50 px-3 py-2 text-[0.86rem] text-[var(--cs-ink-2)]">
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[var(--demo-violet)]" aria-hidden="true" />
+                    {item}
+                  </li>
                 ))}
+              </ul>
+              <div className="mt-4">
+                <FounderAccessStatus variant="compact" />
               </div>
             </div>
-          </GlassSurface>
-        </Reveal>
-      </div>
+          </Disclosure>
+        </CineScene>
+      </Reveal>
     </section>
   );
 }

@@ -369,9 +369,9 @@ describe("cost-model — formatage déterministe (aucun Intl, aucun toLocaleStri
 
 // ── Le modèle opérationnel ──────────────────────────────────────────────────
 
-describe("operating-model — les dix situations", () => {
+describe("operating-model — les situations déclarées (10 d'origine + arrival-full)", () => {
   it("expose les dix situations demandées, toutes complètes", () => {
-    expect(HR_SCENARIOS).toHaveLength(10);
+    expect(HR_SCENARIOS).toHaveLength(11); // +arrival-full (mission complète, chapitre valeur)
     for (const s of HR_SCENARIOS) {
       expect(s.trigger.length).toBeGreaterThan(10);
       expect(s.stake.length).toBeGreaterThan(10);
@@ -448,7 +448,7 @@ describe("operating-model — les dix situations", () => {
     for (const d of OPERATING_DOMAINS.filter((x) => !x.available)) {
       expect(d.employee).toBeNull();
     }
-    expect(scenariosForDomain("hr")).toHaveLength(10);
+    expect(scenariosForDomain("hr")).toHaveLength(11);
     expect(scenariosForDomain("finance")).toHaveLength(0);
   });
 });

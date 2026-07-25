@@ -754,6 +754,44 @@ export const SCENE_COMPLETION = {
 } as const;
 
 // ──────────────────────────────────────────────────────────────────────────
+// RÉVÉLATION PIERRE (fin de l'Acte 7) — le cadrage boutique, calme et assumé.
+//
+// La démo générale a vendu CloneStore. Sa conclusion révèle Pierre comme la
+// première incarnation réelle et disponible de cette promesse. Ton froid, sûr,
+// jamais publicitaire : on ne survend pas, on montre qu'un premier produit existe.
+// ──────────────────────────────────────────────────────────────────────────
+
+export const SCENE_REVEAL = {
+  kicker: "Vous avez compris CloneStore",
+  build: [
+    "Vous venez de découvrir comment CloneStore fonctionne.",
+    "Mais CloneStore n'est pas un logiciel de plus.",
+    "C'est la plateforme qui permet d'accueillir des employés IA, conçus pour tenir de vrais postes dans l'entreprise.",
+  ],
+  // Phrase essentielle — visible directement dans le parcours principal (pas un tiroir).
+  availableLine: "Pierre est le premier employé IA disponible dans CloneStore.",
+  employee: {
+    name: "PIERRE",
+    // P17 — le rôle affiché DOIT rester la position commerciale canonique
+    // (`PIERRE_PUBLIC.role` = « Employé IA RH opérationnel »). L'ancienne étiquette
+    // « Directeur des Ressources Humaines IA » (framing DRH) contredisait la source de
+    // vérité commerciale unique et la doctrine `pierre-commercial-truth-matrix` qui
+    // interdit le cadrage « DRH ». Verrouillé par `p17-demo-reveal-role.test.ts`.
+    role: "Employé IA RH opérationnel",
+    promise:
+      "Il reprend le travail RH opérationnel, agit à partir du contexte réel de l'entreprise, et garde l'humain aux commandes lorsque cela compte.",
+    tags: ["Poste RH opérationnel", "Contexte conservé", "Validation humaine", "Tout est tracé"],
+    availableLabel: "Disponible",
+  },
+  primaryCta: "Découvrir Pierre",
+  primaryCtaSubtext: "Sa fiche : ce qu'il prend en charge, ce qui reste humain, et son tarif.",
+  secondaryCta: "Voir Pierre travailler",
+  secondaryCtaSubtext: "Démonstration interactive. Aucun compte requis.",
+  boutiqueCta: "Retour à la boutique",
+  scopeNote: "Pierre est le premier employé IA ouvert, et les RH le premier périmètre. D'autres métiers suivront.",
+} as const;
+
+// ──────────────────────────────────────────────────────────────────────────
 // E2.9 bis — LE COÛT DE CONTINUER COMME AVANT (Acte 6)
 //
 // Posture : CloneStore ne demande pas qu'on le croie. Il montre les deux
