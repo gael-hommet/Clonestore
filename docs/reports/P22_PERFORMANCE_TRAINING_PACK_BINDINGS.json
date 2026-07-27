@@ -1,0 +1,42 @@
+{
+  "generated_for": "P22_PERFORMANCE_TRAINING_PACK_BINDINGS",
+  "as_of": "2026-07-27 (Reprise 11)",
+  "architecture_finding": {
+    "two_subsystems": {
+      "A_cognitive": "apiCreateMission → cognitiveAnalyze(instruction) → pierre_rt_tasks → worker.ts resolveExecutor(task.type) → executors.ts. This is what a natural-language instruction drives. Its executor registry (status_update, email_send, …) NEVER calls RUNTIME_ACTION_HANDLERS and never uses hr-mission-packs.",
+      "B_governed": "createMissionRunFromPlan(mission_id, plan) → compileMissionPlan → pierre_rt_step_runs + pierre_rt_runtime_jobs → runPierreRuntimeJobs → RUNTIME_ACTION_HANDLERS[action_key]. This is where the authoritative perf/training actions actually execute. Payload = the step's compile-time input_json.",
+      "bridge": "hr-mission-packs compile into Subsystem-B plans via packToRuntimePlan(pack). But NOTHING auto-selects a pack from an instruction and runs it; compileMissionPack is only exercised at test/build time. The only wired instruction→plan→handlers path is the cognitive planner (generateCognitivePlan → startCognitiveExecution → createMissionRunFromPlan), which emits action_keys directly and does NOT use hr-mission-packs."
+    },
+    "no_output_threading": "The governed runtime does NOT thread an upstream step's output into a downstream step's input. Each step's payload is its immutable compile-time input_json (pinned by input_hash); pierre_rt_runtime_cascade only advances dependency counters, it never copies output_json → input_json. Consequence: a step that needs a runtime-GENERATED id (e.g. performance.campaign.population.build needs the campaign_id created by performance.campaign.create) CANNOT be expressed in a single compiled plan. Multi-step chains are only expressible when later steps reference a shared BUSINESS KEY (requirement_key, policy_key, campaign_key) known at compile time.",
+    "proof": "src/lib/pierre/v1/__integration__/p22-authoritative-worker-e2e.itest.ts — a key-based training chain (policy_key→requirement_key→validate_source→approval→resume) runs end-to-end through the real worker; a plan containing population.build with an empty campaign_id compiles to zero steps (the invalid-input step drops the run)."
+  },
+  "current_pack_bindings": {
+    "performance.review_cycle": [
+      { "step": "set_objectives", "current_action": "employee.timeline.append", "correct_authoritative_action": "performance.objective.create", "expected_business_object": "pierre_rt_performance_objectives", "status": "GENERIC_NOT_AUTHORITATIVE" },
+      { "step": "schedule_review", "current_action": "follow_up.schedule", "correct_authoritative_action": "performance.campaign.create + interview.create (needs campaign_id threading)", "status": "BLOCKED_BY_NO_THREADING" },
+      { "step": "collect_feedback", "current_action": "hr.data.collect", "correct_authoritative_action": "performance.response.record (needs interview_id threading)", "status": "BLOCKED_BY_NO_THREADING" },
+      { "step": "document", "current_action": "document.generate", "correct_authoritative_action": "performance.report.generate", "status": "GENERIC_NOT_AUTHORITATIVE" }
+    ],
+    "performance.calibration_and_pip": [
+      { "step": "prepare", "current_action": "analytics.compute", "note": "calibration inputs — suggest-only", "status": "ACCEPTABLE_SUGGEST" },
+      { "step": "committee_or_manager", "current_action": "human_decision", "status": "CORRECT_HUMAN_FLOOR" },
+      { "step": "record", "current_action": "employee.timeline.append", "correct_authoritative_action": "performance.action_plan.create + submit_for_validation", "status": "GENERIC_NOT_AUTHORITATIVE" }
+    ],
+    "training.plan_and_enroll": [
+      { "step": "map_skills", "current_action": "hr.record.append", "correct_authoritative_action": "training.requirement.create + validate_source", "status": "GENERIC_NOT_AUTHORITATIVE" },
+      { "step": "build_plan", "current_action": "document.generate", "correct_authoritative_action": "training.plan.create + plan.item.add", "status": "GENERIC_NOT_AUTHORITATIVE" },
+      { "step": "convocation", "current_action": "communication.create_intent", "note": "persists a REAL durable intent via the P8.4 pipeline (outbox→intent→delivery)", "status": "CORRECT_PERSISTED_INTENT" },
+      { "step": "enroll", "current_action": "external_handoff:training_provider", "status": "CORRECT_EXTERNAL_BOUNDARY" },
+      { "step": "evaluate", "current_action": "hr.data.collect", "correct_authoritative_action": "training.enrollment.complete + certification.issue (needs enrollment_id threading)", "status": "BLOCKED_BY_NO_THREADING" }
+    ],
+    "training.certification_tracking": [
+      { "step": "scan_expiry", "current_action": "hr.record.append", "correct_authoritative_action": "training.expiry.detect", "status": "GENERIC_NOT_AUTHORITATIVE" },
+      { "step": "chase", "current_action": "follow_up.schedule", "correct_authoritative_action": "training.renewal.create/schedule (not yet built)", "status": "GENERIC_NOT_AUTHORITATIVE" }
+    ]
+  },
+  "honest_status": {
+    "authoritative_worker_path_proven": "YES — real perf/training authoritative actions execute through runPierreRuntimeJobs with a human approval gate + governed resume (p22-authoritative-worker-e2e). This is NOT a direct handler call.",
+    "pack_steps_rebound": "NOT YET — the packs still bind mostly generic actions. Rebinding is partly BLOCKED: steps that consume a runtime-generated id (interview needs campaign_id, response needs interview_id, enrollment.complete needs enrollment_id) cannot run through a single compiled plan until either (a) the runtime gains output→input threading/templating, or (b) every authoritative action gains business-KEY resolution (campaign_by_key, interview_by_key, enrollment_by_key). Both are real runtime changes beyond this reprise.",
+    "gates": "authoritative_mission_pack_wiring + natural_instruction_runtime_e2e remain OPEN. Global verdict: P22 — OPERATIONAL CLOSURE STILL WITHHELD."
+  }
+}

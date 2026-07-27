@@ -1,8 +1,9 @@
 {
   "generated_for": "P22_PERFORMANCE_TRAINING_REMAINING_GAPS",
-  "as_of": "2026-07-26 (Reprise 10 — after fixes landed)",
-  "note": "Honest contract-vs-implementation matrix. Statuses reflect what is now proven on real SQL (PGlite migrations pierre_v29..v35, governed runtime actions + itests). Overall verdict remains P22 — OPERATIONAL CLOSURE STILL WITHHELD (no browser proof, no value/time benchmark).",
-  "legend": { "VERIFIED": "real object + governed action + passing itest", "PARTIAL": "works but a dimension is deferred", "MISSING": "not implemented", "INVALID_IMPLEMENTATION": "was implemented dishonestly; now corrected" },
+  "as_of": "2026-07-27 (Reprise 11 start — statuses corrected downward where over-marked)",
+  "note": "Honest contract-vs-implementation matrix. SQL foundation + critical floors are real (PGlite pierre_v29..v35 + governed actions + itests). But several rows were over-marked VERIFIED in Reprise 10: authoritative mission-pack wiring, real source verification, canonical action-plan approval, full three-mode process, and real process restart are NOT closed. Overall verdict: P22 — OPERATIONAL CLOSURE STILL WITHHELD.",
+  "legend": { "VERIFIED": "real object + governed action + passing test that exercises the FULL claimed chain", "PARTIAL": "works but a dimension is deferred/weak", "MISSING": "not implemented", "INVALID_IMPLEMENTATION": "was implemented dishonestly; being corrected" },
+  "correction_note": "Reprise 10 marked VERIFIED several capabilities whose tests call services/RUNTIME_ACTION_HANDLERS directly (not through a mission pack), whose sources accept a bare source_ref, whose action-plan validation is a direct shortcut, whose three modes differ only by initial status, and whose 'restart' is a same-process SQL re-read. Those are downgraded here and are the work of Reprise 11.",
   "performance": [
     { "capability": "campaigns", "table": "pierre_rt_performance_campaigns", "action": "performance.campaign.create", "status": "VERIFIED" },
     { "capability": "participants", "table": "pierre_rt_performance_campaign_participants", "action": "performance.campaign.population.build", "status": "VERIFIED" },
@@ -16,42 +17,56 @@
     { "capability": "human_summary_validation", "action": "performance.summary.submit_for_validation + apply_validation via pierre_rt_validations", "status": "VERIFIED", "evidence": "real pierre_rt_validations row (pending→approved/rejected); interview.complete refuses without status='validated'; performance-depth + continuity itests" },
     { "capability": "interview_completion_secure", "action": "performance.interview.complete", "status": "VERIFIED", "evidence": "requires responses>0 AND validated summary; never auto-confirms/terminates probation" },
     { "capability": "objectives", "table": "pierre_rt_performance_objectives", "action": "performance.objective.create", "status": "VERIFIED" },
-    { "capability": "action_plans", "table": "pierre_rt_performance_action_plans", "action": "performance.action_plan.create + validate", "status": "VERIFIED", "evidence": "v35 + bridge itest (validated plan gates training source)" },
+    { "capability": "action_plans", "table": "pierre_rt_performance_action_plans", "action": "performance.action_plan.create + validate", "status": "PARTIAL", "remediation": "creation is real; but validatePerformanceActionPlan is a direct public shortcut to status='validated'. Needs canonical submit_for_validation + apply_validation via pierre_rt_validations (Reprise 11 §5)." },
     { "capability": "action_items", "table": "pierre_rt_performance_action_items (plan_id)", "action": "performance.action_item.create", "status": "VERIFIED" },
     { "capability": "overdue_detection", "action": "performance.overdue.detect", "status": "VERIFIED" },
-    { "capability": "reminders/invitations", "action": "performance.reminders.send", "status": "PARTIAL", "remediation": "recipients computed for real; delivery honestly INTEGRATION_UNAVAILABLE (no messaging provider wired). Provider send deferred beyond P22." },
-    { "capability": "domain_report", "action": "performance.report.generate", "status": "PARTIAL", "remediation": "metrics computed_from=sql; document rendering RENDERER_ACTIVATION_PENDING (not wired)." },
-    { "capability": "three_mode_full_behavior", "status": "PARTIAL", "remediation": "initial status differs per mode (draft/prepared/scheduled), proven; deeper mode-specific autonomy differences deferred beyond P22." },
-    { "capability": "process_restart_continuity", "status": "VERIFIED", "evidence": "p22-performance-continuity.itest: awaiting_validation durable, resume after human decision, no double-complete. True multi-process via runtime-scheduler proven separately." }
+    { "capability": "persisted_communication_calendar_intents", "action": "performance.reminders.send / invitation.send_intent", "status": "PARTIAL", "remediation": "recipients computed from SQL; delivery honestly INTEGRATION_UNAVAILABLE but NO durable intent row is persisted yet. Needs communication.create_intent-style persisted intent + single-send after a test provider (Reprise 11 §8)." },
+    { "capability": "domain_report", "action": "performance.report.generate", "status": "PARTIAL", "remediation": "metrics computed_from=sql; structured artifact + version + hash not yet persisted; document rendering RENDERER_ACTIVATION_PENDING (Reprise 11 §12)." },
+    { "capability": "three_mode_full_behavior", "status": "PARTIAL", "remediation": "modes differ only by initial status (draft/prepared/scheduled). Needs three genuinely different processes: draft vs awaiting_validation+resume vs autonomie-advances-then-stops-at-human-floor, compared on objects/waits/intents/blockers (Reprise 11 §9)." },
+    { "capability": "process_restart_continuity", "status": "PARTIAL", "remediation": "p22-performance-continuity re-reads state in the SAME process — NOT a restart. Needs process A writes+dies, process B (different PID, shared on-disk DB) reclaims lease + resumes + no double effect (Reprise 11 §10)." },
+    { "capability": "authoritative_mission_pack_wiring", "status": "MISSING", "remediation": "depth/continuity/bridge/closure itests call services/handlers directly. Needs natural instruction → mission pack → runtime worker → handler → business objects → wait → resume → final result (Reprise 11 §3,§4)." },
+    { "capability": "natural_instruction_runtime_e2e", "status": "MISSING", "remediation": "no test starts from an HR instruction and drives the authoritative worker end-to-end (Reprise 11 §4)." }
   ],
   "training": [
     { "capability": "requirements", "table": "pierre_rt_training_requirements", "action": "training.requirement.create", "status": "VERIFIED" },
-    { "capability": "source_validation", "action": "training.requirement.validate_source", "status": "VERIFIED", "evidence": "per source_type: performance_action requires action item + validated plan; policy/pack require source_ref; mandatory stays configuration_required otherwise. bridge + depth itests." },
+    { "capability": "source_validation.performance_action", "action": "training.requirement.validate_source", "status": "VERIFIED", "evidence": "requires action item + validated plan; bridge itest. NOTE: plan validation itself is a shortcut (see action_plans)." },
+    { "capability": "source_validation.company_policy", "action": "training.requirement.validate_source", "status": "INVALID_IMPLEMENTATION", "remediation": "accepts a bare non-empty source_ref (probe: source_ref='p1' ⇒ 'company_policy source_ref present'). A string is not a source. Needs a real persisted policy object (same tenant, active, versioned) whose id matches source_ref (Reprise 11 §6)." },
+    { "capability": "source_validation.country_pack", "action": "training.requirement.validate_source", "status": "PARTIAL", "remediation": "accepts source_ref presence; needs an active versioned country pack bound to tenant+country (reuse country_configs) (Reprise 11 §6)." },
+    { "capability": "source_validation.provider", "action": "training.requirement.validate_source", "status": "PARTIAL", "remediation": "accepts source_ref presence; needs a configured, active, tenant-compatible provider (Reprise 11 §6)." },
+    { "capability": "source_validation.cloneadn", "action": "training.requirement.validate_source", "status": "PARTIAL", "remediation": "accepts source_ref presence; needs a real active versioned CloneADN rule authorized for tenant (Reprise 11 §6)." },
+    { "capability": "source_validation.human_authorized", "action": "training.requirement.validate_source", "status": "PARTIAL", "remediation": "needs a persisted human decision (actor, permission, timestamp, justification) (Reprise 11 §6)." },
+    { "capability": "source_validation.unsourced_mandatory", "status": "VERIFIED", "evidence": "unsourced mandatory ⇒ configuration_required (no invented obligation). depth itest." },
+    { "capability": "source_proof_persisted", "table": "(new) pierre_rt_training_source_verifications", "status": "MISSING", "remediation": "persist source_type/source_id/source_version/verified_at/verified_by/evidence_ref/status (Reprise 11 §6)." },
     { "capability": "plans", "table": "pierre_rt_training_plans", "action": "training.plan.create", "status": "VERIFIED", "evidence": "v35 + idempotent by key; closure-actions itest" },
     { "capability": "plan_items", "table": "pierre_rt_training_plan_items", "action": "training.plan.item.add + plan.complete gate", "status": "VERIFIED", "evidence": "complete blocked while an item is open; closure-actions itest" },
     { "capability": "sessions", "table": "pierre_rt_training_sessions", "status": "VERIFIED" },
     { "capability": "enrollments", "table": "pierre_rt_training_enrollments", "status": "VERIFIED", "evidence": "v35 added missing created_at/updated_at (latent bug: attendance/completion writes had been silently rolling back)." },
     { "capability": "attendance", "table": "pierre_rt_training_attendance", "status": "VERIFIED", "evidence": "depth itest now asserts attendance persists (was never asserted before)." },
-    { "capability": "completion_proof_required", "action": "training.enrollment.complete", "status": "VERIFIED", "evidence": "proof_required (requirement OR session) gates completion: missing⇒NEEDS_INFORMATION+status blocked; received-unverified⇒under_review; verified⇒completed. depth + continuity itests." },
+    { "capability": "completion_proof_required", "action": "training.enrollment.complete", "status": "VERIFIED", "evidence": "proof_required gates completion: missing⇒NEEDS_INFORMATION+status blocked; received-unverified⇒under_review; verified⇒completed. depth + continuity itests." },
     { "capability": "proof_attach", "action": "training.proof.attach", "status": "VERIFIED" },
     { "capability": "proof_verify_separate", "action": "training.proof.verify", "status": "VERIFIED", "evidence": "separate permissioned action; certification no longer self-verifies." },
     { "capability": "certification_requires_verified_proof", "action": "training.certification.issue", "status": "VERIFIED", "evidence": "issue BLOCKED while proof only 'received'; succeeds after verify. depth itest." },
     { "capability": "expiry/renewals", "action": "training.expiry.detect", "status": "VERIFIED" },
     { "capability": "coverage", "fn": "computeTrainingCoverage", "status": "VERIFIED" },
-    { "capability": "domain_report", "action": "training.report.generate", "status": "PARTIAL", "remediation": "metrics computed_from=sql; document rendering RENDERER_ACTIVATION_PENDING." },
-    { "capability": "invitations", "action": "training.invitations.send", "status": "PARTIAL", "remediation": "recipients computed; delivery INTEGRATION_UNAVAILABLE (no provider wired)." },
-    { "capability": "three_mode_full_behavior", "status": "PARTIAL", "remediation": "enrollment status differs per mode (draft/invited/confirmed), proven; deeper autonomy differences deferred." },
-    { "capability": "process_restart_continuity", "status": "VERIFIED", "evidence": "p22-training-continuity.itest: proof-required-missing durable 'blocked', resume after proof received+verified, single certification (upsert)." }
+    { "capability": "domain_report", "action": "training.report.generate", "status": "PARTIAL", "remediation": "metrics computed_from=sql; structured artifact + version + hash not yet persisted; RENDERER_ACTIVATION_PENDING (Reprise 11 §12)." },
+    { "capability": "persisted_communication_calendar_intents", "action": "training.invitations.send", "status": "PARTIAL", "remediation": "recipients computed; no durable intent row persisted (Reprise 11 §8)." },
+    { "capability": "three_mode_full_behavior", "status": "PARTIAL", "remediation": "enrollment status differs per mode (draft/invited/confirmed); needs three genuinely different processes (Reprise 11 §9)." },
+    { "capability": "process_restart_continuity", "status": "PARTIAL", "remediation": "same-process SQL re-read, not a restart. Needs real A→B process handoff (Reprise 11 §10)." },
+    { "capability": "authoritative_mission_pack_wiring", "status": "MISSING", "remediation": "tests call services/handlers directly (Reprise 11 §3,§4)." },
+    { "capability": "natural_instruction_runtime_e2e", "status": "MISSING", "remediation": "no instruction→worker E2E (Reprise 11 §4)." }
   ],
   "bridge": [
     { "capability": "source_type_performance_action", "status": "VERIFIED", "evidence": "requirement stored with source_type='performance_action' + source_ref=action.id (contract). bridge itest asserts stored columns." },
-    { "capability": "validated_action_only", "status": "VERIFIED", "evidence": "validate_source activates only when the action exists AND its plan.status='validated'; unvalidated plan, ghost action ⇒ configuration_required. bridge itest (3 cases)." }
+    { "capability": "validated_action_only", "status": "PARTIAL", "remediation": "activation requires plan.status='validated', but the plan is set validated by the direct shortcut, not the canonical validation chain. Tighten once §5 lands (Reprise 11)." }
   ],
   "still_withheld": [
-    "No browser/E2E proof of these flows through the product UI.",
-    "No value/time benchmark (does Pierre save real HR hours at claimed quality?).",
-    "Delivery channels (reminders/invitations) and document rendering are not wired — reported honestly, not faked.",
-    "Full isolated Next production build recorded separately (RAM-wall risk).",
-    "Deeper three-mode autonomy semantics beyond initial status are deferred."
+    "Authoritative mission-pack wiring + natural-instruction runtime E2E (biggest gap).",
+    "Real source verification for company_policy/country_pack/provider/cloneadn/human_authorized.",
+    "Canonical action-plan approval via pierre_rt_validations.",
+    "Full three-mode PROCESS behavior (not just initial status).",
+    "Real second-process restart continuity.",
+    "Persisted external intents (communication/calendar) + single-send after a test provider.",
+    "Structured domain report artifacts (version + hash).",
+    "No browser/E2E through product UI; no value/time benchmark. Premium PDF/DOCX rendering, global browser, production provider, and 449/499/5000 value benchmark stay in later blocks."
   ]
 }

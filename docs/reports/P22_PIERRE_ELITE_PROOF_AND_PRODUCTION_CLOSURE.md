@@ -55,6 +55,25 @@ Acting on the correction above. Gap inventory + final statuses in `P22_PERFORMAN
 
 ---
 
+## REPRISE 10 — VERDICT CORRECTION (appended 2026-07-27, Reprise 11 start)
+
+The Reprise 10 wins above are real and are NOT retracted. But the "operating foundation" wording under-stated what is still missing, and the gap matrix over-marked several rows. Correcting honestly:
+
+**PERFORMANCE + TRAINING REPRISE 10: REAL SQL FOUNDATION + CRITICAL FLOORS VERIFIED**
+
+**AUTHORITATIVE FULL WORKFLOW GATES: STILL WITHHELD**
+
+Concretely, the following were NOT genuinely closed and are re-opened for Reprise 11:
+1. **Authoritative mission-pack wiring** — the depth/continuity/bridge/closure itests invoke the governed services or `RUNTIME_ACTION_HANDLERS[...]` **directly**. They do NOT prove: natural instruction → mission pack → runtime worker → handler → business objects → wait → resume → final result.
+2. **`training.requirement.validate_source` for `company_policy`** accepted a bare non-empty `source_ref` (probe returned `reason:"company_policy source_ref present"` for `source_ref="p1"` with no real policy). A non-empty string is **not** a verified source. Same weakness for `country_pack` / `provider`.
+3. **Performance action-plan validation** used `validatePerformanceActionPlan(...)` as a direct public shortcut that set `status='validated'` — it did NOT pass through the canonical `pierre_rt_validations` human-decision chain.
+4. **Three modes** differed mainly by initial status (draft / prepared·invited / scheduled·confirmed) — not yet three genuinely different operational processes.
+5. **Process-restart continuity** was a same-process SQL re-read — NOT a real second-process restart.
+
+Gap-matrix rows corrected accordingly (`three_mode_full_behavior`, `process_restart_continuity`, `company_policy`/`country_pack`/`provider` source validation, `action_plan human validation`, `authoritative mission-pack wiring`). **Global verdict unchanged: P22 — OPERATIONAL CLOSURE STILL WITHHELD.**
+
+---
+
 ## REPRISE 9 (P22 — PERFORMANCE + TRAINING depth (one block) + bridge — 2026-07-25, appended)
 
 Fourth block: **performance/interviews** and **training/certifications** as one unit, plus the real
