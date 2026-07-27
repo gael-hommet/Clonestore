@@ -10,6 +10,30 @@ import type { TenantContext } from "./tenant-context";
 export type TrainingMode = "brouillon" | "copilote" | "autonomie";
 const SOURCED = new Set(["cloneadn", "country_pack", "company_policy", "provider", "human_authorized", "performance_action"]);
 
+/** A REAL, active company policy — the concrete object a company_policy training source resolves against. */
+export async function createCompanyPolicy(db: SqlExecutor, ctx: TenantContext, input: { policy_key: string; title: string; category?: string; status?: string }): Promise<{ id: string; status: string }> {
+  requirePermission(ctx, "employee.write");
+  if (!input.policy_key?.trim() || !input.title?.trim()) throw Errors.validation("policy_key + title required");
+  const { rows } = await db.query<{ id: string; status: string }>(
+    `insert into pierre_rt_company_policies (id, company_id, policy_key, title, category, status, created_by)
+     values (gen_random_uuid(),$1,$2,$3,$4,$5,$6)
+     on conflict (company_id, policy_key) do update set title=excluded.title, category=excluded.category, status=excluded.status, updated_at=now(), version=pierre_rt_company_policies.version+1 returning id, status`,
+    [ctx.company_id, input.policy_key, input.title, input.category ?? "hr", input.status ?? "active", ctx.user_id]);
+  return rows[0];
+}
+
+/** A REAL, active training provider — the concrete object a provider training source resolves against. */
+export async function registerTrainingProvider(db: SqlExecutor, ctx: TenantContext, input: { provider_key: string; name: string; status?: string }): Promise<{ id: string; status: string }> {
+  requirePermission(ctx, "employee.write");
+  if (!input.provider_key?.trim() || !input.name?.trim()) throw Errors.validation("provider_key + name required");
+  const { rows } = await db.query<{ id: string; status: string }>(
+    `insert into pierre_rt_training_providers (id, company_id, provider_key, name, status)
+     values (gen_random_uuid(),$1,$2,$3,$4)
+     on conflict (company_id, provider_key) do update set name=excluded.name, status=excluded.status, version=pierre_rt_training_providers.version+1 returning id, status`,
+    [ctx.company_id, input.provider_key, input.name, input.status ?? "active"]);
+  return rows[0];
+}
+
 /** A mandatory requirement without a verified source is CONFIGURATION_REQUIRED — never a fabricated
  *  legal obligation. A non-mandatory (company) requirement can be active. */
 export async function createTrainingRequirement(
@@ -31,31 +55,65 @@ export async function createTrainingRequirement(
   return rows[0];
 }
 
-/** REAL source validation. A mandatory requirement only becomes 'active' when its source is proven to
- *  exist in the tenant (and, for performance_action, that the action's plan is validated). Unsourced or
- *  a missing/unvalidated source ⇒ stays configuration_required. A bare source_ref string never suffices. */
-export async function validateTrainingRequirementSource(db: SqlExecutor, ctx: TenantContext, requirementKey: string): Promise<{ status: string; reason: string }> {
+/** REAL source validation. A mandatory requirement becomes 'active' ONLY when its declared source_ref
+ *  resolves to a REAL tenant object of the declared source_type (not merely a non-empty string), and a
+ *  durable verification record is persisted. A missing/unresolved source ⇒ configuration_required. */
+export async function validateTrainingRequirementSource(db: SqlExecutor, ctx: TenantContext, requirementKey: string): Promise<{ status: string; reason: string; source_id: string | null }> {
   requirePermission(ctx, "employee.write");
   const req = (await db.query<{ id: string; source_type: string; source_ref: string | null; mandatory: boolean }>(
     `select id, source_type, source_ref, mandatory from pierre_rt_training_requirements where company_id=$1 and requirement_key=$2`, [ctx.company_id, requirementKey])).rows[0];
   if (!req) throw Errors.notFound("Requirement not found");
-  let ok = false; let reason = "unsourced";
   const ref = req.source_ref;
-  if (req.source_type === "performance_action" && ref) {
-    // The action item must exist in the tenant AND its action plan must be validated.
-    const r = (await db.query<{ n: number }>(
-      `select count(*)::int n from pierre_rt_performance_action_items ai
-         join pierre_rt_performance_action_plans ap on ap.id=ai.plan_id and ap.company_id=ai.company_id
-        where ai.company_id=$1 and ai.id=$2 and ap.status='validated'`, [ctx.company_id, ref])).rows[0].n;
-    ok = r > 0; reason = ok ? "performance_action validated" : "action missing or plan not validated";
-  } else if (req.source_type === "company_policy" && ref) {
-    ok = true; reason = "company_policy source_ref present"; // policy registry check would go here
-  } else if (["country_pack", "provider", "human_authorized", "cloneadn"].includes(req.source_type) && ref) {
-    ok = true; reason = `${req.source_type} source_ref present`;
+  let ok = false; let reason = "unsourced"; let sourceId: string | null = null; let sourceVersion: string | null = null;
+
+  if (ref) {
+    if (req.source_type === "performance_action") {
+      // The action item must exist in the tenant AND its action plan must be status='validated'
+      // (which is only reachable through the canonical approval chain — see performance.ts).
+      const r = (await db.query<{ id: string; v: number }>(
+        `select ap.id, ap.version v from pierre_rt_performance_action_items ai
+           join pierre_rt_performance_action_plans ap on ap.id=ai.plan_id and ap.company_id=ai.company_id
+          where ai.company_id=$1 and ai.id=$2 and ap.status='validated'`, [ctx.company_id, ref])).rows[0];
+      ok = !!r; sourceId = r?.id ?? null; sourceVersion = r ? String(r.v) : null;
+      reason = ok ? "performance_action: action item linked to a validated action plan" : "action missing or its plan not validated";
+    } else if (req.source_type === "company_policy") {
+      // A REAL, active company policy in this tenant (matched by policy_key or id) — a string is not a source.
+      const r = (await db.query<{ id: string; v: number }>(`select id, version v from pierre_rt_company_policies where company_id=$1 and (policy_key=$2 or id::text=$2) and status='active'`, [ctx.company_id, ref])).rows[0];
+      ok = !!r; sourceId = r?.id ?? null; sourceVersion = r ? String(r.v) : null;
+      reason = ok ? "company_policy: active policy resolved" : "no active company policy matches source_ref";
+    } else if (req.source_type === "country_pack") {
+      // A REAL, active country config (pack) bound to this tenant (matched by pack_key, country_code, or id).
+      const r = (await db.query<{ id: string; v: number }>(`select id, version v from pierre_rt_country_configs where company_id=$1 and (pack_key=$2 or country_code=$2 or id::text=$2) and status='active'`, [ctx.company_id, ref])).rows[0];
+      ok = !!r; sourceId = r?.id ?? null; sourceVersion = r ? String(r.v) : null;
+      reason = ok ? "country_pack: active country config resolved" : "no active country pack bound to this tenant matches source_ref";
+    } else if (req.source_type === "provider") {
+      // A REAL, active training provider configured for this tenant.
+      const r = (await db.query<{ id: string; v: number }>(`select id, version v from pierre_rt_training_providers where company_id=$1 and (provider_key=$2 or id::text=$2) and status='active'`, [ctx.company_id, ref])).rows[0];
+      ok = !!r; sourceId = r?.id ?? null; sourceVersion = r ? String(r.v) : null;
+      reason = ok ? "provider: active provider resolved" : "no active provider matches source_ref";
+    } else if (req.source_type === "human_authorized") {
+      // A REAL persisted, approved human authorization (a pierre_rt_validations decision that targets THIS
+      // requirement) — actor + timestamp + reason are on the validation row.
+      const r = (await db.query<{ id: string; decided_at: string | null }>(
+        `select id, decided_at from pierre_rt_validations where company_id=$1 and status='approved' and risk_context->>'kind'='training_source' and risk_context->>'requirement_id'=$2 limit 1`, [ctx.company_id, req.id])).rows[0];
+      ok = !!r; sourceId = r?.id ?? null; sourceVersion = null;
+      reason = ok ? "human_authorized: approved human decision resolved" : "no approved human authorization targets this requirement";
+    } else if (req.source_type === "cloneadn") {
+      // No CloneADN rule registry exists as a persisted SQL object yet — honestly NOT verifiable here.
+      ok = false; reason = "cloneadn registry not available as a persisted object (configuration_required)";
+    }
   }
+
   const status = ok ? "active" : (req.mandatory ? "configuration_required" : "active");
   await db.query(`update pierre_rt_training_requirements set status=$3, version=version+1 where company_id=$1 and id=$2`, [ctx.company_id, req.id, status]);
-  return { status, reason };
+  // Persist a DURABLE source verification record (proof that the check ran and what it resolved to).
+  const vstatus = ok ? "verified" : (ref ? "not_found" : "unverified");
+  await db.query(
+    `insert into pierre_rt_training_source_verifications (id, company_id, requirement_id, source_type, source_id, source_version, status, reason, evidence_ref, verified_by)
+     values (gen_random_uuid(),$1,$2,$3,$4,$5,$6,$7,$8,$9)
+     on conflict (company_id, requirement_id) do update set source_type=excluded.source_type, source_id=excluded.source_id, source_version=excluded.source_version, status=excluded.status, reason=excluded.reason, evidence_ref=excluded.evidence_ref, verified_by=excluded.verified_by, verified_at=now()`,
+    [ctx.company_id, req.id, req.source_type, sourceId, sourceVersion, vstatus, reason, ref ?? null, ctx.user_id]);
+  return { status, reason, source_id: sourceId };
 }
 
 export async function createTrainingPlan(db: SqlExecutor, ctx: TenantContext, input: { plan_key: string; title: string; mode?: TrainingMode; mission_id?: string | null; idempotency_key?: string | null }): Promise<{ id: string; status: string }> {

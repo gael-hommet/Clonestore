@@ -155,12 +155,47 @@ export async function createPerformanceActionPlan(db: SqlExecutor, ctx: TenantCo
   return rows[0];
 }
 
-/** Validate a performance action plan (the gate before it may source training). */
-export async function validatePerformanceActionPlan(db: SqlExecutor, ctx: TenantContext, planId: string): Promise<{ status: string }> {
+/** CANONICAL action-plan approval — step 1. Submits the plan to a real pierre_rt_validations decision.
+ *  There is NO public shortcut that flips status='validated' directly: a plan becomes validated ONLY by
+ *  applying an approved human decision (applyPerformanceActionPlanValidation). */
+export async function submitPerformanceActionPlanForValidation(db: SqlExecutor, ctx: TenantContext, planId: string, missionId: string): Promise<{ validation_id: string }> {
   requirePermission(ctx, "employee.write");
-  const upd = await db.query<{ id: string }>(`update pierre_rt_performance_action_plans set status='validated', version=version+1 where company_id=$1 and id=$2 and status in ('draft','awaiting_validation') returning id`, [ctx.company_id, planId]);
-  if (upd.rows.length === 0) throw Errors.conflict("No action plan to validate");
-  return { status: "validated" };
+  const plan = (await db.query<{ id: string; status: string }>(`select id, status from pierre_rt_performance_action_plans where company_id=$1 and id=$2`, [ctx.company_id, planId])).rows[0];
+  if (!plan) throw Errors.notFound("Action plan not found");
+  if (plan.status === "validated") throw Errors.conflict("Action plan already validated");
+  if (plan.status !== "draft" && plan.status !== "awaiting_validation") throw Errors.conflict(`Action plan not submittable (status=${plan.status})`);
+  const vId = newUuid();
+  await db.query(
+    `insert into pierre_rt_validations (id, company_id, mission_id, validator_role, required_count, status, reason, risk_context)
+     values ($1,$2,$3,'hr_manager',1,'pending',$4,$5::jsonb)`,
+    [vId, ctx.company_id, missionId, "Validation du plan d'action de performance", JSON.stringify({ kind: "performance_action_plan", plan_id: planId })]);
+  await db.query(`update pierre_rt_performance_action_plans set status='awaiting_validation', validation_id=$3, version=version+1 where company_id=$1 and id=$2`, [ctx.company_id, planId, vId]);
+  return { validation_id: vId };
+}
+
+/** CANONICAL action-plan approval — step 2. Applies the human decision from the linked validation. The
+ *  internal primitive verifies: the validation belongs to THIS tenant, targets THIS plan (kind + plan_id),
+ *  is approved, not expired, and has not already been applied (plan must still be awaiting_validation). */
+export async function applyPerformanceActionPlanValidation(db: SqlExecutor, ctx: TenantContext, planId: string): Promise<{ status: string }> {
+  requirePermission(ctx, "employee.write");
+  const plan = (await db.query<{ status: string; validation_id: string | null }>(`select status, validation_id from pierre_rt_performance_action_plans where company_id=$1 and id=$2`, [ctx.company_id, planId])).rows[0];
+  if (!plan) throw Errors.notFound("Action plan not found");
+  if (plan.status === "validated") return { status: "validated" }; // idempotent — already applied
+  if (plan.status !== "awaiting_validation" || !plan.validation_id) throw Errors.conflict("Action plan has no pending validation");
+  const val = (await db.query<{ status: string; risk_context: { kind?: string; plan_id?: string }; expires_at: string | null }>(
+    `select status, risk_context, expires_at from pierre_rt_validations where company_id=$1 and id=$2`, [ctx.company_id, plan.validation_id])).rows[0];
+  if (!val) throw Errors.notFound("Validation not found");
+  if (val.risk_context?.kind !== "performance_action_plan" || val.risk_context?.plan_id !== planId) throw Errors.conflict("Validation does not target this action plan");
+  if (val.status === "approved") {
+    if (val.expires_at) { const exp = (await db.query<{ e: boolean }>(`select ($1::timestamptz < now()) e`, [val.expires_at])).rows[0].e; if (exp) throw Errors.conflict("Validation expired"); }
+    await db.query(`update pierre_rt_performance_action_plans set status='validated', version=version+1 where company_id=$1 and id=$2 and status='awaiting_validation'`, [ctx.company_id, planId]);
+    return { status: "validated" };
+  }
+  if (val.status === "rejected" || val.status === "changes_requested") {
+    await db.query(`update pierre_rt_performance_action_plans set status='draft', validation_id=null, version=version+1 where company_id=$1 and id=$2`, [ctx.company_id, planId]);
+    return { status: "rejected" };
+  }
+  throw Errors.conflict(`Validation not decided (status=${val.status})`);
 }
 
 export async function createPerformanceObjective(db: SqlExecutor, ctx: TenantContext, input: { employee_id: string; title: string; interview_id?: string | null; campaign_id?: string | null; success_criteria?: string | null; due_on?: string | null }): Promise<{ id: string }> {
