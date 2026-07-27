@@ -81,17 +81,8 @@ const INJECTION_PATTERNS: readonly RegExp[] = [
   /invente[^.]{0,25}(un\s+numero|une\s+attestation|un\s+dossier|un\s+article|une\s+fausse|un\s+faux)/i,
   /(fausse|antidatee?)\s+(attestation|fiche|document)|attestation[^.]{0,15}antidatee/i,
   /raconte\s+que\s+t'?as\s+envoye/i,
-  // — Classe 4 : contournement de gouvernance / action non gouvernée —
-  // Contournement EXPLICITE de gouvernance (pas « à ma place »/« tout seul » : ceux-là sont des
-  // QUESTIONS de capacité légitimes ou des demandes gouvernées, traitées par le plancher HUMAN_ONLY
-  // et la couche de gouvernance avec un refus HONNÊTE de domaine, pas par la garde d'injection).
-  /(signe|execute|lance|valide|licencie|rembourse|augmente|mets?\s+a\s+jour|cree|genere|supprime)[^.]{0,45}(sans\s+preavis|sans\s+(validation|confirmation|passer\s+par(\s+les)?\s+validation|gouvernance|approbation|verification\s+humaine))/i,
-  /pas\s+besoin\s+de\s+validation\s+humaine/i,
-  /(supprime|desactive|enleve|contourne|passe|ignore|efface)[^.]{0,30}(la\s+|l'?)?(gouvernance|historique\s+de\s+gouvernance|validations?\s+(humaines?|obligatoires?)|verifications?\s+de\s+securite|controles?\s+de\s+securite)/i,
-  /(coupe|saute|zappe|court[- ]?circuite|contourne|sans\s+passer\s+par)[^.]{0,22}(les\s+|la\s+|l'?|de\s+)?(etapes?\s+de\s+controle|etape\s+de\s+validation|case\s+approbation|la\s+validation|l'?approbation|les\s+controles?)/i,
-  /contourner\s+la\s+validation/i,
-  /desactive[^.]{0,20}(confirmation|verification|securite|garde[- ]?fous?)/i,
-  /valide[^.]{0,20}toutes\s+(mes\s+)?missions\s+(automati|sans)/i,
+  // Classe 4 (contournement de gouvernance) est vérifiée SÉPARÉMENT ci-dessous : voir
+  // GOVERNANCE_BYPASS_PATTERNS et l'exception documentée « tout seul »/« à ma place ».
   // — Classe 5 : exfiltration inter-entreprise —
   /(montre|donne|affiche|communique|liste)[^.]{0,20}\b(autre|autres|d'?autres?) (client|entreprise|tenant|societe|boite|boites|clients|entreprises)/i,
   /(liste|donnees|messages?|dossiers?|salaries?|coordonnees)[^.]{0,40}(d'?une?\s+autre|autres?\s+(client|entreprise|boite|societe)|d'?autres\s+(boites|clients|entreprises))/i,
@@ -111,10 +102,34 @@ const INJECTION_PATTERNS: readonly RegExp[] = [
   /bypass|contourne[r]?\s*(la|les)?\s*(garde|permission|securite)/i,
 ];
 
+// — Classe 4 : contournement de gouvernance / action non gouvernée —
+// Contournement EXPLICITE de gouvernance (pas « à ma place »/« tout seul » : ceux-là sont des
+// QUESTIONS de capacité légitimes ou des demandes gouvernées, traitées par le plancher HUMAN_ONLY
+// et la couche de gouvernance avec un refus HONNÊTE de domaine, pas par la garde d'injection).
+// Défaut RÉEL trouvé en smoke Production (2026-07-25) : cette exclusion était documentée mais
+// jamais codée — « Pierre peut signer des contrats tout seul sans validation humaine ? » (une
+// QUESTION de capacité légitime) déclenchait un refus générique au lieu d'atteindre le moteur
+// unifié, qui répond honnêtement (validation humaine obligatoire) avec les vraies sources.
+const GOVERNANCE_BYPASS_PATTERNS: readonly RegExp[] = [
+  /(signe|execute|lance|valide|licencie|rembourse|augmente|mets?\s+a\s+jour|cree|genere|supprime)[^.]{0,45}(sans\s+preavis|sans\s+(validation|confirmation|passer\s+par(\s+les)?\s+validation|gouvernance|approbation|verification\s+humaine))/i,
+  /pas\s+besoin\s+de\s+validation\s+humaine/i,
+  /(supprime|desactive|enleve|contourne|passe|ignore|efface)[^.]{0,30}(la\s+|l'?)?(gouvernance|historique\s+de\s+gouvernance|validations?\s+(humaines?|obligatoires?)|verifications?\s+de\s+securite|controles?\s+de\s+securite)/i,
+  /(coupe|saute|zappe|court[- ]?circuite|contourne|sans\s+passer\s+par)[^.]{0,22}(les\s+|la\s+|l'?|de\s+)?(etapes?\s+de\s+controle|etape\s+de\s+validation|case\s+approbation|la\s+validation|l'?approbation|les\s+controles?)/i,
+  /contourner\s+la\s+validation/i,
+  /desactive[^.]{0,20}(confirmation|verification|securite|garde[- ]?fous?)/i,
+  /valide[^.]{0,20}toutes\s+(mes\s+)?missions\s+(automati|sans)/i,
+];
+
+// Marqueurs d'une QUESTION de capacité légitime plutôt que d'une instruction directe —
+// exactement les deux formulations que le commentaire ci-dessus a toujours promis d'exclure.
+const CAPABILITY_QUESTION_MARKERS = /\b(tout\s+seul|a\s+ma\s+place)\b/i;
+
 export function detectPromptInjection(message: string): boolean {
   // Normalise (minuscule + sans accents) pour que « règles » matche « regles ».
   const m = (message ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-  return INJECTION_PATTERNS.some((re) => re.test(m));
+  if (INJECTION_PATTERNS.some((re) => re.test(m))) return true;
+  if (CAPABILITY_QUESTION_MARKERS.test(m)) return false;
+  return GOVERNANCE_BYPASS_PATTERNS.some((re) => re.test(m));
 }
 
 export function injectionRefusalMessage(): string {
