@@ -26,6 +26,7 @@ describe("P22 training continuity — durable NEEDS_INFORMATION, resume, no doub
     const emp = await createEmployee(h.db, ctxA, { first_name: "Cont", last_name: "Train" });
 
     const req = await run(h, "training.requirement.create", { requirement_key: "sec", title: "Sécurité", source_type: "company_policy", source_ref: "p1", mandatory: true, validity_months: 12, proof_required: true });
+    await run(h, "hr.policy.create", { policy_key: "p1", title: "Politique sécurité" }); // the REAL source object
     await run(h, "training.requirement.validate_source", { requirement_key: "sec" });
     const reqId = String(req.output!.requirement_id);
     const s = await run(h, "training.session.create", { title: "S1", requirement_id: reqId, starts_at: "2026-07-20T09:00:00Z" });

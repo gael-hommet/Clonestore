@@ -1,8 +1,19 @@
 import { describe, it, expect, afterAll } from "vitest";
 import { createHarness, type Harness } from "./harness";
 import { createEmployee } from "../employees";
-import { createPerformanceActionPlan, validatePerformanceActionPlan, createPerformanceActionItem } from "../performance";
+import { createPerformanceActionPlan, submitPerformanceActionPlanForValidation, applyPerformanceActionPlanValidation, createPerformanceActionItem } from "../performance";
 import { createTrainingRequirement, validateTrainingRequirementSource, createTrainingSession, createTrainingEnrollment } from "../training";
+
+const MISSION = "10000000-0000-0000-0000-0000000000b0";
+async function seedMission(h: Harness) {
+  await h.db.query(`insert into pierre_rt_missions (id, company_id, requester_user_id, instruction, correlation_id, request_id, idempotency_key) values ($1,$2,$3,$4,gen_random_uuid(),gen_random_uuid(),$5) on conflict (id) do nothing`, [MISSION, h.companyA, h.userA, "bridge", "bridge-mission"]);
+}
+/** Validate a performance action plan through the CANONICAL human-decision chain (not a shortcut). */
+async function approvePlanCanonically(h: Harness, ctxA: ReturnType<Harness["ctx"]>, planId: string) {
+  const s = await submitPerformanceActionPlanForValidation(h.db, ctxA, planId, MISSION);
+  await h.db.query(`update pierre_rt_validations set status='approved', decided_at=now(), decided_by=$3 where company_id=$1 and id=$2`, [h.companyA, s.validation_id, h.userA]);
+  return applyPerformanceActionPlanValidation(h.db, ctxA, planId);
+}
 
 // P22 bridge (corrected) — a VALIDATED performance action becomes a source-linked training need with
 // source_type='performance_action' (contract), and only activates after source validation (the action's
@@ -15,11 +26,13 @@ describe("P22 performance→training bridge (source_type=performance_action) on 
   it("validated action plan → source-linked requirement (performance_action) → active → session → enrollment", async () => {
     harness = await createHarness();
     const h = harness; const ctxA = h.ctx("A");
+    await seedMission(h);
     const emp = await createEmployee(h.db, ctxA, { first_name: "Bridge", last_name: "Test" });
 
-    // A performance action plan, validated (the gate before it may source training).
+    // A performance action plan, validated through the CANONICAL human-decision chain (not a shortcut).
     const plan = await createPerformanceActionPlan(h.db, ctxA, { employee_id: emp.id, title: "Plan de développement sécurité" });
-    await validatePerformanceActionPlan(h.db, ctxA, plan.id);
+    const applied = await approvePlanCanonically(h, ctxA, plan.id);
+    expect(applied.status).toBe("validated");
     const action = await createPerformanceActionItem(h.db, ctxA, { employee_id: emp.id, action: "Développer la compétence sécurité", plan_id: plan.id, due_on: "2026-12-31" });
 
     // Bridge: requirement with the CONTRACTUAL source_type=performance_action + source_ref=action.id.

@@ -26,6 +26,7 @@ describe("P22 perf+training closure actions — real objects, honest channels", 
     const emp = await createEmployee(h.db, h.ctx("A"), { first_name: "Plan", last_name: "Emp" });
 
     const req = await run(h, "training.requirement.create", { requirement_key: "sec", title: "Sécurité", source_type: "company_policy", source_ref: "pol-1", mandatory: true });
+    await run(h, "hr.policy.create", { policy_key: "pol-1", title: "Politique sécurité" }); // real source object
     await run(h, "training.requirement.validate_source", { requirement_key: "sec" });
     const reqId = String(req.output!.requirement_id);
     const session = await run(h, "training.session.create", { title: "S1", requirement_id: reqId });

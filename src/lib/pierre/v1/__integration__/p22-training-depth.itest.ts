@@ -33,8 +33,17 @@ describe("P22 training depth — 120 employees on real SQL", () => {
     const sourced = await run(h, "training.requirement.create", { requirement_key: "safety_2026", title: "Sécurité au travail", source_type: "company_policy", source_ref: "policy-42", mandatory: true, validity_months: 12, proof_required: true });
     // A mandatory requirement is NOT active on declaration — a bare source_ref never suffices.
     expect(sourced.output!.status).toBe("configuration_required");
+    // A bare source_ref is NOT a source: without a real policy, validate_source keeps it configuration_required.
+    const beforePolicy = await run(h, "training.requirement.validate_source", { requirement_key: "safety_2026" });
+    expect(beforePolicy.output!.status).toBe("configuration_required");
+    // Now register the REAL, active company policy the source_ref points to → source resolves → active.
+    await run(h, "hr.policy.create", { policy_key: "policy-42", title: "Politique sécurité au travail" });
     const vs = await run(h, "training.requirement.validate_source", { requirement_key: "safety_2026" });
-    expect(vs.output!.status).toBe("active"); // becomes active only after source validation
+    expect(vs.output!.status).toBe("active"); // becomes active only after the source RESOLVES to a real object
+    // A durable verification record was persisted.
+    const verif = (await h.db.query<{ status: string; source_type: string }>(`select v.status, v.source_type from pierre_rt_training_source_verifications v join pierre_rt_training_requirements r on r.id=v.requirement_id where r.company_id=$1 and r.requirement_key='safety_2026'`, [h.companyA])).rows[0];
+    expect(verif.status).toBe("verified");
+    expect(verif.source_type).toBe("company_policy");
     const unsourced = await run(h, "training.requirement.create", { requirement_key: "mystery_mandatory", title: "Obligation non sourcée", mandatory: true });
     expect(unsourced.output!.status).toBe("configuration_required"); // never fabricated as a legal obligation
   });
