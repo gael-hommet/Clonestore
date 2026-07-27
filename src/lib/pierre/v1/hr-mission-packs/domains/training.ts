@@ -37,4 +37,29 @@ export const TRAINING_PACKS: HrMissionPackDefinition[] = [
     completionCriteria: [cc("training.tracked", "Expiry tracked & chased.", "state")],
     runtimeStatus: "IMPLEMENTED",
   }),
+  // P22 Reprise 12 — a FULLY AUTHORITATIVE pack: every business step is a real runtime action, later
+  // steps thread upstream runtime-generated ids via {$ref}, a human validation gates activation, and it
+  // ends in a real terminal (report → mission.complete). Runs end-to-end on the governed runtime.
+  defineMissionPack({
+    id: "training.mandatory_compliance_setup", domain: "training",
+    title: "Set up a mandatory training obligation (sourced → planned → validated)",
+    description: "Register the source policy, create the mandatory requirement, verify its source resolves to a real policy, schedule a session, build the plan (threaded ids), gate activation on a human validation, then produce the training report.",
+    capabilityIds: ["training.mandatory_compliance", "training.plan"],
+    supportedIntents: ["training.mandatory_compliance_setup", "formation obligatoire", "mandatory training", "training compliance", "plan de formation", "mettre en place la formation", "formation securite obligatoire"],
+    subjectTypes: ["employee"],
+    steps: [
+      rt("policy", "mutate_record", "Register the source policy", "hr.policy.create", { input: { policy_key: "mandatory-training-policy", title: "Politique de formation obligatoire" } }),
+      rt("requirement", "mutate_record", "Create the mandatory training requirement", "training.requirement.create", { dependsOn: ["policy"], input: { requirement_key: "mandatory-training", title: "Formation obligatoire", source_type: "company_policy", source_ref: "mandatory-training-policy", mandatory: true, proof_required: true } }),
+      rt("validate_source", "validate", "Verify the requirement's source resolves to a real policy", "training.requirement.validate_source", { dependsOn: ["requirement"], input: { requirement_key: "mandatory-training" } }),
+      rt("session", "schedule", "Schedule a training session", "training.session.create", { dependsOn: ["validate_source"], input: { title: "Session formation obligatoire", requirement_id: { $ref: { step: "requirement", output: "requirement_id" } } } }),
+      rt("plan", "mutate_record", "Build the training plan", "training.plan.create", { dependsOn: ["validate_source"], input: { plan_key: "mandatory-training-plan", title: "Plan de formation obligatoire" } }),
+      rt("plan_item", "mutate_record", "Add the requirement to the plan (threaded ids)", "training.plan.item.add", { dependsOn: ["plan", "session"], input: { plan_id: { $ref: { step: "plan", output: "plan_id" } }, requirement_id: { $ref: { step: "requirement", output: "requirement_id" } }, session_id: { $ref: { step: "session", output: "session_id" } } } }),
+      rt("approve", "validate", "Human validation of the mandatory obligation (never auto-decided)", "approval.request", { dependsOn: ["plan_item"], requiresApproval: true, input: { reason: "Valider la mise en place de la formation obligatoire", validator_role: "hr_manager" } }),
+      rt("report", "prepare_document", "Generate the SQL-computed training report", "training.report.generate", { dependsOn: ["approve"], input: {} }),
+      ...closeSkeleton("report"),
+    ],
+    countryRuleRequirements: [{ ruleFamily: "mandatory_trainings", required: true, notes: "mandatory training obligations are country-specific (P8.12)" }],
+    completionCriteria: [cc("training.compliance.planned", "Mandatory training set up + human-validated.", "artifact"), cc("training.compliance.closed", "Terminal state.", "state")],
+    runtimeStatus: "IMPLEMENTED",
+  }),
 ];
