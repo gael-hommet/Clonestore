@@ -37,13 +37,18 @@
 21. **Test anti-régression d'ordre value-first vert ?** **Oui** (4 assertions).
 22. **ESLint ciblé vert ?** **Oui** (0 erreur).
 23. **Build pré-commit `REAL_EXIT_CODE=0` ?** **Oui**.
-24. **BUILD_ID ?** `YyYGrnN2Aq41iGpc-aKBP`.
-25. **Combien de commits créés ?** Voir section « Commits » (test + docs).
-26. **Message et OID ?** Renseignés après création (section finale).
-27. **Blobs vérifiés ?** Oui (à la création).
-28. **Checkout propre final uniquement depuis Git ?** Voir `DEMO_RESTORATION_CLEAN_CHECKOUT_PROOF.md`.
-29. **`npm ci` réussi ?** Voir clean checkout proof.
-30. **Build final `REAL_EXIT_CODE=0` ?** Voir clean checkout proof.
+24. **BUILD_ID ?** `YyYGrnN2Aq41iGpc-aKBP` (pré-commit) ; `vKRVaJQqRRM5sTiAVP2jR` (build final
+    checkout propre).
+25. **Combien de commits créés ?** **1 commit ciblé** (test + docs + preuves). Un 2ᵉ commit
+    documentaire additionnel porte les 2 preuves finales (clean-checkout + blob-proof).
+26. **Message et OID ?** `test(demo): lock validated value-first order + restoration evidence (repo
+    already value-first; live deploy stale)` — OID `79f2a3792d42baf602415e1c1ce5b6c14d805f92`.
+27. **Blobs vérifiés ?** **Oui** (14/14 octet-par-octet, Δ = allowlist exacte).
+28. **Checkout propre final uniquement depuis Git ?** **Oui** — 8245 blobs, 0 mismatch, aucune
+    copie worktree/`node_modules`/`.env.local`.
+29. **`npm ci` réussi ?** **Oui** (531 paquets, exit 0).
+30. **Build final `REAL_EXIT_CODE=0` ?** **Oui** — `BUILD_ID=vKRVaJQqRRM5sTiAVP2jR`, démo 85/85
+    verte dans le checkout propre.
 31. **Un push effectué ?** **Non**.
 32. **Un déploiement effectué ?** **Non**.
 33. **`PRODUCTION_AUTHORIZED=false` intact ?** **Oui**.

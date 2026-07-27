@@ -1,0 +1,10 @@
+
+[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90mC:/Users/homme/clonestore-clean-exact-demo-restoration[39m
+
+
+[2m Test Files [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[32m85 passed[39m[22m[90m (85)[39m
+[2m   Start at [22m 13:59:51
+[2m   Duration [22m 9.32s[2m (transform 1.06s, setup 0ms, import 3.53s, tests 427ms, environment 4ms)[22m
+
+EXIT=0
