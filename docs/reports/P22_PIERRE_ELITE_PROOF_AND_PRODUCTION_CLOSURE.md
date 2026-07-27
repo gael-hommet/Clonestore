@@ -74,6 +74,24 @@ Gap-matrix rows corrected accordingly (`three_mode_full_behavior`, `process_rest
 
 ---
 
+## REPRISE 11 (P22 — authoritative wiring, real sources, canonical approvals — 2026-07-27, appended)
+
+Additive migration `pierre_v36`. Commits `bb3f769b → 36b625ef → 51561c1b → 40539e7a → ee6b43b6` on top of the Reprise 10 chain (which stays intact; `cd5bc811` preserved).
+
+**What genuinely landed and is verified (real SQL, PGlite pierre_v29..v36):**
+
+1. **Real training source resolution (kills the `source_ref="p1"` lie).** `training.requirement.validate_source` now resolves `source_ref` to a REAL tenant object of the declared `source_type` — `company_policy` → an active `pierre_rt_company_policies` row; `country_pack` → an active `pierre_rt_country_configs`; `provider` → an active `pierre_rt_training_providers`; `human_authorized` → an approved `pierre_rt_validations` targeting the requirement; `performance_action` → an action item whose plan is validated; `cloneadn` → honestly `configuration_required` (no persisted registry). A bare non-empty string never activates a mandatory requirement. Every check persists a durable `pierre_rt_training_source_verifications` row (`verified`/`not_found`/`unverified`).
+2. **Canonical performance action-plan approval (kills the direct shortcut).** `validatePerformanceActionPlan` (a public `status='validated'` shortcut) was removed and replaced by `submit_for_validation` + `apply_validation` through `pierre_rt_validations`. `apply` verifies the validation belongs to this tenant, targets this plan (`kind`+`plan_id`), is `approved`, not expired, and not already applied. The bridge now only activates when the action's plan reached `validated` via this chain.
+3. **AUTHORITATIVE worker E2E (kills "direct handler call = mission").** `p22-authoritative-worker-e2e.itest.ts` drives real perf/training actions through the P8.5 governed runtime: `createMissionRunFromPlan → runPierreRuntimeJobs → RUNTIME_ACTION_HANDLERS → real business objects (campaign, policy, requirement, source verification) → approval.request WAIT (run `waiting`) → human decision + governed `pierre_rt_resolve_runtime_wait` → dependents run → run `completed``. Negative case proven: an obsolete-fingerprint decision never resumes.
+
+**Verification:** `tsc` → 0. Affected P22 suite (8 files, **25 tests**) all green: perf-depth, perf-continuity, training-depth, real-sources-and-approvals, bridge, training-continuity, closure-actions, authoritative-worker-e2e. **Isolated `next build` → exit 0** (2.6 min compile, whole-app type-check passed, 196/196 static pages) with the v36 migration + new services/actions/tests in the tree.
+
+**HONEST architecture finding (why the remaining gates are legitimately blocked — see `P22_PERFORMANCE_TRAINING_PACK_BINDINGS.json`):** the codebase has **two** runtimes. `apiCreateMission` drives Subsystem A (cognitive-analyzer → `pierre_rt_tasks` → `executors.ts`) which **never** reaches `RUNTIME_ACTION_HANDLERS`. The authoritative handlers live in Subsystem B (`createMissionRunFromPlan → runPierreRuntimeJobs`). Mission packs compile into B via `packToRuntimePlan`, but **nothing auto-selects a pack from an instruction**, and — critically — **the runtime does not thread an upstream step's output into a downstream step's input** (each step's payload is its immutable compile-time `input_json`). Therefore a pack step that needs a runtime-generated id (interview needs `campaign_id`, response needs `interview_id`, enrollment.complete needs `enrollment_id`, or any per-employee action) **cannot** execute through a single compiled plan. Rebinding the packs to authoritative actions now would make those steps FAIL at runtime — worse than the current generic-but-persisting bindings — so the packs were deliberately **not** fake-rebound. Closing this requires a real runtime change (output→input threading/templating, or business-KEY resolution on every authoritative action).
+
+**Still OPEN this reprise (gates NOT closed):** authoritative mission-pack wiring + natural-instruction E2E (blocked as above), full three-mode PROCESS behavior, real second-process restart (`process_restart_continuity` — PGlite `dataDir` makes it feasible but it was not built this reprise), persisted external intents for perf/training reminders, HR-canon alignment, structured report artifacts. **Global verdict unchanged: P22 — OPERATIONAL CLOSURE STILL WITHHELD.**
+
+---
+
 ## REPRISE 9 (P22 — PERFORMANCE + TRAINING depth (one block) + bridge — 2026-07-25, appended)
 
 Fourth block: **performance/interviews** and **training/certifications** as one unit, plus the real
