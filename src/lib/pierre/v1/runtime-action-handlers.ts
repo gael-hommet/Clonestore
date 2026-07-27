@@ -35,7 +35,8 @@ import {
 import {
   createPerformanceCampaign, buildCampaignPopulation, createPerformanceInterview, recordPerformanceResponse,
   buildPerformanceSummary, submitPerformanceSummaryForValidation, applyPerformanceSummaryValidation,
-  completePerformanceInterview, createPerformanceActionPlan, validatePerformanceActionPlan,
+  completePerformanceInterview, createPerformanceActionPlan, submitPerformanceActionPlanForValidation,
+  applyPerformanceActionPlanValidation,
   createPerformanceActionItem, createPerformanceObjective, detectOverduePerformanceItems,
   addPerformanceTemplateSection, addPerformanceTemplateQuestion, generatePerformanceReport, sendPerformanceReminders,
   validateInterviewResponseCompleteness, type PerfMode,
@@ -44,7 +45,8 @@ import {
   createTrainingRequirement, validateTrainingRequirementSource, createTrainingSession, createTrainingEnrollment,
   recordTrainingAttendance, attachTrainingProof, verifyTrainingProof, issueTrainingCertification,
   detectExpiringCertifications, completeTrainingEnrollment, createTrainingPlan, addTrainingPlanItem,
-  completeTrainingPlan, generateTrainingReport, sendTrainingInvitations, type TrainingMode,
+  completeTrainingPlan, generateTrainingReport, sendTrainingInvitations, createCompanyPolicy,
+  registerTrainingProvider, type TrainingMode,
 } from "./training";
 
 export type RuntimeDeps = {
@@ -710,10 +712,14 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
     });
     return { kind: "performance_action_plan", plan_id: p.id, status: p.status };
   }, "performance_action_plan_refused"),
-  "performance.action_plan.validate": domainAction(async (tx, ctx) => {
-    const r = await validatePerformanceActionPlan(tx, ctx.tenant, String(ctx.payload.plan_id ?? ""));
-    return { kind: "performance_action_plan_validated", plan_id: ctx.payload.plan_id, status: r.status };
-  }, "performance_action_plan_validate_refused"),
+  "performance.action_plan.submit_for_validation": domainAction(async (tx, ctx) => {
+    const r = await submitPerformanceActionPlanForValidation(tx, ctx.tenant, String(ctx.payload.plan_id ?? ""), ctx.missionId);
+    return { kind: "performance_action_plan_submitted", plan_id: ctx.payload.plan_id, validation_id: r.validation_id };
+  }, "performance_action_plan_submit_refused"),
+  "performance.action_plan.apply_validation": domainAction(async (tx, ctx) => {
+    const r = await applyPerformanceActionPlanValidation(tx, ctx.tenant, String(ctx.payload.plan_id ?? ""));
+    return { kind: "performance_action_plan_applied", plan_id: ctx.payload.plan_id, status: r.status };
+  }, "performance_action_plan_apply_refused"),
   "performance.action_item.create": domainAction(async (tx, ctx) => {
     const a = await createPerformanceActionItem(tx, ctx.tenant, {
       action: String(ctx.payload.action ?? ""), employee_id: (ctx.payload.employee_id as string) ?? null, interview_id: (ctx.payload.interview_id as string) ?? null,
@@ -798,8 +804,16 @@ export const RUNTIME_ACTION_HANDLERS: Record<string, RuntimeActionHandler> = {
   }, "training_proof_verify_refused"),
   "training.requirement.validate_source": domainAction(async (tx, ctx) => {
     const r = await validateTrainingRequirementSource(tx, ctx.tenant, String(ctx.payload.requirement_key ?? ""));
-    return { kind: "training_requirement_source", requirement_key: ctx.payload.requirement_key, status: r.status, reason: r.reason };
+    return { kind: "training_requirement_source", requirement_key: ctx.payload.requirement_key, status: r.status, reason: r.reason, source_id: r.source_id };
   }, "training_requirement_source_refused"),
+  "hr.policy.create": domainAction(async (tx, ctx) => {
+    const r = await createCompanyPolicy(tx, ctx.tenant, { policy_key: String(ctx.payload.policy_key ?? ""), title: String(ctx.payload.title ?? ""), category: (ctx.payload.category as string) ?? "hr", status: (ctx.payload.status as string) ?? "active" });
+    return { kind: "company_policy", policy_id: r.id, status: r.status };
+  }, "hr_policy_refused"),
+  "training.provider.register": domainAction(async (tx, ctx) => {
+    const r = await registerTrainingProvider(tx, ctx.tenant, { provider_key: String(ctx.payload.provider_key ?? ""), name: String(ctx.payload.name ?? ""), status: (ctx.payload.status as string) ?? "active" });
+    return { kind: "training_provider", provider_id: r.id, status: r.status };
+  }, "training_provider_refused"),
   "training.certification.issue": domainAction(async (tx, ctx) => {
     const c = await issueTrainingCertification(tx, ctx.tenant, {
       employee_id: String(ctx.payload.employee_id ?? ""), certification_key: String(ctx.payload.certification_key ?? ""), proof_id: String(ctx.payload.proof_id ?? ""),
