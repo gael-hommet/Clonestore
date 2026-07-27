@@ -126,6 +126,16 @@ export function detectUserRestriction(instruction: string): string | null {
   return hit ? (t.match(hit)?.[0] ?? null) : null;
 }
 
+// PIERRE SELLABILITY STRESS TEST (2026-07-26) — DÉFAUT MÉTHODOLOGIQUE CORRIGÉ : `detectMissingInfo`
+// ne vérifiait QUE le sujet (« qui ») et l'échéance d'une relance. Une instruction qui ÉNONCE
+// elle-même un manque, une contradiction ou une règle ambiguë (« il manque le RIB », « deux primes
+// contradictoires », « la règle diffère selon l'entité ») ne déclenchait RIEN : `missing_info`
+// restait vide, alors que l'instruction dit LITTÉRALEMENT qu'il manque quelque chose. Détection
+// GÉNÉRALE (indépendante du sujet RH précis) par 3 familles de marqueurs — jamais un cas particulier.
+const EXPLICIT_GAP_MARKERS = /\b(manque\w*|manquant\w*|incomplet\w*|incomplè\w*|n'a pas [ée]t[ée] (fourni|re[cç]u|transmis)\w*|non fourni\w*|non re[cç]u\w*)\b/i;
+const CONTRADICTION_MARKERS = /\b(contradictoire\w*|contradiction\w*|incoh[ée]rent\w*|incoh[ée]rence\w*)\b/i;
+const RULE_AMBIGUITY_MARKERS = /\b(diff[èe]re selon|non document[ée]e?\w*|non connue?\w* avec certitude|pas connue?\w* avec certitude)\b/i;
+
 function detectMissingInfo(instruction: string): MissingInfo[] {
   const out: MissingInfo[] = [];
   // Accent-safe subject detection (JS \b does not handle accented chars). Either
@@ -139,6 +149,15 @@ function detectMissingInfo(instruction: string): MissingInfo[] {
   const hasWhen = /([ée]ch[ée]ance|deadline|avant|date|vendredi|lundi|mardi|semaine|mois)/i.test(instruction);
   if (!hasWhen && /(relance|rappel)/i.test(instruction)) {
     out.push({ id: "deadline", question: "Quelle est l'échéance visée ?", priority: "medium" });
+  }
+  if (EXPLICIT_GAP_MARKERS.test(instruction)) {
+    out.push({ id: "explicit_gap", question: "Quelle est précisément l'information ou la pièce manquante ?", priority: "high" });
+  }
+  if (CONTRADICTION_MARKERS.test(instruction)) {
+    out.push({ id: "contradiction", question: "Quelles sont les deux versions contradictoires à arbitrer, et sur quelle base trancher ?", priority: "high" });
+  }
+  if (RULE_AMBIGUITY_MARKERS.test(instruction)) {
+    out.push({ id: "rule_ambiguity", question: "Quelle entité, pays ou juridiction précise s'applique à cette situation ?", priority: "high" });
   }
   return out;
 }
