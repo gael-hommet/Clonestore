@@ -29,7 +29,15 @@ export type Harness = {
   companyB: string;
   userA: string;
   userB: string;
-  ctx(company: "A" | "B", role?: MemberRole): TenantContext;
+  /** PIERRE SELLABILITY STRESS TEST (2026-07-26) — 2 ADDITIONAL real tenants (C, D), additive
+   *  only. Existing A/B seeding and behavior are untouched — every prior caller of ctx("A"|"B")
+   *  keeps working identically. Added so multi-tenant campaigns can use 4 REAL companies instead
+   *  of 4 textual profile names sharing a single tenant. */
+  companyC: string;
+  companyD: string;
+  userC: string;
+  userD: string;
+  ctx(company: "A" | "B" | "C" | "D", role?: MemberRole): TenantContext;
   /** Run a block as the restricted (non-superuser) role with a tenant GUC bound —
    *  this is how RLS isolation is actually proven. */
   asTenantRole<T>(companyId: string, fn: (q: (text: string, params?: readonly unknown[]) => Promise<{ rows: SqlRow[] }>) => Promise<T>): Promise<T>;
@@ -95,6 +103,10 @@ export async function createHarness(): Promise<Harness> {
   const companyB = newUuid();
   const userA = newUuid();
   const userB = newUuid();
+  const companyC = newUuid();
+  const companyD = newUuid();
+  const userC = newUuid();
+  const userD = newUuid();
 
   // P16E §3 (F17) — a real company has a verified LEGAL name distinct from its display name; seed
   // it so governed contract generation (which requires company.legal_name) has a valid identity.
@@ -102,12 +114,17 @@ export async function createHarness(): Promise<Harness> {
     [companyA, "Tenant A", "TENANT A SAS", companyB, "Tenant B", "TENANT B SAS"]);
   await pg.query("insert into pierre_rt_members (id, company_id, user_id, role) values ($1,$2,$3,'owner'),($4,$5,$6,'owner')",
     [newUuid(), companyA, userA, newUuid(), companyB, userB]);
+  // Additive C/D tenants — same real seeding shape as A/B, own row, own owner membership.
+  await pg.query("insert into pierre_rt_companies (id, name, legal_name) values ($1,$2,$3),($4,$5,$6)",
+    [companyC, "Tenant C", "TENANT C SAS", companyD, "Tenant D", "TENANT D SAS"]);
+  await pg.query("insert into pierre_rt_members (id, company_id, user_id, role) values ($1,$2,$3,'owner'),($4,$5,$6,'owner')",
+    [newUuid(), companyC, userC, newUuid(), companyD, userD]);
 
   return {
-    db, pg, companyA, companyB, userA, userB,
+    db, pg, companyA, companyB, userA, userB, companyC, companyD, userC, userD,
     ctx(company, role: MemberRole = "owner"): TenantContext {
-      const company_id = company === "A" ? companyA : companyB;
-      const user_id = company === "A" ? userA : userB;
+      const company_id = company === "A" ? companyA : company === "B" ? companyB : company === "C" ? companyC : companyD;
+      const user_id = company === "A" ? userA : company === "B" ? userB : company === "C" ? userC : userD;
       // viewer = read-only (no sensitive, no write); owner = full OWNER permission set.
       const perms = role === "viewer"
         ? (["company.read", "mission.read", "task.read", "validation.read", "employee.read", "site.read"] as const)
