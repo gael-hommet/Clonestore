@@ -16,6 +16,7 @@ import { runtimeLimits } from "./runtime-limits";
 import { getRuntimeActionDefinition, validateRuntimeActionInput } from "./runtime-action-registry";
 import { getRuntimeActionHandler, type RuntimeActionContext, type RuntimeDeps, type RuntimeActionResult } from "./runtime-action-handlers";
 import { RuntimeLeaseController } from "./runtime-lease-controller";
+import { hasStepRefs, collectStepRefs, resolveStepRefs } from "./runtime-step-refs";
 
 async function withTenant<T>(db: SqlExecutor, ctx: TenantContext, fn: (tx: SqlExecutor) => Promise<T>): Promise<T> {
   return db.transaction(async (tx) => { await tx.query(`select set_config('app.current_company', $1, true)`, [ctx.company_id]); return fn(tx); });
@@ -121,7 +122,21 @@ export async function runPierreRuntimeJobs(
         res.blocked += 1; continue;
       }
       const step = (await wtx((tx) => tx.query<{ input_json: Record<string, unknown> }>(`select input_json from pierre_rt_step_runs where company_id=$1 and id=$2`, [ctx.company_id, job.step_run_id]))).rows[0];
-      const payload = step?.input_json ?? {};
+      let payload = step?.input_json ?? {};
+      // P22 Reprise 12 — resolve {$ref} step-output references from the run's completed dependency steps
+      // BEFORE validation + handler. A ref that cannot be resolved is a governed block, never a silent pass.
+      if (hasStepRefs(payload)) {
+        try {
+          const stepKeys = [...new Set(collectStepRefs(payload).map((r) => r.step))];
+          const outRows = (await wtx((tx) => tx.query<{ step_key: string; output_json: Record<string, unknown> | null }>(
+            `select step_key, output_json from pierre_rt_step_runs where company_id=$1 and mission_run_id=$2 and step_key = any($3) and status='succeeded'`,
+            [ctx.company_id, job.mission_run_id, stepKeys]))).rows;
+          payload = resolveStepRefs(payload, new Map(outRows.map((r) => [r.step_key, r.output_json]))) as Record<string, unknown>;
+        } catch (e) {
+          await governedFail(wtx, job.id, worker, token, ctx.company_id, "unresolved_step_ref", (e as Error)?.message?.slice(0, 180) ?? "unresolved ref", "block", 0, job.max_attempts);
+          res.blocked += 1; continue;
+        }
+      }
       const valid = validateRuntimeActionInput(job.action_key, payload);
       if (!valid.ok) { await governedFail(wtx, job.id, worker, token, ctx.company_id, "invalid_input", valid.errors.join("|"), "block", 0, job.max_attempts); res.blocked += 1; continue; }
 

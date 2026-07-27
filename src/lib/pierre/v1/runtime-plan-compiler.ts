@@ -9,6 +9,7 @@ import { createHash } from "crypto";
 import { sha256 } from "./renderers";
 import { getRuntimeActionDefinition, validateRuntimeActionInput } from "./runtime-action-registry";
 import { runtimeLimits, planDepth } from "./runtime-limits";
+import { collectStepRefs, inputForValidation } from "./runtime-step-refs";
 
 export type RuntimePlanStepInput = {
   step_key: string;
@@ -80,7 +81,9 @@ export function compileMissionPlan(plan: RuntimePlanInput): CompiledPlan {
     if (dfn.risk === "prohibited") blockers.push(`prohibited_action:${s.step_key}`);
     if (dfn.timeoutSeconds <= 0 || dfn.timeoutSeconds > 7 * 24 * 3600) blockers.push(`unbounded_timeout:${s.step_key}`);
     if (dfn.maxAttempts <= 0 || dfn.maxAttempts > 50) blockers.push(`unbounded_retry:${s.step_key}`);
-    const inputErrors = validateRuntimeActionInput(s.action_key, s.input ?? {});
+    // Step references ({$ref}) are resolved from upstream outputs at execution time; validate the
+    // non-reference fields with a placeholder standing in for each reference (so uuid/string checks pass).
+    const inputErrors = validateRuntimeActionInput(s.action_key, inputForValidation(s.input ?? {}) as Record<string, unknown>);
     if (!inputErrors.ok) blockers.push(`invalid_input:${s.step_key}:${inputErrors.errors.join("|")}`);
     if (s.action_key === "wait.until_time" && !isIsoInstant((s.input ?? {}).wake_at)) blockers.push(`invalid_date:${s.step_key}`);
     if (s.action_key === "follow_up.schedule" && (s.input ?? {}).due_at !== undefined && !isIsoInstant((s.input ?? {}).due_at)) blockers.push(`invalid_date:${s.step_key}`);
@@ -91,6 +94,22 @@ export function compileMissionPlan(plan: RuntimePlanInput): CompiledPlan {
   // dependency references must exist
   for (const s of steps) {
     for (const d of (s.depends_on ?? [])) if (!seen.has(d)) blockers.push(`unknown_dependency:${s.step_key}->${d}`);
+  }
+  // step OUTPUT references ({$ref:{step,output}}) must target a known step that is UPSTREAM of this step
+  // (transitively depended-on), so the referenced output is guaranteed to exist when this step executes.
+  if (blockers.length === 0) {
+    const byKeyRef = new Map(steps.map((s) => [s.step_key, s] as const));
+    const isUpstream = (from: string, target: string): boolean => {
+      const visited = new Set<string>(); const stack = [...(byKeyRef.get(from)?.depends_on ?? [])];
+      while (stack.length) { const k = stack.pop()!; if (k === target) return true; if (visited.has(k)) continue; visited.add(k); stack.push(...(byKeyRef.get(k)?.depends_on ?? [])); }
+      return false;
+    };
+    for (const s of steps) {
+      for (const ref of collectStepRefs(s.input ?? {})) {
+        if (!seen.has(ref.step)) { blockers.push(`ref_unknown_step:${s.step_key}->${ref.step}`); continue; }
+        if (ref.step === s.step_key || !isUpstream(s.step_key, ref.step)) blockers.push(`ref_not_upstream:${s.step_key}->${ref.step}`);
+      }
+    }
   }
   // R4.7 — the DAG depth (longest dependency chain) is bounded
   if (blockers.length === 0) {
