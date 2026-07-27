@@ -1,5 +1,24 @@
 # Analytics Runtime Wiring — Remaining Risks
 
+## Mise à jour 2026-07-25 (CORRELATION / NON-BLOCKING / CLEAN CHECKOUT RE-CLOSURE)
+
+- **Corrélation fermée** : les vérités serveur portent le `visitor_id` d'origine (table de
+  liaison, résolution webhook sans cookie). Résiduel : dépend des cookies canoniques signés au
+  moment réservation/checkout — un visiteur bloquant les cookies first-party aura `visitor_id:
+  null` (dégradation propre, jamais un blocage).
+- **Non-blocabilité fermée** : écritures bornées à 500 ms (`ANALYTICS_WRITE_TIMEOUT_MS`), prouvé
+  temporellement. Résiduel : un timeout = un événement perdu (jamais un blocage métier), visible
+  dans la santé de mesure.
+- **Gap de reproductibilité pré-existant corrigé** (ISSUE-44) : `DemoExperience.tsx` (committé par
+  le bloc précédent) dépendait d'une clôture démo de 38 fichiers jamais committée — le HEAD ne
+  buildait pas seul et le `REAL_EXIT_CODE=0` précédent était un faux positif. Corrigé
+  (`a998eba5`), build propre re-prouvé. Leçon : vérifier le build par matérialisation stricte, pas
+  seulement le worktree.
+- **Santé de mesure** : reste `PARTIALLY_COMPLETE`. **BLOC3** toujours inerte (ISSUE-15, hors
+  périmètre).
+
+---
+
 | Risque | Sévérité | Détail |
 |---|---|---|
 | Aucun trafic réel n'a encore traversé le pipeline branché | Attendu | Le funnel synthétique complet est prouvé, mais aucune donnée de production réelle n'existe encore ; la validation externe (prochain bloc) produira les premières vraies traversées |

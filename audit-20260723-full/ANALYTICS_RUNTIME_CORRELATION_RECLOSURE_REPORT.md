@@ -43,6 +43,17 @@ P0.1/P0.2 et P21/P22 ne sont plus déclarés verts « parce que non touchés » 
 `PRODUCTION_AUTHORIZED=false` intact. Aucun push, déploiement, migration distante, service réel.
 Migration corrélation testée en local (PGlite) uniquement.
 
+## Réserve 4 (émergente) — Reproductibilité du HEAD
+
+Le checkout propre a révélé que le HEAD committé ne buildait pas seul : `DemoExperience.tsx`
+(committé par le bloc précédent) dépendait d'une clôture démo de 38 fichiers jamais committée. Le
+`REAL_EXIT_CODE=0` du bloc précédent était donc un faux positif. Corrigé par un commit
+`fix(reproducibility)` dédié (`a998eba5`, allowlist explicite, blobs vérifiés, 74/74 tests démo).
+Deuxième matérialisation propre re-buildée : **`REAL_EXIT_CODE=0`, `BUILD_ID=3h1SjcpydSSbOReQKoWKh`,
+87/87 tests, tsc résidu `embedded-postgres` seul**. Voir ISSUE-44 et
+`ANALYTICS_RUNTIME_CLEAN_CHECKOUT_PROOF.md`.
+
 ## Statut
 
-Voir `ANALYTICS_RUNTIME_WIRING_VERDICT.md` (section re-fermeture).
+**`ANALYTICS_RUNTIME_WIRED_ACTIVATION_PENDING`** — corrélation réelle + non-blocabilité bornée +
+checkout propre re-prouvé. Voir `ANALYTICS_RUNTIME_WIRING_VERDICT.md` (section re-fermeture).

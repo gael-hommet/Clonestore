@@ -106,3 +106,51 @@ réel encore ; pas d'E2E navigateur ; santé de mesure partielle ; BLOC3 inerte 
 démo → Pierre → réservation → confirmation → activation → checkout → paiement → remboursement),
 sans double comptage ni conversion forgée. Le prochain bloc (EXTERNAL VALIDATION AND LAUNCH
 REHEARSAL CLOSURE) peut faire traverser ce funnel à de vrais testeurs.
+
+---
+
+## Re-fermeture CORRELATION / NON-BLOCKING / CLEAN CHECKOUT (2026-07-25)
+
+Trois réserves du verdict initial fermées. Voir
+`ANALYTICS_RUNTIME_CORRELATION_RECLOSURE_REPORT.md`.
+
+- **HEAD final** : `9a2617d5fdaf34826b281d1f3658a87c69a92518` (5 commits initiaux intacts + 4
+  commits de re-fermeture + 1 commit Pierre concurrent disjoint).
+- **Commits supplémentaires** : 4 (`ffd888b3` corrélation, `21f986be` borne temporelle,
+  `6b54c5c6` test corrélé, `9a2617d5` docs). Blobs vérifiés, aucun amend.
+- **Server truths corrélées au visiteur d'origine** : **Oui** — `reservation_created`,
+  `reservation_email_confirmed`, `activation_completed`, `checkout_session_created`,
+  `payment_succeeded` portent le `visitor_id` d'origine (`correlated-funnel-e2e.test.ts`).
+- **Réservation ↔ session initiale** : Oui. **Checkout ↔ réservation** : Oui. **Webhook retrouve
+  la corrélation sans cookie ni donnée client** : Oui (par `reservation_id` metadata puis
+  `order_ref` = abonnement haché). **Paiement = même visiteur que la démo** : Oui.
+- **Base analytics bloquée peut-elle retarder indéfiniment le métier** : **Non** —
+  `boundedAnalyticsWrite`, timeout max **500 ms** (défaut, `ANALYTICS_WRITE_TIMEOUT_MS`), prouvé
+  temporellement (op jamais résolue → `timeout` en < 2 s, métier continue).
+- **P0.1/P0.2 réellement exécutés** : Oui — 26 tests (execute + action + router) + P22 unit.
+- **P21/P22 réellement exécutés** : Oui — incluant les 3 `.itest.ts` du commit concurrent
+  `cd5bc811` (performance/training/bridge). **Suite Phase F : 429/429 verte.**
+- **Funnel synthétique corrélé** : vert (9 assertions). **Santé de mesure** : honnêtement
+  `PARTIALLY_COMPLETE`.
+- **Statut final** : **`ANALYTICS_RUNTIME_WIRED_ACTIVATION_PENDING`**.
+- **30 testeurs externes** : **Oui, lançables** — corrélation réelle, non-blocabilité et checkout
+  propre tous prouvés.
+
+### Checkout propre final (Phase J) — résultats réels
+
+- **HEAD final** : `a998eba58dc3aaee7d074afaae8049b721fc9519` (les 4 commits de re-fermeture + le
+  correctif de reproductibilité démo, sur les 5 commits initiaux intacts + travail Pierre
+  concurrent disjoint).
+- **Gap de reproductibilité pré-existant découvert et corrigé** (ISSUE-44) : le HEAD ne buildait
+  pas seul (`DemoExperience.tsx` committé par le bloc précédent importait 38 fichiers de démo
+  jamais committés) ; le `REAL_EXIT_CODE=0` du bloc précédent était un **faux positif**. Corrigé
+  par un commit `fix(reproducibility)` dédié (`a998eba5…`, allowlist explicite de 38 fichiers,
+  blobs vérifiés, 74/74 tests démo).
+- Matérialisation stricte : **8213 blobs, 0 mismatch**. `npm ci` : **531 paquets, exit 0**.
+- `tsc --noEmit` : **seul résidu `embedded-postgres`** (`UNRELATED_PREEXISTING`, sans rapport).
+- Tests dans le checkout propre : **87/87 verts** (funnel corrélé + corrélation + borne + P0.1 +
+  Payment Path + Partner + démo).
+- **`next build` : `REAL_EXIT_CODE=0`**, **`BUILD_ID=3h1SjcpydSSbOReQKoWKh`**, toutes les routes
+  du funnel compilées.
+- Aucun secret committé, aucun push, aucun déploiement, aucune migration distante,
+  `PRODUCTION_AUTHORIZED=false` intact.

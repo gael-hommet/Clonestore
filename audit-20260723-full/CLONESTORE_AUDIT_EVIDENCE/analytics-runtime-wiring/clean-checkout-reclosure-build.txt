@@ -1,0 +1,463 @@
+   ▲ Next.js 15.5.9
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (118kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⚠ Compiled with warnings in 5.1s
+
+./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+A Node.js API is used (process.versions at line: 32) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+./node_modules/@supabase/realtime-js/dist/module/index.js
+./node_modules/@supabase/supabase-js/dist/module/index.js
+./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+./node_modules/@supabase/ssr/dist/module/index.js
+
+./node_modules/@supabase/supabase-js/dist/module/index.js
+A Node.js API is used (process.version at line: 24) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/@supabase/supabase-js/dist/module/index.js
+./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+./node_modules/@supabase/ssr/dist/module/index.js
+
+ ✓ Compiled successfully in 2.5min
+   Skipping linting
+   Checking validity of types ...
+
+   We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+   The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+   	- include was updated to add '.next-analytics-runtime-reclosure/types/**/*.ts'
+
+   Collecting page data ...
+   Generating static pages (0/194) ...
+   Generating static pages (48/194) 
+   Generating static pages (96/194) 
+   Generating static pages (145/194) 
+ ✓ Generating static pages (194/194)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                                           Size  First Load JS
+┌ ○ /                                                              12.6 kB         126 kB
+├ ○ /_not-found                                                      866 B         103 kB
+├ ƒ /activate/pierre                                               2.82 kB         164 kB
+├ ○ /agents                                                          222 B         106 kB
+├ ƒ /agents/[slug]                                                   866 B         103 kB
+├ ƒ /agents/[slug]/use                                             4.33 kB         170 kB
+├ ○ /agents/alex                                                     866 B         103 kB
+├ ○ /agents/clara                                                    866 B         103 kB
+├ ○ /agents/emma                                                     866 B         103 kB
+├ ○ /agents/noah                                                     866 B         103 kB
+├ ƒ /agents/orders/me                                                866 B         103 kB
+├ ○ /agents/pierre                                                 2.06 kB         115 kB
+├ ƒ /agents/pierre/company-history                                   866 B         103 kB
+├ ƒ /agents/pierre/employees                                       6.86 kB         173 kB
+├ ƒ /agents/pierre/setup                                           11.1 kB         137 kB
+├ ƒ /agents/pierre/use                                             9.86 kB         245 kB
+├ ƒ /agents/pierre/use/secure/[token]                                866 B         103 kB
+├ ƒ /agents/pierre/use/submit                                        866 B         103 kB
+├ ƒ /api/analytics/events                                            866 B         103 kB
+├ ƒ /api/assistant                                                   866 B         103 kB
+├ ƒ /api/assistant/autonomy                                          866 B         103 kB
+├ ƒ /api/assistant/chat                                              866 B         103 kB
+├ ƒ /api/assistant/conversations                                     866 B         103 kB
+├ ƒ /api/assistant/conversations/[id]                                866 B         103 kB
+├ ƒ /api/assistant/execute                                           866 B         103 kB
+├ ƒ /api/assistant/support                                           866 B         103 kB
+├ ƒ /api/assistant/transcribe                                        866 B         103 kB
+├ ƒ /api/billing/activate                                            866 B         103 kB
+├ ƒ /api/billing/portal                                              866 B         103 kB
+├ ƒ /api/billing/subscription                                        866 B         103 kB
+├ ƒ /api/checkout                                                    866 B         103 kB
+├ ƒ /api/checkout/confirm                                            866 B         103 kB
+├ ƒ /api/cloneos/ai/contracts                                        866 B         103 kB
+├ ƒ /api/cloneos/ai/dry-run                                          866 B         103 kB
+├ ƒ /api/cloneos/ai/status                                           866 B         103 kB
+├ ƒ /api/cloneos/landing                                             866 B         103 kB
+├ ƒ /api/clonestore/launch-readiness                                 866 B         103 kB
+├ ƒ /api/clonestore/runtime                                          866 B         103 kB
+├ ƒ /api/clonestore/runtime/mission-drafts                           866 B         103 kB
+├ ƒ /api/clonestore/runtime/simulate                                 866 B         103 kB
+├ ƒ /api/clonestore/technologies                                     866 B         103 kB
+├ ƒ /api/clonestore/technologies/[technologySlug]                    866 B         103 kB
+├ ƒ /api/clonestore/technologies/reset                               866 B         103 kB
+├ ƒ /api/clonestore/technologies/save                                866 B         103 kB
+├ ƒ /api/clonestore/technologies/snapshot                            866 B         103 kB
+├ ƒ /api/clonestore/technologies/validate                            866 B         103 kB
+├ ƒ /api/conversion/diagnostic                                       866 B         103 kB
+├ ƒ /api/conversion/events                                           866 B         103 kB
+├ ƒ /api/conversion/test-seed-grant                                  866 B         103 kB
+├ ƒ /api/cron/clonestory-commercial-outbox                           866 B         103 kB
+├ ƒ /api/cron/clonestory-notifications                               866 B         103 kB
+├ ƒ /api/cron/clonestory-outbox                                      866 B         103 kB
+├ ƒ /api/cron/founder-email                                          866 B         103 kB
+├ ƒ /api/cron/partner-emails                                         866 B         103 kB
+├ ƒ /api/cron/partner-payouts                                        866 B         103 kB
+├ ƒ /api/cron/pierre                                                 866 B         103 kB
+├ ƒ /api/cron/pierre-runtime                                         866 B         103 kB
+├ ƒ /api/founder-access/funnel                                       866 B         103 kB
+├ ƒ /api/founder-access/presence                                     866 B         103 kB
+├ ƒ /api/founder-access/resend-verification                          866 B         103 kB
+├ ƒ /api/founder-access/reservations                                 866 B         103 kB
+├ ƒ /api/founder-access/reservations/[id]/qualification              866 B         103 kB
+├ ƒ /api/founder-access/unsubscribe                                  866 B         103 kB
+├ ƒ /api/founder-access/verify                                       866 B         103 kB
+├ ƒ /api/founding-partners/admin/action                              866 B         103 kB
+├ ƒ /api/founding-partners/attribution/capture                       866 B         103 kB
+├ ƒ /api/founding-partners/attribution/visit                         866 B         103 kB
+├ ƒ /api/founding-partners/cockpit                                   866 B         103 kB
+├ ƒ /api/founding-partners/confirm                                   866 B         103 kB
+├ ƒ /api/founding-partners/introduce                                 866 B         103 kB
+├ ƒ /api/founding-partners/refuse                                    866 B         103 kB
+├ ƒ /api/founding-partners/register                                  866 B         103 kB
+├ ƒ /api/founding-partners/registration-status                       866 B         103 kB
+├ ƒ /api/founding-partners/registry-session                          866 B         103 kB
+├ ƒ /api/founding-partners/rotate-link                               866 B         103 kB
+├ ƒ /api/founding-partners/verify                                    866 B         103 kB
+├ ƒ /api/founding-partners/withdraw                                  866 B         103 kB
+├ ƒ /api/go-live/verdict                                             866 B         103 kB
+├ ƒ /api/internal/clonestory/health                                  866 B         103 kB
+├ ƒ /api/internal/e2e/activation-tick                                866 B         103 kB
+├ ƒ /api/internal/e2e/apply-commercial-event                         866 B         103 kB
+├ ƒ /api/internal/e2e/commercial-event                               866 B         103 kB
+├ ƒ /api/internal/e2e/communication-tick                             866 B         103 kB
+├ ƒ /api/internal/e2e/mailbox                                        866 B         103 kB
+├ ƒ /api/internal/e2e/reset                                          866 B         103 kB
+├ ƒ /api/internal/e2e/runtime-tick                                   866 B         103 kB
+├ ƒ /api/internal/e2e/scheduler-tick                                 866 B         103 kB
+├ ƒ /api/internal/e2e/seed-user                                      866 B         103 kB
+├ ƒ /api/internal/e2e/session                                        866 B         103 kB
+├ ƒ /api/internal/e2e/state                                          866 B         103 kB
+├ ƒ /api/internal/founder-access/analytics                           866 B         103 kB
+├ ƒ /api/internal/founder-access/clients                             866 B         103 kB
+├ ƒ /api/internal/founder-access/dashboard                           866 B         103 kB
+├ ƒ /api/internal/founder-access/email-jobs                          866 B         103 kB
+├ ƒ /api/internal/founder-access/email-requeue                       866 B         103 kB
+├ ƒ /api/internal/founder-access/email-run                           866 B         103 kB
+├ ƒ /api/internal/founder-access/email-tick                          866 B         103 kB
+├ ƒ /api/internal/founder-access/export                              866 B         103 kB
+├ ƒ /api/internal/founder-access/live                                866 B         103 kB
+├ ƒ /api/internal/founder-access/presence                            866 B         103 kB
+├ ƒ /api/internal/founder-access/reservations                        866 B         103 kB
+├ ƒ /api/internal/founder-access/reservations/[id]                   866 B         103 kB
+├ ƒ /api/internal/owner-gate/lock                                    866 B         103 kB
+├ ƒ /api/internal/owner-gate/unlock                                  866 B         103 kB
+├ ƒ /api/internal/pierre/runtime/recovery                            866 B         103 kB
+├ ƒ /api/internal/pierre/runtime/scheduler                           866 B         103 kB
+├ ƒ /api/internal/pierre/runtime/tick                                866 B         103 kB
+├ ƒ /api/orders/cancel                                               866 B         103 kB
+├ ƒ /api/orders/resume                                               866 B         103 kB
+├ ƒ /api/partners/admin/action                                       866 B         103 kB
+├ ƒ /api/partners/admin/overview                                     866 B         103 kB
+├ ƒ /api/partners/admin/partners                                     866 B         103 kB
+├ ƒ /api/partners/admin/partners/[id]                                866 B         103 kB
+├ ƒ /api/partners/apply                                              866 B         103 kB
+├ ƒ /api/partners/click                                              866 B         103 kB
+├ ƒ /api/partners/code                                               866 B         103 kB
+├ ƒ /api/partners/connect/onboard                                    866 B         103 kB
+├ ƒ /api/partners/contract/accept                                    866 B         103 kB
+├ ƒ /api/partners/introductions                                      866 B         103 kB
+├ ƒ /api/partners/me                                                 866 B         103 kB
+├ ƒ /api/pierre                                                      866 B         103 kB
+├ ƒ /api/pierre/action                                               866 B         103 kB
+├ ƒ /api/pierre/brain                                                866 B         103 kB
+├ ƒ /api/pierre/cockpit/snapshot                                     866 B         103 kB
+├ ƒ /api/pierre/company-memory                                       866 B         103 kB
+├ ƒ /api/pierre/doc                                                  866 B         103 kB
+├ ƒ /api/pierre/doc/generate                                         866 B         103 kB
+├ ƒ /api/pierre/doc/rewrite                                          866 B         103 kB
+├ ƒ /api/pierre/documents/preview                                    866 B         103 kB
+├ ƒ /api/pierre/documents/render                                     866 B         103 kB
+├ ƒ /api/pierre/documents/validate                                   866 B         103 kB
+├ ƒ /api/pierre/email                                                866 B         103 kB
+├ ƒ /api/pierre/email/draft                                          866 B         103 kB
+├ ƒ /api/pierre/email/send                                           866 B         103 kB
+├ ƒ /api/pierre/empreinte/reset                                      866 B         103 kB
+├ ƒ /api/pierre/empreinte/save                                       866 B         103 kB
+├ ƒ /api/pierre/empreinte/snapshot                                   866 B         103 kB
+├ ƒ /api/pierre/empreinte/validate                                   866 B         103 kB
+├ ƒ /api/pierre/execute                                              866 B         103 kB
+├ ƒ /api/pierre/generate                                             866 B         103 kB
+├ ƒ /api/pierre/history                                              866 B         103 kB
+├ ƒ /api/pierre/history/list                                         866 B         103 kB
+├ ƒ /api/pierre/launch-readiness                                     866 B         103 kB
+├ ƒ /api/pierre/legal/guardrails                                     866 B         103 kB
+├ ƒ /api/pierre/legal/readiness                                      866 B         103 kB
+├ ƒ /api/pierre/legal/validate-output                                866 B         103 kB
+├ ƒ /api/pierre/observability/diagnostics                            866 B         103 kB
+├ ƒ /api/pierre/observability/events                                 866 B         103 kB
+├ ƒ /api/pierre/observability/health                                 866 B         103 kB
+├ ƒ /api/pierre/onboarding                                           866 B         103 kB
+├ ƒ /api/pierre/pdf                                                  866 B         103 kB
+├ ƒ /api/pierre/pdf/generate                                         866 B         103 kB
+├ ƒ /api/pierre/queue/process-next                                   866 B         103 kB
+├ ƒ /api/pierre/queue/process-task                                   866 B         103 kB
+├ ƒ /api/pierre/queue/release-stuck                                  866 B         103 kB
+├ ƒ /api/pierre/queue/run-next                                       866 B         103 kB
+├ ƒ /api/pierre/run                                                  866 B         103 kB
+├ ƒ /api/pierre/security/audit                                       866 B         103 kB
+├ ƒ /api/pierre/security/export                                      866 B         103 kB
+├ ƒ /api/pierre/security/purge                                       866 B         103 kB
+├ ƒ /api/pierre/tick                                                 866 B         103 kB
+├ ƒ /api/pierre/use/audit-trail                                      866 B         103 kB
+├ ƒ /api/pierre/use/audit-trail/alerts                               866 B         103 kB
+├ ƒ /api/pierre/use/audit-trail/export                               866 B         103 kB
+├ ƒ /api/pierre/use/brain/contracts                                  866 B         103 kB
+├ ƒ /api/pierre/use/brain/final/dry-run                              866 B         103 kB
+├ ƒ /api/pierre/use/cloneadn                                         866 B         103 kB
+├ ƒ /api/pierre/use/cloneadn/analyze                                 866 B         103 kB
+├ ƒ /api/pierre/use/cloneadn/preview                                 866 B         103 kB
+├ ƒ /api/pierre/use/cloneadn/rules                                   866 B         103 kB
+├ ƒ /api/pierre/use/cloneguard/evaluate                              866 B         103 kB
+├ ƒ /api/pierre/use/cloneguard/preview                               866 B         103 kB
+├ ƒ /api/pierre/use/clonepolicy/evaluate                             866 B         103 kB
+├ ƒ /api/pierre/use/clonetrust/evaluate                              866 B         103 kB
+├ ƒ /api/pierre/use/continuity                                       866 B         103 kB
+├ ƒ /api/pierre/use/continuity/run-next                              866 B         103 kB
+├ ƒ /api/pierre/use/customer-success                                 866 B         103 kB
+├ ƒ /api/pierre/use/customer-success/actions                         866 B         103 kB
+├ ƒ /api/pierre/use/customer-success/value                           866 B         103 kB
+├ ƒ /api/pierre/use/dashboard                                        866 B         103 kB
+├ ƒ /api/pierre/use/dashboard/execute-safe                           866 B         103 kB
+├ ƒ /api/pierre/use/dashboard/run-plan                               866 B         103 kB
+├ ƒ /api/pierre/use/document-templates                               866 B         103 kB
+├ ƒ /api/pierre/use/document-templates/[templateId]                  866 B         103 kB
+├ ƒ /api/pierre/use/document-templates/preview                       866 B         103 kB
+├ ƒ /api/pierre/use/document/config                                  866 B         103 kB
+├ ƒ /api/pierre/use/document/preview                                 866 B         103 kB
+├ ƒ /api/pierre/use/employee/[employeeId]                            866 B         103 kB
+├ ƒ /api/pierre/use/employee/[employeeId]/actions                    866 B         103 kB
+├ ƒ /api/pierre/use/employee/[employeeId]/file                       866 B         103 kB
+├ ƒ /api/pierre/use/employee/[employeeId]/history                    866 B         103 kB
+├ ƒ /api/pierre/use/employees                                        866 B         103 kB
+├ ƒ /api/pierre/use/employees/[employeeId]                           866 B         103 kB
+├ ƒ /api/pierre/use/employees/actions                                866 B         103 kB
+├ ƒ /api/pierre/use/employees/files                                  866 B         103 kB
+├ ƒ /api/pierre/use/governance/evaluate                              866 B         103 kB
+├ ƒ /api/pierre/use/governance/preview                               866 B         103 kB
+├ ƒ /api/pierre/use/messages                                         866 B         103 kB
+├ ƒ /api/pierre/use/messages/[category]                              866 B         103 kB
+├ ƒ /api/pierre/use/messages/briefing                                866 B         103 kB
+├ ƒ /api/pierre/use/mission-control                                  866 B         103 kB
+├ ƒ /api/pierre/use/mission-control/briefing                         866 B         103 kB
+├ ƒ /api/pierre/use/mission-control/run-plan                         866 B         103 kB
+├ ƒ /api/pierre/use/mission-control/run-safe                         866 B         103 kB
+├ ƒ /api/pierre/use/mission/[missionId]                              866 B         103 kB
+├ ƒ /api/pierre/use/mission/[missionId]/continue                     866 B         103 kB
+├ ƒ /api/pierre/use/readiness                                        866 B         103 kB
+├ ƒ /api/pierre/use/readiness/scenarios                              866 B         103 kB
+├ ƒ /api/pierre/use/readiness/scenarios/dry-run                      866 B         103 kB
+├ ƒ /api/pierre/use/release-candidate                                866 B         103 kB
+├ ƒ /api/pierre/use/release-candidate/invariants                     866 B         103 kB
+├ ƒ /api/pierre/use/release-candidate/preflight                      866 B         103 kB
+├ ƒ /api/pierre/use/release-proof                                    866 B         103 kB
+├ ƒ /api/pierre/use/release-proof/demo-scenarios                     866 B         103 kB
+├ ƒ /api/pierre/use/release-proof/demo-scenarios/dry-run             866 B         103 kB
+├ ƒ /api/pierre/use/scenarios                                        866 B         103 kB
+├ ƒ /api/pierre/use/scenarios/[scenarioId]/run                       866 B         103 kB
+├ ƒ /api/pierre/use/scenarios/report                                 866 B         103 kB
+├ ƒ /api/pierre/use/scenarios/run-suite                              866 B         103 kB
+├ ƒ /api/pierre/use/submit                                           866 B         103 kB
+├ ƒ /api/pierre/use/task/[taskId]                                    866 B         103 kB
+├ ƒ /api/pierre/use/task/[taskId]/approve                            866 B         103 kB
+├ ƒ /api/pierre/use/task/[taskId]/cancel                             866 B         103 kB
+├ ƒ /api/pierre/use/task/[taskId]/reschedule                         866 B         103 kB
+├ ƒ /api/pierre/use/task/[taskId]/run                                866 B         103 kB
+├ ƒ /api/pierre/use/trial/activation                                 866 B         103 kB
+├ ƒ /api/pierre/use/trial/first-value-prompt                         866 B         103 kB
+├ ƒ /api/pierre/use/trial/plan                                       866 B         103 kB
+├ ƒ /api/pierre/use/trial/templates                                  866 B         103 kB
+├ ƒ /api/pierre/use/workflows/rh                                     866 B         103 kB
+├ ƒ /api/pierre/v1/activation                                        866 B         103 kB
+├ ƒ /api/pierre/v1/admin/backfill                                    866 B         103 kB
+├ ƒ /api/pierre/v1/audit/data-access                                 866 B         103 kB
+├ ƒ /api/pierre/v1/cockpit/snapshot                                  866 B         103 kB
+├ ƒ /api/pierre/v1/communications                                    866 B         103 kB
+├ ƒ /api/pierre/v1/communications/[id]/cancel                        866 B         103 kB
+├ ƒ /api/pierre/v1/communications/[id]/retry                         866 B         103 kB
+├ ƒ /api/pierre/v1/communications/dead-letter                        866 B         103 kB
+├ ƒ /api/pierre/v1/communications/dispatch                           866 B         103 kB
+├ ƒ /api/pierre/v1/companies                                         866 B         103 kB
+├ ƒ /api/pierre/v1/company                                           866 B         103 kB
+├ ƒ /api/pierre/v1/company/export                                    866 B         103 kB
+├ ƒ /api/pierre/v1/company/switch                                    866 B         103 kB
+├ ƒ /api/pierre/v1/contracts                                         866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]                                    866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/amendments                         866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/approve                            866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/finalize                           866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/generate                           866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/history                            866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/prepare-signature                  866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/readiness                          866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/request-changes                    866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/signature                          866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/signature/cancel                   866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/signature/submit                   866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/submit-review                      866 B         103 kB
+├ ƒ /api/pierre/v1/contracts/[id]/versions                           866 B         103 kB
+├ ƒ /api/pierre/v1/employees                                         866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]                                    866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/absences                           866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/access-log                         866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/anonymize                          866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/archive                            866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/completeness                       866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/contracts                          866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/contracts/[contractId]/versions    866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/documents                          866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/documents/[documentId]             866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/export                             866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/legal-hold                         866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/missions                           866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/reactivate                         866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/sensitive                          866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/tasks                              866 B         103 kB
+├ ƒ /api/pierre/v1/employees/[id]/timeline                           866 B         103 kB
+├ ƒ /api/pierre/v1/employees/import/[batchId]                        866 B         103 kB
+├ ƒ /api/pierre/v1/employees/import/[batchId]/rollback               866 B         103 kB
+├ ƒ /api/pierre/v1/employees/import/commit                           866 B         103 kB
+├ ƒ /api/pierre/v1/employees/import/preview                          866 B         103 kB
+├ ƒ /api/pierre/v1/employees/search                                  866 B         103 kB
+├ ƒ /api/pierre/v1/health                                            866 B         103 kB
+├ ƒ /api/pierre/v1/intelligence/cancel                               866 B         103 kB
+├ ƒ /api/pierre/v1/intelligence/confirm                              866 B         103 kB
+├ ƒ /api/pierre/v1/intelligence/continue                             866 B         103 kB
+├ ƒ /api/pierre/v1/intelligence/proactive-tick                       866 B         103 kB
+├ ƒ /api/pierre/v1/intelligence/request                              866 B         103 kB
+├ ƒ /api/pierre/v1/intelligence/status                               866 B         103 kB
+├ ƒ /api/pierre/v1/invitations                                       866 B         103 kB
+├ ƒ /api/pierre/v1/invitations/[id]/resend                           866 B         103 kB
+├ ƒ /api/pierre/v1/invitations/[id]/revoke                           866 B         103 kB
+├ ƒ /api/pierre/v1/invitations/accept                                866 B         103 kB
+├ ƒ /api/pierre/v1/members                                           866 B         103 kB
+├ ƒ /api/pierre/v1/members/[id]                                      866 B         103 kB
+├ ƒ /api/pierre/v1/members/[id]/reactivate                           866 B         103 kB
+├ ƒ /api/pierre/v1/members/[id]/remove                               866 B         103 kB
+├ ƒ /api/pierre/v1/members/[id]/roles                                866 B         103 kB
+├ ƒ /api/pierre/v1/members/[id]/roles/[role]                         866 B         103 kB
+├ ƒ /api/pierre/v1/members/[id]/suspend                              866 B         103 kB
+├ ƒ /api/pierre/v1/members/[id]/transfer-ownership                   866 B         103 kB
+├ ƒ /api/pierre/v1/members/leave                                     866 B         103 kB
+├ ƒ /api/pierre/v1/messages                                          866 B         103 kB
+├ ƒ /api/pierre/v1/messages/[id]/archive                             866 B         103 kB
+├ ƒ /api/pierre/v1/messages/[id]/read                                866 B         103 kB
+├ ƒ /api/pierre/v1/missions                                          866 B         103 kB
+├ ƒ /api/pierre/v1/missions/[id]                                     866 B         103 kB
+├ ƒ /api/pierre/v1/missions/[id]/cancel                              866 B         103 kB
+├ ƒ /api/pierre/v1/missions/[id]/runtime                             866 B         103 kB
+├ ƒ /api/pierre/v1/missions/[id]/tasks                               866 B         103 kB
+├ ƒ /api/pierre/v1/missions/[id]/timeline                            866 B         103 kB
+├ ƒ /api/pierre/v1/missions/[id]/validations                         866 B         103 kB
+├ ƒ /api/pierre/v1/missions/first                                    866 B         103 kB
+├ ƒ /api/pierre/v1/onboarding                                        866 B         103 kB
+├ ƒ /api/pierre/v1/onboarding/complete                               866 B         103 kB
+├ ƒ /api/pierre/v1/onboarding/steps/[step]                           866 B         103 kB
+├ ƒ /api/pierre/v1/product-access                                    866 B         103 kB
+├ ƒ /api/pierre/v1/roles                                             866 B         103 kB
+├ ƒ /api/pierre/v1/roles/[key]                                       866 B         103 kB
+├ ƒ /api/pierre/v1/roles/[key]/archive                               866 B         103 kB
+├ ƒ /api/pierre/v1/signatures/[id]/evidence                          866 B         103 kB
+├ ƒ /api/pierre/v1/signatures/reconcile                              866 B         103 kB
+├ ƒ /api/pierre/v1/sites                                             866 B         103 kB
+├ ƒ /api/pierre/v1/sites/[id]                                        866 B         103 kB
+├ ƒ /api/pierre/v1/sites/[id]/archive                                866 B         103 kB
+├ ƒ /api/pierre/v1/sites/[id]/assign-manager                         866 B         103 kB
+├ ƒ /api/pierre/v1/sites/[id]/reactivate                             866 B         103 kB
+├ ƒ /api/pierre/v1/validations/[id]/[action]                         866 B         103 kB
+├ ƒ /api/pierre/v1/webhooks/signature                                866 B         103 kB
+├ ƒ /api/pierre/v1/worker/tick                                       866 B         103 kB
+├ ƒ /api/pricing/public                                              866 B         103 kB
+├ ƒ /api/profile/enterprise-footprint                                866 B         103 kB
+├ ƒ /api/router                                                      866 B         103 kB
+├ ƒ /api/site-health                                                 866 B         103 kB
+├ ƒ /api/stripe/return                                               866 B         103 kB
+├ ƒ /api/webhooks/pierre/communications                              866 B         103 kB
+├ ƒ /api/webhooks/pierre/signature                                   866 B         103 kB
+├ ƒ /api/webhooks/stripe                                             866 B         103 kB
+├ ƒ /assistant                                                     22.9 kB         223 kB
+├ ○ /checkout                                                      7.14 kB         173 kB
+├ ● /clonestore/[slug]                                               222 B         106 kB
+├   ├ /clonestore/vision
+├   ├ /clonestore/technologies
+├   ├ /clonestore/fonctionnement
+├   └ [+4 more paths]
+├ ƒ /cockpit                                                       5.38 kB         209 kB
+├ ƒ /cockpit/pierre                                                2.13 kB         222 kB
+├ ƒ /cockpit/pierre/documents                                      2.13 kB         222 kB
+├ ƒ /cockpit/pierre/evidence                                       2.13 kB         222 kB
+├ ƒ /cockpit/pierre/missions                                       2.13 kB         222 kB
+├ ƒ /cockpit/pierre/settings                                       2.13 kB         222 kB
+├ ƒ /cockpit/pierre/validations                                    2.13 kB         222 kB
+├ ƒ /cockpit/room                                                  4.72 kB         121 kB
+├ ○ /comprendre-clonestore                                           222 B         106 kB
+├ ○ /demo                                                          60.3 kB         247 kB
+├ ƒ /demo/pierre                                                     27 kB         132 kB
+├ ○ /diagnostic-rh                                                 5.21 kB         111 kB
+├ ƒ /founder                                                         130 B         121 kB
+├ ƒ /founding-partners                                             1.11 kB         106 kB
+├ ƒ /founding-partners/admin                                       1.76 kB         104 kB
+├ ○ /founding-partners/conditions                                    866 B         103 kB
+├ ƒ /founding-partners/confirm                                       222 B         106 kB
+├ ƒ /founding-partners/join                                        3.13 kB         161 kB
+├ ƒ /founding-partners/merci                                         222 B         106 kB
+├ ƒ /founding-partners/my-registry                                 1.93 kB         104 kB
+├ ƒ /founding-partners/r/[token]                                     390 B         106 kB
+├ ƒ /founding-partners/refuse                                        222 B         106 kB
+├ ƒ /founding-partners/verify                                        222 B         106 kB
+├ ○ /healt                                                           866 B         103 kB
+├ ○ /installer                                                     5.54 kB         116 kB
+├ ƒ /internal/[slug]/command-center                                  129 B         121 kB
+├ ƒ /internal/[slug]/command-center/analytics                       2.1 kB         104 kB
+├ ƒ /internal/[slug]/command-center/readiness                       2.1 kB         104 kB
+├ ○ /legal/cgu                                                       222 B         106 kB
+├ ○ /legal/cgv                                                       222 B         106 kB
+├ ○ /legal/confidentialite                                           166 B         105 kB
+├ ○ /legal/dpa                                                       222 B         106 kB
+├ ○ /legal/mentions                                                  222 B         106 kB
+├ ○ /login                                                         4.96 kB         171 kB
+├ ○ /manifest.webmanifest                                            866 B         103 kB
+├ ƒ /mon-clonestore                                                  222 B         106 kB
+├ ƒ /mon-clonestore/facturation                                    5.16 kB         163 kB
+├ ƒ /mon-clonestore/setup                                            222 B         106 kB
+├ ƒ /p/[token]                                                       866 B         103 kB
+├ ○ /paiement                                                        222 B         106 kB
+├ ○ /paiement/cancel                                                 222 B         106 kB
+├ ○ /paiement/success                                              4.88 kB         171 kB
+├ ○ /partenaires                                                   11.8 kB         158 kB
+├ ƒ /partenaires/admin                                             10.5 kB         112 kB
+├ ƒ /partenaires/espace                                            13.7 kB         119 kB
+├ ƒ /partenaires/r/[slug]                                            866 B         103 kB
+├ ƒ /profile                                                       11.9 kB         189 kB
+├ ƒ /profile/agents                                                40.3 kB         273 kB
+├ ƒ /profile/go-live                                                 866 B         103 kB
+├ ƒ /profile/launch-readiness                                      11.8 kB         114 kB
+├ ƒ /profile/messages                                               108 kB         307 kB
+├ ƒ /profile/onboarding                                              16 kB         210 kB
+├ ƒ /profile/technologies                                          12.7 kB         202 kB
+├ ○ /questions                                                       222 B         106 kB
+├ ƒ /r/[token]                                                       866 B         103 kB
+├ ƒ /reserver/pierre                                               4.11 kB         113 kB
+├ ○ /signup                                                        5.44 kB         171 kB
+└ ○ /test-pierre                                                   1.99 kB         104 kB
++ First Load JS shared by all                                       102 kB
+  ├ chunks/1255-8befde0980f5cba9.js                                45.6 kB
+  ├ chunks/4bd1b696-100b9d70ed4e49c1.js                            54.2 kB
+  └ other shared chunks (total)                                    2.06 kB
+
+
+ƒ Middleware                                                       79.9 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+
+REAL_EXIT_CODE=0
