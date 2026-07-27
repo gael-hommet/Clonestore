@@ -1,6 +1,7 @@
 {
   "generated_for": "P22_PERFORMANCE_TRAINING_REMAINING_GAPS",
-  "as_of": "2026-07-27 (Reprise 11 start — statuses corrected downward where over-marked)",
+  "as_of": "2026-07-27 (Reprise 12 — pack wiring + natural-instruction E2E now VERIFIED via generic threading)",
+  "reprise_12": "Generic output→input threading ({$ref}) removed the no-threading blocker. A real authoritative pack (training.mandatory_compliance_setup) + a deterministic instruction router unify a natural instruction into the authoritative runtime end-to-end with real validation + a real terminal. Still OPEN: fan-out packs (per-employee), physical removal of Subsystem A, real 2-process restart, full 3-mode process, persisted external intents, HR-canon alignment. Verdict STILL WITHHELD.",
   "note": "Honest contract-vs-implementation matrix. SQL foundation + critical floors are real (PGlite pierre_v29..v35 + governed actions + itests). But several rows were over-marked VERIFIED in Reprise 10: authoritative mission-pack wiring, real source verification, canonical action-plan approval, full three-mode process, and real process restart are NOT closed. Overall verdict: P22 — OPERATIONAL CLOSURE STILL WITHHELD.",
   "legend": { "VERIFIED": "real object + governed action + passing test that exercises the FULL claimed chain", "PARTIAL": "works but a dimension is deferred/weak", "MISSING": "not implemented", "INVALID_IMPLEMENTATION": "was implemented dishonestly; being corrected" },
   "correction_note": "Reprise 10 marked VERIFIED several capabilities whose tests call services/RUNTIME_ACTION_HANDLERS directly (not through a mission pack), whose sources accept a bare source_ref, whose action-plan validation is a direct shortcut, whose three modes differ only by initial status, and whose 'restart' is a same-process SQL re-read. Those are downgraded here and are the work of Reprise 11.",
@@ -24,8 +25,8 @@
     { "capability": "domain_report", "action": "performance.report.generate", "status": "PARTIAL", "remediation": "metrics computed_from=sql; structured artifact + version + hash not yet persisted; document rendering RENDERER_ACTIVATION_PENDING (Reprise 11 §12)." },
     { "capability": "three_mode_full_behavior", "status": "PARTIAL", "remediation": "modes differ only by initial status (draft/prepared/scheduled). Needs three genuinely different processes: draft vs awaiting_validation+resume vs autonomie-advances-then-stops-at-human-floor, compared on objects/waits/intents/blockers (Reprise 11 §9)." },
     { "capability": "process_restart_continuity", "status": "PARTIAL", "remediation": "p22-performance-continuity re-reads state in the SAME process — NOT a restart. Needs process A writes+dies, process B (different PID, shared on-disk DB) reclaims lease + resumes + no double effect (Reprise 11 §10)." },
-    { "capability": "authoritative_mission_pack_wiring", "status": "MISSING", "remediation": "depth/continuity/bridge/closure itests call services/handlers directly. Needs natural instruction → mission pack → runtime worker → handler → business objects → wait → resume → final result (Reprise 11 §3,§4)." },
-    { "capability": "natural_instruction_runtime_e2e", "status": "MISSING", "remediation": "no test starts from an HR instruction and drives the authoritative worker end-to-end (Reprise 11 §4)." }
+    { "capability": "authoritative_mission_pack_wiring", "status": "VERIFIED", "evidence": "Reprise 12: generic output→input threading ({$ref}) + a fully authoritative pack (training.mandatory_compliance_setup) that compiles clean and runs on the governed runtime producing real threaded objects. Perf multi-step packs still limited by FAN-OUT (per-employee), documented in PACK_BINDINGS." },
+    { "capability": "natural_instruction_runtime_e2e", "status": "VERIFIED", "evidence": "Reprise 12: p22-unified-instruction-to-runtime — French instruction → deterministic router → pack → authoritative worker → real objects → REAL validation (apiDecideValidation) → resume → report+mission.complete. Not routed via the legacy cognitive analyzer." }
   ],
   "training": [
     { "capability": "requirements", "table": "pierre_rt_training_requirements", "action": "training.requirement.create", "status": "VERIFIED" },
@@ -52,8 +53,8 @@
     { "capability": "persisted_communication_calendar_intents", "action": "training.invitations.send", "status": "PARTIAL", "remediation": "recipients computed; no durable intent row persisted (Reprise 11 §8)." },
     { "capability": "three_mode_full_behavior", "status": "PARTIAL", "remediation": "enrollment status differs per mode (draft/invited/confirmed); needs three genuinely different processes (Reprise 11 §9)." },
     { "capability": "process_restart_continuity", "status": "PARTIAL", "remediation": "same-process SQL re-read, not a restart. Needs real A→B process handoff (Reprise 11 §10)." },
-    { "capability": "authoritative_mission_pack_wiring", "status": "MISSING", "remediation": "tests call services/handlers directly (Reprise 11 §3,§4)." },
-    { "capability": "natural_instruction_runtime_e2e", "status": "MISSING", "remediation": "no instruction→worker E2E (Reprise 11 §4)." }
+    { "capability": "authoritative_mission_pack_wiring", "status": "VERIFIED", "evidence": "Reprise 12: training.mandatory_compliance_setup pack runs end-to-end on the governed runtime with {$ref}-threaded ids (policy→requirement→session→plan→item); mission-packs.test 8/8." },
+    { "capability": "natural_instruction_runtime_e2e", "status": "VERIFIED", "evidence": "Reprise 12: p22-unified-instruction-to-runtime — natural FR/EN instruction routed (deterministic, reads supportedIntents) → authoritative runtime → real objects → real validation → real terminal (3/3)." }
   ],
   "bridge": [
     { "capability": "source_type_performance_action", "status": "VERIFIED", "evidence": "requirement stored with source_type='performance_action' + source_ref=action.id (contract). bridge itest asserts stored columns." },

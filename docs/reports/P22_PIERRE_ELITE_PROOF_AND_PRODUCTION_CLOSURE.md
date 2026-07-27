@@ -92,6 +92,21 @@ Additive migration `pierre_v36`. Commits `bb3f769b → 36b625ef → 51561c1b →
 
 ---
 
+## REPRISE 12 (P22 — UNIFY natural instructions + mission packs + authoritative runtime — 2026-07-27, appended)
+
+This reprise **removed the architecture blocker** that Reprise 11 flagged. Commits `26515c6a` (threading) → `7148f04b` (pack + router) → `aa27cdaa` (unified E2E), on top of the Reprise-11 chain (intact).
+
+1. **Generic output→input threading (the enabler).** New `runtime-step-refs.ts` + compiler + `runPierreRuntimeJobs`: a plan step's input may reference an upstream step's OUTPUT via `{$ref:{step,output}}`. The compiler validates it structurally and enforces the referenced step is **upstream** (`ref_not_upstream` / `ref_unknown_step` blockers); the runtime resolves it from the dependency `output_json` **before** validation + handler (an unresolvable ref is a governed BLOCK, never a silent pass). This is one general mechanism — **no hardcoded ids, no per-action wrappers**. Proven by `p22-runtime-step-threading.itest` (4/4): a runtime-generated `campaign_id` flows into a downstream action; multi-level threading (`requirement_id`→session, `plan_id`+`requirement_id`+`session_id`→plan item); bad ref → block; compiler refuses a non-upstream ref.
+2. **Deterministic instruction→pack router (unified entry).** New `instruction-router.ts` scores packs by token overlap against `supportedIntents` + title + id — the **first consumer of `supportedIntents`** (previously written, never read). Tie/no-match → null (never a random pack). This routes a natural instruction into the **authoritative** runtime, not the legacy cognitive path.
+3. **A real fully-authoritative pack.** `training.mandatory_compliance_setup` (all runtime actions, `$ref`-threaded policy→requirement→session→plan→item, a human `approval.request` gate, and a real terminal `report`→`mission.complete` — never `mission.noop`). It **compiles clean on the real compiler** and passes all 8 `mission-packs.test.ts` validators (registry valid, no dangling capabilities, coverage 100%).
+4. **THE UNIFIED E2E** (`p22-unified-instruction-to-runtime.itest`, 3/3): a French instruction *"Mets en place la formation obligatoire de sécurité…"* → router → `packToRuntimePlan` → `createMissionRunFromPlan` → the governed worker executes real authoritative actions producing **real threaded business objects** (requirement `active` because its source resolved to the real policy; session with the threaded `requirement_id`; plan item with threaded `requirement_id`+`session_id`+`plan_id`) → the human validation **WAIT** is resolved through the **REAL decision service** (`apiListValidations` + `apiDecideValidation` → scheduler drains the durable event → the wait resolves), NOT a direct SQL flip → the run ends at `report`→`mission.complete` with `pierre_rt_mission_runs.status='completed'` + `completed_at`. A **rejected** decision resolves nothing (no auto-pass).
+
+**Verification:** `tsc` → 0. Threading 4/4 + unified 3/3 + `mission-packs.test` 8/8 + runtime-core p85 (13) green; broader P22 suite re-run below.
+
+**Honesty — what this does and does NOT claim.** It genuinely closes: *authoritative mission-pack wiring*, *natural-instruction → authoritative-runtime E2E*, *real validation journey (no direct SQL)*, *real terminal (no `mission.noop`)*, all with generic threading (no hardcoded ids). It does **NOT** yet: (a) physically delete Subsystem A — `apiCreateMission`/the cognitive analyzer still exist; the unified router is now the canonical authoritative entry, but removing the legacy path safely is a separate migration (many dependents), so "two runtimes in production" is *reduced to one canonical path*, not yet *physically unified*; (b) express **fan-out** packs (one interview/enrollment per employee) — threading chains single ids, but a per-employee fan-out needs dynamic step generation, still not supported; (c) real second-process restart, full three-mode PROCESS behavior, persisted perf/training external intents, or HR-canon alignment. **Global verdict unchanged: P22 — OPERATIONAL CLOSURE STILL WITHHELD.**
+
+---
+
 ## REPRISE 9 (P22 — PERFORMANCE + TRAINING depth (one block) + bridge — 2026-07-25, appended)
 
 Fourth block: **performance/interviews** and **training/certifications** as one unit, plus the real
