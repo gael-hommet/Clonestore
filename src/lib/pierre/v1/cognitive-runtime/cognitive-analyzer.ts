@@ -96,9 +96,22 @@ const defaultInterpret: CognitiveInterpret = async (instruction) => {
 // (harassment, discrimination, restructuring, medical/incapacity, whistleblower/retaliation). Additive —
 // it only ever RAISES the floor, never lowers it. Keeps the base detector (analysis.ts) untouched.
 const EXTRA_SENSITIVE = /\b(harcel|harass|discrimin|reorganis|restructur|inaptitude|arret\s+maladie|maladie\s+professionn|represaille|lanceur\s+d'?alerte|whistlebl|plainte|proteg)\w*/i;
+// PIERRE SELLABILITY STRESS TEST (2026-07-25) — DÉFAUT RACINE CORRIGÉ : EXTRA_SENSITIVE n'attrapait
+// que le mot littéral "discrimin(ation)". Une consigne d'exclusion discriminatoire PARAPHRASÉE
+// (« écarter systématiquement les candidatures de plus de 50 ans ») passait entièrement sous le
+// plancher, classée risque faible, zéro validation. Correctif GÉNÉRAL (pas un cas particulier) : le
+// plancher se déclenche aussi sur la CO-OCCURRENCE d'une intention d'exclusion (écarter/exclure/
+// éliminer/refuser/rejeter) et d'un proxy de caractéristique protégée (âge, sexe, origine, religion,
+// grossesse, handicap, orientation sexuelle, appartenance syndicale, nationalité) — qu'importe l'ordre
+// ou la formulation exacte des mots.
+const EXCLUSION_INTENT = /\b(ecart\w*|exclu\w*|elimin\w*|refus\w*|rejet\w*)\b/i;
+const PROTECTED_CHARACTERISTIC_PROXY = /\b(plus\s+de\s+\d{2}\s*ans|moins\s+de\s+\d{2}\s*ans|l'?age|selon\s+l'?age|sexe\w*|genre\w*|origine\w*|religion\w*|grossesse\w*|enceinte\w*|handicap\w*|orientation\s+sexuelle|appartenance\s+syndicale|nationalite\w*)\b/i;
+function looksLikeDiscriminatoryExclusion(t: string): boolean {
+  return EXCLUSION_INTENT.test(t) && PROTECTED_CHARACTERISTIC_PROXY.test(t);
+}
 function raiseFloor(base: AnalysisResult, instruction: string): AnalysisResult {
   const t = instruction.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-  if (!EXTRA_SENSITIVE.test(t)) return base;
+  if (!EXTRA_SENSITIVE.test(t) && !looksLikeDiscriminatoryExclusion(t)) return base;
   const flooredTasks = base.proposed_tasks.map((tk) => ({ ...tk, risk: maxRisk(tk.risk, "high"), sensitivity: maxSens(tk.sensitivity, "sensitive") }));
   const tasks = flooredTasks.length > 0 ? flooredTasks : [{
     type: "prepare_sensitive_draft", action: "sensitive_legal_letter" as ActionKind, risk: "high" as RiskLevel, sensitivity: "restricted" as Sensitivity,
