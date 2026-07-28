@@ -80,7 +80,7 @@
     "category": "pricing",
     "priority": 1,
     "source": "commercial-state.ts",
-    "text": "CloneStore propose aujourd'hui un seul produit ouvert (Pierre), à 449 € HT/mois en France/Belgique/Luxembourg. Lancement de la démo : 5 août 2026. Abonnement mensuel. Le paiement en ligne n'est pas encore ouvert partout ; la réservation fondateur reste possible sans paiement. Il n'existe ni essai gratuit ni bêta."
+    "text": "CloneStore propose aujourd'hui un seul produit ouvert : Pierre, disponible dans les 4 pays de lancement (France, Belgique, Luxembourg, Suisse). L'offre de lancement fondateur à 449 € HT/mois s'applique en France/Belgique/Luxembourg ; la Suisse a son propre prix standard (voir le tarif par pays). Lancement de la démo : 12 août 2026. Abonnement mensuel. Le paiement en ligne n'est pas encore ouvert partout ; la réservation fondateur reste possible sans paiement. Il n'existe ni essai gratuit ni bêta."
   },
   {
     "id": "route./",

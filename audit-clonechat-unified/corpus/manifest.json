@@ -1,5 +1,6 @@
 {
-  "generatedAt": "2026-07-24T17:20:53.648Z",
+  "generatedAt": "2026-07-27T12:15:55.195Z",
+  "sourceCommitSha": "cd9dfc2035b3fe261b26704601d496f16205f482",
   "unitCount": 56,
   "categories": {
     "identity": 1,
@@ -20,7 +21,16 @@
     "missions": 1,
     "support": 1
   },
-  "contentHash": "fe5828fc0e5ceae0",
+  "corpusHash": "46b1a53bbd7e7b74",
+  "contentHash": "46b1a53bbd7e7b74",
+  "sourceRegistryVersions": {
+    "src/lib/clonestore/pricing/country-pricing.ts": "3599e842814d",
+    "src/lib/catalog/public-catalog.ts": "334d16bdf13e",
+    "src/lib/demo/presentation/commercial-state.ts": "cae2c50c217e",
+    "src/lib/nav/route-registry.ts": "31b4e77e2783",
+    "src/lib/clonestore/technologies/registry.ts": "f548df08ce8f",
+    "src/lib/pierre/v1/hr-canon/capability-registry.ts": "e69c085525a9"
+  },
   "requiredCategoriesPresent": [
     "identity",
     "employees",
