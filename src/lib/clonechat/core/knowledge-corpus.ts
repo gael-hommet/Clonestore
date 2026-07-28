@@ -127,7 +127,12 @@ function pricingUnits(): CorpusUnit[] {
     unit({
       id: "pricing.founder_offer", title: "Offre de lancement", category: "pricing", priority: 1,
       source: "commercial-state.ts",
-      text: `CloneStore propose aujourd'hui un seul produit ouvert (Pierre), à ${FOUNDER_PRICE_MONTHLY} en France/Belgique/Luxembourg. Lancement de la démo : ${DEMO_LAUNCH_LABEL}. Abonnement mensuel. Le paiement en ligne n'est pas encore ouvert partout ; la réservation fondateur reste possible sans paiement. Il n'existe ni essai gratuit ni bêta.`,
+      // Défaut RÉEL trouvé (2026-07-27) : cette unité citait UNIQUEMENT France/Belgique/Luxembourg,
+      // ce qui se lisait comme une liste exhaustive de disponibilité — alors que la Suisse est un
+      // pays de lancement à part entière (voir pricing.catalog), avec son propre prix standard hors
+      // offre fondateur. Reformulé pour ne jamais laisser croire que Pierre n'est PAS disponible en
+      // Suisse : seule l'offre PROMOTIONNELLE fondateur est limitée à FR/BE/LU.
+      text: `CloneStore propose aujourd'hui un seul produit ouvert : Pierre, disponible dans les 4 pays de lancement (France, Belgique, Luxembourg, Suisse). L'offre de lancement fondateur à ${FOUNDER_PRICE_MONTHLY} s'applique en France/Belgique/Luxembourg ; la Suisse a son propre prix standard (voir le tarif par pays). Lancement de la démo : ${DEMO_LAUNCH_LABEL}. Abonnement mensuel. Le paiement en ligne n'est pas encore ouvert partout ; la réservation fondateur reste possible sans paiement. Il n'existe ni essai gratuit ni bêta.`,
     }),
   ];
 }
