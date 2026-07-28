@@ -38,6 +38,24 @@ vi.mock("@/lib/clonechat/openai", async (orig) => {
     })),
   };
 });
+// CloneChat Unified Intelligence — le cœur unifié (src/lib/clonechat/core/responder.ts)
+// instancie le SDK `openai` directement (jamais via createRealOpenAIResponder ci-dessus, pour
+// rester hors du bundle client). Sans ce mock, la clé de test factice (`sk-test-...` ci-dessous)
+// déclenchait un VRAI appel réseau échouant vers l'API OpenAI à chaque test — lent, non
+// déterministe, et invisible dans `modelCalls`. Le même compteur est utilisé : ces tests
+// vérifient l'ENGAGEMENT du modèle, pas quel moteur précis répond.
+vi.mock("openai", () => ({
+  default: class MockOpenAI {
+    responses = {
+      create: async (req: { input?: Array<{ role: string; content: unknown }> }) => {
+        const last = req.input?.[req.input.length - 1];
+        const text = typeof last?.content === "string" ? last.content : "";
+        modelCalls.push(text);
+        return { output_text: "Pierre est un employé IA RH.", output: [], usage: { input_tokens: 10, output_tokens: 5 }, model: "gpt-5.4-mini" };
+      },
+    };
+  },
+}));
 
 import { hasPierreAccess } from "@/lib/pierre/access";
 import { resolveCloneChatCompany } from "@/lib/clonechat/server/company";
@@ -288,6 +306,10 @@ describe("C1.6 — non-régression : la donnée privée et l'action restent prot
     vi.mocked(getCloneChatStores).mockResolvedValue(denied as never);
     const d = await (await ask("Quels sont les prix ?")).json();
     expect(modelCalls.length).toBe(0);
-    expect(d.source).toBe("public_fallback");
+    // CloneChat Unified Intelligence : un budget refusé ne retombe plus sur l'ancien pipeline
+    // commercial déterministe (`public_fallback`) — il retourne le message d'indisponibilité
+    // honnête dédié, sans jamais afficher de fiche prix.
+    expect(d.source).toBe("clonechat_unified_unavailable");
+    expect(String(d.structured.answer)).not.toMatch(/€|CHF|449|499/);
   });
 });

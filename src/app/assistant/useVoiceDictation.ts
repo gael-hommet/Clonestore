@@ -22,7 +22,7 @@ export type DictationState =
   | "error";
 
 export interface DictationError {
-  readonly code: "PERMISSION_DENIED" | "NO_MICROPHONE" | "UNSUPPORTED" | "EMPTY_AUDIO" | "TRANSCRIPTION_FAILED" | "RATE_LIMITED";
+  readonly code: "PERMISSION_DENIED" | "NO_MICROPHONE" | "UNSUPPORTED" | "EMPTY_AUDIO" | "TRANSCRIPTION_FAILED" | "TRANSCRIPTION_TIMEOUT" | "RATE_LIMITED";
   readonly message: string;
 }
 
@@ -34,6 +34,7 @@ const MESSAGES: Record<DictationError["code"], string> = {
   UNSUPPORTED: "La dictée n'est pas prise en charge par ce navigateur.",
   EMPTY_AUDIO: "Je n'ai rien entendu. Réessayez la dictée.",
   TRANSCRIPTION_FAILED: "La transcription n'a pas abouti. Réessayez la dictée.",
+  TRANSCRIPTION_TIMEOUT: "La dictée a pris trop de temps. Réessayez.",
   RATE_LIMITED: "Vous allez un peu vite. Reprenez la dictée dans un instant.",
 };
 
@@ -46,7 +47,7 @@ export function isDictationSupported(): boolean {
 /** Choisit un conteneur réellement supporté (Safari ≠ Chrome). */
 function pickMimeType(): string | undefined {
   if (typeof window === "undefined" || typeof window.MediaRecorder === "undefined") return undefined;
-  for (const t of ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"]) {
+  for (const t of ["audio/mp4", "audio/webm;codecs=opus", "audio/webm", "audio/ogg"]) {
     if (MediaRecorder.isTypeSupported(t)) return t;
   }
   return undefined;
@@ -184,7 +185,9 @@ export function useVoiceDictation(opts: { onTranscript: (text: string) => void }
 
       if (res.status === 429) { fail("RATE_LIMITED"); return; }
       if (!res.ok || !data?.ok) {
-        fail(data?.code === "EMPTY_TRANSCRIPT" || data?.code === "EMPTY_AUDIO" ? "EMPTY_AUDIO" : "TRANSCRIPTION_FAILED");
+        if (data?.code === "EMPTY_TRANSCRIPT" || data?.code === "EMPTY_AUDIO") { fail("EMPTY_AUDIO"); return; }
+        if (data?.code === "TRANSCRIPTION_TIMEOUT") { fail("TRANSCRIPTION_TIMEOUT"); return; }
+        fail("TRANSCRIPTION_FAILED");
         return;
       }
       const text = String(data.transcript ?? "").trim();
