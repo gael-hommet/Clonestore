@@ -1,0 +1,59 @@
+{
+  "_note": "État CANONIQUE de la session CloneChat, mis à jour à chaque bloc/sous-tâche. Valeurs vérifiées depuis le worktree réel (git via isomorphic-git, Vercel API, vitest/tsc/eslint/next build réels). Ne jamais supposer une valeur : la recalculer.",
+  "worktree": "C:/Users/homme/clonestore-clonechat-unified",
+  "current_head": "e931b190082c7c54e8646f9b699edef12928720d",
+  "origin_main": "40b5ecf007e74e79a1680fc547160f190b4fedc7",
+  "deployed_sha": "40b5ecf007e74e79a1680fc547160f190b4fedc7",
+  "deployed_state": "READY",
+  "deployed_project": "clonestore-xcwi",
+  "local_ahead_of_origin_by": 6,
+  "local_commit_chain_unpushed": [
+    "cd9dfc2035b3fe261b26704601d496f16205f482 fix(clonechat): stop misclassifying capability questions as prompt injection",
+    "1d2fca5711facecdc18f9f868ab6a69c55a0b42f fix(clonechat): distinguish capability questions from governance bypass requests",
+    "19f0835a6e133bc1a4c00781bf473f4ef04c44a6 fix(clonechat): align launch date countries and pricing truth",
+    "9e4cd57ecc0b62af584cb4f41aa348110fe2598c test(clonechat): prove current CloneStore knowledge and valid voice formats",
+    "95bfc275001e904065c1223d9c2f452926247fe3 fix(clonechat): reject imperative governance bypass disguised as questions",
+    "e931b190082c7c54e8646f9b699edef12928720d test(clonechat): refresh corpus provenance and durable voice evidence"
+  ],
+  "active_block": 0,
+  "active_subtask": "Fermeture BLOC 0 : correctif ?-bypass VÉRIFIÉ dans le code réel, phrases maîtres verrouillées, fichiers de contrôle créés. Reste : push manuel (NO_CREDENTIAL) puis vérification Production.",
+  "completed_blocks": [],
+  "verified_capabilities": [
+    "Garde anti-injection : les 4 phrases de reproduction du programme maître (impératif de contournement + '?') sont bloquées, AVEC et SANS le '?' final (prouvé sur le code réel via vitest).",
+    "Garde anti-injection : les vraies questions de capacité restent autorisées, y compris 'Pierre peut-il contourner CloneGuard ?', 'Pierre sait-il valider automatiquement certaines étapes ?', 'Comment fonctionne CloneGuard ?'.",
+    "Le '?' final n'est plus jamais une preuve suffisante d'intention informative : isLegitimateCapabilityQuestion exige un marqueur interrogatif réel (peut-il / est-ce que ... peut / est-il capable / a-t-il le droit / qu'est-ce que ... peut faire).",
+    "Corpus CloneStore : 56 unités, 17 catégories, régénéré depuis 6 registres de code réels ; contient FR/BE/LU/CH, 449 EUR, 499 CHF, date active 12 août 2026, aucune date active 5 août dans les unités pricing/demo (garde de test corpus-truth).",
+    "Dictée vocale : MP3 (audio/mpeg), WebM/Opus (audio/webm), MP4/AAC (audio/mp4) réels transcrits exactement, autoSend=false ; cas d'erreur (mime interdit, vide, trop court, conteneur corrompu) refusés honnêtement (preuve locale documentée dans CLONECHAT_VOICE_FORMAT_EVIDENCE.md).",
+    "Budget durable Production : rôle clonechat_app, least-privilege, RLS forcée, membership postgres, isolation, persistance cross-connexion (re-vérifié read-only sur la base réelle).",
+    "Suites de sécurité inchangées : injection-114 (114/114), red-team 125, torture 1000, torture-security 200 — 0 régression après les correctifs.",
+    "Projet Vercel canonique clonestore-xcwi identifié ; domaines clonestore.pro + www.clonestore.pro vérifiés ; dernier déploiement Production READY."
+  ],
+  "partial_capabilities": [
+    "Les 6 commits locaux ne sont PAS encore sur origin/main (push bloqué NO_CREDENTIAL) — donc pas encore déployés ; la Production tourne toujours sur 40b5ecf0 qui NE contient PAS le correctif ?-bypass.",
+    "Benchmark de connaissance Production : 24 questions passées avec pacing anti-rate-limit — 20/24 justes ; 3 des 4 échecs sont exactement le bug injection déjà corrigé mais pas encore déployé, 1 était un échec modèle transitoire. À rejouer APRÈS déploiement pour un score propre.",
+    "Réponse 'pays disponibles' en Production omet encore la Suisse — corpus corrigé localement (pricing.founder_offer) mais pas déployé.",
+    "iPhone physique non testé : compatibilité mp4 prouvée par détection MIME + transcription réelle de conteneurs mp4/webm valides, pas par appareil réel."
+  ],
+  "blockers": [
+    "Push bloqué : aucun identifiant Git dans cet environnement (NO_CREDENTIAL, constant sur toute la session). Nécessite un push manuel de l'utilisateur : `cd C:\\Users\\homme\\clonestore-clonechat-unified && git push origin main`.",
+    "Tout ce qui dépend du déploiement (SHA déployé = HEAD, smokes Production post-fix, logs post-déploiement, benchmark propre) est en attente de ce push."
+  ],
+  "next_exact_action": "Committer les fichiers de contrôle + les tests de verrouillage des phrases maîtres, présenter la commande de push unique, attendre la confirmation utilisateur, revérifier origin/main, puis vérifier le déploiement clonestore-xcwi et lancer les smokes + benchmark Production.",
+  "tests_last_run": {
+    "kind": "vitest réel (repo)",
+    "context_boundary": "51/51",
+    "security_suite": "injection-114 114/114, red-team 125, torture-1000, torture-security-200 — tous verts, 0 régression",
+    "clonechat_targeted_total": "109/109 au dernier run complet (avant l'ajout des locks de phrases maîtres ; context-boundary passé de 49 à 51)",
+    "tsc": "0 erreur nouvelle (1 erreur pré-existante embedded-postgres, sans rapport)",
+    "eslint": "0 erreur sur les fichiers modifiés"
+  },
+  "build_last_run": {
+    "result": "BUILD_EXIT_CODE=0",
+    "dist_dir": ".next-hotfix (NEXT_DIST_DIR réellement consommé par next.config.ts:11 ; aucun .next partagé)",
+    "note": "Sera reconstruit après l'ajout des locks de phrases maîtres pour être représentatif du commit final."
+  },
+  "production_last_verified_at": "2026-07-28T14:00:00Z",
+  "corpus_hash": "46b1a53bbd7e7b74",
+  "corpus_source_commit_sha": "95bfc275001e904065c1223d9c2f452926247fe3",
+  "product_truth_version": "corpus-2026-07-28-46b1a53b"
+}
