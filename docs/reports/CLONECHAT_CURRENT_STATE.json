@@ -9,8 +9,16 @@
   "deployed_uid": "dpl_CgxqVKxYCkrAitF8hByF5Jg255FE",
   "domains_verified": ["clonestore.pro", "www.clonestore.pro"],
   "local_ahead_of_origin_by": 0,
-  "active_block": 1,
-  "active_subtask": "BLOC 1 — Product Truth Engine : registre versionné construit (src/lib/clonechat/product-truth/) qui projette les sources RÉELLES (vision/routes/employés/prix/pays/lancement/technologies/capacités/limites/promesses/gouvernance) sous l'enveloppe complète id/area/status/version/source/owner/last_updated/valid_from/valid_until/environment/evidence. Gate 15/15 : 0 contradiction active, 0 stale, couverture complète pages actives/employés/prix/limites. Restent en extension future : projecteurs journeys, bugs connus, workarounds, deployment-states (fragmentés dans 21 fichiers, à unifier).",
+  "active_block": 2,
+  "active_subtask": "BLOC 2 — CloneChat Brain FERMÉ localement (PASS). Module src/lib/clonechat/brain/ (types/classify/parse/brain/index) : classification en 8 modes déterministe, consomme le Product Truth Engine, autorité déterministe sur route/prix/pays/date/action/permission/confirmation/état-compte, prose modèle validée non-autoritaire, sortie structurée strictement validée + fallback sûr, adaptateur toStructured() compatible avec le format existant. Brain 27/27, régressions 125/125, tsc 0, eslint 0, build isolé exit 0. Non câblé dans la route (réservé BLOC 3+). Prochain : BLOC 3 CloneContext.",
+  "bloc2_gate": {
+    "module": "src/lib/clonechat/brain/ (types.ts, classify.ts, parse.ts, brain.ts, index.ts, __tests__)",
+    "modes": ["answer", "explain", "orient", "diagnose", "guide", "act", "escalate", "clarify"],
+    "tests": "27/27 Brain + régressions 125/125 (product-truth 15, context-boundary 51, corpus 6, navigation 1, injection-114 114, torture-security 200, universal-clonechat 20)",
+    "invariants": "jamais d'exécution d'action (executed=false), jamais de route inventée (validée getRouteEntry), jamais d'état compte deviné, injection/gouvernance refusée (BLOC 0), JSON modèle invalide/incomplet sans effet, aucun faux succès, validation stricte + fallback sûr",
+    "compat": "toStructured() → { answer, honesty, tool_call, citations } (format existant préservé)",
+    "not_wired": "le Brain n'est pas encore branché dans /api/assistant/chat (câblage = BLOC 3+ pour ne pas changer le comportement Production servi)"
+  },
   "bloc1_gate": {
     "module": "src/lib/clonechat/product-truth/ (types.ts, projectors.ts, registry.ts, __tests__)",
     "tests": "15/15 (enveloppe complète, ids uniques, 0 contradiction active, staleness engine fonctionnel, 0 date 5-août, Production=active/gated seulement, version déterministe, couverture routes/employés/prix/technologies/limites/lancement/vision)",
@@ -18,7 +26,7 @@
     "integrity": "0 contradiction active, 0 stale à la date de référence, 0 référence à la date supersédée du 5 août",
     "extension_gaps": ["journeys", "known_bugs (BLOC 7)", "workarounds (BLOC 7)", "deployment_states (flags fragmentés)"]
   },
-  "completed_blocks": [0],
+  "completed_blocks": [0, 1, 2],
   "bloc0_gate": {
     "verdict": "CLONECHAT CURRENT PRODUCTION RELEASE VERIFIED",
     "security_dangerous_blocked": "4/4 en Production (refused)",
