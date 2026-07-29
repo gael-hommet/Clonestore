@@ -1,0 +1,52 @@
+{
+  "block": "SECURE PRODUCTION QA CLASSIFICATION AND REAL FUNNEL PROOF",
+  "date": "2026-07-29",
+  "status": "PRODUCTION_MEASUREMENT_ACTIVATED_WITH_BLOCKERS",
+  "pass": false,
+  "supabase_project": "zdoigpfkyhilpzcsrdmc",
+  "branch": "release/production-measurement-closure",
+  "commits": {
+    "hardening": "e0230ddf",
+    "qa_auth": "75b88d4f",
+    "concurrent_base": "25216bcd",
+    "pushed": false
+  },
+  "origin_main_last_known": "8b7a5d79",
+  "done": {
+    "hardening_migration_versioned": true,
+    "hardening_isolated_test": { "first_apply": "PASS", "second_apply_idempotent": "PASS", "anon_authenticated_grants_after": 0, "pierre_rt_app_events": ["INSERT", "SELECT"], "pierre_rt_app_conversion_links": ["INSERT", "SELECT", "UPDATE"] },
+    "qa_auth_module": "src/lib/analytics/qa-auth.ts (server-only, node:crypto, timing-safe, fail-closed)",
+    "qa_auth_wired": ["src/lib/analytics/traffic.ts", "src/app/api/analytics/events/route.ts"],
+    "secret_never_public": true,
+    "secret_only_imported_by_server_route": true,
+    "analytics_tests": "14 files / 168 passed",
+    "new_tests": 36,
+    "adjacent_regression": "6 files / 73 passed",
+    "eslint_changed_files": 0,
+    "tsc_in_scope_errors": 0
+  },
+  "production_contract_acquired_prior_turn": {
+    "server_only_forged": "422 SERVER_ONLY_EVENT_REJECTED",
+    "forged_source_server": "422 INVALID_SOURCE",
+    "unknown_event": "422 UNKNOWN_EVENT_NAME",
+    "oversized": "413",
+    "re_run_this_turn": false,
+    "reason_not_rerun": "no redeployment occurred, so no post-deploy non-regression to verify"
+  },
+  "blockers": {
+    "git_push": "NO_CREDENTIAL_IN_ENV (git.exe OS-blocked; isomorphic-git push has no GitHub credential)",
+    "vercel_deploy": "no push -> no new SHA deployed; no Vercel CLI/token",
+    "vercel_production_sha": "UNKNOWN (no Vercel access)",
+    "qa_secret_configured": false,
+    "production_db_read": "no Supabase CLI; no DATABASE_URL/service-role in process.env (only in unread .env.local)",
+    "persistent_event_injected": false,
+    "persistent_event_reason": "without deployed+configured secret a QA event classifies external and pollutes append-only metrics (uncleanable) — block forbids it",
+    "browser_funnel_executed": false,
+    "reservation_correlation_proved": false
+  },
+  "tsc_project_errors_out_of_scope": [
+    "src/lib/pierre/v1/cognitive-runtime/proactive-detection.ts (concurrently *modified by another session)",
+    "src/lib/pierre/v1/__integration__/p22-legacy-fallback-boundary.itest.ts (caller of the drifted signature)"
+  ],
+  "doctrine": "Tables active + 168 local tests are NOT proof of a complete Production funnel. Not PASS."
+}
