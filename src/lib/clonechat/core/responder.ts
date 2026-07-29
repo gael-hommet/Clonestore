@@ -241,6 +241,20 @@ function extractResult(res: unknown, model: string): UnifiedResult {
 
   const suggestCard = !!openedPage?.ok && isPurchaseIntentRoute(openedPage.path ?? "");
 
+  // Défaut RÉEL trouvé en Production (2026-07-29) : une question de NAVIGATION (« Sur quelle page
+  // puis-je réserver Pierre ? ») fait choisir au modèle l'outil open_page — un function_call SANS
+  // texte d'accompagnement. respondUnified ne fait qu'UN seul appel (pas d'aller-retour de résultat
+  // d'outil), donc `answer` restait vide → ok=false → la route renvoyait « CloneChat rencontre
+  // momentanément un problème de connexion à son modèle » pour une simple demande d'orientation.
+  // Correctif : quand le modèle a résolu une VRAIE page (openedPage.ok, chemin validé contre le
+  // registre réel) mais n'a produit aucun texte, on SYNTHÉTISE une réponse d'orientation déterministe
+  // et fondée (label + chemin réels — jamais une route inventée). L'orientation est un droit produit,
+  // pas une panne.
+  if (!answer.trim() && openedPage?.ok && openedPage.path && openedPage.label) {
+    const why = openedPage.reason?.trim();
+    answer = `${why ? why.replace(/\s*[.。]?\s*$/, "") + ". " : ""}Rendez-vous sur la page « ${openedPage.label} » : ${openedPage.path}.`;
+  }
+
   return {
     ok: answer.trim().length > 0,
     answer: stripRawCitationMarkers(answer),
