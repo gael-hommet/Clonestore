@@ -10,7 +10,14 @@
   "domains_verified": ["clonestore.pro", "www.clonestore.pro"],
   "local_ahead_of_origin_by": 0,
   "active_block": 1,
-  "active_subtask": "BLOC 0 fermé PASS (Production vérifiée). Démarrage BLOC 1 — Product Truth Engine : registre de vérité produit versionné qui unifie les sources de code réelles existantes (routes/employés/prix/pays/technologies/capacités/limites/flags/bugs/promesses) sous une enveloppe id/area/status/version/source/owner/last_updated/valid_from/valid_until/environment/evidence.",
+  "active_subtask": "BLOC 1 — Product Truth Engine : registre versionné construit (src/lib/clonechat/product-truth/) qui projette les sources RÉELLES (vision/routes/employés/prix/pays/lancement/technologies/capacités/limites/promesses/gouvernance) sous l'enveloppe complète id/area/status/version/source/owner/last_updated/valid_from/valid_until/environment/evidence. Gate 15/15 : 0 contradiction active, 0 stale, couverture complète pages actives/employés/prix/limites. Restent en extension future : projecteurs journeys, bugs connus, workarounds, deployment-states (fragmentés dans 21 fichiers, à unifier).",
+  "bloc1_gate": {
+    "module": "src/lib/clonechat/product-truth/ (types.ts, projectors.ts, registry.ts, __tests__)",
+    "tests": "15/15 (enveloppe complète, ids uniques, 0 contradiction active, staleness engine fonctionnel, 0 date 5-août, Production=active/gated seulement, version déterministe, couverture routes/employés/prix/technologies/limites/lancement/vision)",
+    "coverage": "toutes routes active/gated du registre réel, tous employés PUBLIC_EMPLOYEES, tous prix FR/BE/LU/CH (449€/499CHF), limites human-only de Pierre, date 12 août 2026",
+    "integrity": "0 contradiction active, 0 stale à la date de référence, 0 référence à la date supersédée du 5 août",
+    "extension_gaps": ["journeys", "known_bugs (BLOC 7)", "workarounds (BLOC 7)", "deployment_states (flags fragmentés)"]
+  },
   "completed_blocks": [0],
   "bloc0_gate": {
     "verdict": "CLONECHAT CURRENT PRODUCTION RELEASE VERIFIED",
