@@ -28,10 +28,20 @@ const MIG_DIR = resolve(process.cwd(), "supabase/migrations");
  * (clonestore_analytics_events_v1, Analytics Funnel and Launch Measurement Closure) — même
  * gate opt-in/test-only/fail-closed-en-prod que le schéma Founder ci-dessus.
  */
+// Rôles navigateur Supabase (anon/authenticated) : toujours présents en Production Supabase, mais
+// absents d'une base PGlite vierge. La migration de hardening des grants Analytics (prod-exacte)
+// fait `revoke ... from anon, authenticated` — on amorce donc ces rôles côté harnais uniquement,
+// sans jamais modifier la migration prod-exacte.
+const ANALYTICS_ROLE_BOOTSTRAP =
+  "do $$ begin " +
+  "if not exists (select from pg_roles where rolname='anon') then create role anon nologin; end if; " +
+  "if not exists (select from pg_roles where rolname='authenticated') then create role authenticated nologin; end if; " +
+  "end $$;";
+
 function migrationSql(): string[] {
   const withFounder = process.env.PIERRE_E2E_FOUNDER_SCHEMA === "1";
   const withAnalytics = process.env.PIERRE_E2E_ANALYTICS_SCHEMA === "1";
-  return readdirSync(MIG_DIR)
+  const migrations = readdirSync(MIG_DIR)
     .filter((f) => f.endsWith(".sql") && (
       f.includes("pierre_v")
       || (withFounder && f.includes("clonestore_founder"))
@@ -39,6 +49,7 @@ function migrationSql(): string[] {
     ))
     .sort()
     .map((f) => readFileSync(resolve(MIG_DIR, f), "utf-8"));
+  return withAnalytics ? [ANALYTICS_ROLE_BOOTSTRAP, ...migrations] : migrations;
 }
 
 type PGliteLike = {
