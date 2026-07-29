@@ -36,6 +36,10 @@ export interface TrafficClassificationInput {
   isAdminRoute: boolean;
   testHeaderPresent: boolean; // en-tête de test explicite, ex. x-clonestore-test
   environment: "production" | "preview" | "development" | "test";
+  // En Production UNIQUEMENT, une requête QA authentifiée serveur (secret vérifié en amont par
+  // qa-auth.ts, jamais un en-tête public seul) peut produire la classification `test`. Absent/false
+  // → jamais `test` en Production (fail-closed). Ignoré hors Production.
+  authenticatedProductionQa?: boolean;
 }
 
 export function classifyTraffic(input: TrafficClassificationInput): AnalyticsTrafficClass {
@@ -45,10 +49,15 @@ export function classifyTraffic(input: TrafficClassificationInput): AnalyticsTra
     return "automated";
   }
 
-  // 2) Test — jamais accepté en production, quelle que soit la combinaison de signaux.
+  // 2) Test — jamais accepté en production sur la seule foi d'un en-tête public. Hors Production, la
+  // doctrine historique s'applique (en-tête de test / environnement CI). En Production, la
+  // classification `test` exige une requête QA authentifiée serveur (secret vérifié en amont par
+  // qa-auth.ts) : un `x-clonestore-test` public seul ne suffit JAMAIS.
   if (input.environment !== "production") {
     if (input.testHeaderPresent) return "test";
     if (input.environment === "test") return "test";
+  } else if (input.authenticatedProductionQa === true) {
+    return "test";
   }
 
   // 3) Internal — combinaison déterministe, jamais l'IP seule.

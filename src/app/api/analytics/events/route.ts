@@ -8,6 +8,7 @@ import { insertAnalyticsEvent } from "@/lib/analytics/store";
 import { validateClientEnvelope, type AnalyticsServerEnrichedEvent, type AnalyticsEnvironment } from "@/lib/analytics/schema";
 import { resolveVisitorId, resolveSessionId } from "@/lib/analytics/identity";
 import { classifyTraffic } from "@/lib/analytics/traffic";
+import { isAuthenticatedProductionQaRequest } from "@/lib/analytics/qa-auth";
 import { distributedRateLimit, hashIp, getClientIp, readJsonBounded } from "@/lib/founder-access/request-utils";
 
 export const runtime = "nodejs";
@@ -47,6 +48,16 @@ export async function POST(req: Request) {
   const userAgent = req.headers.get("user-agent");
   const testHeaderPresent = req.headers.get("x-clonestore-test") === "1";
   const environment = resolveEnvironment();
+  // En Production, `x-clonestore-test` est ignoré (voir classifyTraffic) : seule une requête QA
+  // authentifiée par le secret serveur peut être classée `test`. Le secret est lu ici, côté serveur
+  // uniquement, jamais journalisé ni renvoyé ; le résultat est un simple booléen. Ce booléen
+  // n'influence QUE la classification — il ne débride ni la validation de schéma (déjà exécutée
+  // ci-dessus), ni le rate limiting (déjà appliqué ci-dessus), ni la vérité serveur.
+  const authenticatedProductionQa = isAuthenticatedProductionQaRequest({
+    environment,
+    providedToken: req.headers.get("x-clonestore-qa-token"),
+    configuredToken: process.env.CLONESTORE_ANALYTICS_QA_TOKEN,
+  });
   const trafficClass = classifyTraffic({
     userAgent,
     internalCookieValue: null,
@@ -56,6 +67,7 @@ export async function POST(req: Request) {
     isAdminRoute: false,
     testHeaderPresent,
     environment,
+    authenticatedProductionQa,
   });
 
   const enriched: AnalyticsServerEnrichedEvent = {
