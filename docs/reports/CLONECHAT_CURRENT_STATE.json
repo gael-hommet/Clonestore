@@ -1,16 +1,25 @@
 {
   "_note": "État CANONIQUE de la session CloneChat, mis à jour à chaque bloc/sous-tâche. Valeurs vérifiées depuis le worktree réel (git via isomorphic-git, Vercel API, vitest/tsc/eslint/next build réels, HTTP production réel). Ne jamais supposer une valeur.",
   "worktree": "C:/Users/homme/clonestore-clonechat-unified",
-  "current_head": "24b1ece36a2e0f6ef93e886148bac6d175de4a80",
-  "origin_main": "24b1ece36a2e0f6ef93e886148bac6d175de4a80",
+  "current_head": "5c7503236d69e124698736adc81489dd7e32d7e4",
+  "origin_main": "5c7503236d69e124698736adc81489dd7e32d7e4",
   "deployed_sha": "24b1ece36a2e0f6ef93e886148bac6d175de4a80",
   "deployed_state": "READY",
   "deployed_project": "clonestore-xcwi",
   "deployed_uid": "dpl_CgxqVKxYCkrAitF8hByF5Jg255FE",
   "domains_verified": ["clonestore.pro", "www.clonestore.pro"],
   "local_ahead_of_origin_by": 0,
-  "active_block": 2,
-  "active_subtask": "BLOC 2 — CloneChat Brain FERMÉ localement (PASS). Module src/lib/clonechat/brain/ (types/classify/parse/brain/index) : classification en 8 modes déterministe, consomme le Product Truth Engine, autorité déterministe sur route/prix/pays/date/action/permission/confirmation/état-compte, prose modèle validée non-autoritaire, sortie structurée strictement validée + fallback sûr, adaptateur toStructured() compatible avec le format existant. Brain 27/27, régressions 125/125, tsc 0, eslint 0, build isolé exit 0. Non câblé dans la route (réservé BLOC 3+). Prochain : BLOC 3 CloneContext.",
+  "active_block": 3,
+  "active_subtask": "BLOC 3 — CloneContext FERMÉ localement (PASS). Module src/lib/clonechat/context/ (types/build/brain-context/index) : contexte applicatif réel & typé (context-1) assemblé UNIQUEMENT depuis les sources déjà résolues côté serveur (viewer CloneChatViewer, tenant TenantResolution, entitlement PierreAccessResult, route getRouteEntry) — jamais deviné, jamais inter-tenant, jamais un droit inventé. buildCloneChatContext = assembleur pur (réutilise classifyCloneChatRequest + resolveCloneChatPlan, aucune lecture DB). decideWithContext branche le Brain (BLOC 2) de façon compatible API (toStructured inchangé) : le contexte ne fait que RESTREINDRE/ANNOTER (prérequis, blocages, route verrouillée), jamais accorder. Context 25/25, régressions 145/145, tsc 0, eslint 0, build isolé exit 0. Non câblé dans /api/assistant/chat (réservé étape ultérieure) ; diagnostic complet = BLOC 4. Prochain : BLOC 4 CloneChat Diagnosis.",
+  "bloc3_gate": {
+    "module": "src/lib/clonechat/context/ (types.ts, build.ts, brain-context.ts, index.ts, __tests__/context.test.ts)",
+    "version": "context-1",
+    "sources_reelles": "viewer=CloneChatViewer, tenant=TenantResolution (company.ts), entitlement=PierreAccessResult (pierre/access), route=getRouteEntry (route-registry), plan/prérequis/lane=resolveCloneChatPlan (universal-access). Aucune lecture DB, aucun état deviné.",
+    "tests": "25/25 Context + régressions 145/145 (brain 27, product-truth 15, context-boundary 51, corpus 6, injection-114 114, universal-clonechat 20)",
+    "invariants": "companyId exposé UNIQUEMENT si tenant.ok (jamais inter-tenant, jamais d'id fabriqué) ; anonyme → aucune companyId/userId ; LOOKUP_FAILED distinct de l'absence de droit ; securityFailure fail-closed (jamais résolu/accordé) ; actions dérivées du plan (read_private_context ⇐ entreprise vérifiée, propose_governed_action ⇐ entreprise+Pierre vérifiés) ; route inconnue → known:false, rien supposé ; contexte incomplet → dégrade en PUBLIC sûr ; déterministe ; injection refusée même avec contexte complet.",
+    "brain_wiring": "decideWithContext() = decide() + applyContextGuards() ; ne fait que renforcer la sûreté (prérequis en limitations, requiresAccountContext/Confirmation, tenant_security_failure, entitlement_lookup_unavailable, route_requires_prerequisite, surfaced_error:*), re-validé par validateBrainDecision avec fallback à la décision d'origine ; sortie structurée { answer, honesty, tool_call, citations } inchangée.",
+    "not_wired": "decideWithContext() pas encore branché dans /api/assistant/chat (câblage = étape ultérieure délibérée) ; erreurs seulement EXPOSÉES (surfaced_error:*) sans interprétation (diagnostic = BLOC 4)."
+  },
   "bloc2_gate": {
     "module": "src/lib/clonechat/brain/ (types.ts, classify.ts, parse.ts, brain.ts, index.ts, __tests__)",
     "modes": ["answer", "explain", "orient", "diagnose", "guide", "act", "escalate", "clarify"],
@@ -26,7 +35,7 @@
     "integrity": "0 contradiction active, 0 stale à la date de référence, 0 référence à la date supersédée du 5 août",
     "extension_gaps": ["journeys", "known_bugs (BLOC 7)", "workarounds (BLOC 7)", "deployment_states (flags fragmentés)"]
   },
-  "completed_blocks": [0, 1, 2],
+  "completed_blocks": [0, 1, 2, 3],
   "bloc0_gate": {
     "verdict": "CLONECHAT CURRENT PRODUCTION RELEASE VERIFIED",
     "security_dangerous_blocked": "4/4 en Production (refused)",
@@ -50,21 +59,23 @@
     "iPhone physique non testé : compatibilité mp4/webm prouvée par conteneurs réels + détection MIME, pas par appareil réel."
   ],
   "blockers": [],
-  "next_exact_action": "BLOC 1 : concevoir et implémenter le registre de vérité produit unifié (enveloppe versionnée) qui projette les sources réelles existantes sans les dupliquer, avec tests de couverture (toutes pages actives / employés / prix / limites) et 0 contradiction active / 0 stale.",
+  "next_exact_action": "BLOC 4 : construire le diagnostic complet de CloneChat (corréler erreurs/blocages présents dans le CloneContext en cause racine, identifier l'étape bloquante, recommander l'action de déblocage réelle), au-dessus du contexte typé du BLOC 3, sans jamais inventer d'erreur ni contourner un prérequis.",
   "tests_last_run": {
     "kind": "vitest réel (repo)",
-    "clonechat_targeted": "109/109 (dont navigation-answer + context-boundary 51/51)",
-    "security_suite": "injection-114 114/114 + torture-security 200 — verts",
+    "clonechat_targeted": "BLOC 3 context 25/25 + régressions ciblées 145/145 (brain 27, product-truth 15, context-boundary 51, corpus 6, injection-114 114, universal-clonechat 20)",
+    "security_suite": "injection-114 114/114 — vert (torture-security 200 inchangé)",
     "tsc": "0 erreur nouvelle (1 pré-existante embedded-postgres)",
-    "eslint": "0 erreur",
-    "real_openai_navigation": "3/3 questions de navigation ok:true (repro OpenAI réel)"
+    "eslint": "0 erreur (src/lib/clonechat/context/)",
+    "real_openai_navigation": "inchangé depuis BLOC 0 (3/3 ok:true)"
   },
   "build_last_run": {
     "result": "BUILD_EXIT_CODE=0",
-    "commit": "24b1ece3",
-    "dist_dir": ".next-hotfix (NEXT_DIST_DIR réellement consommé ; aucun .next partagé)"
+    "commit": "BLOC 3 (parent 5c7503236d)",
+    "compiled": "Compiled successfully in 3.4min ; validity of types OK ; manifest de routes complet généré",
+    "dist_dir": ".next-hotfix (NEXT_DIST_DIR réellement consommé ; aucun .next partagé)",
+    "tsconfig_note": "next a réinjecté include '.next-hotfix/types/**/*.ts' dans tsconfig.json ; rétabli au blob HEAD avant commit (statusMatrix 1,1,1)"
   },
-  "production_last_verified_at": "2026-07-29T10:05:00Z",
+  "production_last_verified_at": "2026-07-29T10:05:00Z (BLOC 3 = travail local uniquement ; aucun redéploiement)",
   "corpus_hash": "46b1a53bbd7e7b74",
   "corpus_source_commit_sha": "95bfc275001e904065c1223d9c2f452926247fe3",
   "product_truth_version": "corpus-2026-07-28-46b1a53b"
