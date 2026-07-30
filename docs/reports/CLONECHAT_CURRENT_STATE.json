@@ -1,16 +1,27 @@
 {
   "_note": "État CANONIQUE de la session CloneChat, mis à jour à chaque bloc/sous-tâche. Valeurs vérifiées depuis le worktree réel (git via isomorphic-git, Vercel API, vitest/tsc/eslint/next build réels, HTTP production réel). Ne jamais supposer une valeur.",
   "worktree": "C:/Users/homme/clonestore-clonechat-unified",
-  "current_head": "5baac6f735697f32c272748d45a403c44a48dc8b",
-  "origin_main": "5baac6f735697f32c272748d45a403c44a48dc8b",
+  "current_head": "ab069709fc7e7359839cb07d31bf80fb7cf3be70",
+  "origin_main": "ab069709fc7e7359839cb07d31bf80fb7cf3be70",
   "deployed_sha": "24b1ece36a2e0f6ef93e886148bac6d175de4a80",
   "deployed_state": "READY",
   "deployed_project": "clonestore-xcwi",
   "deployed_uid": "dpl_CgxqVKxYCkrAitF8hByF5Jg255FE",
   "domains_verified": ["clonestore.pro", "www.clonestore.pro"],
   "local_ahead_of_origin_by": 0,
-  "active_block": 4,
-  "active_subtask": "BLOC 4 — CloneChat Diagnosis FERMÉ localement (PASS). Module src/lib/clonechat/diagnosis/ (types/diagnose/diagnose-with-context/index) : diagnostic structuré, typé & versionné (diagnosis-1) au-dessus du Brain (BLOC 2) + CloneContext (BLOC 3). Pour toute situation de blocage : problème observé, cause racine certaine OU probable, confiance, preuves, informations manquantes, étape exacte bloquée, prérequis manquants, catégorie (permission/tenant/entitlement/route/environment/provider), actions de déblocage réelles, route réelle recommandée, clarification ?, escalade ?. Sources RÉELLES uniquement (contexte, product-truth via Brain, registre routes + notes de gating, viewer/tenant/entitlement, surfacedErrors, prérequis/blockers, indisponibilité provider observée). Ne devine JAMAIS (état, erreur, permission, tenant, droit, cause certaine≠probable, résolution, route). Distingue clairement les 9 natures + no_blocker. Agnostique au tenant (aucun companyId dans le diagnostic → isolation par construction). decideAndDiagnose branché sur decideWithContext (structured inchangé). Diagnosis 25/25, régressions 170/170, tsc 0, eslint 0, build isolé exit 0. Non câblé dans /api/assistant/chat ; guide pas-à-pas = BLOC 5 (CloneGuide). Prochain : BLOC 5 CloneGuide.",
+  "active_block": 5,
+  "active_subtask": "BLOC 5 — CloneGuide V1 FERMÉ localement (PASS). Module src/lib/clonechat/guide/ (types/catalog/build/guide-with-context/index) : transforme une intention OU un diagnostic en accompagnement concret, sûr et progressif (guide-1) au-dessus du Brain (BLOC 2) + CloneContext (BLOC 3) + Diagnosis (BLOC 4). SANS exécuter d'action, SANS inventer l'interface (route + instruction textuelle vérifiable ; guidage visuel = BLOC 9). Guide structuré : objectif, état initial réel, route de départ, étapes ordonnées (texte précis, route réelle, prérequis, condition de réussite observable, condition de blocage, action de récupération), étape actuelle, total, clarification/confirmation/escalade, state ∈ ready/blocked/needs_clarification/completed/escalate. Autorité 100% déterministe (registre routes, CloneContext, Diagnosis, Product Truth via Brain, prérequis/CTA réels) : jamais de route/bouton/champ/étape/permission/réussite/état-compte/action-exécutée inventés. 14 parcours (13 requis + clarify_request). decideDiagnoseAndGuide branché (structured inchangé). Guide 25/25, régressions 195/195, tsc 0, eslint 0, build isolé exit 0. Non câblé dans /api/assistant/chat (adaptateur + tests fournis). Prochain : BLOC 6.",
+  "bloc5_gate": {
+    "module": "src/lib/clonechat/guide/ (types.ts, catalog.ts, build.ts, guide-with-context.ts, index.ts, __tests__/guide.test.ts)",
+    "version": "guide-1",
+    "guides": ["reserve_pierre", "view_demo", "checkout", "login", "signup", "resolve_no_company", "select_company", "resolve_no_pierre", "recover_entitlement_lookup", "contact_support", "unknown_route", "after_payment_diagnosis", "resolve_tenant_or_permission", "clarify_request"],
+    "states": ["ready", "blocked", "needs_clarification", "completed", "escalate"],
+    "selection": "Blocages durs d'abord (permission_denied→permission bloqué ; tenant_security_failure→rétablir accès, suspendu=escalade/panne=retry ; provider_failure entitlement→recover bloqué, modèle=intention sinon recover ; route inconnue→clarification ; escalade→support ; diag paiement confirmed=ready/probable=clarification). Sinon intention Brain (portes de prérequis intégrées) ; sinon résolution du prérequis le plus proche (auth→entreprise[select/resolve selon refusalCode]→Pierre) ; sinon null.",
+    "tests": "25/25 Guide + régressions 195/195 (diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, corpus 6, injection-114 114, universal-clonechat 20)",
+    "invariants": "aucune route inventée (getRouteEntry) ; aucune étape vide (texte+réussite+blocage+récup non vides ; ordre 1..N stable) ; JAMAIS de fausse complétion (completed seulement si un état réel du contexte prouve le but ; doing=reserve/checkout/demo restent ready) ; isolation inter-tenant (aucun companyId) ; permission/injection = parcours bloqué sans route pour l'action interdite + executed=false ; déterministe ; modèle indisponible→reprise honnête ; structured inchangé.",
+    "wiring": "decideDiagnoseAndGuide(input, ctx) = decideAndDiagnose puis buildCloneGuide(ctx, diagnosis, {brainDecision}) → {decision, context, diagnosis, guide, structured}. guide peut être null (question conversationnelle sans objet).",
+    "not_wired": "decideDiagnoseAndGuide pas encore branché dans /api/assistant/chat (aucun gate Production requis activé) ; aucune action exécutée ; guidage visuel précis (cibles UI) réservé au BLOC 9."
+  },
   "bloc4_gate": {
     "module": "src/lib/clonechat/diagnosis/ (types.ts, diagnose.ts, diagnose-with-context.ts, index.ts, __tests__/diagnosis.test.ts)",
     "version": "diagnosis-1",
@@ -46,7 +57,7 @@
     "integrity": "0 contradiction active, 0 stale à la date de référence, 0 référence à la date supersédée du 5 août",
     "extension_gaps": ["journeys", "known_bugs (BLOC 7)", "workarounds (BLOC 7)", "deployment_states (flags fragmentés)"]
   },
-  "completed_blocks": [0, 1, 2, 3, 4],
+  "completed_blocks": [0, 1, 2, 3, 4, 5],
   "bloc0_gate": {
     "verdict": "CLONECHAT CURRENT PRODUCTION RELEASE VERIFIED",
     "security_dangerous_blocked": "4/4 en Production (refused)",
@@ -70,18 +81,18 @@
     "iPhone physique non testé : compatibilité mp4/webm prouvée par conteneurs réels + détection MIME, pas par appareil réel."
   ],
   "blockers": [],
-  "next_exact_action": "BLOC 5 : construire CloneGuide — transformer le diagnostic (BLOC 4) en accompagnement actionnable pas-à-pas (étapes réelles, routes réelles, confirmation), au-dessus du diagnostic et du contexte, sans jamais exécuter d'action ni inventer une étape/route.",
+  "next_exact_action": "BLOC 6 : reprendre la feuille de route CloneChat au bloc suivant (au-dessus du Brain/Context/Diagnosis/Guide déjà fermés), en gardant l'autorité déterministe et l'additivité (aucun câblage risqué en /api/assistant/chat sans gate Production).",
   "tests_last_run": {
     "kind": "vitest réel (repo)",
-    "clonechat_targeted": "BLOC 4 diagnosis 25/25 + régressions ciblées 170/170 (context 25, brain 27, product-truth 15, context-boundary 51, corpus 6, injection-114 114, universal-clonechat 20)",
+    "clonechat_targeted": "BLOC 5 guide 25/25 + régressions ciblées 195/195 (diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, corpus 6, injection-114 114, universal-clonechat 20)",
     "security_suite": "injection-114 114/114 — vert (torture-security 200 inchangé)",
     "tsc": "0 erreur nouvelle (1 pré-existante embedded-postgres)",
-    "eslint": "0 erreur (src/lib/clonechat/diagnosis/)",
+    "eslint": "0 erreur (src/lib/clonechat/guide/)",
     "real_openai_navigation": "inchangé depuis BLOC 0 (3/3 ok:true)"
   },
   "build_last_run": {
     "result": "BUILD_EXIT_CODE=0",
-    "commit": "BLOC 4 (parent 5baac6f735)",
+    "commit": "BLOC 5 (parent ab069709fc)",
     "compiled": "Compiled successfully ; validity of types OK ; manifest de routes complet généré",
     "dist_dir": ".next-hotfix (NEXT_DIST_DIR réellement consommé ; aucun .next partagé)",
     "tsconfig_note": "next a réinjecté include '.next-hotfix/types/**/*.ts' dans tsconfig.json ; rétabli au blob HEAD avant commit (statusMatrix 1,1,1)"
