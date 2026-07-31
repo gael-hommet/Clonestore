@@ -21,6 +21,7 @@ import {
   validateAudio, loadTranscriptionModels, transcriptionVocabularyPrompt,
   shouldFallback, MAX_AUDIO_BYTES, type TranscriptionAttempt,
 } from "@/lib/clonechat/voice/transcription-policy";
+import { detectKnownNonAudio } from "@/lib/clonechat/voice/formats";
 import { checkAnonymousRateLimit, anonymousFingerprint, anonymousRateLimitMessage } from "@/lib/clonechat/server/anonymous-rate-limit";
 
 export const runtime = "nodejs";
@@ -143,6 +144,16 @@ export async function POST(req: Request) {
 
   const verdict = validateAudio({ mime: file.type, bytes: file.size });
   if (!verdict.ok) return noStore({ ok: false, code: verdict.code, error: verdict.message }, 400);
+
+  // Durcissement BLOC 6 : refuser un fichier NON-audio déguisé (ZIP/PDF/exe… renommé en audio),
+  // avant tout appel réseau. Deny-known-bad : on ne rejette que des signatures non-audio connues,
+  // jamais un audio légitime au conteneur inhabituel.
+  try {
+    const head = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+    if (detectKnownNonAudio(head) !== null) {
+      return noStore({ ok: false, code: "AUDIO_CONTENT_NOT_AUDIO", error: "Ce fichier n'est pas un enregistrement audio." }, 400);
+    }
+  } catch { /* lecture d'en-tête impossible → on laisse la validation MIME/taille faire foi */ }
 
   const userRequestedRetry = String(form.get("retry") ?? "") === "true";
   const models = loadTranscriptionModels();

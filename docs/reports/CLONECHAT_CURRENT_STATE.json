@@ -1,16 +1,28 @@
 {
   "_note": "État CANONIQUE de la session CloneChat, mis à jour à chaque bloc/sous-tâche. Valeurs vérifiées depuis le worktree réel (git via isomorphic-git, Vercel API, vitest/tsc/eslint/next build réels, HTTP production réel). Ne jamais supposer une valeur.",
   "worktree": "C:/Users/homme/clonestore-clonechat-unified",
-  "current_head": "ab069709fc7e7359839cb07d31bf80fb7cf3be70",
-  "origin_main": "ab069709fc7e7359839cb07d31bf80fb7cf3be70",
+  "current_head": "8bcad6bd18767967ea2a60f9e2cbd17f40a4fcc8",
+  "origin_main": "8bcad6bd18767967ea2a60f9e2cbd17f40a4fcc8",
   "deployed_sha": "24b1ece36a2e0f6ef93e886148bac6d175de4a80",
   "deployed_state": "READY",
   "deployed_project": "clonestore-xcwi",
   "deployed_uid": "dpl_CgxqVKxYCkrAitF8hByF5Jg255FE",
   "domains_verified": ["clonestore.pro", "www.clonestore.pro"],
   "local_ahead_of_origin_by": 0,
-  "active_block": 5,
-  "active_subtask": "BLOC 5 — CloneGuide V1 FERMÉ localement (PASS). Module src/lib/clonechat/guide/ (types/catalog/build/guide-with-context/index) : transforme une intention OU un diagnostic en accompagnement concret, sûr et progressif (guide-1) au-dessus du Brain (BLOC 2) + CloneContext (BLOC 3) + Diagnosis (BLOC 4). SANS exécuter d'action, SANS inventer l'interface (route + instruction textuelle vérifiable ; guidage visuel = BLOC 9). Guide structuré : objectif, état initial réel, route de départ, étapes ordonnées (texte précis, route réelle, prérequis, condition de réussite observable, condition de blocage, action de récupération), étape actuelle, total, clarification/confirmation/escalade, state ∈ ready/blocked/needs_clarification/completed/escalate. Autorité 100% déterministe (registre routes, CloneContext, Diagnosis, Product Truth via Brain, prérequis/CTA réels) : jamais de route/bouton/champ/étape/permission/réussite/état-compte/action-exécutée inventés. 14 parcours (13 requis + clarify_request). decideDiagnoseAndGuide branché (structured inchangé). Guide 25/25, régressions 195/195, tsc 0, eslint 0, build isolé exit 0. Non câblé dans /api/assistant/chat (adaptateur + tests fournis). Prochain : BLOC 6.",
+  "active_block": 6,
+  "active_subtask": "BLOC 6 — CloneVoice FERMÉ localement (PASS). Module src/lib/clonechat/voice/ (types/formats/providers/openai-providers/tts-policy/pipeline/index, + transcription-policy conservée) : interface vocale COMPLÈTE au-dessus de Brain→CloneContext→Diagnosis→Guide. Parcours : audio → validation stricte (MIME+taille+contenu magic-bytes) → transcription (provider injecté) → decideDiagnoseAndGuide → réponse texte → TTS facultatif → fallback texte honnête. La voix ne contourne RIEN (le transcript repasse par le pipeline sécurisé : anti-injection, gouvernance, confirmation). État versionné voice-1 (idle/recording/processing/transcribed/responded/speaking/completed/cancelled/error). Jamais d'auto-envoi, jamais d'exécution, jamais de faux succès (TTS ok sans audio réel = échec+fallback), transcription incertaine=low_confidence, distinction erreur utilisateur/format/provider/timeout/sécurité, logs sûrs (jamais audio/transcript/secret), isolation inter-tenant. Route existante /api/assistant/transcribe DURCIE (deny-known-bad avant réseau, tests existants verts). Adaptateurs OpenAI réels fournis, gate sans clé (mocks déterministes). Voice 32/32 + transcribe 6/6, régressions 233/233, tsc 0, eslint 0, build isolé exit 0. Non câblé comme comportement Production servi. Prochain : BLOC 7.",
+  "bloc6_gate": {
+    "module": "src/lib/clonechat/voice/ (types.ts, formats.ts, providers.ts, openai-providers.ts, tts-policy.ts, pipeline.ts, index.ts, __tests__/voice.test.ts) + transcription-policy.ts (conservée) + /api/assistant/transcribe/route.ts (durcie)",
+    "version": "voice-1",
+    "states": ["idle", "recording", "processing", "transcribed", "responded", "speaking", "completed", "cancelled", "error"],
+    "error_categories": ["user_error", "unsupported_format", "security_refusal", "provider_failure", "timeout", "cancelled"],
+    "formats": ["audio/webm", "audio/ogg", "audio/mp4", "audio/m4a", "audio/x-m4a", "audio/mpeg", "audio/mpga", "audio/wav", "audio/x-wav", "audio/flac"],
+    "content_validation": "magic-bytes : détection positive audio (EBML/OggS/ID3+MP3-sync/ftyp/RIFF-WAVE/fLaC) + deny-known-bad (ZIP/PDF/PNG/GIF/JPEG/ELF/MZ/HTML/XML/gzip) → refus des non-audio déguisés et MIME mensongers. Route durcie = deny-known-bad (n'invalide pas les zéros des tests existants).",
+    "tests": "32/32 Voice + 6/6 transcribe route + régressions 233/233 (guide 25, diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, corpus 6, injection-114 114, universal-clonechat 20)",
+    "invariants": "voix = I/O jamais autorité ; transcript repasse par pipeline sécurisé (anti-injection/gouvernance/confirmation) ; injection & impératif dangereux terminé par ? = securityRefusal jamais exécuté ; low_confidence jamais présenté comme exact ; autoSend=false partout ; jamais de faux succès (TTS ok sans audio réel = échec+fallback ; transcript vide = EMPTY_TRANSCRIPT) ; distinction erreur utilisateur/format/provider/timeout/sécurité ; TTS opt-in explicite + refus contenu privé non autorisé + fallback systématique ; logs sûrs (longueur transcript, jamais texte/audio/secret) ; isolation inter-tenant ; transcript conservé EXACTEMENT.",
+    "wiring": "runVoiceJourney(input, {transcriber, tts?}) = validate → transcribe → buildCloneChatContext → decideDiagnoseAndGuide → responseText → TTS facultatif → fallback. Sortie additive {state, transcript, transcriptConfidence/Status, decision, context, diagnosis, guide, structured, responseText, tts, securityRefusal, autoSend:false}. structured historique INCHANGÉ. completeVoiceJourney → completed. buildVoiceLog = log sûr.",
+    "not_wired": "runVoiceJourney pas câblé comme comportement Production servi dans /api/assistant/chat (aucun gate Production supplémentaire activé) ; UI vocale visuelle fine = BLOC 9 ; adaptateurs OpenAI réels fournis mais non exercés (aucune clé requise pour le gate)."
+  },
   "bloc5_gate": {
     "module": "src/lib/clonechat/guide/ (types.ts, catalog.ts, build.ts, guide-with-context.ts, index.ts, __tests__/guide.test.ts)",
     "version": "guide-1",
@@ -57,7 +69,7 @@
     "integrity": "0 contradiction active, 0 stale à la date de référence, 0 référence à la date supersédée du 5 août",
     "extension_gaps": ["journeys", "known_bugs (BLOC 7)", "workarounds (BLOC 7)", "deployment_states (flags fragmentés)"]
   },
-  "completed_blocks": [0, 1, 2, 3, 4, 5],
+  "completed_blocks": [0, 1, 2, 3, 4, 5, 6],
   "bloc0_gate": {
     "verdict": "CLONECHAT CURRENT PRODUCTION RELEASE VERIFIED",
     "security_dangerous_blocked": "4/4 en Production (refused)",
@@ -81,18 +93,18 @@
     "iPhone physique non testé : compatibilité mp4/webm prouvée par conteneurs réels + détection MIME, pas par appareil réel."
   ],
   "blockers": [],
-  "next_exact_action": "BLOC 6 : reprendre la feuille de route CloneChat au bloc suivant (au-dessus du Brain/Context/Diagnosis/Guide déjà fermés), en gardant l'autorité déterministe et l'additivité (aucun câblage risqué en /api/assistant/chat sans gate Production).",
+  "next_exact_action": "BLOC 7 : reprendre la feuille de route CloneChat au bloc suivant (au-dessus de Brain/Context/Diagnosis/Guide/Voice déjà fermés), en gardant l'autorité déterministe et l'additivité (aucun câblage risqué en /api/assistant/chat sans gate Production).",
   "tests_last_run": {
     "kind": "vitest réel (repo)",
-    "clonechat_targeted": "BLOC 5 guide 25/25 + régressions ciblées 195/195 (diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, corpus 6, injection-114 114, universal-clonechat 20)",
+    "clonechat_targeted": "BLOC 6 voice 32/32 + transcribe route 6/6 + régressions ciblées 195/195 (guide 25, diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, corpus 6, injection-114 114, universal-clonechat 20)",
     "security_suite": "injection-114 114/114 — vert (torture-security 200 inchangé)",
     "tsc": "0 erreur nouvelle (1 pré-existante embedded-postgres)",
-    "eslint": "0 erreur (src/lib/clonechat/guide/)",
+    "eslint": "0 erreur (src/lib/clonechat/voice/ + transcribe route)",
     "real_openai_navigation": "inchangé depuis BLOC 0 (3/3 ok:true)"
   },
   "build_last_run": {
     "result": "BUILD_EXIT_CODE=0",
-    "commit": "BLOC 5 (parent ab069709fc)",
+    "commit": "BLOC 6 (parent 8bcad6bd18)",
     "compiled": "Compiled successfully ; validity of types OK ; manifest de routes complet généré",
     "dist_dir": ".next-hotfix (NEXT_DIST_DIR réellement consommé ; aucun .next partagé)",
     "tsconfig_note": "next a réinjecté include '.next-hotfix/types/**/*.ts' dans tsconfig.json ; rétabli au blob HEAD avant commit (statusMatrix 1,1,1)"
