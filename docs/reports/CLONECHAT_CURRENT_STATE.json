@@ -1,16 +1,27 @@
 {
   "_note": "État CANONIQUE de la session CloneChat, mis à jour à chaque bloc/sous-tâche. Valeurs vérifiées depuis le worktree réel (git via isomorphic-git, Vercel API, vitest/tsc/eslint/next build réels, HTTP production réel). Ne jamais supposer une valeur.",
   "worktree": "C:/Users/homme/clonestore-clonechat-unified",
-  "current_head": "a711d68654d77e0b51b9994761a040b4f6d678fd",
-  "origin_main": "a711d68654d77e0b51b9994761a040b4f6d678fd",
+  "current_head": "bfa0fa21a0c4c560cad1546ae366857654c61111",
+  "origin_main": "bfa0fa21a0c4c560cad1546ae366857654c61111",
   "deployed_sha": "24b1ece36a2e0f6ef93e886148bac6d175de4a80",
   "deployed_state": "READY",
   "deployed_project": "clonestore-xcwi",
   "deployed_uid": "dpl_CgxqVKxYCkrAitF8hByF5Jg255FE",
   "domains_verified": ["clonestore.pro", "www.clonestore.pro"],
   "local_ahead_of_origin_by": 0,
-  "active_block": 7,
-  "active_subtask": "BLOC 7 — CloneCare FERMÉ localement (PASS). Module src/lib/clonechat/care/ (types/known-issues/redaction/ticket/care/care-with-context/index — ADDITIF à côté d'un ancien module C1.8 care non touché) : couche support & résolution au-dessus de Brain→Context→Diagnosis→Guide→Voice. Détermine honnêtement : no_support_needed/known_issue/resolution_available/workaround_available/needs_information/provider_outage/product_limitation/security_refusal/human_escalation. Registre canonique known-issues-1 (10 entrées RÉELLEMENT prouvées par le repo, avec provenance ; matching par signal/kind/blockerCategory/refusalCode, jamais texte libre, jamais créé sur suggestion modèle). Diagnostic=autorité cause ; registre plus spécifique peut reclasser une escalade opaque ; guide=étapes sûres ; routes réelles uniquement ; résolution jamais 'faite' (au mieux available + condition observable) ; refus de sécurité JAMAIS transformé en bug/contournement ; escalade seulement si nécessaire. Tickets : brouillon sûr (redaction déterministe, dédup, idempotence, provider abstrait+mock, envoi contrôlé jamais auto, réponse honnête si provider indispo), jamais audio/transcript/token/secret/PII/cross-tenant. careFromVoiceResult consomme un résultat vocal sécurisé sans recopier audio/transcript. decideDiagnoseGuideAndCare additif (structured inchangé). Care 30/30, régressions 263/263, tsc 0, eslint 0 (BLOC 7 ; 1 warning pré-existant C1.8 non lié), build isolé exit 0. Non câblé Production, aucun envoi externe. Prochain : BLOC 8.",
+  "active_block": 8,
+  "active_subtask": "BLOC 8 — CloneActions FERMÉ localement (PASS). Module src/lib/clonechat/actions/ (types/registry/keys/confirmation/guard/adapters/trace/plan/actions-with-context/index) : couche d'EXÉCUTION CONTRÔLÉE au-dessus de Brain→Context→Diagnosis→Guide→Voice→Care. Actions simples/réelles/autorisées uniquement. Registre canonique actions-1 (7 entrées prouvées : navigate, recommend_route, prepare_ticket, submit_ticket[write+confirm+idempotence via provider abstrait], prepare_retry, prepare_governed_request[prépare pour validation humaine future, aucun effet], prepare_pierre_mission[DÉCLARÉE NON DISPONIBLE]). Mutations métier (mission/RH/signature/paiement/…) absentes ou déclarées non disponibles, jamais exécutées. CloneGuard déterministe avant toute exécution (sécurité/known/available/args/route réelle/auth/tenant absent-vs-invalide/entitlement/permission-rôle/adaptateur connu+dispo runtime/confirmation liée). Confirmation liée exactement (action/args/viewer/tenant/planHash), TTL injecté, usage unique, invalidée si le plan change (MISSING/EXPIRED/REUSED/MISMATCH). Idempotence déterministe (réutilise durable/idempotency-store createInMemoryIdempotency) : 2e exécution=duplicate sans rejouer l'adaptateur. CloneTrace immutable+redigé (redaction CloneCare) : jamais token/secret/audio/transcript/cross-tenant. Jamais de faux succès (succès uniquement si condition observable). Deux phases : decideDiagnoseGuideCareAndPlanAction (plan, n'exécute rien) + executeControlledAction (revérifie+exécute). planActionFromVoiceResult sans audio/transcript. structured inchangé. Le modèle ne peut jamais ajouter permission/diminuer risque/désactiver confirmation/changer tenant/choisir succès/inventer adaptateur/contourner Guard. Réutilise idempotency-store + CloneCare (redaction/ticket) ; ne touche pas le legacy P9.4 (action-policy/tool-executor). Actions 40/40, régressions 297/297, tsc 0, eslint 0, build isolé exit 0. Aucun effet externe Production câblé. Prochain : BLOC 9.",
+  "bloc8_gate": {
+    "module": "src/lib/clonechat/actions/ (types.ts, registry.ts, keys.ts, confirmation.ts, guard.ts, adapters.ts, trace.ts, plan.ts, actions-with-context.ts, index.ts, __tests__/actions.test.ts)",
+    "versions": { "actions": "actions-1", "guard": "guard-1", "confirmation": "confirm-1", "trace": "trace-1" },
+    "states": ["requested", "planned", "blocked", "awaiting_confirmation", "confirmed", "executing", "succeeded", "failed", "cancelled", "duplicate"],
+    "registry": ["navigate", "recommend_route", "prepare_ticket", "submit_ticket", "prepare_retry", "prepare_governed_request", "prepare_pierre_mission(available=false)"],
+    "reused": "durable/idempotency-store (IdempotencyStore + createInMemoryIdempotency) ; CloneCare BLOC 7 (redactText, buildTicketDraft, submitTicket, SupportTicketProvider, createTicketDeduper). Legacy P9.4 (action-policy.ts, tool-executor.ts) NON touché — namespace actions/ distinct.",
+    "tests": "40/40 Actions + régressions 297/297 (care 30, voice 32, transcribe 6, guide 25, diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, injection-114 114, universal-clonechat 20)",
+    "invariants": "CloneGuard avant toute exécution ; confirmation liée exactement (mismatch action/args/viewer/tenant → refus) + expirée/réutilisée refusées ; idempotence (duplicate sans rejeu, adaptateur appelé 1x) ; annulation avant/pendant exécution ; adaptateur indisponible=block, provider panne=failed honnête, succès sans preuve observable=failed (jamais de faux succès) ; SECURITY_REFUSAL jamais exécuté (injection/impératif dangereux terminé par ?) ; aucune mutation métier (seule write dispo=submit_ticket support ; prepare_pierre_mission available=false) ; CloneTrace complet & sans secret/audio/transcript ; isolation inter-tenant ; déterministe (temps injecté) ; planification n'exécute aucun effet.",
+    "wiring": "decideDiagnoseGuideCareAndPlanAction(input, ctx, {actionRequest?}) → {…care, actionPlan, guard} (phase 1, aucune exécution). executeControlledAction(plan, exec) → CloneActionResult (phase 2). planActionFromVoiceResult(voiceResult, request) sans audio/transcript. structured INCHANGÉ.",
+    "not_wired": "phases non câblées comme comportement Production servi ; AUCUN effet externe réel (support provider abstrait + mock) ; mutations métier hors périmètre (déclarées non disponibles / absentes)."
+  },
   "bloc7_gate": {
     "module": "src/lib/clonechat/care/ NOUVEAUX fichiers BLOC 7 : types.ts, known-issues.ts, redaction.ts, ticket.ts, care.ts, care-with-context.ts, index.ts, __tests__/care.test.ts (l'ancien module C1.8 — actions/contracts/diagnosis/envelope/context-resolver/support-memory/tickets + 3 tests — est PRÉSERVÉ, non modifié).",
     "versions": { "care": "care-1", "ticket": "ticket-1", "known_issues": "known-issues-1" },
@@ -79,7 +90,7 @@
     "integrity": "0 contradiction active, 0 stale à la date de référence, 0 référence à la date supersédée du 5 août",
     "extension_gaps": ["journeys", "known_bugs (BLOC 7)", "workarounds (BLOC 7)", "deployment_states (flags fragmentés)"]
   },
-  "completed_blocks": [0, 1, 2, 3, 4, 5, 6, 7],
+  "completed_blocks": [0, 1, 2, 3, 4, 5, 6, 7, 8],
   "bloc0_gate": {
     "verdict": "CLONECHAT CURRENT PRODUCTION RELEASE VERIFIED",
     "security_dangerous_blocked": "4/4 en Production (refused)",
@@ -103,18 +114,18 @@
     "iPhone physique non testé : compatibilité mp4/webm prouvée par conteneurs réels + détection MIME, pas par appareil réel."
   ],
   "blockers": [],
-  "next_exact_action": "BLOC 8 : reprendre la feuille de route CloneChat au bloc suivant (au-dessus de Brain/Context/Diagnosis/Guide/Voice/Care déjà fermés), en gardant l'autorité déterministe et l'additivité (aucun câblage risqué en /api/assistant/chat sans gate Production ; aucun envoi externe).",
+  "next_exact_action": "BLOC 9 : reprendre la feuille de route CloneChat au bloc suivant (au-dessus de Brain/Context/Diagnosis/Guide/Voice/Care/Actions déjà fermés), en gardant l'autorité déterministe et l'additivité (aucun câblage risqué en /api/assistant/chat sans gate Production ; aucun effet externe).",
   "tests_last_run": {
     "kind": "vitest réel (repo)",
-    "clonechat_targeted": "BLOC 7 care 30/30 + régressions ciblées 263/263 (voice 32, transcribe 6, guide 25, diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, corpus 6, injection-114 114, universal-clonechat 20)",
+    "clonechat_targeted": "BLOC 8 actions 40/40 + régressions ciblées 297/297 (care 30, voice 32, transcribe 6, guide 25, diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, injection-114 114, universal-clonechat 20)",
     "security_suite": "injection-114 114/114 — vert (torture-security 200 inchangé)",
     "tsc": "0 erreur nouvelle (1 pré-existante embedded-postgres)",
-    "eslint": "0 erreur (src/lib/clonechat/care/ BLOC 7 ; 1 warning pré-existant C1.8 support-99-benchmark non lié)",
+    "eslint": "0 erreur (src/lib/clonechat/actions/)",
     "real_openai_navigation": "inchangé depuis BLOC 0 (3/3 ok:true)"
   },
   "build_last_run": {
     "result": "BUILD_EXIT_CODE=0",
-    "commit": "BLOC 7 (parent a711d68654)",
+    "commit": "BLOC 8 (parent bfa0fa21a0)",
     "compiled": "Compiled successfully ; validity of types OK ; manifest de routes complet généré",
     "dist_dir": ".next-hotfix (NEXT_DIST_DIR réellement consommé ; aucun .next partagé)",
     "tsconfig_note": "next a réinjecté include '.next-hotfix/types/**/*.ts' dans tsconfig.json ; rétabli au blob HEAD avant commit (statusMatrix 1,1,1)"
