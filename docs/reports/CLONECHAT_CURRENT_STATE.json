@@ -1,16 +1,27 @@
 {
   "_note": "État CANONIQUE de la session CloneChat, mis à jour à chaque bloc/sous-tâche. Valeurs vérifiées depuis le worktree réel (git via isomorphic-git, Vercel API, vitest/tsc/eslint/next build réels, HTTP production réel). Ne jamais supposer une valeur.",
   "worktree": "C:/Users/homme/clonestore-clonechat-unified",
-  "current_head": "bfa0fa21a0c4c560cad1546ae366857654c61111",
-  "origin_main": "bfa0fa21a0c4c560cad1546ae366857654c61111",
+  "current_head": "02f98c4fdac713ba4730a4458fdf4f6dee3d8b03",
+  "origin_main": "02f98c4fdac713ba4730a4458fdf4f6dee3d8b03",
   "deployed_sha": "24b1ece36a2e0f6ef93e886148bac6d175de4a80",
   "deployed_state": "READY",
   "deployed_project": "clonestore-xcwi",
   "deployed_uid": "dpl_CgxqVKxYCkrAitF8hByF5Jg255FE",
   "domains_verified": ["clonestore.pro", "www.clonestore.pro"],
   "local_ahead_of_origin_by": 0,
-  "active_block": 8,
-  "active_subtask": "BLOC 8 — CloneActions FERMÉ localement (PASS). Module src/lib/clonechat/actions/ (types/registry/keys/confirmation/guard/adapters/trace/plan/actions-with-context/index) : couche d'EXÉCUTION CONTRÔLÉE au-dessus de Brain→Context→Diagnosis→Guide→Voice→Care. Actions simples/réelles/autorisées uniquement. Registre canonique actions-1 (7 entrées prouvées : navigate, recommend_route, prepare_ticket, submit_ticket[write+confirm+idempotence via provider abstrait], prepare_retry, prepare_governed_request[prépare pour validation humaine future, aucun effet], prepare_pierre_mission[DÉCLARÉE NON DISPONIBLE]). Mutations métier (mission/RH/signature/paiement/…) absentes ou déclarées non disponibles, jamais exécutées. CloneGuard déterministe avant toute exécution (sécurité/known/available/args/route réelle/auth/tenant absent-vs-invalide/entitlement/permission-rôle/adaptateur connu+dispo runtime/confirmation liée). Confirmation liée exactement (action/args/viewer/tenant/planHash), TTL injecté, usage unique, invalidée si le plan change (MISSING/EXPIRED/REUSED/MISMATCH). Idempotence déterministe (réutilise durable/idempotency-store createInMemoryIdempotency) : 2e exécution=duplicate sans rejouer l'adaptateur. CloneTrace immutable+redigé (redaction CloneCare) : jamais token/secret/audio/transcript/cross-tenant. Jamais de faux succès (succès uniquement si condition observable). Deux phases : decideDiagnoseGuideCareAndPlanAction (plan, n'exécute rien) + executeControlledAction (revérifie+exécute). planActionFromVoiceResult sans audio/transcript. structured inchangé. Le modèle ne peut jamais ajouter permission/diminuer risque/désactiver confirmation/changer tenant/choisir succès/inventer adaptateur/contourner Guard. Réutilise idempotency-store + CloneCare (redaction/ticket) ; ne touche pas le legacy P9.4 (action-policy/tool-executor). Actions 40/40, régressions 297/297, tsc 0, eslint 0, build isolé exit 0. Aucun effet externe Production câblé. Prochain : BLOC 9.",
+  "active_block": 9,
+  "active_subtask": "BLOC 9 — GUIDAGE VISUEL RÉEL FERMÉ localement (PASS). Module src/lib/clonechat/visual/ (types/registry/resolve/capture/visual-with-context/index) au-dessus de Brain→Context→Diagnosis→Guide→Voice→Care→Actions. Accompagne sur les VRAIES interfaces CloneStore. Réutilise le système guided-tour existant (Overlay/Portal + ancres data-tour-id) + route-registry + CloneCare redaction + CloneContext isolation + Playwright. Registre canonique visual-1 : 7 cibles publiques VERIFIED (homepage-primary/, boutique-entry/agents, pierre-page-entry/agents/pierre, clonechat-entry+clonechat-input/assistant, demo-entry/demo/pierre, client-space-entry/login) PROUVÉES par un rendu navigateur réel ; parcours sans ancre fiable = niveau route/fallback textuel honnête ; cibles authentifiées = declared avec portes needs_authentication/needs_context. États : ready/target_found/target_not_found/page_state_mismatch/stale/needs_authentication/needs_context/fallback_text/completed. Localisation stable (rôle/label/data-tour-id) jamais fragile ; rect null tant qu'aucune mesure navigateur (aucune coordonnée codée en dur) ; obsolescence déterministe (ancre absente/route supprimée/viewport/empreinte → stale, jamais présenté comme exact). Captures officielles déterministes & sûres (empreinte reproductible, redaction, états publics uniquement, hors-repo, jamais committées, aucune image générée). Intégration decideDiagnoseGuideCarePlanActionAndVisualGuide (additive, structured inchangé) ; visualGuidanceFromVoiceResult sans audio/transcript ; le guidage ne contourne jamais CloneActions, ne confirme rien, ne simule aucun clic, aucun effet externe. Visual unit 26/26 + NAVIGATEUR RÉEL 22/22 (7 cibles × desktop/iPhone/Android + anti-fuite DOM), régressions 333/333, tsc 0, eslint 0, build isolé exit 0. Aucune capture sensible produite/committée. Prochain : BLOC 10.",
+  "bloc9_gate": {
+    "module": "src/lib/clonechat/visual/ (types.ts, registry.ts, resolve.ts, capture.ts, visual-with-context.ts, index.ts, __tests__/visual.test.ts) + e2e/clonechat-visual-targets.spec.ts (preuve navigateur)",
+    "versions": { "visual": "visual-1", "capture": "capture-1", "registry": "visual-registry-1" },
+    "states": ["ready", "target_found", "target_not_found", "page_state_mismatch", "stale", "needs_authentication", "needs_context", "fallback_text", "completed"],
+    "verified_targets": ["vt_home(homepage-primary,/)", "vt_boutique(boutique-entry,/agents)", "vt_pierre_page(pierre-page-entry,/agents/pierre)", "vt_clonechat_entry(clonechat-entry,/assistant)", "vt_clonechat_input(clonechat-input,/assistant)", "vt_demo(demo-entry,/demo/pierre)", "vt_login(client-space-entry,/login)"],
+    "reused": "guided-tour (Overlay/Portal + data-tour-id ancres) ; nav/route-registry (getRouteEntry, tourTargets) ; CloneCare redactText ; CloneContext isolation ; Playwright (playwright.config.ts, e2e/). Aucune couche parallèle.",
+    "tests": "26/26 unitaires + 22/22 NAVIGATEUR RÉEL (7 cibles verified × desktop+iPhone+Android + contrôle anti-fuite DOM) ; régressions 333/333 (actions 40, care 30, voice 32, transcribe 6, guide 25, diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, injection-114 114, universal-clonechat 20, public-discovery-tour)",
+    "browser_proof": "next start (.next-hotfix) sur :3000 + Playwright chromium 1.61 : présence+visibilité de chaque ancre data-tour-id sur sa route publique réelle, rect mesuré quand disponible (conteneurs display:contents visibles sans box tolérés), aucun débordement horizontal, aucun secret dans le DOM public.",
+    "invariants": "jamais d'ancre/bouton/champ/position/capture/page/sélecteur/état inventé ; verified UNIQUEMENT si prouvé par rendu navigateur ; sélecteur stable (data-tour-id) jamais fragile ; rect null sans mesure réelle ; obsolescence→stale/fallback jamais présenté exact ; captures sûres reproductibles hors-repo, aucune image générée, aucun état sensible ; isolation inter-tenant ; redaction (aucun secret/audio/transcript) ; le guidage ne contourne pas CloneActions, ne confirme rien, ne simule aucun clic, aucun effet ; fallback textuel honnête si aucune cible fiable ; déterministe ; structured inchangé.",
+    "not_wired": "decideDiagnoseGuideCarePlanActionAndVisualGuide non câblé comme comportement Production servi ; surcouche visuelle dédiée non ajoutée (réutilise guided-tour) ; cibles authentifiées declared (état authentifié synthétique non câblé dans ce gate)."
+  },
   "bloc8_gate": {
     "module": "src/lib/clonechat/actions/ (types.ts, registry.ts, keys.ts, confirmation.ts, guard.ts, adapters.ts, trace.ts, plan.ts, actions-with-context.ts, index.ts, __tests__/actions.test.ts)",
     "versions": { "actions": "actions-1", "guard": "guard-1", "confirmation": "confirm-1", "trace": "trace-1" },
@@ -90,7 +101,7 @@
     "integrity": "0 contradiction active, 0 stale à la date de référence, 0 référence à la date supersédée du 5 août",
     "extension_gaps": ["journeys", "known_bugs (BLOC 7)", "workarounds (BLOC 7)", "deployment_states (flags fragmentés)"]
   },
-  "completed_blocks": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+  "completed_blocks": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
   "bloc0_gate": {
     "verdict": "CLONECHAT CURRENT PRODUCTION RELEASE VERIFIED",
     "security_dangerous_blocked": "4/4 en Production (refused)",
@@ -114,18 +125,19 @@
     "iPhone physique non testé : compatibilité mp4/webm prouvée par conteneurs réels + détection MIME, pas par appareil réel."
   ],
   "blockers": [],
-  "next_exact_action": "BLOC 9 : reprendre la feuille de route CloneChat au bloc suivant (au-dessus de Brain/Context/Diagnosis/Guide/Voice/Care/Actions déjà fermés), en gardant l'autorité déterministe et l'additivité (aucun câblage risqué en /api/assistant/chat sans gate Production ; aucun effet externe).",
+  "next_exact_action": "BLOC 10 : reprendre la feuille de route CloneChat au bloc suivant (au-dessus de Brain/Context/Diagnosis/Guide/Voice/Care/Actions/Visual déjà fermés), en gardant l'autorité déterministe et l'additivité (aucun câblage risqué en /api/assistant/chat sans gate Production ; aucun effet externe).",
   "tests_last_run": {
-    "kind": "vitest réel (repo)",
-    "clonechat_targeted": "BLOC 8 actions 40/40 + régressions ciblées 297/297 (care 30, voice 32, transcribe 6, guide 25, diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, injection-114 114, universal-clonechat 20)",
+    "kind": "vitest réel (repo) + Playwright navigateur réel",
+    "clonechat_targeted": "BLOC 9 visual 26/26 unit + 22/22 NAVIGATEUR RÉEL + régressions ciblées 333/333 (actions 40, care 30, voice 32, transcribe 6, guide 25, diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, injection-114 114, universal-clonechat 20, public-discovery-tour)",
+    "browser_e2e": "22/22 e2e/clonechat-visual-targets.spec.ts (chromium, next start .next-hotfix :3000) — 7 cibles verified × desktop/iPhone/Android + anti-fuite DOM",
     "security_suite": "injection-114 114/114 — vert (torture-security 200 inchangé)",
     "tsc": "0 erreur nouvelle (1 pré-existante embedded-postgres)",
-    "eslint": "0 erreur (src/lib/clonechat/actions/)",
+    "eslint": "0 erreur (src/lib/clonechat/visual/ + e2e spec)",
     "real_openai_navigation": "inchangé depuis BLOC 0 (3/3 ok:true)"
   },
   "build_last_run": {
     "result": "BUILD_EXIT_CODE=0",
-    "commit": "BLOC 8 (parent bfa0fa21a0)",
+    "commit": "BLOC 9 (parent 02f98c4fda)",
     "compiled": "Compiled successfully ; validity of types OK ; manifest de routes complet généré",
     "dist_dir": ".next-hotfix (NEXT_DIST_DIR réellement consommé ; aucun .next partagé)",
     "tsconfig_note": "next a réinjecté include '.next-hotfix/types/**/*.ts' dans tsconfig.json ; rétabli au blob HEAD avant commit (statusMatrix 1,1,1)"
