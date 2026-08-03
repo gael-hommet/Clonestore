@@ -1,16 +1,28 @@
 {
   "_note": "État CANONIQUE de la session CloneChat, mis à jour à chaque bloc/sous-tâche. Valeurs vérifiées depuis le worktree réel (git via isomorphic-git, Vercel API, vitest/tsc/eslint/next build réels, HTTP production réel). Ne jamais supposer une valeur.",
   "worktree": "C:/Users/homme/clonestore-clonechat-unified",
-  "current_head": "02f98c4fdac713ba4730a4458fdf4f6dee3d8b03",
-  "origin_main": "02f98c4fdac713ba4730a4458fdf4f6dee3d8b03",
+  "current_head": "42ea937b64cde8faab52af4a084e19e625db620c",
+  "origin_main": "42ea937b64cde8faab52af4a084e19e625db620c",
   "deployed_sha": "24b1ece36a2e0f6ef93e886148bac6d175de4a80",
   "deployed_state": "READY",
   "deployed_project": "clonestore-xcwi",
   "deployed_uid": "dpl_CgxqVKxYCkrAitF8hByF5Jg255FE",
   "domains_verified": ["clonestore.pro", "www.clonestore.pro"],
   "local_ahead_of_origin_by": 0,
-  "active_block": 9,
-  "active_subtask": "BLOC 9 — GUIDAGE VISUEL RÉEL FERMÉ localement (PASS). Module src/lib/clonechat/visual/ (types/registry/resolve/capture/visual-with-context/index) au-dessus de Brain→Context→Diagnosis→Guide→Voice→Care→Actions. Accompagne sur les VRAIES interfaces CloneStore. Réutilise le système guided-tour existant (Overlay/Portal + ancres data-tour-id) + route-registry + CloneCare redaction + CloneContext isolation + Playwright. Registre canonique visual-1 : 7 cibles publiques VERIFIED (homepage-primary/, boutique-entry/agents, pierre-page-entry/agents/pierre, clonechat-entry+clonechat-input/assistant, demo-entry/demo/pierre, client-space-entry/login) PROUVÉES par un rendu navigateur réel ; parcours sans ancre fiable = niveau route/fallback textuel honnête ; cibles authentifiées = declared avec portes needs_authentication/needs_context. États : ready/target_found/target_not_found/page_state_mismatch/stale/needs_authentication/needs_context/fallback_text/completed. Localisation stable (rôle/label/data-tour-id) jamais fragile ; rect null tant qu'aucune mesure navigateur (aucune coordonnée codée en dur) ; obsolescence déterministe (ancre absente/route supprimée/viewport/empreinte → stale, jamais présenté comme exact). Captures officielles déterministes & sûres (empreinte reproductible, redaction, états publics uniquement, hors-repo, jamais committées, aucune image générée). Intégration decideDiagnoseGuideCarePlanActionAndVisualGuide (additive, structured inchangé) ; visualGuidanceFromVoiceResult sans audio/transcript ; le guidage ne contourne jamais CloneActions, ne confirme rien, ne simule aucun clic, aucun effet externe. Visual unit 26/26 + NAVIGATEUR RÉEL 22/22 (7 cibles × desktop/iPhone/Android + anti-fuite DOM), régressions 333/333, tsc 0, eslint 0, build isolé exit 0. Aucune capture sensible produite/committée. Prochain : BLOC 10.",
+  "active_block": 10,
+  "active_subtask": "BLOC 10 — CLONEINSPECTOR (analyse de preuve) FERMÉ localement (PASS). Ajouts additifs dans src/lib/clonechat/inspector/ (evidence-types/evidence-validate/evidence-json/evidence-logs/vision-provider/inspect/inspect-with-context/index) au-dessus de Brain→Context→Diagnosis→Guide→Voice→Care→Actions→Visual. Réutilise image-sanitizer (sanitizeImageBuffer magic bytes/dims/bomb), inspectScreenshot existant (analyse capture→route, NON modifié), ScreenshotAnalysisSchema (validation vision), CloneCare redaction/KNOWN_ISSUES, CloneContext isolation, CloneVisual VISUAL_TARGETS, route-registry, contentHash. Transforme une preuve en observations structurées (inspector-1) : statut no_input/validated/analyzed/partially_analyzed/unsupported/invalid/needs_context/security_refusal/provider_failure/escalate ; distingue observed/inferred/unknown/rejected. Validation stricte (magic bytes, MIME mensonger, extension, exécutable/actif refusé, archive, PDF non supporté, corrompu, bombe, vide, binaire indéterminable). JSON strict (parse-only, profondeur/taille, redaction récursive, clés sensibles, anti-pollution prototype). Logs/erreurs (codes/HTTP/routes réelles/provider/timestamp + redaction + injection=contenu non fiable jamais exécuté). Vision provider abstrait + mock déterministe + validation de sortie ; hallucination/contradiction route↔capture rejetée ; jamais DOM/permission/tenant/succès déduits d'une image. N'exécute rien, aucune requête réseau déclenchée par le contenu, isolation inter-tenant (preuve d'un autre tenant refusée), aucun secret/audio/transcript dans les sorties/logs. decideDiagnoseGuideCarePlanActionVisualAndInspect additif (structured inchangé) ; inspectFromVoiceResult sans transcript. N'accorde aucune permission, ne confirme/exécute rien, ne contourne pas CloneGuard, ne transforme pas une capture en autorisation. Inspector 36/36 unit + inspector/sanitizer existants 61/61 + preuve NAVIGATEUR RÉELLE (capture publique→validation binaire), régressions vertes, tsc 0, eslint 0, build isolé exit 0. Aucune capture sensible produite/committée. Prochain : BLOC 11.",
+  "bloc10_gate": {
+    "module": "src/lib/clonechat/inspector/ NOUVEAUX (evidence-types.ts, evidence-validate.ts, evidence-json.ts, evidence-logs.ts, vision-provider.ts, inspect.ts, inspect-with-context.ts, index.ts, __tests__/evidence-inspector.test.ts) + e2e/clonechat-inspector-capture.spec.ts. L'inspector existant (cloneinspector.ts/surface-registry/route-surface-registry + tests) est PRÉSERVÉ, non modifié.",
+    "version": "inspector-1",
+    "statuses": ["no_input", "validated", "analyzed", "partially_analyzed", "unsupported", "invalid", "needs_context", "security_refusal", "provider_failure", "escalate"],
+    "observation_kinds": ["observed", "inferred", "unknown", "rejected"],
+    "reused": "openai/image-sanitizer (sanitizeImageBuffer) ; inspector/cloneinspector (inspectScreenshot, non modifié) ; openai/multimodal (ScreenshotAnalysisSchema) ; CloneCare (redactText, KNOWN_ISSUES) ; CloneContext isolation ; CloneVisual (VISUAL_TARGETS) ; route-registry ; knowledge/types (contentHash). Aucune couche parallèle ; aucune collision avec l'inspector existant.",
+    "supported": "PNG, JPEG, WebP (magic bytes réels), texte, JSON, logs, fichiers d'erreur structurés. PDF NON supporté (aucun extracteur sûr/testable). Refus : vide, MIME mensonger, extension incompatible, exécutable/actif (MZ/ELF/HTML/script/shebang), archive (ZIP/GZIP/RAR), corrompu, bombe, binaire indéterminable.",
+    "tests": "36/36 evidence-inspector + 61/61 (evidence-inspector+cloneinspector+image-sanitizer en isolation) + preuve NAVIGATEUR réelle capture→validation binaire ; régressions ciblées vertes.",
+    "invariants": "jamais inventé ; hypothèse jamais présentée comme fait (observed vs inferred vs unknown vs rejected) ; aucune exécution de fichier/macro/HTML/JS/binaire ; instruction cachée = contenu non fiable jamais suivie ; aucune requête réseau déclenchée par le contenu ; JSON parse-only + anti-pollution prototype + redaction récursive ; redaction déterministe (token/cookie/clé/secret/header/URL signée/email/stack) ; isolation inter-tenant (preuve autre tenant refusée) ; image ne prouve pas DOM/permission/tenant/succès ; hallucination/contradiction rejetée ; hash déterministe reproductible ; jamais de résolution/action/confirmation/mutation ; structured inchangé ; déterministe.",
+    "browser_proof": "e2e/clonechat-inspector-capture.spec.ts : next start (.next-hotfix) + Playwright chromium capture /demo/pierre et / (hors-repo), validateEvidence → image/png, dimensions mesurées, hash ev_ reproductible, route associée, DOM public sans secret.",
+    "not_wired": "decideDiagnoseGuideCarePlanActionVisualAndInspect non câblé comme comportement Production servi ; provider vision réel optionnel (gate = mock) ; aucun effet externe."
+  },
   "bloc9_gate": {
     "module": "src/lib/clonechat/visual/ (types.ts, registry.ts, resolve.ts, capture.ts, visual-with-context.ts, index.ts, __tests__/visual.test.ts) + e2e/clonechat-visual-targets.spec.ts (preuve navigateur)",
     "versions": { "visual": "visual-1", "capture": "capture-1", "registry": "visual-registry-1" },
@@ -101,7 +113,7 @@
     "integrity": "0 contradiction active, 0 stale à la date de référence, 0 référence à la date supersédée du 5 août",
     "extension_gaps": ["journeys", "known_bugs (BLOC 7)", "workarounds (BLOC 7)", "deployment_states (flags fragmentés)"]
   },
-  "completed_blocks": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "completed_blocks": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
   "bloc0_gate": {
     "verdict": "CLONECHAT CURRENT PRODUCTION RELEASE VERIFIED",
     "security_dangerous_blocked": "4/4 en Production (refused)",
@@ -125,19 +137,20 @@
     "iPhone physique non testé : compatibilité mp4/webm prouvée par conteneurs réels + détection MIME, pas par appareil réel."
   ],
   "blockers": [],
-  "next_exact_action": "BLOC 10 : reprendre la feuille de route CloneChat au bloc suivant (au-dessus de Brain/Context/Diagnosis/Guide/Voice/Care/Actions/Visual déjà fermés), en gardant l'autorité déterministe et l'additivité (aucun câblage risqué en /api/assistant/chat sans gate Production ; aucun effet externe).",
+  "next_exact_action": "BLOC 11 : reprendre la feuille de route CloneChat au bloc suivant (au-dessus de Brain/Context/Diagnosis/Guide/Voice/Care/Actions/Visual/Inspector déjà fermés), en gardant l'autorité déterministe et l'additivité (aucun câblage risqué en /api/assistant/chat sans gate Production ; aucun effet externe).",
   "tests_last_run": {
     "kind": "vitest réel (repo) + Playwright navigateur réel",
-    "clonechat_targeted": "BLOC 9 visual 26/26 unit + 22/22 NAVIGATEUR RÉEL + régressions ciblées 333/333 (actions 40, care 30, voice 32, transcribe 6, guide 25, diagnosis 25, context 25, brain 27, product-truth 15, context-boundary 51, injection-114 114, universal-clonechat 20, public-discovery-tour)",
-    "browser_e2e": "22/22 e2e/clonechat-visual-targets.spec.ts (chromium, next start .next-hotfix :3000) — 7 cibles verified × desktop/iPhone/Android + anti-fuite DOM",
+    "clonechat_targeted": "BLOC 10 inspector 36/36 unit + inspector/sanitizer existants 61/61 (isolation) + preuve NAVIGATEUR RÉELLE (capture publique→validation binaire) + régressions ciblées vertes (visual, actions, care, voice, transcribe, guide, diagnosis, context, brain, product-truth, context-boundary, injection-114, universal-clonechat)",
+    "browser_e2e": "e2e/clonechat-inspector-capture.spec.ts (chromium, next start .next-hotfix :3000) — capture /demo/pierre & / → validateEvidence image/png + dims mesurées + hash reproductible + route associée + DOM sans secret ; + BLOC 9 22/22 inchangé",
     "security_suite": "injection-114 114/114 — vert (torture-security 200 inchangé)",
     "tsc": "0 erreur nouvelle (1 pré-existante embedded-postgres)",
-    "eslint": "0 erreur (src/lib/clonechat/visual/ + e2e spec)",
+    "eslint": "0 erreur (src/lib/clonechat/inspector/ BLOC 10 + e2e spec)",
     "real_openai_navigation": "inchangé depuis BLOC 0 (3/3 ok:true)"
   },
   "build_last_run": {
     "result": "BUILD_EXIT_CODE=0",
-    "commit": "BLOC 9 (parent 02f98c4fda)",
+    "commit": "BLOC 10 (parent 42ea937b64)",
+    "build_note": "1er build a échoué (type-check : readonly string[] → param mutable errorCodes dans inspect.ts) ; corrigé (params de liste élargis à readonly) ; rebuild exit 0.",
     "compiled": "Compiled successfully ; validity of types OK ; manifest de routes complet généré",
     "dist_dir": ".next-hotfix (NEXT_DIST_DIR réellement consommé ; aucun .next partagé)",
     "tsconfig_note": "next a réinjecté include '.next-hotfix/types/**/*.ts' dans tsconfig.json ; rétabli au blob HEAD avant commit (statusMatrix 1,1,1)"
