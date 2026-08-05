@@ -12,7 +12,16 @@ import type { CloneChatPrerequisite } from "@/lib/clonechat/server/universal-acc
 
 export const CLONECHAT_ONBOARDING_VERSION = "onboarding-1" as const;
 
-/** État global de l'onboarding. */
+/**
+ * État global de l'onboarding.
+ *
+ * NB sur `expired` (non décoratif) : un snapshot PERSISTÉ dont `expiresAtMs` est dépassé porte ce
+ * statut tant qu'il vit dans le store. Le résolveur ne renvoie JAMAIS un tel état lapsé : à la reprise,
+ * l'expiration est RÉELLEMENT détectée (loadOnboardingOutcome → "expired"), l'état frais le remplace de
+ * façon sûre (`resumeState:"fresh"`, `interruptionReason:"prior_expired"`, aucune étape/aucune info de
+ * l'état expiré réutilisée). Distinct de `skipped` (abandon volontaire, terminal) et d'une interruption
+ * explicite (statut naturel conservé, reprenable, `interruptionReason:"user_interrupted"`).
+ */
 export type OnboardingStatus =
   | "not_started"
   | "in_progress"

@@ -103,8 +103,10 @@ describe("BLOC 11 A — étapes, portes, fallback", () => {
     expect(s.visualTargetId).toBeNull();
     expect(s.steps[0].text.trim().length).toBeGreaterThan(0);
   });
-  it("abandon volontaire → skipped", () => {
-    expect(ob({ viewer: ANON }, { cancelled: true }).status).toBe("skipped");
+  it("abandon volontaire → skipped, raison user_abandon (distinct d'une interruption)", () => {
+    const s = ob({ viewer: ANON }, { cancelled: true });
+    expect(s.status).toBe("skipped");
+    expect(s.interruptionReason).toBe("user_abandon");
   });
   it("déjà onboardé → completed", () => {
     expect(ob({ viewer: USER(), tenant: TENANT_OK(), entitlement: PIERRE_OK }, { alreadyOnboarded: true }).status).toBe("completed");
@@ -127,12 +129,18 @@ describe("BLOC 11 A — persistance, reprise, isolation, expiration, migration",
     expect(s.resumeState).toBe("fresh");
     expect(s.version).toBe("onboarding-1");
   });
-  it("état expiré → écarté (reprise fraîche)", () => {
+  it("état expiré RÉELLEMENT détecté → remplacé par un état frais, interruptionReason=prior_expired, rien de l'état expiré réutilisé", () => {
     const store = createInMemoryOnboardingStore();
     const c = { viewer: USER(), tenant: TENANT_NONE, entitlement: PIERRE_NONE };
-    resolveOnboarding({ context: ctxOf(c), nowMs: NOW, store, ttlMs: 1000 });
+    // 1er état (TTL court) avec une info fournie qui NE doit PAS survivre à l'expiration.
+    const first = resolveOnboarding({ context: ctxOf(c), nowMs: NOW, store, ttlMs: 1000, providedInfo: { note: "ancienne valeur" } });
+    expect(first.providedInfo.note).toBe("ancienne valeur");
+    // Après expiration : remplacement sûr par un état frais.
     const later = resolveOnboarding({ context: ctxOf(c), nowMs: NOW + 5000, store });
     expect(later.resumeState).toBe("fresh");
+    expect(later.interruptionReason).toBe("prior_expired"); // expiration cohérente, non décorative
+    expect(later.providedInfo).toEqual({}); // aucune info de l'état expiré réutilisée
+    expect(later.completedStepIds).toEqual([]);
   });
   it("version d'état ancienne → écartée", () => {
     const store = createInMemoryOnboardingStore();
@@ -165,5 +173,49 @@ describe("BLOC 11 A — persistance, reprise, isolation, expiration, migration",
     const a = JSON.stringify(ob({ viewer: USER(), tenant: TENANT_NONE, entitlement: PIERRE_NONE }));
     const b = JSON.stringify(ob({ viewer: USER(), tenant: TENANT_NONE, entitlement: PIERRE_NONE }));
     expect(a).toBe(b);
+  });
+  it("changement de tenant (même viewer) → prior non repris (isolation par clé viewer+tenant)", () => {
+    const store = createInMemoryOnboardingStore();
+    const first = resolveOnboarding({ context: ctxOf({ viewer: USER("u-x"), tenant: TENANT_OK("co-A"), entitlement: PIERRE_OK }), nowMs: NOW, store });
+    expect(first.resumeState).toBe("fresh");
+    const otherTenant = resolveOnboarding({ context: ctxOf({ viewer: USER("u-x"), tenant: TENANT_OK("co-B"), entitlement: PIERRE_OK }), nowMs: NOW, store });
+    expect(otherTenant.resumeState).toBe("fresh"); // pas de reprise inter-tenant
+    expect(otherTenant.tenantKey).toBe("co:co-B");
+    expect(JSON.stringify(otherTenant)).not.toContain("co-A");
+  });
+});
+
+describe("BLOC 11 A — entreprise active, contexte incomplet, interruption explicite (≠ abandon)", () => {
+  it("entreprise active reconnue → on ne redemande jamais l'entreprise (active_company satisfait)", () => {
+    const s = ob({ viewer: USER(), tenant: TENANT_OK(), entitlement: PIERRE_NONE });
+    expect(s.journeyId).toBe("understand_pierre_access");
+    expect(s.missingPrerequisites).not.toContain("active_company"); // entreprise active : jamais redemandée
+    expect(s.missingPrerequisites).toContain("pierre_entitlement");
+    expect(s.status).toBe("in_progress");
+  });
+  it("contexte incomplet (tenant & entitlement inconnus) → aucune hypothèse d'accès ; guide vers la résolution", () => {
+    const s = ob({ viewer: USER(), tenant: null, entitlement: null });
+    expect(s.status).not.toBe("ready"); // ne suppose JAMAIS l'accès
+    expect(s.status).not.toBe("completed");
+    expect(s.journeyId).toBe("resolve_company");
+    expect(s.missingPrerequisites).toContain("active_company");
+  });
+  it("interruption EXPLICITE ≠ abandon : statut naturel conservé (reprenable), interruptionReason=user_interrupted", () => {
+    const store = createInMemoryOnboardingStore();
+    const c = { viewer: USER(), tenant: TENANT_NONE, entitlement: PIERRE_NONE };
+    const interrupted = resolveOnboarding({ context: ctxOf(c), nowMs: NOW, store, interrupted: true });
+    expect(interrupted.status).not.toBe("skipped"); // ce n'est PAS un abandon
+    expect(interrupted.status).toBe("in_progress"); // statut naturel conservé
+    expect(interrupted.interruptionReason).toBe("user_interrupted");
+  });
+  it("reprise d'un onboarding interrompu → repris (même id), raison d'interruption conservée", () => {
+    const store = createInMemoryOnboardingStore();
+    const c = { viewer: USER(), tenant: TENANT_NONE, entitlement: PIERRE_NONE };
+    const interrupted = resolveOnboarding({ context: ctxOf(c), nowMs: NOW, store, interrupted: true });
+    const resumed = resolveOnboarding({ context: ctxOf(c), nowMs: NOW + 1000, store }); // reprise SANS le flag
+    expect(resumed.resumeState).toBe("resumed");
+    expect(resumed.id).toBe(interrupted.id);
+    expect(resumed.interruptionReason).toBe("user_interrupted");
+    expect(resumed.status).not.toBe("skipped");
   });
 });

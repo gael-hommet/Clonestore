@@ -5,8 +5,8 @@ export {
 } from "./orchestrator";
 export { getJourney, type JourneyBlueprint, type JourneyStepSpec } from "./journeys";
 export {
-  onboardingKey, loadValidOnboarding, createInMemoryOnboardingStore, createUnavailableOnboardingStore,
-  type OnboardingStore,
+  onboardingKey, loadValidOnboarding, loadOnboardingOutcome, createInMemoryOnboardingStore, createUnavailableOnboardingStore,
+  type OnboardingStore, type OnboardingLoadRejection, type OnboardingLoadOutcome,
 } from "./store";
 export {
   CLONECHAT_ONBOARDING_VERSION,

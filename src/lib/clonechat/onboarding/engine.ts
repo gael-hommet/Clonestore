@@ -12,7 +12,7 @@ import { redactText } from "@/lib/clonechat/care";
 import type { CloneChatContext } from "@/lib/clonechat/context";
 import type { CloneChatPrerequisite } from "@/lib/clonechat/server/universal-access";
 import { getJourney, type JourneyBlueprint, type JourneyStepSpec } from "./journeys";
-import { onboardingKey, loadValidOnboarding, type OnboardingStore } from "./store";
+import { onboardingKey, loadOnboardingOutcome, type OnboardingStore } from "./store";
 import {
   CLONECHAT_ONBOARDING_VERSION, type OnboardingState, type OnboardingStep, type OnboardingStatus,
   type OnboardingJourneyId, type OnboardingStepState, type OnboardingPersisted, type ResumeState,
@@ -28,7 +28,8 @@ export interface OnboardingInput {
   readonly store?: OnboardingStore;
   readonly nowMs: number;
   readonly ttlMs?: number;
-  readonly cancelled?: boolean; // abandon volontaire
+  readonly cancelled?: boolean; // abandon volontaire (terminal) → skipped
+  readonly interrupted?: boolean; // interruption EXPLICITE (non terminale, reprenable) — distincte d'un abandon
   readonly alreadyOnboarded?: boolean;
   readonly providedInfo?: Readonly<Record<string, string>>;
   readonly idSeed?: string;
@@ -112,7 +113,11 @@ export function resolveOnboarding(input: OnboardingInput): OnboardingState {
   const tenantKey = tenantKeyOf(ctx);
   const key = onboardingKey(viewerKey, tenantKey);
   const ttl = input.ttlMs ?? DEFAULT_ONBOARDING_TTL_MS;
-  const prior = input.store ? loadValidOnboarding(input.store, key, viewerKey, tenantKey, input.nowMs) : null;
+  const loaded = input.store ? loadOnboardingOutcome(input.store, key, viewerKey, tenantKey, input.nowMs) : null;
+  // Un état n'est REPRIS que s'il est pleinement valide ; un état expiré est réellement détecté et
+  // remplacé par un état frais (jamais réutilisé) — voir interruptionReason "prior_expired".
+  const prior = loaded && loaded.rejected === "none" ? loaded.snapshot : null;
+  const priorExpired = loaded?.rejected === "expired";
 
   const journeyId = selectJourney(ctx, input.goal);
   const bp = getJourney(journeyId);
@@ -128,15 +133,24 @@ export function resolveOnboarding(input: OnboardingInput): OnboardingState {
   const requestedInfo = (INFO_REQUIRED[journeyId] ?? []).filter((k) => !providedInfo[k]);
 
   // ── Statut ──────────────────────────────────────────────────────────────────
-  let status: OnboardingStatus;
+  // 1) Statut NATUREL (échelle « où en êtes-vous ») — indépendant des surcharges d'intention.
+  let natural: OnboardingStatus;
+  if (input.alreadyOnboarded || (prior?.status === "completed" && prior.journeyId === journeyId)) natural = "completed";
+  else if (journeyId === "contact_support" && securityFailure) natural = "escalate";
+  else if (journeyId === "recover_entitlement") natural = "blocked";
+  else if (!allGatesSatisfied) natural = "in_progress"; // on guide vers la porte
+  else if (requestedInfo.length > 0) natural = "awaiting_input";
+  else natural = "ready";
+
+  // 2) Surcharges d'intention/état, dans un ordre DÉTERMINISTE et NON ambigu :
+  //    - abandon volontaire → skipped (terminal) ;
+  //    - interruption explicite → statut naturel CONSERVÉ (reprenable), marquée par interruptionReason ;
+  //    - état expiré réellement détecté → état frais, marqué "prior_expired" (remplacement sûr, jamais réutilisé).
+  let status: OnboardingStatus = natural;
   let interruptionReason: string | null = prior?.interruptionReason ?? null;
   if (input.cancelled) { status = "skipped"; interruptionReason = "user_abandon"; }
-  else if (input.alreadyOnboarded || (prior?.status === "completed" && prior.journeyId === journeyId)) status = "completed";
-  else if (journeyId === "contact_support" && securityFailure) status = "escalate";
-  else if (journeyId === "recover_entitlement") status = "blocked";
-  else if (!allGatesSatisfied) status = "in_progress"; // on guide vers la porte
-  else if (requestedInfo.length > 0) status = "awaiting_input";
-  else status = "ready";
+  else if (input.interrupted) { interruptionReason = "user_interrupted"; /* status = natural : NON terminal, reprenable */ }
+  else if (priorExpired) { interruptionReason = "prior_expired"; /* fresh : rien de l'état expiré n'est réutilisé */ }
 
   const currentSpec = bp.steps[Math.min(currentStep - 1, bp.steps.length - 1)] ?? bp.steps[bp.steps.length - 1];
   const currentRoute = realRoute(ctx.navigation.routePath ?? null);
