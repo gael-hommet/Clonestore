@@ -73,3 +73,39 @@ Une preuve navigateur d'un événement d'analytics n'est **pas raisonnablement p
 - `onboardPrepareMissionAndObserveWithCloneChat()` n'est **pas** câblé comme comportement Production servi ; aucun effet externe ; aucun provider réel.
 - Le coût/les tokens ne sont mesurés que si une source canonique versionnée les fournit — jamais devinés (l'enveloppe ne porte ni champ `cost` ni `tokens` inventé ; `provider`/`model` restent `null` si inconnus).
 - Aucune interface de dashboard n'est ajoutée ; l'agrégateur est une bibliothèque read-only.
+
+---
+
+## Gate de synchronisation pré-BLOC 13 — merge NON destructif (démo Production × CloneChat BLOC 12)
+
+**Verdict local : PASS.** `origin/main` a avancé indépendamment vers la **démo Production approuvée** ; elle est intégrée à la lignée locale BLOC 12 par un **merge non destructif à deux parents**, sans réécrire ni supprimer aucun commit.
+
+- **SHA local BLOC 12** : `59237c5150ae9529ffc73f2aa12a13d93bfde869`
+- **SHA distant démo** : `340921879774d7dd078b9b2eb0b34f2d09e4734c` (`feat(demo): make approved 14-scene production demo the git source of truth`)
+- **Base commune** : `c5e124b4ce0af5aa63e6646c7998752f993b89cc`
+- **Commit de merge** : `76331ceafee9583a096d5a5e6d1aaa11a18fcce4` — **deux parents** `[59237c51 (BLOC 12), 34092187 (démo)]`
+- **Commit documentaire distinct** (au-dessus, sans amend) : `docs(clonechat): record BLOC 12 and demo integration gate`
+
+### Méthode (git.exe OS-bloqué → isomorphic-git)
+`git fetch origin` (pack de 9512 objets ré-indexé via `indexPack` après une coupure du fetch). Merge **3-way par arbre programmatique** : `base × ours × theirs` → commit à deux parents → `refs/heads/main` avancée ; working-tree matérialisé pour les 24 fichiers démo ; index reconstruit. **Aucun** rebase / cherry-pick / amend / force-push / reset --hard / git clean / git add . / git add -A / statusMatrix global. Les deux lignées restent accessibles depuis le merge (vérifié `isDescendent`).
+
+### Conflits : 0 (lignées disjointes)
+| Côté | Fichiers | Contenu |
+|---|---|---|
+| **theirs** (démo) | 24 | `src/app/demo/**`, `src/components/demo/**`, `src/lib/demo/**`, `scripts/demo-*.cjs`, `demo-evidence/PREMIUM_DEMO_RECONSTRUCTION.md`, `src/components/site/site-header.tsx` (ciblé) |
+| **ours** (BLOC 12) | 14 | `src/lib/clonechat/analytics/**`, `onboarding/orchestrator.ts`, rapports CloneChat |
+
+Aucun fichier modifié des deux côtés ⇒ aucune résolution manuelle, aucune 3ᵉ version inventée, **aucune capacité perdue**.
+
+### Tests après merge (séquentiels)
+- **CloneChat** : Analytics 87/87 ; **passe unique 19 fichiers = 529/529** (0 échec, 0 timeout).
+- **Démo** : **29 fichiers = 489/489** (0 échec) — noyau 14 scènes 373 (demo, demo-decision, demo-cost-sequence, demo-stage, demo-visual-invariants, demo-value-first-order, capacity-calculator-hydration, cine, demo-ch3-models, autonomy-modes, cost-model, value-model, p17-demo-reveal-role, public-demo, contextual-prompt, demo-contextual-prompt-card, public-funnel/presentation) + pierre-demo 116.
+- **tsc** global 0 erreur nouvelle · **ESLint** 0 erreur (démo + analytics) · **build Next isolé `.next-hotfix` BUILD_EXIT_CODE=0** réel (194 pages, routes `/demo` + `/demo/pierre`).
+
+### Preuve navigateur (build FRAIS)
+- **CloneChat onboarding e2e : 15/15**.
+- **Démo (scripts officiels intégrés par 34092187)** : `demo-first-scene` **8/8** viewports · `demo-nav-check` **NAV_ALL_PASS** · `demo-visual-matrix` **rendu 112/112 cellules propres** (8 viewports × 14 scènes, 0 hydration, **0 HTTP 5xx**) · `demo-ch3-interactive` **19/19** assertions interactives.
+- **Nuance honnête** : `demo-visual-matrix` et `demo-ch3-interactive` sortent en échec **uniquement** à cause de **29 erreurs console = HTTP 429** (Too Many Requests) sur des **beacons télémétrie fire-and-forget** (`/api/analytics/events`, `/api/conversion/events`) sous 112 chargements rapides depuis une seule IP — limiteur de débit serveur *fonctionnant comme prévu*, sur des endpoints **non touchés par le merge**, **absents en déploiement réel** (run auteur sur Vercel Preview = `MATRIX_112_112_CLEAN`, 0 console). Diagnostic **prouvé** : re-run desktop+mobile des 14 scènes avec beacons stubés (204) = **56/56 cellules propres, 0 erreur console, 0 pageerror, 0 HTTP 5xx** (`DEMO_RENDER_CLEAN_PASS`). **Aucun test ignoré ou supprimé** pour obtenir du vert.
+
+### État Git final
+tsconfig.json byte-exact (`8a88b0410a539280`) · index valide (8400 fichiers) · **0** marqueur de conflit · **0** `.orig` · **0** `.next-*` nouvellement suivi · aucune capture/binaire/secret dans le commit. `.next-p10/**` reste suivi = artefact **pré-existant** hérité de la base commune (non introduit ici). Rien poussé (push manuel). Aucun déploiement/variable Vercel. Aucun P22 / runtime Pierre / mission RH / migration / paiement. **BLOC 13 non commencé.**
