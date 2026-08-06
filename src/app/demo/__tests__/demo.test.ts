@@ -39,9 +39,12 @@ const ACTS = [ACT1, ACT2, ACT3, ACT4, ACT5, ACT6];
 // ── Route /demo ────────────────────────────────────────────────────────────
 
 describe("/demo — route et structure", () => {
-  it("la page /demo existe et rend DemoExperience", () => {
+  it("la page /demo existe et rend le stage immersif à six scènes (DemoStage)", () => {
+    // Refonte premium (2026-07-30) : la page rend désormais le stage six-scènes, plus l'ancien
+    // DemoExperience à 12 sections (remplacement réel, cf. src/components/demo/stage/).
     const page = read(PAGE);
-    expect(page).toContain("DemoExperience");
+    expect(page).toContain("DemoStage");
+    expect(page).not.toContain("<DemoExperience");
     expect(page).toContain('import "./demo.css"');
   });
 

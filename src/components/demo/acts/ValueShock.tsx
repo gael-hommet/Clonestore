@@ -26,13 +26,16 @@ import {
   VALUE_WORDING,
 } from "@/lib/demo/presentation/value-model";
 
-export function ValueShock() {
+export function ValueShock({ onAdvance }: { onAdvance?: () => void } = {}) {
   const reduce = useDemoReducedMotion();
   const shock = React.useMemo(() => missionShock(), []);
   const groupe = React.useMemo(() => annualValue("groupe"), []);
 
+  // Dans le stage immersif, le CTA avance à la scène suivante. Hors stage (legacy), il défile.
   const goValue = () =>
-    document.getElementById("demo-act-value")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    onAdvance
+      ? onAdvance()
+      : document.getElementById("demo-act-value")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
 
   return (
     <section id="demo-act-choc" className="demo-section demo-scene-flow" aria-label="Le choc de valeur">
@@ -40,15 +43,16 @@ export function ValueShock() {
         <div className="demo-shell flex flex-col items-center gap-5 text-center">
           <CineEyebrow n="01">{shock.scenario.trigger}</CineEyebrow>
 
-          {/* LA COMPARAISON TEMPORELLE — monumentale. Temps HUMAIN, jamais mélangé. */}
+          {/* LA COMPARAISON TEMPORELLE — monumentale. Temps HUMAIN, jamais mélangé.
+              Nombre et unité = deux éléments empilés, séparés par une ESPACE RÉELLE (jamais collés). */}
           <div className="flex flex-col items-center gap-1">
-            <p className="cine-num" style={{ fontSize: "clamp(2.6rem, min(8.4vw, 11svh), 6.6rem)" }}>
-              {formatHours(shock.manualMinutes)}
+            <p className="cine-num cine-num--stacked">
+              <span className="cine-num__value">{formatHours(shock.manualMinutes)}</span>{" "}
               <span className="cine-num__unit">de travail humain</span>
             </p>
             <ArrowDown className="h-7 w-7 text-[var(--cs-ink-4)]" aria-hidden="true" />
-            <p className="cine-num cine-num--accent" style={{ fontSize: "clamp(2.6rem, min(8.4vw, 11svh), 6.6rem)" }}>
-              {formatHours(shock.attentionMinutes)}
+            <p className="cine-num cine-num--stacked cine-num--accent">
+              <span className="cine-num__value">{formatHours(shock.attentionMinutes)}</span>{" "}
               <span className="cine-num__unit">d&apos;attention humaine</span>
             </p>
           </div>
