@@ -34,6 +34,7 @@ export interface OnboardAndMissionOptions {
   readonly providedInfo?: Readonly<Record<string, string>>;
   readonly providedMissionInputs?: Readonly<Partial<Record<MissionInputKey, string>>>;
   readonly cancelledOnboarding?: boolean;
+  readonly interruptedOnboarding?: boolean; // interruption explicite reprenable (≠ abandon)
   readonly alreadyOnboarded?: boolean;
   readonly nowMs: number;
   readonly ttlMs?: number;
@@ -76,7 +77,7 @@ export async function onboardAndPrepareMissionWithCloneChat(
 
   const onboarding = resolveOnboarding({
     context: ctx, goal: opts.onboardingGoal, store: opts.onboardingStore, nowMs: opts.nowMs, ttlMs: opts.ttlMs,
-    cancelled: opts.cancelledOnboarding, alreadyOnboarded: opts.alreadyOnboarded, providedInfo: opts.providedInfo,
+    cancelled: opts.cancelledOnboarding, interrupted: opts.interruptedOnboarding, alreadyOnboarded: opts.alreadyOnboarded, providedInfo: opts.providedInfo,
   });
 
   const mission = intakeAndPrepareMission({
