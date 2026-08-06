@@ -13,6 +13,10 @@ import {
 
 const V = CLONECHAT_ANALYTICS_VERSION;
 const ALWAYS: SamplingPolicy = { kind: "always" };
+// Politique d'échantillonnage explicite : 100 % en Production (aucune perte par défaut), mais le
+// sampler est INJECTABLE — un déploiement peut sous-échantillonner une télémétrie produit à fort
+// volume (support/Care) sans jamais toucher aux événements opérationnels/sécurité (toujours ALWAYS).
+const RATE_FULL: SamplingPolicy = { kind: "rate", rate: 1 };
 
 interface SpecInit {
   category: AnalyticsCategory; stage: PipelineStage; nature: AnalyticsNature; basis: CollectionBasis;
@@ -56,9 +60,9 @@ const SPECS: readonly AnalyticsEventSpec[] = [
   spec("voice.tts_succeeded", { category: "resolution", stage: "voice", nature: "operational", basis: "operational", results: ["ok"], provenance: "clonechat/voice (BLOC 6)", metricsFed: [] }),
   spec("voice.tts_fallback_text", { category: "quality", stage: "voice", nature: "quality", basis: "operational", results: ["fallback"], provenance: "clonechat/voice (BLOC 6)", metricsFed: ["fallbackRate"] }),
   // ── Care ─────────────────────────────────────────────────────────────────────
-  spec("care.known_issue", { category: "support", stage: "care", nature: "product", basis: "product", allowedMeta: ["issue"], results: ["ok"], provenance: "clonechat/care (BLOC 7)", metricsFed: ["byCareStatus"] }),
-  spec("care.resolution_available", { category: "support", stage: "care", nature: "product", basis: "product", allowedMeta: ["issue"], results: ["ok"], provenance: "clonechat/care (BLOC 7)", metricsFed: ["byCareStatus"] }),
-  spec("care.workaround_available", { category: "support", stage: "care", nature: "product", basis: "product", allowedMeta: ["issue"], results: ["ok"], provenance: "clonechat/care (BLOC 7)", metricsFed: ["byCareStatus"] }),
+  spec("care.known_issue", { category: "support", stage: "care", nature: "product", basis: "product", allowedMeta: ["issue"], results: ["ok"], sampling: RATE_FULL, provenance: "clonechat/care (BLOC 7)", metricsFed: ["byCareStatus"] }),
+  spec("care.resolution_available", { category: "support", stage: "care", nature: "product", basis: "product", allowedMeta: ["issue"], results: ["ok"], sampling: RATE_FULL, provenance: "clonechat/care (BLOC 7)", metricsFed: ["byCareStatus"] }),
+  spec("care.workaround_available", { category: "support", stage: "care", nature: "product", basis: "product", allowedMeta: ["issue"], results: ["ok"], sampling: RATE_FULL, provenance: "clonechat/care (BLOC 7)", metricsFed: ["byCareStatus"] }),
   spec("care.escalation", { category: "support", stage: "care", nature: "quality", basis: "operational", allowedMeta: ["issue"], results: ["escalated"], provenance: "clonechat/care (BLOC 7)", metricsFed: ["byCareStatus"] }),
   // ── Actions ────────────────────────────────────────────────────────────────
   spec("action.planned", { category: "action", stage: "actions", nature: "operational", basis: "operational", requiredMeta: ["action"], results: ["ok", "blocked", "needs_confirmation"], provenance: "clonechat/actions (BLOC 8)", metricsFed: ["byActionState"] }),

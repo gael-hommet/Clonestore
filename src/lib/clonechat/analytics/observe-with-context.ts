@@ -24,11 +24,15 @@ export interface AnalyticsObservation {
   readonly correlationId: string;
   readonly emitted: ReadonlyArray<{ readonly name: string; readonly status: EmitStatus }>;
   readonly accepted: number;
+  readonly buffered: number;
+  readonly partial: number;
   readonly rejected: number;
   readonly disabled: number;
   readonly duplicate: number;
   readonly sampledOut: number;
   readonly failed: number;
+  /** true quand aucun événement n'a été réellement livré (ex. sink no-op par défaut) — honnête. */
+  readonly persisted: boolean;
 }
 
 export interface ObservedResult extends OnboardAndMissionResult {
@@ -69,7 +73,7 @@ export async function onboardPrepareMissionAndObserveWithCloneChat(
     ?? createCloneAnalytics({ environment: opts.environment ?? ctx.environment, pseudonymizer: createDefaultPseudonymizer("clonechat-analytics"), sink: createNoopSink(), consent: "operational_only" });
 
   const emitted: Array<{ name: string; status: EmitStatus }> = [];
-  const tally = { accepted: 0, rejected: 0, disabled: 0, duplicate: 0, sampledOut: 0, failed: 0 };
+  const tally = { accepted: 0, buffered: 0, partial: 0, rejected: 0, disabled: 0, duplicate: 0, sampledOut: 0, failed: 0 };
   try {
     const securityRefusal = base.diagnosis.kind === "permission_denied"
       || base.decision.requestedAction?.refusedReason === "governance_bypass_or_injection";
@@ -83,7 +87,9 @@ export async function onboardPrepareMissionAndObserveWithCloneChat(
         viewerKey, tenantKey, nowMs: opts.nowMs,
       });
       emitted.push({ name: r.eventName, status: r.status });
-      if (r.status === "accepted" || r.status === "buffered") tally.accepted++;
+      if (r.status === "accepted") tally.accepted++;
+      else if (r.status === "buffered") tally.buffered++;
+      else if (r.status === "partial") tally.partial++;
       else if (r.status === "rejected") tally.rejected++;
       else if (r.status === "disabled") tally.disabled++;
       else if (r.status === "duplicate") tally.duplicate++;
@@ -94,8 +100,10 @@ export async function onboardPrepareMissionAndObserveWithCloneChat(
     // Panne analytics : absorbée. Le résultat fonctionnel reste intact.
   }
 
+  // Honnête : « persisté » seulement si au moins un événement a été réellement accepté par un sink capable.
+  const persisted = tally.accepted > 0;
   const analyticsObservation: AnalyticsObservation = {
-    version: CLONECHAT_ANALYTICS_VERSION, correlationId, emitted, ...tally,
+    version: CLONECHAT_ANALYTICS_VERSION, correlationId, emitted, ...tally, persisted,
   };
   return { ...base, analytics: analyticsObservation };
 }

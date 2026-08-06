@@ -23,21 +23,25 @@ export function isBannedMetaKey(key: string): boolean {
   return BANNED_KEY_PATTERN.test(key);
 }
 
-/** Pseudonymiseur injectable : transforme une clé SÛRE (viewer/tenant) en identifiant opaque stable. */
+/** Nature d'un identifiant pseudonymisé. */
+export type PseudonymKind = "viewer" | "tenant" | "request" | "session";
+
+const PSEUDO_PREFIX: Record<PseudonymKind, string> = { viewer: "vp_", tenant: "tp_", request: "rq_", session: "ss_" };
+
+/** Pseudonymiseur injectable : transforme une clé SÛRE en identifiant opaque stable. */
 export interface Pseudonymizer {
-  pseudonymize(kind: "viewer" | "tenant", key: string): string;
+  pseudonymize(kind: PseudonymKind, key: string): string;
 }
 
 /**
- * Pseudonymiseur déterministe par défaut : hash(salt|kind|key). Le viewer est pseudonymisé avec une
- * clé COMPOSITE incluant le tenant (voir envelope), de sorte qu'un même utilisateur obtienne un
- * pseudonyme DISTINCT selon le tenant → aucune corrélation inter-tenant.
+ * Pseudonymiseur déterministe par défaut : préfixe + hash(salt|kind|key). Le viewer, la requête et la
+ * session sont pseudonymisés avec une clé COMPOSITE incluant le tenant (voir envelope), de sorte qu'un
+ * même identifiant obtienne un pseudonyme DISTINCT selon le tenant → aucune corrélation inter-tenant.
  */
 export function createDefaultPseudonymizer(salt: string): Pseudonymizer {
   return {
     pseudonymize(kind, key) {
-      const prefix = kind === "viewer" ? "vp_" : "tp_";
-      return prefix + hash([salt, kind, key].join("|"));
+      return PSEUDO_PREFIX[kind] + hash([salt, kind, key].join("|"));
     },
   };
 }

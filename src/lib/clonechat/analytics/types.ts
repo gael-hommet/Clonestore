@@ -55,13 +55,14 @@ export type ConsentMode = "operational_only" | "product_enabled";
 
 /** Statut HONNÊTE d'une émission (jamais un faux succès d'envoi). */
 export type EmitStatus =
-  | "accepted" // validé et remis (ou bufferisé pour flush) au sink
-  | "buffered" // validé, en attente de flush
+  | "accepted" // remis à un sink CAPABLE qui a confirmé la livraison COMPLÈTE
+  | "buffered" // validé et mis en file (mode manuel), PAS encore livré
+  | "partial" // le sink a confirmé une livraison PARTIELLE (jamais présenté comme complète)
   | "duplicate" // déjà vu (dédup)
   | "sampled_out" // écarté par l'échantillonnage
-  | "disabled" // analytics produit désactivée (pas de consentement)
-  | "rejected" // invalide / champ interdit / résultat impossible / backpressure
-  | "failed"; // sink en échec (jamais présenté comme accepted)
+  | "disabled" // non collecté : pas de consentement produit OU aucun sink capable (no-op)
+  | "rejected" // invalide / version inconnue / champ interdit / résultat impossible / backpressure
+  | "failed"; // sink en échec (rien livré ; jamais présenté comme accepted)
 
 export interface EmitResult {
   readonly status: EmitStatus;
@@ -136,9 +137,15 @@ export interface SinkDeliveryResult {
   readonly delivered: number;
   readonly failed: number;
 }
-/** Sink abstrait et injectable. Ne DOIT jamais lever : renvoie un résultat honnête. */
+/**
+ * Sink abstrait et injectable. Ne DOIT jamais lever : renvoie un résultat honnête.
+ * `capable` = le sink peut réellement CONSERVER ou TRANSMETTRE un événement. Un sink `capable:false`
+ * (no-op) n'a aucune destination : le collecteur ne présente alors JAMAIS un événement comme livré
+ * (statut `disabled`, raison `sink_noop`).
+ */
 export interface AnalyticsSink {
   readonly id: string;
+  readonly capable: boolean;
   deliver(batch: readonly AnalyticsEnvelope[]): SinkDeliveryResult;
 }
 

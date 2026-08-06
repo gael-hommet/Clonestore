@@ -9,9 +9,10 @@ import { buildCloneChatContext } from "@/lib/clonechat/context";
 import {
   getEventSpec, isKnownEvent, allEventSpecs, ANALYTICS_EVENT_NAMES,
   buildEnvelope, validateAndMinimizeMeta, isBannedMetaKey, createDefaultPseudonymizer,
-  createCloneAnalytics, createMemorySink, createFailingSink,
+  createCloneAnalytics, createMemorySink, createNoopSink, createFailingSink, createTimeoutSink, createPartialSink,
   aggregate, health, deriveEventsFromDecision, onboardPrepareMissionAndObserveWithCloneChat,
-  CLONECHAT_ANALYTICS_VERSION, type EmitInput, type EnvelopeDeps, type AnalyticsEnvelope,
+  FORBIDDEN_RESULTS,
+  CLONECHAT_ANALYTICS_VERSION, type EmitInput, type EnvelopeDeps, type AnalyticsEnvelope, type AnalyticsSink,
 } from "..";
 import type { CloneChatViewer } from "@/lib/clonechat/server/universal-access";
 import type { TenantResolution } from "@/lib/clonechat/server/company";
@@ -182,7 +183,7 @@ describe("BLOC 12 — sinks & fiabilité", () => {
   });
   it("timeout sink → failed (retry BORNÉ, jamais infini)", () => {
     let calls = 0;
-    const spy = { id: "spy", deliver: (b: readonly AnalyticsEnvelope[]) => { calls++; return { status: "timeout" as const, delivered: 0, failed: b.length }; } };
+    const spy: AnalyticsSink = { id: "spy", capable: true, deliver: (b: readonly AnalyticsEnvelope[]) => { calls++; return { status: "timeout" as const, delivered: 0, failed: b.length }; } };
     const a = createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, sink: spy, maxRetries: 2 });
     expect(a.emit(emitInput({ eventName: "clonechat.request_received", nowMs: NOW })).status).toBe("failed");
     expect(calls).toBe(3); // 1 + 2 retries, jamais infini
@@ -221,7 +222,7 @@ describe("BLOC 12 — sinks & fiabilité", () => {
     expect(f().status).toBe("duplicate");
   });
   it("une panne analytics ne casse jamais CloneChat (sink qui lève → absorbé, status failed)", () => {
-    const throwing = { id: "throw", deliver: () => { throw new Error("sink exploded"); } };
+    const throwing: AnalyticsSink = { id: "throw", capable: true, deliver: () => { throw new Error("sink exploded"); } };
     const a = createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, sink: throwing, maxRetries: 0 });
     expect(() => a.emit(emitInput({ eventName: "clonechat.request_received", nowMs: NOW }))).not.toThrow();
     expect(a.emit(emitInput({ eventName: "clonechat.request_received", correlationId: "trc_z", nowMs: NOW })).status).toBe("failed");
@@ -381,5 +382,158 @@ describe("BLOC 12 — compatibilité & déterminisme", () => {
     const out = await onboardPrepareMissionAndObserveWithCloneChat({ message: "Quelles règles de congés ?" }, ctx, { nowMs: NOW, analytics: createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, sink: createFailingSink() }) });
     expect(out.mission.version).toBe("mission-1"); // résultat fonctionnel préservé
     expect(out.analytics.failed).toBeGreaterThanOrEqual(0); // observation honnête
+  });
+});
+
+// ── Correctif : sémantique HONNÊTE de livraison (partial / no-op / version / sampling / id-privacy) ─
+describe("BLOC 12 correctif — livraison partielle (jamais un faux succès)", () => {
+  const A = (over: Partial<Parameters<typeof createCloneAnalytics>[0]> = {}) =>
+    createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, ...over });
+  it("sink partiel en mode IMMÉDIAT → status partial (jamais accepted), failedDeliveries incrémenté", () => {
+    const a = A({ sink: createPartialSink() });
+    const r = a.emit(emitInput({ eventName: "clonechat.request_received" }));
+    expect(r.status).toBe("partial");
+    expect(r.status).not.toBe("accepted");
+    expect(a.counters().partial).toBe(1);
+    expect(a.counters().accepted).toBe(0);
+    expect(a.counters().failedDeliveries).toBeGreaterThanOrEqual(1);
+    expect(a.accepted().length).toBe(0); // rien n'est conservé comme livré
+  });
+  it("sink partiel pendant flush() → résultat explicitement partial, aucun événement conservé comme livré", () => {
+    const a = A({ sink: createPartialSink(), flush: "manual" });
+    a.emit(emitInput({ eventName: "clonechat.request_received", correlationId: "c1" }));
+    a.emit(emitInput({ eventName: "diagnosis.produced", correlationId: "c2", meta: { kind: "no_blocker" } }));
+    const f = a.flush();
+    expect(f.status).toBe("partial");
+    expect(f.delivered).toBeGreaterThan(0);
+    expect(f.failed).toBeGreaterThan(0);
+    expect(a.accepted().length).toBe(0); // livraison partielle non attribuable → aucun présenté comme livré
+    expect(a.counters().partial).toBe(1);
+  });
+  it("aucun status accepted lorsque failed > 0 (même si le sink dit 'ok')", () => {
+    const s: AnalyticsSink = { id: "okbutfailed", capable: true, deliver: () => ({ status: "ok", delivered: 1, failed: 1 }) };
+    const a = A({ sink: s });
+    const r = a.emit(emitInput({ eventName: "clonechat.request_received" }));
+    expect(r.status).toBe("partial");
+    expect(r.status).not.toBe("accepted");
+  });
+  it("retry BORNÉ sur un sink failed (jamais infini) puis status failed", () => {
+    let calls = 0;
+    const s: AnalyticsSink = { id: "cnt", capable: true, deliver: (b) => { calls++; return { status: "failed", delivered: 0, failed: b.length }; } };
+    const a = A({ sink: s, maxRetries: 2 });
+    expect(a.emit(emitInput({ eventName: "clonechat.request_received" })).status).toBe("failed");
+    expect(calls).toBe(3);
+  });
+});
+
+describe("BLOC 12 correctif — sink no-op honnête (disabled, jamais accepted)", () => {
+  it("aucun sink configuré (no-op par défaut) → disabled/sink_noop ; rien de livré ni conservé", () => {
+    const a = createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO });
+    const r = a.emit(emitInput({ eventName: "clonechat.request_received" }));
+    expect(r.status).toBe("disabled");
+    expect(r.reason).toBe("sink_noop");
+    expect(r.status).not.toBe("accepted");
+    expect(a.counters().accepted).toBe(0);
+    expect(a.counters().disabled).toBe(1);
+    expect(a.accepted().length).toBe(0);
+  });
+  it("sink no-op explicite ne conserve/ne livre rien → disabled, jamais accepted", () => {
+    const a = createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, sink: createNoopSink() });
+    expect(a.emit(emitInput({ eventName: "brain.decision_made", meta: { mode: "answer" } })).status).toBe("disabled");
+  });
+  it("adaptateur global SANS analytics (no-op) : résultat fonctionnel INCHANGÉ + observation honnête (non persistée)", async () => {
+    const ctx = ctxOf({ viewer: USER(), tenant: TENANT_OK(), entitlement: PIERRE_OK, message: "Prépare un avenant" });
+    const out = await onboardPrepareMissionAndObserveWithCloneChat({ message: "Prépare un avenant" }, ctx, { nowMs: NOW, providedMissionInputs: { expected_result: "avenant" } });
+    expect(out.mission.version).toBe("mission-1"); // fonctionnel intact
+    expect(out.onboarding.version).toBe("onboarding-1");
+    expect(out.analytics.persisted).toBe(false); // honnête : rien n'a été livré
+    expect(out.analytics.accepted).toBe(0);
+    expect(out.analytics.disabled).toBeGreaterThan(0);
+    expect(out.analytics.emitted.every((e) => e.status !== "accepted")).toBe(true);
+  });
+});
+
+describe("BLOC 12 correctif — version d'enveloppe", () => {
+  it("version correcte (analytics-1) → ok", () => {
+    expect(buildEnvelope(emitInput({ eventName: "clonechat.request_received", version: "analytics-1" }), DEPS).ok).toBe(true);
+  });
+  it("version invalide → rejet invalid_version", () => {
+    const r = buildEnvelope(emitInput({ eventName: "clonechat.request_received", version: "analytics-0" }), DEPS);
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.reason).toMatch(/invalid_version/);
+  });
+  it("version invalide JAMAIS remise au sink", () => {
+    const sink = createMemorySink();
+    const a = createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, sink });
+    expect(a.emit(emitInput({ eventName: "clonechat.request_received", version: "v999" })).status).toBe("rejected");
+    expect(sink.events.length).toBe(0);
+  });
+});
+
+describe("BLOC 12 correctif — échantillonnage réellement produit", () => {
+  const mem = () => createMemorySink();
+  it("événement PRODUIT soumis à l'échantillonnage : sampler refuse → sampled_out, absent du sink", () => {
+    const sink = mem();
+    const a = createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, sink, consent: "product_enabled", sampler: () => false });
+    const r = a.emit(emitInput({ eventName: "care.known_issue", result: "ok", meta: { issue: "checkout" } }));
+    expect(r.status).toBe("sampled_out");
+    expect(a.counters().sampledOut).toBe(1);
+    expect(sink.events.some((e) => e.eventName === "care.known_issue")).toBe(false);
+  });
+  it("événement OPÉRATIONNEL essentiel JAMAIS échantillonné (même avec sampler refusant tout)", () => {
+    const sink = mem();
+    const a = createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, sink, sampler: () => false });
+    expect(a.emit(emitInput({ eventName: "clonechat.request_received" })).status).toBe("accepted");
+    expect(a.emit(emitInput({ eventName: "security.refusal", result: "refused", correlationId: "s1", meta: { kind: "injection" } })).status).toBe("accepted");
+  });
+});
+
+describe("BLOC 12 correctif — requestId / sessionId (jamais de donnée brute sensible)", () => {
+  const build = (over: Partial<EmitInput>) => buildEnvelope(emitInput({ eventName: "clonechat.request_received", ...over }), DEPS);
+  it("e-mail dans requestId → pseudonymisé (aucun e-mail brut, opaque rq_)", () => {
+    const r = build({ requestId: "john.doe@example.com" });
+    expect(r.ok).toBe(true);
+    if (r.ok) { expect(r.envelope.requestId).toMatch(/^rq_/); expect(JSON.stringify(r.envelope)).not.toContain("john.doe@example.com"); expect(r.envelope.requestId).not.toContain("@"); }
+  });
+  it("user ID brut / token dans sessionId → pseudonymisé (aucune valeur brute)", () => {
+    const r = build({ sessionId: "user_42_sk-SECRET1234567890" });
+    expect(r.ok).toBe(true);
+    if (r.ok) { expect(r.envelope.sessionId).toMatch(/^ss_/); expect(JSON.stringify(r.envelope)).not.toContain("sk-SECRET1234567890"); }
+  });
+  it("identifiant opaque valide → pseudonyme opaque STABLE (même entrée → même valeur)", () => {
+    const a = build({ requestId: "req-abcdef123456", sessionId: "sess-abcdef123456" });
+    const b = build({ requestId: "req-abcdef123456", sessionId: "sess-abcdef123456" });
+    expect(a.ok && b.ok).toBe(true);
+    if (a.ok && b.ok) { expect(a.envelope.requestId).toBe(b.envelope.requestId); expect(a.envelope.sessionId).toBe(b.envelope.sessionId); }
+  });
+  it("aucune corrélation inter-tenant : même requestId, tenant différent → pseudonyme différent", () => {
+    const a = buildEnvelope(emitInput({ eventName: "clonechat.request_received", requestId: "req-x", tenantKey: "co:A" }), DEPS);
+    const b = buildEnvelope(emitInput({ eventName: "clonechat.request_received", requestId: "req-x", tenantKey: "co:B" }), DEPS);
+    expect(a.ok && b.ok).toBe(true);
+    if (a.ok && b.ok) expect(a.envelope.requestId).not.toBe(b.envelope.requestId);
+  });
+});
+
+describe("BLOC 12 correctif — cohérence des 51 événements du registre", () => {
+  const specs = allEventSpecs();
+  it("53 événements ; chacun a résultat possible, consentement, échantillonnage explicite, provenance", () => {
+    expect(specs.length).toBe(53);
+    for (const s of specs) {
+      expect(s.allowedResults.length).toBeGreaterThan(0);
+      expect(["operational", "product"]).toContain(s.basis);
+      expect(["always", "rate"]).toContain(s.sampling.kind);
+      if (s.sampling.kind === "rate") { expect(s.sampling.rate).toBeGreaterThanOrEqual(0); expect(s.sampling.rate).toBeLessThanOrEqual(1); }
+      expect(s.provenance.length).toBeGreaterThan(0);
+      expect(s.version).toBe(CLONECHAT_ANALYTICS_VERSION);
+    }
+  });
+  it("aucune combinaison permettant un faux succès (résultats interdits absents ; executed encadré ; mission jamais executed/completed)", () => {
+    for (const s of specs) {
+      for (const res of s.allowedResults) expect(FORBIDDEN_RESULTS.has(res)).toBe(false);
+      if (s.allowedResults.includes("executed")) { expect(s.name).toBe("action.executed"); expect(s.requiresObservableProof).toBe(true); }
+      if (s.stage === "mission") for (const bad of ["executed", "completed", "succeeded"]) expect(s.allowedResults).not.toContain(bad);
+    }
+  });
+  it("télémétrie opérationnelle/sécurité JAMAIS échantillonnée (sampling always)", () => {
+    for (const s of specs) if (s.nature === "operational" || s.nature === "security") expect(s.sampling.kind).toBe("always");
   });
 });

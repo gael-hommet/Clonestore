@@ -11,7 +11,8 @@ export {
 export { getEventSpec, isKnownEvent, allEventSpecs, ANALYTICS_EVENT_NAMES } from "./registry";
 export {
   createDefaultPseudonymizer, validateAndMinimizeMeta, isBannedMetaKey,
-  MAX_META_KEYS, MAX_FIELD_LEN, MAX_ENVELOPE_BYTES, type Pseudonymizer, type MetaValidation,
+  MAX_META_KEYS, MAX_FIELD_LEN, MAX_ENVELOPE_BYTES,
+  type Pseudonymizer, type PseudonymKind, type MetaValidation,
 } from "./privacy";
 export { buildEnvelope, type EmitInput, type EnvelopeDeps } from "./envelope";
 export {
@@ -19,7 +20,8 @@ export {
   type MemoryAnalyticsSink,
 } from "./sink";
 export {
-  createCloneAnalytics, type CloneAnalytics, type CloneAnalyticsConfig, type FlushResult, type Sampler,
+  createCloneAnalytics,
+  type CloneAnalytics, type CloneAnalyticsConfig, type FlushResult, type Sampler, type AnalyticsCounters,
 } from "./collector";
 export { aggregate, health } from "./aggregate";
 export { deriveEventsFromDecision, type DerivedEvent } from "./instrument";

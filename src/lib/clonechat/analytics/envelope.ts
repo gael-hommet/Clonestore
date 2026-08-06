@@ -16,6 +16,8 @@ import {
 
 export interface EmitInput {
   readonly eventName: string;
+  /** Version DEMANDÉE (facultative). Si fournie et ≠ analytics-1 → rejet `invalid_version`. */
+  readonly version?: string;
   readonly result: AnalyticsResult;
   readonly surface: string;
   readonly correlationId: string;
@@ -49,10 +51,13 @@ function dedupKeyFor(strategy: string, eventName: string, correlationId: string,
   }
 }
 
-const safe = (s: string | null | undefined, n = 120): string | null => (s == null ? null : String(s).slice(0, n));
-
 /** Construit et VALIDE une enveloppe. Renvoie un rejet typé (jamais une exception). */
 export function buildEnvelope(input: EmitInput, deps: EnvelopeDeps): ValidatedEnvelope {
+  // Version DEMANDÉE : un événement d'une version inconnue est rejeté (n'atteint jamais sink/agrégateur).
+  if (input.version !== undefined && input.version !== CLONECHAT_ANALYTICS_VERSION) {
+    return { ok: false, reason: `invalid_version:${input.version}` };
+  }
+
   const spec = getEventSpec(input.eventName);
   if (!spec) return { ok: false, reason: `unknown_event:${input.eventName}` };
 
@@ -74,9 +79,15 @@ export function buildEnvelope(input: EmitInput, deps: EnvelopeDeps): ValidatedEn
   const metaV = validateAndMinimizeMeta(input.meta, allowed, spec.requiredMeta);
   if (!metaV.ok) return { ok: false, reason: metaV.reason };
 
-  // Pseudonymisation (viewer tenant-scopé → distinct entre tenants ; aucun id brut).
+  // Pseudonymisation (viewer/request/session tenant-scopés → distincts entre tenants ; aucun id brut).
+  const tenantScope = input.tenantKey ?? "none";
   const tenantPseudo = input.tenantKey ? deps.pseudonymizer.pseudonymize("tenant", input.tenantKey) : null;
-  const viewerPseudo = input.viewerKey ? deps.pseudonymizer.pseudonymize("viewer", `${input.viewerKey}@@${input.tenantKey ?? "none"}`) : null;
+  const viewerPseudo = input.viewerKey ? deps.pseudonymizer.pseudonymize("viewer", `${input.viewerKey}@@${tenantScope}`) : null;
+  // requestId/sessionId : JAMAIS conservés bruts (un e-mail / user-id / token ne doit pas transiter).
+  // Toujours pseudonymisés (opaque, stable, tenant-scopé). Le tronquage seul serait insuffisant.
+  const hasVal = (s: string | null | undefined): s is string => typeof s === "string" && s.trim().length > 0;
+  const requestId = hasVal(input.requestId) ? deps.pseudonymizer.pseudonymize("request", `${input.requestId}@@${tenantScope}`) : null;
+  const sessionId = hasVal(input.sessionId) ? deps.pseudonymizer.pseudonymize("session", `${input.sessionId}@@${tenantScope}`) : null;
 
   const occurredAtMs = deps.nowMs;
   const idFactory = deps.idFactory ?? ((m: string) => "evt_" + hash(m));
@@ -94,8 +105,8 @@ export function buildEnvelope(input: EmitInput, deps: EnvelopeDeps): ValidatedEn
     occurredAtMs,
     at: new Date(occurredAtMs).toISOString(),
     correlationId: input.correlationId,
-    requestId: safe(input.requestId ?? null),
-    sessionId: safe(input.sessionId ?? null),
+    requestId,
+    sessionId,
     route,
     surface: String(input.surface).slice(0, 40),
     environment: deps.environment,
