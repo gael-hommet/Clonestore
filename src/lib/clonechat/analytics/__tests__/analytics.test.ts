@@ -14,6 +14,7 @@ import {
   FORBIDDEN_RESULTS,
   CLONECHAT_ANALYTICS_VERSION, type EmitInput, type EnvelopeDeps, type AnalyticsEnvelope, type AnalyticsSink,
 } from "..";
+import { isValidSinkResult } from "../collector";
 import type { CloneChatViewer } from "@/lib/clonechat/server/universal-access";
 import type { TenantResolution } from "@/lib/clonechat/server/company";
 import type { PierreAccessResult } from "@/lib/pierre/access";
@@ -389,33 +390,41 @@ describe("BLOC 12 — compatibilité & déterminisme", () => {
 describe("BLOC 12 correctif — livraison partielle (jamais un faux succès)", () => {
   const A = (over: Partial<Parameters<typeof createCloneAnalytics>[0]> = {}) =>
     createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, ...over });
-  it("sink partiel en mode IMMÉDIAT → status partial (jamais accepted), failedDeliveries incrémenté", () => {
+  it("sink partiel en mode IMMÉDIAT (lot d'UN événement, indivisible) → normalisé en failed (jamais partial ni accepted), comptes honnêtes 0/1", () => {
     const a = A({ sink: createPartialSink() });
     const r = a.emit(emitInput({ eventName: "clonechat.request_received" }));
-    expect(r.status).toBe("partial");
+    expect(r.status).toBe("failed");
     expect(r.status).not.toBe("accepted");
-    expect(a.counters().partial).toBe(1);
+    expect(r.status).not.toBe("partial");
+    expect(r.delivered).toBe(0); // aucun compte impossible
+    expect(r.failed).toBe(1);
+    expect(a.counters().partial).toBe(0); // un lot d'un événement n'est jamais « partiel »
     expect(a.counters().accepted).toBe(0);
     expect(a.counters().failedDeliveries).toBeGreaterThanOrEqual(1);
     expect(a.accepted().length).toBe(0); // rien n'est conservé comme livré
   });
-  it("sink partiel pendant flush() → résultat explicitement partial, aucun événement conservé comme livré", () => {
+  it("sink partiel pendant flush() sur un lot de DEUX → partial 1/1 cohérent (delivered+failed===2), aucun événement conservé comme livré", () => {
     const a = A({ sink: createPartialSink(), flush: "manual" });
-    a.emit(emitInput({ eventName: "clonechat.request_received", correlationId: "c1" }));
-    a.emit(emitInput({ eventName: "diagnosis.produced", correlationId: "c2", meta: { kind: "no_blocker" } }));
+    expect(a.emit(emitInput({ eventName: "clonechat.request_received", correlationId: "c1" })).status).toBe("buffered");
+    expect(a.emit(emitInput({ eventName: "diagnosis.produced", correlationId: "c2", meta: { kind: "no_blocker" } })).status).toBe("buffered");
     const f = a.flush();
     expect(f.status).toBe("partial");
-    expect(f.delivered).toBeGreaterThan(0);
-    expect(f.failed).toBeGreaterThan(0);
+    expect(f.delivered).toBe(1);
+    expect(f.failed).toBe(1);
+    expect(f.delivered + f.failed).toBe(2); // === taille du lot
     expect(a.accepted().length).toBe(0); // livraison partielle non attribuable → aucun présenté comme livré
     expect(a.counters().partial).toBe(1);
   });
-  it("aucun status accepted lorsque failed > 0 (même si le sink dit 'ok')", () => {
+  it("sink annonçant 'ok' avec failed>0 sur un lot d'1 (comptes impossibles) → requalifié failed (invalid_sink_result), jamais accepted/partial", () => {
     const s: AnalyticsSink = { id: "okbutfailed", capable: true, deliver: () => ({ status: "ok", delivered: 1, failed: 1 }) };
     const a = A({ sink: s });
     const r = a.emit(emitInput({ eventName: "clonechat.request_received" }));
-    expect(r.status).toBe("partial");
+    expect(r.status).toBe("failed");
     expect(r.status).not.toBe("accepted");
+    expect(r.status).not.toBe("partial");
+    expect(r.reason).toBe("invalid_sink_result");
+    expect(r.delivered).toBe(0);
+    expect(r.failed).toBe(1);
   });
   it("retry BORNÉ sur un sink failed (jamais infini) puis status failed", () => {
     let calls = 0;
@@ -535,5 +544,136 @@ describe("BLOC 12 correctif — cohérence des 51 événements du registre", () 
   });
   it("télémétrie opérationnelle/sécurité JAMAIS échantillonnée (sampling always)", () => {
     for (const s of specs) if (s.nature === "operational" || s.nature === "security") expect(s.sampling.kind).toBe("always");
+  });
+});
+
+// ── Correctif : comptes de livraison valides (invariants durs, jamais des nombres impossibles) ──────
+describe("BLOC 12 correctif — comptes de livraison valides (invariants)", () => {
+  const A = (over: Partial<Parameters<typeof createCloneAnalytics>[0]> = {}) =>
+    createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, ...over });
+  // Sink déterministe annonçant des comptes précis (mock).
+  const sinkReturning = (r: { status: "ok" | "partial" | "failed" | "timeout"; delivered: number; failed: number }): AnalyticsSink =>
+    ({ id: "mock", capable: true, deliver: () => r });
+
+  it("lot immédiat de taille 1 ACCEPTÉ → delivered 1 / failed 0", () => {
+    const r = A({ sink: createMemorySink() }).emit(emitInput({ eventName: "clonechat.request_received" }));
+    expect(r.status).toBe("accepted");
+    expect(r.delivered).toBe(1);
+    expect(r.failed).toBe(0);
+  });
+  it("lot immédiat ÉCHOUÉ → delivered 0 / failed 1", () => {
+    const r = A({ sink: createFailingSink(), maxRetries: 0 }).emit(emitInput({ eventName: "clonechat.request_received" }));
+    expect(r.status).toBe("failed");
+    expect(r.delivered).toBe(0);
+    expect(r.failed).toBe(1);
+  });
+  it("sink annonçant partial 1/1 pour un lot de taille 1 → INVALIDE (jamais partial ni accepted), requalifié failed 0/1", () => {
+    expect(isValidSinkResult({ status: "partial", delivered: 1, failed: 1 }, 1)).toBe(false); // 1 + 1 = 2 ≠ 1
+    const r = A({ sink: sinkReturning({ status: "partial", delivered: 1, failed: 1 }), maxRetries: 0 }).emit(emitInput({ eventName: "clonechat.request_received" }));
+    expect(r.status).toBe("failed");
+    expect(r.status).not.toBe("partial");
+    expect(r.status).not.toBe("accepted");
+    expect(r.reason).toBe("invalid_sink_result");
+    expect(r.delivered).toBe(0);
+    expect(r.failed).toBe(1);
+  });
+  it("lot MANUEL de taille 2 réellement partiel → 1/1 (delivered + failed === batch.length)", () => {
+    const a = A({ sink: sinkReturning({ status: "partial", delivered: 1, failed: 1 }), flush: "manual" });
+    a.emit(emitInput({ eventName: "clonechat.request_received", correlationId: "m1" }));
+    a.emit(emitInput({ eventName: "diagnosis.produced", correlationId: "m2", meta: { kind: "no_blocker" } }));
+    const f = a.flush();
+    expect(f.status).toBe("partial");
+    expect(f.delivered).toBe(1);
+    expect(f.failed).toBe(1);
+    expect(f.delivered + f.failed).toBe(2);
+  });
+
+  // ── Validation défensive pure : isValidSinkResult ──
+  it("invariant delivered + failed === batch.length (résultats cohérents acceptés)", () => {
+    expect(isValidSinkResult({ status: "ok", delivered: 3, failed: 0 }, 3)).toBe(true);
+    expect(isValidSinkResult({ status: "partial", delivered: 1, failed: 2 }, 3)).toBe(true);
+    expect(isValidSinkResult({ status: "failed", delivered: 0, failed: 3 }, 3)).toBe(true);
+    expect(isValidSinkResult({ status: "timeout", delivered: 0, failed: 1 }, 1)).toBe(true);
+  });
+  it("nombres NÉGATIFS refusés", () => {
+    expect(isValidSinkResult({ status: "ok", delivered: -1, failed: 2 }, 1)).toBe(false);
+    expect(isValidSinkResult({ status: "partial", delivered: 2, failed: -1 }, 1)).toBe(false);
+  });
+  it("nombres DÉCIMAUX refusés", () => {
+    expect(isValidSinkResult({ status: "ok", delivered: 0.5, failed: 0.5 }, 1)).toBe(false);
+    expect(isValidSinkResult({ status: "partial", delivered: 1.5, failed: 0.5 }, 2)).toBe(false);
+  });
+  it("nombres NON FINIS refusés (Infinity / NaN)", () => {
+    expect(isValidSinkResult({ status: "ok", delivered: Infinity, failed: 0 }, 1)).toBe(false);
+    expect(isValidSinkResult({ status: "ok", delivered: NaN, failed: 0 }, 1)).toBe(false);
+  });
+  it("somme SUPÉRIEURE au batch refusée", () => {
+    expect(isValidSinkResult({ status: "partial", delivered: 2, failed: 1 }, 2)).toBe(false); // 3 > 2
+    expect(isValidSinkResult({ status: "ok", delivered: 2, failed: 0 }, 1)).toBe(false); // delivered > batch
+  });
+  it("somme INFÉRIEURE au batch refusée", () => {
+    expect(isValidSinkResult({ status: "partial", delivered: 1, failed: 0 }, 3)).toBe(false); // 1 < 3
+    expect(isValidSinkResult({ status: "failed", delivered: 0, failed: 1 }, 3)).toBe(false); // 1 < 3
+  });
+  it("'ok' avec failed > 0 refusé (livraison incomplète ne peut pas être ok)", () => {
+    expect(isValidSinkResult({ status: "ok", delivered: 1, failed: 1 }, 2)).toBe(false);
+    expect(isValidSinkResult({ status: "ok", delivered: 2, failed: 1 }, 3)).toBe(false);
+  });
+  it("'partial' avec delivered === 0 refusé (rien de livré ⇒ ce n'est pas partiel)", () => {
+    expect(isValidSinkResult({ status: "partial", delivered: 0, failed: 2 }, 2)).toBe(false);
+  });
+  it("'partial' avec failed === 0 refusé (tout livré ⇒ complet, pas partiel)", () => {
+    expect(isValidSinkResult({ status: "partial", delivered: 2, failed: 0 }, 2)).toBe(false);
+  });
+  it("statut inconnu refusé ; valeur nulle/non-objet refusée", () => {
+    expect(isValidSinkResult({ status: "success", delivered: 1, failed: 0 }, 1)).toBe(false);
+    expect(isValidSinkResult(null, 1)).toBe(false);
+    expect(isValidSinkResult(undefined, 1)).toBe(false);
+    expect(isValidSinkResult(42, 1)).toBe(false);
+  });
+
+  it("comptes PRÉSENTS et corrects dans EmitResult (accepted 1/0, failed 0/1, non-livré ⇒ null)", () => {
+    expect((() => { const r = A({ sink: createMemorySink() }).emit(emitInput({ eventName: "clonechat.request_received", correlationId: "e-acc" })); return [r.delivered, r.failed]; })()).toEqual([1, 0]);
+    expect((() => { const r = A({ sink: createFailingSink(), maxRetries: 0 }).emit(emitInput({ eventName: "clonechat.request_received", correlationId: "e-fail" })); return [r.delivered, r.failed]; })()).toEqual([0, 1]);
+    const dis = A({ sink: createNoopSink() }).emit(emitInput({ eventName: "clonechat.request_received", correlationId: "e-dis" }));
+    expect(dis.status).toBe("disabled"); expect(dis.delivered).toBeNull(); expect(dis.failed).toBeNull();
+    const a = A({ sink: createMemorySink() });
+    a.emit(emitInput({ eventName: "clonechat.request_received", correlationId: "e-dup" }));
+    const dup = a.emit(emitInput({ eventName: "clonechat.request_received", correlationId: "e-dup" }));
+    expect(dup.status).toBe("duplicate"); expect(dup.delivered).toBeNull(); expect(dup.failed).toBeNull();
+    const so = A({ sink: createMemorySink(), consent: "product_enabled", sampler: () => false }).emit(emitInput({ eventName: "care.known_issue", result: "ok", correlationId: "e-so", meta: { issue: "x" } }));
+    expect(so.status).toBe("sampled_out"); expect(so.delivered).toBeNull(); expect(so.failed).toBeNull();
+    const buf = A({ sink: createMemorySink(), flush: "manual" }).emit(emitInput({ eventName: "clonechat.request_received", correlationId: "e-buf" }));
+    expect(buf.status).toBe("buffered"); expect(buf.delivered).toBeNull(); expect(buf.failed).toBeNull();
+  });
+  it("no-op TOUJOURS disabled, aucune livraison, aucun compte de livraison", () => {
+    const a = A({ sink: createNoopSink() });
+    const r = a.emit(emitInput({ eventName: "clonechat.request_received" }));
+    expect(r.status).toBe("disabled"); expect(r.reason).toBe("sink_noop");
+    expect(r.delivered).toBeNull(); expect(r.failed).toBeNull();
+    expect(a.accepted().length).toBe(0); expect(a.counters().accepted).toBe(0);
+  });
+  it("sink timeout et failed HONNÊTES → status failed, delivered 0 / failed 1", () => {
+    const t = A({ sink: createTimeoutSink(), maxRetries: 0 }).emit(emitInput({ eventName: "clonechat.request_received", correlationId: "t1" }));
+    expect(t.status).toBe("failed"); expect(t.reason).toBe("sink_timeout"); expect([t.delivered, t.failed]).toEqual([0, 1]);
+    const f = A({ sink: createFailingSink(), maxRetries: 0 }).emit(emitInput({ eventName: "clonechat.request_received", correlationId: "f1" }));
+    expect(f.status).toBe("failed"); expect(f.reason).toBe("sink_failed"); expect([f.delivered, f.failed]).toEqual([0, 1]);
+  });
+
+  it("résultat fonctionnel CloneChat INCHANGÉ même si le sink annonce des comptes impossibles", async () => {
+    const ctx = ctxOf({ viewer: USER(), tenant: TENANT_OK(), entitlement: PIERRE_OK, message: "Prépare un avenant" });
+    const evil: AnalyticsSink = { id: "evil", capable: true, deliver: () => ({ status: "ok", delivered: 999, failed: -5 }) };
+    const out = await onboardPrepareMissionAndObserveWithCloneChat({ message: "Prépare un avenant" }, ctx, { nowMs: NOW, providedMissionInputs: { expected_result: "avenant" }, analytics: createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, sink: evil }) });
+    expect(out.mission.version).toBe("mission-1"); // fonctionnel intact
+    expect(out.onboarding.version).toBe("onboarding-1");
+    expect(out.analytics.accepted).toBe(0); // comptes impossibles ⇒ jamais accepté
+    expect(out.analytics.persisted).toBe(false); // rien de réellement livré
+    expect(out.analytics.emitted.every((e) => e.status !== "accepted")).toBe(true);
+  });
+  it("structured historique INCHANGÉ via l'adaptateur (sink aux comptes invalides)", async () => {
+    const ctx = ctxOf({ viewer: USER(), tenant: TENANT_OK(), entitlement: PIERRE_OK, message: "Prépare un avenant" });
+    const evil: AnalyticsSink = { id: "evil2", capable: true, deliver: () => ({ status: "ok", delivered: 7, failed: 7 }) };
+    const out = await onboardPrepareMissionAndObserveWithCloneChat({ message: "Prépare un avenant" }, ctx, { nowMs: NOW, analytics: createCloneAnalytics({ environment: "production", pseudonymizer: PSEUDO, sink: evil }) });
+    expect(Object.keys(out.structured).sort()).toEqual(["answer", "citations", "honesty", "tool_call"]);
   });
 });

@@ -70,6 +70,19 @@ export interface EmitResult {
   readonly eventId: string | null; // null si rejeté avant construction
   readonly reason: string | null; // code sûr expliquant rejected/failed/sampled_out/disabled/duplicate
   readonly correlationId: string | null;
+  /**
+   * Comptes de livraison HONNÊTES. Jamais des nombres impossibles ; jamais une prétention de livraison
+   * sans livraison réelle. En mode immédiat (un seul événement envoyé) :
+   *   - accepted ⇒ delivered === 1 et failed === 0 ;
+   *   - failed   ⇒ delivered === 0 et failed === 1 (un lot d'UN événement ne peut jamais être partiel :
+   *                un « partial » annoncé par un sink y est normalisé en failed) ;
+   *   - partial  ⇒ vraie livraison partielle, 0 < delivered, 0 < failed, delivered + failed === taille du lot
+   *                (jamais atteignable pour un lot d'un seul événement).
+   * La livraison N'EST PAS tentée pour buffered / disabled / sampled_out / duplicate / rejected :
+   * delivered et failed valent alors null (aucune livraison ⇒ aucun compte de livraison inventé).
+   */
+  readonly delivered: number | null;
+  readonly failed: number | null;
 }
 
 /** Valeur de métadonnée AUTORISÉE : primitive uniquement (jamais un objet/array du pipeline). */

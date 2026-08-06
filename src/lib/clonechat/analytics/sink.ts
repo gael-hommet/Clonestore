@@ -26,9 +26,11 @@ export function createMemorySink(id = "memory"): MemoryAnalyticsSink {
   };
 }
 
-/** Sink no-op (NON capable) : aucune destination. Le collecteur ne présentera jamais un envoi. */
+/** Sink no-op (NON capable) : aucune destination. Le collecteur court-circuite en `disabled` avant toute
+ *  livraison (capable:false) ; deliver() n'est donc jamais atteint via le collecteur. S'il était appelé
+ *  directement, il déclare HONNÊTEMENT n'avoir rien livré (jamais un faux succès, comptes cohérents). */
 export function createNoopSink(id = "noop"): AnalyticsSink {
-  return { id, capable: false, deliver: (batch) => ({ status: "ok", delivered: 0, failed: batch.length ? 0 : 0 }) };
+  return { id, capable: false, deliver: (batch) => ({ status: "failed", delivered: 0, failed: batch.length }) };
 }
 
 /** Sink en échec (tests, CAPABLE mais échoue honnêtement) : ne lève jamais. */
@@ -41,14 +43,22 @@ export function createTimeoutSink(id = "timeout"): AnalyticsSink {
   return { id, capable: true, deliver: (batch) => ({ status: "timeout", delivered: 0, failed: batch.length }) };
 }
 
-/** Sink partiel (tests) : livre une partie, échoue l'autre — jamais présenté comme complet. */
+/**
+ * Sink partiel (tests) : livre une partie, échoue l'autre — jamais présenté comme complet, jamais des
+ * comptes impossibles. Une livraison PARTIELLE n'a de sens qu'à partir de DEUX événements : pour un lot
+ * d'un seul événement (indivisible) le sink renvoie honnêtement `failed` (0/1), et pour un lot vide `ok`
+ * (0/0). Invariant garanti dans tous les cas : delivered ≥ 0, failed ≥ 0, delivered + failed === batch.length.
+ */
 export function createPartialSink(id = "partial"): AnalyticsSink {
   return {
     id,
     capable: true,
     deliver(batch): SinkDeliveryResult {
-      const delivered = Math.max(1, Math.floor(batch.length / 2));
-      const failed = Math.max(1, batch.length - delivered);
+      const n = batch.length;
+      if (n === 0) return { status: "ok", delivered: 0, failed: 0 };
+      if (n < 2) return { status: "failed", delivered: 0, failed: n }; // 1 événement ⇒ jamais partiel
+      const delivered = Math.floor(n / 2); // ≥ 1 pour n ≥ 2
+      const failed = n - delivered; // ≥ 1 pour n ≥ 2
       return { status: "partial", delivered, failed };
     },
   };
