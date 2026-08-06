@@ -38,12 +38,16 @@ export function CineScene({
   );
 }
 
-/** Marqueur de chapitre : petit numéro + libellé. */
+/** Marqueur de chapitre : petit numéro + libellé.
+ *  Le numéro et le libellé sont deux éléments distincts SÉPARÉS PAR UNE ESPACE RÉELLE (jamais un
+ *  simple gap CSS, qui n'ajoute aucun caractère et laissait « 01 » collé au libellé dans certains
+ *  rendus). Le libellé est enveloppé pour garantir un vrai flex-item et une séparation stable. */
 export function CineEyebrow({ n, children }: { n?: string; children: React.ReactNode }) {
   return (
     <p className="cine-eyebrow">
       {n ? <span className="cine-eyebrow__n">{n}</span> : null}
-      {children}
+      {n ? " " : null}
+      <span className="cine-eyebrow__label">{children}</span>
     </p>
   );
 }
@@ -88,6 +92,7 @@ export function BigStat({
     <div className={cn("flex flex-col items-center gap-2", className)}>
       <div className={cn("cine-num", accent && "cine-num--accent")}>
         <span className="tabular-nums">{value}</span>
+        {unit ? " " : null}
         {unit ? <span className="cine-num__unit">{unit}</span> : null}
       </div>
       {label ? <div className="cine-num-label">{label}</div> : null}

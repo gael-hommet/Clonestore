@@ -14,10 +14,12 @@ import { FounderAccessStatus } from "../primitives/FounderAccessStatus";
 import { CineScene, CineEyebrow, CineTitle, CineLede, Disclosure } from "../primitives/cine";
 import { SCENE_OPENING, SCENE_CONTRACT, PIERRE_DEMO_ROUTE } from "@/lib/demo/presentation/content";
 
-export function Act1Opening({ onDirectPierre }: { onDirectPierre: () => void }) {
+export function Act1Opening({ onDirectPierre, onAdvance }: { onDirectPierre: () => void; onAdvance?: () => void }) {
   const reduce = useDemoReducedMotion();
   const goNext = () =>
-    document.getElementById("demo-act-value")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    onAdvance
+      ? onAdvance()
+      : document.getElementById("demo-act-value")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
 
   return (
     <section id="demo-act-open" className="demo-section demo-scene-flow" aria-label="Ouverture — CloneStore">

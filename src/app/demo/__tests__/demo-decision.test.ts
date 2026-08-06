@@ -177,7 +177,7 @@ describe("Clôture — trois issues réelles", () => {
     expect(conv).toContain("PIERRE_DEMO_ROUTE");
     expect(conv).toContain("/agents/pierre");
     expect(conv).toContain("Réserver Pierre");
-    expect(conv).toContain("Voir Pierre en action");
+    expect(conv).toContain("Revoir la démonstration");
     expect(conv).toContain("Découvrir Pierre");
   });
 
@@ -205,7 +205,7 @@ describe("Clôture — trois issues réelles", () => {
 
   it("CloneChat reste secondaire face à l'action principale", () => {
     // La réservation est le seul CTA "primary" de la clôture.
-    expect(conv).toMatch(/href=\{RESERVATION_ROUTE\}\s+variant="primary"/);
+    expect(conv).toMatch(/href=\{FICHE_ROUTE\}\s+variant="primary"/);
     expect(conv).toMatch(/href=\{CLONECHAT_ROUTE\}[\s\S]{0,120}variant="secondary"/);
   });
 
@@ -274,5 +274,31 @@ describe("Clôture — design system réutilisé", () => {
     const sources = [read(CONTENT), ...NEW_FILES.map(read), read(ACT1)].join("\n");
     expect(sources).not.toMatch(/[\u{1F300}-\u{1FAFF}\u{2700}-\u{27BF}]/u);
     expect(sources).not.toMatch(/révolutionnaire|boostez|transformez votre entreprise|tout-en-un/i);
+  });
+});
+
+// ── Verrou anti-mojibake : encodage UTF-8 propre des copies /demo ────────────
+// La copie francaise LIVREE ne doit jamais contenir le caractere U+00C3 — l'octet de
+// tete d'un mojibake (UTF-8 relu en Latin-1). Le motif est ecrit en echappement
+// unicode (U+00C3) pour que CE fichier reste lui-meme exempt du caractere fautif.
+// Ce verrou echoue si une future edition reintroduit ce mojibake dans une copie /demo.
+const MOJIBAKE = /\u00C3/;
+
+describe("Cloture — encodage UTF-8 propre (verrou anti-mojibake)", () => {
+  const FRENCH_COPY_FILES = [
+    CONVERSION, FIRST_MISSION, AFTER, CONTENT, ACT1,
+    "src/app/demo/__tests__/demo-decision.test.ts",
+    "src/components/demo/acts/ValueShock.tsx",
+    "src/components/demo/stage/DemoStage.tsx",
+    "src/components/demo/stage/ch2-scenes.tsx",
+    "src/components/demo/stage/ch3-value-scenes.tsx",
+    "src/components/demo/stage/ch3-tech-scenes.tsx",
+    "src/lib/demo/presentation/technology-presentation.ts",
+  ];
+
+  it("aucun fichier de copie /demo ne contient le mojibake U+00C3", () => {
+    for (const f of FRENCH_COPY_FILES) {
+      expect(MOJIBAKE.test(read(f)), `${f} contient un mojibake (U+00C3)`).toBe(false);
+    }
   });
 });

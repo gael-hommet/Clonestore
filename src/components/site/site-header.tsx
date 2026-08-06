@@ -63,6 +63,11 @@ export default function SiteHeader() {
   if (isConnectedRoute(currentPath)) {
     return null;
   }
+  // Démonstration immersive : /demo apporte sa propre coque minimale (DemoShellHeader). Le header
+  // global complet (7 destinations + CloneChat) parasiterait l'expérience — il disparaît ici.
+  if (currentPath === "/demo") {
+    return null;
+  }
 
   return (
     <header className="cs-header">
