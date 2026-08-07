@@ -18,13 +18,18 @@ function rate(numerator: number, denominator: number): string {
   return `${((numerator / denominator) * 100).toFixed(1)}%`;
 }
 
-export default async function AnalyticsDashboardPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function AnalyticsDashboardPage(
+  { params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ qa?: string }> },
+) {
   const { slug } = await params;
+  const { qa } = await searchParams;
+  const includeQa = qa === "1"; // contrôle propriétaire « Inclure le trafic QA » — OFF par défaut
   const cookieHeader = (await headers()).get("cookie");
   const r = await resolveAnalyticsDashboardAccess({
     slug,
     cookieHeader,
     loginReturnPath: `/internal/${slug}/command-center/analytics`,
+    includeQa,
   });
 
   if (r.kind === "notfound") notFound();
@@ -38,10 +43,24 @@ export default async function AnalyticsDashboardPage({ params }: { params: Promi
       <p style={{ marginBottom: 4 }}>
         <a href={`/internal/${slug}/command-center`}>← Command Center</a>
       </p>
-      <h1 style={{ fontSize: "1.4rem", marginBottom: 4 }}>Funnel canonique — trafic externe uniquement</h1>
+      <h1 style={{ fontSize: "1.4rem", marginBottom: 4 }}>
+        Funnel canonique — {r.includeQa ? "trafic externe + QA (test)" : "trafic externe uniquement"}
+      </h1>
       <p style={{ color: "#666", fontSize: "0.85rem" }}>
         Connecté : {r.email} · Fenêtre : {r.windowSinceIso.slice(0, 10)} → {r.windowUntilIso.slice(0, 10)} ·
-        Trafic interne/test/automatisé exclu par défaut (voir ANALYTICS_TRAFFIC_CLASSIFICATION_MATRIX.md).
+        Trafic bot/automatisé et interne TOUJOURS exclu. Le trafic QA (test) est exclu par défaut.
+      </p>
+      <p style={{ marginTop: 8, fontSize: "0.85rem" }}>
+        <label style={{ userSelect: "none" }}>
+          <input type="checkbox" checked={r.includeQa} readOnly aria-label="Inclure le trafic QA" style={{ marginRight: 6 }} />
+          Inclure le trafic QA
+        </label>{" "}
+        —{" "}
+        {r.includeQa ? (
+          <a href={`/internal/${slug}/command-center/analytics`}>revenir au trafic externe uniquement</a>
+        ) : (
+          <a href={`/internal/${slug}/command-center/analytics?qa=1`}>inclure le trafic QA (test)</a>
+        )}
       </p>
 
       {!r.storageAvailable && (

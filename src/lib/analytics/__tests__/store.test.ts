@@ -153,5 +153,27 @@ describe("clonestore_analytics_events_v1 — real PGlite persistence", () => {
       );
       expect(internalCheck.rows[0]!.c).toBe(0);
     });
+
+    it("includeTest toggles ONLY the `test` class: test excluded by default, included when on; automated ALWAYS excluded", async () => {
+      const evName = "reservation_cta_clicked";
+      const vExternal = globalThis.crypto.randomUUID();
+      const vTest = globalThis.crypto.randomUUID();
+      const vAutomated = globalThis.crypto.randomUUID();
+      const since = new Date(Date.now() - 60_000).toISOString();
+      const until = new Date(Date.now() + 60_000).toISOString();
+      await insertAnalyticsEvent(db, baseEvent({ eventName: evName, visitorId: vExternal, trafficClass: "external" }));
+      await insertAnalyticsEvent(db, baseEvent({ eventName: evName, visitorId: vTest, trafficClass: "test" }));
+      await insertAnalyticsEvent(db, baseEvent({ eventName: evName, visitorId: vAutomated, trafficClass: "automated" }));
+
+      const excluded = await countFunnelStages(db, [evName], since, until /* includeTest defaults to false */);
+      const included = await countFunnelStages(db, [evName], since, until, true);
+      const exStage = excluded.find((s) => s.eventName === evName)!;
+      const inStage = included.find((s) => s.eventName === evName)!;
+
+      // Default: only the external visitor is counted (test + automated excluded).
+      expect(Number(exStage.distinctVisitors)).toBe(1);
+      // includeTest=true: external + test counted (2), but automated STILL excluded (never 3).
+      expect(Number(inStage.distinctVisitors)).toBe(2);
+    });
   });
 });

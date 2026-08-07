@@ -92,4 +92,23 @@ describe("founder-access → canonical analytics adapter", () => {
     expect(row.rows[0]?.event_name).toBe("reservation_email_confirmed");
     expect(row.rows[0]?.trust_level).toBe("SERVER_CONFIRMED");
   });
+
+  it("defaults trafficClass to 'external'; a QA synthetic reservation is isolated as 'test' (excluded from the owner funnel)", async () => {
+    const realId = founderEventIdFor("res-real", "founder_reservation_created");
+    const qaId = founderEventIdFor("res-qa-synthetic", "founder_reservation_created");
+    await bridgeFounderServerEvent(db, {
+      eventId: realId, founderEventName: "founder_reservation_created", occurredAtIso: new Date().toISOString(),
+      reservationId: "res-real", environment: "test",
+    });
+    await bridgeFounderServerEvent(db, {
+      eventId: qaId, founderEventName: "founder_reservation_created", occurredAtIso: new Date().toISOString(),
+      reservationId: "res-qa-synthetic", environment: "test", trafficClass: "test",
+    });
+    const rows = await db.query<{ event_id: string; traffic_class: string }>(
+      "select event_id, traffic_class from clonestore_analytics_events_v1 where event_id = any($1)", [[realId, qaId]],
+    );
+    const byId = new Map(rows.rows.map((r) => [r.event_id, r.traffic_class]));
+    expect(byId.get(realId)).toBe("external"); // vraie conversion → comptée
+    expect(byId.get(qaId)).toBe("test");        // QA synthétique → exclue du funnel externe par défaut
+  });
 });
