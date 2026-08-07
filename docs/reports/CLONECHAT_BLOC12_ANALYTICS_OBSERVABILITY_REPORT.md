@@ -117,3 +117,34 @@ Correction (la plus petite et honnête) : une **politique console partagée, tes
 
 ### État Git final
 tsconfig.json byte-exact (`8a88b0410a539280`) · index valide · **0** marqueur de conflit · **0** `.orig` · **0** `.next-*` nouvellement suivi · aucune capture/binaire/secret dans le commit. `.next-p10/**` reste suivi = artefact **pré-existant** hérité de la base commune (non introduit ici). Le commit correctif de gate navigateur (`fix(demo): make browser gate honest under telemetry rate limiting`, parent 01eaa2ec) ne touche QUE : `scripts/qa/browser-console-policy.cjs` (nouveau), `scripts/demo-visual-matrix.cjs`, `scripts/demo-ch3-interactive.cjs`, `scripts/demo-nav-check.cjs`, `src/lib/demo/qa/__tests__/browser-console-policy.test.ts` (nouveau), et les 2 rapports. **Analytics fonctionnel / onboarding / contenu & design des 14 scènes / runtime Pierre / P22 / missions RH / migrations / paiements / Vercel : INCHANGÉS.** Rien poussé (push manuel) ; 3 commits locaux en avance. **BLOC 13 non commencé.**
+
+---
+
+## Gate final de synchronisation pré-BLOC 13 — merge NON destructif (bloc Analytics/QA distant × local)
+
+**Verdict local : PASS strict.** `origin/main` a de nouveau avancé — un commit au-dessus du tip démo — ajoutant le bloc **Analytics/QA** ; il est intégré à la lignée locale par un **merge non destructif à deux parents**, sans réécrire aucun commit.
+
+- **Ancien HEAD local** : `30b08151a807f8487b4623f9fcbdef3223f227c8`
+- **Nouveau commit distant** : `df8b404fef1a04acf16b3b3381c512670f471598` — `feat(analytics): owner-visibility QA toggle + QA-safe synthetic reservation path` (parent `34092187`)
+- **Base commune** : `340921879774d7dd078b9b2eb0b34f2d09e4734c`
+- **Commit de merge** : `2e9c1f2d42b8f3b33d2343e9f1d139a1867b060a` — **deux parents** `[30b08151, df8b404f]`
+- **Commit documentaire distinct** (au-dessus, sans amend) : `docs(clonechat): record final pre-BLOC-13 synchronization`
+
+### Méthode & conflits
+`git fetch origin` (isomorphic-git) → merge **3-way par arbre** `base × ours × theirs` → deux parents → `refs/heads/main` avancée. **Aucun** rebase/cherry-pick/amend/force-push/reset --hard/git clean/git add ./-A/statusMatrix global. **0 conflit** (lignées disjointes). **Couches distinctes préservées** : `src/lib/analytics/**` (canonique funnel/QA, distant) ≠ `src/lib/clonechat/analytics/**` (BLOC 12, local) — aucune n'écrase l'autre. Toutes les lignées restent accessibles (CloneChat BLOC 0→12, merge démo, politique navigateur 429, 14 scènes, nouveau bloc Analytics/QA).
+
+### Audit fonctionnel de `df8b404f` (7 fichiers, garanties intactes)
+`route.ts`, `analytics/page.tsx`, `store.ts`, `dashboard-guard.ts`, `adapters/founder-access-adapter.ts` + 2 tests. Vérifié : toggle propriétaire **« Inclure le trafic QA » OFF par défaut** (external-only) ; `test` ajouté **uniquement** toggle ON ; **bot/automated TOUJOURS exclus** (`countFunnelStages` : `['external']` par défaut, `['external','test']` si `includeTest`, jamais `automated`/`internal`). Chemin QA de réservation **authentifié uniquement par secret serveur** (`x-clonestore-qa-token` vs `CLONESTORE_ANALYTICS_QA_TOKEN`, **`timingSafeEqual` temps constant**, min 32 chars, **Production uniquement**, fail-closed) ; **aucun client public** ne peut l'activer ; **réservation QA classée `test`** (isolée du funnel) ; **AUCUN email réel** (garde `!qaSynthetic`) ; **flux normal strictement inchangé** ; adaptateur `trafficClass` additif (défaut `external`) ; **aucun secret exposé** au client/logs. Garanties **non affaiblies** pour faciliter le merge.
+
+### Tests
+- **Bloc Analytics/QA distant** : `src/lib/analytics` **13 fichiers = 161/161** (store `includeTest`, adapter `trafficClass`, dashboard-guard, qa-auth constant-time/Production-only, traffic external/test/bot/automated, synthetic-funnel-e2e, correlated-funnel-e2e, server-events, correlation, attribution, bounded-write, identity, schema).
+- **Nouveau test route** (garantie route-level auparavant non couverte) : `src/app/api/founder-access/reservations/__tests__/qa-synthetic-path.test.ts` **= 4/4** — no-token → email + `external` ; wrong-token → email + `external` ; **correct-token-Production → AUCUN email + `test`** ; aucun secret dans la réponse/headers. `isAuthenticatedProductionQaRequest` RÉEL, dépendances à effet de bord mockées → **aucune vraie réservation, aucun vrai email**.
+- **CloneChat** : analytics **87/87** + passe unique 19 fichiers **529/529** (0 échec, 0 timeout).
+- **Démo + policy** : **30 fichiers = 509/509** (aucun test supprimé/ignoré).
+- **tsc** 0 erreur nouvelle · **ESLint** 0 erreur (1 warning pré-existant dans le `route.ts` de df8b404f — directive `eslint-disable no-console` inutilisée ; fichier *theirs* laissé byte-fidèle, non altéré) · **build Next isolé `.next-hotfix` BUILD_EXIT_CODE=0** réel.
+
+### Preuve navigateur (build FRAIS, SANS stub réseau)
+CloneChat onboarding **15/15** · `demo-first-scene` **exit 0** · `demo-nav-check` **NAV_ALL_PASS exit 0** · `demo-visual-matrix` **MATRIX_112_112_CLEAN exit 0** (0 console inattendue, 0 hydration, 0 5xx, 0 429 inattendu ; **74** 429 télémétrie facultatifs comptés à part) · `demo-ch3-interactive` **CH3_INTERACTIVE_ALL_PASS exit 0**.
+
+### Aucun side effect réel & état Git final
+Aucune vraie réservation soumise, aucun vrai email envoyé (chemin QA prouvé uniquement par mocks/tests/état synthétique). Aucun rate limiting Production désactivé ; aucun événement réel supprimé. tsconfig byte-exact (`8a88b0410a539280`) · index valide (8403) · 0 conflit · 0 `.orig` · 0 `.next-hotfix` · aucune capture/binaire/secret. Aucun P22 / runtime Pierre v1 / mission RH / migration / paiement réel / Vercel / variable d'env. Rien poussé (push manuel) ; **local +8** vs origin. **BLOC 13 non commencé.**
