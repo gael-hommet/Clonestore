@@ -1,0 +1,23 @@
+// src/lib/clonechat/hardening/index.ts — surface publique du runtime durci CloneChat (BLOC 13).
+
+export {
+  CLONECHAT_HARDENING_VERSION,
+  type RuntimeMode, type HardeningErrorCode, type InputLimits, type TimeBudgets, type ConcurrencyPolicy,
+  type RetryPolicy, type CircuitPolicy, type ActionPolicy, type HardeningConfig, type SafeError, type ModeEffect,
+  type ReadinessStatus, type ReadinessCheck, type ReadinessReport, type CircuitState,
+} from "./types";
+export {
+  DEFAULT_LIMITS, DEFAULT_BUDGETS, DEFAULT_CONCURRENCY, DEFAULT_RETRY, DEFAULT_CIRCUIT, DEFAULT_ACTIONS,
+  readRuntimeMode, readKillSwitch, resolveHardeningConfig, modeEffect,
+} from "./config";
+export { HardeningError, httpStatusFor, safeMessageFor, makeSafeError, toSafeError } from "./errors";
+export { checkInputLimits, enforceOutputLimit, type HardeningInput } from "./limits";
+export { withTimeout, withBoundedRetry, type SleepFn, type TimeoutOptions, type RetryOptions } from "./timeout";
+export { createCircuitBreaker, createBreakerRegistry, type CircuitBreaker, type CircuitDeps } from "./circuit-breaker";
+export { createConcurrencyLimiter, type ConcurrencyLimiter } from "./concurrency";
+export {
+  evaluateReadiness, defaultReadinessProbes, isActiveAllowed, type ReadinessProbes,
+} from "./readiness";
+export { createHardenedRuntime, type HardenedRuntime, type GuardResult, type GuardContext, type RuntimeDeps } from "./runtime";
+export { correlationId, safeLogFields, type HardeningObservation } from "./observe";
+export { hardeningChatPrecheck, type ChatPrecheck } from "./chat-precheck";

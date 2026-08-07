@@ -95,6 +95,9 @@ import type { ParrainKnowledgeChunk } from "@/lib/clonechat/intelligence/c1-1/pa
 // CloneStore, lance web_search ou ouvre une page. Essayé EN PREMIER sur la voie publique ; en
 // cas d'échec/absence de clé, repli sur la chaîne C1.9 puis legacy EXISTANTE, inchangée.
 import { respondUnified, loadResponderConfig, readOpenAIKeyLazy } from "@/lib/clonechat/core/responder";
+// ── BLOC 13 — Production Hardening (ADDITIF, feature-gated, `off` par défaut). En `off`/`shadow`
+// (défaut, y compris Production) l'appel ne bloque JAMAIS : comportement historique inchangé.
+import { hardeningChatPrecheck } from "@/lib/clonechat/hardening";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -207,6 +210,17 @@ export async function POST(req: Request) {
   const conversationId = body?.conversation_id ?? null;
   const rawAttachments = Array.isArray(body?.attachments) ? body!.attachments!.slice(0, MAX_ATTACHMENTS) : [];
   if (!message && !(body?.images?.length) && rawAttachments.length === 0) return noStore({ ok: false, code: "EMPTY", error: "Message vide." }, 400);
+
+  // ── BLOC 13 — garde durcie ADDITIVE, `off` par défaut. En `off`/`shadow` (défaut, y compris
+  // Production), retour immédiat non bloquant : la ligne ci-dessous ne change RIEN au comportement
+  // historique. En `active` seulement (jamais activé en Production dans ce bloc), elle applique les
+  // limites d'entrée canoniques et renvoie une erreur structurée sûre (jamais un crash).
+  const hardened = hardeningChatPrecheck({
+    message,
+    history: Array.isArray(body?.history) ? body!.history!.map((h) => ({ text: h?.text })) : [],
+    attachments: rawAttachments.map((a) => ({ bytes: typeof a?.size_bytes === "number" ? a.size_bytes : (typeof a?.data === "string" ? a.data.length : 0) })),
+  });
+  if (hardened.blocked) return noStore(hardened.payload, hardened.status);
 
   // 3) Sécurité : prompt-injection → refus déterministe, aucun appel modèle, 0 token.
   if (detectPromptInjection(message)) {
