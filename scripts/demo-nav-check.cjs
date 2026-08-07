@@ -1,7 +1,13 @@
 // Deterministic /demo navigation check — single click / single key = single scene advance.
 // Reads data-demo-scene on .demo-stage-root (reflects index state immediately, not the animating
 // frame). Run against a base URL (local dev or the READY Preview). Exit 0 = all pass.
+//
+// Console policy (shared, tested, honest — scripts/qa/browser-console-policy.cjs): only EXPECTED
+// optional-telemetry backpressure (HTTP 429 from /api/analytics/events + /api/conversion/events) is
+// tolerated and counted separately; every other console error / pageerror / HTTP 5xx / 429-from-another
+// -route stays BLOCKING. No stubbing, no network interception.
 const { chromium } = require("playwright");
+const { createConsoleGate } = require("./qa/browser-console-policy.cjs");
 const BASE = process.env.DEMO_BASE || "http://localhost:3005";
 const SCENES = ["value", "clonestore", "objective", "execution", "validation", "result", "category", "departments", "value-business", "how", "time-value", "money-value", "tech-architecture", "tech-explorer"];
 const LAST = SCENES.length - 1;
@@ -12,9 +18,10 @@ const LAST = SCENES.length - 1;
   const ok = (name, cond) => results.push({ name, pass: !!cond });
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
   const p = await ctx.newPage();
-  const errs = [];
-  p.on("pageerror", (e) => errs.push("PAGEERR " + String(e).slice(0, 160)));
-  p.on("console", (m) => { if (m.type() === "error") errs.push("CONSOLE " + m.text().slice(0, 140)); });
+  const gate = createConsoleGate(); // expected optional-telemetry 429 = non-blocking; all else blocks
+  p.on("pageerror", (e) => gate.onPageError(e));
+  p.on("console", (m) => { const loc = m.location() || {}; gate.onConsole({ type: m.type(), text: m.text(), url: loc.url || "" }); });
+  p.on("response", (r) => gate.onResponse({ url: r.url(), status: r.status() }));
 
   const scene = () => p.getAttribute(".demo-stage-root", "data-demo-scene");
   const settle = () => p.waitForTimeout(430);
@@ -59,12 +66,13 @@ const LAST = SCENES.length - 1;
   const op = await p.evaluate(() => parseFloat(getComputedStyle(document.querySelector(".demo-scene-frame")).opacity));
   ok("active frame opacity > 0.95", op > 0.95);
 
-  ok("no console/page errors", errs.length === 0);
+  ok("no unexpected console/page errors (optional-telemetry 429 backpressure allowed)", gate.ok());
 
   await b.close();
   let all = true;
   for (const r of results) { console.log((r.pass ? "PASS" : "FAIL") + "  " + r.name); if (!r.pass) all = false; }
-  if (errs.length) errs.slice(0, 6).forEach((e) => console.log("  err:", e));
+  console.log("BROWSER-POLICY " + gate.summaryLine());
+  if (!gate.ok()) gate.details().unexpectedConsole.slice(0, 6).forEach((e) => console.log("  unexpected:", JSON.stringify(e)));
   console.log(all ? "NAV_ALL_PASS" : "NAV_FAIL");
   process.exit(all ? 0 : 1);
 })().catch((e) => { console.log("FATAL", e.message.slice(0, 200)); process.exit(1); });

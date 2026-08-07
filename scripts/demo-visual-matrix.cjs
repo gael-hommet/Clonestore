@@ -3,11 +3,18 @@
 // mobile where the side arrows AND the progress dots are intentionally hidden. Then asserts the scene
 // is TRULY active & visible: data-demo-scene match, opacity > 0.95, visibility visible, display != none,
 // non-zero dimensions, primary CTA in viewport, header visible, progression visible (dots on desktop OR
-// chapter label / bar on mobile), no horizontal scroll. Per viewport: 0 console error, 0 pageerror,
-// 0 hydration warning, 0 HTTP 5xx. Exit 0 only if 112/112 clean.
+// chapter label / bar on mobile), no horizontal scroll. Per viewport: 0 UNEXPECTED console error,
+// 0 pageerror, 0 hydration warning, 0 HTTP 5xx, 0 unexpected 429. Exit 0 only if 112/112 clean.
+//
+// Console policy (shared, tested, honest — see scripts/qa/browser-console-policy.cjs): the only
+// tolerated console error is EXPECTED optional-telemetry backpressure (HTTP 429 from the fire-and-forget
+// beacons /api/analytics/events + /api/conversion/events), which is counted SEPARATELY and never blocks.
+// Every other console error, pageerror, hydration warning, HTTP 5xx and any 429 from another route stays
+// BLOCKING. No network interception, no stubbing, no generic suppression.
 const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
+const { createConsoleGate } = require("./qa/browser-console-policy.cjs");
 
 const BASE = process.env.DEMO_BASE || "http://localhost:3005";
 const OUT = process.argv[2] || path.join(__dirname, "..", "demo-evidence", "shots");
@@ -51,16 +58,16 @@ async function settleScene(page, targetId) {
   for (const vp of viewports) {
     const ctx = await browser.newContext({ viewport: { width: vp.w, height: vp.h }, deviceScaleFactor: 1, reducedMotion: "reduce" });
     const page = await ctx.newPage();
-    const consoleErrors = [];
+    const gate = createConsoleGate(); // honest policy: expected optional-telemetry 429 = non-blocking; all else blocks
     const hydration = [];
-    const http5xx = [];
     page.on("console", (m) => {
       const t = m.text();
-      if (m.type() === "error") consoleErrors.push(t.slice(0, 200));
+      const loc = m.location() || {};
+      gate.onConsole({ type: m.type(), text: t, url: loc.url || "" });
       if (/hydrat|did not match|Text content does not match/i.test(t)) hydration.push(t.slice(0, 160));
     });
-    page.on("pageerror", (e) => consoleErrors.push("PAGEERROR " + String(e).slice(0, 200)));
-    page.on("response", (r) => { if (r.status() >= 500) http5xx.push(r.status() + " " + r.url().slice(-60)); });
+    page.on("pageerror", (e) => gate.onPageError(e));
+    page.on("response", (r) => gate.onResponse({ url: r.url(), status: r.status() }));
     try {
       await page.goto(BASE + "/demo", { waitUntil: "domcontentloaded", timeout: 60000 });
       await page.waitForSelector(".demo-stage-root", { timeout: 30000 });
@@ -120,7 +127,16 @@ async function settleScene(page, targetId) {
         results.push({ viewport: vp.name, scene: SCENES[i], clean: false, error: String(e).slice(0, 160) });
       }
     }
-    results.push({ viewport: vp.name, scene: "(diag)", consoleErrorCount: consoleErrors.length, consoleErrors: consoleErrors.slice(0, 6), hydrationCount: hydration.length, http5xxCount: http5xx.length });
+    const gc = gate.counts();
+    results.push({
+      viewport: vp.name, scene: "(diag)",
+      unexpectedConsoleCount: gc.unexpectedConsole,
+      unexpectedConsole: gate.details().unexpectedConsole.slice(0, 6),
+      expectedTelemetry429: gc.expectedTelemetry429 + gc.expected429Responses,
+      unexpected429Count: gc.unexpected429,
+      hydrationCount: hydration.length,
+      http5xxCount: gc.http5xx,
+    });
     await ctx.close();
   }
   await browser.close();
@@ -129,19 +145,23 @@ async function settleScene(page, targetId) {
   const loads = results.filter((r) => r.scene === "(load)");
   const flagged = cells.filter((r) => !r.clean);
   const diag = results.filter((r) => r.scene === "(diag)");
-  const totalConsole = diag.reduce((a, d) => a + (d.consoleErrorCount || 0), 0);
+  const totalUnexpectedConsole = diag.reduce((a, d) => a + (d.unexpectedConsoleCount || 0), 0);
+  const totalExpectedTelemetry429 = diag.reduce((a, d) => a + (d.expectedTelemetry429 || 0), 0);
+  const totalUnexpected429 = diag.reduce((a, d) => a + (d.unexpected429Count || 0), 0);
   const totalHydration = diag.reduce((a, d) => a + (d.hydrationCount || 0), 0);
   const total5xx = diag.reduce((a, d) => a + (d.http5xxCount || 0), 0);
   const EXPECTED = viewports.length * SCENES.length;
   const scrollCells = cells.filter((r) => r.scrollToReach);
   console.log(`cells executed: ${cells.length}/${EXPECTED} | clean: ${cells.length - flagged.length} | flagged: ${flagged.length} | load-failures: ${loads.length}`);
-  console.log(`console errors: ${totalConsole} | hydration warnings: ${totalHydration} | HTTP 5xx: ${total5xx}`);
+  console.log(`unexpected console errors: ${totalUnexpectedConsole} | hydration warnings: ${totalHydration} | HTTP 5xx: ${total5xx} | unexpected 429 (other routes): ${totalUnexpected429}`);
+  console.log(`expected optional-telemetry 429 backpressure (non-blocking; allowlist=/api/analytics/events,/api/conversion/events, status 429 only): ${totalExpectedTelemetry429}`);
   // TRANSPARENCE (jamais masqué) : cellules dont le CTA n'est pas dans le 1er écran mais atteignable
   // par le scroll INTERNE de la scène (chrome fixe). Attendu sur les surfaces riches 11/12/13/14 en petit viewport.
   console.log(`CTA reachable via internal scroll (not 1st-screen): ${scrollCells.length}` + (scrollCells.length ? " -> " + scrollCells.map((r) => `${r.viewport}/${r.scene}`).join(", ") : ""));
   for (const f of flagged) console.log("  FLAG", f.viewport, f.scene, JSON.stringify({ err: f.error, ds: f.dataScene, op: f.opacity, vis: f.visibility, ctaReach: f.ctaReachable, hdr: f.headerVisible, prog: f.progressVisible, noH: f.noHScroll }));
-  for (const d of diag.filter((x) => x.consoleErrorCount > 0)) console.log("  CONSOLE", d.viewport, JSON.stringify(d.consoleErrors));
-  const pass = cells.length === EXPECTED && flagged.length === 0 && loads.length === 0 && totalConsole === 0 && totalHydration === 0 && total5xx === 0;
+  for (const d of diag.filter((x) => x.unexpectedConsoleCount > 0)) console.log("  UNEXPECTED-CONSOLE", d.viewport, JSON.stringify(d.unexpectedConsole));
+  const pass = cells.length === EXPECTED && flagged.length === 0 && loads.length === 0
+    && totalUnexpectedConsole === 0 && totalHydration === 0 && total5xx === 0 && totalUnexpected429 === 0;
   console.log(pass ? `MATRIX_${EXPECTED}_${EXPECTED}_CLEAN` : "MATRIX_FAIL");
   process.exit(pass ? 0 : 1);
 })().catch((e) => { console.error("FATAL", e); process.exit(1); });

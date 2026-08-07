@@ -6,7 +6,13 @@
 //  • explorateur : CloneOS/CloneADN/CloneGuard/CloneVoice/CloneCall/CloneRoom/CloneChat sélectionnables,
 //    chacun avec un statut honnête ; CloneVoice = « Live bloqué » ; CloneChat jamais « Disponible ».
 // Navigation par clavier (marche sur tout viewport). Exit 0 = CH3_INTERACTIVE_ALL_PASS.
+//
+// Politique console (partagée, testée, honnête — scripts/qa/browser-console-policy.cjs) : la SEULE
+// erreur console tolérée est la backpressure télémétrie OPTIONNELLE attendue (HTTP 429 des beacons
+// fire-and-forget /api/analytics/events + /api/conversion/events), comptée à part et jamais bloquante.
+// Toute autre erreur console, pageerror, HTTP 5xx ou 429 d'une autre route reste BLOQUANTE. Aucun stub.
 const { chromium } = require("playwright");
+const { createConsoleGate } = require("./qa/browser-console-policy.cjs");
 const BASE = process.env.DEMO_BASE || "http://localhost:3006";
 const SCENES = [
   "value", "clonestore", "objective", "execution", "validation", "result",
@@ -18,6 +24,10 @@ const SCENES = [
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
   const p = await ctx.newPage();
+  const gate = createConsoleGate(); // expected optional-telemetry 429 = non-blocking; all else blocks
+  p.on("console", (m) => { const loc = m.location() || {}; gate.onConsole({ type: m.type(), text: m.text(), url: loc.url || "" }); });
+  p.on("pageerror", (e) => gate.onPageError(e));
+  p.on("response", (r) => gate.onResponse({ url: r.url(), status: r.status() }));
   const results = [];
   const ok = (name, cond, extra) => results.push({ name, pass: !!cond, extra });
   const badNumber = (s) => /NaN|Infinity|undefined|€\s*€|\bnull\b/.test(s || "");
@@ -101,8 +111,15 @@ const SCENES = [
   }
 
   await b.close();
-  let all = true;
-  for (const r of results) { console.log((r.pass ? "PASS" : "FAIL") + "  " + r.name + (r.pass ? "" : "  << " + (r.extra || ""))); if (!r.pass) all = false; }
-  console.log(all ? "CH3_INTERACTIVE_ALL_PASS" : "CH3_INTERACTIVE_FAIL");
+  let functionalOk = true;
+  for (const r of results) { console.log((r.pass ? "PASS" : "FAIL") + "  " + r.name + (r.pass ? "" : "  << " + (r.extra || ""))); if (!r.pass) functionalOk = false; }
+  // Browser policy: only expected optional-telemetry 429 backpressure is tolerated (counted honestly).
+  console.log("BROWSER-POLICY " + gate.summaryLine());
+  const c = gate.counts();
+  if (!gate.ok()) console.log("  UNEXPECTED-CONSOLE", JSON.stringify(gate.details().unexpectedConsole.slice(0, 6)));
+  const all = functionalOk && gate.ok();
+  console.log(all
+    ? `CH3_INTERACTIVE_ALL_PASS (expected optional-telemetry 429 backpressure: ${c.expectedTelemetry429 + c.expected429Responses})`
+    : "CH3_INTERACTIVE_FAIL");
   process.exit(all ? 0 : 1);
 })().catch((e) => { console.log("FATAL", e.message.slice(0, 200)); process.exit(1); });
