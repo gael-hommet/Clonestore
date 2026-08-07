@@ -18,6 +18,7 @@ import { bridgeFounderServerEvent, founderEventIdFor } from "@/lib/analytics/ada
 import { resolveAnalyticsEnvironment, boundedAnalyticsWrite } from "@/lib/analytics/server-events";
 import { readVisitorId, readSessionId } from "@/lib/analytics/identity";
 import { upsertConversionLink } from "@/lib/analytics/correlation";
+import { isAuthenticatedProductionQaRequest } from "@/lib/analytics/qa-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,30 +70,42 @@ export async function POST(req: Request) {
     reservationId = res.id;
     alreadyConfirmed = res.already_confirmed;
 
+    // Parcours QA synthétique authentifié SERVEUR (en-tête privé `x-clonestore-qa-token` = secret
+    // serveur, comparaison temps constant, Production uniquement). Un client public NE PEUT JAMAIS
+    // l'obtenir → le chemin de réservation NORMAL est strictement inchangé. En mode QA : la vérité
+    // serveur analytics est classée `test` (isolée du funnel propriétaire) ET aucun email n'est envoyé.
+    const analyticsEnv = resolveAnalyticsEnvironment();
+    const qaSynthetic = isAuthenticatedProductionQaRequest({
+      environment: analyticsEnv,
+      providedToken: req.headers.get("x-clonestore-qa-token"),
+      configuredToken: process.env.CLONESTORE_ANALYTICS_QA_TOKEN,
+    });
+
     // Canonique (additif, après persistance métier réussie, BORNÉ dans le temps) :
     // corrélation (visitor/session d'origine lus depuis les cookies signés) + reservation_created.
     // event_id déterministe ⇒ un ré-appel idempotent de la réservation ne double jamais.
     {
-      const env = resolveAnalyticsEnvironment();
       const cookieHeader = req.headers.get("cookie");
       const visitorId = readVisitorId(cookieHeader);
       const sessionId = readSessionId(cookieHeader);
       await boundedAnalyticsWrite(async () => {
-        await upsertConversionLink(db, { reservationId, environment: env, visitorId, sessionId });
+        await upsertConversionLink(db, { reservationId, environment: analyticsEnv, visitorId, sessionId });
         return bridgeFounderServerEvent(db, {
           eventId: founderEventIdFor(reservationId, "founder_reservation_created"),
           founderEventName: "founder_reservation_created",
           occurredAtIso: new Date().toISOString(),
           reservationId,
-          environment: env,
+          environment: analyticsEnv,
           visitorId,
           sessionId,
+          trafficClass: qaSynthetic ? "test" : "external",
         });
       });
     }
 
     // Envoi immédiat best-effort de la vérification (le worker E.3 reste le filet).
-    if (!alreadyConfirmed && isFounderEmailConfigured()) {
+    // Jamais d'email en mode QA synthétique (aucun envoi réel).
+    if (!alreadyConfirmed && isFounderEmailConfigured() && !qaSynthetic) {
       const origin = new URL(req.url).origin;
       const verifyUrl = `${origin}/api/founder-access/verify?rid=${encodeURIComponent(reservationId)}&token=${encodeURIComponent(token.token)}`;
       const mail = renderVerificationEmail(verifyUrl);

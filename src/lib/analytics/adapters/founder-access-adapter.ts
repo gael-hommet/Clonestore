@@ -11,7 +11,7 @@
 
 import { createHash } from "node:crypto";
 import type { SqlExecutor } from "@/lib/pierre/v1/sql";
-import type { CanonicalAnalyticsEventName, AnalyticsTrustLevel, AnalyticsEnvironment } from "../schema";
+import type { CanonicalAnalyticsEventName, AnalyticsTrustLevel, AnalyticsEnvironment, AnalyticsTrafficClass } from "../schema";
 import { insertAnalyticsEvent } from "../store";
 
 const FOUNDER_TO_CANONICAL: Partial<Record<string, CanonicalAnalyticsEventName>> = {
@@ -43,6 +43,10 @@ export interface FounderServerEventInput {
   sessionId?: string | null;
   authenticatedUserId?: string | null;
   partnerAttributionId?: string | null;
+  // Classification du trafic pour la vérité serveur émise. Défaut "external" (vraie conversion).
+  // "test" UNIQUEMENT pour un parcours QA authentifié serveur (jamais dérivé d'un signal client) —
+  // permet d'isoler une réservation QA synthétique du funnel propriétaire.
+  trafficClass?: AnalyticsTrafficClass;
 }
 
 const CORR_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -77,7 +81,7 @@ export async function bridgeFounderServerEvent(
       sessionId: asCorrUuid(input.sessionId),
       receivedAt: new Date().toISOString(),
       environment: input.environment,
-      trafficClass: "external",
+      trafficClass: input.trafficClass ?? "external",
       authenticatedUserId: asCorrUuid(input.authenticatedUserId),
       countryCode: null,
       sourceChannel: input.partnerAttributionId ? "partner" : null,

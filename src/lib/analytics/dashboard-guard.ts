@@ -20,6 +20,7 @@ export type AnalyticsDashboardGate =
       storageAvailable: boolean;
       windowSinceIso: string;
       windowUntilIso: string;
+      includeQa: boolean;
     };
 
 const FUNNEL_V1_STAGE_ORDER = [
@@ -41,11 +42,13 @@ const FUNNEL_V1_STAGE_ORDER = [
 ] as const satisfies readonly (typeof CANONICAL_EVENT_NAMES)[number][];
 
 export async function resolveAnalyticsDashboardAccess(
-  { slug, cookieHeader, loginReturnPath, windowDays = 30 }: {
+  { slug, cookieHeader, loginReturnPath, windowDays = 30, includeQa = false }: {
     slug: string;
     cookieHeader: string | null;
     loginReturnPath: string;
     windowDays?: number;
+    /** Contrôle propriétaire « Inclure le trafic QA » — désactivé par défaut (external-only). */
+    includeQa?: boolean;
   },
 ): Promise<AnalyticsDashboardGate> {
   const expected = process.env.CLONESTORE_OWNER_COCKPIT_SLUG;
@@ -76,11 +79,12 @@ export async function resolveAnalyticsDashboardAccess(
       storageAvailable: false,
       windowSinceIso,
       windowUntilIso,
+      includeQa,
     };
   }
 
   const [stages, health] = await Promise.all([
-    countFunnelStages(db, FUNNEL_V1_STAGE_ORDER, windowSinceIso, windowUntilIso),
+    countFunnelStages(db, FUNNEL_V1_STAGE_ORDER, windowSinceIso, windowUntilIso, includeQa),
     measurementHealthSnapshot(db, windowSinceIso),
   ]);
 
@@ -92,6 +96,7 @@ export async function resolveAnalyticsDashboardAccess(
     storageAvailable: true,
     windowSinceIso,
     windowUntilIso,
+    includeQa,
   };
 }
 

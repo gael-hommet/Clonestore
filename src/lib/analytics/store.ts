@@ -57,15 +57,23 @@ export interface FunnelStageCount {
 }
 
 /**
- * Compte, pour un ensemble d'étapes, les visiteurs/sessions/démo-runs distincts externes
- * uniquement (trafic interne/test/automatisé exclu par défaut — Phase 15/20).
+ * Compte, pour un ensemble d'étapes, les visiteurs/sessions/démo-runs distincts.
+ *
+ * Par défaut (`includeTest=false`) : trafic `external` UNIQUEMENT — le trafic `internal`,
+ * `automated` (bots/crawlers/scripts) et `test` (QA) est exclu (Phase 15/20).
+ *
+ * `includeTest=true` (contrôle propriétaire « Inclure le trafic QA ») ajoute la classe `test`
+ * aux comptes — jamais `automated` ni `internal`, qui restent toujours exclus : inclure la QA
+ * ne doit jamais faire remonter du bruit de bots dans le funnel propriétaire.
  */
 export async function countFunnelStages(
   db: SqlExecutor,
   eventNames: readonly string[],
   sinceIso: string,
   untilIso: string,
+  includeTest = false,
 ): Promise<FunnelStageCount[]> {
+  const classes = includeTest ? ["external", "test"] : ["external"];
   const result = await db.query<FunnelStageCount>(
     `select
        event_name as "eventName",
@@ -76,9 +84,9 @@ export async function countFunnelStages(
      from clonestore_analytics_events_v1
      where event_name = any($1)
        and occurred_at >= $2 and occurred_at < $3
-       and traffic_class = 'external'
+       and traffic_class = any($4)
      group by event_name`,
-    [eventNames, sinceIso, untilIso],
+    [eventNames, sinceIso, untilIso, classes],
   );
   return result.rows;
 }
