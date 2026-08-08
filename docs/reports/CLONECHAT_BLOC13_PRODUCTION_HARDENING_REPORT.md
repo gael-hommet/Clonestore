@@ -11,8 +11,14 @@ uniquement « prêt pour les preuves finales du BLOC 14 ».
 
 ## Lignée
 - **Première implémentation (INCOMPLÈTE)** : `97e3b69f62731849725ac3fe20b2ef081a18e096` — `feat(clonechat): BLOC 13 production hardening and runtime readiness`. Owner l'a rouverte : readiness vacuement vert, runtime non câblé au chemin actif, streaming non prouvé, file non abortable, config invalide masquée, cas pipeline non prouvés, loading non asserté, limites transport après parsing.
-- **Commit correctif final (CE commit)** : `fix(clonechat): close BLOC 13 real runtime hardening gate`, parent DIRECT `97e3b69f`. Le commit `97e3b69f` est CONSERVÉ intégralement ; ce correctif est un nouveau commit enfant (sans amend).
-- **Git remote** : `origin/main` distant réel = `4a6fa93f1369ac039b52c5731b701438bf6e5b72` (lecture autoritative `git.listServerRefs` — origin a ENCORE avancé, indépendamment ; ni fetché ni mergé ni poussé ici). Le BLOC 13 est construit localement sur `97e3b69f`.
+- **2e commit correctif** : `e9ba08c106ebc8dea2d6819b9bc46174c4c142cc` — `fix(clonechat): close BLOC 13 real runtime hardening gate`, parent DIRECT `97e3b69f`. A corrigé la majorité des 8 blockers A→H. CONSERVÉ intégralement.
+- **3e commit correctif final (CE commit)** : `fix(clonechat): enforce fail-closed active runtime on served path`, parent DIRECT `e9ba08c1`, SANS amend. Ferme les 3 défauts de fermeture restants : **(1)** ACTIVE demandé + NON prêt = **FAIL-CLOSED**, jamais un repli vers le provider historique ; **(2)** concurrence + backpressure + budget **TOTAL** réellement utilisés par le chemin actif servi ; **(3)** retry servi RÉEL (unaire) ou explicitement 0 (streaming, documenté). Lignée : `97e3b69f → e9ba08c1 → (ce commit)`, les trois conservés.
+- **Git remote** : `origin/main` distant réel = `4a6fa93f1369ac039b52c5731b701438bf6e5b72` (lecture autoritative `git.listServerRefs` — origin a avancé indépendamment ; ni fetché ni mergé ni poussé ici).
+
+## Les 3 défauts de fermeture (3e commit)
+- **Défaut 1 — ACTIVE refusé ≠ OFF.** Avant : `hActive = enforce && activeAllowed` ; si active demandé mais readiness non verte, `hActive` devenait faux et la requête retombait sur le chemin **historique** (qui rappelle le provider sans durcissement). Après : dès que `effect.enforce` (mode active) ET `!activeAllowed`, la route renvoie une réponse SÛRE (`config_invalid` / `circuit_open` / `runtime_disabled`) AVANT tout travail provider — voie publique ET voie entreprise fail-closent. **Circuit ouvert ne peut donc JAMAIS atteindre le provider (durci NI historique).**
+- **Défaut 2 — concurrence/backpressure/budget total réellement servis.** `runServedActiveStream`/`runServedActiveUnary` acquièrent un slot d'un limiteur servi PERSISTANT (tenant-scopé, clé jamais dérivée du texte utilisateur), démarrent le budget TOTAL AVANT l'attente de file (il enveloppe attente-file + démarrage provider + streaming complet + finalisation) et rendent le slot EXACTEMENT une fois ; abort/timeout en file retire le waiter (provider jamais appelé).
+- **Défaut 3 — retry.** Streaming : `maxRetries=0` par construction (documenté ; rejouer après le 1er delta corromprait la sortie). Unaire servi : `config.retry` (borné, idempotent, avant tout output) — plus de valeur de retry fantôme.
 
 ## Fichiers (module `src/lib/clonechat/hardening/`)
 | Fichier | Rôle |
@@ -80,15 +86,15 @@ garanties route falsifiables) ; `provider_healthy` dérivé du VRAI breaker (cir
 active retiré, fail-closed).
 
 ## Tests exacts (séquentiels après la dernière modification)
-- **Suite BLOC 13 = 61** : hardening unité **39/39**, streaming **10/10**, pipeline **8/8**, route active **4/4** (> 56 précédents).
-- **CloneChat** : passe 19 fichiers **529/529** (dont `universal-clonechat` = chemin servi OFF inchangé) ; Analytics CloneChat 87/87 inclus.
-- **Analytics/QA canonique** **161/161** + route QA **4/4** = **165/165** (les skips observés en co-exécution étaient une contention DB inter-session ; 0 échec ; verts en ré-exécution).
-- **Démo + policy navigateur** **509/509**.
+- **Suite BLOC 13 = 106** : hardening unité **39** + streaming **10** + pipeline **19** + adaptateur servi **8** (`hardening-served`) + route **10** + concurrence route **7** (`hardening-route-concurrency`) + body route **13** (`hardening-route-body`).
+- **CloneChat lib + route** : passe séquentielle **1609 pass / 10 skips** pré-existants (`.itest` durable ; `universal-clonechat` = chemin servi OFF strictement inchangé).
+- **Analytics/QA canonique** **161** + route QA **4** = **165/165**.
+- **Démo + policy navigateur** 30 fichiers = **509/509**.
 - **TypeScript** global : 0 erreur nouvelle (1 pré-existante `embedded-postgres`). **ESLint** : 0 erreur (2 warnings PRÉ-EXISTANTS `no-console` dans la route, non introduits).
 
 ## Build & navigateur (build FRAIS, aucun appel payant)
 - **Build Next isolé** `.next-hotfix` : **BUILD_EXIT_CODE=0** réel.
-- **Playwright /assistant** desktop/iPhone/Android **5/5** : rendu, saisie, **loading OBSERVÉ** (bouton Interrompre avant résultat), résultat via le VRAI protocole event-stream, **interruption** (UI réutilisable), **erreur 503 contrôlée**, a11y clavier, aucune fuite, 0 pageerror / 0 hydration / 0 HTTP 5xx / 0 erreur console inattendue (429 télémétrie facultatifs comptés à part). Backend SSE synthétique.
+- **Playwright /assistant** desktop/iPhone/Android **6/6** : rendu, saisie, **loading OBSERVÉ** (bouton Interrompre avant résultat), résultat via le VRAI protocole event-stream, **interruption** (UI réutilisable), **erreur 503 contrôlée**, **FAIL-CLOSED contrôlé** (active non prêt → réponse sûre, UI réutilisable, aucun faux résultat), a11y clavier, aucune fuite, 0 pageerror / 0 hydration / 0 HTTP 5xx inattendu / 0 erreur console inattendue. Backend SSE synthétique.
 - **CloneChat onboarding** **15/15**. **4 scripts démo officiels EXIT 0** : demo-first-scene, demo-nav-check (NAV_ALL_PASS), demo-visual-matrix (MATRIX_112_112_CLEAN), demo-ch3-interactive (CH3_INTERACTIVE_ALL_PASS).
 - Serveur arrêté proprement ; `.next-hotfix` + `test-results` supprimés ; `tsconfig.json` byte-exact (`8a88b0410a539280`).
 
@@ -102,9 +108,11 @@ toujours exclus, réservation QA server-secret-only, aucun email QA).
   aucun appel payant). Le BLOC 14 fera les preuves finales/E2E de bout en bout du système déjà câblé.
 - Aucune preuve de CHARGE réelle (interdit) : concurrence/backpressure/circuit/timeout prouvés par
   dépendances synthétiques déterministes.
-- Le chemin actif se retire (readiness degraded) quand le circuit provider est ouvert : c'est le
-  comportement fail-closed voulu (le circuit protège pendant la phase active ; une fois ouvert, la route
-  retombe sur le chemin historique existant, lui-même sûr).
+- **CORRECTION (vs 2e commit).** Quand le circuit provider est ouvert — ou tout autre readiness NON vert —
+  en mode active, la route **NE RETOMBE PLUS** sur le chemin historique : elle **FAIL-CLOSE** (aucun
+  provider durci NI historique, réponse sûre honnête `circuit_open`/`config_invalid`/`runtime_disabled`).
+  La voie ENTREPRISE en mode active fail-close aussi (hors périmètre servi durci) plutôt que d'appeler le
+  provider sans durcissement — jamais un bypass. Off/shadow/kill switch : chemin historique inchangé.
 
 ## Pourquoi « ready_for_BLOC14 » et NON « Production validée »
 `productionReadyClaim` reste **false** par construction : rien n'est déployé, `active` n'est pas activé en

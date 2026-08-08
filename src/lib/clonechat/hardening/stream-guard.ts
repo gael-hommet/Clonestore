@@ -54,6 +54,10 @@ export async function pumpHardenedStream(sink: HardenedStreamSink, deps: Hardene
 
   let outcome: "done" | "error" | "cancelled" = "error";
   try {
+    // RETRY EXPLICITEMENT DÉSACTIVÉ pour le streaming (maxRetries=0 par construction : aucun `retry`
+    // passé à guardProviderCall). Rejouer un provider de streaming après le 1er delta dupliquerait/
+    // corromprait la sortie déjà émise — c'est structurellement dangereux. Le retry BORNÉ (config.retry)
+    // n'est appliqué QUE sur le chemin UNAIRE servi (runServedActiveUnary), avant tout output.
     const { donePayload } = await guardProviderCall((sig) => deps.produce(emit, sig), {
       breaker: deps.breaker, timeoutMs: deps.providerTimeoutMs, parentSignal: deps.parentSignal ?? null, schedule: deps.schedule,
     });

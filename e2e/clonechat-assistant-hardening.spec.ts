@@ -41,10 +41,14 @@ function sseBody(): string {
   );
 }
 
-async function neutralizeBackend(page: Page, opts: { chat: "sse" | "error503"; delayMs?: number }): Promise<void> {
+async function neutralizeBackend(page: Page, opts: { chat: "sse" | "error503" | "failClosed"; delayMs?: number }): Promise<void> {
   await page.route("**/api/assistant/chat", async (route: Route) => {
     if (opts.delayMs) await new Promise((r) => setTimeout(r, opts.delayMs));
     if (opts.chat === "error503") { await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false, code: "provider_unavailable", error: "Service temporairement indisponible." }) }); return; }
+    // BLOC 13 — réponse FAIL-CLOSED du runtime durci (mode active demandé mais NON prêt : circuit ouvert).
+    // Reproduit EXACTEMENT ce que la route produit (prouvé au niveau route) pour vérifier que le CLIENT la
+    // gère proprement : aucun crash, UI réutilisable, aucun faux résultat, aucun 5xx inattendu.
+    if (opts.chat === "failClosed") { await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false, code: "circuit_open", error: "Service temporairement indisponible.", structured: { answer: "Service temporairement indisponible.", honesty: "unknown", tool_call: null, citations: [] }, runtime: { hardened: true, active: true, failClosed: true, reason: "circuit_open" } }) }); return; }
     await route.fulfill({ status: 200, contentType: "text/event-stream; charset=utf-8", body: sseBody() });
   });
   await page.route("**/api/assistant/conversations**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, conversations: [], messages: [], conversation: { id: "c-test" } }) }));
@@ -118,4 +122,25 @@ test("[desktop] /assistant : erreur provider CONTRÔLÉE (503) — aucun crash, 
   expect(m.pageErrors, "aucune pageerror").toEqual([]);
   const other = m.unexpectedConsole.filter((e) => !(e.includes("status of 503") && e.includes("/api/assistant/chat")));
   expect(other, "aucune erreur console AUTRE que le 503 injecté").toEqual([]);
+});
+
+test("[desktop] /assistant : FAIL-CLOSED runtime durci (active NON prêt : circuit ouvert) — contrôlé, UI réutilisable", async ({ page }) => {
+  // Preuve NAVIGATEUR du chemin fail-closed du BLOC 13 : le CLIENT gère la réponse contrôlée (503,
+  // ok:false, code circuit_open) sans crash, sans faux résultat, et l'UI reste réutilisable. La PRODUCTION
+  // de cette réponse par le serveur est prouvée au niveau route (hardening-route.test.ts). Aucun appel payant.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const m = attachMonitors(page);
+  await neutralizeBackend(page, { chat: "failClosed" });
+
+  await page.goto(`${BASE}/assistant`, { waitUntil: "domcontentloaded" });
+  await typeAndSend(page, "Message alors que le runtime durci n'est pas prêt");
+  const box = page.locator('textarea[aria-label^="Message pour CloneChat"]');
+  await expect(box).toBeVisible({ timeout: 15_000 });
+  await box.click(); await box.fill("nouvelle tentative"); await expect(box).toHaveValue("nouvelle tentative");
+  // Aucun faux "résultat" synthétique ne doit apparaître (le fail-closed ne fabrique jamais de réponse).
+  const html = await page.content();
+  expect(html).not.toContain(ANSWER);
+  expect(m.pageErrors, "aucune pageerror").toEqual([]);
+  const other = m.unexpectedConsole.filter((e) => !(e.includes("status of 503") && e.includes("/api/assistant/chat")));
+  expect(other, "aucune erreur console AUTRE que le 503 fail-closed injecté").toEqual([]);
 });

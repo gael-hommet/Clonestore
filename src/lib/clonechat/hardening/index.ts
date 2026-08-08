@@ -29,6 +29,9 @@ export { pumpHardenedStream, type HardenedStreamEvent, type HardenedStreamSink, 
 export { readBoundedRequestText, contentLengthExceeds, type BoundedRead } from "./body-guard";
 export {
   activeHardening, buildActiveHardenedStream, activeReadinessFacts,
-  __setActiveStreamProduceForTests, activeStreamProduceForTests, __resetActiveHardeningForTests,
-  activeBreakerSnapshotForTests, type ActiveHardening,
+  runServedActiveStream, runServedActiveUnary, ACTIVE_STREAM_PROVIDER_KEY,
+  __setActiveStreamProduceForTests, activeStreamProduceForTests,
+  __setActiveUnaryCallForTests, activeUnaryCallForTests,
+  __resetActiveHardeningForTests, activeBreakerSnapshotForTests, activeConcurrencySnapshotForTests,
+  type ActiveHardening, type ActiveUnaryCall, type ServedStreamResult, type ServedUnaryResult,
 } from "./chat-active";

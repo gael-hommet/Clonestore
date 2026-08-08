@@ -99,8 +99,11 @@ import { respondUnified, loadResponderConfig, readOpenAIKeyLazy } from "@/lib/cl
 // (défaut, y compris Production) rien ne change ; en `active` (jamais Production ici) : body borné,
 // limites, concurrence/timeout/circuit, flux SSE durci.
 import {
-  hardeningChatPrecheck, activeHardening, buildActiveHardenedStream, readBoundedRequestText,
-  activeStreamProduceForTests, type ReadinessFacts,
+  hardeningChatPrecheck, activeHardening, readBoundedRequestText,
+  runServedActiveStream, runServedActiveUnary, ACTIVE_STREAM_PROVIDER_KEY,
+  activeStreamProduceForTests, activeUnaryCallForTests,
+  safeMessageFor, httpStatusFor, HardeningError,
+  type ReadinessFacts, type HardeningErrorCode, type ReadinessReport,
 } from "@/lib/clonechat/hardening";
 
 export const runtime = "nodejs";
@@ -114,6 +117,16 @@ function bearer(req: Request): string | null {
   return m ? m[1] : null;
 }
 const now = () => new Date().toISOString();
+
+/** BLOC 13 — mappe l'état de readiness NON vert vers un code d'erreur SÛR exact (pour le fail-closed du
+ *  chemin actif). config invalide → config_invalid ; breaker provider ouvert (dégradant) → circuit_open ;
+ *  toute autre garantie manquante/échouée → runtime_disabled. Jamais de détail interne. */
+function failClosedReason(report: ReadinessReport): HardeningErrorCode {
+  const failing = report.checks.filter((c) => !c.ok);
+  if (failing.some((c) => c.id === "config_valid")) return "config_invalid";
+  if (failing.some((c) => c.id === "provider_healthy")) return "circuit_open";
+  return "runtime_disabled";
+}
 
 /** Transport de pièce jointe. Le serveur ne fait CONFIANCE à aucun champ déclaré :
  *  le MIME est re-détecté par signature, la taille recalculée, le hash recalculé. */
@@ -223,6 +236,21 @@ export async function POST(req: Request) {
   };
   const hardening = activeHardening(process.env, routeCaps);
   const hActive = hardening.effect.enforce && hardening.activeAllowed; // active ET readiness verte
+
+  // ── BLOC 13 — FAIL-CLOSED ABSOLU ──────────────────────────────────────────────
+  // Mode `active` DEMANDÉ (effect.enforce) mais readiness NON verte (config invalide, circuit provider
+  // ouvert, evidence manquante/échouée) ⇒ on NE RETOMBE JAMAIS sur le chemin historique (qui rappellerait
+  // le provider SANS durcissement). ACTIVE REQUESTED + NOT READY ≠ OFF : réponse sûre/honnête, AUCUN appel
+  // provider (ni durci ni historique), aucun effet, aucune action/mission, aucun détail interne. Les modes
+  // off/shadow/kill switch (effect.enforce=false) ne sont JAMAIS concernés → comportement inchangé.
+  if (hardening.effect.enforce && !hardening.activeAllowed) {
+    const code = failClosedReason(hardening.readiness);
+    return noStore({
+      ok: false, code, error: safeMessageFor(code),
+      structured: { answer: safeMessageFor(code), honesty: "unknown", tool_call: null, citations: [] },
+      runtime: { hardened: true, active: true, failClosed: true, reason: code },
+    }, httpStatusFor(code));
+  }
 
   // BODY : en active, lecture BORNÉE au transport AVANT parsing (Content-Length + cumul réel, corps
   // mensonger/chunké plafonné). En off/shadow : chemin historique inchangé (req.json()).
@@ -399,7 +427,7 @@ export async function POST(req: Request) {
   // journalisé. Corrigé : chaque échec est désormais journalisé (structuré, sans secret), et
   // la voie publique NE RETOMBE PLUS JAMAIS sur l'ancien pipeline commercial (voir call sites) —
   // un échec produit un message d'indisponibilité honnête, jamais une fiche prix.
-  const runUnifiedPrimary = async (): Promise<{
+  const runUnifiedPrimary = async (signalOverride?: AbortSignal): Promise<{
     answer: string; citations: readonly string[]; suggestCard: boolean; usedWebSearch: boolean;
   } | null> => {
     const unifiedKey = readOpenAIKeyLazy(); // journalise déjà elle-même l'absence en production
@@ -410,7 +438,9 @@ export async function POST(req: Request) {
         config: loadResponderConfig(),
         message,
         history: (body?.history ?? []).slice(-6).map((h) => ({ role: h.role, text: h.text })),
-        signal: req.signal,
+        // En mode actif durci, l'abort vient du signal COMBINÉ (abort client OU budget total) ; sinon
+        // le signal de la requête. Un provider coopératif cesse tout travail à l'annulation.
+        signal: signalOverride ?? req.signal,
       });
       if (!r.ok || r.answer.trim().length === 0) {
         // eslint-disable-next-line no-console
@@ -551,45 +581,111 @@ export async function POST(req: Request) {
     // claims C1 — sinon on montrerait du texte non gardé avant de le corriger.
     //
     // ── BLOC 13 — CHEMIN ACTIF DURCI (jamais Production ici) ───────────────────────
-    // Streaming RÉEL passé par le circuit breaker + timeout provider + budget de sortie borné +
-    // fermeture unique + abort → cancelled (machinerie stream-guard commune, testée). Le provider est
-    // le VRAI runUnifiedPrimary (ou un provider synthétique injecté en test, fail-closed). Off/shadow
-    // n'entrent jamais ici (hActive faux) : le chemin historique ci-dessous reste strictement inchangé.
-    if (hActive && body?.stream === true && pubReservation.granted && !!key && cfg.enabled) {
-      const gateA = createSentenceGate((t) => finalizeAnswerText(t).safeText);
-      let committedA = false;
-      const donePrereq = prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {};
-      const realProduce = async (emit: (d: string) => void): Promise<{ donePayload: unknown }> => {
-        const unified = await runUnifiedPrimary();
-        if (unified) {
-          for (const s of gateA.push(unified.answer)) emit(s);
-          for (const r of gateA.flush()) emit(r);
-          await persistPublicTurn(unified.answer);
-          try { await stores.budget.commit(pubReservation, 0); } catch { /* comptabilité best-effort */ }
-          committedA = true;
-          return { donePayload: {
-            ok: true, source: "clonechat_unified", public: true, anonymous: viewer.kind === "anonymous", requestClass, ...donePrereq,
-            structured: { answer: unified.answer, honesty: "answered", tool_call: null, citations: unified.citations },
-            ...(unified.suggestCard ? { suggestedCTA: true } : {}),
-            runtime: { provider: "openai", engine: "unified", usedWebSearch: unified.usedWebSearch, streamed: true, hardened: true },
-          } };
-        }
-        for (const s of gateA.push(UNIFIED_UNAVAILABLE_MESSAGE)) emit(s);
-        for (const r of gateA.flush()) emit(r);
-        return { donePayload: {
-          ok: true, source: "clonechat_unified_unavailable", public: true, anonymous: viewer.kind === "anonymous", requestClass, ...donePrereq,
+    // En mode `active` (readiness verte : le cas non-prêt a déjà FAIL-CLOSED plus haut), le provider
+    // n'est JAMAIS appelé par le chemin historique. Il passe OBLIGATOIREMENT par le runtime durci :
+    // slot de concurrence TENANT-SCOPÉ + budget TOTAL qui enveloppe l'attente de file + circuit + timeout
+    // provider + budget de sortie + fermeture unique (stream) ; retry BORNÉ réel (unary). Provider
+    // synthétique injectable en test (fail-closed). ACTIVE ne « retombe » JAMAIS sur l'ancien chemin.
+    if (hActive) {
+      const providerUsable = pubReservation.granted && !!key && cfg.enabled;
+      const failClosed = (code: HardeningErrorCode) => noStore({
+        ok: false, code, error: safeMessageFor(code),
+        structured: { answer: safeMessageFor(code), honesty: "unknown", tool_call: null, citations: [] },
+        runtime: { hardened: true, active: true, failClosed: true, reason: code },
+      }, httpStatusFor(code));
+
+      if (!providerUsable) {
+        // Aucun provider possible (pas de réservation/clé/flag) : indisponibilité HONNÊTE, JAMAIS le
+        // chemin historique, jamais inventé. Réservation éventuelle relâchée (0 token).
+        if (pubReservation.granted) { try { await stores.budget.release(pubReservation); } catch { /* ignore */ } }
+        return reply({
+          ok: true, source: "clonechat_unified_unavailable", public: true, anonymous: viewer.kind === "anonymous", requestClass,
+          ...(prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {}),
           structured: { answer: UNIFIED_UNAVAILABLE_MESSAGE, honesty: "unknown", tool_call: null, citations: [] },
-          runtime: { provider: "openai", engine: "unified", streamed: true, unavailable: true, hardened: true },
-        } };
-      };
-      const produce = activeStreamProduceForTests() ?? realProduce;
-      const activeStream = buildActiveHardenedStream({
-        produce, breaker: hardening.breakerFor("openai:public-stream"), config: hardening.config, parentSignal: req.signal,
-        onProviderError: (e) => { const f = classifyProviderFailure(e); return { code: f.code, message: f.message }; },
-        onFinished: async () => { if (!committedA) { try { await stores.budget.release(pubReservation); } catch { /* ignore */ } } },
+          runtime: { provider: "openai", engine: "unified", streamed: body?.stream === true, unavailable: true, hardened: true },
+        });
+      }
+
+      // Clé de concurrence TENANT-SCOPÉE — jamais dérivée du texte utilisateur : tenant fiable → co:<id>,
+      // sinon empreinte anonyme opaque (en-têtes/IP), déjà utilisée pour le rate-limit.
+      const tenantKey = (viewer.kind === "user" && tenant?.ok) ? `co:${tenant.companyId}` : `anon:${anonymousFingerprint(req.headers)}`;
+      const donePrereq = prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {};
+
+      if (body?.stream === true) {
+        const gateA = createSentenceGate((t) => finalizeAnswerText(t).safeText);
+        let committedA = false;
+        const realProduce = async (emit: (d: string) => void, sig: AbortSignal): Promise<{ donePayload: unknown }> => {
+          const unified = await runUnifiedPrimary(sig);
+          if (unified) {
+            for (const s of gateA.push(unified.answer)) emit(s);
+            for (const r of gateA.flush()) emit(r);
+            await persistPublicTurn(unified.answer);
+            try { await stores.budget.commit(pubReservation, 0); } catch { /* comptabilité best-effort */ }
+            committedA = true;
+            return { donePayload: {
+              ok: true, source: "clonechat_unified", public: true, anonymous: viewer.kind === "anonymous", requestClass, ...donePrereq,
+              structured: { answer: unified.answer, honesty: "answered", tool_call: null, citations: unified.citations },
+              ...(unified.suggestCard ? { suggestedCTA: true } : {}),
+              runtime: { provider: "openai", engine: "unified", usedWebSearch: unified.usedWebSearch, streamed: true, hardened: true },
+            } };
+          }
+          for (const s of gateA.push(UNIFIED_UNAVAILABLE_MESSAGE)) emit(s);
+          for (const r of gateA.flush()) emit(r);
+          return { donePayload: {
+            ok: true, source: "clonechat_unified_unavailable", public: true, anonymous: viewer.kind === "anonymous", requestClass, ...donePrereq,
+            structured: { answer: UNIFIED_UNAVAILABLE_MESSAGE, honesty: "unknown", tool_call: null, citations: [] },
+            runtime: { provider: "openai", engine: "unified", streamed: true, unavailable: true, hardened: true },
+          } };
+        };
+        const produce = activeStreamProduceForTests() ?? realProduce;
+        const served = await runServedActiveStream({
+          limiter: hardening.limiter, tenantKey, config: hardening.config,
+          breaker: hardening.breakerFor(ACTIVE_STREAM_PROVIDER_KEY), parentSignal: req.signal,
+          produce,
+          onProviderError: (e) => { const f = classifyProviderFailure(e); return { code: f.code, message: f.message }; },
+          onSettled: async () => { if (!committedA) { try { await stores.budget.release(pubReservation); } catch { /* ignore */ } } },
+        });
+        if (!served.ok || !served.stream) {
+          // Acquisition refusée (file pleine/abort/timeout AVANT tout provider) : release + code exact.
+          try { await stores.budget.release(pubReservation); } catch { /* ignore */ }
+          return failClosed(served.error?.code ?? "runtime_disabled");
+        }
+        return new Response(served.stream, {
+          headers: { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-store, no-transform", Connection: "keep-alive" },
+        });
+      }
+
+      // Non-stream ACTIF durci (UNARY) : concurrence + budget TOTAL + circuit + retry BORNÉ (idempotent,
+      // avant tout output). Le provider réel lève provider_unavailable en cas d'échec (jamais inventé).
+      type UnaryValue = { answer: string; citations: readonly string[]; suggestCard?: boolean; usedWebSearch?: boolean };
+      const seamUnary = activeUnaryCallForTests();
+      const unaryCall: (sig: AbortSignal) => Promise<UnaryValue> = seamUnary
+        ? (sig) => seamUnary(sig) as Promise<UnaryValue>
+        : async (sig) => { const u = await runUnifiedPrimary(sig); if (!u) throw new HardeningError("provider_unavailable", "unified unavailable"); return u; };
+      const unary = await runServedActiveUnary<UnaryValue>({
+        limiter: hardening.limiter, tenantKey, config: hardening.config,
+        breaker: hardening.breakerFor(ACTIVE_STREAM_PROVIDER_KEY), parentSignal: req.signal,
+        call: unaryCall,
+        retryable: (e) => e instanceof HardeningError && ["provider_unavailable", "timeout", "dependency_failure"].includes(e.code),
       });
-      return new Response(activeStream, {
-        headers: { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-store, no-transform", Connection: "keep-alive" },
+      if (!unary.ok) {
+        try { await stores.budget.release(pubReservation); } catch { /* ignore */ }
+        // Saturation/abort/timeout de file → code exact fail-closed ; échec provider → indisponibilité honnête.
+        if (["concurrency_limited", "cancelled", "timeout"].includes(unary.error.code)) return failClosed(unary.error.code);
+        return reply({
+          ok: true, source: "clonechat_unified_unavailable", public: true, anonymous: viewer.kind === "anonymous", requestClass,
+          ...(prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {}),
+          structured: { answer: UNIFIED_UNAVAILABLE_MESSAGE, honesty: "unknown", tool_call: null, citations: [] },
+          runtime: { provider: "openai", engine: "unified", streamed: false, unavailable: true, hardened: true, reason: unary.error.code },
+        });
+      }
+      await persistPublicTurn(unary.value.answer);
+      try { await stores.budget.commit(pubReservation, 0); } catch { /* comptabilité best-effort */ }
+      return reply({
+        ok: true, source: "clonechat_unified", public: true, anonymous: viewer.kind === "anonymous", requestClass, ...donePrereq,
+        structured: { answer: unary.value.answer, honesty: "answered", tool_call: null, citations: unary.value.citations },
+        ...(unary.value.suggestCard ? { suggestedCTA: true } : {}),
+        runtime: { provider: "openai", engine: "unified", usedWebSearch: unary.value.usedWebSearch ?? false, streamed: false, hardened: true },
       });
     }
     if (body?.stream === true && pubReservation.granted && !!key && cfg.enabled) {
@@ -756,6 +852,18 @@ export async function POST(req: Request) {
   if (viewer.kind !== "user" || tenant === null || !tenant.ok) return tenantRefusalResponse((tenant ?? { ok: false, code: "MEMBERSHIP_REQUIRED" }) as Extract<TenantResolution, { ok: false }>);
 
   const ctx = { companyId: tenant.companyId, userId: viewer.userId };
+
+  // ── BLOC 13 — Le chemin ENTREPRISE n'est pas dans le périmètre du chemin servi durci (BLOC 13). En
+  // mode `active` on FAIL-CLOSE plutôt que d'appeler le provider entreprise SANS durcissement : jamais
+  // un bypass vers le chemin historique. `active` n'est jamais activé en Production. (off/shadow : hActive
+  // faux → comportement entreprise historique strictement inchangé.)
+  if (hActive) {
+    return reply({
+      ok: false, code: "runtime_disabled", error: safeMessageFor("runtime_disabled"),
+      structured: { answer: safeMessageFor("runtime_disabled"), honesty: "unknown", tool_call: null, citations: [] },
+      runtime: { hardened: true, active: true, failClosed: true, scope: "company", reason: "runtime_disabled" },
+    }, httpStatusFor("runtime_disabled"));
+  }
 
   // ── C1.1 §5 : INGESTION des pièces jointes documentaires (serveur autoritaire) ──
   // Le companyId vient du tenant résolu serveur ; le MIME est re-détecté ; le statut de
