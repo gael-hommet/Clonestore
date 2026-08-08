@@ -119,3 +119,15 @@ toujours exclus, réservation QA server-secret-only, aucun email QA).
 Production, et les preuves finales E2E (BLOC 14) ne sont pas encore faites. Toutes les capacités
 structurantes du BLOC 13 (runtime câblé, readiness fail-closed, config validée, file abortable, budget
 total, streaming gaté, pipeline testé, loading observé) sont TERMINÉES localement et vertes.
+
+## POST-BLOC-13 FINAL SYNCHRONIZATION — PASS LOCAL
+Merge NON destructif de la lignée distante dans la lignée BLOC 13. Détail machine dans
+`CLONECHAT_CURRENT_STATE.json` → `post_bloc13_synchronization`.
+- **BLOC 13 final** : `2ff728e9e5ea1605e8ff0b4a3a3c45bdb897dd65`.
+- **Tip distant fusionné** : `f1ff2c529ff6d4b804a373dfc638f91a2bec34fc` (chaîne `df8b404f → 61b9e338 → 4a6fa93f → f1ff2c52`).
+- **Merge SHA** : `f043ba95df0bb5f79e795631f5ef28e9e1d41d26`, DEUX parents `[2ff728e9, f1ff2c52]`, merge-base `df8b404f`. Un commit docs distinct au-dessus (`docs(clonechat): record post-BLOC-13 final synchronization`). Aucun amend/rebase/force-push.
+- **0 conflit** (lignées disjointes). changed-vs-ours = exactement les 15 fichiers distants (Founder Access + vitest.config + Pierre BLOC6). **Aucun fichier BLOC 13 touché** ; aucun chemin interdit ; **aucune nouvelle modif `src/lib/pierre/v1/**` de ma part** (les 2 fichiers Pierre v1 du delta pris byte-faithfully de f1ff2c52, vérifiés).
+- **Tests du delta distant** : Founder Access + cognitive **42/42** (proof-of-possession mono-reservationId, no-secret→fail-closed, tamper/replay refusés, TTL, QA token requis, external jamais ciblable par la voie QA, trafficClass `test` serveur-autoritaire, aucun email réel, redirect login `next`) ; Pierre BLOC6 intégration `bloc6-qa-onboarding-mission.itest.ts` **4/4** (mission QA synthétique create→plan→run, documents internes, WAIT approval→approval→completion, idempotence, isolation cross-tenant, hard-floor, aucun email/signature/employé réel, fixture overdue stable).
+- **Non-régression** : BLOC 13 **106/106** ; CloneChat lib+route **1609 pass / 10 skips pré-existants** (aucun nouveau skip) ; Analytics/QA **165** ; démo/policy **509** ; **tsc 0 nouvelle** ; **ESLint 0 erreur** sur le delta merge.
+- **Build & navigateur** (arbre MERGÉ) : build isolé `.next-hotfix` **exit 0** (compile les nouvelles routes Founder Access) ; tsconfig byte-exact ; Playwright /assistant **6/6** (workers=1) ; onboarding **15/15** ; 4 scripts démo **EXIT 0** (FIRST_SCENE_ALL_PASS / NAV_ALL_PASS / MATRIX_112_112_CLEAN / CH3_INTERACTIVE_ALL_PASS).
+- **Rien poussé**, aucun déploiement, aucune variable d'env. Statut inchangé : **READY FOR BLOC 14 FINAL PROOF/E2E — PAS Production validated**. BLOC 14 NON commencé. Push manuel : `git push origin main` (f1ff2c52 → f043ba95).
