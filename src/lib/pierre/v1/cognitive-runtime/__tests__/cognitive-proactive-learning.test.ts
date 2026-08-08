@@ -22,12 +22,14 @@ beforeEach(async () => { h = await createHarness(); }, 60000);
 afterEach(async () => { await h.close(); });
 const NOW = "2026-07-03T10:00:00.000Z";
 
-async function seedOverdueValidation(companyId: string, missionId: string) {
-  // a pending validation created 30 days ago → overdue
+async function seedOverdueValidation(companyId: string, missionId: string, nowIso: string = NOW) {
+  // A pending validation created 30 days BEFORE the detection instant → overdue.
+  // Anchor created_at to the fixed detection `nowIso`, NOT wall-clock now(): using now() time-bombs
+  // once real time drifts past NOW (then now()-30d > NOW → the item looks future-dated → not overdue).
   await h.db.query(
     `insert into pierre_rt_validations (id, company_id, mission_id, validator_role, required_count, status, reason, created_at)
-       values ($1,$2,$3,'hr_manager',1,'pending','old approval', now() - interval '30 days')`,
-    [newUuid(), companyId, missionId],
+       values ($1,$2,$3,'hr_manager',1,'pending','old approval', ($4::timestamptz - interval '30 days'))`,
+    [newUuid(), companyId, missionId, nowIso],
   );
 }
 

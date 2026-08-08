@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import { getSessionClient } from "@/lib/auth/session-client";
-import { resolvePostLoginRedirect } from "@/lib/auth/login-helpers";
+import { resolvePostLoginRedirect, resolvePostLoginTarget } from "@/lib/auth/login-helpers";
 import { cn } from "@/lib/utils";
 
 type LoginMode = "password" | "magic";
@@ -156,8 +156,8 @@ function AlertBox({
 
 function getPostLoginPath(): string {
   if (typeof window === "undefined") return resolvePostLoginRedirect(null);
-  const params = new URLSearchParams(window.location.search);
-  return resolvePostLoginRedirect(params.get("redirect"));
+  // Accepte `?next=` (paramètre du middleware, garde primaire) ET `?redirect=` (héritage).
+  return resolvePostLoginTarget(window.location.search);
 }
 
 export default function LoginPage() {

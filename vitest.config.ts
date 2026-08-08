@@ -14,6 +14,14 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    // Several unit tests (analytics store/correlation/server-events/funnel-e2e, founder-access
+    // adapter) spin up a real in-process Postgres (getTestRuntimeDb — PGlite/embedded-postgres)
+    // in beforeAll. A COLD start (binary extraction + initdb) legitimately exceeds Vitest's
+    // default 10s hookTimeout, so `npm test` flaked on a fresh checkout (reproducibility defect,
+    // not a logic failure). Raise the hook/test budgets — strictly more lenient, never hides a
+    // real failure (assertions are unchanged and still fail fast).
+    hookTimeout: 60000,
+    testTimeout: 30000,
   },
   resolve: {
     alias: {

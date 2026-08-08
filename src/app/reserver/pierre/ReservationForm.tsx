@@ -7,6 +7,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Check, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { COMPANY_SIZES, type CompanySize } from "@/lib/founder-access/types";
+import { validateReservationStep1Client } from "@/lib/founder-access/client-validation";
 import { FOUNDER_REASSURANCE, FOUNDER_RESERVATION_RULE, getFounderCtaCopy } from "@/lib/founder-access/commercial";
 import { emitFounderEvent } from "@/lib/founder-access/funnel-events";
 // Canonical Analytics Runtime Wiring — signaux d'INTENTION client uniquement (jamais une vérité
@@ -97,7 +98,12 @@ export function ReservationForm({ confirmState }: { confirmState?: string }) {
 
   async function submitStep1(e: React.FormEvent) {
     e.preventDefault();
-    setErrors({}); setServerError(null); setSubmitting(true);
+    setErrors({}); setServerError(null);
+    // Validation CLIENT (UX) : bloque un envoi manifestement invalide et affiche des erreurs inline.
+    // Le SERVEUR (validateStep1) reste la source de vérité — il revalide tout et peut encore refuser.
+    const clientErrors = validateReservationStep1Client(s1);
+    if (Object.keys(clientErrors).length > 0) { setErrors(clientErrors); return; }
+    setSubmitting(true);
     // Canonique : le NAVIGATEUR soumet le formulaire. Ne signifie PAS que la réservation existe
     // (reservation_created est une vérité serveur émise par l'API). Aucun champ de formulaire.
     track("reservation_submitted", {

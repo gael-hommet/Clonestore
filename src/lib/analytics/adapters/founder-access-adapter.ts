@@ -96,6 +96,31 @@ export async function bridgeFounderServerEvent(
   }
 }
 
+/**
+ * Classe de trafic SERVEUR-AUTORITAIRE pour les événements AVAL d'une réservation (email confirmé,
+ * activation…). Dérivée de la vérité `reservation_created` DÉJÀ persistée : une réservation QA
+ * synthétique (créée via le secret QA serveur) a son `reservation_created` classé `test` ; une vraie
+ * réservation `external`. Le client ne peut JAMAIS transformer son trafic — la valeur est lue depuis
+ * une ligne écrite par le serveur, jamais depuis un signal de requête. Fail-open vers `external`
+ * (ne jamais masquer par accident une vraie conversion).
+ */
+export async function resolveReservationTrafficClass(
+  db: SqlExecutor,
+  reservationId: string,
+  environment: AnalyticsEnvironment,
+): Promise<AnalyticsTrafficClass> {
+  try {
+    const eventId = founderEventIdFor(reservationId, "founder_reservation_created");
+    const { rows } = await db.query<{ traffic_class: string }>(
+      "select traffic_class from clonestore_analytics_events_v1 where event_id = $1 and environment = $2 and event_name = 'reservation_created' limit 1",
+      [eventId, environment],
+    );
+    return rows[0]?.traffic_class === "test" ? "test" : "external";
+  } catch {
+    return "external";
+  }
+}
+
 /** Construit un event_id déterministe (UUID-v4-forme) pour un événement founder-access donné —
  *  jamais aléatoire, garantit qu'un rejeu de la même écriture founder-access ne crée jamais un
  *  doublon canonique (même entrée ⇒ même event_id ⇒ conflit unique absorbé par la DB). */

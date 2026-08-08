@@ -5,7 +5,7 @@ import { confirmReservation } from "@/lib/founder-access/store";
 // Canonical Analytics Runtime Wiring — pont additif best-effort borné, uniquement après
 // confirmation réussie. Idempotent (event_id déterministe). La corrélation vient de la RÉSERVATION
 // (visiteur d'origine), jamais du navigateur qui ouvre le lien de confirmation.
-import { bridgeFounderServerEvent, founderEventIdFor } from "@/lib/analytics/adapters/founder-access-adapter";
+import { bridgeFounderServerEvent, founderEventIdFor, resolveReservationTrafficClass } from "@/lib/analytics/adapters/founder-access-adapter";
 import { resolveAnalyticsEnvironment, boundedAnalyticsWrite } from "@/lib/analytics/server-events";
 import { resolveCorrelationByReservation } from "@/lib/analytics/correlation";
 
@@ -30,6 +30,9 @@ export async function GET(req: Request) {
       const env = resolveAnalyticsEnvironment();
       await boundedAnalyticsWrite(async () => {
         const corr = await resolveCorrelationByReservation(db, rid, env);
+        // Classe de trafic serveur-autoritaire : un parcours QA synthétique reste `test` (exclu du
+        // funnel propriétaire) jusqu'au bout, dérivé de la vérité reservation_created persistée.
+        const trafficClass = await resolveReservationTrafficClass(db, rid, env);
         return bridgeFounderServerEvent(db, {
           eventId: founderEventIdFor(rid, "founder_email_verified"),
           founderEventName: "founder_email_verified",
@@ -38,6 +41,7 @@ export async function GET(req: Request) {
           environment: env,
           visitorId: corr?.visitorId ?? null,
           sessionId: corr?.sessionId ?? null,
+          trafficClass,
         });
       });
       return dest("ok");
