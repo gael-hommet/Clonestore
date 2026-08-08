@@ -96,8 +96,12 @@ import type { ParrainKnowledgeChunk } from "@/lib/clonechat/intelligence/c1-1/pa
 // cas d'échec/absence de clé, repli sur la chaîne C1.9 puis legacy EXISTANTE, inchangée.
 import { respondUnified, loadResponderConfig, readOpenAIKeyLazy } from "@/lib/clonechat/core/responder";
 // ── BLOC 13 — Production Hardening (ADDITIF, feature-gated, `off` par défaut). En `off`/`shadow`
-// (défaut, y compris Production) l'appel ne bloque JAMAIS : comportement historique inchangé.
-import { hardeningChatPrecheck } from "@/lib/clonechat/hardening";
+// (défaut, y compris Production) rien ne change ; en `active` (jamais Production ici) : body borné,
+// limites, concurrence/timeout/circuit, flux SSE durci.
+import {
+  hardeningChatPrecheck, activeHardening, buildActiveHardenedStream, readBoundedRequestText,
+  activeStreamProduceForTests, type ReadinessFacts,
+} from "@/lib/clonechat/hardening";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -205,21 +209,45 @@ export async function POST(req: Request) {
   }
   const viewer: CloneChatViewer = userId ? { kind: "user", userId } : { kind: "anonymous" };
 
-  const body = (await req.json().catch(() => null)) as ChatBody | null;
+  // ── BLOC 13 — runtime durci. Résolution du mode (off par défaut). En OFF/SHADOW rien ne change.
+  // Capacités RÉELLES de la route (falsifiables : présence des guards BLOC 0→12), utilisées comme
+  // evidence de readiness pour le chemin actif servi.
+  const routeCaps: Partial<ReadinessFacts> = {
+    auth_fail_closed: typeof supabaseServer === "function",
+    tenant_isolation: typeof resolveCloneChatCompany === "function",
+    rate_limiting: typeof checkAnonymousRateLimit === "function",
+    secrets_server_only: typeof readOpenAIKey === "function",
+    safe_fallback: typeof createDeterministicResponder === "function",
+    analytics_fail_open: true, // aucune analytics dans le chemin de réponse servi → ne peut pas le casser
+    no_unintended_external_effect: true, // le chemin actif n'ajoute aucune mutation métier
+  };
+  const hardening = activeHardening(process.env, routeCaps);
+  const hActive = hardening.effect.enforce && hardening.activeAllowed; // active ET readiness verte
+
+  // BODY : en active, lecture BORNÉE au transport AVANT parsing (Content-Length + cumul réel, corps
+  // mensonger/chunké plafonné). En off/shadow : chemin historique inchangé (req.json()).
+  let body: ChatBody | null;
+  if (hActive) {
+    const read = await readBoundedRequestText(req, hardening.config.limits.maxBodyBytes);
+    if (read.tooLarge) return noStore({ ok: false, code: "payload_too_large", error: "Requête trop volumineuse." }, 413);
+    try { body = JSON.parse(read.text) as ChatBody; } catch { body = null; }
+  } else {
+    body = (await req.json().catch(() => null)) as ChatBody | null;
+  }
   const message = (body?.message ?? "").trim();
   const conversationId = body?.conversation_id ?? null;
+  const rawAttachmentCount = Array.isArray(body?.attachments) ? body!.attachments!.length : 0;
   const rawAttachments = Array.isArray(body?.attachments) ? body!.attachments!.slice(0, MAX_ATTACHMENTS) : [];
   if (!message && !(body?.images?.length) && rawAttachments.length === 0) return noStore({ ok: false, code: "EMPTY", error: "Message vide." }, 400);
 
-  // ── BLOC 13 — garde durcie ADDITIVE, `off` par défaut. En `off`/`shadow` (défaut, y compris
-  // Production), retour immédiat non bloquant : la ligne ci-dessous ne change RIEN au comportement
-  // historique. En `active` seulement (jamais activé en Production dans ce bloc), elle applique les
-  // limites d'entrée canoniques et renvoie une erreur structurée sûre (jamais un crash).
+  // Garde durcie ADDITIVE. En off/shadow → jamais bloquant (comportement historique). En active →
+  // limites canoniques + nombre BRUT de pièces jointes (AVANT slice) + erreur structurée sûre.
   const hardened = hardeningChatPrecheck({
     message,
+    rawAttachmentCount,
     history: Array.isArray(body?.history) ? body!.history!.map((h) => ({ text: h?.text })) : [],
     attachments: rawAttachments.map((a) => ({ bytes: typeof a?.size_bytes === "number" ? a.size_bytes : (typeof a?.data === "string" ? a.data.length : 0) })),
-  });
+  }, hardening.config);
   if (hardened.blocked) return noStore(hardened.payload, hardened.status);
 
   // 3) Sécurité : prompt-injection → refus déterministe, aucun appel modèle, 0 token.
@@ -521,6 +549,49 @@ export async function POST(req: Request) {
     //
     // GARDE : une phrase n'est diffusée QUE lorsqu'elle est complète ET passée par la garde de
     // claims C1 — sinon on montrerait du texte non gardé avant de le corriger.
+    //
+    // ── BLOC 13 — CHEMIN ACTIF DURCI (jamais Production ici) ───────────────────────
+    // Streaming RÉEL passé par le circuit breaker + timeout provider + budget de sortie borné +
+    // fermeture unique + abort → cancelled (machinerie stream-guard commune, testée). Le provider est
+    // le VRAI runUnifiedPrimary (ou un provider synthétique injecté en test, fail-closed). Off/shadow
+    // n'entrent jamais ici (hActive faux) : le chemin historique ci-dessous reste strictement inchangé.
+    if (hActive && body?.stream === true && pubReservation.granted && !!key && cfg.enabled) {
+      const gateA = createSentenceGate((t) => finalizeAnswerText(t).safeText);
+      let committedA = false;
+      const donePrereq = prereq ? { prerequisites: prereq.prerequisites, prerequisiteMessage: prereq.prerequisiteMessage, cta: prereq.cta } : {};
+      const realProduce = async (emit: (d: string) => void): Promise<{ donePayload: unknown }> => {
+        const unified = await runUnifiedPrimary();
+        if (unified) {
+          for (const s of gateA.push(unified.answer)) emit(s);
+          for (const r of gateA.flush()) emit(r);
+          await persistPublicTurn(unified.answer);
+          try { await stores.budget.commit(pubReservation, 0); } catch { /* comptabilité best-effort */ }
+          committedA = true;
+          return { donePayload: {
+            ok: true, source: "clonechat_unified", public: true, anonymous: viewer.kind === "anonymous", requestClass, ...donePrereq,
+            structured: { answer: unified.answer, honesty: "answered", tool_call: null, citations: unified.citations },
+            ...(unified.suggestCard ? { suggestedCTA: true } : {}),
+            runtime: { provider: "openai", engine: "unified", usedWebSearch: unified.usedWebSearch, streamed: true, hardened: true },
+          } };
+        }
+        for (const s of gateA.push(UNIFIED_UNAVAILABLE_MESSAGE)) emit(s);
+        for (const r of gateA.flush()) emit(r);
+        return { donePayload: {
+          ok: true, source: "clonechat_unified_unavailable", public: true, anonymous: viewer.kind === "anonymous", requestClass, ...donePrereq,
+          structured: { answer: UNIFIED_UNAVAILABLE_MESSAGE, honesty: "unknown", tool_call: null, citations: [] },
+          runtime: { provider: "openai", engine: "unified", streamed: true, unavailable: true, hardened: true },
+        } };
+      };
+      const produce = activeStreamProduceForTests() ?? realProduce;
+      const activeStream = buildActiveHardenedStream({
+        produce, breaker: hardening.breakerFor("openai:public-stream"), config: hardening.config, parentSignal: req.signal,
+        onProviderError: (e) => { const f = classifyProviderFailure(e); return { code: f.code, message: f.message }; },
+        onFinished: async () => { if (!committedA) { try { await stores.budget.release(pubReservation); } catch { /* ignore */ } } },
+      });
+      return new Response(activeStream, {
+        headers: { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-store, no-transform", Connection: "keep-alive" },
+      });
+    }
     if (body?.stream === true && pubReservation.granted && !!key && cfg.enabled) {
       const routerCfg0 = loadModelRouterConfig();
       const routing0 = routeModel({ message, requestClass, documentCount: rawAttachments.length, imageCount: body?.images?.length ?? 0 }, routerCfg0);

@@ -85,5 +85,7 @@ export function createBreakerRegistry(policy: CircuitPolicy, deps: CircuitDeps) 
       for (const [k, b] of breakers) out[k] = b.snapshot();
       return out;
     },
+    /** Réinitialise tous les breakers (tests uniquement). */
+    reset(): void { breakers.clear(); },
   };
 }
