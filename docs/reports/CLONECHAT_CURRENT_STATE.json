@@ -1,14 +1,14 @@
 {
   "_note": "État CANONIQUE de la session CloneChat, mis à jour à chaque bloc/sous-tâche. Valeurs vérifiées depuis le worktree réel (git via isomorphic-git, Vercel API, vitest/tsc/eslint/next build réels, HTTP production réel). Ne jamais supposer une valeur.",
   "worktree": "C:/Users/homme/clonestore-clonechat-unified",
-  "current_head": "f043ba95df0bb5f79e795631f5ef28e9e1d41d26",
-  "current_head_note": "Merge commit de synchronisation POST-BLOC-13 (`merge: synchronize post-BLOC-13 with latest main`), DEUX parents [2ff728e9 (BLOC 13 final), f1ff2c52 (tip distant réel)]. Un petit commit documentaire `docs(clonechat): record post-BLOC-13 final synchronization` est créé AU-DESSUS (parent f043ba95, ne peut pas contenir son propre SHA ; voir post_bloc13_synchronization). Lignée BLOC 13 conservée : 97e3b69f → e9ba08c1 → 2ff728e9. Rien n'est poussé par la session.",
-  "origin_main": "f1ff2c529ff6d4b804a373dfc638f91a2bec34fc",
-  "origin_main_note": "Tip remote RÉEL au moment de la synchronisation = f1ff2c52 (listServerRefs autoritatif) : df8b404f → 61b9e338 → 4a6fa93f → f1ff2c52. Fetché et MERGÉ NON-destructivement dans la lignée locale BLOC 13 (merge-base df8b404f, 0 conflit). RIEN POUSSÉ ; le propriétaire pousse.",
-  "deployed_sha": "24b1ece36a2e0f6ef93e886148bac6d175de4a80",
+  "current_head": "0b5e988277bbc53cf3e0aa4faa17fa5d880fdf67",
+  "current_head_note": "HEAD=main=origin/main = 0b5e9882 (le propriétaire a poussé le commit de synchro post-BLOC-13). Le commit de fermeture BLOC 14 `test(clonechat): close BLOC 14 final proof and e2e` est créé AU-DESSUS (parent 0b5e9882, SANS amend, ne peut pas contenir son propre SHA ; voir bloc14_final_proof) et ne contient QUE 1 test + 2 docs (aucun changement de runtime). Rien n'est poussé par la session.",
+  "origin_main": "0b5e988277bbc53cf3e0aa4faa17fa5d880fdf67",
+  "origin_main_note": "origin/main = 0b5e9882 (listServerRefs autoritatif) : le propriétaire a poussé la synchro post-BLOC-13. Vercel git-integration a AUTO-DÉPLOYÉ 0b5e9882 en PRODUCTION sur clonestore-xcwi (dpl_HiwQcAwKJ3bdE4hzN15qVX8Vpu9Q, READY, aliases clonestore.pro + www.clonestore.pro). Le commit BLOC 14 (1 test + 2 docs, 0 runtime) reste local, non poussé.",
+  "deployed_sha": "0b5e988277bbc53cf3e0aa4faa17fa5d880fdf67",
   "deployed_state": "READY",
   "deployed_project": "clonestore-xcwi",
-  "deployed_uid": "dpl_CgxqVKxYCkrAitF8hByF5Jg255FE",
+  "deployed_uid": "dpl_HiwQcAwKJ3bdE4hzN15qVX8Vpu9Q",
   "domains_verified": ["clonestore.pro", "www.clonestore.pro"],
   "local_ahead_of_origin_by": "lignées DIVERGENTES : origin/main = 4a6fa93f a avancé indépendamment ; la lignée locale BLOC 13 (…→743dc978→97e3b69f→correctif) n'est pas un simple sur-ensemble linéaire de l'origin actuel. Aucun décompte linéaire fiable sans merge-base ; le propriétaire réconcilie. Rien poussé.",
   "bloc13_gate": {
@@ -41,6 +41,51 @@
     "two_analytics_layers": "PRÉSERVÉES et DISTINCTES : src/lib/clonechat/analytics/** (BLOC 12) et src/lib/analytics/** (canonique/QA distant). Bloc QA distant intact (toggle OFF par défaut, external-only, bot/automated exclus, réservation QA server-secret-only, aucun email QA).",
     "remaining_limits": "AUCUNE capacité STRUCTURANTE reportée au BLOC 14. CORRECTION IMPORTANTE (vs 2e commit) : quand le circuit provider est ouvert (ou tout autre readiness NON vert) en mode active, le chemin actif NE RETOMBE PLUS sur le chemin historique — il FAIL-CLOSE (aucun provider durci NI historique, réponse sûre honnête). active n'est jamais activé en Production ici (prouvé LOCALEMENT via providers synthétiques injectés, aucun appel payant) ; le BLOC 14 fera les preuves finales/E2E de bout en bout. Aucune preuve de CHARGE réelle (interdit ; dépendances synthétiques déterministes). La voie ENTREPRISE en mode active fail-close (hors périmètre servi durci) plutôt que d'appeler le provider sans durcissement. Verdict = prêt pour B14, JAMAIS Production validée (productionReadyClaim=false).",
     "not_done": "Rien poussé (push manuel propriétaire ; origin/main a divergé à 4a6fa93f, non fetché/mergé). Aucun déploiement Vercel, aucune variable d'env, aucun P22, aucun runtime Pierre v1, aucune mission RH réelle, aucune migration, aucun paiement/Stripe live. BLOC 14 NON commencé."
+  },
+  "bloc14_final_proof": {
+    "title": "BLOC 14 — FINAL PROOF / E2E / RELEASE CLOSURE (dernier bloc)",
+    "verdict": "CLONECHAT BLOC 14 — PASS · MASTER PROGRAM BLOC 0→14 — CLOSED (LOCAL) · RELEASE_PRODUCTION_VALIDATED · ACTIVE_HARDENING_PRODUCTION_NOT_VALIDATED",
+    "starting_sha": "0b5e988277bbc53cf3e0aa4faa17fa5d880fdf67",
+    "origin_starting_sha": "0b5e988277bbc53cf3e0aa4faa17fa5d880fdf67",
+    "closure_commit": "test(clonechat): close BLOC 14 final proof and e2e — enfant direct de 0b5e9882, SANS amend, 1 test + 2 docs, AUCUN changement de runtime.",
+    "files_changed": ["src/app/api/assistant/chat/__tests__/bloc14-final-security-matrix.test.ts (NEW)", "docs/reports/CLONECHAT_BLOC14_FINAL_PROOF_E2E_REPORT.md (NEW)", "docs/reports/CLONECHAT_CURRENT_STATE.json"],
+    "runtime_delta": "AUCUN (src runtime inchangé) → le runtime Production servi (0b5e9882) est byte-identique au runtime du commit BLOC 14.",
+    "bugs_found_fixed": [
+      "tsc n'était 0 que par FILTRAGE de l'erreur embedded-postgres (clonechat-durable.itest.ts). Racine : devDependency déclarée (16.14.0-beta.17) NON installée. Corrigé HONNÊTEMENT par installation de la dép réellement déclarée (types via npm ci --ignore-scripts, arbre déterministe, binaire non requis) — aucun changement code/test/tsconfig/@ts-ignore. tsc --noEmit = 0 RÉEL sans filtre.",
+      "Hypothèse de TEST recadrée (pas un bug runtime) : la matrice BLOC 14 attendait 'refused' pour de l'ingénierie sociale ; la route conversationnelle peut répondre mais N'EXÉCUTE JAMAIS (exécution = route SÉPARÉE /execute, SHA-256). Assertion recadrée sur l'invariant réel (aucune exécution/faux succès). Runtime inchangé."
+    ],
+    "architecture_audit": "Route servie UNIQUE (chat) + route d'exécution séparée gouvernée (/execute). ABSENT : 2e cerveau/route/action/mission-engine, action runtime cachée, bypass hardening en active, analytics modifiant la décision, ancien provider contournant un circuit ouvert, faux statut. Prouvé par test/exécution, pas par commentaire.",
+    "security_matrix_route": "bloc14-final-security-matrix.test.ts 11/11 : injection classique→refus (provider jamais appelé) ; ingénierie sociale→réponse sûre sans exécution/faux succès ; corps client jamais autorité d'identité (page_context/companyId/role/tenant/permissions/entitlement ignorés) ; anon+conversation_id étranger→aucune persistance ; faux event analytics→aucun effet ; hardening non pilotable par le corps ; kill switch serveur prioritaire.",
+    "matrices_existing": "Tenant/IDOR (context-boundary 51 + inspector/mission cross-tenant + pipeline), Auth (universal-clonechat/context/diagnosis, fail-closed), Confirmation (actions.test 40 : missing/valid/expired/reused/mismatch + pipeline CONFIRMATION_MISSING/EXPIRED), Idempotence (actions + pipeline DÉDUP, effet 1×) — toutes vertes dans le gate.",
+    "hardening_106": "BLOC 13 106/106 sur l'arbre final (active ready→hardened ; not-ready/config-invalid/circuit-open→fail-closed sans provider ; off/shadow/kill historique ; concurrence/queue/abort/timeout ; budget total ; body ; retry unary borné / stream 0).",
+    "test_gate": {
+      "clonechat_lib_route": "1620 pass / 10 skips PRÉ-EXISTANTS (aucun nouveau skip)",
+      "clonechat_analytics": "87/87 (inclus)",
+      "analytics_qa_canonical": "165/165 (161 + route QA 4)",
+      "founder_delta": "≥42 (login-redirect + client-validation + journey-security + qa-verification-link + adapter + qa-synthetic-path) — dans 317 de la passe analytics+founder+cognitive",
+      "pierre_bloc6_itest": "4/4 (--config vitest.integration.config.ts, migrations réelles, mission QA synthétique)",
+      "demo_policy": "509/509 (30 fichiers)",
+      "bloc13": "106/106",
+      "tsc": "0 erreur RÉELLE (npx tsc --noEmit, AUCUN filtre — embedded-postgres installé)",
+      "eslint": "0 erreur (fichier BLOC 14 + CloneChat/merge)",
+      "build": "NEXT_DIST_DIR=.next-hotfix next build → BUILD_EXIT_CODE=0 ; tsconfig byte-exact 8a88b0410a539280",
+      "browser_local": "/assistant hardening 6/6 + onboarding 15/15 (Playwright workers=1) ; 4 scripts démo EXIT 0 (FIRST_SCENE_ALL_PASS, NAV_ALL_PASS, MATRIX_112_112_CLEAN, CH3_INTERACTIVE_ALL_PASS) ; 0 pageerror/hydration/5xx/console inattendus"
+    },
+    "observability": "Privacy prouvée par CloneAnalytics (87) : events request→security-refusal couverts, correlation id cohérent, tenant pseudonymisé, AUCUN raw user/tenant id/message/transcript/audio/image/token/cookie/Authorization/URL signée/stack/secret ; consentement absent→disabled.",
+    "vercel_audit": {
+      "project": "clonestore-xcwi (prj_McN704…, framework nextjs, repo gael-hommet/Clonestore, prodBranch main) — CANONICAL, NOT clonestore-c6dr",
+      "domains": "clonestore.pro + www.clonestore.pro (verified)",
+      "production_deployment": "dpl_HiwQcAwKJ3bdE4hzN15qVX8Vpu9Q, sha 0b5e9882, READY, target production, aliasAssigned=true, aliases include clonestore.pro + www.clonestore.pro",
+      "deployed_by": "propriétaire (push origin/main) → Vercel auto-deploy. La SESSION N'A RIEN DÉPLOYÉ ; elle a VÉRIFIÉ (read-only + smoke public).",
+      "env_hardening_mode": "CLONECHAT_HARDENING_MODE ABSENT + CLONECHAT_HARDENING_KILL_SWITCH ABSENT → runtime servi OFF (défaut sûr). OPENAI_API_KEY présent.",
+      "preview": "SUPERSÉDÉE — le commit final EXACT est déjà le déploiement Production live (preuve plus forte qu'un preview). Aucun Preview créé.",
+      "smoke_public_production": "/, /agents, /agents/pierre, /demo, /demo/pierre, /assistant, /login, /reserver/pierre, /checkout → 200, aucun 5xx (edge fra1). /assistant (1 question publique anonyme minimale) → réponse RÉELLE/vraie via provider OpenAI RÉEL (source clonechat_unified, provider openai, streamed:false = OFF), aucune invention/action/secret.",
+      "provider_real_vs_synthetic": "Prod smoke = provider RÉEL (OpenAI). Tests locaux BLOC 14/13 = provider SYNTHÉTIQUE injecté (aucun appel payant)."
+    },
+    "active_hardening_decision": "Production OFF (env absent). AUCUNE activation aveugle (§16 CAS 3 + doctrine). active prouvé EXHAUSTIVEMENT en LOCAL (106) mais NON activé en Production — décision de rollout propriétaire (rollback explicite). ACTIVE_PREVIEW non réalisé (redondant + action mutante externe réservée au propriétaire). Aucun rollback nécessaire (aucun changement de mode/config Production).",
+    "side_effects": "Paiement=NONE, Stripe live=NONE, Email=NONE, Signature=NONE, Mission RH réelle=NONE, Mutation métier=NONE, Salarié réel=NONE. Seul effet externe : 1 appel OpenAI RÉEL (smoke prod, autorisé §15, minimal) + lectures Vercel read-only.",
+    "external_verdict": "RELEASE_PRODUCTION_VALIDATED (commit exact live + smoke vert + provider réel) · ACTIVE_HARDENING_PRODUCTION_NOT_VALIDATED (off par défaut, non activé). Jamais fusionnés.",
+    "not_done": "Rien poussé par la session (commit BLOC 14 local ; push manuel propriétaire). Aucun BLOC 15 (n'existe pas). Aucune nouvelle architecture, aucun runtime Pierre v1 modifié, aucune migration exécutée."
   },
   "post_bloc13_synchronization": {
     "title": "POST-BLOC-13 FINAL SYNCHRONIZATION — merge non destructif de la lignée distante dans la lignée BLOC 13",
@@ -259,7 +304,7 @@
     "iPhone physique non testé : compatibilité mp4/webm prouvée par conteneurs réels + détection MIME, pas par appareil réel."
   ],
   "blockers": [],
-  "next_exact_action": "POST-BLOC-13 FINAL SYNCHRONIZATION — PASS LOCAL (voir post_bloc13_synchronization) : merge non destructif à deux parents `f043ba95` [2ff728e9 (BLOC 13 final), f1ff2c52 (tip distant réel)], merge-base df8b404f, 0 conflit, BLOC 13 intact, delta distant Founder/Pierre préservé byte-faithfully + testé (Founder 42, Pierre BLOC6 itest 4), BLOC 13 106/106, CloneChat 1609/10skip, analytics 165, démo 509, tsc 0 new, eslint 0, build exit 0, /assistant 6/6, onboarding 15/15, 4 scripts démo EXIT 0. + docs commit au-dessus. À POUSSER manuellement : `git push origin main` (f1ff2c52 → f043ba95). Ensuite BLOC 14 — Final Proof/E2E (NON commencé). Rappel BLOC 13 : Production Hardening FERMÉ PASS STRICT (voir bloc13_gate). Lignée 97e3b69f → e9ba08c1 → `fix(clonechat): enforce fail-closed active runtime on served path` (parent e9ba08c1, SANS amend). Le 3e commit ferme les 3 défauts restants : (1) ACTIVE demandé + NON prêt = FAIL-CLOSED, jamais un repli vers le provider historique (circuit ouvert ne peut jamais atteindre le provider) ; (2) concurrence + backpressure + budget TOTAL réellement utilisés par le chemin actif servi (slot tenant-scopé, budget démarré avant l'attente de file, abort/timeout en file → provider jamais appelé, slot rendu 1×) ; (3) retry servi RÉEL (unaire config.retry) ou explicitement 0 (streaming, documenté). Suite BLOC 13 = 106 + régressions (CloneChat 1609/10 skips, analytics 165, démo/policy 509) + tsc 0 + eslint 0 + build .next-hotfix exit 0 + /assistant 6/6 + onboarding 15/15 + 4 scripts démo exit 0. À RÉCONCILIER/POUSSER manuellement : origin/main a divergé (4a6fa93f, non fetché). Ensuite BLOC 14 — Final Proof / E2E (NON commencé). Aucune capacité structurante reportée. Ne prétend PAS Production validée.",
+  "next_exact_action": "CLONECHAT BLOC 14 — FINAL PROOF/E2E — PASS (voir bloc14_final_proof). MASTER PROGRAM BLOC 0→14 CLOSED (local). Commit de fermeture `test(clonechat): close BLOC 14 final proof and e2e` (enfant 0b5e9882, 1 test + 2 docs, 0 runtime), NON poussé. Production : le commit exact 0b5e9882 est LIVE sur clonestore-xcwi (dpl_HiwQ…, aliases clonestore.pro/www), smoke public vert, /assistant réponse RÉELLE via OpenAI (mode OFF). RELEASE_PRODUCTION_VALIDATED ; ACTIVE_HARDENING_PRODUCTION_NOT_VALIDATED (off par défaut, activation = décision propriétaire). BLOC 15 n'existe pas. Push manuel du commit BLOC 14 : `git push origin main`. ————— (historique) POST-BLOC-13 FINAL SYNCHRONIZATION — PASS LOCAL (voir post_bloc13_synchronization) : merge non destructif à deux parents `f043ba95` [2ff728e9 (BLOC 13 final), f1ff2c52 (tip distant réel)], merge-base df8b404f, 0 conflit, BLOC 13 intact, delta distant Founder/Pierre préservé byte-faithfully + testé (Founder 42, Pierre BLOC6 itest 4), BLOC 13 106/106, CloneChat 1609/10skip, analytics 165, démo 509, tsc 0 new, eslint 0, build exit 0, /assistant 6/6, onboarding 15/15, 4 scripts démo EXIT 0. + docs commit au-dessus. À POUSSER manuellement : `git push origin main` (f1ff2c52 → f043ba95). Ensuite BLOC 14 — Final Proof/E2E (NON commencé). Rappel BLOC 13 : Production Hardening FERMÉ PASS STRICT (voir bloc13_gate). Lignée 97e3b69f → e9ba08c1 → `fix(clonechat): enforce fail-closed active runtime on served path` (parent e9ba08c1, SANS amend). Le 3e commit ferme les 3 défauts restants : (1) ACTIVE demandé + NON prêt = FAIL-CLOSED, jamais un repli vers le provider historique (circuit ouvert ne peut jamais atteindre le provider) ; (2) concurrence + backpressure + budget TOTAL réellement utilisés par le chemin actif servi (slot tenant-scopé, budget démarré avant l'attente de file, abort/timeout en file → provider jamais appelé, slot rendu 1×) ; (3) retry servi RÉEL (unaire config.retry) ou explicitement 0 (streaming, documenté). Suite BLOC 13 = 106 + régressions (CloneChat 1609/10 skips, analytics 165, démo/policy 509) + tsc 0 + eslint 0 + build .next-hotfix exit 0 + /assistant 6/6 + onboarding 15/15 + 4 scripts démo exit 0. À RÉCONCILIER/POUSSER manuellement : origin/main a divergé (4a6fa93f, non fetché). Ensuite BLOC 14 — Final Proof / E2E (NON commencé). Aucune capacité structurante reportée. Ne prétend PAS Production validée.",
   "tests_last_run": {
     "kind": "vitest réel (repo, passe UNIQUE séquentielle) + preuve d'intégration locale déterministe",
     "full_sequential_pass": "19 fichiers, 529/529, 0 échec, 0 timeout, une seule commande (--no-file-parallelism --maxWorkers=1), aucun build en parallèle, aucun échec requalifié isolément. = BLOC 0→11 (442) + CloneAnalytics (87).",
