@@ -90,7 +90,7 @@ Analytics sans consentement → `disabled`. Telemetry opérationnelle minimale. 
 
 ## Externe — Vercel (projet canonique `clonestore-xcwi` UNIQUEMENT ; `clonestore-c6dr` JAMAIS touché)
 - **Audit read-only** (aucune valeur de secret loggée) : projet `clonestore-xcwi` (id `prj_McN704…`, framework nextjs, repo gael-hommet/Clonestore, prodBranch main). Domaines `clonestore.pro` + `www.clonestore.pro` vérifiés. 66 variables d'env (par NOM/scope seulement) ; présentes notamment `OPENAI_API_KEY`, `CLONECHAT_MODEL`, `DATABASE_URL`, `CLONESTORE_ANALYTICS_QA_TOKEN`, Supabase, Founder secrets, Pierre webhook DBs, `RESEND_API_KEY`, `STRIPE_PRICE_PIERRE`. **`CLONECHAT_HARDENING_MODE` ABSENT + `CLONECHAT_HARDENING_KILL_SWITCH` ABSENT** → runtime servi en **mode OFF** (défaut sûr).
-- **Preview** : SUPERSÉDÉE. Le commit final EXACT `0b5e9882` est déjà le **déploiement Production LIVE** (poussé par le propriétaire → auto-déploiement Vercel git). Un Preview testerait un arbre identique — redondant. Aucun Preview créé par la session.
+- **Preview** : voir la section « STRICT FINAL CLOSURE » ci-dessous — un Preview RÉEL de l'arbre exact a été créé (la formulation « supersédée » du premier passage était incorrecte et est corrigée).
 - **Production deployment** : `dpl_HiwQcAwKJ3bdE4hzN15qVX8Vpu9Q`, sha `0b5e9882`, **READY**, target production, aliasAssigned=true. **Aliases = `clonestore.pro`, `www.clonestore.pro`** (+ vercel.app). **Je n'ai RIEN déployé** : le déploiement Production provient du push propriétaire ; je l'ai VÉRIFIÉ.
 - **Smoke public Production** (non destructif) : `/`, `/agents`, `/agents/pierre`, `/demo`, `/demo/pierre`, `/assistant`, `/login`, `/reserver/pierre`, `/checkout` → **200**, aucun 5xx (edge fra1). `/assistant` (1 question publique anonyme minimale) → **réponse RÉELLE et VRAIE** via provider OpenAI RÉEL (`source:clonechat_unified`, `provider:openai`, `streamed:false` = chemin historique OFF), aucune invention, aucune action, aucun secret, `care` honnête. **Provider = RÉEL** (distinct des tests locaux à provider SYNTHÉTIQUE).
 
@@ -112,3 +112,61 @@ Les deux affirmations ne sont JAMAIS fusionnées.
 ## Non fait / hors périmètre (honnête)
 Rien poussé par la session (le commit BLOC 14 reste local ; push manuel propriétaire). Aucun BLOC 15 (n'existe pas).
 Aucune nouvelle architecture, aucun runtime Pierre v1 modifié, aucune migration exécutée, aucun paiement.
+
+---
+
+# STRICT FINAL CLOSURE (réouverture du PASS prématuré 1ca40e7)
+
+Le PASS `1ca40e7` était PRÉMATURÉ : preuves finales explicites manquantes (matrice automatisée B0→B14,
+journeys A→O explicites, observability issue des journeys, Preview réel, smoke Production complet). Fermeture
+DÉFINITIVE ci-dessous via de NOUVEAUX commits enfants (aucun ancien commit réécrit).
+
+## Lignée finale
+- `1ca40e7` = première fermeture BLOC 14 (runtime bon, preuves finales manquantes) — CONSERVÉE.
+- **`8b16860ce3d49ab1aea634a6b088a7ec86b03128` (PROOF_SHA)** = `test(clonechat): complete BLOC 14 explicit final journey proofs` — parent `1ca40e7`, **5 fichiers de test, ZÉRO changement de runtime**.
+- **Commit docs final** = `docs(clonechat): record strict BLOC 14 final closure` — parent PROOF_SHA (ce rapport + state JSON). Devient le HEAD local final.
+
+## Preuves finales explicites ajoutées (toutes vertes)
+| Suite | Fichier | Résultat |
+|---|---|---|
+| Matrice automatisée B0→B14 | `src/lib/clonechat/__tests__/bloc14-product-truth-matrix.test.ts` | **13/13** — registres/routes/modules RÉELS ; échoue sur route inventée / planned→active / prepared→completed. |
+| Journeys A→O explicites (nommés) | `src/lib/clonechat/__tests__/bloc14-final-journeys.test.ts` | **15/15** — un test NOMMÉ par JOURNEY A→O (B/O via la route servie ; C→N via les modules réels). |
+| Security consolidation | `src/lib/clonechat/__tests__/bloc14-final-security-consolidation.test.ts` | **20/20** — confirmation (missing/valid/expired/reused/wrong action\|args\|viewer\|tenant) + idempotence (duplicate/concurrent) + tenant + auth. |
+| Observability des journeys | `src/lib/clonechat/__tests__/bloc14-final-observability.test.ts` | **6/6** — collecteur RÉEL + MemorySink ; corrélation + pseudonymisation + AUCUNE clé/valeur interdite ; consent-off product→disabled. |
+| Security matrix (existante) | `src/app/api/assistant/chat/__tests__/bloc14-final-security-matrix.test.ts` | **11/11**. |
+| Journeys navigateur A + O | `e2e/clonechat-bloc14-final-journeys.spec.ts` | JOURNEY A (nav publique desktop+mobile) + JOURNEY O (active-not-ready contrôlé) — verts. |
+
+**BLOC14 FINAL JOURNEY OBSERVABILITY = 6/6** (issu des journeys, pas des 87 anciens tests).
+
+## Gate local (arbre PROOF_SHA)
+CloneChat lib+route **1674 pass / 10 skips PRÉ-EXISTANTS** (aucun nouveau skip) · **tsc --noEmit 0 RÉEL (aucun
+filtre)** · ESLint **0** · BLOC 13 **106/106** · analytics/QA **165** · Founder delta + Pierre BLOC6 itest **4/4**
+· demo/policy **509** · build isolé `.next-hotfix` **exit 0** (tsconfig byte-exact `8a88b0410a539280`) · Playwright
+hardening **6** + onboarding **15** + bloc14 journeys **3** (workers=1) · 4 scripts démo **EXIT 0**.
+
+## Preview RÉEL (§9) — projet clonestore-xcwi UNIQUEMENT
+- **Déploiement Preview créé** : uid `dpl_CAhe92Ap9EUDrL3JBqNiJxNAxNh9`, url `clonestore-xcwi-18p62wqhv-hommets-projects.vercel.app`, **state READY**, **target = preview** (jamais production ; l'alias Production 0b5e9882 est intact). Déployé par upload CLI de l'arbre exact (working tree == PROOF_SHA vérifié AVANT déploiement). Build Vercel réussi (Next 15.5.9 ; seuls warnings Supabase Edge-Runtime bénins). **githubCommitSha absent** (déploiement CLI, pas git) — limite documentée honnêtement, tree exact prouvé avant upload.
+- **Smoke HTTP du Preview = EXTERNAL_BLOCKER** : le projet a `ssoProtection.deploymentType = "all_except_custom_domains"` → toute URL Preview redirige (302) vers `vercel.com/sso-api` (Vercel Deployment Protection), et AUCUN secret de bypass n'existe. Je NE mute PAS ce réglage de sécurité du projet Production (hors périmètre §0/§10). Le smoke runtime équivalent est réalisé sur la Production (runtime BYTE-IDENTIQUE, delta runtime = 0). → **PREVIEW_DEPLOY_VALIDATED ; PREVIEW_HTTP_SMOKE_EXTERNAL_BLOCKER = Vercel SSO deployment protection (aucun bypass).**
+
+## Active Preview (§10)
+Audit env par NOM/SCOPE : `OPENAI_API_KEY`, `CLONECHAT_HARDENING_MODE`, `DATABASE_URL`, `CLONECHAT_MODEL`
+**ABSENTS du scope preview**. → **ACTIVE_PREVIEW_EXTERNAL_BLOCKER = OPENAI_API_KEY (et CLONECHAT_HARDENING_MODE)
+absents en preview**. Rien inventé, aucune variable Production copiée/modifiée. ⇒ `ACTIVE_HARDENING_PREVIEW_NOT_VALIDATED`.
+
+## Production smoke COMPLÉTÉ (§11) — clonestore.pro (domaine public, exempt SSO)
+Runtime servi = `0b5e9882` (BYTE-IDENTIQUE au runtime de PROOF_SHA — delta runtime 0). Deux questions :
+- **route/capability** (stream:false) : réponse RÉELLE via OpenAI → « Pour réserver Pierre, il faut ouvrir la page **Réserver Pierre** … » (page réelle, `suggestedCTA`, honesty=answered, aucune invention).
+- **produit** (stream:true) : **HTTP 200 · `Content-Type: text/event-stream` · `event: delta` · `event: done`** → SSE RÉEL prouvé, provider OpenAI RÉEL, fermeture correcte, aucun faux tool success, aucun secret.
+Routes publiques critiques 200 (turn précédent), aucun 5xx. Provider = RÉEL (distinct des tests locaux synthétiques).
+
+## Hardening mode (§16) & side effects
+Production `CLONECHAT_HARDENING_MODE` ABSENT → **OFF** (défaut sûr). Aucune activation aveugle. Side effects réels :
+paiement/Stripe-live/email/signature/mission-RH/mutation = **NONE** ; seuls effets externes : Preview deploy (isolé,
+target=preview), quelques appels OpenAI RÉELS de smoke (autorisés §11, minimaux, publics/anonymes), et lectures Vercel API read-only.
+
+## VERDICT EXTERNE (affirmations SÉPARÉES, jamais fusionnées)
+- **LOCAL_FINAL_PROOF_VALIDATED** ✓
+- **PREVIEW_DEPLOY_VALIDATED** ✓ (arbre exact, READY, clonestore-xcwi, target=preview) · **PREVIEW_HTTP_SMOKE_EXTERNAL_BLOCKER** (SSO)
+- **RELEASE_PRODUCTION_VALIDATED** ✓ (runtime exact live + smoke public complet incl. SSE)
+- **ACTIVE_HARDENING_PREVIEW_NOT_VALIDATED** (ACTIVE_PREVIEW_EXTERNAL_BLOCKER : OPENAI_API_KEY absent preview)
+- **ACTIVE_HARDENING_PRODUCTION_NOT_VALIDATED** (mode off, aucune activation aveugle)
