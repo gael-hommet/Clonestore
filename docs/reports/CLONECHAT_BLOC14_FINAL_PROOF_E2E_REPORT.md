@@ -170,3 +170,27 @@ target=preview), quelques appels OpenAI RÉELS de smoke (autorisés §11, minima
 - **RELEASE_PRODUCTION_VALIDATED** ✓ (runtime exact live + smoke public complet incl. SSE)
 - **ACTIVE_HARDENING_PREVIEW_NOT_VALIDATED** (ACTIVE_PREVIEW_EXTERNAL_BLOCKER : OPENAI_API_KEY absent preview)
 - **ACTIVE_HARDENING_PRODUCTION_NOT_VALIDATED** (mode off, aucune activation aveugle)
+
+---
+
+# PROTECTED PREVIEW SMOKE — INVESTIGATION (2026-08-09)
+
+Réouverture ciblée : réaliser le smoke HTTP + navigateur du Preview PROTÉGÉ via le mécanisme officiel
+`vercel curl` (au lieu d'accepter le 302 SSO comme blocker). Résultat : **PREVIEW_HTTP_SMOKE / PREVIEW_BROWSER_SMOKE = BLOCKED (blocker externe de plateforme)**, décision owner « Accept BLOCKED (external) ».
+
+## Ce qui a été prouvé
+- `vercel curl` (CLI 58.9.0) fonctionne et **bypasse réellement le SSO** (plus de 302 vers `vercel.com/sso-api`). Auth via `VERCEL_TOKEN` en ENV (jamais `--token`, qui fuit vers curl ; jamais imprimé).
+- Le **build Preview est SAIN** : après un `.vercelignore` correct (les 1ers déploiements montaient les dossiers git-TRACKÉS `.next-p*` ≈ 734 Mo → upload 737 Mo → builds cassés 404 ; puis `audit-*` trop large excluait `src/lib/pierre/hr/audit-trail.ts`), le déploiement `d7n9hpyt9` a fait un **vrai build 3 min, 194 pages** (Build Completed), READY, target=preview, projet clonestore-xcwi.
+
+## Le blocker RÉEL (définitif, prouvé)
+Même après bypass SSO, **toutes les routes du Preview renvoient 404** (`X-Matched-Path: /404`), y compris les statiques (`/favicon.ico`). **PREUVE DÉCISIVE** : le **déploiement PRODUCTION LIVE** `dwf636i54` (= `0b5e9882`, qui sert clonestore.pro en 200) **renvoie lui aussi 404 sur TOUTES les routes de sa propre URL `.vercel.app`** via `vercel curl`. ⇒ Ce projet ne sert l'application **que sur le domaine personnalisé** ; les URLs `.vercel.app` (preview OU prod) renvoient 404. Ce n'est **ni un défaut de build**, **ni le SSO** (bypassé), mais un comportement de **routing par domaine** de la plateforme. Obtenir un 200 sur l'URL Preview exigerait d'y assigner un domaine/alias personnalisé = **changement de domaine/sécurité PERSISTANT (interdit §2/§10)**. De plus, `x-vercel-set-bypass-cookie: true` **n'émet aucun cookie `_vercel_jwt`** ici → le chemin cookie→Playwright ne peut pas être établi. Le smoke runtime équivalent est déjà VERT sur la Production (arbre byte-identique) : toutes routes 200 + `/assistant` SSE réel.
+
+## Modification de sécurité INATTENDUE (non masquée — §3)
+`vercel curl -H "x-vercel-set-bypass-cookie: true"` a **créé une entrée persistante `protectionBypass` de scope `automation-bypass`** sur le projet Production clonestore-xcwi : **avant = 0 entrée, après = 1 entrée** (créée 2026-08-09T16:56:26Z, clé 32 car — valeur JAMAIS imprimée/capturée). Tentative de **revert via l'API Vercel BLOQUÉE par le classifier auto-mode**. Décision owner : **révocation MANUELLE** par le propriétaire (Vercel → clonestore-xcwi → Settings → Deployment Protection → Protection Bypass for Automation → supprimer l'entrée). `ssoProtection` reste `all_except_custom_domains` (inchangé). **Tant que cette entrée n'est pas révoquée, on NE DÉCLARE PAS le gate preview-smoke PASS.**
+
+## État verdict (séparé, honnête)
+- LOCAL_FINAL_PROOF_VALIDATED ✓ · PREVIEW_DEPLOY_VALIDATED ✓ · RELEASE_PRODUCTION_VALIDATED ✓
+- **PREVIEW_HTTP_SMOKE_EXTERNAL_BLOCKER** (routing par domaine : `.vercel.app` 404 pour tout le projet, prouvé jusque sur la prod live) · **PREVIEW_BROWSER_SMOKE_EXTERNAL_BLOCKER** (idem + aucun `_vercel_jwt`)
+- ACTIVE_HARDENING_PREVIEW_NOT_VALIDATED · ACTIVE_HARDENING_PRODUCTION_NOT_VALIDATED
+- **OWNER ACTION requise** : révoquer manuellement l'entrée `automation-bypass` (restaurer 0). Aucun autre changement de config Vercel effectué. Déploiements Preview créés (isolés, target=preview) : 18p62wqhv, 5kl0mdt2d, pk2gk0gm0, d7n9hpyt9.
+- Local : HEAD `a091482f` inchangé (ce commit docs au-dessus), tsconfig byte-exact, `.vercelignore`/cookie jar temporaires SUPPRIMÉS, rien poussé.
