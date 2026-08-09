@@ -194,3 +194,49 @@ Même après bypass SSO, **toutes les routes du Preview renvoient 404** (`X-Matc
 - ACTIVE_HARDENING_PREVIEW_NOT_VALIDATED · ACTIVE_HARDENING_PRODUCTION_NOT_VALIDATED
 - **OWNER ACTION requise** : révoquer manuellement l'entrée `automation-bypass` (restaurer 0). Aucun autre changement de config Vercel effectué. Déploiements Preview créés (isolés, target=preview) : 18p62wqhv, 5kl0mdt2d, pk2gk0gm0, d7n9hpyt9.
 - Local : HEAD `a091482f` inchangé (ce commit docs au-dessus), tsconfig byte-exact, `.vercelignore`/cookie jar temporaires SUPPRIMÉS, rien poussé.
+
+---
+
+# PROTECTED PREVIEW SMOKE — RÉSOLU (bypass officiel COMPLET) — 2026-08-09
+
+**Cette section SUPERSÈDE et RETIRE le diagnostic « external blocker » ci-dessus, qui était FAUX.** Le run
+précédent n'avait utilisé que `x-vercel-set-bypass-cookie: true` SANS le header requis
+`x-vercel-protection-bypass: <secret>` ; d'où les 404 (bypass INCOMPLET), pas un routage par domaine.
+Avec le mécanisme OFFICIEL COMPLET (le secret `automation-bypass` EXISTANT, lu en mémoire, jamais loggué),
+le Preview protégé est **pleinement testable**.
+
+## Preuve A/B décisive (sans / AVEC le secret) — deployment d7n9hpyt9
+| route | SANS secret | AVEC `x-vercel-protection-bypass` |
+|---|---|---|
+| `/` | 302 → vercel.com/sso (SSO) | **200** (x-matched-path `/`) |
+| `/assistant` | 302 → SSO | **200** (`/assistant`) |
+| `/favicon.ico` | 302 → SSO | **200** (`/favicon.ico`) |
+
+⇒ le 404 précédent venait du **bypass incomplet**, PAS d'un « domain-routing Vercel ». **PREVIEW_HTTP_SMOKE_VALIDATED.**
+
+## HTTP smoke complet (avec secret) — 9/9 routes = 200
+`/` `/agents` `/agents/pierre` `/demo` `/demo/pierre` `/assistant` `/login` `/reserver/pierre` `/checkout` → **200** (x-matched-path correct, aucun SSO). Headers de bypass jamais affichés.
+
+## Browser smoke (Playwright, config TEMPORAIRE HORS repo, secret via ENV) — 16/16
+8 routes × {desktop 1440×900, mobile 390×844} = **16/16 passés**. `extraHTTPHeaders: x-vercel-protection-bypass (env) + x-vercel-set-bypass-cookie: true`. Prouvé : app CloneStore RÉELLE rendue (jamais la page Vercel Auth/SSO), body visible, `/assistant` textarea visible, **0 pageerror / 0 hydration / 0 HTTP 5xx / 0 console error inattendue**. Aucun mock réseau, aucun remplacement de `/api/assistant/chat`.
+
+## Assistant Preview (§7)
+1 question publique courte via bypass → **HTTP 200**, `source: clonechat_unified_unavailable` (fallback HONNÊTE : le Preview n'a pas d'`OPENAI_API_KEY`/`DATABASE_URL` en scope preview → aucune invention, aucun faux provider success, aucun secret/stack, aucun 500 brut). Aucune variable modifiée.
+
+## Sécurité restaurée (§8) — RÉVOCATION effectuée (owner-authorized)
+Le secret `automation-bypass` (créé au run précédent) a été **révoqué** via l'endpoint officiel
+`PATCH https://api.vercel.com/v1/projects/{id}/protection-bypass` body `{ "revoke": { "secret": <en mémoire>, "regenerate": false } }` → **HTTP 200, `protectionBypass: {}`**. Ré-audit : **protectionBypass entries = 0** (état initial restauré), **ssoProtection = all_except_custom_domains INCHANGÉ**. Secret jamais loggué/écrit/commité.
+
+## VERDICT PREVIEW — CAS A (validé), external-blocker RETIRÉ
+- **PREVIEW_HTTP_SMOKE_VALIDATED** ✓ · **PREVIEW_BROWSER_SMOKE_VALIDATED** ✓
+- protectionBypass final = **0** · ssoProtection inchangé · secret révoqué · aucun runtime modifié · rien poussé.
+
+## VERDICT FINAL (affirmations séparées)
+- **LOCAL_FINAL_PROOF_VALIDATED**
+- **PREVIEW_DEPLOY_VALIDATED**
+- **PREVIEW_HTTP_SMOKE_VALIDATED**
+- **PREVIEW_BROWSER_SMOKE_VALIDATED**
+- **RELEASE_PRODUCTION_VALIDATED**
+- **ACTIVE_HARDENING_PREVIEW_NOT_VALIDATED** (OPENAI_API_KEY absent scope preview)
+- **ACTIVE_HARDENING_PRODUCTION_NOT_VALIDATED** (mode off)
+⇒ **CLONECHAT BLOC 14 — PASS · CLONECHAT MASTER PROGRAM BLOC 0→14 — CLOSED.**
